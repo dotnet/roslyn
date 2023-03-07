@@ -1753,7 +1753,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/976765")]
+        [WorkItem(976765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/976765")]
         public void ConditionalMemberAccessConstrained()
         {
             var source = @"
@@ -1804,7 +1804,7 @@ System.Exception");
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
+        [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement()
         {
             var source = @"
@@ -1871,7 +1871,7 @@ print2");
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
+        [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement01()
         {
             var source = @"
@@ -1962,7 +1962,7 @@ print2");
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
+        [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement02()
         {
             var source = @"
@@ -2019,7 +2019,7 @@ print2");
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
+        [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement03()
         {
             var source = @"
@@ -4880,7 +4880,7 @@ class Program
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042288")]
+        [WorkItem(1042288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042288")]
         [Fact]
         public void Bug1042288()
         {
@@ -5115,7 +5115,7 @@ public struct MyStruct
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1103294")]
+        [WorkItem(1103294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1103294")]
         [Fact]
         public void Bug1103294_01()
         {
@@ -5163,7 +5163,7 @@ M
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1103294")]
+        [WorkItem(1103294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1103294")]
         [Fact]
         public void Bug1103294_02()
         {
@@ -5211,7 +5211,7 @@ M
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23422")]
+        [WorkItem(23422, "https://github.com/dotnet/roslyn/issues/23422")]
         [Fact]
         public void ConditionalRefLike()
         {
@@ -5262,7 +5262,7 @@ M
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_01()
         {
@@ -5338,7 +5338,7 @@ M
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_02()
         {
@@ -5385,7 +5385,7 @@ class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_03()
         {
@@ -5465,7 +5465,7 @@ M
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_04()
         {
@@ -5512,7 +5512,7 @@ class C<T>
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_05()
         {
@@ -5592,7 +5592,7 @@ M
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_06()
         {
@@ -5641,7 +5641,7 @@ unsafe class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_07()
         {
@@ -5687,7 +5687,7 @@ M
 ---");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_08()
         {
@@ -5734,7 +5734,7 @@ M
 ---");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_09()
         {
@@ -5772,7 +5772,7 @@ class C<T>
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_10()
         {
@@ -5825,7 +5825,7 @@ M
 ---");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74")]
+        [WorkItem(74, "https://github.com/dotnet/roslyn/issues/74")]
         [Fact]
         public void ConditionalInAsyncTask()
         {
@@ -5877,7 +5877,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: "12456");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/825")]
+        [WorkItem(825, "https://github.com/dotnet/roslyn/issues/825")]
         [Fact]
         public void ConditionalBoolExpr01()
         {
@@ -5914,7 +5914,7 @@ class C
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/825")]
+        [WorkItem(825, "https://github.com/dotnet/roslyn/issues/825")]
         [Fact]
         public void ConditionalBoolExpr01a()
         {
@@ -5951,8 +5951,8 @@ class C
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/825")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5662")]
+        [WorkItem(825, "https://github.com/dotnet/roslyn/issues/825")]
+        [WorkItem(5662, "https://github.com/dotnet/roslyn/issues/5662")]
         [Fact]
         public void ConditionalBoolExpr01b()
         {
@@ -6926,7 +6926,7 @@ class C
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7388")]
+        [WorkItem(7388, "https://github.com/dotnet/roslyn/issues/7388")]
         [Fact]
         public void ConditionalClassConstrained001()
         {
@@ -6976,7 +6976,7 @@ namespace ConsoleApplication9
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15670")]
+        [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
         public void ConditionalAccessOffOfUnconstrainedDefault1()
         {
             var source = @"
@@ -7035,7 +7035,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15670")]
+        [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
         public void ConditionalAccessOffOfUnconstrainedDefault2()
         {
             var source = @"
@@ -7103,7 +7103,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15670")]
+        [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
         public void ConditionalAccessOffOfInterfaceConstrainedDefault1()
         {
             var source = @"
@@ -7162,7 +7162,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15670")]
+        [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
         public void ConditionalAccessOffOfInterfaceConstrainedDefault2()
         {
             var source = @"
@@ -7220,7 +7220,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15670")]
+        [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
         public void ConditionalAccessOffOfClassConstrainedDefault1()
         {
             var source = @"
@@ -7263,7 +7263,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15670")]
+        [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
         public void ConditionalAccessOffOfClassConstrainedDefault2()
         {
             var source = @"
@@ -7433,7 +7433,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23351")]
+        [WorkItem(23351, "https://github.com/dotnet/roslyn/issues/23351")]
         public void ConditionalAccessOffConstrainedTypeParameter_Property()
         {
             var source = @"
@@ -7484,7 +7484,7 @@ False
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23351")]
+        [WorkItem(23351, "https://github.com/dotnet/roslyn/issues/23351")]
         public void ConditionalAccessOffConstrainedTypeParameter_Field()
         {
             var source = @"
@@ -7535,7 +7535,7 @@ False
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/57629")]
+        [WorkItem(57629, "https://github.com/dotnet/roslyn/issues/57629")]
         public void Issue57629()
         {
             var source = @"

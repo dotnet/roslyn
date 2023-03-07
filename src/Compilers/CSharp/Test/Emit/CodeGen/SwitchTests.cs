@@ -51,7 +51,7 @@ public class Test
                 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542298")]
+        [WorkItem(542298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542298")]
         [Fact]
         public void DefaultOnlySwitch_02()
         {
@@ -1202,7 +1202,7 @@ public class Test
             );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/740058")]
+        [WorkItem(740058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/740058")]
         [Fact]
         public void LongTypeSwitchArgumentExpressionOverflow()
         {
@@ -2246,7 +2246,7 @@ public class Test
             );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542398")]
+        [WorkItem(542398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542398")]
         [Fact]
         public void MaxValueGotoCaseExpression()
         {
@@ -2269,7 +2269,7 @@ class Program
             CompileAndVerify(text, expectedOutput: "");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543967")]
+        [WorkItem(543967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543967")]
         [Fact()]
         public void NullableAsSwitchExpression()
         {
@@ -2335,7 +2335,7 @@ class Program
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543967")]
+        [WorkItem(543967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543967")]
         [Fact()]
         public void NullableAsSwitchExpression_02()
         {
@@ -2559,7 +2559,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7625")]
+        [Fact, WorkItem(7625, "https://github.com/dotnet/roslyn/issues/7625")]
         public void SwitchOnNullableInt64WithInt32Label()
         {
             var text = @"public static class C
@@ -2600,7 +2600,7 @@ class Program
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7625")]
+        [Fact, WorkItem(7625, "https://github.com/dotnet/roslyn/issues/7625")]
         public void SwitchOnNullableWithNonConstant()
         {
             var text = @"public static class C
@@ -2629,7 +2629,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7625")]
+        [Fact, WorkItem(7625, "https://github.com/dotnet/roslyn/issues/7625")]
         public void SwitchOnNullableWithNonCompatibleType()
         {
             var text = @"public static class C
@@ -2836,7 +2836,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546632")]
+        [WorkItem(546632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546632")]
         public void StringSwitch_HashTableSwitch_01()
         {
             var text = @"using System;
@@ -3974,7 +3974,7 @@ class Test
             VerifySynthesizedStringHashMethod(compVerifier, expected: false);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544322")]
+        [WorkItem(544322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544322")]
         [Fact]
         public void StringSwitch_HashTableSwitch_03()
         {
@@ -4084,8 +4084,8 @@ class Goo
 
         #region "Implicit user defined conversion tests"
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543602")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543660")]
+        [WorkItem(543602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543602")]
+        [WorkItem(543660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543660")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_01()
         {
@@ -4125,7 +4125,7 @@ public class Test
             var verifier = CompileAndVerify(source, expectedOutput: @"0");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543660")]
+        [WorkItem(543660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543660")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_02()
         {
@@ -4166,7 +4166,7 @@ class Conv
             CompileAndVerify(text, expectedOutput: "Pass");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543660")]
+        [WorkItem(543660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543660")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_03()
         {
@@ -4300,7 +4300,7 @@ struct Conv
             CompileAndVerify(text, expectedOutput: "Pass");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_3()
         {
@@ -4337,7 +4337,7 @@ struct A
             CompileAndVerify(text, expectedOutput: "0");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_4()
         {
@@ -4374,7 +4374,7 @@ struct A
             CompileAndVerify(text, expectedOutput: "1");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_1()
         {
@@ -4417,7 +4417,7 @@ struct A
             CompileAndVerify(text, expectedOutput: "1");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_3()
         {
@@ -4462,7 +4462,7 @@ struct A
 
         #endregion
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634404")]
+        [WorkItem(634404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634404")]
         [Fact()]
         public void MissingCharsProperty()
         {
@@ -4591,7 +4591,7 @@ class Program
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642186")]
+        [WorkItem(642186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642186")]
         [Fact()]
         public void IsWarningSwitchEmit()
         {
@@ -7818,7 +7818,7 @@ public class Test
             );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913556")]
+        [WorkItem(913556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913556")]
         [Fact]
         public void DifferentStrategiesForDifferentSwitches()
         {
@@ -8062,8 +8062,8 @@ public class Test
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634404")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913556")]
+        [WorkItem(634404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634404")]
+        [WorkItem(913556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913556")]
         [Fact]
         public void LargeStringSwitchWithoutStringChars()
         {
@@ -8447,7 +8447,7 @@ public class Test
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947580")]
+        [WorkItem(947580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947580")]
         [Fact]
         public void Regress947580()
         {
@@ -8495,7 +8495,7 @@ class Program {
             );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947580")]
+        [WorkItem(947580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947580")]
         [Fact]
         public void Regress947580a()
         {
@@ -8538,7 +8538,7 @@ class Program {
             );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1035228")]
+        [WorkItem(1035228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1035228")]
         [Fact]
         public void Regress1035228()
         {
@@ -8588,7 +8588,7 @@ class Program {
             );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1035228")]
+        [WorkItem(1035228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1035228")]
         [Fact]
         public void Regress1035228a()
         {
@@ -8636,7 +8636,7 @@ class Program {
             );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/4701")]
+        [WorkItem(4701, "https://github.com/dotnet/roslyn/issues/4701")]
         [Fact]
         public void Regress4701()
         {
@@ -8717,7 +8717,7 @@ namespace ConsoleApplication1
             );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/4701")]
+        [WorkItem(4701, "https://github.com/dotnet/roslyn/issues/4701")]
         [Fact]
         public void Regress4701a()
         {
@@ -8775,7 +8775,7 @@ namespace ConsoleApplication1
 
         #region regression tests
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18859")]
+        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
         public void BoxInPatternSwitch_01()
         {
             var source = @"using System;
@@ -8834,7 +8834,7 @@ public class Program
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18859")]
+        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
         public void ExplicitNullablePatternSwitch_02()
         {
             var source = @"using System;
@@ -8914,7 +8914,7 @@ public class Program
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18859")]
+        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
         public void BoxInPatternSwitch_04()
         {
             var source = @"using System;
@@ -8977,7 +8977,7 @@ public class Program
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18859")]
+        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
         public void BoxInPatternSwitch_05()
         {
             var source = @"using System;
@@ -9050,7 +9050,7 @@ public class Program
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18859")]
+        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
         public void UnboxInPatternSwitch_06()
         {
             var source = @"using System;
@@ -9121,7 +9121,7 @@ public class Program
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18859")]
+        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
         public void UnboxInPatternSwitch_07()
         {
             var source = @"using System;
@@ -9196,7 +9196,7 @@ public class Program
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18859")]
+        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
         public void UnboxInPatternSwitch_08()
         {
             var source = @"using System;
@@ -9271,7 +9271,7 @@ public class Program
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18859")]
+        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
         public void UnoxInPatternSwitch_09()
         {
             var source = @"using System;
@@ -9350,7 +9350,7 @@ public class Program
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18859")]
+        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
         public void BoxInPatternIf_02()
         {
             var source = @"using System;
@@ -9408,7 +9408,7 @@ public class Program
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16195")]
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
         public void TestMatchWithTypeParameter_01()
         {
             var source =
@@ -9540,7 +9540,7 @@ class Program
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16195")]
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
         public void TestMatchWithTypeParameter_02()
         {
             var source =
@@ -9689,7 +9689,7 @@ class Program
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16195")]
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
         public void TestMatchWithTypeParameter_03()
         {
             var source =
@@ -9724,7 +9724,7 @@ class Program
                 expectedOutput: "2300");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16195")]
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
         public void TestMatchWithTypeParameter_04()
         {
             var source =
@@ -9776,7 +9776,7 @@ class X : B { }
                 expectedOutput: "XXBB");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16195")]
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
         public void TestMatchWithTypeParameter_05()
         {
             var source =
@@ -9831,7 +9831,7 @@ class X : B { }
                 expectedOutput: "XXBB");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16195")]
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
         public void TestMatchWithTypeParameter_06()
         {
             var source =
@@ -9886,7 +9886,7 @@ struct B : I1
                 expectedOutput: "FalseFalseTrueTrue");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16195")]
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
         public void TestMatchWithTypeParameter_07()
         {
             var source =
@@ -9980,7 +9980,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16195")]
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
         public void TestIgnoreDynamicVsObjectAndTupleElementNames_02()
         {
             var source =
@@ -10094,7 +10094,7 @@ Generic<object>.Color.Red");
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16129")]
+        [Fact, WorkItem(16129, "https://github.com/dotnet/roslyn/issues/16129")]
         public void ExactPatternMatch()
         {
             var source =
@@ -10140,7 +10140,7 @@ class C
             );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/19280")]
+        [WorkItem(19280, "https://github.com/dotnet/roslyn/issues/19280")]
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ShareLikeKindedTemps_01()
         {
@@ -10488,7 +10488,7 @@ expectedIL: @"{
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/19280")]
+        [WorkItem(19280, "https://github.com/dotnet/roslyn/issues/19280")]
         public void TestSignificanceOfDynamicVersusObjectAndTupleNamesInUniquenessOfPatternMatchingTemps()
         {
             var source =
@@ -10585,7 +10585,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39564")]
+        [WorkItem(39564, "https://github.com/dotnet/roslyn/issues/39564")]
         public void OrderOfEvaluationOfTupleAsSwitchExpressionArgument()
         {
             var source =
@@ -10768,7 +10768,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/41502")]
+        [WorkItem(41502, "https://github.com/dotnet/roslyn/issues/41502")]
         public void PatternSwitchDagReduction_01()
         {
             var source =

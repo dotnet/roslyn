@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class ScriptSemanticsTests
         Inherits BasicTestBase
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530404")>
+        <WorkItem(530404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530404")>
         <Fact>
         Public Sub DiagnosticsPass()
             Dim source0 = "
@@ -36,7 +36,7 @@ F(Function()
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/10023")>
+        <WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")>
         Public Sub Errors_01()
             Dim code = "System.Console.WriteLine(1)"
             Dim compilationUnit = VisualBasic.SyntaxFactory.ParseCompilationUnit(code, options:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
@@ -128,7 +128,7 @@ BC2014: the value 'Nothing' is invalid for option 'ScriptClassName'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/10023")>
+        <WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")>
         Public Sub Errors_02()
             Dim compilationUnit = VisualBasic.SyntaxFactory.ParseCompilationUnit("System.Console.WriteLine(1)", options:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
             Dim syntaxTree1 = compilationUnit.SyntaxTree

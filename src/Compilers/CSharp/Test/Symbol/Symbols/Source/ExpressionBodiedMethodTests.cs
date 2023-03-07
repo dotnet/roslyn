@@ -145,7 +145,7 @@ abstract class C
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009638")]
+        [WorkItem(1009638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009638")]
         public void Syntax07()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -156,7 +156,7 @@ public class C {
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029117")]
+        [WorkItem(1029117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029117")]
         public void Syntax08()
         {
             var comp = CreateCompilationWithMscorlib45(@"

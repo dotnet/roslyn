@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public partial class CodeGenMscorlibTests : EmitMetadataTestBase
     {
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544591")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544609")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544595")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544596")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544624")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544592")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544927")]
+        [WorkItem(544591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544591")]
+        [WorkItem(544609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544609")]
+        [WorkItem(544595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544595")]
+        [WorkItem(544596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544596")]
+        [WorkItem(544624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544624")]
+        [WorkItem(544592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544592")]
+        [WorkItem(544927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544927")]
         [Fact]
         public void CoreLibrary1()
         {
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544918")]
+        [WorkItem(544918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544918")]
         [Fact]
         public void CoreLibrary2()
         {
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             CreateCompilationWithMscorlib40(text).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546832")]
+        [WorkItem(546832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546832")]
         [Fact]
         public void CoreLibrary3()
         {
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// Report CS0518 for missing System.Void
         /// when generating synthesized .ctor.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530859")]
+        [WorkItem(530859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530859")]
         [Fact()]
         public void NoVoidForSynthesizedCtor()
         {
@@ -230,8 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// <summary>
         /// Report CS0656 for missing Decimal to int conversion.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530860")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39962")]
+        [WorkItem(530860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530860")]
+        [WorkItem(39962, "https://github.com/dotnet/roslyn/issues/39962")]
         [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39962
         public void NoDecimalConversion()
         {
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             //var verifier = CompileAndVerify(compilation2);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3593")]
+        [Fact, WorkItem(3593, "https://github.com/dotnet/roslyn/issues/3593")]
         public void NoTypedRef()
         {
             var source1 =
@@ -303,7 +303,7 @@ public class C1
 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3746")]
+        [Fact, WorkItem(3746, "https://github.com/dotnet/roslyn/issues/3746")]
         public void NoTypedRefBox()
         {
             var source1 =
@@ -340,7 +340,7 @@ public class C1
 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3746")]
+        [Fact, WorkItem(3746, "https://github.com/dotnet/roslyn/issues/3746")]
         public void NoTypedRefBox1()
         {
             var source1 =
@@ -441,7 +441,7 @@ public class C1
 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530861")]
+        [WorkItem(530861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530861")]
         [Fact]
         public void MissingStringLengthForEach()
         {
@@ -505,7 +505,7 @@ namespace System.Collections
           );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631443")]
+        [WorkItem(631443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631443")]
         [Fact]
         public void CoreLibrary4()
         {

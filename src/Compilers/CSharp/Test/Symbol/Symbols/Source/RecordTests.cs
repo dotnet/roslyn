@@ -848,7 +848,7 @@ record C(int x, int y)
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/44781")]
+        [WorkItem(44781, "https://github.com/dotnet/roslyn/issues/44781")]
         public void RecordClone2_1()
         {
             var comp = CreateCompilation(@"
@@ -860,7 +860,7 @@ record C(int x, int y)
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/44781")]
+        [WorkItem(44781, "https://github.com/dotnet/roslyn/issues/44781")]
         public void RecordClone2_2()
         {
             var comp = CreateCompilation(@"
@@ -872,7 +872,7 @@ record C(int x, int y)
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/44782")]
+        [WorkItem(44782, "https://github.com/dotnet/roslyn/issues/44782")]
         public void RecordClone3()
         {
             var comp = CreateCompilation(@"
@@ -1270,7 +1270,7 @@ data struct S2(int X, int Y);";
             );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/44781")]
+        [WorkItem(44781, "https://github.com/dotnet/roslyn/issues/44781")]
         [Fact]
         public void ClassInheritingFromRecord()
         {
@@ -1540,7 +1540,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49286")]
+        [WorkItem(49286, "https://github.com/dotnet/roslyn/issues/49286")]
         public void RecordWithEventImplicitlyImplementingAnInterface()
         {
             var src = @"
@@ -1562,7 +1562,7 @@ public record R1 : I1
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49286")]
+        [WorkItem(49286, "https://github.com/dotnet/roslyn/issues/49286")]
         public void RecordWithPropertyImplicitlyImplementingAnInterface()
         {
             var src = @"
@@ -1584,7 +1584,7 @@ public record R1 : I1
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49286")]
+        [WorkItem(49286, "https://github.com/dotnet/roslyn/issues/49286")]
         public void RecordWithMethodImplicitlyImplementingAnInterface()
         {
             var src = @"

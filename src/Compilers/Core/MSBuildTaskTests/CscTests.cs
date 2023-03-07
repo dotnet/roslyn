@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29252")]
+        [Fact, WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
         public void DisableSdkPath()
         {
             var csc = new Csc();
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40926")]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
         public void SkipAnalyzersFlag()
         {
             var csc = new Csc();
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/52467")]
+        [WorkItem(52467, "https://github.com/dotnet/roslyn/issues/52467")]
         public void UnexpectedExceptionLogsMessage()
         {
             var engine = new MockEngine();

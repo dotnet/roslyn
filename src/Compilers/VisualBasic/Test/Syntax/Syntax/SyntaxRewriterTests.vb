@@ -502,7 +502,7 @@ End Class
             Assert.Equal(expectedNewSource.Value, newRoot.ToFullString())
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991474")>
+        <WorkItem(991474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991474")>
         <Fact>
         Public Sub ReturnNothingFromStructuredTriviaRoot_Succeeds()
             Dim Text =
@@ -523,7 +523,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/22010")>
+        <WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")>
         Public Sub TestReplaceNodeShouldNotLoseParseOptions()
             Dim tree = SyntaxFactory.ParseSyntaxTree("System.Console.Write(""Before"")", TestOptions.Script)
             Assert.Equal(SourceCodeKind.Script, tree.Options.Kind)
@@ -539,7 +539,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/22010")>
+        <WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")>
         Public Sub TestReplaceNodeInListShouldNotLoseParseOptions()
 
             Dim tree = SyntaxFactory.ParseSyntaxTree("m(a, b)", TestOptions.Script)
@@ -558,7 +558,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/22010")>
+        <WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")>
         Public Sub TestInsertNodeShouldNotLoseParseOptions()
 
             Dim tree = SyntaxFactory.ParseSyntaxTree("m(a, b)", TestOptions.Script)
@@ -585,7 +585,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/22010")>
+        <WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")>
         Public Sub TestReplaceTokenShouldNotLoseParseOptions()
 
             Dim tree = SyntaxFactory.ParseSyntaxTree("Private Class C  ", options:=TestOptions.Script)
@@ -605,7 +605,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/22010")>
+        <WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")>
         Public Sub TestInsertTokenShouldNotLoseParseOptions()
 
             Dim tree = SyntaxFactory.ParseSyntaxTree("Public Class C" & vbCrLf & "End Class", options:=TestOptions.Script)
@@ -629,7 +629,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/22010")>
+        <WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")>
         Public Sub TestReplaceTriviaShouldNotLoseParseOptions()
 
             Dim tree = SyntaxFactory.ParseSyntaxTree("Dim identifier 'c", options:=TestOptions.Script)
@@ -656,7 +656,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/22010")>
+        <WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")>
         Public Sub TestInsertTriviaShouldNotLoseParseOptions()
 
             Dim tree = SyntaxFactory.ParseSyntaxTree("Dim identifier 'c", options:=TestOptions.Script)
@@ -678,7 +678,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/22010")>
+        <WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")>
         Public Sub TestRemoveNodeShouldNotLoseParseOptions()
 
             Dim tree = SyntaxFactory.ParseSyntaxTree("Private Class C" & vbCrLf & "End Class", options:=TestOptions.Script)
@@ -691,7 +691,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/22010")>
+        <WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")>
         Public Sub TestNormalizeWhitespaceShouldNotLoseParseOptions()
 
             Dim tree = SyntaxFactory.ParseSyntaxTree("Private Class C" & vbCrLf & "End Class", options:=TestOptions.Script)

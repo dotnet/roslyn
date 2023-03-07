@@ -223,7 +223,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14785")]
+        [Fact, WorkItem(14785, "https://github.com/dotnet/roslyn/issues/14785")]
         public void IsPatternPrecedence_1()
         {
             UsingNode(SyntaxFactory.ParseExpression("A is B < C, D > [ ]"));
@@ -268,7 +268,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14785")]
+        [Fact, WorkItem(14785, "https://github.com/dotnet/roslyn/issues/14785")]
         public void IsPatternPrecedence_2()
         {
             UsingNode(SyntaxFactory.ParseExpression("A < B > C"));
@@ -296,7 +296,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14785")]
+        [Fact, WorkItem(14785, "https://github.com/dotnet/roslyn/issues/14785")]
         public void IsPatternPrecedence_3()
         {
             SyntaxFactory.ParseExpression("e is A<B> && e").GetDiagnostics().Verify();
@@ -554,7 +554,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15734")]
+        [Fact, WorkItem(15734, "https://github.com/dotnet/roslyn/issues/15734")]
         public void PatternExpressionPrecedence00()
         {
             UsingExpression("A is B << C");
@@ -584,7 +584,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15734")]
+        [Fact, WorkItem(15734, "https://github.com/dotnet/roslyn/issues/15734")]
         public void PatternExpressionPrecedence01()
         {
             UsingExpression("A is 1 << 2");
@@ -614,7 +614,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15734")]
+        [Fact, WorkItem(15734, "https://github.com/dotnet/roslyn/issues/15734")]
         public void PatternExpressionPrecedence02()
         {
             UsingExpression("A is null < B");
@@ -644,7 +644,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15734")]
+        [Fact, WorkItem(15734, "https://github.com/dotnet/roslyn/issues/15734")]
         public void PatternExpressionPrecedence02b()
         {
             UsingExpression("A is B < C");
@@ -671,7 +671,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15734")]
+        [Fact, WorkItem(15734, "https://github.com/dotnet/roslyn/issues/15734")]
         public void PatternExpressionPrecedence03()
         {
             UsingExpression("A is null == B");
@@ -701,7 +701,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15734")]
+        [Fact, WorkItem(15734, "https://github.com/dotnet/roslyn/issues/15734")]
         public void PatternExpressionPrecedence04()
         {
             UsingExpression("A is null & B");
@@ -731,7 +731,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15734")]
+        [Fact, WorkItem(15734, "https://github.com/dotnet/roslyn/issues/15734")]
         public void PatternExpressionPrecedence05()
         {
             UsingExpression("A is null && B");
@@ -761,7 +761,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15734")]
+        [Fact, WorkItem(15734, "https://github.com/dotnet/roslyn/issues/15734")]
         public void PatternExpressionPrecedence05b()
         {
             UsingExpression("A is null || B");
@@ -791,7 +791,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15734")]
+        [Fact, WorkItem(15734, "https://github.com/dotnet/roslyn/issues/15734")]
         public void PatternExpressionPrecedence06()
         {
             UsingStatement(@"switch (e) {
@@ -928,7 +928,7 @@ case null && B:
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21515")]
+        [Fact, WorkItem(21515, "https://github.com/dotnet/roslyn/issues/21515")]
         public void PatternExpressionPrecedence07()
         {
             // This should actually be error-free.
@@ -1044,7 +1044,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23100")]
+        [Fact, WorkItem(23100, "https://github.com/dotnet/roslyn/issues/23100")]
         public void ArrayOfPointer_01()
         {
             UsingExpression("A is B***",
@@ -1086,7 +1086,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23100")]
+        [Fact, WorkItem(23100, "https://github.com/dotnet/roslyn/issues/23100")]
         public void ArrayOfPointer_01b()
         {
             UsingExpression("A is B*** C");
@@ -1124,7 +1124,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23100")]
+        [Fact, WorkItem(23100, "https://github.com/dotnet/roslyn/issues/23100")]
         public void ArrayOfPointer_02()
         {
             UsingExpression("A is B***[]");
@@ -1167,7 +1167,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23100")]
+        [Fact, WorkItem(23100, "https://github.com/dotnet/roslyn/issues/23100")]
         public void ArrayOfPointer_03()
         {
             UsingExpression("A is B***[] C");
@@ -1217,7 +1217,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23100")]
+        [Fact, WorkItem(23100, "https://github.com/dotnet/roslyn/issues/23100")]
         public void ArrayOfPointer_04()
         {
             UsingExpression("(B*** C, D)");
@@ -1260,7 +1260,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23100")]
+        [Fact, WorkItem(23100, "https://github.com/dotnet/roslyn/issues/23100")]
         public void ArrayOfPointer_04b()
         {
             UsingExpression("(B*** C)");
@@ -1292,7 +1292,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23100")]
+        [Fact, WorkItem(23100, "https://github.com/dotnet/roslyn/issues/23100")]
         public void ArrayOfPointer_05()
         {
             UsingExpression("(B***[] C, D)");
@@ -1350,7 +1350,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23100")]
+        [Fact, WorkItem(23100, "https://github.com/dotnet/roslyn/issues/23100")]
         public void ArrayOfPointer_06()
         {
             UsingExpression("(D, B*** C)");
@@ -1393,7 +1393,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23100")]
+        [Fact, WorkItem(23100, "https://github.com/dotnet/roslyn/issues/23100")]
         public void ArrayOfPointer_07()
         {
             UsingExpression("(D, B***[] C)");
@@ -1451,7 +1451,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23100")]
+        [Fact, WorkItem(23100, "https://github.com/dotnet/roslyn/issues/23100")]
         public void ArrayOfPointer_08()
         {
             UsingStatement("switch (e) { case B*** C: break; }");
@@ -1503,7 +1503,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23100")]
+        [Fact, WorkItem(23100, "https://github.com/dotnet/roslyn/issues/23100")]
         public void ArrayOfPointer_09()
         {
             UsingStatement("switch (e) { case B***[] C: break; }");
@@ -2848,7 +2848,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26000")]
+        [Fact, WorkItem(26000, "https://github.com/dotnet/roslyn/issues/26000")]
         public void VarIsContextualKeywordForPatterns01()
         {
             UsingStatement("switch (e) { case var: break; }");
@@ -2884,7 +2884,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26000")]
+        [Fact, WorkItem(26000, "https://github.com/dotnet/roslyn/issues/26000")]
         public void VarIsContextualKeywordForPatterns02()
         {
             UsingStatement("if (e is var) {}");
@@ -2914,7 +2914,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26000")]
+        [Fact, WorkItem(26000, "https://github.com/dotnet/roslyn/issues/26000")]
         public void WhenAsPatternVariable01()
         {
             UsingStatement("switch (e) { case var when: break; }",
@@ -2965,7 +2965,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26000")]
+        [Fact, WorkItem(26000, "https://github.com/dotnet/roslyn/issues/26000")]
         public void WhenAsPatternVariable02()
         {
             UsingStatement("switch (e) { case K when: break; }",
@@ -6602,7 +6602,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32161")]
+        [Fact, WorkItem(32161, "https://github.com/dotnet/roslyn/issues/32161")]
         public void ParenthesizedSwitchCase()
         {
             var text = @"
@@ -7112,7 +7112,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33054")]
+        [Fact, WorkItem(33054, "https://github.com/dotnet/roslyn/issues/33054")]
         public void ParenthesizedExpressionInPattern_01()
         {
             UsingStatement(
@@ -7229,7 +7229,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33208")]
+        [Fact, WorkItem(33208, "https://github.com/dotnet/roslyn/issues/33208")]
         public void ParenthesizedExpressionInPattern_02()
         {
             UsingStatement(
@@ -7291,7 +7291,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33208")]
+        [Fact, WorkItem(33208, "https://github.com/dotnet/roslyn/issues/33208")]
         public void ParenthesizedExpressionInPattern_03()
         {
             UsingStatement(
@@ -7356,7 +7356,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33208")]
+        [Fact, WorkItem(33208, "https://github.com/dotnet/roslyn/issues/33208")]
         public void ParenthesizedExpressionInPattern_04()
         {
             UsingStatement(
@@ -7413,7 +7413,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33208")]
+        [Fact, WorkItem(33208, "https://github.com/dotnet/roslyn/issues/33208")]
         public void ParenthesizedExpressionInPattern_05()
         {
             UsingStatement(
@@ -7910,7 +7910,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32749")]
+        [Fact, WorkItem(32749, "https://github.com/dotnet/roslyn/issues/32749")]
         public void BrokenSwitchExpression_01()
         {
             UsingExpression("(e switch {)",
@@ -7936,7 +7936,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32749")]
+        [Fact, WorkItem(32749, "https://github.com/dotnet/roslyn/issues/32749")]
         public void BrokenSwitchExpression_02()
         {
             UsingExpression("(e switch {,)",
@@ -7987,7 +7987,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32749")]
+        [Fact, WorkItem(32749, "https://github.com/dotnet/roslyn/issues/32749")]
         public void BrokenSwitchExpression_03()
         {
             UsingExpression("e switch {,",
@@ -8033,7 +8033,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33675")]
+        [Fact, WorkItem(33675, "https://github.com/dotnet/roslyn/issues/33675")]
         public void ParenthesizedNamedConstantPatternInSwitchExpression()
         {
             UsingExpression("e switch { (X) => 1 }");
@@ -8070,7 +8070,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34482")]
+        [Fact, WorkItem(34482, "https://github.com/dotnet/roslyn/issues/34482")]
         public void SwitchCaseArmErrorRecovery_01()
         {
             UsingExpression("e switch { 1 => 1; 2 => 2 }",
@@ -8122,7 +8122,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34482")]
+        [Fact, WorkItem(34482, "https://github.com/dotnet/roslyn/issues/34482")]
         public void SwitchCaseArmErrorRecovery_02()
         {
             UsingExpression("e switch { 1 => 1, 2 => 2; }",
@@ -8175,7 +8175,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38121")]
+        [Fact, WorkItem(38121, "https://github.com/dotnet/roslyn/issues/38121")]
         public void GenericPropertyPattern()
         {
             UsingExpression("e is A<B> {}");
@@ -8211,7 +8211,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10492")]
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
         public void PrecedenceInversionWithDeclarationPattern()
         {
             UsingExpression("o is C c + d",
@@ -8249,7 +8249,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10492")]
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
         public void PrecedenceInversionWithRecursivePattern()
         {
             UsingExpression("o is {} + d",
@@ -9743,7 +9743,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49354")]
+        [Fact, WorkItem(49354, "https://github.com/dotnet/roslyn/issues/49354")]
         public void TypePattern_07()
         {
             UsingStatement(@"_ = e is (int) or string;",
@@ -10275,7 +10275,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10492")]
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
         public void PrecedenceInversionWithTypeTest()
         {
             UsingExpression("o is int + d",
@@ -10309,7 +10309,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10492")]
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
         public void PrecedenceInversionWithBlockLambda()
         {
             UsingExpression("() => {} + d",
@@ -10342,7 +10342,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10492")]
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
         public void PrecedenceInversionWithAnonymousMethod()
         {
             UsingExpression("delegate {} + d",
@@ -10370,7 +10370,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36515")]
+        [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
         public void OneElementPositional_01()
         {
             UsingStatement(@"_ = e is (3);",
@@ -10411,7 +10411,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36515")]
+        [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
         public void OneElementPositional_02()
         {
             UsingStatement(@"_ = e is (A);",
@@ -10452,7 +10452,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36515")]
+        [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
         public void OneElementPositional_03()
         {
             UsingStatement(@"_ = e is (int);",
@@ -10493,7 +10493,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36515")]
+        [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
         public void OneElementPositional_04()
         {
             UsingStatement(@"_ = e is (Item1: int);",
@@ -10548,7 +10548,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36515")]
+        [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
         public void OneElementPositional_05()
         {
             UsingStatement(@"_ = e is (A) x;",
@@ -10593,7 +10593,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36515")]
+        [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
         public void OneElementPositional_06()
         {
             UsingStatement(@"_ = e is ((A, A)) x;",
@@ -10666,7 +10666,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36515")]
+        [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
         public void ZeroElementPositional_01()
         {
             UsingStatement(@"_ = e is ();",
@@ -10703,7 +10703,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36515")]
+        [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
         public void ZeroElementPositional_02()
         {
             UsingStatement(@"_ = e is () x;",
@@ -10744,7 +10744,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36515")]
+        [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
         public void ZeroElementPositional_03()
         {
             UsingStatement(@"_ = e is () {};",
@@ -11392,7 +11392,7 @@ switch (e)
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42107")]
+        [WorkItem(42107, "https://github.com/dotnet/roslyn/issues/42107")]
         public void ParenthesizedRelationalPattern_01()
         {
             UsingStatement(@"_ = e is (>= 1);",
@@ -11435,7 +11435,7 @@ switch (e)
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42107")]
+        [WorkItem(42107, "https://github.com/dotnet/roslyn/issues/42107")]
         public void ParenthesizedRelationalPattern_02()
         {
             UsingStatement(@"_ = e switch { (>= 1) => 1 };",
@@ -11488,7 +11488,7 @@ switch (e)
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42107")]
+        [WorkItem(42107, "https://github.com/dotnet/roslyn/issues/42107")]
         public void ParenthesizedRelationalPattern_03()
         {
             UsingStatement(@"bool isAsciiLetter(char c) => c is (>= 'A' and <= 'Z') or (>= 'a' and <= 'z');",
@@ -11586,7 +11586,7 @@ switch (e)
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42107")]
+        [WorkItem(42107, "https://github.com/dotnet/roslyn/issues/42107")]
         public void ParenthesizedRelationalPattern_04()
         {
             UsingStatement(@"_ = e is (<= 1, >= 2);",
@@ -11762,7 +11762,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43960")]
+        [Fact, WorkItem(43960, "https://github.com/dotnet/roslyn/issues/43960")]
         public void NamespaceQualifiedEnumConstantInSwitchCase()
         {
             var source = @"switch (e) { case global::E.A: break; }";
@@ -11826,7 +11826,7 @@ switch (e)
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44019")]
+        [Fact, WorkItem(44019, "https://github.com/dotnet/roslyn/issues/44019")]
         public void NamespaceQualifiedEnumConstantInIsPattern()
         {
             var source = @"_ = e is global::E.A;";
@@ -11885,7 +11885,7 @@ switch (e)
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45757")]
+        [Fact, WorkItem(45757, "https://github.com/dotnet/roslyn/issues/45757")]
         public void IncompleteTuplePatternInPropertySubpattern()
         {
             var source = @"_ = this is Program { P1: (1,  }";
@@ -11990,7 +11990,7 @@ switch (e)
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45757")]
+        [Fact, WorkItem(45757, "https://github.com/dotnet/roslyn/issues/45757")]
         public void IncompleteTuplePattern()
         {
             var source = @"_ = i is (1,   }";
@@ -12075,7 +12075,7 @@ switch (e)
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47614")]
+        [Fact, WorkItem(47614, "https://github.com/dotnet/roslyn/issues/47614")]
         public void GenericTypeAsTypePatternInSwitchExpression()
         {
             UsingStatement(@"_ = e switch { List<X> => 1, List<Y> => 2, };",
@@ -12156,7 +12156,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48112")]
+        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
         public void NullableTypeAsTypePatternInSwitchExpression_PredefinedType()
         {
             UsingStatement(@"_ = e switch { int? => 1 };",
@@ -12206,7 +12206,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48112")]
+        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
         public void NullableTypeAsTypePatternInSwitchStatement_PredefinedType()
         {
             UsingStatement(@"switch(a) { case int?: break; }",
@@ -12251,7 +12251,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48112")]
+        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
         public void NullableTypeAsTypePatternInSwitchExpression_PredefinedType_Parenthesized()
         {
             UsingStatement(@"_ = e switch { (int?) => 1 };",
@@ -12306,7 +12306,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48112")]
+        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
         public void NullableTypeAsTypePatternInSwitchStatement_PredefinedType_Parenthesized()
         {
             UsingStatement(@"switch(a) { case (int?): break; }",
@@ -12356,7 +12356,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48112")]
+        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
         public void NullableTypeAsTypePatternInSwitchExpression()
         {
             UsingStatement(@"_ = e switch { a? => 1 };",
@@ -12407,7 +12407,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48112")]
+        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
         public void NullableTypeAsTypePatternInSwitchStatement()
         {
             UsingStatement(@"switch(a) { case a?: break; }",
@@ -12452,7 +12452,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48112")]
+        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
         public void NullableTypeAsTypePatternInSwitchExpression_Parenthesized()
         {
             UsingStatement(@"_ = e switch { (a?) => 1 };",
@@ -12507,7 +12507,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48112")]
+        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
         public void NullableTypeAsTypePatternInSwitchStatement_Parenthesized()
         {
             UsingStatement(@"switch(a) { case (a?): break; }",
@@ -12728,7 +12728,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53011")]
+        [Fact, WorkItem(53011, "https://github.com/dotnet/roslyn/issues/53011")]
         public void InvalidPropertyPattern()
         {
             UsingExpression(@"new object() is { {}: 1 }", TestOptions.RegularWithPatternCombinators,

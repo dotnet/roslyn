@@ -1371,7 +1371,7 @@ Block[B4] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
+        [Fact, WorkItem(1198816, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
         public void ImplicitObjectCreationUnconverted_ArrayIndex()
         {
             var comp = CreateCompilation("_ = new int[/*<bind>*/new(bad)/*</bind>*/];");
@@ -1391,7 +1391,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new(bad)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
+        [Fact, WorkItem(1198816, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
         public void ImplicitObjectCreationUnconverted_IfCondition()
         {
             var comp = CreateCompilation(@"
@@ -1413,7 +1413,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new(bad)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
+        [Fact, WorkItem(1198816, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
         public void ImplicitObjectCreationUnconverted_ConditionalOperator()
         {
             var source =
@@ -1441,7 +1441,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new(bad)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
+        [Fact, WorkItem(1198816, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
         public void ImplicitObjectCreationUnconverted_ConditionalOperator_Nested1()
         {
             var source =
@@ -1469,7 +1469,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new(bad)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
+        [Fact, WorkItem(1198816, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
         public void ImplicitObjectCreationUnconverted_ConditionalOperator_Nested2()
         {
             var source =
@@ -2470,7 +2470,7 @@ Block[B4] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17588")]
+        [Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")]
         public void ObjectCreationWithMemberInitializers()
         {
             string source = @"
@@ -2673,7 +2673,7 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17588")]
+        [Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")]
         public void ObjectCreationWithCollectionInitializer()
         {
             string source = @"
@@ -2732,7 +2732,7 @@ IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.In
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17588")]
+        [Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")]
         public void ObjectCreationWithNestedCollectionInitializer()
         {
             string source = @"
@@ -2812,7 +2812,7 @@ IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Co
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17588")]
+        [Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")]
         public void ObjectCreationWithMemberAndCollectionInitializers()
         {
             string source = @"
@@ -2928,7 +2928,7 @@ IObjectCreationOperation (Constructor: Class..ctor()) (OperationKind.ObjectCreat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17588")]
+        [Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")]
         public void ObjectCreationWithArrayInitializer()
         {
             string source = @"
@@ -2986,7 +2986,7 @@ IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation,
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22967")]
+        [Fact, WorkItem(22967, "https://github.com/dotnet/roslyn/issues/22967")]
         public void ObjectCreationWithInvalidInitializer()
         {
             string source = @"
@@ -3024,7 +3024,7 @@ IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation,
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22967")]
+        [Fact, WorkItem(22967, "https://github.com/dotnet/roslyn/issues/22967")]
         public void ObjectCreationWithInvalidMemberInitializer()
         {
             string source = @"
@@ -3072,7 +3072,7 @@ IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation,
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22967")]
+        [Fact, WorkItem(22967, "https://github.com/dotnet/roslyn/issues/22967")]
         public void ObjectCreationWithInvalidCollectionInitializer()
         {
             string source = @"
@@ -3125,7 +3125,7 @@ IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation,
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23154")]
+        [WorkItem(23154, "https://github.com/dotnet/roslyn/issues/23154")]
         public void ObjectCreationWithDynamicMemberInitializer_01()
         {
             string source = @"
@@ -3205,7 +3205,7 @@ IMemberInitializerOperation (OperationKind.MemberInitializer, Type: dynamic) (Sy
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23154")]
+        [WorkItem(23154, "https://github.com/dotnet/roslyn/issues/23154")]
         public void ObjectCreationWithDynamicMemberInitializer_02()
         {
             string source = @"
@@ -3261,7 +3261,7 @@ IMemberInitializerOperation (OperationKind.MemberInitializer, Type: dynamic) (Sy
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23154")]
+        [WorkItem(23154, "https://github.com/dotnet/roslyn/issues/23154")]
         public void ObjectCreationWithDynamicMemberInitializer_03()
         {
             string source = @"

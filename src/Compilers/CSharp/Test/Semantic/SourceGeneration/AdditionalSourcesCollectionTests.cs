@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [InlineData(" abc ", " abc .cs")]
         [InlineData(" abc/generated.cs")]
         [InlineData(" a/ b/ generated.cs")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/58476")]
+        [WorkItem(58476, "https://github.com/dotnet/roslyn/issues/58476")]
         public void HintName_ValidValues(string hintName, string? expectedName = null)
         {
             expectedName ??= hintName;

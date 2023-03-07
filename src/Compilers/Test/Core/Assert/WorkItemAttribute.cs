@@ -36,14 +36,5 @@ namespace Roslyn.Test.Utilities
             Id = id;
             Location = issueUri;
         }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="WorkItemAttribute"/>.
-        /// </summary>
-        /// <param name="issueUri">The URI where the work item can be viewed. This is a link to work item in the
-        /// original source.</param>
-        public WorkItemAttribute(string issueUri) : this(-1, issueUri)
-        {
-        }
     }
 }

@@ -8438,7 +8438,7 @@ End Class")
             End Using
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")>
+        <Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")>
         Public Sub HoistedAnonymousTypes1()
             Dim source0 = MarkedSource("
 Imports System
@@ -8570,7 +8570,7 @@ End Class
             diff2.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", baselineIL.Replace("<<VALUE>>", "3"))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3192")>
+        <Fact, WorkItem(3192, "https://github.com/dotnet/roslyn/issues/3192")>
         Public Sub HoistedAnonymousTypes_Complex()
             Dim source0 = MarkedSource("
 Imports System
@@ -8711,7 +8711,7 @@ End Class
             diff2.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", baselineIL.Replace("<<VALUE>>", "3"))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3192")>
+        <Fact, WorkItem(3192, "https://github.com/dotnet/roslyn/issues/3192")>
         Public Sub HoistedAnonymousTypes_Delete()
             Dim source0 = MarkedSource("
 Imports System.Linq
@@ -8818,7 +8818,7 @@ End Class
                 "C.VB$StateMachine_1_F: {$State, $Builder, $VB$ResumableLocal_x$0, $VB$ResumableLocal_y$3, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_y$2, $VB$ResumableLocal_y$1}")
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9119")>
+        <Fact, WorkItem(9119, "https://github.com/dotnet/roslyn/issues/9119")>
         Public Sub MissingIteratorStateMachineAttribute()
             Dim source0 = MarkedSource("
 Imports System
@@ -9054,7 +9054,7 @@ Namespace Microsoft.VisualBasic.CompilerServices
     End Class
 End Namespace"
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9119")>
+        <Fact, WorkItem(9119, "https://github.com/dotnet/roslyn/issues/9119")>
         Public Sub MissingAsyncStateMachineAttribute()
             Dim source0 = MarkedSource(AsyncHelpers & "
 Class C
@@ -9094,7 +9094,7 @@ End Class
                 Diagnostic(ERRID.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("Public Function F() As Task(Of Integer)", "System.Runtime.CompilerServices.AsyncStateMachineAttribute").WithLocation(15, 27))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10190")>
+        <Fact, WorkItem(10190, "https://github.com/dotnet/roslyn/issues/10190")>
         Public Sub NonAsyncToAsync()
             Dim source0 = MarkedSource(AsyncHelpers & "
 Class C

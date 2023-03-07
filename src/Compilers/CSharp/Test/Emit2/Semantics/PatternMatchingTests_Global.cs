@@ -2995,7 +2995,7 @@ class H
             VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13716")]
+        [Fact, WorkItem(13716, "https://github.com/dotnet/roslyn/issues/13716")]
         [CompilerTrait(CompilerFeature.Tuples)]
         public void GlobalCode_DeconstructionDeclarationStatement_01()
         {
@@ -7686,7 +7686,7 @@ Dummy(x12);
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16935")]
+        [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
         public void GlobalCode_Lambda_02()
         {
             var source =

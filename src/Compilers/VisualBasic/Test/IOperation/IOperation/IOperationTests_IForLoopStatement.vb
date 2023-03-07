@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_SimpleForLoopsTest()
             Dim source = <![CDATA[
 Public Class MyClass1
@@ -70,7 +70,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_SimpleForLoopsTestConversion()
             Dim source = <![CDATA[
 Option Strict Off
@@ -132,7 +132,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (Op
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ForLoopStepIsFloatNegativeVar()
             Dim source = <![CDATA[
 Option Strict On
@@ -186,7 +186,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ForLoopObject()
             Dim source = <![CDATA[
 Option Strict On
@@ -235,7 +235,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ForLoopNested()
             Dim source = <![CDATA[
 Option Strict On
@@ -338,7 +338,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ChangeOuterVarInInnerFor()
             Dim source = <![CDATA[
 Option Strict On
@@ -417,7 +417,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_InnerForRefOuterForVar()
             Dim source = <![CDATA[
 Option Strict On
@@ -492,7 +492,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ExitNestedFor()
             Dim source = <![CDATA[
 Option Strict On
@@ -564,7 +564,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_EnumAsStart()
             Dim source = <![CDATA[
 Option Strict Off
@@ -611,7 +611,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_PropertyAsStart()
             Dim source = <![CDATA[
 Option Strict Off
@@ -675,7 +675,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_FieldNameAsIteration()
             Dim source = <![CDATA[
 Option Strict Off
@@ -721,7 +721,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_SingleLine()
             Dim source = <![CDATA[
 Option Strict On
@@ -758,7 +758,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_VarDeclOutOfForeach()
             Dim source = <![CDATA[
 Option Strict On
@@ -794,7 +794,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_GetDeclaredSymbolOfForStatement()
             Dim source = <![CDATA[
 Option Strict On
@@ -840,7 +840,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ForLoopContinue()
             Dim source = <![CDATA[
 Option Strict On
@@ -902,7 +902,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ForReverse()
             Dim source = <![CDATA[
 Option Infer On
@@ -946,7 +946,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_InValid()
             Dim source = <![CDATA[
 Option Infer On
@@ -991,7 +991,7 @@ BC30337: 'For' loop control variable cannot be of type 'String' because the type
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ForCombined()
             Dim source = <![CDATA[
 Option Infer On

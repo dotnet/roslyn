@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public class LocalTests : SemanticModelTestBase
 {
-    [WorkItem("https://github.com/dotnet/roslyn/issues/59709")]
+    [WorkItem(59709, "https://github.com/dotnet/roslyn/issues/59709")]
     [Fact]
     public void ForEach()
     {
@@ -38,7 +38,7 @@ class C
         Assert.False(symbol.IsForEach()); // VB extension method works only for VB locals
     }
 
-    [WorkItem("https://github.com/dotnet/roslyn/issues/59709")]
+    [WorkItem(59709, "https://github.com/dotnet/roslyn/issues/59709")]
     [Fact]
     public void ForEachVisualBasic()
     {
@@ -66,7 +66,7 @@ End Module
         Assert.True(local.IsForEach());
     }
 
-    [WorkItem("https://github.com/dotnet/roslyn/issues/59709")]
+    [WorkItem(59709, "https://github.com/dotnet/roslyn/issues/59709")]
     [Fact]
     public void ForEachAwait()
     {
@@ -91,7 +91,7 @@ class C
         Assert.True(symbol.IsForEach);
     }
 
-    [WorkItem("https://github.com/dotnet/roslyn/issues/59709")]
+    [WorkItem(59709, "https://github.com/dotnet/roslyn/issues/59709")]
     [Fact]
     public void UsingBlock()
     {
@@ -116,7 +116,7 @@ class C
         Assert.True(symbol.IsUsing);
     }
 
-    [WorkItem("https://github.com/dotnet/roslyn/issues/59709")]
+    [WorkItem(59709, "https://github.com/dotnet/roslyn/issues/59709")]
     [Fact]
     public void UsingBlockAwait()
     {
@@ -141,7 +141,7 @@ class C
         Assert.True(symbol.IsUsing);
     }
 
-    [WorkItem("https://github.com/dotnet/roslyn/issues/59709")]
+    [WorkItem(59709, "https://github.com/dotnet/roslyn/issues/59709")]
     [Fact]
     public void UsingDeclaration()
     {

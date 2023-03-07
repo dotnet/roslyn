@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         // 1. First and subsequent spans
-        [WorkItem("https://github.com/dotnet/csharplang/issues/4747")]
+        [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
         [Fact]
         public void LineSpanDirective_Example1()
         {
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         // 2. Character offset
-        [WorkItem("https://github.com/dotnet/csharplang/issues/4747")]
+        [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
         [Fact]
         public void LineSpanDirective_Example2()
         {
@@ -278,7 +278,7 @@ void Render()
         }
 
         // 3. Razor: Single-line span
-        [WorkItem("https://github.com/dotnet/csharplang/issues/4747")]
+        [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
         [Fact]
         public void LineSpanDirective_Example3()
         {
@@ -324,7 +324,7 @@ void Render()
         }
 
         // 4. Razor: Multi-line span
-        [WorkItem("https://github.com/dotnet/csharplang/issues/4747")]
+        [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
         [Fact]
         public void LineSpanDirective_Example4()
         {
@@ -379,7 +379,7 @@ void Render()
         }
 
         // 5i. Razor: block constructs
-        [WorkItem("https://github.com/dotnet/csharplang/issues/4747")]
+        [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
         [Fact]
         public void LineSpanDirective_Example5i()
         {

@@ -58,7 +58,7 @@ my_prop = my_val
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/52469")]
+        [WorkItem(52469, "https://github.com/dotnet/roslyn/issues/52469")]
         public void ConfigWithEscapedValues()
         {
             var config = ParseConfigFile(@"is_global = true
@@ -94,7 +94,7 @@ build_metadata.Compile.ToRetrieve = ghi789
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/52469")]
+        [WorkItem(52469, "https://github.com/dotnet/roslyn/issues/52469")]
         public void CanGetSectionsWithSpecialCharacters()
         {
             var config = ParseConfigFile(@"is_global = true

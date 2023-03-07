@@ -104,7 +104,7 @@ namespace System {
             TestBuiltinType("object", "Object");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546566")]
+        [WorkItem(546566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546566")]
         [Fact]
         public void Bug16199()
         {
@@ -174,7 +174,7 @@ namespace NS
                 Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Name4").WithArguments("Name4", "NS"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527531")]
+        [WorkItem(527531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527531")]
         [Fact]
         public void InterfaceName()
         {
@@ -193,7 +193,7 @@ namespace NS
             Assert.Equal(srcSym.Interfaces()[0], metaSym.Interfaces()[0]);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527532")]
+        [WorkItem(527532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527532")]
         [Fact]
         public void BaseTypeName()
         {

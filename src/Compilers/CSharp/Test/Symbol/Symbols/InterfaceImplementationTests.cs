@@ -1179,7 +1179,7 @@ partial class Base
         /// I source, B source, D source
         /// </summary>
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
+        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         public void TestSourceMetadataImplicitImplementation1()
         {
             var csharp = @"
@@ -1231,7 +1231,7 @@ class Program
         /// I source, B metadata, D source
         /// </summary>
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
+        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         public void TestSourceMetadataImplicitImplementation3()
         {
             var csharp = @"
@@ -1302,7 +1302,7 @@ class Program
         /// I metadata, B source, D source
         /// </summary>
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
+        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         public void TestSourceMetadataImplicitImplementation5()
         {
             var csharp = @"
@@ -1358,7 +1358,7 @@ class Program
         /// I metadata, B metadata, D source
         /// </summary>
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
+        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         public void TestSourceMetadataImplicitImplementation7()
         {
             var csharp = @"
@@ -1422,7 +1422,7 @@ class Program
                 global.GetMember<NamedTypeSymbol>("Interface").GetMember<MethodSymbol>("M")));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528858")]
+        [WorkItem(528858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528858")]
         [Fact(Skip = "528858")]
         public void InconsistentTypeParameters()
         {
@@ -1441,7 +1441,7 @@ class C : I<int>.I2 { }
                 Diagnostic(ErrorCode.ERR_BogusType));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528901")]
+        [WorkItem(528901, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528901")]
         [Fact(Skip = "528901")]
         public void BaseInterfacesWithWeirdNamesCanBeImplementedThroughInterfaceInheritance()
         {
@@ -1464,7 +1464,7 @@ class C : B { }
         /// I source, B source, D source
         /// </summary>
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
+        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         public void TestSourceMetadataImplicitImplementation8()
         {
             var csharp = @"
@@ -1544,7 +1544,7 @@ class Program
                     global.GetMember<NamedTypeSymbol>("Interface").GetMember<MethodSymbol>("M")));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
+        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         [Fact]
         public void TestImplementRefParamWithOutParam()
         {
@@ -1604,7 +1604,7 @@ static class Program
         /// (See SourceNamedTypeSymbol.IsOverrideOfPossibleImplementationUnderRuntimeRules.)
         /// </summary>
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540558")]
+        [WorkItem(540558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540558")]
         public void TestCSharpClrDisagreement_NonOverride()
         {
             var text = @"
@@ -1664,7 +1664,7 @@ class C : B, I { }
         /// (See SourceNamedTypeSymbol.IsOverrideOfPossibleImplementationUnderRuntimeRules.)
         /// </summary>
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540558")]
+        [WorkItem(540558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540558")]
         public void TestCSharpClrDisagreement_Override()
         {
             var text = @"
@@ -1780,7 +1780,7 @@ class D : I
             Assert.Equal("void D.set_Item(System.Int32 x, System.Int32 value)", classD.FindImplementationForInterfaceMember(interfaceSetter).ToTestDisplayString());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528898")]
+        [WorkItem(528898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528898")]
         [ClrOnlyFact]
         public void GenericTypeWithObsoleteBangAritySuffixIsNotAvailable()
         {
@@ -1805,7 +1805,7 @@ class C : object, B.I<string>
             CompileWithCustomILSource(csharpSource, ilSource);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528913")]
+        [WorkItem(528913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528913")]
         [Fact(Skip = "528913")]
         public void StaticTypesCannotBeUsedAsTypeArgumentsInInterfacesImplementedThroughInterfaceInheritance()
         {
@@ -1823,7 +1823,7 @@ class D : C { }
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "B"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530224")]
+        [WorkItem(530224, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530224")]
         [Fact]
         public void IsMetadataVirtualBeforeForceComplete()
         {
@@ -1901,7 +1901,7 @@ class D : B, I
             Assert.Equal("NonVirtual", bridgeMethod.ImplementingMethod.Name);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530358")]
+        [WorkItem(530358, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530358")]
         [Fact]
         public void ExplicitImplementationWithoutInterfaceInName()
         {
@@ -1975,7 +1975,7 @@ class Derived : Base, I2
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530164"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531642"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531643")]
+        [WorkItem(530164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530164"), WorkItem(531642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531642"), WorkItem(531643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531643")]
         public void ImplicitImplementationOfByRefReturn()
         {
             var il = @"
@@ -2052,7 +2052,7 @@ public class D : B, I
             CreateCompilationWithILAndMscorlib40(source2, il).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547149")]
+        [WorkItem(547149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547149")]
         [Fact]
         public void BaseTypeDoesNotActuallyImplementInterface()
         {
@@ -2103,7 +2103,7 @@ class Derived2 : Base2, Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base2", "Interface.M()"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718115")]
+        [WorkItem(718115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718115")]
         [ClrOnlyFact]
         public void ExplicitlyImplementedAccessorsWithoutEvent()
         {
@@ -2227,7 +2227,7 @@ Explicit implementation
             Assert.Null(baseType.FindImplementationForInterfaceMember(interfaceEvent));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718115")]
+        [WorkItem(718115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718115")]
         [Fact]
         public void ExplicitlyImplementedParameterizedPropertyAccessor()
         {
@@ -2302,7 +2302,7 @@ public class Derived : Base, I
             Assert.Equal(derivedGetter, derivedType.FindImplementationForInterfaceMember(interfaceGetter));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/943542"), WorkItem(137, "CodePlex")]
+        [WorkItem(943542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/943542"), WorkItem(137, "CodePlex")]
         [ClrOnlyFact]
         public void Bug943542()
         {
@@ -2454,7 +2454,7 @@ get_P2");
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42340")]
+        [WorkItem(42340, "https://github.com/dotnet/roslyn/issues/42340")]
         public void Issue42340()
         {
             var text = @"
@@ -2501,7 +2501,7 @@ class OneToOneUnicodeComparer : StringComparer
 
         [Theory]
         [CombinatorialData]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/46494")]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
         public void ExplicitImplementationInBaseType_01(bool useCompilationReference)
         {
             var source0 =
@@ -2543,7 +2543,7 @@ class B<T> : A<T>, I where T : class
             ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2B, source3, "B", "I.F", "S`1[System.Object]", "S<System.Object?> A<T>.I.F()");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/46494")]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
         [Theory]
         [InlineData("dynamic", "dynamic", "dynamic", "System.Object", true)]
         [InlineData("dynamic", "dynamic", "dynamic", "System.Object", false)]
@@ -2593,7 +2593,7 @@ $@"public class A<T> : I
 
         [Theory]
         [CombinatorialData]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/46494")]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
         public void ExplicitImplementationInBaseType_03(bool useCompilationReference)
         {
             var source0 =
@@ -2635,7 +2635,7 @@ class B<T> : A<T>, I
             ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2B, source3, "B", "I.F", "1", "void A<T>.I.F(S<System.Object?> s)");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/46494")]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
         [Theory]
         [InlineData("dynamic", "dynamic", "dynamic", true)]
         [InlineData("dynamic", "dynamic", "dynamic", false)]
@@ -2712,7 +2712,7 @@ $@"public class A<T> : I
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50713")]
+        [WorkItem(50713, "https://github.com/dotnet/roslyn/issues/50713")]
         public void Issue50713_1()
         {
             var text1 = @"
@@ -2736,7 +2736,7 @@ public interface I2 : I1
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50713")]
+        [WorkItem(50713, "https://github.com/dotnet/roslyn/issues/50713")]
         public void Issue50713_2()
         {
             var text0 = @"

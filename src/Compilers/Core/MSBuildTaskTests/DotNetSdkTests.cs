@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [ConditionalFact(typeof(DotNetSdkAvailable), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/46304")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22835")]
+        [WorkItem(22835, "https://github.com/dotnet/roslyn/issues/22835")]
         public void TestSourceLink()
         {
             var sourcePackageDir = Temp.CreateDirectory().CreateDirectory("a=b, c");
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
         [ConditionalTheory(typeof(DotNetSdkAvailable))]
         [CombinatorialData]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/43476")]
+        [WorkItem(43476, "https://github.com/dotnet/roslyn/issues/43476")]
         public void InitializeSourceRootMappedPathsReturnsSourceMap(bool deterministicSourcePaths)
         {
             ProjectDir.CreateFile("Project2.csproj").WriteAllText($@"

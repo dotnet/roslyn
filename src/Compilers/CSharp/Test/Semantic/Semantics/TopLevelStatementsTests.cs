@@ -8728,7 +8728,7 @@ for (Span<int> inner = stackalloc int[10];; inner = outer)
         }
 
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1179569")]
+        [WorkItem(1179569, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1179569")]
         public void Issue1179569()
         {
             var text1 =
@@ -9651,7 +9651,7 @@ var x = 1;
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/58521")]
+        [WorkItem(58521, "https://github.com/dotnet/roslyn/issues/58521")]
         public void BindCompilationUnitInSemanticModelWhenLocalFunctionIsAtTheTop()
         {
             var source = @"
@@ -9670,7 +9670,7 @@ void F<T>(T t)
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60248")]
+        [WorkItem(60248, "https://github.com/dotnet/roslyn/issues/60248")]
         public void SpeculativeSemanticModel()
         {
             var source = @"

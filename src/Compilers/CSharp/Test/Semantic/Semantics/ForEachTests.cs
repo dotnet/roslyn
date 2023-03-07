@@ -83,7 +83,7 @@ class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540957")]
+        [WorkItem(540957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540957")]
         [Fact]
         public void TestErrorDefaultOfArrayType()
         {
@@ -1060,7 +1060,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Console").WithArguments("System.Console", "type"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
+        [WorkItem(545123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
         [Fact]
         public void TestErrorForEachLoopWithSyntaxErrors()
         {
@@ -1090,7 +1090,7 @@ public class ExtensionMethodTest
             Assert.NotEmpty(CreateCompilation(source).GetDiagnostics());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
+        [WorkItem(545123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
         [Fact]
         public void TestErrorForEachOverVoidArray1()
         {
@@ -1112,7 +1112,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { Main() }"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
+        [WorkItem(545123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
         [Fact]
         public void TestErrorForEachOverVoidArray2()
         {
@@ -1140,7 +1140,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "foreach").WithArguments("?", "int"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
+        [WorkItem(545123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
         [Fact]
         public void TestErrorForEachWithVoidIterationVariable()
         {
@@ -1166,7 +1166,7 @@ class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
+        [WorkItem(545123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
         [Fact]
         public void TestErrorForEachOverErrorTypeArray()
         {
@@ -1840,7 +1840,7 @@ interface MyEnumerator
         }
 
         // Copied from TestSuccessPatternStruct - only change is that Goo parameter is now nullable.
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544908")]
+        [WorkItem(544908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544908")]
         [Fact]
         public void TestSuccessNullableCollection()
         {
@@ -1886,7 +1886,7 @@ struct Enumerator
             Assert.Equal("Enumerable", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542193")]
+        [WorkItem(542193, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542193")]
         [Fact]
         public void ForEachStmtWithSyntaxError1()
         {
@@ -1935,7 +1935,7 @@ public class Test
             Assert.Null(boundNode.EnumeratorInfoOpt);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545489")]
+        [WorkItem(545489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545489")]
         [Fact]
         public void ForEachOnErrorTypesWithoutReferences()
         {
@@ -1957,7 +1957,7 @@ public class Test
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545489")]
+        [WorkItem(545489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545489")]
         [Fact]
         public void ForEachWithoutCorlib_Array()
         {
@@ -1977,7 +1977,7 @@ public class Test
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545489")]
+        [WorkItem(545489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545489")]
         [Fact]
         public void ForEachWithoutCorlib_String()
         {
@@ -1996,7 +1996,7 @@ public class Test
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545186")]
+        [WorkItem(545186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545186")]
         [Fact]
         public void TestForEachWithConditionalMethod()
         {
@@ -2067,7 +2067,7 @@ BaseEnumeratorImpl::MoveNext()";
                 Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new ValidBaseTest.Derived5()").WithArguments("void", "ForEachTest.ValidBaseTest.Derived5.GetEnumerator()").WithLocation(35, 31));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649809")]
+        [WorkItem(649809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649809")]
         [Fact]
         public void ArrayOfNullableOfError()
         {
@@ -2105,7 +2105,7 @@ public struct S<T> { }
             Assert.NotEmpty(CreateCompilation(source).GetDiagnostics());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667616")]
+        [WorkItem(667616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667616")]
         [Fact]
         public void PortableLibraryStringForEach()
         {
@@ -2147,7 +2147,7 @@ class C
             Assert.Equal(ConversionKind.Identity, conv.Kind);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529956")]
+        [WorkItem(529956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529956")]
         [Fact]
         public void CastArrayToIEnumerable()
         {
@@ -2199,7 +2199,7 @@ class C
             Assert.Equal(ConversionKind.Identity, loopInfo1.CurrentConversion.Kind); // Now identity.
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762179")]
+        [WorkItem(762179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762179")]
         [Fact]
         public void MissingObjectType()
         {
@@ -2231,8 +2231,8 @@ class Element
             comp.GetDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39948")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
+        [WorkItem(39948, "https://github.com/dotnet/roslyn/issues/39948")]
         [Fact]
         public void MissingNullableValue()
         {
@@ -2302,7 +2302,7 @@ class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
         public void MissingNullableValue_CSharp7()
         {
@@ -2356,7 +2356,7 @@ class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
         public void MissingIEnumerableTGetEnumerator()
         {
@@ -2404,7 +2404,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e2").WithArguments("System.Collections.IEnumerator", "MoveNext"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
         public void MissingIEnumeratorTMoveNext()
         {
@@ -2466,7 +2466,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e2").WithArguments("System.Collections.IEnumerator", "MoveNext"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
         public void MissingIEnumeratorTCurrent()
         {
@@ -2536,7 +2536,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e2").WithArguments("System.Collections.Generic.IEnumerator`1", "get_Current"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
         public void MissingIEnumeratorTCurrentGetter()
         {
@@ -2603,7 +2603,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e2").WithArguments("System.Collections.Generic.IEnumerator`1", "get_Current"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
         public void MissingIEnumerableGetEnumerator()
         {
@@ -2654,7 +2654,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e2").WithArguments("System.Collections.IEnumerator", "MoveNext"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
         public void MissingIEnumeratorMoveNext()
         {
@@ -2716,7 +2716,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e2").WithArguments("System.Collections.IEnumerator", "MoveNext"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
         public void MissingIEnumeratorCurrent()
         {
@@ -2779,7 +2779,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e2").WithArguments("System.Collections.IEnumerator", "get_Current"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
         public void MissingIEnumeratorCurrentGetter()
         {
@@ -2839,7 +2839,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e2").WithArguments("System.Collections.IEnumerator", "get_Current"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530381")]
+        [WorkItem(530381, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530381")]
         [Fact]
         public void BadCollectionCascadingErrors()
         {
@@ -2858,7 +2858,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo").WithArguments("Goo").WithLocation(6, 26));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847507")]
+        [WorkItem(847507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847507")]
         [Fact]
         public void InferIterationVariableTypeWithErrors()
         {
@@ -2895,7 +2895,7 @@ namespace System
             Assert.Equal(localSymbolType, info.Symbol);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667275")]
+        [WorkItem(667275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667275")]
         [Fact]
         public void Repro667275()
         {
@@ -2923,7 +2923,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "myObj").WithArguments("myClass<System.Collections.Generic.List<string>>", "GetEnumerator").WithLocation(14, 27));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667275")]
+        [WorkItem(667275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667275")]
         [Fact]
         public void Repro667275_Simplified()
         {
@@ -2964,7 +2964,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "d").WithArguments("Dummy", "System.Collections.IEnumerable").WithLocation(27, 25));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/963197")]
+        [WorkItem(963197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/963197")]
         [Fact]
         public void Repro963197()
         {
@@ -2990,7 +2990,7 @@ class Program
             );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11387")]
+        [WorkItem(11387, "https://github.com/dotnet/roslyn/issues/11387")]
         [Fact]
         public void StringNotIEnumerable()
         {
@@ -3305,7 +3305,7 @@ public static class Extensions
             return boundNode;
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100741")]
+        [WorkItem(1100741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100741")]
         [Fact]
         public void Bug1100741()
         {
@@ -3365,7 +3365,7 @@ internal ParentedRecursiveType<<#= templateType.RecursiveParent.TypeName #>, <#=
             Assert.Null(model.GetDeclaredSymbol(node));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1733")]
+        [Fact, WorkItem(1733, "https://github.com/dotnet/roslyn/issues/1733")]
         public void MissingBaseType()
         {
             var source1 = @"
@@ -3446,7 +3446,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/26585")]
+        [WorkItem(26585, "https://github.com/dotnet/roslyn/issues/26585")]
         public void ForEachIteratorWithCurrentRefKind_Async_Ref()
         {
             CreateCompilation(@"
@@ -3480,7 +3480,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/26585")]
+        [WorkItem(26585, "https://github.com/dotnet/roslyn/issues/26585")]
         public void ForEachIteratorWithCurrentRefKind_Async_RefReadonly()
         {
             CreateCompilation(@"
@@ -3514,7 +3514,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/26585")]
+        [WorkItem(26585, "https://github.com/dotnet/roslyn/issues/26585")]
         public void ForEachIteratorWithCurrentRefKind_Iterator_Ref()
         {
             CreateCompilation(@"
@@ -3546,7 +3546,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/26585")]
+        [WorkItem(26585, "https://github.com/dotnet/roslyn/issues/26585")]
         public void ForEachIteratorWithCurrentRefKind_Iterator_RefReadonly()
         {
             CreateCompilation(@"
@@ -3578,7 +3578,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30016")]
+        [WorkItem(30016, "https://github.com/dotnet/roslyn/issues/30016")]
         public void ForEachIteratorWithCurrentRefKind_DontPassFieldByValue()
         {
             var source = @"
@@ -3601,7 +3601,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "1");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/32334")]
+        [WorkItem(32334, "https://github.com/dotnet/roslyn/issues/32334")]
         [Fact]
         public void SuppressForEachMissingMemberErrorOnErrorType()
         {
@@ -3690,7 +3690,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/61238")]
+        [WorkItem(61238, "https://github.com/dotnet/roslyn/issues/61238")]
         public void ForEachIterator_RefAssignmentWithoutIdentityConversion()
         {
             string source = @"
@@ -3708,7 +3708,7 @@ class C2 : C {}
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/61238")]
+        [WorkItem(61238, "https://github.com/dotnet/roslyn/issues/61238")]
         public void ForEachIterator_RefReadonlyAssignmentWithoutIdentityConversion()
         {
             string source = @"
@@ -3726,7 +3726,7 @@ class C2 : C {}
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/61238")]
+        [WorkItem(61238, "https://github.com/dotnet/roslyn/issues/61238")]
         public void ForEachIterator_ReadonlySpan_RefReadonlyAssignmentWithoutIdentityConversion()
         {
             string source = @"

@@ -1136,7 +1136,7 @@ BC37238: 'T' cannot be made nullable.
 </expected>)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/23422")>
+        <WorkItem(23422, "https://github.com/dotnet/roslyn/issues/23422")>
         <Fact()>
         Public Sub ERR_CannotBeMadeNullable1_2()
 
@@ -1172,7 +1172,7 @@ BC37238: 'TypedReference' cannot be made nullable.
 </expected>)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/23422")>
+        <WorkItem(23422, "https://github.com/dotnet/roslyn/issues/23422")>
         <Fact()>
         Public Sub ERR_CannotBeMadeNullable1_3()
 
@@ -2522,7 +2522,7 @@ C1
 
         End Sub
 
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/7388")>
+        <Fact(), WorkItem(7388, "https://github.com/dotnet/roslyn/issues/7388")>
         Public Sub ConstrainedToClass()
 
             Dim compilationDef =
@@ -9769,7 +9769,7 @@ M3
 ]]>)
         End Sub
 
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4028")>
+        <Fact(), WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")>
         Public Sub ConditionalAccessToEvent_01()
 
             Dim compilationDef =
@@ -9819,7 +9819,7 @@ BC32022: 'Public Event TestEvent As Action' is an event, and cannot be called di
             Assert.False(info.CandidateSymbols.Any())
         End Sub
 
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4028")>
+        <Fact(), WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")>
         Public Sub ConditionalAccessToEvent_02()
 
             Dim compilationDef =
@@ -9853,7 +9853,7 @@ BC30205: End of statement expected.
             Assert.False(tree.GetRoot().DescendantNodes().OfType(Of ConditionalAccessExpressionSyntax)().Any())
         End Sub
 
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4028")>
+        <Fact(), WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")>
         Public Sub ConditionalAccessToEvent_03()
 
             Dim compilationDef =
@@ -9906,7 +9906,7 @@ BC30677: 'AddHandler' or 'RemoveHandler' statement event operand must be a dot-q
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4028")>
+        <Fact(), WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")>
         Public Sub ConditionalAccessToEvent_04()
 
             Dim compilationDef =
@@ -10016,7 +10016,7 @@ Block[B3] - Exit
 ]]>.Value)
         End Sub
 
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4615")>
+        <Fact(), WorkItem(4615, "https://github.com/dotnet/roslyn/issues/4615")>
         Public Sub ConditionalAndConditionalMethods()
 
             Dim compilationDef =
@@ -10082,7 +10082,7 @@ Test
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/23351")>
+        <WorkItem(23351, "https://github.com/dotnet/roslyn/issues/23351")>
         Public Sub ConditionalAccessOffConstrainedTypeParameter_Property()
 
             Dim compilationDef =
@@ -10138,7 +10138,7 @@ False
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/23351")>
+        <WorkItem(23351, "https://github.com/dotnet/roslyn/issues/23351")>
         Public Sub ConditionalAccessOffConstrainedTypeParameter_Field()
 
             Dim compilationDef =
@@ -10194,7 +10194,7 @@ False
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/40690")>
+        <WorkItem(40690, "https://github.com/dotnet/roslyn/issues/40690")>
         Public Sub ConditionalAccess_GenericExtension_ValueTuple()
             Dim compilationDef =
 <compilation>
@@ -10274,7 +10274,7 @@ End Class
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/40690")>
+        <WorkItem(40690, "https://github.com/dotnet/roslyn/issues/40690")>
         Public Sub ConditionalAccess_InstanceMethod_ValueTuple()
             Dim compilationDef =
 <compilation>
@@ -10346,7 +10346,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66152")>
+        <WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")>
         Public Sub NullableSideEffects_01()
             Dim c = CompileAndVerify(
 <compilation>
@@ -10404,7 +10404,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66152")>
+        <WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")>
         Public Sub NullableSideEffects_02()
             Dim c = CompileAndVerify(
 <compilation>
@@ -10472,7 +10472,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66152")>
+        <WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")>
         Public Sub NullableSideEffects_03()
             Dim c = CreateCompilation(
 <compilation>

@@ -543,7 +543,7 @@ End Class
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")>
+        <WorkItem(539286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")>
         <Fact>
         Public Sub Bug5181()
             Dim source =
@@ -624,7 +624,7 @@ End Class
             Assert.Equal(firstMeFSymbol.Name, "C2")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542375")>
+        <WorkItem(542375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542375")>
         <Fact>
         Public Sub ConstFieldNonConstValueAsArrayBoundary()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1410,7 +1410,7 @@ BC30799: Field 'Clazz.b' has an invalid constant value.
 </errors>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1028")>
+        <Fact, WorkItem(1028, "https://github.com/dotnet/roslyn/issues/1028")>
         Public Sub WriteOfReadonlySharedMemberOfAnotherInstantiation01()
             Dim source = <compilation>
                              <file name="a.vb">
@@ -1448,7 +1448,7 @@ BC30526: Property 'Y' is 'ReadOnly'.
 </expected>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1028")>
+        <Fact, WorkItem(1028, "https://github.com/dotnet/roslyn/issues/1028")>
         Public Sub WriteOfReadonlySharedMemberOfAnotherInstantiation02()
             CompileAndVerify(
 <compilation>

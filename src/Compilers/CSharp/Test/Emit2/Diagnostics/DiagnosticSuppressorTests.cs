@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             DiagnosticAnalyzer[] analyzers)
             => c.VerifySuppressedAndFilteredDiagnostics(analyzers);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         public void TestSuppression_CompilerSyntaxWarning()
         {
             // NOTE: Empty switch block warning is reported by the C# language parser
@@ -70,7 +70,7 @@ class C
             VerifySuppressedAndFilteredDiagnostics(compilation, analyzers);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         public void TestSuppression_CompilerSemanticWarning()
         {
             string source = @"
@@ -95,7 +95,7 @@ class C
             VerifySuppressedAndFilteredDiagnostics(compilation, analyzers);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         public void TestNoSuppression_CompilerSyntaxError()
         {
             string source = @"
@@ -113,7 +113,7 @@ class { }";
             VerifySuppressedDiagnostics(compilation, analyzers);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         public void TestNoSuppression_CompilerSemanticError()
         {
             string source = @"
@@ -134,7 +134,7 @@ class C
             VerifySuppressedDiagnostics(compilation, analyzers);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         public void TestSuppression_MultipleDiagnostics()
         {
             string source1 = @"class C1 { }";
@@ -158,7 +158,7 @@ class C
             VerifySuppressedAndFilteredDiagnostics(compilation, analyzersAndSuppressors);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         public void TestSuppression_MultipleSuppressors_SameDiagnostic()
         {
             string source = @"class C1 { }";
@@ -181,7 +181,7 @@ class C
             VerifySuppressedAndFilteredDiagnostics(compilation, analyzersAndSuppressors);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         public void TestSuppression_MultipleSuppressors_DifferentDiagnostic()
         {
             string source = @"class C1 { private readonly int f; }";
@@ -206,7 +206,7 @@ class C
             VerifySuppressedAndFilteredDiagnostics(compilation, analyzersAndSuppressors);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         public void TestNoSuppression_SpecificOptionsTurnsOffSuppressor()
         {
             string source = @"class C1 { }";
@@ -227,7 +227,7 @@ class C
             VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         public void TestSuppression_AnalyzerDiagnostics_SeveritiesAndConfigurableMatrix()
         {
             string source = @"
@@ -291,7 +291,7 @@ class C { }";
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         public void TestExceptionFromSupportedSuppressions()
         {
             string source = "class C { }";
@@ -332,8 +332,8 @@ class C { }";
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41212")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/41212")]
+        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [WorkItem(41212, "https://github.com/dotnet/roslyn/issues/41212")]
         public void TestExceptionFromSuppressor()
         {
             string source = "class C { }";
@@ -376,8 +376,8 @@ class C { }";
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41212")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/41212")]
+        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [WorkItem(41212, "https://github.com/dotnet/roslyn/issues/41212")]
         public void TestUnsupportedSuppressionReported()
         {
             string source = @"
@@ -431,8 +431,8 @@ class C { }";
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41212")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/41212")]
+        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [WorkItem(41212, "https://github.com/dotnet/roslyn/issues/41212")]
         public void TestInvalidDiagnosticSuppressionReported()
         {
             string source = @"
@@ -484,8 +484,8 @@ class C { }";
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41212")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/41212")]
+        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [WorkItem(41212, "https://github.com/dotnet/roslyn/issues/41212")]
         public void TestNonReportedDiagnosticCannotBeSuppressed()
         {
             string source = @"
@@ -536,7 +536,7 @@ class C { }";
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         public void TestProgrammaticSuppressionInfo_DiagnosticSuppressor()
         {
             string source = @"class C1 { }";
@@ -571,7 +571,7 @@ class C { }";
         }
 
         [CombinatorialData]
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/41713")]
+        [Theory, WorkItem(41713, "https://github.com/dotnet/roslyn/issues/41713")]
         public void TestCancellationDuringSuppressorExecution(bool concurrent)
         {
             string source = @"class C1 { }";

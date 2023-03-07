@@ -139,7 +139,7 @@ class C
             => CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: options, parseOptions: parseOptions);
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38961")]
+        [WorkItem(38961, "https://github.com/dotnet/roslyn/issues/38961")]
         public void LockInsideFinally()
         {
             var comp = CreateCompilationWithAsyncIterator(@"
@@ -308,7 +308,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38961")]
+        [WorkItem(38961, "https://github.com/dotnet/roslyn/issues/38961")]
         public void FinallyInsideFinally()
         {
             var comp = CreateCompilationWithAsyncIterator(@"
@@ -462,7 +462,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30566")]
+        [WorkItem(30566, "https://github.com/dotnet/roslyn/issues/30566")]
         public void AsyncIteratorBug30566()
         {
             var comp = CreateCompilationWithAsyncIterator(@"
@@ -487,7 +487,7 @@ class C
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30566")]
+        [WorkItem(30566, "https://github.com/dotnet/roslyn/issues/30566")]
         public void YieldReturnAwait1()
         {
             var comp = CreateCompilationWithAsyncIterator(@"
@@ -516,7 +516,7 @@ class C
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30566")]
+        [WorkItem(30566, "https://github.com/dotnet/roslyn/issues/30566")]
         public void YieldReturnAwait2()
         {
             var comp = CreateCompilationWithAsyncIterator(@"
@@ -671,7 +671,7 @@ class C
             Assert.True(m.IsIterator);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38201")]
+        [Fact, WorkItem(38201, "https://github.com/dotnet/roslyn/issues/38201")]
         public void ReturningIAsyncEnumerable_Misc()
         {
             string source = @"
@@ -727,7 +727,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38201")]
+        [Fact, WorkItem(38201, "https://github.com/dotnet/roslyn/issues/38201")]
         public void ReturningIAsyncEnumerable_Misc_LocalFunction()
         {
             string source = @"
@@ -1532,7 +1532,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31057")]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator()
         {
             string source = @"
@@ -1605,7 +1605,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31057")]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_CSharp73()
         {
             string source = @"
@@ -1634,7 +1634,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31057")]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_WithReturnOnly()
         {
             string source = @"
@@ -1657,7 +1657,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31057")]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void ReturningIAsyncEnumerator_WithReturn()
         {
             string source = @"
@@ -1673,7 +1673,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31057")]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_WithReturnAndAwait()
         {
             string source = @"
@@ -1697,9 +1697,9 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31057")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31113")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31608")]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
+        [WorkItem(31113, "https://github.com/dotnet/roslyn/issues/31113")]
+        [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
         public void AsyncIteratorReturningEnumerator_WithoutAsync()
         {
             string source = @"
@@ -1725,7 +1725,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31057")]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_WithReturnAfterAwait()
         {
             string source = @"
@@ -1746,7 +1746,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31552")]
+        [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
         public void AsyncIterator_WithThrowOnly()
         {
             string source = @"
@@ -1778,7 +1778,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31552")]
+        [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
         public void AsyncIteratorReturningEnumerator_WithThrowOnly()
         {
             string source = @"
@@ -1806,7 +1806,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31552")]
+        [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
         public void AsyncIteratorReturningEnumerator_WithAwaitAndThrow()
         {
             string source = @"
@@ -1828,7 +1828,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31552")]
+        [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
         public void AsyncIteratorReturningEnumerator_WithThrow_WithAwaitInLambda()
         {
             string source = @"
@@ -1857,7 +1857,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31552")]
+        [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
         public void AsyncIterator_WithEmptyBody()
         {
             string source = @"
@@ -1879,7 +1879,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31608")]
+        [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
         public void AsyncIterator_WithoutAwait()
         {
             string source = @"
@@ -1900,8 +1900,8 @@ public class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31608")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39970")]
+        [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
+        [WorkItem(39970, "https://github.com/dotnet/roslyn/issues/39970")]
         public void AsyncIterator_WithoutAwait_WithoutAsync()
         {
             string source = @"
@@ -1923,7 +1923,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31608")]
+        [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
         public void AsyncIterator_WithoutAwait_WithoutAsync_LocalFunction()
         {
             string source = @"
@@ -1947,7 +1947,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31608")]
+        [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
         public void Iterator_WithAsync()
         {
             string source = @"
@@ -1970,7 +1970,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31552")]
+        [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
         public void AsyncIteratorReturningEnumerator_WithoutBody()
         {
             string source = @"
@@ -1992,7 +1992,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31057")]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_WithoutAwait()
         {
             string source = @"
@@ -2012,7 +2012,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31057")]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_WithoutYield()
         {
             string source = @"
@@ -2069,7 +2069,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30275")]
+        [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
         public void CallingGetEnumeratorTwice()
         {
             string source = @"
@@ -2145,7 +2145,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30275")]
+        [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
         public void CallingGetEnumeratorTwice2()
         {
             string source = @"
@@ -2188,7 +2188,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30275")]
+        [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
         public void CallingGetEnumeratorTwice3()
         {
             string source = @"
@@ -2237,7 +2237,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30275")]
+        [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
         public void CallingGetEnumeratorTwice4()
         {
             string source = @"
@@ -6598,7 +6598,7 @@ public class MyEnumerable
             CompileAndVerify(comp, expectedOutput: "42 43 Long Cancelled");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_NoTokenPassedInGetAsyncEnumerator()
         {
             string source = @"
@@ -6649,7 +6649,7 @@ class C
             // IL for GetAsyncEnumerator is verified by AsyncIteratorWithAwaitCompletedAndYield already
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_NoTokenPassedInGetAsyncEnumerator_LocalFunction()
         {
             string source = @"
@@ -6701,7 +6701,7 @@ class C
             // IL for GetAsyncEnumerator is verified by AsyncIteratorWithAwaitCompletedAndYield_LocalFunction already
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_SameTokenPassedInGetAsyncEnumerator()
         {
             string source = @"
@@ -6750,7 +6750,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_DefaultTokenPassedInGetAsyncEnumerator()
         {
             string source = @"
@@ -6798,7 +6798,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_SomeTokenPassedInGetAsyncEnumerator()
         {
             string source = @"
@@ -6931,7 +6931,7 @@ class C
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_SomeTokenPassedInGetAsyncEnumerator_LocalFunction()
         {
             string source = @"
@@ -7064,7 +7064,7 @@ class C
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_SomeTokenPassedInGetAsyncEnumerator_OptionalParameter()
         {
             string source = @"
@@ -7116,7 +7116,7 @@ class C
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_SomeTokenPassedInGetAsyncEnumerator_ButNoAttribute()
         {
             string source = @"
@@ -7161,7 +7161,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "42 43 REACHED 44");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_SomeTokenPassedInGetAsyncEnumerator_ButNoAttribute_LocalFunction()
         {
             string source = @"
@@ -7207,7 +7207,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "42 43 REACHED 44");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_SomeOtherTokenPassedInGetAsyncEnumerator()
         {
             string source = @"
@@ -7267,7 +7267,7 @@ class C
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_SomeOtherTokenPassedInGetAsyncEnumerator_LocalFunction()
         {
             string source = @"
@@ -7327,7 +7327,7 @@ class C
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_TwoDefaultTokens()
         {
             string source = @"
@@ -7360,8 +7360,8 @@ class C
             CompileAndVerify(comp, expectedOutput: "1");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39961")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        [WorkItem(39961, "https://github.com/dotnet/roslyn/issues/39961")]
         public void CancellationTokenParameter_WrongParameterType()
         {
             string source = @"
@@ -7391,8 +7391,8 @@ class C
             CompileAndVerify(comp, expectedOutput: "42");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39961")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        [WorkItem(39961, "https://github.com/dotnet/roslyn/issues/39961")]
         public void CancellationTokenParameter_WrongParameterType_LocalFunction()
         {
             string source = @"
@@ -7422,7 +7422,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "42");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_AsyncEnumerator()
         {
             string source = @"
@@ -7445,7 +7445,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_IteratorMethod()
         {
             string source = @"
@@ -7466,7 +7466,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_AsyncMethod()
         {
             string source = @"
@@ -7488,7 +7488,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_RegularMethod()
         {
             string source = @"
@@ -7508,7 +7508,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_Indexer()
         {
             string source = @"
@@ -7527,8 +7527,8 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/35159")]
+        [WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        [WorkItem(35159, "https://github.com/dotnet/roslyn/issues/35159")]
         public void CancellationTokenParameter_TwoParameterHaveAttribute()
         {
             string source = @"
@@ -7551,7 +7551,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_MissingAttributeType()
         {
             string source = @"
@@ -7583,7 +7583,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_ParameterProxyUntouched()
         {
             string source = @"
@@ -7644,7 +7644,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "42 43 Cancelled 42 43 Reached 44");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_Overridding()
         {
             string source = @"
@@ -7692,7 +7692,7 @@ public class C : Base
             CompileAndVerify(comp, expectedOutput: "Reached 42");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34407")]
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_Overridding2()
         {
             string source = @"
@@ -7750,7 +7750,7 @@ public class C : Base
             CompileAndVerify(comp, expectedOutput: "42 Cancelled");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35165")]
+        [Fact, WorkItem(35165, "https://github.com/dotnet/roslyn/issues/35165")]
         public void CancellationTokenParameter_MethodWithoutBody()
         {
             string source = @"
@@ -7798,7 +7798,7 @@ public partial class C2
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35165")]
+        [Fact, WorkItem(35165, "https://github.com/dotnet/roslyn/issues/35165")]
         public void CancellationTokenParameter_LocalFunction()
         {
             string source = @"
@@ -7825,7 +7825,7 @@ public class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35166")]
+        [Fact, WorkItem(35166, "https://github.com/dotnet/roslyn/issues/35166")]
         public void CancellationTokenParameter_ParameterWithoutAttribute()
         {
             string source = @"
@@ -7892,7 +7892,7 @@ public partial class C3
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/43936")]
+        [WorkItem(43936, "https://github.com/dotnet/roslyn/issues/43936")]
         public void TryFinallyNestedInsideFinally()
         {
             var comp = CreateCompilationWithAsyncIterator(@"
@@ -7941,7 +7941,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/43936")]
+        [WorkItem(43936, "https://github.com/dotnet/roslyn/issues/43936")]
         public void TryFinallyNestedInsideFinally_WithAwaitInFinally()
         {
             var comp = CreateCompilationWithAsyncIterator(@"
@@ -7990,7 +7990,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/43936")]
+        [WorkItem(43936, "https://github.com/dotnet/roslyn/issues/43936")]
         public void TryFinallyNestedInsideFinally_WithAwaitInNestedFinally()
         {
             var comp = CreateCompilationWithAsyncIterator(@"
@@ -8038,7 +8038,7 @@ public class C
             v.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58444")]
+        [Fact, WorkItem(58444, "https://github.com/dotnet/roslyn/issues/58444")]
         public void ClearCurrentOnRegularExit()
         {
             var source = @"
@@ -8084,7 +8084,7 @@ class AsyncReader : IAsyncEnumerable<object>
             CompileAndVerify(comp, expectedOutput: "RAN RAN RAN CLEARED");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58444")]
+        [Fact, WorkItem(58444, "https://github.com/dotnet/roslyn/issues/58444")]
         public void ClearCurrentOnException()
         {
             var source = @"
@@ -8137,7 +8137,7 @@ class AsyncReader : IAsyncEnumerable<object>
             CompileAndVerify(comp, expectedOutput: "RAN RAN EXCEPTION CLEARED");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58444")]
+        [Fact, WorkItem(58444, "https://github.com/dotnet/roslyn/issues/58444")]
         public void ClearCurrentOnRegularExit_Generic()
         {
             var source = @"

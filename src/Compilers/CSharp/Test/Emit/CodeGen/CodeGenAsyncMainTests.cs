@@ -1534,7 +1534,7 @@ static class Program {
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/33542")]
+        [WorkItem(33542, "https://github.com/dotnet/roslyn/issues/33542")]
         public void AwaitInFinallyInNestedTry_01()
         {
             string source =
@@ -1779,7 +1779,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34720")]
+        [WorkItem(34720, "https://github.com/dotnet/roslyn/issues/34720")]
         public void AwaitInFinallyInNestedTry_02()
         {
             string source =

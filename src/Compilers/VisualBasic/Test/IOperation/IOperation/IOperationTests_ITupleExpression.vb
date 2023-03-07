@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits SemanticModelTestBase
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_NoConversions()
             Dim source = <![CDATA[
 Imports System
@@ -37,7 +37,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Synta
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_NoConversions_ParentVariableDeclaration()
             Dim source = <![CDATA[
 Imports System
@@ -70,7 +70,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_ImplicitConversions()
             Dim source = <![CDATA[
 Imports System
@@ -101,7 +101,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.UInt32, System.UInt32)) (Syn
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_ImplicitConversions_ParentVariableDeclaration()
             Dim source = <![CDATA[
 Imports System
@@ -140,7 +140,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_ImplicitConversionFromNull()
             Dim source = <![CDATA[
 Imports System
@@ -171,7 +171,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.UInt32, System.String)) (Syn
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_ImplicitConversionFromNull_ParentVariableDeclaration()
             Dim source = <![CDATA[
 Imports System
@@ -210,7 +210,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_NamedArguments()
             Dim source = <![CDATA[
 Option Strict Off
@@ -236,7 +236,7 @@ ITupleOperation (OperationKind.Tuple, Type: (A As System.Int32, B As System.Int3
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_NamedArguments_ParentVariableDeclaration()
             Dim source = <![CDATA[
 Option Strict Off
@@ -270,7 +270,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_NamedElementsInTupleType()
             Dim source = <![CDATA[
 Option Strict Off
@@ -296,7 +296,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Synta
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_NamedElementsInTupleType_ParentVariableDeclaration()
             Dim source = <![CDATA[
 Option Strict Off
@@ -333,7 +333,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_NamedElementsAndImplicitConversions()
             Dim source = <![CDATA[
 Option Strict Off
@@ -365,7 +365,7 @@ ITupleOperation (OperationKind.Tuple, Type: (A As System.Int16, B As System.Stri
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_NamedElementsAndImplicitConversions_ParentVariableDeclaration()
             Dim source = <![CDATA[
 Option Strict Off
@@ -405,7 +405,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_UserDefinedConversionsForArguments()
             Dim source = <![CDATA[
 Imports System
@@ -460,7 +460,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int16, c1 As System.String))
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_UserDefinedConversionsForArguments_ParentVariableDeclaration()
             Dim source = <![CDATA[
 Imports System
@@ -526,7 +526,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_UserDefinedConversionFromTupleExpression()
             Dim source = <![CDATA[
 Imports System
@@ -567,7 +567,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Object)) (Synt
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_UserDefinedConversionFromTupleExpression_ParentVariableDeclaration()
             Dim source = <![CDATA[
 Imports System
@@ -619,7 +619,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_UserDefinedConversionToTupleType()
             Dim source = <![CDATA[
 Imports System
@@ -653,7 +653,7 @@ IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Sy
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_UserDefinedConversionToTupleType_ParentVariableDeclaration()
             Dim source = <![CDATA[
 Imports System
@@ -698,7 +698,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_InvalidConversion()
             Dim source = <![CDATA[
 Class C
@@ -755,7 +755,7 @@ BC30311: Value of type 'C' cannot be converted to 'Short'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")>
+        <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_InvalidConversion_ParentVariableDeclaration()
             Dim source = <![CDATA[
 Class C

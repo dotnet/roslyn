@@ -1287,7 +1287,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638261")]
+        [WorkItem(638261, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638261")]
         public void Await15()
         {
             var source = @"
@@ -1924,7 +1924,7 @@ class Driver
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/625282")]
+        [WorkItem(625282, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/625282")]
         public void Generic05()
         {
             var source = @"
@@ -2679,7 +2679,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/564036")]
+        [WorkItem(564036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/564036")]
         public void InferFromAsyncLambda()
         {
             var source =
@@ -2715,7 +2715,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620987")]
+        [WorkItem(620987, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620987")]
         public void PrematureNull()
         {
             var source =
@@ -2780,7 +2780,7 @@ done!";
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/621705")]
+        [WorkItem(621705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/621705")]
         public void GenericAsyncLambda()
         {
             var source =
@@ -2833,7 +2833,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602028")]
+        [WorkItem(602028, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602028")]
         public void BetterConversionFromAsyncLambda()
         {
             var source =
@@ -2856,7 +2856,7 @@ class TestCase
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602206")]
+        [WorkItem(602206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602206")]
         public void ExtensionAddMethod()
         {
             var source =
@@ -2908,7 +2908,7 @@ Add 3";
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748527")]
+        [WorkItem(748527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748527")]
         public void Bug748527()
         {
             var source = @"using System.Threading.Tasks;
@@ -2946,7 +2946,7 @@ namespace A
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602216")]
+        [WorkItem(602216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602216")]
         public void AsyncMethodOnlyWritesToEnclosingStruct()
         {
             var source =
@@ -2974,7 +2974,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602246")]
+        [WorkItem(602246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602246")]
         public void Bug602246()
         {
             var source =
@@ -3002,7 +3002,7 @@ public class TestCase
             CompileAndVerify(source, expectedOutput: expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628654")]
+        [WorkItem(628654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628654")]
         [Fact]
         public void AsyncWithDynamic01()
         {
@@ -3028,7 +3028,7 @@ System.Int32[]
             CompileAndVerify(source, expectedOutput: expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640282")]
+        [WorkItem(640282, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640282")]
         [Fact]
         public void CustomAsyncWithDynamic01()
         {
@@ -3092,7 +3092,7 @@ class Driver
             CompileAndVerify(source, expectedOutput: expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840843")]
+        [WorkItem(840843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840843")]
         [Fact]
         public void MissingAsyncVoidMethodBuilder()
         {
@@ -3833,7 +3833,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12616")]
+        [WorkItem(12616, "https://github.com/dotnet/roslyn/issues/12616")]
         [Fact]
         public void AsyncTasklikeBuilderConstraints()
         {
@@ -3906,7 +3906,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868822")]
+        [WorkItem(868822, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868822")]
         public void AsyncDelegates()
         {
             var source =
@@ -4179,7 +4179,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1942")]
+        [Fact, WorkItem(1942, "https://github.com/dotnet/roslyn/issues/1942")]
         public void HoistStructure()
         {
             var source = @"
@@ -4219,7 +4219,7 @@ After 12";
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe), expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2567")]
+        [Fact, WorkItem(2567, "https://github.com/dotnet/roslyn/issues/2567")]
         public void AwaitInUsingAndForeach()
         {
             var source = @"
@@ -4254,7 +4254,7 @@ class Program
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4697")]
+        [Fact, WorkItem(4697, "https://github.com/dotnet/roslyn/issues/4697")]
         public void AwaitInObjInitializer()
         {
             var source = @"
@@ -4354,7 +4354,7 @@ System.Console.WriteLine(x);";
         /// since the static initialization of the class must be
         /// handled synchronously in the .cctor.
         /// </summary>
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5787")]
+        [WorkItem(5787, "https://github.com/dotnet/roslyn/issues/5787")]
         [Fact]
         public void AwaitInScriptStaticInitializer()
         {
@@ -4370,7 +4370,7 @@ int y = x +
                 Diagnostic(ErrorCode.ERR_BadAwaitInStaticVariableInitializer, "await System.Threading.Tasks.Task.FromResult(1)").WithLocation(2, 5));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4839")]
+        [Fact, WorkItem(4839, "https://github.com/dotnet/roslyn/issues/4839")]
         public void SwitchOnAwaitedValueAsync()
         {
             var source = @"
@@ -4402,7 +4402,7 @@ class Program
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4839")]
+        [Fact, WorkItem(4839, "https://github.com/dotnet/roslyn/issues/4839")]
         public void SwitchOnAwaitedValue()
         {
             var source = @"
@@ -4465,7 +4465,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4839")]
+        [Fact, WorkItem(4839, "https://github.com/dotnet/roslyn/issues/4839")]
         public void SwitchOnAwaitedValueString()
         {
             var source = @"
@@ -4497,7 +4497,7 @@ class Program
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4838")]
+        [Fact, WorkItem(4838, "https://github.com/dotnet/roslyn/issues/4838")]
         public void SwitchOnAwaitedValueInLoop()
         {
             var source = @"
@@ -4538,7 +4538,7 @@ class Program
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7669")]
+        [Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")]
         public void HoistUsing001()
         {
             var source = @"
@@ -4595,7 +4595,7 @@ result";
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe), expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7669")]
+        [Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")]
         public void HoistUsing002()
         {
             var source = @"
@@ -4648,7 +4648,7 @@ result";
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe), expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7669")]
+        [Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")]
         public void HoistUsing003()
         {
             var source = @"
@@ -4708,7 +4708,7 @@ result";
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe), expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9463")]
+        [Fact, WorkItem(9463, "https://github.com/dotnet/roslyn/issues/9463")]
         public void AsyncIteratorReportsDiagnosticsWhenCoreTypesAreMissing()
         {
             // Note that IAsyncStateMachine.MoveNext and IAsyncStateMachine.SetStateMachine are missing
@@ -4799,7 +4799,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await task; }").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(70, 37));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16531")]
+        [Fact, WorkItem(16531, "https://github.com/dotnet/roslyn/issues/16531")]
         public void ArityMismatch()
         {
             var source = @"
@@ -4842,7 +4842,7 @@ namespace System.Runtime.CompilerServices
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16493")]
+        [Fact, WorkItem(16493, "https://github.com/dotnet/roslyn/issues/16493")]
         public void AsyncMethodBuilderReturnsDifferentTypeThanTasklikeType()
         {
             var source = @"
@@ -4888,7 +4888,7 @@ namespace System.Runtime.CompilerServices
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16493")]
+        [Fact, WorkItem(16493, "https://github.com/dotnet/roslyn/issues/16493")]
         public void AsyncMethodBuilderReturnsDifferentTypeThanTasklikeType2()
         {
             var source = @"
@@ -4922,7 +4922,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18257")]
+        [Fact, WorkItem(18257, "https://github.com/dotnet/roslyn/issues/18257")]
         public void PatternTempsAreLongLived()
         {
             var source = @"using System;
@@ -4953,7 +4953,7 @@ public class C {
             base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18257")]
+        [Fact, WorkItem(18257, "https://github.com/dotnet/roslyn/issues/18257")]
         public void PatternTempsSpill()
         {
             // This test exercises the spilling machinery of async for pattern-matching temps
@@ -5005,7 +5005,7 @@ public class C {
             base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19831")]
+        [Fact, WorkItem(19831, "https://github.com/dotnet/roslyn/issues/19831")]
         public void CaptureAssignedInOuterFinally()
         {
             var source = @"
@@ -5051,7 +5051,7 @@ public class C {
             base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact, WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
         public void CaptureStructReceiver()
         {
             var source = @"
@@ -5090,7 +5090,7 @@ public class C {
             base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13759")]
+        [Fact, WorkItem(13759, "https://github.com/dotnet/roslyn/issues/13759")]
         public void Unnecessary_Lifted_01()
         {
             var source = @"
@@ -5256,7 +5256,7 @@ namespace Test
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13759")]
+        [Fact, WorkItem(13759, "https://github.com/dotnet/roslyn/issues/13759")]
         public void Unnecessary_Lifted_02()
         {
             var source = @"
@@ -5381,7 +5381,7 @@ namespace Test
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25991")]
+        [Fact, WorkItem(25991, "https://github.com/dotnet/roslyn/issues/25991")]
         public void CompilerCrash01()
         {
             var source =
@@ -5431,7 +5431,7 @@ namespace Test
             CompileAndVerify(source, expectedOutput: expected);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25991")]
+        [Fact, WorkItem(25991, "https://github.com/dotnet/roslyn/issues/25991")]
         public void CompilerCrash02()
         {
             var source =
@@ -5484,7 +5484,7 @@ namespace Test
             CompileAndVerify(source, expectedOutput: expected);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19905")]
+        [Fact, WorkItem(19905, "https://github.com/dotnet/roslyn/issues/19905")]
         public void FinallyEnteredFromExceptionalControlFlow()
         {
             var source = @"
@@ -5530,7 +5530,7 @@ class Driver
             base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38543")]
+        [Fact, WorkItem(38543, "https://github.com/dotnet/roslyn/issues/38543")]
         public void AsyncLambdaWithAwaitedTasksInTernary()
         {
             var source = @"
@@ -5554,7 +5554,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30956")]
+        [WorkItem(30956, "https://github.com/dotnet/roslyn/issues/30956")]
         public void GetAwaiterBoxingConversion_01()
         {
             var source =
@@ -5587,7 +5587,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30956")]
+        [WorkItem(30956, "https://github.com/dotnet/roslyn/issues/30956")]
         public void GetAwaiterBoxingConversion_02()
         {
             var source =
@@ -5619,7 +5619,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: "StructAwaitable");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40251")]
+        [Fact, WorkItem(40251, "https://github.com/dotnet/roslyn/issues/40251")]
         public void AssignRefAfterAwait()
         {
             const string source = @"
@@ -5673,7 +5673,7 @@ class IntCode
             CompileAndVerify(source, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput: "0123").VerifyDiagnostics(diags);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40251")]
+        [Fact, WorkItem(40251, "https://github.com/dotnet/roslyn/issues/40251")]
         public void AssignRefWithAwait()
         {
             const string source = @"
@@ -5706,7 +5706,7 @@ class IntCode
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30521")]
+        [WorkItem(30521, "https://github.com/dotnet/roslyn/issues/30521")]
         public void ComplexSwitchExpressionInvolvingNullCoalescingAndAwait()
         {
             var source =
@@ -5826,7 +5826,7 @@ public class C {
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46843")]
+        [Fact, WorkItem(46843, "https://github.com/dotnet/roslyn/issues/46843")]
         public void LockInAsyncMethodWithAwaitInFinally()
         {
             var source = @"

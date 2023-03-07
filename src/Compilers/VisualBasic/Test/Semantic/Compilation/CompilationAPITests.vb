@@ -174,8 +174,8 @@ BC42024: Unused local variable: 'x'.
                 </errors>)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/8360")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/9153")>
+        <WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")>
+        <WorkItem(9153, "https://github.com/dotnet/roslyn/issues/9153")>
         <Fact>
         Public Sub PublicSignWithRelativeKeyPath()
             Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
@@ -187,7 +187,7 @@ BC37257: Option 'CryptoKeyFile' must be an absolute path.
 </errors>)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/11497")>
+        <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
         <Fact>
         Public Sub PublicSignWithEmptyKeyPath()
             Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
@@ -198,7 +198,7 @@ BC37254: Public sign was specified and requires a public key, but no public key 
 </errors>)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/11497")>
+        <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
         <Fact>
         Public Sub PublicSignWithEmptyKeyPath2()
             Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
@@ -217,9 +217,9 @@ BC37257: Option 'CryptoKeyFile' must be an absolute path.
             Assert.NotNull(arg.ToString())
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538778")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537623")>
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=233669")>
+        <WorkItem(538778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538778")>
+        <WorkItem(537623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537623")>
+        <WorkItem(233669, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=233669")>
         <Fact>
         Public Sub CompilationName()
             ' report an error, rather then silently ignoring the directory
@@ -625,7 +625,7 @@ End Namespace
             Assert.Equal(0, compCollection.References.Count)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537826")>
+        <WorkItem(537826, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537826")>
         <Fact>
         Public Sub SyntreeAPITest()
 
@@ -851,7 +851,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")>
+        <WorkItem(713356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")>
         <Fact()>
         Public Sub MissedModuleA()
             Dim netModule1 = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -903,7 +903,7 @@ End Class
             CompileAndVerify(assembly, verify:=Verification.FailsILVerify)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")>
+        <WorkItem(713356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")>
         <Fact()>
         Public Sub MissedModuleB_OneError()
             Dim netModule1 = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -957,8 +957,8 @@ BC37221: Reference to 'a1.netmodule' netmodule missing.
 </errors>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718500")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716762")>
+        <WorkItem(718500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718500")>
+        <WorkItem(716762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716762")>
         <Fact()>
         Public Sub MissedModuleB_NoErrorForUnmanagedModules()
             Dim netModule1 = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -988,7 +988,7 @@ End Class
             assembly.AssertNoDiagnostics()
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715872")>
+        <WorkItem(715872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715872")>
         <Fact()>
         Public Sub MissedModuleC()
             Dim netModule1 = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1174,7 +1174,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         '' Get nonexistent Referenced Assembly Symbol
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537637")>
+        <WorkItem(537637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537637")>
         <Fact>
         Public Sub NegReference1()
             Dim comp = VisualBasicCompilation.Create("Compilation")
@@ -1186,7 +1186,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         '' Add already existing item 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537617")>
+        <WorkItem(537617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537617")>
         <Fact>
         Public Sub NegReference2()
             Dim comp = VisualBasicCompilation.Create("Compilation")
@@ -1213,7 +1213,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         '' Add a new invalid item 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537575")>
+        <WorkItem(537575, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537575")>
         <Fact>
         Public Sub NegReference3()
             Dim comp = VisualBasicCompilation.Create("Compilation")
@@ -1231,7 +1231,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         '' Replace a non-existing item with null
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537567")>
+        <WorkItem(537567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537567")>
         <Fact>
         Public Sub NegReference4()
             Dim opt = TestOptions.ReleaseExe
@@ -1251,7 +1251,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         '' Replace a non-existing item with another valid item
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537566")>
+        <WorkItem(537566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537566")>
         <Fact>
         Public Sub NegReference5()
             Dim comp = VisualBasicCompilation.Create("Compilation")
@@ -1274,7 +1274,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         '' Throw exception when add Nothing references
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537618")>
+        <WorkItem(537618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537618")>
         <Fact>
         Public Sub NegReference6()
             Dim opt = TestOptions.ReleaseExe
@@ -1283,7 +1283,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         '' Throw exception when remove Nothing references
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537621")>
+        <WorkItem(537621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537621")>
         <Fact>
         Public Sub NegReference7()
             Dim opt = TestOptions.ReleaseExe
@@ -1292,7 +1292,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         '' Add already existing item
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537576")>
+        <WorkItem(537576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537576")>
         <Fact>
         Public Sub NegSyntaxTree1()
             Dim opt = TestOptions.ReleaseExe
@@ -1303,7 +1303,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         ' Throw exception when the parameter of ContainsSyntaxTrees is null
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527256")>
+        <WorkItem(527256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527256")>
         <Fact>
         Public Sub NegContainsSyntaxTrees()
             Dim opt = TestOptions.ReleaseExe
@@ -1312,7 +1312,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         ' Throw exception when the parameter of AddReferences is CSharpCompilationReference
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537778")>
+        <WorkItem(537778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537778")>
         <Fact>
         Public Sub NegGetSymbol()
             Dim opt = TestOptions.ReleaseExe
@@ -1334,7 +1334,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         '' Throw exception when the parameter of GetSpecialType is 'SpecialType.None' 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537784")>
+        <WorkItem(537784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537784")>
         <Fact>
         Public Sub NegGetSpecialType()
             Dim comp = VisualBasicCompilation.Create("Compilation")
@@ -1448,7 +1448,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Sub
 
         <Fact()>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543211")>
+        <WorkItem(543211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543211")>
         Public Sub TreeDiagnosticsShouldNotIncludeEntryPointDiagnostics()
             Dim code1 = "Module M : Sub Main : End Sub : End Module"
             Dim code2 = "  "
@@ -1464,7 +1464,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Sub
 
         <Fact()>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543292")>
+        <WorkItem(543292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543292")>
         Public Sub CompilationNotSupported()
             Dim compilation = VisualBasicCompilation.Create("HelloWorld")
             Assert.Throws(Of NotSupportedException)(Function() compilation.DynamicType)
@@ -1505,7 +1505,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/36047")>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateArrayType_DefaultArgs()
             Dim comp = DirectCast(VisualBasicCompilation.Create(""), Compilation)
             Dim elementType = comp.GetSpecialType(SpecialType.System_Object)
@@ -1530,7 +1530,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/36047")>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateArrayType_ElementNullableAnnotation()
             Dim comp = DirectCast(VisualBasicCompilation.Create(""), Compilation)
             Dim elementType = comp.GetSpecialType(SpecialType.System_Object)
@@ -1671,7 +1671,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/36047")>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateAnonymousType_DefaultArgs()
             Dim comp = DirectCast(CreateCompilation(""), Compilation)
             Dim memberTypes = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
@@ -1700,7 +1700,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/36047")>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateAnonymousType_MemberNullableAnnotations_Empty()
             Dim comp = DirectCast(VisualBasicCompilation.Create(""), Compilation)
             Dim type = comp.CreateAnonymousTypeSymbol(ImmutableArray(Of ITypeSymbol).Empty, ImmutableArray(Of String).Empty, memberNullableAnnotations:=ImmutableArray(Of CodeAnalysis.NullableAnnotation).Empty)
@@ -1709,7 +1709,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/36047")>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateAnonymousType_MemberNullableAnnotations()
             Dim comp = DirectCast(CreateCompilation(""), Compilation)
             Dim memberTypes = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
@@ -1932,7 +1932,7 @@ end class")
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/36046")>
+        <WorkItem(36046, "https://github.com/dotnet/roslyn/issues/36046")>
         Public Sub ConstructTypeWithNullability()
             Dim source =
 "Class Pair(Of T, U)
@@ -1962,7 +1962,7 @@ End Class"
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/37310")>
+        <WorkItem(37310, "https://github.com/dotnet/roslyn/issues/37310")>
         Public Sub ConstructMethodWithNullability()
             Dim source =
 "Class Program
@@ -2084,8 +2084,8 @@ End Class
             Assert.Equal("ModuleAssemblyName", c.Assembly.Identity.Name)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/8506")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/17403")>
+        <WorkItem(8506, "https://github.com/dotnet/roslyn/issues/8506")>
+        <WorkItem(17403, "https://github.com/dotnet/roslyn/issues/17403")>
         <Fact()>
         Public Sub CrossCorlibSystemObjectReturnType_Script()
             ' MinAsyncCorlibRef corlib Is used since it provides just enough corlib type definitions
@@ -2130,7 +2130,7 @@ End Class
             Assert.Null(New VisualBasicScriptCompilationInfo(Nothing, Nothing, Nothing).WithPreviousScriptCompilation(firstCompilation).ReturnTypeOpt)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/3719")>
+        <WorkItem(3719, "https://github.com/dotnet/roslyn/issues/3719")>
         <Fact()>
         Public Sub GetEntryPoint_Script()
             Dim source = <![CDATA[System.Console.WriteLine(1)]]>
@@ -2482,7 +2482,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797640")>
+        <WorkItem(797640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797640")>
         Public Sub GetMetadataReferenceAPITest()
             Dim comp = VisualBasicCompilation.Create("Compilation")
             Dim metadata = Net451.mscorlib
@@ -2497,7 +2497,7 @@ End Class
             Assert.NotNull(reference2)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/40466")>
+        <WorkItem(40466, "https://github.com/dotnet/roslyn/issues/40466")>
         <Fact>
         Public Sub GetMetadataReference_CSharpSymbols()
             Dim comp As Compilation = CreateCompilation("")
@@ -2677,7 +2677,7 @@ End Sub
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/13925")>
+        <WorkItem(13925, "https://github.com/dotnet/roslyn/issues/13925")>
         Public Sub RemoveAllSyntaxTreesAndEmbeddedTrees_01()
             Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation>
@@ -2700,7 +2700,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/13925")>
+        <WorkItem(13925, "https://github.com/dotnet/roslyn/issues/13925")>
         Public Sub RemoveAllSyntaxTreesAndEmbeddedTrees_02()
             Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -2722,7 +2722,7 @@ End Module
             CompileAndVerify(compilation2, expectedOutput:="1")
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50696")>
+        <Fact, WorkItem(50696, "https://github.com/dotnet/roslyn/issues/50696")>
         Public Sub GetWellKnownType()
 
             Dim corlib = "

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class SyntaxBinderTests : CompilingTestBase
     {
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5419")]
+        [Fact, WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
         public void EnumBinaryOps()
         {
             string source = @"
@@ -101,7 +101,7 @@ IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: TestEnum, 
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543895")]
+        [Fact, WorkItem(543895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543895")]
         public void TestBug11947()
         {
             // Due to a long-standing bug, the native compiler allows underlying-enum with the same
@@ -1310,7 +1310,7 @@ IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: S S.op_BitwiseOr(S x, 
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/657084")]
+        [Fact, WorkItem(657084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/657084")]
         [CompilerTrait(CompilerFeature.IOperation)]
         public void DuplicateOperatorInSubclass()
         {
@@ -1355,7 +1355,7 @@ IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: ?, IsInva
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624274")]
+        [Fact, WorkItem(624274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624274")]
         public void TestBinaryOperatorOverloading_Enums_Dynamic_Unambiguous()
         {
             string source = @"
@@ -1414,7 +1414,7 @@ class C<T>
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624274")]
+        [Fact, WorkItem(624274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624274")]
         [CompilerTrait(CompilerFeature.IOperation)]
         public void TestBinaryOperatorOverloading_Enums_Dynamic_Ambiguous()
         {
@@ -1443,7 +1443,7 @@ class C<T>
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624270"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624274")]
+        [WorkItem(624270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624270"), WorkItem(624274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624274")]
         public void TestBinaryOperatorOverloading_Delegates_Dynamic_Unambiguous()
         {
             string source = @"
@@ -1556,7 +1556,7 @@ IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: ?, IsInva
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624270"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624274")]
+        [WorkItem(624270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624270"), WorkItem(624274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624274")]
         public void TestBinaryOperatorOverloading_Delegates_Dynamic_Ambiguous()
         {
             string source = @"
@@ -1606,7 +1606,7 @@ class C<T>
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624270"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624274")]
+        [WorkItem(624270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624270"), WorkItem(624274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624274")]
         public void TestBinaryOperatorOverloading_Delegates_Dynamic_Ambiguous_Inference()
         {
             string source = @"
@@ -2398,7 +2398,7 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: '{ ..
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21723")]
+        [Fact, WorkItem(21723, "https://github.com/dotnet/roslyn/issues/21723")]
         public void TestCompoundLiftedAssignment_IOperation()
         {
             string source = @"
@@ -4748,7 +4748,7 @@ OPERATOR ndec   //-LiftedDecimalKIND" + Postfix;
 
         #endregion
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527598")]
+        [Fact, WorkItem(527598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527598")]
         public void UserDefinedOperatorOnPointerType()
         {
             CreateCompilation(@"
@@ -4767,7 +4767,7 @@ unsafe struct A
             // add better verification once this is implemented
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60059")]
+        [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
         public void TestNullCoalesce_Dynamic()
         {
             var source = @"
@@ -4828,7 +4828,7 @@ public class C
             compilation.GetEmitDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60059")]
+        [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
         public void TestNullCoalesce_NullableIntAndDynamic()
         {
             var source = @"
@@ -4896,7 +4896,7 @@ System.Console.Write(i ?? d);
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60059")]
+        [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
         public void TestNullCoalesce_NullableIntAndObject()
         {
             var source = @"
@@ -4933,7 +4933,7 @@ System.Console.Write(i ?? d);
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60059")]
+        [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
         public void TestNullCoalesce_NullableLongAndInt()
         {
             var source = @"
@@ -4971,7 +4971,7 @@ System.Console.Write(l ?? i);
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60059")]
+        [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
         public void TestNullCoalesce_NullableIntAndLong()
         {
             var source = @"
@@ -5009,7 +5009,7 @@ System.Console.Write(i ?? l);
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541147")]
+        [WorkItem(541147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541147")]
         [Fact]
         public void TestNullCoalesceWithMethodGroup()
         {
@@ -5028,7 +5028,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "Main ?? Main").WithArguments("??", "method group", "method group"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541149")]
+        [WorkItem(541149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541149")]
         [Fact]
         public void TestNullCoalesceWithLambda()
         {
@@ -5048,7 +5048,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "a ?? (() => { })").WithArguments("??", "System.Action<int>", "lambda expression"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541148")]
+        [WorkItem(541148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541148")]
         [Fact]
         public void TestNullCoalesceWithConstNonNullExpression()
         {
@@ -5069,7 +5069,7 @@ static class Program
             CompileAndVerify(source, expectedOutput: "A");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545631")]
+        [WorkItem(545631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545631")]
         [Fact]
         public void TestNullCoalesceWithInvalidUserDefinedConversions_01()
         {
@@ -5106,7 +5106,7 @@ class A
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545631")]
+        [WorkItem(545631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545631")]
         [Fact]
         public void TestNullCoalesceWithInvalidUserDefinedConversions_02()
         {
@@ -5143,7 +5143,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545631")]
+        [WorkItem(545631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545631")]
         [Fact]
         public void TestNullCoalesceWithInvalidUserDefinedConversions_03()
         {
@@ -5177,7 +5177,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b2 ?? a2").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A").WithLocation(8, 18));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541343")]
+        [WorkItem(541343, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541343")]
         [Fact]
         public void TestAsOperator_Bug8014()
         {
@@ -5195,7 +5195,7 @@ class Program
             CompileAndVerify(source, expectedOutput: string.Empty);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542090")]
+        [WorkItem(542090, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542090")]
         [Fact]
         public void TestAsOperatorWithImplicitConversion()
         {
@@ -5293,7 +5293,7 @@ public class X
                 Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "param").WithArguments("dynamic", "object"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537876")]
+        [WorkItem(537876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537876")]
         [Fact]
         public void TestEnumOrAssign()
         {
@@ -5317,7 +5317,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542072")]
+        [WorkItem(542072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542072")]
         [Fact]
         public void TestEnumLogicalWithLiteralZero_9042()
         {
@@ -5341,7 +5341,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542073")]
+        [WorkItem(542073, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542073")]
         [Fact]
         public void TestEnumCompoundAddition_9043()
         {
@@ -5360,7 +5360,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542086")]
+        [WorkItem(542086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542086")]
         [Fact]
         public void TestStringCompoundAddition_9146()
         {
@@ -5465,7 +5465,7 @@ class Program
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543294")]
+        [WorkItem(543294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543294")]
         [Fact()]
         public void TestAsOperatorWithTypeParameter()
         {
@@ -5503,7 +5503,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, "Main() as T").WithArguments("void", "T"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543294")]
+        [WorkItem(543294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543294")]
         [Fact()]
         public void TestIsOperatorWithTypeParameter_01()
         {
@@ -5538,7 +5538,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34679")]
+        [WorkItem(34679, "https://github.com/dotnet/roslyn/issues/34679")]
         public void TestIsOperatorWithTypeParameter_02()
         {
             var source = @"
@@ -5595,7 +5595,7 @@ M1 if
 Test if");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844635")]
+        [WorkItem(844635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844635")]
         [Fact()]
         public void TestIsOperatorWithGenericContainingType()
         {
@@ -5685,7 +5685,7 @@ class C<T> { }
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844635")]
+        [WorkItem(844635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844635")]
         [Fact()]
         public void TestIsOperatorWithTypesThatCannotUnify()
         {
@@ -5715,7 +5715,7 @@ class Outer<T>
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "s2 is Outer<T[]>.S").WithArguments("Outer<T[]>.S").WithLocation(11, 13));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844635")]
+        [WorkItem(844635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844635")]
         [Fact()]
         public void TestIsOperatorWithSpecialTypes()
         {
@@ -5807,7 +5807,7 @@ class Outer<T>
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "ts is Object").WithArguments("object").WithLocation(33, 13));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543294"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546655")]
+        [WorkItem(543294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543294"), WorkItem(546655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546655")]
         [Fact()]
         public void TestAsOperator_SpecErrorCase()
         {
@@ -5847,7 +5847,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "").VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546655")]
+        [WorkItem(546655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546655")]
         [Fact()]
         public void TestIsOperatorWithTypeParameter_Bug16461()
         {
@@ -5952,7 +5952,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "numeral is Goo2").WithArguments("Goo2"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543455")]
+        [WorkItem(543455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543455")]
         [Fact()]
         public void CS0184WRN_IsAlwaysFalse_Generic()
         {
@@ -5982,7 +5982,7 @@ public class C
                                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is C").WithArguments("C"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547011")]
+        [WorkItem(547011, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547011")]
         [Fact()]
         public void CS0184WRN_IsAlwaysFalse_IntPtr()
         {
@@ -6012,7 +6012,7 @@ public class Base
                 Diagnostic(ErrorCode.ERR_AsMustHaveReferenceType, "e as IntPtr").WithArguments("System.IntPtr"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543443")]
+        [WorkItem(543443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543443")]
         [Fact]
         public void ParamsOperators()
         {
@@ -6038,7 +6038,7 @@ public class Base
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543438")]
+        [WorkItem(543438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543438")]
         [Fact()]
         public void TestNullCoalesce_UserDefinedConversions()
         {
@@ -6063,7 +6063,7 @@ class A
             CompileAndVerify(text);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543503")]
+        [WorkItem(543503, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543503")]
         [Fact()]
         public void TestAsOperator_UserDefinedConversions()
         {
@@ -6082,7 +6082,7 @@ class C<T>
             CompileAndVerify(text);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543503")]
+        [WorkItem(543503, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543503")]
         [Fact()]
         public void TestIsOperator_UserDefinedConversions()
         {
@@ -6101,7 +6101,7 @@ class C<T>
             CompileAndVerify(text);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543483")]
+        [WorkItem(543483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543483")]
         [Fact]
         public void TestEqualityOperator_NullableStructs()
         {
@@ -6167,7 +6167,7 @@ struct S
 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "s == null").WithArguments("==", "S?", "<null>"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543432")]
+        [WorkItem(543432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543432")]
         [Fact]
         public void NoNewForOperators()
         {
@@ -6190,7 +6190,7 @@ class D {}";
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543433")]
+        [Fact(), WorkItem(543433, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543433")]
         public void ERR_NoImplicitConvCast_UserDefinedConversions()
         {
             var text =
@@ -6214,7 +6214,7 @@ class B : A
             CreateCompilation(text).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b++").WithArguments("A", "B"));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30668")]
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
         public void TestTupleOperatorIncrement()
         {
             var text = @"
@@ -6232,7 +6232,7 @@ namespace System
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30668")]
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
         public void TestTupleOperatorConvert()
         {
             var text = @"
@@ -6253,7 +6253,7 @@ namespace System
                 Diagnostic(ErrorCode.ERR_IdentityConversion, "(T1 fst, T2 snd)").WithLocation(6, 41));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30668")]
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
         public void TestTupleOperatorConvertToBaseType()
         {
             var text = @"
@@ -6274,7 +6274,7 @@ namespace System
                     Diagnostic(ErrorCode.ERR_ConversionWithBase, "ValueType").WithArguments("(T1, T2).explicit operator System.ValueType((T1, T2))").WithLocation(6, 41));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30668")]
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
         public void TestTupleBinaryOperator()
         {
             var text = @"
@@ -6292,7 +6292,7 @@ namespace System
             CreateCompilation(text).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543431")]
+        [WorkItem(543431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543431")]
         [Fact]
         public void TestEqualityOperator_DelegateTypes_01()
         {
@@ -6327,7 +6327,7 @@ False";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543431")]
+        [WorkItem(543431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543431")]
         [Fact]
         public void TestEqualityOperator_DelegateTypes_02()
         {
@@ -6367,7 +6367,7 @@ class D
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(Func<int>)(C)null == (Action)(D)null").WithArguments("==", "System.Func<int>", "System.Action"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543431")]
+        [WorkItem(543431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543431")]
         [Fact]
         public void TestEqualityOperator_DelegateTypes_03_Ambiguous()
         {
@@ -6412,7 +6412,7 @@ class D
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(C)null != (D)null").WithArguments("!=", "C", "D"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543431")]
+        [WorkItem(543431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543431")]
         [Fact]
         public void TestEqualityOperator_DelegateTypes_04_BaseTypes()
         {
@@ -6451,7 +6451,7 @@ False";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543754")]
+        [WorkItem(543754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543754")]
         [Fact]
         public void TestEqualityOperator_NullableDecimal()
         {
@@ -6472,7 +6472,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543910")]
+        [WorkItem(543910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543910")]
         [Fact]
         public void TypeParameterConstraintToGenericType()
         {
@@ -6505,7 +6505,7 @@ public class ConstrainedTestContext<T,U> where T : Gen<U>
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544490")]
+        [WorkItem(544490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544490")]
         [Fact]
         public void LiftedUserDefinedUnaryOperator()
         {
@@ -6526,7 +6526,7 @@ struct S
             CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544490")]
+        [WorkItem(544490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544490")]
         [Fact]
         public void TestDefaultOperatorEnumConstantValue()
         {
@@ -6834,7 +6834,7 @@ class op_Implicit
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "op_Implicit").WithArguments("op_Implicit"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546771")]
+        [Fact, WorkItem(546771, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546771")]
         public void TestIsNullable_Bug16777()
         {
             string source = @"
@@ -6896,7 +6896,7 @@ public struct Value
             CompileAndVerify(source: source, expectedOutput: output);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631414")]
+        [WorkItem(631414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631414")]
         [Fact]
         public void LiftedUserDefinedEquality1()
         {
@@ -6941,7 +6941,7 @@ class Program
             Assert.Equal(expectedOperator.GetPublicSymbol(), info.Symbol);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631414")]
+        [WorkItem(631414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631414")]
         [Fact]
         public void LiftedUserDefinedEquality2()
         {
@@ -6982,7 +6982,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "s1 == null").WithArguments("S1.operator ==(S1, S1)", "A"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631414")]
+        [WorkItem(631414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631414")]
         [Fact]
         public void LiftedUserDefinedEquality3()
         {
@@ -7017,7 +7017,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 == s2").WithArguments("==", "S1?", "S2?"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656739")]
+        [WorkItem(656739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656739")]
         [Fact]
         public void AmbiguousLogicalOrConversion()
         {
@@ -7060,7 +7060,7 @@ class Program
             Assert.Equal(comp.GetSpecialType(SpecialType.System_Boolean), info.ConvertedType.GetSymbol());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656739")]
+        [WorkItem(656739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656739")]
         [Fact]
         public void AmbiguousOrConversion()
         {
@@ -7094,7 +7094,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "i1 | i2").WithArguments("|", "InputParameter", "InputParameter"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656739")]
+        [WorkItem(656739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656739")]
         [Fact]
         public void DynamicAmbiguousLogicalOrConversion()
         {
@@ -7131,7 +7131,7 @@ class Program
 A");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656739")]
+        [WorkItem(656739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656739")]
         [ConditionalFact(typeof(DesktopOnly))]
         public void DynamicAmbiguousOrConversion()
         {
@@ -7178,7 +7178,7 @@ class Program
                 "Operator '|' is ambiguous on operands of type 'InputParameter' and 'InputParameter'");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656739")]
+        [WorkItem(656739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656739")]
         [Fact]
         public void UnambiguousLogicalOrConversion1()
         {
@@ -7215,7 +7215,7 @@ class Program
             Assert.Equal(comp.GetSpecialType(SpecialType.System_Boolean).GetPublicSymbol(), info.ConvertedType);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656739")]
+        [WorkItem(656739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656739")]
         [Fact]
         public void UnambiguousLogicalOrConversion2()
         {
@@ -7244,7 +7244,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "i1 || i2").WithArguments("||", "InputParameter", "InputParameter"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665002")]
+        [WorkItem(665002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665002")]
         [Fact]
         public void DedupingLiftedUserDefinedOperators()
         {
@@ -7681,7 +7681,7 @@ public class RubyTime
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39975")]
+        [WorkItem(39975, "https://github.com/dotnet/roslyn/issues/39975")]
         public void CheckedUnaryIntrinsicSymbols()
         {
             var source =
@@ -7903,7 +7903,7 @@ class Module1
         }
 
         [ConditionalFact(typeof(NoIOperationValidation))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39975")]
+        [WorkItem(39975, "https://github.com/dotnet/roslyn/issues/39975")]
         public void BinaryIntrinsicSymbols2()
         {
             BinaryOperatorKind[] operators =
@@ -8710,7 +8710,7 @@ class Module1
             }
         }
 
-        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/721565")]
+        [Fact(), WorkItem(721565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/721565")]
         public void Bug721565()
         {
             var source =
@@ -8857,7 +8857,7 @@ public static class Program
         /// &amp; and | are defined on the same type or a derived type
         /// from operators true and false only. This matches Dev12.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079034")]
+        [WorkItem(1079034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079034")]
         [Fact]
         public void UserDefinedShortCircuitingOperators_TrueAndFalseOnBaseType()
         {
@@ -8990,7 +8990,7 @@ class P
             }
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void Bug1036392_0()
         {
             string source = @"
@@ -9009,7 +9009,7 @@ enum E : short { }
             CompileAndVerify(source: source);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void Bug1036392_1()
         {
             string source = @"
@@ -9041,7 +9041,7 @@ class Test
             CompileAndVerify(source: source, expectedOutput: "implicit operator E");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void Bug1036392_2()
         {
             string source = @"
@@ -9073,7 +9073,7 @@ class Test
             CompileAndVerify(source: source, expectedOutput: "implicit operator E");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void Bug1036392_3()
         {
             string source = @"
@@ -9096,7 +9096,7 @@ enum E : short { }";
             CompileAndVerify(source: source, expectedOutput: "System.Int16");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void Bug1036392_4()
         {
             string source = @"
@@ -9128,7 +9128,7 @@ struct Test
             CompileAndVerify(source: source, expectedOutput: "implicit operator E");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void Bug1036392_5()
         {
             string source = @"
@@ -9161,7 +9161,7 @@ struct Test
             CompileAndVerify(source: source, expectedOutput: "implicit operator E");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void Bug1036392_6()
         {
             string source = @"
@@ -9184,7 +9184,7 @@ enum E : short { }";
             CompileAndVerify(source: source, expectedOutput: "System.Nullable`1[System.Int16]");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void Bug1036392_7()
         {
             string source = @"
@@ -9206,7 +9206,7 @@ class Program
             CompileAndVerify(source: source, expectedOutput: "System.Nullable`1[System.Base64FormattingOptions]");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void Bug1036392_8()
         {
             string source = @"
@@ -9228,7 +9228,7 @@ class Program
             CompileAndVerify(source: source, expectedOutput: "System.Nullable`1[System.Int32]");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void Bug1036392_9()
         {
             string source = @"
@@ -9269,7 +9269,7 @@ System.Int32
 System.Int32");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void Bug1036392_10()
         {
             string source = @"
@@ -9585,7 +9585,7 @@ System.Nullable`1[System.Int16]
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void Bug1036392_11()
         {
             string source = @"
@@ -9836,7 +9836,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void Bug1036392_12()
         {
             string source = @"
@@ -10116,7 +10116,7 @@ System.Nullable`1[System.Int32]
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void Bug1036392_13()
         {
             string source = @"
@@ -10295,7 +10295,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void Bug1036392_14()
         {
             string source = @"
@@ -10633,7 +10633,7 @@ System.Nullable`1[System.Int64]
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void Bug1036392_15()
         {
             string source = @"
@@ -10694,7 +10694,7 @@ System.Nullable`1[System.Int64]
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void Bug1036392_16()
         {
             string source = @"
@@ -10755,7 +10755,7 @@ System.Nullable`1[System.Int64]
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090786")]
+        [Fact, WorkItem(1090786, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090786")]
         public void Bug1090786_01()
         {
             string source = @"
@@ -10942,7 +10942,7 @@ False
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090786")]
+        [Fact, WorkItem(1090786, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090786")]
         public void Bug1090786_02()
         {
             string source = @"
@@ -10966,7 +10966,7 @@ False
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090786")]
+        [Fact, WorkItem(1090786, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090786")]
         public void Bug1090786_03()
         {
             string source = @"
@@ -11023,7 +11023,7 @@ False
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2075")]
+        [Fact, WorkItem(2075, "https://github.com/dotnet/roslyn/issues/2075")]
         public void NegateALiteral()
         {
             string source = @"
@@ -11046,7 +11046,7 @@ System.Int32
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4132")]
+        [Fact, WorkItem(4132, "https://github.com/dotnet/roslyn/issues/4132")]
         public void Issue4132()
         {
             string source = @"
@@ -11098,7 +11098,7 @@ operator IntHolder(int i)
 'y' is 5");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8190")]
+        [Fact, WorkItem(8190, "https://github.com/dotnet/roslyn/issues/8190")]
         public void Issue8190_1()
         {
             string source = @"
@@ -11149,7 +11149,7 @@ namespace RoslynNullableStringRepro
             CompileAndVerify(source: source, expectedOutput: "abcdef" + Environment.NewLine + "abcdef" + Environment.NewLine + "abcdef");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8190")]
+        [Fact, WorkItem(8190, "https://github.com/dotnet/roslyn/issues/8190")]
         public void Issue8190_2()
         {
             string source = @"
@@ -11199,7 +11199,7 @@ namespace RoslynNullableIntRepro
 }";
             CompileAndVerify(source: source, expectedOutput: "3" + Environment.NewLine + "3" + Environment.NewLine);
         }
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4027")]
+        [Fact, WorkItem(4027, "https://github.com/dotnet/roslyn/issues/4027")]
         public void NotSignExtendedOperand()
         {
             string source = @"
@@ -11221,7 +11221,7 @@ class MainClass
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12345")]
+        [WorkItem(12345, "https://github.com/dotnet/roslyn/issues/12345")]
         public void Bug12345()
         {
             string source = @"
@@ -11284,7 +11284,7 @@ public enum FlagsEnum
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19310")]
+        [Fact, WorkItem(19310, "https://github.com/dotnet/roslyn/issues/19310")]
         public void IsWarningWithTupleConversion()
         {
             var source =
@@ -11313,7 +11313,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21486")]
+        [Fact, WorkItem(21486, "https://github.com/dotnet/roslyn/issues/21486")]
         public void TypeOfErrorUnaryOperator()
         {
             var source =
@@ -11344,7 +11344,7 @@ public class C {
         // Attempting to call `ConstantValue` on every constituent string component realizes every string, effectively
         // replicating the original O(n^2) bug that this test is demonstrating is fixed.
         [ConditionalFact(typeof(NoIOperationValidation))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/43019"), WorkItem(529600, "DevDiv"), WorkItem("https://github.com/dotnet/roslyn/issues/7398")]
+        [WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019"), WorkItem(529600, "DevDiv"), WorkItem(7398, "https://github.com/dotnet/roslyn/issues/7398")]
         public void Bug529600()
         {
             // History of this bug:  When constant folding a long sequence of string concatentations, there is
@@ -11438,7 +11438,7 @@ class M
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39975")]
+        [Fact, WorkItem(39975, "https://github.com/dotnet/roslyn/issues/39975")]
         public void EnsureOperandsConvertedInErrorExpression_01()
         {
             string source =
@@ -11457,7 +11457,7 @@ class M
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56646")]
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
         public void LiftedUnaryOperator_InvalidTypeArgument01()
         {
             var code = @"
@@ -11480,7 +11480,7 @@ ref struct S2 {}
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56646")]
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
         public void LiftedUnaryOperator_InvalidTypeArgument02()
         {
             var code = @"
@@ -11501,7 +11501,7 @@ unsafe struct S1
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56646")]
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
         public void LiftedBinaryOperator_InvalidTypeArgument01()
         {
             var code = @"
@@ -11524,7 +11524,7 @@ public readonly ref struct S1
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56646")]
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
         public void LiftedBinaryOperator_InvalidTypeArgument02()
         {
             var code = @"
@@ -11547,7 +11547,7 @@ public readonly ref struct S1
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56646")]
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
         public void LiftedBinaryOperator_InvalidTypeArgument03()
         {
             var code = @"

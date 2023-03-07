@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SyntaxNormalizerTests
     {
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52543")]
+        [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
         public void TestNormalizePatternInIf()
         {
             TestNormalizeStatement("""
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52543")]
+        [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
         public void TestNormalizeSwitchExpression()
         {
             TestNormalizeStatement(
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52543")]
+        [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
         public void TestNormalizeSwitchRecPattern()
         {
             TestNormalizeStatement("""
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52543")]
+        [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
         public void TestNormalizeSwitchExpressionComplex()
         {
             TestNormalizeStatement("""
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeStatement(text, expected);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50742")]
+        [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
         public void TestLineBreakInterpolations()
         {
             TestNormalizeExpression("""
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50742")]
+        [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
         public void TestVerbatimStringInterpolationWithLineBreaks()
         {
             TestNormalizeStatement("""
@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59653")]
+        [Fact, WorkItem(59653, "https://github.com/dotnet/roslyn/issues/59653")]
         public void TestLambdaAttributes()
         {
             TestNormalizeExpression("( [ A ]x)=>x", "([A] x) => x");
@@ -838,7 +838,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59653")]
+        [Fact, WorkItem(59653, "https://github.com/dotnet/roslyn/issues/59653")]
         public void TestLambdaReturnType()
         {
             TestNormalizeExpression("int( x )=>x", "int (x) => x");
@@ -898,13 +898,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("int **p;", "int** p;")]
         [InlineData("int**p1,p2;", "int** p1, p2;")]
         [InlineData("int **p1, p2;", "int** p1, p2;")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49733")]
+        [WorkItem(49733, "https://github.com/dotnet/roslyn/issues/49733")]
         public void TestNormalizeAsteriskInPointerDeclaration(string text, string expected)
         {
             TestNormalizeStatement(text, expected);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49733")]
+        [Fact, WorkItem(49733, "https://github.com/dotnet/roslyn/issues/49733")]
         public void TestNormalizeAsteriskInPointerReturnTypeOfIndexer()
         {
             TestNormalizeDeclaration("""
@@ -3112,7 +3112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("enum      C       ;    ", "enum C;");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23618")]
+        [Fact, WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
         public void TestSpacingOnInvocationLikeKeywords()
         {
             // no space between typeof and (
@@ -3166,7 +3166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeExpression("__arglist (a)", "__arglist(a)");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24454")]
+        [Fact, WorkItem(24454, "https://github.com/dotnet/roslyn/issues/24454")]
         public void TestSpacingOnInterpolatedString()
         {
             TestNormalizeExpression("$\"{3:C}\"", "$\"{3:C}\"");
@@ -3260,7 +3260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23618")]
+        [Fact, WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
         public void TestSpacingOnMethodConstraint()
         {
             // newline between ) and where
@@ -3276,7 +3276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541684")]
+        [Fact, WorkItem(541684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541684")]
         public void TestNormalizeRegion1()
         {
             // NOTE: the space after the region name is retained, since the text after the space
@@ -3355,7 +3355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528584")]
+        [Fact, WorkItem(528584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528584")]
         public void TestNormalizeRegion2()
         {
             TestNormalizeDeclaration("""
@@ -3611,7 +3611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531607")]
+        [Fact, WorkItem(531607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531607")]
         public void TestNormalizeLineDirectiveTrivia()
         {
             TestNormalize(
@@ -3666,7 +3666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538115")]
+        [Fact, WorkItem(538115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538115")]
         public void TestNormalizeWithinDirectives()
         {
             TestNormalizeDeclaration("""
@@ -3691,7 +3691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542887")]
+        [Fact, WorkItem(542887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542887")]
         public void TestFormattingForBlockSyntax()
         {
             var code = """
@@ -3719,7 +3719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """.NormalizeLineEndings());
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079042")]
+        [Fact, WorkItem(1079042, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079042")]
         public void TestNormalizeDocumentationComments()
         {
             var code = """
@@ -3801,7 +3801,7 @@ $"  ///  </summary>{Environment.NewLine}" +
             Assert.Equal(expected.NormalizeLineEndings(), actual);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29390")]
+        [Fact, WorkItem(29390, "https://github.com/dotnet/roslyn/issues/29390")]
         public void TestNormalizeTuples()
         {
             TestNormalizeDeclaration("new(string prefix,string uri)[10]", "new (string prefix, string uri)[10]");
@@ -3812,7 +3812,7 @@ $"  ///  </summary>{Environment.NewLine}" +
             TestNormalizeDeclaration("public (string prefix,string uri)Foo()", "public (string prefix, string uri) Foo()");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50664")]
+        [Fact, WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
         public void TestNormalizeFunctionPointer()
         {
             TestNormalizeDeclaration("""
@@ -3828,7 +3828,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50664")]
+        [Fact, WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
         public void TestNormalizeFunctionPointerWithManagedCallingConvention()
         {
             TestNormalizeDeclaration("""
@@ -3844,7 +3844,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50664")]
+        [Fact, WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
         public void TestNormalizeFunctionPointerWithUnmanagedCallingConvention()
         {
             TestNormalizeDeclaration("""
@@ -3860,7 +3860,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50664")]
+        [Fact, WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
         public void TestNormalizeFunctionPointerWithUnmanagedCallingConventionAndSpecifiers()
         {
             TestNormalizeDeclaration("""
@@ -3876,7 +3876,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53254")]
+        [Fact, WorkItem(53254, "https://github.com/dotnet/roslyn/issues/53254")]
         public void TestNormalizeColonInConstructorInitializer()
         {
             TestNormalizeDeclaration("""
@@ -3902,7 +3902,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49732")]
+        [Fact, WorkItem(49732, "https://github.com/dotnet/roslyn/issues/49732")]
         public void TestNormalizeXmlInDocComment()
         {
             var code = """
@@ -3913,7 +3913,7 @@ $"  ///  </summary>{Environment.NewLine}" +
             TestNormalizeDeclaration(code, code);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46656")]
+        [Fact, WorkItem(46656, "https://github.com/dotnet/roslyn/issues/46656")]
         public void TestNormalizeBlockAnonymousFunctions()
         {
             TestNormalizeStatement(
@@ -3979,7 +3979,7 @@ $"  ///  </summary>{Environment.NewLine}" +
             Assert.Equal(expected.NormalizeLineEndings(), actual.NormalizeLineEndings());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60884")]
+        [Fact, WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
         public void TestNormalizeXmlArgumentsInDocComment1()
         {
             TestNormalizeDeclaration(
@@ -3987,14 +3987,14 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """/// Prefix <b a="x" b="y">S_OK</b> suffix""");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60884")]
+        [Fact, WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
         public void TestNormalizeXmlArgumentsInDocComment2()
         {
             var code = """/// Prefix <b a="x" b="y">S_OK</b> suffix""";
             TestNormalizeDeclaration(code, code);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60884")]
+        [Fact, WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
         public void TestNormalizeXmlArgumentsInDocComment3()
         {
             TestNormalizeDeclaration(
@@ -4002,7 +4002,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """/// Prefix <b a="x" b="y"/> suffix""");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60884")]
+        [Fact, WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
         public void TestNormalizeXmlArgumentsInDocComment4()
         {
             TestNormalizeDeclaration(
@@ -4010,14 +4010,14 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """/// Prefix <b a="x">S_OK</b> suffix""");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60884")]
+        [Fact, WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
         public void TestNormalizeXmlArgumentsInDocComment5()
         {
             var code = """/// Prefix <b a="x" b="y"/> suffix""";
             TestNormalizeDeclaration(code, code);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60884")]
+        [Fact, WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
         public void TestNormalizeXmlArgumentsInDocComment6()
         {
             TestNormalizeDeclaration(
@@ -4025,7 +4025,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """/// Prefix <b a="x" b="y"/> suffix""");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60884")]
+        [Fact, WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
         public void TestNormalizeXmlArgumentsInDocComment7()
         {
             TestNormalizeDeclaration(
@@ -4041,7 +4041,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 "public required partial int Field;");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61518")]
+        [Fact, WorkItem(61518, "https://github.com/dotnet/roslyn/issues/61518")]
         public void TestNormalizeNestedUsingStatements1()
         {
             TestNormalizeStatement(
@@ -4114,7 +4114,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61518")]
+        [Fact, WorkItem(61518, "https://github.com/dotnet/roslyn/issues/61518")]
         public void TestNormalizeNestedFixedStatements1()
         {
             TestNormalizeStatement(
@@ -4187,7 +4187,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61518")]
+        [Fact, WorkItem(61518, "https://github.com/dotnet/roslyn/issues/61518")]
         public void TestNormalizeNestedFixedUsingStatements1()
         {
             TestNormalizeStatement(
@@ -4222,7 +4222,7 @@ $"  ///  </summary>{Environment.NewLine}" +
             TestNormalizeStatement("scoped  ref  R  y  ;", "scoped ref R y;");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61204")]
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
         public void TestNormalizeObjectInitializer()
         {
             TestNormalizeExpression(
@@ -4707,7 +4707,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61204")]
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
         public void TestNormalizeObjectInitializer_SingleLineContext()
         {
             VerifySingleLineInitializer(
@@ -4823,7 +4823,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass() { G = 7u, H = 3.72m, }, }, }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61204")]
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
         public void TestNormalizeArrayAndCollectionInitializers()
         {
             TestNormalizeExpression(
@@ -5080,7 +5080,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61204")]
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
         public void TestNormalizeArrayAndCollectionInitializers_SingleLineContext()
         {
             VerifySingleLineInitializer(
@@ -5155,7 +5155,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 "new List<int>() { 2 + 2, 2 + 2 * 2, arr2[0] }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61204")]
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
         public void TestNormalizeIndexerInitializer()
         {
             TestNormalizeExpression(
@@ -5301,7 +5301,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61204")]
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
         public void TestNormalizeIndexerInitializer_SingleLineContext()
         {
             VerifySingleLineInitializer(
@@ -5341,7 +5341,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 "new Dictionary<int, int>() { { 0, 1 }, { 1, 2 }, { 2, 3 } }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61204")]
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
         public void TestNormalizeWithInitializer()
         {
             TestNormalizeExpression(
@@ -5506,7 +5506,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61204")]
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
         public void TestNormalizeWithInitializer_SingleLineContext()
         {
             VerifySingleLineInitializer(
@@ -5547,7 +5547,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 "obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, F = obj3 with { G = 7u, H = 3.72m, }, }, }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61204")]
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
         public void TestNormalizeMixedInitializer()
         {
             TestNormalizeExpression(
@@ -5570,7 +5570,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61204")]
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
         public void TestNormalizeMixedInitializer_SingleLineContext()
         {
             VerifySingleLineInitializer(
@@ -5581,7 +5581,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 "new SomeClass { A = 1, [1] = 2, [2, 'c'] = 3.5f, }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61204")]
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
         public void TestNormalizeNestedInitializers()
         {
             TestNormalizeExpression(
@@ -5853,7 +5853,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61204")]
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
         public void TestNormalizeNestedInitializers_SingleLineContext()
         {
             VerifySingleLineInitializer(
@@ -5861,7 +5861,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 "new SomeClass { A = 1, B = new SomeOtherClass() { D = 7, E = 0, F = new int[] { 1, 2, 3 } }, C = new { G = new List<AndAnotherClass> { new AndAnotherClass { J = 8, K = new Dictionary<int, int> { [1] = 0, [2] = 0, [3] = 0 }, L = new List<Whatever>() { } } }, H = new { }, I = new MixedClass() { [0] = new MixedClass { [0] = new MixedClass { M = 5.01m } }, M = 2.71m, [0] = new MixedClass() } } }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61204")]
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
         public void TestNormalizeInitializers_Statements()
         {
             TestNormalizeStatement(

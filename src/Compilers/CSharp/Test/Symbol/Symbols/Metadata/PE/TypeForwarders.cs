@@ -914,7 +914,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_InvalidFwdType, "System.Runtime.CompilerServices.TypeForwardedTo(null)"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529761")]
+        [WorkItem(529761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529761")]
         [Fact]
         public void LookupMissingForwardedTypeImplicitNamespace()
         {
@@ -1523,7 +1523,7 @@ namespace NS
             return assembly.GetForwardedTypes().Select(t => t.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545911")]
+        [WorkItem(545911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545911")]
         [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
         public void EmitForwarder_ModuleInReferencedAssembly()
         {
@@ -1565,7 +1565,7 @@ namespace NS
             Assert.Equal("Substituted", result.Trim());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545911")]
+        [WorkItem(545911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545911")]
         [ClrOnlyFact]
         public void EmitForwarder_WithModule()
         {
@@ -1594,7 +1594,7 @@ using System;
         }
 
         [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18437")]
+        [WorkItem(18437, "https://github.com/dotnet/roslyn/issues/18437")]
         public void TypeForwarderInAModule()
         {
             string forwardedTypes =
@@ -1898,7 +1898,7 @@ public class Forwarded<T>
         /// <summary>
         /// Aliases to forwarded types are not supported currently.
         /// </summary>
-        [WorkItem("https://github.com/dotnet/roslyn/issues/27375")]
+        [WorkItem(27375, "https://github.com/dotnet/roslyn/issues/27375")]
         [Fact]
         public void AliasToTypeForwarder()
         {
@@ -1962,7 +1962,7 @@ class Program
         /// <summary>
         /// Aliases to forwarded types are not supported currently.
         /// </summary>
-        [WorkItem("https://github.com/dotnet/roslyn/issues/27375")]
+        [WorkItem(27375, "https://github.com/dotnet/roslyn/issues/27375")]
         [Fact]
         public void AliasToGenericTypeForwarder()
         {

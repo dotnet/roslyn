@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
         Inherits BasicTestBase
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50611")>
+        <WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")>
         Public Sub TwoMethodsOnlyOneWithMapping()
             Dim source =
 <compilation>
@@ -74,7 +74,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50611")>
+        <WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")>
         Public Sub TwoMethodsOnlyOneWithMultipleMappingsAndRewriting()
             Dim source =
 <compilation>
@@ -466,7 +466,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50611")>
+        <WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")>
         Public Sub TestPartialClassFieldInitializersWithExternalSource()
             Dim source =
 <compilation>
@@ -657,7 +657,7 @@ End Class
                                                               Diagnostic(ERRID.ERR_ExpectedDeclaration, "boo"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545302")>
+        <WorkItem(545302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545302")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub IllegalExternalSourceUsageShouldNotAssert_4()
             Dim source =
@@ -679,7 +679,7 @@ End Module
                                 TestOptions.ReleaseExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_NestedExternalSource, "#ExternalSource (""bar1.vb"", 23)"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545307")>
+        <WorkItem(545307, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545307")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub OverflowLineNumbers()
             Dim source =
@@ -758,8 +758,8 @@ End Module
 </symbols>, format:=DebugInformationFormat.Pdb)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50611")>
+        <WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")>
+        <WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub RelativePathForExternalSource()
             Dim source =

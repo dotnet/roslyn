@@ -2204,7 +2204,7 @@ class @scoped { }
             EOF();
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/62950")]
+        [Theory, WorkItem(62950, "https://github.com/dotnet/roslyn/issues/62950")]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
         public void Local_06(LanguageVersion langVersion)
@@ -2510,7 +2510,7 @@ scoped ref readonly scoped c;
             EOF();
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/62950")]
+        [Theory, WorkItem(62950, "https://github.com/dotnet/roslyn/issues/62950")]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
         public void Local_07_WithInitializer(LanguageVersion langVersion)

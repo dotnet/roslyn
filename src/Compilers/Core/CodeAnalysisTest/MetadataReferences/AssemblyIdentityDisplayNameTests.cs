@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39647")]
+        [WorkItem(39647, "https://github.com/dotnet/roslyn/issues/39647")]
         public void AssemblyIdentity_EmptyName()
         {
             var identity = new AssemblyIdentity(noThrow: true, name: "");

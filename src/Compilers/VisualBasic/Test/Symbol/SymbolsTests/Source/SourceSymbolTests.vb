@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SourceSymbolTests
         Inherits BasicTestBase
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539740")>
+        <WorkItem(539740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539740")>
         <Fact()>
         Public Sub NamespaceWithoutName()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(String.Empty, symbol.Name)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540447")>
+        <WorkItem(540447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540447")>
         <Fact()>
         Public Sub FunctionWithoutName()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -63,7 +63,7 @@ BC30203: Identifier expected.
                 </errors>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540655")>
+        <WorkItem(540655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540655")>
         <Fact()>
         Public Sub Bug6998()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -94,7 +94,7 @@ End Class
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546566")>
+        <WorkItem(546566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546566")>
         <Fact()>
         Public Sub Bug16199()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -413,7 +413,7 @@ End Namespace
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537442")>
+        <WorkItem(537442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537442")>
         <Fact()>
         Public Sub InvalidOptionCompare()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -439,7 +439,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527175")>
+        <WorkItem(527175, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527175")>
         <Fact()>
         Public Sub DoubleBracketsNames()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -485,7 +485,7 @@ End Namespace
             'Next
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542508")>
+        <WorkItem(542508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542508")>
         <Fact()>
         Public Sub LocalsWithoutAsClauseInForStatement()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -514,7 +514,7 @@ End Module
             Assert.Null(symbol)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543720")>
+        <WorkItem(543720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543720")>
         <Fact()>
         Public Sub InvalidLocalsWithColon()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -537,7 +537,7 @@ End Module
 
         End Sub
 
-        <WorkItem("https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/187865")>
+        <WorkItem(187865, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/187865")>
         <Fact>
         Public Sub DifferentMembersMetadataName()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -611,7 +611,7 @@ BC31060: event 'E' implicitly defines 'add_E', which conflicts with a member of 
         ''' Symbol location order should be preserved when trees
         ''' are replaced in the compilation.
         ''' </summary>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/11015")>
+        <WorkItem(11015, "https://github.com/dotnet/roslyn/issues/11015")>
         <Fact>
         Public Sub PreserveLocationOrderOnReplaceSyntaxTree()
             Dim source0 = Parse(

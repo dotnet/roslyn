@@ -97,8 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 
         // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
         // the compiler can handle. 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16669")]
-        [ConditionalFact(typeof(WindowsOrLinuxOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/34880")]
+        [WorkItem(16669, "https://github.com/dotnet/roslyn/issues/16669")]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly)), WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
         public void OverflowOnFluentCall()
         {
             int numberFluentCalls = (IntPtr.Size, ExecutionConditionUtil.Configuration) switch
@@ -151,9 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
         }
 
         [ConditionalFact(typeof(WindowsOrLinuxOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/33909")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34880")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/53361")]
+        [WorkItem(33909, "https://github.com/dotnet/roslyn/issues/33909")]
+        [WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
+        [WorkItem(53361, "https://github.com/dotnet/roslyn/issues/53361")]
         public void DeeplyNestedGeneric()
         {
             int nestingLevel = (IntPtr.Size, ExecutionConditionUtil.Configuration) switch
@@ -273,7 +273,7 @@ $@"        if (F({i}))
             }
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42361")]
+        [WorkItem(42361, "https://github.com/dotnet/roslyn/issues/42361")]
         [ConditionalFact(typeof(WindowsOrLinuxOnly))]
         public void Constraints()
         {

@@ -323,8 +323,8 @@ class C
             Assert.Equal(ConversionKind.Identity, conv.ClassifyConversionFromType(typeIntArrayWithCustomModifiers, typeIntArrayWithCustomModifiers, ref useSiteDiagnostics).Kind);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529056")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529056")]
+        [WorkItem(529056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529056")]
+        [WorkItem(529056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529056")]
         [Fact()]
         public void TestConversion_ParenthesizedExpression()
         {
@@ -348,7 +348,7 @@ public class Program
             Assert.Equal(ConversionKind.Identity, tuple.Item2.ClassifyConversion(tuple.Item1, comp.GetSpecialType(SpecialType.System_Boolean)).Kind);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544571")]
+        [WorkItem(544571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544571")]
         [Fact]
         public void TestClassifyConversion()
         {
@@ -558,7 +558,7 @@ class Program
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542540")]
+        [WorkItem(542540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542540")]
         [Fact]
         public void TestMethodGroupConversionWithOptionalParameter()
         {
@@ -577,7 +577,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "goo").WithArguments("goo", "System.Action"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543119")]
+        [WorkItem(543119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543119")]
         [Fact]
         public void TestConversion_IntToNullableShort()
         {
@@ -596,7 +596,7 @@ class C
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543450")]
+        [WorkItem(543450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543450")]
         [Fact()]
         public void TestConversion_IntToByte()
         {
@@ -1222,7 +1222,7 @@ class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529568")]
+        [WorkItem(529568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529568")]
         [Fact()]
         public void AmbiguousConversions()
         {
@@ -1537,7 +1537,7 @@ public class Test {
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545361")]
+        [WorkItem(545361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545361")]
         [ClrOnlyFact]
         public void NullableIntToStructViaDecimal()
         {
@@ -1637,8 +1637,8 @@ public struct S
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545471")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18446")]
+        [WorkItem(545471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545471")]
+        [WorkItem(18446, "https://github.com/dotnet/roslyn/issues/18446")]
         public void CheckedConversionsInExpressionTrees()
         {
             var source = @"
@@ -1686,7 +1686,7 @@ namespace ExpressionTest
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/647055")]
+        [WorkItem(647055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/647055")]
         [Fact]
         public void AmbiguousImplicitExplicitUserDefined()
         {
@@ -1739,7 +1739,7 @@ class C<T>
             AssertEx.SetEqual(elementConversion.OriginalUserDefinedConversions.GetPublicSymbols(), conversionSymbols);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715207")]
+        [WorkItem(715207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715207")]
         [ClrOnlyFact]
         public void LiftingReturnTypeOfExplicitUserDefinedConversion()
         {
@@ -1770,7 +1770,7 @@ struct BigInteger
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737732")]
+        [WorkItem(737732, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737732")]
         [Fact]
         public void ConsiderSourceExpressionWhenDeterminingBestUserDefinedConversion()
         {
@@ -1804,7 +1804,7 @@ public class Test
             Assert.Equal(SpecialType.System_Byte, method.Parameters.Single().Type.SpecialType);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737732")]
+        [WorkItem(737732, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737732")]
         [Fact]
         public void Repro737732()
         {
@@ -1838,7 +1838,7 @@ public struct C
             Assert.Equal(SpecialType.System_Byte, method.Parameters.Single().Type.SpecialType);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742345")]
+        [WorkItem(742345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742345")]
         [ClrOnlyFact]
         public void MethodGroupConversion_ContravarianceAndDynamic()
         {
@@ -1861,7 +1861,7 @@ public class C
             CompileAndVerify(source, expectedOutput: "B");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742345")]
+        [WorkItem(742345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742345")]
         [Fact]
         public void MethodGroupConversion_CovarianceAndDynamic()
         {
@@ -1893,7 +1893,7 @@ public class C
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
+        [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
         [Fact]
         public void ConversionsFromExpressions()
         {
@@ -2290,7 +2290,7 @@ static class C
         }
 
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=434957")]
+        [WorkItem(434957, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=434957")]
         public void SkipUserDefinedConversionsForThisArgument()
         {
             var source =
@@ -2338,7 +2338,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=434957")]
+        [WorkItem(434957, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=434957")]
         public void SkipUserDefinedConversionsForThisArgument_TupleElements()
         {
             var source =

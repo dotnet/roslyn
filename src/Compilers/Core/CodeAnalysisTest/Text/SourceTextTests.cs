@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.Equal(algorithm, SourceText.From(stream, checksumAlgorithm: algorithm).ChecksumAlgorithm);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7225")]
+        [WorkItem(7225, "https://github.com/dotnet/roslyn/issues/7225")]
         [Fact]
         public void ChecksumAndBOM()
         {
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/41903")]
+        [WorkItem(41903, "https://github.com/dotnet/roslyn/issues/41903")]
         public void WriteWithRangeStartingLaterThanZero()
         {
             var sourceText = SourceText.From("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
         [Theory]
         [MemberData(nameof(AllRanges), 10)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/41903")]
+        [WorkItem(41903, "https://github.com/dotnet/roslyn/issues/41903")]
         public void WriteWithAllRanges(TextSpan span)
         {
             const string Text = "0123456789";

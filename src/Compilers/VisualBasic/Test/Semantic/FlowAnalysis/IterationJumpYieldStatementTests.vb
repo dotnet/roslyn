@@ -293,7 +293,7 @@ end class
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538421")>
+        <Fact(), WorkItem(538421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538421")>
         Public Sub TestLoopWithConstantEnumEquality()
             Dim analysisResults = CompileAndAnalyzeControlFlow(
       <compilation name="TestLoopWithConstantEnumEquality">
@@ -585,7 +585,7 @@ end class
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539303")>
+        <WorkItem(539303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539303")>
         <Fact()>
         Public Sub DoLoopWithContinue()
             Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
@@ -624,7 +624,7 @@ End Class
             Assert.Equal("Me, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539303")>
+        <WorkItem(539303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539303")>
         <Fact()>
         Public Sub DoLoopWithGoto()
             Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
@@ -699,7 +699,7 @@ Class A
 
 #Region "For, For Each"
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
+        <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact()>
         Public Sub TestVariablesDeclaredInForLoop()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -721,7 +721,7 @@ end class</file>\n</compilation>)
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsOut))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
+        <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact()>
         Public Sub TestVariablesDeclaredInForeachLoop()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -1251,7 +1251,7 @@ End Class
             Assert.Equal("X, Z, Y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542112")>
+        <WorkItem(542112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542112")>
         <Fact()>
         Public Sub ForEachExitPoints_Failure()
             Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
@@ -1349,7 +1349,7 @@ End Module
             Assert.Equal(True, flow.VariablesDeclared.Any(Function(s) s.Name = "s"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543462")>
+        <WorkItem(543462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543462")>
         <Fact()>
         Public Sub NextStatementSyntaxInForEach()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1455,7 +1455,7 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543399")>
+        <Fact, WorkItem(543399, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543399")>
         Public Sub GotoLabelName()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
    <compilation>
@@ -1511,7 +1511,7 @@ end class
             Assert.Equal(1, analysis.ExitPoints.Count())
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539295")>
+        <WorkItem(539295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539295")>
         <Fact()>
         Public Sub TestReturnStatements03()
             Dim analysis = CompileAndAnalyzeControlFlow(
@@ -1534,7 +1534,7 @@ end class
             Assert.True(analysis.EndPointIsReachable)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539295")>
+        <WorkItem(539295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539295")>
         <Fact()>
         Public Sub TestReturnStatements03a()
             Dim analysis = CompileAndAnalyzeControlFlow(
@@ -1557,7 +1557,7 @@ end class
             Assert.False(analysis.EndPointIsReachable)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539295")>
+        <WorkItem(539295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539295")>
         <Fact()>
         Public Sub TestReturnStatements04()
             Dim analysis = CompileAndAnalyzeControlFlow(

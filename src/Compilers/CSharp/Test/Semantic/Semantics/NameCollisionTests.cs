@@ -389,7 +389,7 @@ namespace name1
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
+        [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
         [Fact]
         public void TestCollisionOfDelegateWithConst()
         {
@@ -916,7 +916,7 @@ class Class
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/930252")]
+        [WorkItem(930252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/930252")]
         [Fact]
         public void TestCollisionOfParamWithParam1()
         {
@@ -1283,7 +1283,7 @@ partial class Class
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "name").WithArguments("name").WithLocation(12, 69));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792744")]
+        [WorkItem(792744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792744")]
         [Fact]
         public void TestCollisionInsideForeach()
         {
@@ -1645,7 +1645,7 @@ partial class Class
             CompileAndVerify(source).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543045")]
+        [WorkItem(543045, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543045")]
         [Fact]
         public void TestCollisionInsideQuery()
         {
@@ -1728,7 +1728,7 @@ public class Class
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, "U").WithArguments("U"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542088")]
+        [WorkItem(542088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542088")]
         [Fact]
         public void LocalCollidesWithGenericType()
         {
@@ -1748,7 +1748,7 @@ public class C
             CompileAndVerify(source).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
+        [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
         [Fact]
         public void BindingOrderCollisions01()
         {
@@ -1810,7 +1810,7 @@ class A
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
+        [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
         [Fact]
         public void BindingOrderCollisions02()
         {
@@ -1873,7 +1873,7 @@ class A
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
+        [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
         [Fact]
         public void BindingOrderCollisions03()
         {
@@ -1919,7 +1919,7 @@ class Outer
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835569")]
+        [WorkItem(835569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835569")]
         [Fact]
         public void CollisionWithSameWhenError()
         {
@@ -1941,7 +1941,7 @@ class Program
         }
 
         [Fact(Skip = "https://roslyn.codeplex.com/workitem/450")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879811")]
+        [WorkItem(879811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879811")]
         public void Bug879811_1()
         {
             const string source = @"
@@ -1971,7 +1971,7 @@ class D
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879811")]
+        [WorkItem(879811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879811")]
         public void Bug879811_2()
         {
             const string source = @"
@@ -2003,7 +2003,7 @@ class D
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879811")]
+        [WorkItem(879811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879811")]
         public void Bug879811_3()
         {
             const string source = @"

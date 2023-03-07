@@ -1409,7 +1409,7 @@ End Class
                                                  End Function").WithLocation(10, 50))
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/8385")>
+        <WorkItem(8385, "https://github.com/dotnet/roslyn/issues/8385")>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18839")>
         Public Sub StaticMemberReferenceVisualBasic()
             Dim source = <compilation>
@@ -1785,7 +1785,7 @@ End Class
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0(1, 2)").WithLocation(8, 9))
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/8114")>
+        <WorkItem(8114, "https://github.com/dotnet/roslyn/issues/8114")>
         <Fact>
         Public Sub InvalidOperatorVisualBasic()
             Dim source = <compilation>
@@ -1816,7 +1816,7 @@ End Class
                 Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidUnaryDescriptor.Id, "-s").WithLocation(7, 16))
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/9014")>
+        <WorkItem(9014, "https://github.com/dotnet/roslyn/issues/9014")>
         <Fact>
         Public Sub InvalidConstructorVisualBasic()
             Dim source = <compilation>
@@ -1921,7 +1921,7 @@ End Class
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1").WithLocation(32, 9))
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/8955")>
+        <WorkItem(8955, "https://github.com/dotnet/roslyn/issues/8955")>
         <Fact>
         Public Sub ForToLoopConditionCrashVisualBasic()
             Dim source = <compilation>
@@ -1990,7 +1990,7 @@ End Module
                 Diagnostic(ForLoopConditionCrashVBTestAnalyzer.ForLoopConditionCrashDescriptor.Id, "10").WithLocation(19, 40))
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/9012")>
+        <WorkItem(9012, "https://github.com/dotnet/roslyn/issues/9012")>
         <Fact>
         Public Sub InvalidEventInstanceVisualBasic()
             Dim source = <compilation>
@@ -2070,7 +2070,7 @@ End Module
                 Diagnostic("EventReference", ".TestEvent").WithLocation(15, 29))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9127")>
+        <Fact, WorkItem(9127, "https://github.com/dotnet/roslyn/issues/9127")>
         Public Sub UnaryTrueFalseOperationVisualBasic()
             ' BoundCaseStatement is OperationKind.None
             Dim source = <compilation>

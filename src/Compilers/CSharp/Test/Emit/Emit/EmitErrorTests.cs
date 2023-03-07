@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region "Mixed Error Tests"
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
+        [WorkItem(543039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
         [Fact]
         public void BadConstantInOtherAssemblyUsedByField()
         {
@@ -54,7 +54,7 @@ public class B
             VerifyEmitDiagnostics(source2, compilation1);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
+        [WorkItem(543039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
         [Fact]
         public void BadConstantInOtherAssemblyUsedByLocal()
         {
@@ -84,7 +84,7 @@ public class B
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
+        [WorkItem(543039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
         [Fact]
         public void BadDefaultArgumentInOtherAssembly()
         {
@@ -118,7 +118,7 @@ public class B
                 verify: Verification.Fails);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
+        [WorkItem(543039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
         [Fact]
         public void BadDefaultArgumentInOtherAssembly_Decimal()
         {
@@ -152,7 +152,7 @@ public class B
                 verify: Verification.Fails);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
+        [WorkItem(543039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
         [Fact]
         public void BadDefaultArgumentInOtherAssembly_UserDefinedType()
         {
@@ -204,7 +204,7 @@ public class B
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
+        [WorkItem(543039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
         [Fact]
         public void BadReturnTypeInOtherAssembly()
         {
@@ -257,7 +257,7 @@ public class B
             }
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530211")]
+        [Fact, WorkItem(530211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530211")]
         public void ModuleNameMismatch()
         {
             var moduleSource = "class Test {}";
@@ -310,7 +310,7 @@ public class A
                 Diagnostic(ErrorCode.ERR_TooManyLocals, "Main"));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8287")]
+        [Fact, WorkItem(8287, "https://github.com/dotnet/roslyn/issues/8287")]
         public void ToManyUserStrings()
         {
             var builder = new System.Text.StringBuilder();

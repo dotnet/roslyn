@@ -282,7 +282,7 @@ class C1 {
             }
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543829")]
+        [WorkItem(543829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543829")]
         [Fact]
         public void AnonymousTypeSymbolWithExplicitNew()
         {
@@ -725,7 +725,7 @@ class C
         /// Symbol location order should be preserved when trees
         /// are replaced in the compilation.
         /// </summary>
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11015")]
+        [WorkItem(11015, "https://github.com/dotnet/roslyn/issues/11015")]
         [Fact]
         public void PreserveLocationOrderOnReplaceSyntaxTree()
         {

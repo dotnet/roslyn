@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class LambdaTests : SemanticModelTestBase
     {
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37456")]
+        [Fact, WorkItem(37456, "https://github.com/dotnet/roslyn/issues/37456")]
         public void Verify37456()
         {
             var comp = CreateCompilation(@"
@@ -56,7 +56,7 @@ public static partial class EnumerableEx
             // emitting should not hang
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608181")]
+        [Fact, WorkItem(608181, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608181")]
         public void BadInvocationInLambda()
         {
             var src = @"
@@ -262,7 +262,7 @@ class C
             compilation.VerifyDiagnostics(); // no errors expected
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
+        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         [Fact]
         public void TestLambdaErrors03()
         {
@@ -287,7 +287,7 @@ class C
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("C.Goo(System.Func<System.IComparable<I>>)", "C.Goo(System.Func<I>)").WithLocation(12, 9));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18645")]
+        [WorkItem(18645, "https://github.com/dotnet/roslyn/issues/18645")]
         [Fact]
         public void LambdaExpressionTreesErrors()
         {
@@ -317,7 +317,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadParamType, "d").WithArguments("1", "", "double", "", "int").WithLocation(10, 49));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539976")]
+        [WorkItem(539976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539976")]
         [Fact]
         public void LambdaArgumentToOverloadedDelegate()
         {
@@ -338,7 +338,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528044")]
+        [WorkItem(528044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528044")]
         [Fact]
         public void MissingReferenceInOverloadResolution()
         {
@@ -387,7 +387,7 @@ class Program
             Assert.Equal(0, comp2.GetDiagnostics().Count());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528047")]
+        [WorkItem(528047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528047")]
         [Fact()]
         public void OverloadResolutionWithEmbeddedInteropType()
         {
@@ -474,7 +474,7 @@ class C
             Assert.True(0 < errs.Where(e => e.Code == 1525).Select(e => e).Count(), "Diagnostics contains CS1525");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540219")]
+        [WorkItem(540219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540219")]
         [Fact]
         public void OverloadResolutionWithStaticType()
         {
@@ -616,7 +616,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped int n").WithLocation(5, 20));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/62960")]
+        [WorkItem(62960, "https://github.com/dotnet/roslyn/issues/62960")]
         [Fact]
         public void ReferenceToRestrictedTypeLambdaParameter()
         {
@@ -637,7 +637,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference r").WithArguments("System.TypedReference").WithLocation(6, 20));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
+        [WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
         [Fact]
         public void AttributesCannotBeUsedInAnonymousMethods()
         {
@@ -664,7 +664,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(9, 35));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540263")]
+        [WorkItem(540263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540263")]
         [Fact]
         public void ErrorsInUnboundLambdas()
         {
@@ -703,7 +703,7 @@ class Program
             );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540181")]
+        [WorkItem(540181, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540181")]
         [Fact]
         public void ErrorInLambdaArgumentList()
         {
@@ -727,7 +727,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "nulF").WithArguments("nulF").WithLocation(8, 55));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541725")]
+        [WorkItem(541725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541725")]
         [Fact]
         public void DelegateCreationIsNotStatement()
         {
@@ -755,7 +755,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "new D(()=>{})"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542336")]
+        [WorkItem(542336, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542336")]
         [Fact]
         public void ThisInStaticContext()
         {
@@ -777,7 +777,7 @@ class Program
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542431")]
+        [WorkItem(542431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542431")]
         [Fact]
         public void LambdaHasMoreParametersThanDelegate()
         {
@@ -794,7 +794,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadDelArgCount, "r => 0").WithArguments("System.Func<int>", "1"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529054")]
+        [Fact, WorkItem(529054, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529054")]
         public void LambdaInDynamicCall()
         {
             var source = @"
@@ -813,7 +813,7 @@ public class Program
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529389")]
+        [Fact, WorkItem(529389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529389")]
         public void ParenthesizedLambdaInCastExpression()
         {
             var source = @"
@@ -864,7 +864,7 @@ class Program
             Assert.Equal(MethodKind.AnonymousFunction, (sym as IMethodSymbol).MethodKind);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544594")]
+        [WorkItem(544594, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544594")]
         [Fact]
         public void LambdaInEnumMemberDecl()
         {
@@ -885,7 +885,7 @@ public class TestClass
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "MyTest").WithArguments("TestClass.MyTest"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544932")]
+        [WorkItem(544932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544932")]
         [Fact]
         public void AnonymousLambdaInEnumSubtraction()
         {
@@ -910,7 +910,7 @@ class Test
             CompileAndVerify(new[] { source }, expectedOutput: expectedOutput);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545156")]
+        [WorkItem(545156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545156")]
         [Fact]
         public void SpeculativelyBindOverloadResolution()
         {
@@ -943,7 +943,7 @@ class Program
                 SpeculativeBindingOption.BindAsExpression);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545343")]
+        [WorkItem(545343, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545343")]
         [Fact]
         public void LambdaUsingFieldInConstructor()
         {
@@ -973,7 +973,7 @@ public class Derived
             CompileAndVerify(source, expectedOutput: "Local = 2, Field = 1");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642222")]
+        [WorkItem(642222, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642222")]
         [Fact]
         public void SpeculativelyBindOverloadResolutionAndInferenceWithError()
         {
@@ -1036,7 +1036,7 @@ namespace IntellisenseBug
             Assert.NotNull(((ITypeSymbol)typeInfo.Type).GetMember("String"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722288")]
+        [WorkItem(722288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722288")]
         [Fact]
         public void CompletionInLambdaInIncompleteInvocation()
         {
@@ -1090,7 +1090,7 @@ public class IntelliSenseError
             Assert.NotNull(((ITypeSymbol)typeInfo.Type).GetMember("SomeProperty"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/871896")]
+        [WorkItem(871896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/871896")]
         [Fact]
         public void Bug871896()
         {
@@ -1146,7 +1146,7 @@ class TestDataPointBase
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")]
+        [Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")]
         public void Bug960755_01()
         {
             var source = @"
@@ -1180,7 +1180,7 @@ class C
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")]
+        [Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")]
         public void Bug960755_02()
         {
             var source = @"
@@ -1208,7 +1208,7 @@ class C
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")]
+        [Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")]
         public void Bug960755_03()
         {
             var source = @"
@@ -1417,7 +1417,7 @@ class C
         }
 
         [WorkItem(1112875, "DevDiv")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112875")]
+        [WorkItem(1112875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112875")]
         [Fact]
         public void Bug1112875_1()
         {
@@ -1440,7 +1440,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: "42");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112875")]
+        [WorkItem(1112875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112875")]
         [Fact]
         public void Bug1112875_2()
         {
@@ -1459,7 +1459,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(new object())").WithLocation(6, 41));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/1830")]
+        [WorkItem(1830, "https://github.com/dotnet/roslyn/issues/1830")]
         [Fact]
         public void FuncOfVoid()
         {
@@ -1481,7 +1481,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")]
+        [Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")]
         public void ParameterReference_01()
         {
             var src = @"
@@ -1516,7 +1516,7 @@ class Program
             Assert.Equal("Program a", symbolInfo.Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")]
+        [Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")]
         public void ParameterReference_02()
         {
             var src = @"
@@ -1551,7 +1551,7 @@ class Program
             Assert.Equal("Program a", symbolInfo.Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")]
+        [Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")]
         public void ParameterReference_03()
         {
             var src = @"
@@ -1585,7 +1585,7 @@ class Program
             Assert.Equal("Program a", symbolInfo.Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")]
+        [Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")]
         public void ParameterReference_04()
         {
             var src = @"
@@ -1618,7 +1618,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/3826")]
+        [WorkItem(3826, "https://github.com/dotnet/roslyn/issues/3826")]
         public void ExpressionTreeSelfAssignmentShouldError()
         {
             var source = @"
@@ -1642,7 +1642,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "y = y").WithLocation(9, 45));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30776")]
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
         public void RefStructExpressionTree()
         {
             var text = @"
@@ -1668,7 +1668,7 @@ public ref struct Struct1 { }
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default(Struct1)").WithArguments("Struct1").WithLocation(8, 40));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30776")]
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
         public void RefStructDefaultExpressionTree()
         {
             var text = @"
@@ -1694,7 +1694,7 @@ public ref struct Struct1 { }
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default").WithArguments("Struct1").WithLocation(8, 40));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30776")]
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
         public void RefStructDefaultCastExpressionTree()
         {
             var text = @"
@@ -1720,7 +1720,7 @@ public ref struct Struct1 { }
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default").WithArguments("Struct1").WithLocation(8, 50));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30776")]
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
         public void RefStructNewExpressionTree()
         {
             var text = @"
@@ -1746,7 +1746,7 @@ public ref struct Struct1 { }
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "new Struct1()").WithArguments("Struct1").WithLocation(8, 40));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30776")]
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
         public void RefStructParamExpressionTree()
         {
             var text = @"
@@ -1773,7 +1773,7 @@ public ref struct Struct1 { }
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "s").WithArguments("Struct1").WithLocation(9, 25));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30776")]
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
         public void RefStructParamLambda()
         {
             var text = @"
@@ -1795,7 +1795,7 @@ public ref struct Struct1 { }
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30776")]
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
         public void TypedReferenceExpressionTree()
         {
             var text = @"
@@ -1819,7 +1819,7 @@ public class Class1
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default").WithArguments("TypedReference").WithLocation(8, 30));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30776")]
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
         public void TypedReferenceParamExpressionTree()
         {
             var text = @"
@@ -1844,7 +1844,7 @@ public class Class1
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "tr").WithArguments("TypedReference").WithLocation(9, 32));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5363")]
+        [Fact, WorkItem(5363, "https://github.com/dotnet/roslyn/issues/5363")]
         public void ReturnInferenceCache_Dynamic_vs_Object_01()
         {
             var source =
@@ -1882,7 +1882,7 @@ public interface IColumn { }
             CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5363")]
+        [Fact, WorkItem(5363, "https://github.com/dotnet/roslyn/issues/5363")]
         public void ReturnInferenceCache_Dynamic_vs_Object_02()
         {
             var source =
@@ -1920,7 +1920,7 @@ public interface IColumn { }
             CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1867")]
+        [Fact, WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
         public void SyntaxAndSemanticErrorInLambda()
         {
             var source =
@@ -1945,7 +1945,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4527")]
+        [Fact, WorkItem(4527, "https://github.com/dotnet/roslyn/issues/4527")]
         public void AnonymousMethodExpressionWithoutParameterList()
         {
             var source =
@@ -1987,7 +1987,7 @@ namespace RoslynAsyncDelegate
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/1867")]
+        [WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
         public void TestLambdaWithError01()
         {
             var source =
@@ -2007,7 +2007,7 @@ class C { C() { string.Empty.Select(() => { new Unbound1 }); } }";
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/1867")]
+        [WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
         public void TestLambdaWithError02()
         {
             var source =
@@ -2024,7 +2024,7 @@ class C { C() { string.Empty.Select(() => { new Unbound1 ( ) }); } }";
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/1867")]
+        [WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
         public void TestLambdaWithError03()
         {
             var source =
@@ -2047,7 +2047,7 @@ class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }";
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/1867")]
+        [WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
         public void TestLambdaWithError04()
         {
             var source =
@@ -2064,7 +2064,7 @@ class C { C() { string.Empty.Select(x => Unbound1, Unbound2); } }";
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/1867")]
+        [WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
         public void TestLambdaWithError05()
         {
             var source =
@@ -2081,7 +2081,7 @@ class C { C() { Unbound2.Select(x => Unbound1); } }";
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/4480")]
+        [WorkItem(4480, "https://github.com/dotnet/roslyn/issues/4480")]
         public void TestLambdaWithError06()
         {
             var source =
@@ -2123,8 +2123,8 @@ public class MyArgumentType
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11053")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11358")]
+        [WorkItem(11053, "https://github.com/dotnet/roslyn/issues/11053")]
+        [WorkItem(11358, "https://github.com/dotnet/roslyn/issues/11358")]
         public void TestLambdaWithError07()
         {
             var source =
@@ -2169,8 +2169,8 @@ public static class Enumerable
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11053")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11358")]
+        [WorkItem(11053, "https://github.com/dotnet/roslyn/issues/11053")]
+        [WorkItem(11358, "https://github.com/dotnet/roslyn/issues/11358")]
         public void TestLambdaWithError08()
         {
             var source =
@@ -2215,8 +2215,8 @@ public static class Enumerable
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11053")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11358")]
+        [WorkItem(11053, "https://github.com/dotnet/roslyn/issues/11053")]
+        [WorkItem(11358, "https://github.com/dotnet/roslyn/issues/11358")]
         public void TestLambdaWithError09()
         {
             var source =
@@ -2261,8 +2261,8 @@ public class MyList<TSource>
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11053")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11358")]
+        [WorkItem(11053, "https://github.com/dotnet/roslyn/issues/11053")]
+        [WorkItem(11358, "https://github.com/dotnet/roslyn/issues/11358")]
         public void TestLambdaWithError10()
         {
             var source =
@@ -2307,7 +2307,7 @@ public class MyList<TSource>
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/557")]
+        [WorkItem(557, "https://github.com/dotnet/roslyn/issues/557")]
         public void TestLambdaWithError11()
         {
             var source =
@@ -2337,7 +2337,7 @@ public static class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5498")]
+        [WorkItem(5498, "https://github.com/dotnet/roslyn/issues/5498")]
         public void TestLambdaWithError12()
         {
             var source =
@@ -2363,8 +2363,8 @@ class Program
             Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5498")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11358")]
+        [WorkItem(5498, "https://github.com/dotnet/roslyn/issues/5498")]
+        [WorkItem(11358, "https://github.com/dotnet/roslyn/issues/11358")]
         [Fact]
         public void TestLambdaWithError13()
         {
@@ -2420,7 +2420,7 @@ public static class XThing
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11901")]
+        [WorkItem(11901, "https://github.com/dotnet/roslyn/issues/11901")]
         public void TestLambdaWithError15()
         {
             // These tests ensure we attempt to perform type inference and bind a lambda expression
@@ -2466,7 +2466,7 @@ public static class XThing
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11901")]
+        [WorkItem(11901, "https://github.com/dotnet/roslyn/issues/11901")]
         public void TestLambdaWithError16()
         {
             // These tests ensure we use the substituted method to bind a lambda expression
@@ -2512,7 +2512,7 @@ public static class XThing
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12063")]
+        [WorkItem(12063, "https://github.com/dotnet/roslyn/issues/12063")]
         public void TestLambdaWithError17()
         {
             var source =
@@ -2545,7 +2545,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12063")]
+        [WorkItem(12063, "https://github.com/dotnet/roslyn/issues/12063")]
         public void TestLambdaWithError18()
         {
             var source =
@@ -2578,7 +2578,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12063")]
+        [WorkItem(12063, "https://github.com/dotnet/roslyn/issues/12063")]
         public void TestLambdaWithError19()
         {
             var source =
@@ -2690,7 +2690,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/13797")]
+        [WorkItem(13797, "https://github.com/dotnet/roslyn/issues/13797")]
         public void DelegateAsAction()
         {
             var source = @"
@@ -2708,7 +2708,7 @@ public static class C
             CompileAndVerify(comp);
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=278481")]
+        [Fact, WorkItem(278481, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=278481")]
         public void LambdaReturningNull_1()
         {
             var src = @"
@@ -2785,7 +2785,7 @@ class B
             CompileAndVerify(comp, expectedOutput: "1");
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=296550")]
+        [Fact, WorkItem(296550, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=296550")]
         public void LambdaReturningNull_2()
         {
             var src = @"
@@ -2815,7 +2815,7 @@ class Test1<T>
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22662")]
+        [Fact, WorkItem(22662, "https://github.com/dotnet/roslyn/issues/22662")]
         public void LambdaSquigglesArea()
         {
             var src = @"
@@ -2841,7 +2841,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22662")]
+        [Fact, WorkItem(22662, "https://github.com/dotnet/roslyn/issues/22662")]
         public void LambdaSquigglesAreaInAsync()
         {
             var src = @"
@@ -2870,7 +2870,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22662")]
+        [Fact, WorkItem(22662, "https://github.com/dotnet/roslyn/issues/22662")]
         public void DelegateSquigglesArea()
         {
             var src = @"
@@ -2896,7 +2896,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22662")]
+        [Fact, WorkItem(22662, "https://github.com/dotnet/roslyn/issues/22662")]
         public void DelegateWithoutArgumentsSquigglesArea()
         {
             var src = @"
@@ -2972,7 +2972,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "1234");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23883")]
+        [Fact, WorkItem(23883, "https://github.com/dotnet/roslyn/issues/23883")]
         public void InMalformedEmbeddedStatement_01()
         {
             var source = @"
@@ -3014,7 +3014,7 @@ class Program
             Assert.Equal("? b", symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23883")]
+        [Fact, WorkItem(23883, "https://github.com/dotnet/roslyn/issues/23883")]
         public void InMalformedEmbeddedStatement_02()
         {
             var source = @"
@@ -4203,8 +4203,8 @@ class Program
             Assert.Equal(new[] { "z" }, lambdas[2].NotNullWhenTrueMembers);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52827")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56668")]
+        [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
+        [WorkItem(56668, "https://github.com/dotnet/roslyn/issues/56668")]
         public void LambdaAttributes_NullableAttributes_02()
         {
             var source =
@@ -4233,8 +4233,8 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52827")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56668")]
+        [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
+        [WorkItem(56668, "https://github.com/dotnet/roslyn/issues/56668")]
         public void LambdaAttributes_NullableAttributes_AnonymousFunctionConversion_Return()
         {
             var source =
@@ -4313,8 +4313,8 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52827")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56668")]
+        [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
+        [WorkItem(56668, "https://github.com/dotnet/roslyn/issues/56668")]
         public void LambdaAttributes_NullableAttributes_AnonymousFunctionConversion_Return_Suppressed()
         {
             var source =
@@ -4354,8 +4354,8 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52827")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56668")]
+        [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
+        [WorkItem(56668, "https://github.com/dotnet/roslyn/issues/56668")]
         public void LambdaAttributes_NullableAttributes_DelegateCreation_Return()
         {
             var source =
@@ -4434,8 +4434,8 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52827")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56668")]
+        [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
+        [WorkItem(56668, "https://github.com/dotnet/roslyn/issues/56668")]
         public void LambdaAttributes_NullableAttributes_AnonymousFunctionConversion_Parameter()
         {
             var source =
@@ -4490,8 +4490,8 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52827")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56668")]
+        [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
+        [WorkItem(56668, "https://github.com/dotnet/roslyn/issues/56668")]
         public void LambdaAttributes_NullableAttributes_AnonymousFunctionConversion_Parameter_WithoutType()
         {
             var source =
@@ -4531,8 +4531,8 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52827")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56668")]
+        [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
+        [WorkItem(56668, "https://github.com/dotnet/roslyn/issues/56668")]
         public void LambdaAttributes_NullableAttributes_AnonymousFunctionConversion_Parameter_ConditionalAttributes()
         {
             var source =
@@ -4595,8 +4595,8 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52827")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56668")]
+        [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
+        [WorkItem(56668, "https://github.com/dotnet/roslyn/issues/56668")]
         public void LambdaAttributes_NullableAttributes_AnonymousFunctionConversion_NotNullIfNotNull()
         {
             var source =
@@ -4634,8 +4634,8 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52827")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56668")]
+        [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
+        [WorkItem(56668, "https://github.com/dotnet/roslyn/issues/56668")]
         public void LambdaAttributes_NullableAttributes_DelegateCreation_Parameter()
         {
             var source =
@@ -4690,8 +4690,8 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52827")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56668")]
+        [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
+        [WorkItem(56668, "https://github.com/dotnet/roslyn/issues/56668")]
         public void LambdaAttributes_NullableAttributes_03()
         {
             var source =
@@ -4720,7 +4720,7 @@ class Program
                 );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/55013")]
+        [WorkItem(55013, "https://github.com/dotnet/roslyn/issues/55013")]
         [Fact]
         public void NullableTypeArraySwitchPattern()
         {
@@ -4744,7 +4744,7 @@ class C
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(5, 26));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52827")]
+        [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
         public void LambdaAttributes_DoesNotReturn()
         {
             var source = @"
@@ -4775,8 +4775,8 @@ class Program
             Assert.Equal(FlowAnalysisAnnotations.DoesNotReturn, lambdas[1].FlowAnalysisAnnotations);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52827")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56668")]
+        [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
+        [WorkItem(56668, "https://github.com/dotnet/roslyn/issues/56668")]
         public void LambdaAttributes_DoesNotReturn_OnDelegateType()
         {
             var source = @"
@@ -4943,8 +4943,8 @@ class Program
             Assert.Equal(new[] { "x" }, lambdas[1].Parameters[1].NotNullIfParameterNotNull);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52827")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56668")]
+        [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
+        [WorkItem(56668, "https://github.com/dotnet/roslyn/issues/56668")]
         public void LambdaParameterAttributes_NullableAttributes_02()
         {
             var source =
@@ -5331,7 +5331,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(8, 27));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/55217")]
+        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
         [ConditionalFact(typeof(DesktopOnly))]
         public void LambdaReturnType_12()
         {
@@ -6037,7 +6037,7 @@ class Program
 I");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/54257")]
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
         [Fact]
         public void BestType_03()
         {
@@ -6113,7 +6113,7 @@ class Program
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"System.Int64");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/54257")]
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
         [Fact]
         public void TypeInference_02()
         {
@@ -6136,7 +6136,7 @@ class Program
 
         // CS4031 is not reported for async lambda in [SecurityCritical] type.
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/54074")]
+        [WorkItem(54074, "https://github.com/dotnet/roslyn/issues/54074")]
         public void SecurityCritical_AsyncLambda()
         {
             var source =
@@ -6157,7 +6157,7 @@ class Program
 
         // CS4031 is not reported for async lambda in [SecurityCritical] type.
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/54074")]
+        [WorkItem(54074, "https://github.com/dotnet/roslyn/issues/54074")]
         public void SecurityCritical_AsyncLambda_AttributeArgument()
         {
             var source =
@@ -6187,7 +6187,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/53910")]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
         public void WithAttributesToExpressionTree_01()
         {
             var source =
@@ -6208,7 +6208,7 @@ class A : Attribute { }
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/53910")]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
         public void WithAttributesToExpressionTree_02()
         {
             var source =
@@ -6230,7 +6230,7 @@ class A : Attribute { }
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/53910")]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
         public void WithAttributesToExpressionTree_03()
         {
             var source =
@@ -6251,7 +6251,7 @@ class A : Attribute { }
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/53910")]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
         public void WithAttributesToExpressionTree_04()
         {
             var source =
@@ -6273,7 +6273,7 @@ class A : Attribute { }
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/53910")]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
         public void WithAttributesToExpressionTree_05()
         {
             var source =
@@ -6294,7 +6294,7 @@ class A : Attribute { }
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/53910")]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
         public void WithAttributesToExpressionTree_06()
         {
             var source =
@@ -6315,7 +6315,7 @@ class A : Attribute { }
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/53910")]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
         public void WithAttributesToExpressionTree_07()
         {
             var source =
@@ -6337,7 +6337,7 @@ class A : Attribute { }
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/53910")]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
         public void WithAttributesToExpressionTree_08()
         {
             var source =
@@ -6358,7 +6358,7 @@ class A : Attribute { }
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/53910")]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
         public void WithAttributesToExpressionTree_09()
         {
             var source =
@@ -6379,7 +6379,7 @@ class A : Attribute { }
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/53910")]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
         public void WithAttributesToExpressionTree_10()
         {
             var source =
@@ -6400,7 +6400,7 @@ class A : Attribute { }
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60661")]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
         public void KeywordParameterName_01()
         {
             var source =
@@ -6420,7 +6420,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60661")]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
         public void KeywordParameterName_02()
         {
             var source =
@@ -6440,7 +6440,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60661")]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
         public void KeywordParameterName_03()
         {
             var source =
@@ -6758,7 +6758,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61143")]
+        [Fact, WorkItem(61143, "https://github.com/dotnet/roslyn/issues/61143")]
         public void ParameterScope_LambdaDiscardParameter()
         {
             var comp = CreateCompilation(@"
@@ -6787,7 +6787,7 @@ class C
             Assert.Equal("System.Int32 _", model.GetSymbolInfo(discard).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61143")]
+        [Fact, WorkItem(61143, "https://github.com/dotnet/roslyn/issues/61143")]
         public void ParameterScope_LambdaUnderscoreParameter()
         {
             var comp = CreateCompilation(@"
@@ -6816,7 +6816,7 @@ class C
             Assert.Equal("System.String _", model.GetSymbolInfo(underscore).Symbol.ToTestDisplayString());
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/62085")]
+        [WorkItem(62085, "https://github.com/dotnet/roslyn/issues/62085")]
         [Fact]
         public void DuplicateRef()
         {
@@ -6942,7 +6942,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "partial () => { }").WithArguments("lambda expression", "System.Action").WithLocation(5, 27));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/61013")]
+        [WorkItem(61013, "https://github.com/dotnet/roslyn/issues/61013")]
         [Fact]
         public void InvalidCast()
         {
@@ -6980,7 +6980,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64392")]
+        [WorkItem(64392, "https://github.com/dotnet/roslyn/issues/64392")]
         public void ReferToFieldWithinLambdaInTypeAttribute_01()
         {
             var source = @"
@@ -7009,7 +7009,7 @@ public class DisplayAttribute : System.Attribute
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64392")]
+        [WorkItem(64392, "https://github.com/dotnet/roslyn/issues/64392")]
         public void ReferToFieldWithinLambdaInTypeAttribute_02()
         {
             var source = @"
@@ -7037,7 +7037,7 @@ public class DisplayAttribute : System.Attribute
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64985")]
+        [Fact, WorkItem(64985, "https://github.com/dotnet/roslyn/issues/64985")]
         public void DelegateConversions_ImplicitlyTypedParameter_RefParameter()
         {
             var source = """

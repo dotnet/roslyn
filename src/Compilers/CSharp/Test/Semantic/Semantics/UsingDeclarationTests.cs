@@ -592,7 +592,7 @@ class C2
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63570")]
+        [Fact, WorkItem(63570, "https://github.com/dotnet/roslyn/issues/63570")]
         public void UsingVariableInSwitchCase_02()
         {
             var source = """
@@ -665,7 +665,7 @@ class C2
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63570")]
+        [Fact, WorkItem(63570, "https://github.com/dotnet/roslyn/issues/63570")]
         public void UsingVariableInSwitchCase_03()
         {
             var source = """
@@ -696,7 +696,7 @@ class C2
             verifier.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63570")]
+        [Fact, WorkItem(63570, "https://github.com/dotnet/roslyn/issues/63570")]
         public void UsingVariableInSwitchCase_04()
         {
             var source = """
@@ -731,7 +731,7 @@ class C2
             verifier.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63570")]
+        [Fact, WorkItem(63570, "https://github.com/dotnet/roslyn/issues/63570")]
         public void UsingVariableInSwitchCase_05()
         {
             var source = """
@@ -937,7 +937,7 @@ class C4
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/36413")]
+        [WorkItem(36413, "https://github.com/dotnet/roslyn/issues/36413")]
         public void UsingDeclarationsWithInvalidModifiers()
         {
             var source = @"

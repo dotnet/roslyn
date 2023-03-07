@@ -541,7 +541,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543613")>
+        <WorkItem(543613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543613")>
         <Fact()>
         Public Sub IntegerObjectConcatAssignWithNothing()
 
@@ -1064,7 +1064,7 @@ End Class
             End If
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642269")>
+        <WorkItem(642269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642269")>
         <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug642269()
 
@@ -1093,7 +1093,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem(1021941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
         Public Sub Bug1021941_01()
 
             Dim compilationDef =
@@ -1196,7 +1196,7 @@ Position set for item 'Bar'
 ]]>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem(1021941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
         Public Sub Bug1021941_02()
 
             Dim compilationDef =
@@ -1299,7 +1299,7 @@ Position set for item 'Bar'
 ]]>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem(1021941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
         Public Sub Bug1021941_03()
 
             Dim compilationDef =
@@ -1409,7 +1409,7 @@ Position set for item 'Bar'
 ]]>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem(1021941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
         Public Sub Bug1021941_04()
 
             Dim compilationDef =
@@ -1534,7 +1534,7 @@ Position set for item 'Bar'
 ]]>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem(1021941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
         Public Sub Bug1021941_05()
 
             Dim compilationDef =
@@ -1651,7 +1651,7 @@ Position set for item 'Bar'
 ]]>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem(1021941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
         Public Sub Bug1021941_06()
 
             Dim compilationDef =
@@ -1758,7 +1758,7 @@ Position set for item 'Bar'
 ]]>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem(1021941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
         Public Sub Bug1021941_07()
 
             Dim compilationDef =
@@ -1861,7 +1861,7 @@ Position set for item 'Bar'
 ]]>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem(1021941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
         Public Sub Bug1021941_08()
 
             Dim compilationDef =
@@ -1964,7 +1964,7 @@ Position set for item 'Bar'
 ]]>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem(1021941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
         Public Sub Bug1021941_09()
 
             Dim compilationDef =
@@ -2074,7 +2074,7 @@ Position set for item 'Bar'
 ]]>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem(1021941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
         Public Sub Bug1021941_10()
 
             Dim compilationDef =
@@ -2199,7 +2199,7 @@ Position set for item 'Bar'
 ]]>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem(1021941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
         Public Sub Bug1021941_11()
 
             Dim compilationDef =
@@ -2316,7 +2316,7 @@ Position set for item 'Bar'
 ]]>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/63221"), WorkItem(1021941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
         Public Sub Bug1021941_12()
 
             Dim compilationDef =
@@ -2423,7 +2423,7 @@ Position set for item 'Bar'
 ]]>)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
+        <Fact(), WorkItem(1021941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
         Public Sub Bug1021941_13()
 
             Dim compilationDef =
@@ -2495,7 +2495,7 @@ Position set for item 'Goo'
 ]]>)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
+        <Fact(), WorkItem(1021941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
         Public Sub Bug1021941_14()
 
             Dim compilationDef =
@@ -2567,7 +2567,7 @@ Position set for item 'Goo'
 ]]>)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
+        <Fact(), WorkItem(1021941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
         Public Sub Bug1021941_15()
 
             Dim compilationDef =
@@ -2640,7 +2640,7 @@ True
 ]]>)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
+        <Fact(), WorkItem(1021941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
         Public Sub Bug1021941_16()
 
             Dim compilationDef =
@@ -2722,7 +2722,7 @@ False
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4132")>
+        <Fact, WorkItem(4132, "https://github.com/dotnet/roslyn/issues/4132")>
         Public Sub Issue4132()
 
             Dim compilationDef =

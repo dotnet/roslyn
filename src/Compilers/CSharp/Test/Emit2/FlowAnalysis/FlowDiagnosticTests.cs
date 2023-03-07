@@ -188,7 +188,7 @@ class Program
             Assert.Equal(0, count[(int)DiagnosticSeverity.Info]);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537918")]
+        [WorkItem(537918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537918")]
         [Fact]
         public void AssertForInvalidBreak()
         {
@@ -213,7 +213,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_NoBreakOrCont, "break;"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538064")]
+        [WorkItem(538064, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538064")]
         [Fact]
         public void IfFalse()
         {
@@ -232,7 +232,7 @@ class Program
             Assert.Equal(0, this.FlowDiagnostics(comp).Count());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538067")]
+        [WorkItem(538067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538067")]
         [Fact]
         public void WhileConstEqualsConst()
         {
@@ -256,7 +256,7 @@ class Program
             Assert.Equal(0, this.FlowDiagnostics(comp).Count());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538175")]
+        [WorkItem(538175, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538175")]
         [Fact]
         public void BreakWithoutTarget()
         {
@@ -305,7 +305,7 @@ class Program
             Assert.Equal(2, this.FlowDiagnostics(comp).Count());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539374")]
+        [WorkItem(539374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539374")]
         [Fact]
         public void OutAssignedAfterCall01()
         {
@@ -325,7 +325,7 @@ class Program
             Assert.Equal(1, this.FlowDiagnostics(comp).Count());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538067")]
+        [WorkItem(538067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538067")]
         [Fact]
         public void WhileConstEqualsConst2()
         {
@@ -357,7 +357,7 @@ class Program
             Assert.Equal(0, count[(int)DiagnosticSeverity.Info]);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538072")]
+        [WorkItem(538072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538072")]
         [Fact]
         public void UnusedLocal()
         {
@@ -406,7 +406,7 @@ class Program
             // Assert.Equal(1, warnings[649]);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538384")]
+        [WorkItem(538384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538384")]
         [Fact]
         public void UnusedLocalConstants()
         {
@@ -432,7 +432,7 @@ class Program
             Assert.Equal(0, this.FlowDiagnostics(comp).Count());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538385")]
+        [WorkItem(538385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538385")]
         [Fact]
         public void UnusedLocalReferenceTypedVariables()
         {
@@ -455,7 +455,7 @@ class Program
             Assert.Equal(0, this.FlowDiagnostics(comp).Count());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538386")]
+        [WorkItem(538386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538386")]
         [Fact]
         public void UnusedLocalValueTypedVariables()
         {
@@ -591,7 +591,7 @@ class Program
             Assert.NotEmpty(this.FlowDiagnostics(comp).Where(e => e.Severity >= DiagnosticSeverity.Error));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528052")]
+        [Fact, WorkItem(528052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528052")]
         public void InnerVariablesAreNotDefinitelyAssignedInBeginningOfLambdaBody()
         {
             string program = @"
@@ -616,7 +616,7 @@ class Program
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540139")]
+        [WorkItem(540139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540139")]
         [Fact]
         public void DelegateCreationReceiverIsRead()
         {
@@ -636,7 +636,7 @@ class Program
             Assert.NotEmpty(this.FlowDiagnostics(comp).Where(e => e.Severity >= DiagnosticSeverity.Error));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540405")]
+        [WorkItem(540405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540405")]
         [Fact]
         public void ErrorInFieldInitializerLambda()
         {
@@ -660,7 +660,7 @@ class Program
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541389")]
+        [WorkItem(541389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541389")]
         [Fact]
         public void IterationWithEmptyBody()
         {
@@ -679,7 +679,7 @@ public class A
             CreateCompilation(program).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541389")]
+        [WorkItem(541389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541389")]
         [Fact]
         public void SelectionWithEmptyBody()
         {
@@ -697,7 +697,7 @@ public class A
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542146")]
+        [WorkItem(542146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542146")]
         [Fact]
         public void FieldlikeEvent()
         {
@@ -717,7 +717,7 @@ public struct S
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "Ev").WithArguments("S.Ev"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542187")]
+        [WorkItem(542187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542187")]
         [Fact]
         public void GotoFromTry()
         {
@@ -743,7 +743,7 @@ public struct S
             CreateCompilation(program).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542154")]
+        [WorkItem(542154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542154")]
         [Fact]
         public void UnreachableThrow()
         {
@@ -765,7 +765,7 @@ public struct S
             CreateCompilation(program).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542585")]
+        [WorkItem(542585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542585")]
         [Fact]
         public void Bug9870()
         {
@@ -788,7 +788,7 @@ struct S<T>
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542597")]
+        [WorkItem(542597, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542597")]
         [Fact]
         public void LambdaEntryPointIsReachable()
         {
@@ -817,7 +817,7 @@ struct S<T>
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542597")]
+        [WorkItem(542597, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542597")]
         [Fact]
         public void LambdaInUnimplementedPartial()
         {
@@ -841,7 +841,7 @@ partial class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541887")]
+        [WorkItem(541887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541887")]
         [Fact]
         public void CascadedDiagnostics01()
         {
@@ -880,7 +880,7 @@ class Program
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543343")]
+        [WorkItem(543343, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543343")]
         [Fact]
         public void ConstInSwitch()
         {
@@ -941,7 +941,7 @@ public struct A
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("A.a").WithLocation(4, 7));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542356")]
+        [WorkItem(542356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542356")]
         [Fact]
         public void StaticMemberExplosion()
         {
@@ -1015,7 +1015,7 @@ partial struct S
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542567")]
+        [WorkItem(542567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542567")]
         [Fact]
         public void ImplicitFieldSequential()
         {
@@ -1236,7 +1236,7 @@ struct S
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543429")]
+        [WorkItem(543429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543429")]
         [Fact]
         public void ConstructorCannotComplete()
         {
@@ -1844,7 +1844,7 @@ struct T
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543466")]
+        [WorkItem(543466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543466")]
         [Fact]
         public void UnreferencedFieldWarningsMissingInEmit()
         {
@@ -1891,8 +1891,8 @@ class Test
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540896")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541268")]
+        [WorkItem(540896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540896")]
+        [WorkItem(541268, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541268")]
         [Fact]
         public void ChainToStructDefaultConstructor()
         {
@@ -1924,8 +1924,8 @@ namespace Roslyn.Compilers.CSharp
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541298")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541298")]
+        [WorkItem(541298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541298")]
+        [WorkItem(541298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541298")]
         [Fact]
         public void SetStaticPropertyOnStruct()
         {
@@ -2011,7 +2011,7 @@ struct S<T>
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542901")]
+        [WorkItem(542901, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542901")]
         public void DataFlowForStructFieldAssignment()
         {
             string program = @"struct S
@@ -2059,7 +2059,7 @@ struct S<T>
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2470")]
+        [WorkItem(2470, "https://github.com/dotnet/roslyn/issues/2470")]
         public void NoFieldNeverAssignedWarning()
         {
             string program = @"
@@ -2118,7 +2118,7 @@ public class OperationExecutor
 
         #endregion
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545347")]
+        [Fact, WorkItem(545347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545347")]
         public void FieldInAbstractClass_UnusedField()
         {
             var text = @"
@@ -2133,7 +2133,7 @@ abstract class AbstractType
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Kind").WithArguments("AbstractType.Kind", "0").WithLocation(4, 16));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545347")]
+        [Fact, WorkItem(545347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545347")]
         public void FieldInAbstractClass_FieldUsedInChildType()
         {
             var text = @"
@@ -2154,7 +2154,7 @@ class ChildType : AbstractType
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545642")]
+        [WorkItem(545642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545642")]
         public void InitializerAndConstructorWithOutParameter()
         {
             string program =
@@ -2171,7 +2171,7 @@ class ChildType : AbstractType
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545875")]
+        [WorkItem(545875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545875")]
         public void TestSuppressUnreferencedVarAssgOnIntPtr()
         {
             var source = @"
@@ -2198,7 +2198,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546183")]
+        [WorkItem(546183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546183")]
         public void TestUnassignedStructFieldsInPInvokePassByRefCase()
         {
             var source = @"
@@ -2262,7 +2262,7 @@ namespace ManagedDebuggingAssistants
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546673")]
+        [WorkItem(546673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546673")]
         [Fact]
         public void TestBreakInsideNonLocalScopeBinder()
         {
@@ -2329,7 +2329,7 @@ public class C
             CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611904")]
+        [WorkItem(611904, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611904")]
         [Fact]
         public void LabelAtTopLevelInsideLambda()
         {
@@ -2374,7 +2374,7 @@ class Program
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633927")]
+        [WorkItem(633927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633927")]
         [Fact]
         public void Xyzzy()
         {
@@ -2417,7 +2417,7 @@ class Program
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667368")]
+        [WorkItem(667368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667368")]
         [Fact]
         public void RegressionTest667368()
         {
@@ -2451,7 +2451,7 @@ namespace ConsoleApplication1
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690921")]
+        [WorkItem(690921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690921")]
         [Fact]
         public void RegressionTest690921()
         {
@@ -2484,7 +2484,7 @@ namespace ConsoleApplication1
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715338")]
+        [WorkItem(715338, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715338")]
         [Fact]
         public void RegressionTest715338()
         {
@@ -2506,7 +2506,7 @@ static class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808567")]
+        [WorkItem(808567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808567")]
         [Fact]
         public void RegressionTest808567()
         {
@@ -2536,7 +2536,7 @@ class Derived2 : Base
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949324")]
+        [WorkItem(949324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949324")]
         [Fact]
         public void RegressionTest949324()
         {
@@ -2574,7 +2574,7 @@ class Derived2 : Base
                 );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/612")]
+        [WorkItem(612, "https://github.com/dotnet/roslyn/issues/612")]
         [Fact]
         public void CascadedUnreachableCode()
         {
@@ -2602,7 +2602,7 @@ class Derived2 : Base
                 );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/9581")]
+        [WorkItem(9581, "https://github.com/dotnet/roslyn/issues/9581")]
         [Fact]
         public void UsingSelfAssignment()
         {
@@ -2734,7 +2734,7 @@ struct S
         }
 
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1243877")]
+        [WorkItem(1243877, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1243877")]
         public void WorkItem1243877()
         {
             string program = @"

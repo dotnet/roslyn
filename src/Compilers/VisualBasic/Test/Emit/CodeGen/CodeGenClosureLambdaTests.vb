@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenClosureLambdaTests
         Inherits BasicTestBase
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")>
+        <WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")>
         <Fact>
         Public Sub TestAnonymousTypeInsideGroupBy_Enumerable()
             CompileAndVerify(
@@ -45,8 +45,8 @@ End Class
 </compilation>, expectedOutput:="")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546538")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")>
+        <WorkItem(546538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546538")>
+        <WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")>
         <Fact()>
         Public Sub TestAnonymousTypeInsideGroupBy_Queryable_1()
             Dim compilation =
@@ -91,7 +91,7 @@ BC36675: Statement lambdas cannot be converted to expression trees.
 </errors>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546538")>
+        <WorkItem(546538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546538")>
         <Fact()>
         Public Sub TestAnonymousTypeInsideGroupBy_Queryable_2()
             CompileAndVerify(
@@ -2849,7 +2849,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542070")>
+        <WorkItem(542070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542070")>
         <Fact>
         Public Sub DeeplyNestedLambda()
             CompileAndVerify(
@@ -2950,7 +2950,7 @@ End Class
 "Level5" & Environment.NewLine)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542121")>
+        <WorkItem(542121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542121")>
         <Fact>
         Public Sub TestLambdaNoClosureClass()
 
@@ -2991,7 +2991,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545390")>
+        <WorkItem(545390, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545390")>
         <Fact>
         Public Sub Regress13769()
             CompileAndVerify(
@@ -3024,7 +3024,7 @@ End Module
 </compilation>, expectedOutput:="======== Generic-26 ===========")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545391")>
+        <WorkItem(545391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545391")>
         <Fact>
         Public Sub Regress13770()
             CompileAndVerify(
@@ -3077,7 +3077,7 @@ End Module
 </compilation>, expectedOutput:="======== Generic-12 ===========")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545392")>
+        <WorkItem(545392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545392")>
         <Fact>
         Public Sub Regress13771()
             CompileAndVerify(
@@ -3130,7 +3130,7 @@ End Module
 </compilation>, expectedOutput:="======== Generic-14 ===========")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545393")>
+        <WorkItem(545393, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545393")>
         <Fact>
         Public Sub Regress13772()
             CompileAndVerify(
@@ -3182,7 +3182,7 @@ End Module
 </compilation>, expectedOutput:="======== Generic-4 ===========")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545394")>
+        <WorkItem(545394, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545394")>
         <Fact>
         Public Sub Regress13773()
             CompileAndVerify(
@@ -3243,7 +3243,7 @@ End Module
 </compilation>, expectedOutput:="======== Generic-5 ===========")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545395")>
+        <WorkItem(545395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545395")>
         <Fact>
         Public Sub Regress13774()
             CompileAndVerify(
@@ -3298,7 +3298,7 @@ End Module
 </compilation>, expectedOutput:="======== Generic-5 ===========")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545389")>
+        <WorkItem(545389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545389")>
         <Fact>
         Public Sub Regress13768()
             CompileAndVerify(
@@ -3334,7 +3334,7 @@ End Module
 </compilation>, expectedOutput:="correct")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531533")>
+        <WorkItem(531533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531533")>
         <Fact>
         Public Sub Regress531533()
 
@@ -3433,7 +3433,7 @@ End Module
 </compilation>, expectedOutput:="True")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836488")>
+        <WorkItem(836488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836488")>
         <Fact>
         Public Sub RelaxedInitializer()
             CompileAndVerify(

@@ -182,7 +182,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         Public Sub TestDoubleConstLocal()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -595,7 +595,7 @@ End Module
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543469")>
+        <WorkItem(543469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543469")>
         <Fact()>
         Public Sub TestLiftedIntegerConstLocalInLambda()
 
@@ -650,7 +650,7 @@ End Module
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543469")>
+        <WorkItem(543469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543469")>
         <Fact()>
         Public Sub TestLiftedDecimalConstLocalInLambda()
 
@@ -727,7 +727,7 @@ End Module
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543475")>
+        <WorkItem(543475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543475")>
         <Fact()>
         Public Sub TestLocalConstCycleDetection()
 
@@ -751,7 +751,7 @@ End Module
                                        Diagnostic(ERRID.ERR_CircularEvaluation1, "j").WithArguments("j"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542910")>
+        <WorkItem(542910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542910")>
         <Fact()>
         Public Sub TestSByteLocalConst()
 
@@ -820,7 +820,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/49902")>
+        <WorkItem(49902, "https://github.com/dotnet/roslyn/issues/49902")>
         Public Sub BadConstantValue_1()
             Dim compilation = CreateCompilation(
 <compilation>
@@ -845,7 +845,7 @@ BC30059: Constant expression is required.
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/49902")>
+        <WorkItem(49902, "https://github.com/dotnet/roslyn/issues/49902")>
         Public Sub BadConstantValue_2()
             Dim compilation = CreateCompilation(
 <compilation>
@@ -870,7 +870,7 @@ BC30059: Constant expression is required.
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/49902")>
+        <WorkItem(49902, "https://github.com/dotnet/roslyn/issues/49902")>
         Public Sub BadConstantValue_3()
             Dim compilation = CreateCompilation(
 <compilation>
@@ -895,7 +895,7 @@ BC30059: Constant expression is required.
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/49902")>
+        <WorkItem(49902, "https://github.com/dotnet/roslyn/issues/49902")>
         Public Sub BadConstantValue_4()
             Dim compilation = CreateCompilation(
 <compilation>

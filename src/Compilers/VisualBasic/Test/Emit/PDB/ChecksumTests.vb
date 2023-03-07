@@ -179,7 +179,7 @@ End Class
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")>
+        <WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestHasWindowsPaths)>
         Public Sub NormalizedPath_Tree()
             Dim source = <![CDATA[
@@ -212,8 +212,8 @@ End Class
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50611")>
+        <WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")>
+        <WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestHasWindowsPaths)>
         Public Sub NormalizedPath_ExternalSource()
             Dim source = <![CDATA[
@@ -268,7 +268,7 @@ End Class
 </symbols>, format:=DebugInformationFormat.PortablePdb)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")>
+        <WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestHasWindowsPaths)>
         Public Sub NormalizedPath_ExternalChecksum()
             Dim source = <![CDATA[
@@ -331,7 +331,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestHasWindowsPaths)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50611")>
+        <WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")>
         Public Sub NormalizedPath_NoBaseDirectory()
             Dim source = <![CDATA[
 Class C

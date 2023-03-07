@@ -929,7 +929,7 @@ class MyTaskMethodBuilder<T>
     }").WithArguments("MyTaskMethodBuilder<int>", "Start").WithLocation(16, 5));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12616")]
+        [WorkItem(12616, "https://github.com/dotnet/roslyn/issues/12616")]
         [Fact]
         public void AsyncMethodBuilder_MissingConstraints()
         {
@@ -1014,7 +1014,7 @@ class MyTaskMethodBuilder<T>
                 );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12616")]
+        [WorkItem(12616, "https://github.com/dotnet/roslyn/issues/12616")]
         [Fact]
         public void AsyncMethodBuilder_AdditionalConstraints()
         {
@@ -1094,7 +1094,7 @@ class MyTaskMethodBuilder<T>
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "await Task.Delay(0);").WithArguments("MyTaskMethodBuilder<T>.AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)", "System.Runtime.CompilerServices.ICriticalNotifyCompletion", "TStateMachine", "C.<G>d__1<T>").WithLocation(14, 40));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/15955")]
+        [WorkItem(15955, "https://github.com/dotnet/roslyn/issues/15955")]
         [Fact]
         public void OverloadWithVoidPointer()
         {
@@ -1190,7 +1190,7 @@ public sealed class MyTaskMethodBuilder
         /// Avoid checking constraints in generic methods in actual AsyncTaskMethodBuilder
         /// to avoid breaking change.
         /// </summary>
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21500")]
+        [WorkItem(21500, "https://github.com/dotnet/roslyn/issues/21500")]
         [Fact]
         public void AdditionalConstraintMissingFromStateMachine_AsyncTaskMethodBuilder()
         {
@@ -1279,7 +1279,7 @@ class Program
         /// <summary>
         /// Verify constraints at the call-site for generic methods of async method build.
         /// </summary>
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21500")]
+        [WorkItem(21500, "https://github.com/dotnet/roslyn/issues/21500")]
         [Fact]
         public void Start_AdditionalConstraintMissingFromStateMachine()
         {
@@ -1354,7 +1354,7 @@ public sealed class MyTaskMethodBuilder
         /// <summary>
         /// Verify constraints at the call-site for generic methods of async method build.
         /// </summary>
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21500")]
+        [WorkItem(21500, "https://github.com/dotnet/roslyn/issues/21500")]
         [Fact]
         public void AwaitOnCompleted_AdditionalConstraintMissingFromAwaiter()
         {
@@ -1426,7 +1426,7 @@ public sealed class MyTaskMethodBuilder
         /// <summary>
         /// Verify constraints at the call-site for generic methods of async method build.
         /// </summary>
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21500")]
+        [WorkItem(21500, "https://github.com/dotnet/roslyn/issues/21500")]
         [Fact]
         public void AwaitUnsafeOnCompleted_AdditionalConstraintMissingFromAwaiter()
         {
@@ -1497,7 +1497,7 @@ public sealed class MyTaskMethodBuilder
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "await new MyTask();").WithArguments("MyTaskMethodBuilder.AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)", "IMyAwaiter", "TAwaiter", "MyTask.Awaiter").WithLocation(5, 9));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/33388")]
+        [Fact, WorkItem(33388, "https://github.com/dotnet/roslyn/pull/33388")]
         public void AttributeArgument_TaskLikeOverloadResolution()
         {
             var source = @"
@@ -1553,7 +1553,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B.F(async () => null)").WithLocation(15, 4));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37712")]
+        [Fact, WorkItem(37712, "https://github.com/dotnet/roslyn/issues/37712")]
         public void TaskLikeWithRefStructValue()
         {
             var source = @"
@@ -1595,7 +1595,7 @@ class Program
             CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: "3");
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/60332")]
+        [Theory, CombinatorialData, WorkItem(60332, "https://github.com/dotnet/roslyn/issues/60332")]
         public void RefParameterOnMethodWithAsyncMethodBuilderAttribute(bool useCSharp9)
         {
             var source = """

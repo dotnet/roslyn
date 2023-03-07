@@ -141,7 +141,7 @@ ValueC = 257 // Out of underlying range
             VerifyEnumsValue(text, "c1.EnumTest", null, null);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539167")]
+        [WorkItem(539167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539167")]
         // No enum-body 
         [Fact]
         public void NoEnumBody_01()
@@ -255,7 +255,7 @@ ValueC = 257 // Out of underlying range
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527757")]
+        [WorkItem(527757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527757")]
         // Modifiers for enum member
         [Fact()]
         public void CS1041ERR_IdentifierExpectedKW_ModifiersForEnumMember()
@@ -698,7 +698,7 @@ public class c1
                 Diagnostic(ErrorCode.WRN_CLS_BadBase, "COLORS").WithArguments("c1.COLORS", "uint"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539178")]
+        [WorkItem(539178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539178")]
         // No underlying type after ':' 
         [Fact]
         public void CS3031ERR_TypeExpected_NoUnderlyingTypeForEnum()
@@ -785,7 +785,7 @@ class c1
                 Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "o").WithArguments("o", "object"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540765")]
+        [WorkItem(540765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540765")]
         [Fact]
         public void TestInitializeWithEnumMemberEnumConst()
         {
@@ -806,7 +806,7 @@ class Test
             CreateCompilation(text).VerifyDiagnostics(); // No Errors
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540765")]
+        [WorkItem(540765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540765")]
         [Fact]
         public void TestInitializeWithEnumMemberEnumConst2()
         {
@@ -824,7 +824,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_CircConstValue, "e").WithArguments("Test.e")); // No Errors
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540765")]
+        [WorkItem(540765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540765")]
         [Fact]
         public void TestInitializeWithEnumMemberEnumConst3()
         {
@@ -860,7 +860,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(E3)e").WithArguments("Test.E3", "int"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540771")]
+        [WorkItem(540771, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540771")]
         [Fact]
         public void TestUseEnumMemberFromBaseGenericType()
         {
@@ -879,7 +879,7 @@ class Derived<T, U> : Base<U, T>
             CreateCompilation(text).VerifyDiagnostics(); // No Errors
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667303")]
+        [WorkItem(667303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667303")]
         [Fact]
         public void TestFullNameForEnumBaseType()
         {
@@ -903,7 +903,7 @@ public enum Breaks8 : System.UInt64 {}";
             CreateCompilation(text).VerifyDiagnostics(); // No Errors
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667303")]
+        [WorkItem(667303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667303")]
         [Fact]
         public void TestBadEnumBaseType()
         {
@@ -920,7 +920,7 @@ public enum Breaks2 : System.String {}";
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750553")]
+        [WorkItem(750553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750553")]
         [Fact]
         public void InvalidEnumUnderlyingType()
         {

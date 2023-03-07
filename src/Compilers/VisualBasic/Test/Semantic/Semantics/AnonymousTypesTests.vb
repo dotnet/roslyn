@@ -735,7 +735,7 @@ BC36613: Anonymous type member name cannot be inferred from an XML identifier th
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544370")>
+        <WorkItem(544370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544370")>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromXml04()
             Dim source = <![CDATA[
@@ -1283,7 +1283,7 @@ BC36557: 'x' is not a member of '<anonymous type>'; it does not exist in the cur
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542940")>
+        <WorkItem(542940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542940")>
         <Fact>
         Public Sub LambdaReturningAnonymousType()
             Dim source = <![CDATA[
@@ -1345,7 +1345,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543286")>
+        <WorkItem(543286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543286")>
         <Fact>
         Public Sub AnonymousTypeInALambdaInGenericMethod1()
             Dim compilationDef =
@@ -1409,7 +1409,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543286")>
+        <WorkItem(543286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543286")>
         <Fact>
         Public Sub AnonymousTypeInALambdaInGenericMethod2()
             Dim compilationDef =
@@ -1471,7 +1471,7 @@ End Module
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="{ x2 = 0 }")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529688")>
+        <WorkItem(529688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529688")>
         <Fact()>
         Public Sub AssociatedAnonymousDelegate_Valid()
             Dim compilationDef =
@@ -1516,7 +1516,7 @@ End Module
             Assert.Same(associatedDelegate, info.Symbol.ContainingSymbol)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529688")>
+        <WorkItem(529688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529688")>
         <Fact()>
         Public Sub AssociatedAnonymousDelegate_Action_SameSignature()
             Dim compilationDef =
@@ -1561,7 +1561,7 @@ End Module
             Assert.NotSame(associatedDelegate, info.Symbol.ContainingSymbol)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529688")>
+        <WorkItem(529688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529688")>
         <Fact()>
         Public Sub AssociatedAnonymousDelegate_Action_DifferentSignature()
             Dim compilationDef =

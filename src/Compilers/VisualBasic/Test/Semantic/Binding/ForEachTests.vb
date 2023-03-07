@@ -3839,7 +3839,7 @@ BC30108: 'S' is a type and cannot be used as an expression.
 </expected>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529048")>
+        <WorkItem(529048, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529048")>
         <Fact()>
         Public Sub ForeachOutOfMethod()
             Dim source =
@@ -3854,7 +3854,7 @@ Next
             Diagnostic(ERRID.ERR_NextNoMatchingFor, "Next"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529048")>
+        <WorkItem(529048, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529048")>
         <Fact()>
         Public Sub ForeachOutOfMethod_1()
             Dim source =
@@ -3871,7 +3871,7 @@ End Class
             Diagnostic(ERRID.ERR_NextNoMatchingFor, "Next"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543709")>
+        <WorkItem(543709, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543709")>
         <Fact()>
         Public Sub Bug11622()
             Dim source =
@@ -3928,7 +3928,7 @@ MyCollection2 generic
 ]]>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529049")>
+        <WorkItem(529049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529049")>
         <Fact>
         Public Sub ForLoopsOutOfMethod()
             Dim source =
@@ -3943,7 +3943,7 @@ Next
     Diagnostic(ERRID.ERR_NextNoMatchingFor, "Next"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529049")>
+        <WorkItem(529049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529049")>
         <Fact>
         Public Sub ForLoopsOutOfMethod_1()
             Dim source =
@@ -3960,7 +3960,7 @@ End Class
     Diagnostic(ERRID.ERR_NextNoMatchingFor, "Next"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543842")>
+        <WorkItem(543842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543842")>
         <Fact()>
         Public Sub ArraysAndUseSiteErrors()
             Dim source =
@@ -4006,7 +4006,7 @@ BC42104: Variable 'xs' is used before it has been assigned a value. A null refer
             )
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543842")>
+        <WorkItem(543842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543842")>
         <Fact()>
         Public Sub StringsAndUseSiteErrors()
             Dim source =
@@ -4052,7 +4052,7 @@ BC42104: Variable 'xs' is used before it has been assigned a value. A null refer
             )
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545519")>
+        <WorkItem(545519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545519")>
         <Fact()>
         Public Sub NewForEachScopeDev12()
             Dim source =
@@ -4085,7 +4085,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545519")>
+        <WorkItem(545519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545519")>
         <Fact()>
         Public Sub OriginalDev11Test()
             Dim source =
@@ -4495,7 +4495,7 @@ Too bad the pattern does not work with late binding ...
 ]]>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847507")>
+        <WorkItem(847507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847507")>
         <Fact>
         Public Sub InferIterationVariableTypeWithErrors()
             Dim source =
@@ -4542,7 +4542,7 @@ End Namespace
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/26112")>
+        <WorkItem(26112, "https://github.com/dotnet/roslyn/issues/26112")>
         Public Sub ForEachOverAnArrayAndUserDefinedConversion_SZ()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -4607,7 +4607,7 @@ End Class
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/26112")>
+        <WorkItem(26112, "https://github.com/dotnet/roslyn/issues/26112")>
         Public Sub ForEachOverAnArrayAndUserDefinedConversion_MD()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -4665,7 +4665,7 @@ End Class
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/26112")>
+        <WorkItem(26112, "https://github.com/dotnet/roslyn/issues/26112")>
         Public Sub ForEachOverAStringAndUserDefinedConversion()
             Dim verifier = CompileAndVerify(
 <compilation>

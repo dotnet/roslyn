@@ -963,7 +963,7 @@ public class D
             Assert.Null(reader);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void EmptyStaticConstructor_WithEnableTestCoverage()
         {
@@ -1006,7 +1006,7 @@ class C
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void SynthesizedStaticConstructor_WithEnableTestCoverage()
         {

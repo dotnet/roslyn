@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class IOperationTests_IPatternSwitchCase : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_VarPatternDeclaration()
         {
             string source = @"
@@ -44,7 +44,7 @@ IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.Case
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_PrimitiveTypePatternDeclaration()
         {
             string source = @"
@@ -73,7 +73,7 @@ IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.Case
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_ReferenceTypePatternDeclaration()
         {
             string source = @"
@@ -101,7 +101,7 @@ IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.Case
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_TypeParameterTypePatternDeclaration()
         {
             string source = @"
@@ -129,7 +129,7 @@ IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.Case
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_DynamicTypePatternDeclaration()
         {
             string source = @"
@@ -161,7 +161,7 @@ IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.Case
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_MixedDeclarationPatternAndConstantPatternClauses()
         {
             string source = @"
@@ -191,7 +191,7 @@ IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.Case
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_MixedDeclarationPatternAndConstantPatternClausesInSameSwitchSection()
         {
             string source = @"
@@ -220,7 +220,7 @@ IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.Case
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_MixedDeclarationPatternAndConstantPatternWithDefaultLabel()
         {
             string source = @"
@@ -250,7 +250,7 @@ IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.Case
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_GuardExpressionInPattern()
         {
             string source = @"
@@ -287,7 +287,7 @@ IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.Case
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_PatternInGuardExpressionInPattern()
         {
             string source = @"
@@ -321,7 +321,7 @@ IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.Case
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_SyntaxErrorInGuardExpressionInPattern()
         {
             string source = @"
@@ -356,7 +356,7 @@ IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.Case
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_SemanticErrorInGuardExpressionInPattern()
         {
             string source = @"
@@ -393,7 +393,7 @@ IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.Case
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_ConstantPattern()
         {
             string source = @"
@@ -429,7 +429,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_DefaultLabel()
         {
             string source = @"
@@ -456,7 +456,7 @@ IDefaultCaseClauseOperation (Label Id: 0) (CaseKind.Default) (OperationKind.Case
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_InvalidTypeSwitch()
         {
             string source = @"
@@ -491,7 +491,7 @@ IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.Case
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_UndefinedTypeInPatternDeclaration()
         {
             string source = @"
@@ -523,7 +523,7 @@ IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.Case
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_InvalidTypeInPatternDeclaration()
         {
             string source = @"
@@ -555,7 +555,7 @@ IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.Case
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_DuplicateLocalInPatternDeclaration()
         {
             string source = @"
@@ -591,7 +591,7 @@ IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.Case
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_InvalidConstDeclarationInPatternDeclaration()
         {
             string source = @"
@@ -639,7 +639,7 @@ class X
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_RedundantPatternDeclarationClauses()
         {
             string source = @"

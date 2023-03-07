@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class ErrorTypeSymbolTests : CSharpTestBase
     {
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546143")]
+        [WorkItem(546143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546143")]
         [Fact]
         public void ConstructedErrorTypes()
         {
@@ -109,7 +109,7 @@ class C7 : A<string>.B<object> { }";
             }
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/52516")]
+        [WorkItem(52516, "https://github.com/dotnet/roslyn/issues/52516")]
         [Fact]
         public void ErrorInfo_01()
         {

@@ -231,7 +231,7 @@ public class X
     }
 
     [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/57731")]
+    [WorkItem(57731, "https://github.com/dotnet/roslyn/issues/57731")]
     public void ListPattern_Codegen()
     {
         var source = @"
@@ -2768,7 +2768,7 @@ class X
             );
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59466")]
+    [Fact, WorkItem(59466, "https://github.com/dotnet/roslyn/issues/59466")]
     public void AlwaysTruePattern()
     {
         var source = @"
@@ -3090,7 +3090,7 @@ class X
             );
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65876")]
+    [Fact, WorkItem(65876, "https://github.com/dotnet/roslyn/issues/65876")]
     public void ListPattern_Negated_03()
     {
         var source = """
@@ -6913,7 +6913,7 @@ class C
     }
 
     [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/51192")]
+    [WorkItem(51192, "https://github.com/dotnet/roslyn/issues/51192")]
     public void Subsumption_17()
     {
         var source =
@@ -7617,7 +7617,7 @@ _ = a switch
         comp.VerifyDiagnostics();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51801")]
+    [Fact, WorkItem(51801, "https://github.com/dotnet/roslyn/issues/51801")]
     public void IndexerOverrideLacksAccessor()
     {
         var source = @"
@@ -7715,7 +7715,7 @@ class C : Base
 }");
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51801")]
+    [Fact, WorkItem(51801, "https://github.com/dotnet/roslyn/issues/51801")]
     public void LengthOverrideLacksAccessor()
     {
         var source = @"
@@ -8344,7 +8344,7 @@ if (""0420"" is [_, .. var x, _])
         CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsILVerify);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57728")]
+    [Fact, WorkItem(57728, "https://github.com/dotnet/roslyn/issues/57728")]
     public void Simple_Array_Slice()
     {
         var source = @"
@@ -8627,7 +8627,7 @@ switch (a)
             );
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59465")]
+    [Fact, WorkItem(59465, "https://github.com/dotnet/roslyn/issues/59465")]
     public void MissingLength()
     {
         var source = @"
@@ -8655,7 +8655,7 @@ struct S
             );
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59465")]
+    [Fact, WorkItem(59465, "https://github.com/dotnet/roslyn/issues/59465")]
     public void MissingLength_WithIntIndexer()
     {
         var source = @"
@@ -8677,7 +8677,7 @@ struct S
             );
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59465")]
+    [Fact, WorkItem(59465, "https://github.com/dotnet/roslyn/issues/59465")]
     public void MissingLength_PrivateLength()
     {
         var source = @"
@@ -8697,7 +8697,7 @@ struct S
             );
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59465")]
+    [Fact, WorkItem(59465, "https://github.com/dotnet/roslyn/issues/59465")]
     public void MissingLength_ProtectedLength()
     {
         var source = @"
@@ -8717,7 +8717,7 @@ class S
             );
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59465")]
+    [Fact, WorkItem(59465, "https://github.com/dotnet/roslyn/issues/59465")]
     public void MissingLength_PrivateCount()
     {
         var source = @"
@@ -8737,7 +8737,7 @@ struct S
             );
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59465")]
+    [Fact, WorkItem(59465, "https://github.com/dotnet/roslyn/issues/59465")]
     public void MissingLength_LengthMethod()
     {
         var source = @"
@@ -8757,7 +8757,7 @@ struct S
             );
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59465")]
+    [Fact, WorkItem(59465, "https://github.com/dotnet/roslyn/issues/59465")]
     public void MissingLength_WriteOnlyLength()
     {
         var source = @"
@@ -8777,7 +8777,7 @@ struct S
             );
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59465")]
+    [Fact, WorkItem(59465, "https://github.com/dotnet/roslyn/issues/59465")]
     public void MissingLength_ObjectLength()
     {
         var source = @"
@@ -8797,7 +8797,7 @@ struct S
             );
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59465")]
+    [Fact, WorkItem(59465, "https://github.com/dotnet/roslyn/issues/59465")]
     public void MissingLength_StaticLength()
     {
         var source = @"
@@ -8817,7 +8817,7 @@ struct S
             );
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59465")]
+    [Fact, WorkItem(59465, "https://github.com/dotnet/roslyn/issues/59465")]
     public void MissingLength_StaticLength_IntIndexer()
     {
         var source = @"
@@ -8840,7 +8840,7 @@ struct S
             );
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58738")]
+    [Fact, WorkItem(58738, "https://github.com/dotnet/roslyn/issues/58738")]
     public void ListPattern_AbstractFlowPass_isBoolTest()
     {
         var source = @"
@@ -8888,7 +8888,7 @@ if ((b is [var z] and z) is [true])
             );
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58738")]
+    [Fact, WorkItem(58738, "https://github.com/dotnet/roslyn/issues/58738")]
     public void ListPattern_AbstractFlowPass_patternMatchesNull()
     {
         var source = @"

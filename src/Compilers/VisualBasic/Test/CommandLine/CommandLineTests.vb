@@ -223,7 +223,7 @@ dotnet_diagnostic.cs0169.severity = suppress"
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/34101")>
+        <WorkItem(34101, "https://github.com/dotnet/roslyn/issues/34101")>
         Public Sub SuppressedWarnAsErrorsStillEmit()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("temp.vb").WriteAllText("
@@ -272,12 +272,12 @@ End Class")
         End Sub
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946954")>
+        <WorkItem(946954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946954")>
         Public Sub CompilerBinariesAreAnyCPU()
             Assert.Equal(ProcessorArchitecture.MSIL, AssemblyName.GetAssemblyName(s_basicCompilerExecutable).ProcessorArchitecture)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546322")>
+        <Fact, WorkItem(546322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546322")>
         Public Sub NowarnWarnaserrorTest()
             Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Class C
@@ -305,7 +305,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/21508")>
+        <WorkItem(21508, "https://github.com/dotnet/roslyn/issues/21508")>
         Public Sub ArgumentStartWithDashAndContainingSlash()
             Dim args As VisualBasicCommandLineArguments
             Dim folder = Temp.CreateDirectory()
@@ -317,7 +317,7 @@ BC2008: no input sources specified
                                                </errors>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
+        <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
         <Fact()>
         Public Sub CommandLineCompilationWithQuotedMainArgument()
             ' Arguments with quoted rootnamespace and main type are unquoted when
@@ -338,7 +338,7 @@ End Module
             Assert.Equal("", output.ToString().Trim())
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/47790")>
+        <WorkItem(47790, "https://github.com/dotnet/roslyn/issues/47790")>
         <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub LogErrorsWithColumnNumbers()
             ' Arguments with quoted rootnamespace and main type are unquoted when
@@ -460,7 +460,7 @@ End Class"
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722561")>
+        <WorkItem(722561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722561")>
         <Fact>
         Public Sub Bug_722561()
             Dim src As String = Temp.CreateFile().WriteAllText(<text>
@@ -769,7 +769,7 @@ a.vb
             CleanupAllGeneratedFiles(rsp)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685392")>
+        <WorkItem(685392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685392")>
         <Fact()>
         Public Sub ResponseFiles_RootNamespace()
             Dim rsp As String = Temp.CreateFile().WriteAllText(<text>
@@ -942,7 +942,7 @@ a.vb
                            cmd.Arguments.CompilationOptions.GlobalImports.Select(Function(import) import.Clause.ToString()))
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546028")>
+        <Fact, WorkItem(546028, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546028")>
         Public Sub Win32ResourceArguments()
             Dim args As String() = {"/win32manifest:..\here\there\everywhere\nonexistent"}
             Dim parsedArgs = DefaultParse(args, _baseDirectory)
@@ -999,7 +999,7 @@ a.vb
             CleanupAllGeneratedFiles(tmpFileName)
         End Sub
 
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=217718")>
+        <WorkItem(217718, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=217718")>
         <Fact>
         Public Sub BadWin32Resource()
             Dim source = Temp.CreateFile(prefix:="", extension:=".vb").WriteAllText("
@@ -1599,7 +1599,7 @@ End Module").Path
             Assert.Null(parsedArgs.CompilationOptions.DelaySign)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546113")>
+        <WorkItem(546113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546113")>
         <Fact>
         Public Sub OutputVerbose()
             Dim parsedArgs = DefaultParse({"/verbose", "a.vb"}, _baseDirectory)
@@ -1639,7 +1639,7 @@ End Module").Path
             Assert.Equal(OutputLevel.Normal, parsedArgs.OutputLevel)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546113")>
+        <WorkItem(546113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546113")>
         <Fact>
         Public Sub OutputQuiet()
             Dim parsedArgs = DefaultParse({"/quiet", "a.vb"}, _baseDirectory)
@@ -1735,7 +1735,7 @@ End Module").Path
             Assert.Equal(False, ParsedArgs.CompilationOptions.Deterministic)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546301")>
+        <WorkItem(546301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546301")>
         <Fact>
         Public Sub Parallel()
             Dim parsedArgs = DefaultParse({"/parallel", "a.vb"}, _baseDirectory)
@@ -1895,7 +1895,7 @@ End Module").Path
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("codepage", ":<number>"))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24735")>
+        <Fact, WorkItem(24735, "https://github.com/dotnet/roslyn/issues/24735")>
         Public Sub ChecksumAlgorithm()
             Dim parsedArgs As VisualBasicCommandLineArguments
 
@@ -2231,9 +2231,9 @@ End Module").Path
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("optionstrict", ":custom"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546319")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546318")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685392")>
+        <WorkItem(546319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546319")>
+        <WorkItem(546318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546318")>
+        <WorkItem(685392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685392")>
         <Fact>
         Public Sub RootNamespace()
             Dim parsedArgs = DefaultParse({"/rootnamespace:One.Two.Three", "a.vb"}, _baseDirectory)
@@ -2390,8 +2390,8 @@ End Module").Path
             CleanupAllGeneratedFiles(file5.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545991")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546009")>
+        <WorkItem(545991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545991")>
+        <WorkItem(546009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546009")>
         <Fact>
         Public Sub Recurse_SimpleTests2()
             Dim folder = Temp.CreateDirectory()
@@ -2455,7 +2455,7 @@ End Module").Path
             CleanupAllGeneratedFiles(file6.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/948285")>
+        <WorkItem(948285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/948285")>
         <Fact>
         Public Sub Recurse_SimpleTests3()
             Dim folder = Temp.CreateDirectory()
@@ -3559,7 +3559,7 @@ print Goodbye, World"
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/29252")>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
         Public Sub SdkPathArg()
             Dim parentDir = Temp.CreateDirectory()
 
@@ -3571,7 +3571,7 @@ print Goodbye, World"
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/29252")>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
         Public Sub SdkPathNoArg()
             Dim parentDir = Temp.CreateDirectory()
             Dim parser = VisualBasicCommandLineParser.Default.Parse({"file.vb", "-sdkPath", $"-out:{parentDir.Path}"}, parentDir.Path, Nothing)
@@ -3582,7 +3582,7 @@ print Goodbye, World"
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/29252")>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
         Public Sub SdkPathFollowedByNoSdkPath()
             Dim parentDir = Temp.CreateDirectory()
             Dim parser = VisualBasicCommandLineParser.Default.Parse({"file.vb", $"-out:{parentDir.Path}", "-sdkPath:path/to/sdk", "/noSdkPath"}, parentDir.Path, Nothing)
@@ -3590,7 +3590,7 @@ print Goodbye, World"
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/29252")>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
         Public Sub NoSdkPathFollowedBySdkPath()
             Dim parentDir = Temp.CreateDirectory()
             Dim sdkDir = parentDir.CreateDirectory("sdk")
@@ -3599,7 +3599,7 @@ print Goodbye, World"
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/29252")>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
         Public Sub NoSdkPathReferenceSystemDll()
             Dim source = "
 Module M
@@ -3699,7 +3699,7 @@ End Module
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")>
+        <WorkItem(540891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")>
         <Fact>
         Public Sub ParseOut()
             Const baseDirectory As String = "C:\abc\def\baz"
@@ -4032,7 +4032,7 @@ End Module
             Assert.Equal("x.netmodule", parsedArgs.CompilationOptions.ModuleName)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11497")>
+        <Fact, WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
         Public Sub ConsistentErrorMessageWhenProvidingNoKeyFile()
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/keyfile:", "/target:library", "/nologo", "/preferreduilang:en", "a.vb"})
@@ -4042,7 +4042,7 @@ End Module
             Assert.Equal("vbc : error BC2006: option 'keyfile' requires ':<file>'", outWriter.ToString().Trim())
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11497")>
+        <Fact, WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
         Public Sub ConsistentErrorMessageWhenProvidingEmptyKeyFile()
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/keyfile:""""", "/target:library", "/nologo", "/preferreduilang:en", "a.vb"})
@@ -4052,7 +4052,7 @@ End Module
             Assert.Equal("vbc : error BC2006: option 'keyfile' requires ':<file>'", outWriter.ToString().Trim())
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11497")>
+        <Fact, WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
         Public Sub ConsistentErrorMessageWhenProvidingNoKeyFile_PublicSign()
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/keyfile:", "/publicsign", "/target:library", "/nologo", "/preferreduilang:en", "a.vb"})
@@ -4062,7 +4062,7 @@ End Module
             Assert.Equal("vbc : error BC2006: option 'keyfile' requires ':<file>'", outWriter.ToString().Trim())
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11497")>
+        <Fact, WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
         Public Sub ConsistentErrorMessageWhenProvidingEmptyKeyFile_PublicSign()
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/keyfile:""""", "/publicsign", "/target:library", "/nologo", "/preferreduilang:en", "a.vb"})
@@ -4072,7 +4072,7 @@ End Module
             Assert.Equal("vbc : error BC2006: option 'keyfile' requires ':<file>'", outWriter.ToString().Trim())
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531020")>
+        <Fact, WorkItem(531020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531020")>
         Public Sub ParseDocBreak1()
             Const baseDirectory As String = "C:\abc\def\baz"
 
@@ -4084,7 +4084,7 @@ End Module
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705173")>
+        <Fact, WorkItem(705173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705173")>
         Public Sub Ensure_Utf8_Explicit_Prefix_In_Documentation_Comment_File()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("src.vb")
@@ -4111,7 +4111,7 @@ End Class
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/733242")>
+        <Fact, WorkItem(733242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/733242")>
         Public Sub Bug733242()
             Dim dir = Temp.CreateDirectory()
 
@@ -4162,7 +4162,7 @@ a
             CleanupAllGeneratedFiles(xml.Path)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768605")>
+        <Fact, WorkItem(768605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768605")>
         Public Sub Bug768605()
             Dim dir = Temp.CreateDirectory()
 
@@ -4243,7 +4243,7 @@ a
             CleanupAllGeneratedFiles(xml.Path)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705148")>
+        <Fact, WorkItem(705148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705148")>
         Public Sub Bug705148a()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
@@ -4262,7 +4262,7 @@ End Class
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705148")>
+        <Fact, WorkItem(705148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705148")>
         Public Sub Bug705148b()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
@@ -4281,7 +4281,7 @@ End Class
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705148")>
+        <Fact, WorkItem(705148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705148")>
         Public Sub Bug705148c()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
@@ -4300,7 +4300,7 @@ End Class
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705202")>
+        <Fact, WorkItem(705202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705202")>
         Public Sub Bug705202a()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
@@ -4319,7 +4319,7 @@ End Class
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705202")>
+        <Fact, WorkItem(705202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705202")>
         Public Sub Bug705202b()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
@@ -4338,7 +4338,7 @@ End Class
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705202")>
+        <Fact, WorkItem(705202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705202")>
         Public Sub Bug705202c()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
@@ -4357,7 +4357,7 @@ End Class
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531021")>
+        <Fact, WorkItem(531021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531021")>
         Public Sub ParseDocBreak2()
 
             ' In dev11, if you give an invalid file name, the documentation comments
@@ -4727,7 +4727,7 @@ End Class
 
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530088")>
+        <Fact, WorkItem(530088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530088")>
         Public Sub Platform()
             ' test recognizing all options
             Dim parsedArgs = DefaultParse({"/platform:X86", "a.vb"}, _baseDirectory)
@@ -4993,7 +4993,7 @@ End Class
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/libpath+")) ' TODO: Dev11 reports ERR_ArgumentRequired
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546005")>
+        <Fact(), WorkItem(546005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546005")>
         Public Sub LibPathsAndLibEnvVariable_Relative_vbc()
             Dim tempFolder = Temp.CreateDirectory()
             Dim baseDirectory = tempFolder.ToString()
@@ -5128,7 +5128,7 @@ Dim b = Loc
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997208")>
+        <WorkItem(997208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997208")>
         <Fact>
         Public Sub VbRuntime02()
 
@@ -5242,7 +5242,7 @@ vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598158")>
+        <WorkItem(598158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598158")>
         <Fact()>
         Public Sub MultiplePathsInSdkPath()
 
@@ -5538,7 +5538,7 @@ End Class
                 expectedOutputName:="p.exe")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
+        <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
         <Fact>
         Public Sub OutputFileName7()
             Dim source1 = <![CDATA[
@@ -5561,7 +5561,7 @@ End Class
                 expectedOutputName:="goo.dll")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
+        <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
         <Fact>
         Public Sub OutputFileName8()
             Dim source1 = <![CDATA[
@@ -5584,7 +5584,7 @@ End Class
                 expectedOutputName:="goo.dll")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
+        <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
         <Fact>
         Public Sub OutputFileName9()
             Dim source1 = <![CDATA[
@@ -5607,7 +5607,7 @@ End Class
                 expectedOutputName:="goo.a.dll")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
+        <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
         <Fact>
         Public Sub OutputFileName10()
             Dim source1 = <![CDATA[
@@ -5630,7 +5630,7 @@ End Class
                 expectedOutputName:="goo.a")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
+        <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
         <Fact>
         Public Sub OutputFileName11()
             Dim source1 = <![CDATA[
@@ -5653,7 +5653,7 @@ End Class
                 expectedOutputName:="goo.a")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
+        <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
         <Fact>
         Public Sub OutputFileName12()
             Dim source1 = <![CDATA[
@@ -5840,7 +5840,7 @@ End Class
             parsedArgs.Errors.Verify()
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545025")>
+        <WorkItem(545025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545025")>
         <Fact()>
         Public Sub CompilationWithWarnAsError()
             Dim source = <![CDATA[
@@ -5874,7 +5874,7 @@ End Class
             Return vbc.Run(outWriter, Nothing)
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
+        <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
         <Fact()>
         Public Sub ErrorMessageWithSquiggles_01()
             Dim source =
@@ -5932,7 +5932,7 @@ PATH(11) : warning BC42105: Function 'goo' doesn't return a value on all code pa
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
+        <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
         <Fact()>
         Public Sub ErrorMessageWithSquiggles_02()
             ' It verifies the case where diagnostic does not have the associated location in it.
@@ -5983,7 +5983,7 @@ PATH(9) : error BC36640: Instance of restricted type 'ArgIterator' cannot be use
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
+        <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
         <Fact()>
         Public Sub ErrorMessageWithSquiggles_03()
             ' It verifies the case where the squiggles covers the error span with tabs in it.
@@ -6022,7 +6022,7 @@ PATH(3) : error BC30004: Character constant must contain exactly one character.
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
+        <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
         <Fact()>
         Public Sub ErrorMessageWithSquiggles_04()
             ' It verifies the case where the squiggles covers multiple lines.
@@ -6070,7 +6070,7 @@ PATH(5) : error BC36593: Expression of type 'Integer()' is not queryable. Make s
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
+        <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
         <Fact()>
         Public Sub ErrorMessageWithSquiggles_05()
             ' It verifies the case where the squiggles covers multiple lines.
@@ -6114,7 +6114,7 @@ Module _
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
+        <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
         <Fact()>
         Public Sub ErrorMessageWithSquiggles_06()
             ' It verifies the case where the squiggles covers the very long error span.
@@ -6162,7 +6162,7 @@ PATH(7) : error BC37220: Name 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
+        <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
         <Fact()>
         Public Sub ErrorMessageWithSquiggles_07()
             ' It verifies the case where the error is on the last line.
@@ -6208,7 +6208,7 @@ End Class
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531606")>
+        <WorkItem(531606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531606")>
         <Fact()>
         Public Sub ErrorMessageWithSquiggles_08()
             Dim source =
@@ -6254,7 +6254,7 @@ PATH(6) : error BC30203: Identifier expected.
             Return result.Value.Replace("PATH", file.Path).Replace("VERSION (HASH)", s_compilerVersion).Replace(vbLf, vbCrLf)
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
+        <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
         <Fact()>
         Public Sub CompilationWithNonExistingOutPath()
             Dim source =
@@ -6286,7 +6286,7 @@ End Module
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
+        <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
         <Fact()>
         Public Sub CompilationWithWrongOutPath_01()
             Dim source =
@@ -6320,7 +6320,7 @@ End Module
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
+        <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
         <Fact()>
         Public Sub CompilationWithWrongOutPath_02()
             Dim source =
@@ -6354,7 +6354,7 @@ End Module
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
+        <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
         <Fact()>
         Public Sub CompilationWithWrongOutPath_03()
             Dim source =
@@ -6386,7 +6386,7 @@ End Module
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
+        <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
         <Fact()>
         Public Sub CompilationWithWrongOutPath_04()
             Dim source =
@@ -6836,8 +6836,8 @@ End Module
             CleanupAllGeneratedFiles(sourceFile.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530221")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/5664")>
+        <WorkItem(530221, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530221")>
+        <WorkItem(5664, "https://github.com/dotnet/roslyn/issues/5664")>
         <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub Bug15538()
             ' The icacls command fails on our Helix machines And it appears to be related to the use of the $ in 
@@ -6870,7 +6870,7 @@ End Module
             CleanupAllGeneratedFiles(source)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")>
+        <WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")>
         <Fact()>
         Public Sub ResponseFilesWithNoconfig_01()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -6919,7 +6919,7 @@ End Module
             CleanupAllGeneratedFiles(rsp)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")>
+        <WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")>
         <Fact()>
         Public Sub ResponseFilesWithNoconfig_02()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -6953,7 +6953,7 @@ End Module
             CleanupAllGeneratedFiles(rsp)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")>
+        <WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")>
         <Fact()>
         Public Sub ResponseFilesWithNoconfig_03()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -6987,7 +6987,7 @@ End Module
             CleanupAllGeneratedFiles(rsp)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")>
+        <WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")>
         <Fact()>
         Public Sub ResponseFilesWithNoconfig_04()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -7021,7 +7021,7 @@ End Module
             CleanupAllGeneratedFiles(rsp)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545832")>
+        <WorkItem(545832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545832")>
         <Fact()>
         Public Sub ResponseFilesWithEmptyAliasReference()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -7043,9 +7043,9 @@ Imports System
             CleanupAllGeneratedFiles(rsp)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546031")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546032")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546033")>
+        <WorkItem(546031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546031")>
+        <WorkItem(546032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546032")>
+        <WorkItem(546033, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546033")>
         <Fact()>
         Public Sub InvalidDefineSwitch()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -7208,7 +7208,7 @@ Imports System
             Assert.False(vbc.Arguments.CompilationOptions.OptionInfer)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546114")>
+        <Fact(), WorkItem(546114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546114")>
         Public Sub TestFilterCommandLineDiagnostics()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
 Module Module1
@@ -7231,7 +7231,7 @@ End Module
             CleanupAllGeneratedFiles(source)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546305")>
+        <WorkItem(546305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546305")>
         <Fact()>
         Public Sub Bug15539()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -7348,7 +7348,7 @@ End Module
             CleanupAllGeneratedFiles(source)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531263")>
+        <WorkItem(531263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531263")>
         <Fact>
         Public Sub EmptyFileName()
             Dim outWriter As New StringWriter()
@@ -7359,7 +7359,7 @@ End Module
             Assert.Contains("BC2032", outWriter.ToString(), StringComparison.Ordinal)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119609")>
+        <WorkItem(1119609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119609")>
         <Fact>
         Public Sub PreferredUILang()
             Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
@@ -7398,7 +7398,7 @@ End Module
             Assert.DoesNotContain("BC2038", outWriter.ToString(), StringComparison.Ordinal)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650083")>
+        <Fact, WorkItem(650083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650083")>
         Public Sub ReservedDeviceNameAsFileName()
             ' Source file name
             Dim parsedArgs = DefaultParse({"/t:library", "con.vb"}, _baseDirectory)
@@ -7468,7 +7468,7 @@ End Module
             CleanupAllGeneratedFiles(source)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574361")>
+        <Fact, WorkItem(574361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574361")>
         Public Sub LangVersionForOldBC36716()
 
             Dim dir = Temp.CreateDirectory()
@@ -7863,7 +7863,7 @@ BC2006: option 'analyzerconfig' requires ':<file_list>']]>
             Return output
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")>
+        <WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")>
         <Fact>
         Public Sub NoWarnAndWarnAsError_AnalyzerDriverWarnings()
             ' This assembly has an abstract MockAbstractDiagnosticAnalyzer type which should cause
@@ -7893,8 +7893,8 @@ BC2006: option 'analyzerconfig' requires ':<file_list>']]>
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")>
+        <WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")>
+        <WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")>
         <Fact>
         Public Sub NoWarnAndWarnAsError_HiddenDiagnostic()
             ' This assembly has a HiddenDiagnosticAnalyzer type which should produce custom hidden
@@ -8019,9 +8019,9 @@ BC2006: option 'analyzerconfig' requires ':<file_list>']]>
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/42166")>
+        <WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")>
+        <WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")>
+        <WorkItem(42166, "https://github.com/dotnet/roslyn/issues/42166")>
         <CombinatorialData, Theory>
         Public Sub NoWarnAndWarnAsError_InfoDiagnostic(errorlog As Boolean)
             ' NOTE: Info diagnostics are only logged on command line when /errorlog is specified. See https://github.com/dotnet/roslyn/issues/42166 for details.
@@ -8175,10 +8175,10 @@ BC2006: option 'analyzerconfig' requires ':<file_list>']]>
             Return output
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998069")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998724")>
+        <WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")>
+        <WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")>
+        <WorkItem(998069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998069")>
+        <WorkItem(998724, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998724")>
         <Fact>
         Public Sub NoWarnAndWarnAsError_WarningDiagnostic()
             ' This assembly has a WarningDiagnosticAnalyzer type which should produce custom warning
@@ -8397,8 +8397,8 @@ End Module"
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")>
+        <WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")>
+        <WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")>
         <Fact>
         Public Sub NoWarnAndWarnAsError_ErrorDiagnostic()
             ' This assembly has an ErrorDiagnosticAnalyzer type which should produce custom error
@@ -8474,7 +8474,7 @@ End Module"
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")>
+        <WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")>
         <Fact>
         Public Sub NoWarnAndWarnAsError_CompilerErrorDiagnostic()
             Dim source = "Imports System
@@ -8536,7 +8536,7 @@ End Module"
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091972"), WorkItem(444, "CodePlex")>
+        <Fact, WorkItem(1091972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091972"), WorkItem(444, "CodePlex")>
         Public Sub Bug1091972()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
@@ -8585,7 +8585,7 @@ out
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/468")>
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_GeneralCommandLineOptionOverridesGeneralRuleSetOption()
             Dim dir = Temp.CreateDirectory()
 
@@ -8603,7 +8603,7 @@ out
             Assert.Equal(expected:=0, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/468")>
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_GeneralWarnAsErrorPromotesWarningFromRuleSet()
             Dim dir = Temp.CreateDirectory()
 
@@ -8624,7 +8624,7 @@ out
             Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/468")>
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_GeneralWarnAsErrorDoesNotPromoteInfoFromRuleSet()
             Dim dir = Temp.CreateDirectory()
 
@@ -8645,7 +8645,7 @@ out
             Assert.Equal(expected:=ReportDiagnostic.Info, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/468")>
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_SpecificWarnAsErrorPromotesInfoFromRuleSet()
             Dim dir = Temp.CreateDirectory()
 
@@ -8666,7 +8666,7 @@ out
             Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/468")>
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_GeneralWarnAsErrorMinusResetsRules()
             Dim dir = Temp.CreateDirectory()
 
@@ -8687,7 +8687,7 @@ out
             Assert.Equal(expected:=ReportDiagnostic.Warn, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/468")>
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_SpecificWarnAsErrorMinusResetsRules()
             Dim dir = Temp.CreateDirectory()
 
@@ -8708,7 +8708,7 @@ out
             Assert.Equal(expected:=ReportDiagnostic.Warn, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/468")>
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_SpecificWarnAsErrorMinusDefaultsRuleNotInRuleSet()
             Dim dir = Temp.CreateDirectory()
 
@@ -8730,7 +8730,7 @@ out
             Assert.Equal(expected:=ReportDiagnostic.Default, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test002"))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/468")>
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_LastGeneralWarnAsErrorTrumpsNoWarn()
             Dim dir = Temp.CreateDirectory()
 
@@ -8751,7 +8751,7 @@ out
             Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/468")>
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_GeneralNoWarnTrumpsGeneralWarnAsErrorMinus()
             Dim dir = Temp.CreateDirectory()
 
@@ -8772,7 +8772,7 @@ out
             Assert.Equal(expected:=ReportDiagnostic.Warn, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/468")>
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_GeneralNoWarnTurnsOffAllButErrors()
             Dim dir = Temp.CreateDirectory()
 
@@ -8797,7 +8797,7 @@ out
             Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test003"))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/468")>
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_SpecificNoWarnAlwaysWins()
             Dim dir = Temp.CreateDirectory()
 
@@ -8852,7 +8852,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/40926")>
+        <WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")>
         Public Sub SkipAnalyzersParse()
             Dim ParsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
             ParsedArgs.Errors.Verify()
@@ -8884,7 +8884,7 @@ End Class
         End Sub
 
         <Theory, CombinatorialData>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/40926")>
+        <WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")>
         Public Sub SkipAnalyzersSemantics(skipAnalyzers As Boolean)
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
 Class C
@@ -8907,7 +8907,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/1759")>
+        <WorkItem(1759, "https://github.com/dotnet/roslyn/issues/1759")>
         Public Sub AnalyzerDiagnosticThrowsInGetMessage()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
 Class C
@@ -8931,7 +8931,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/3707")>
+        <WorkItem(3707, "https://github.com/dotnet/roslyn/issues/3707")>
         Public Sub AnalyzerExceptionDiagnosticCanBeConfigured()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
 Class C
@@ -8952,7 +8952,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/4589")>
+        <WorkItem(4589, "https://github.com/dotnet/roslyn/issues/4589")>
         Public Sub AnalyzerReportsMisformattedDiagnostic()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
 Class C
@@ -9022,7 +9022,7 @@ vbc : error BC2015: the file '{1}' is not a text file
             CleanupAllGeneratedFiles(nonCompilerInputFile)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1093063")>
+        <Fact, WorkItem(1093063, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1093063")>
         Public Sub VerifyDiagnosticSeverityNotLocalized()
             Dim source = <![CDATA[
 Class A
@@ -9139,7 +9139,7 @@ End Class
             Assert.False(args.CompilationOptions.PublicSign)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/8360")>
+        <WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")>
         <Fact>
         Public Sub PublicSign_KeyFileRelativePath()
             Dim parsedArgs = FullParse("/publicsign /keyfile:test.snk a.cs", _baseDirectory)
@@ -9147,14 +9147,14 @@ End Class
             parsedArgs.Errors.Verify()
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/11497")>
+        <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
         <Fact>
         Public Sub PublicSignWithEmptyKeyPath()
             Dim parsedArgs = FullParse("/publicsign /keyfile: a.cs", _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("keyfile", ":<file>").WithLocation(1, 1))
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/11497")>
+        <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
         <Fact>
         Public Sub PublicSignWithEmptyKeyPath2()
             Dim parsedArgs = FullParse("/publicsign /keyfile:"""" a.cs", _baseDirectory)
@@ -9203,7 +9203,7 @@ End Class
                 args.MetadataReferences.Select(Function(x) x.Reference))
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7588")>
+        <WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")>
         <Fact()>
         Public Sub Version()
             Dim folderName = Temp.CreateDirectory().ToString()
@@ -9410,7 +9410,7 @@ a
             CleanupAllGeneratedFiles(dir.Path)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/13681")>
+        <WorkItem(13681, "https://github.com/dotnet/roslyn/issues/13681")>
         <Theory()>
         <InlineData("/t:exe", "/out:goo.dll", "goo.dll", "goo.dll.exe")>                                'Output with known but different extension
         <InlineData("/t:exe", "/out:goo.dLL", "goo.dLL", "goo.dLL.exe")>                                'Output with known but different extension (different casing)
@@ -9556,7 +9556,7 @@ End Module
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("langversion", "1000").WithLocation(1, 1))
         End Sub
 
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")>
+        <WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")>
         <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub MissingCompilerAssembly()
             Dim dir = Temp.CreateDirectory()
@@ -9580,7 +9580,7 @@ End Module
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly))>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/21935")>
+        <WorkItem(21935, "https://github.com/dotnet/roslyn/issues/21935")>
         Public Sub PdbPathNotEmittedWithoutPdb()
             Dim dir = Temp.CreateDirectory()
 
@@ -9624,7 +9624,7 @@ End Class").Path
         End Function
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/23525")>
+        <WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")>
         Public Sub InvalidPathCharacterInPathMap()
             Dim filePath = Temp.CreateFile().WriteAllText("").Path
             Dim compiler = New MockVisualBasicCompiler(Nothing, _baseDirectory,
@@ -9642,7 +9642,7 @@ End Class").Path
             Assert.Contains("vbc : error BC37253: The pathmap option was incorrectly formatted.", outWriter.ToString(), StringComparison.Ordinal)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/20242")>
+        <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/38454")>
         Public Sub TestSuppression_CompilerWarning()
             ' warning BC40008 : 'C' is obsolete
@@ -9686,7 +9686,7 @@ End Class"
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/20242")>
+        <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/38454")>
         Public Sub TestSuppression_CompilerWarningAsError()
             ' warning BC40008 : 'C' is obsolete
@@ -9738,7 +9738,7 @@ End Class"
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/20242")>
+        <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
         <Fact>
         Public Sub TestNoSuppression_CompilerError()
             ' warning BC30203 : Identifier expected
@@ -9764,7 +9764,7 @@ End Class"
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/20242")>
+        <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/38454")>
         Public Sub TestSuppression_AnalyzerWarning()
             Dim source = "
@@ -9830,7 +9830,7 @@ End Class"
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/20242")>
+        <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
         <Fact>
         Public Sub TestNoSuppression_AnalyzerError()
             Dim source = "
@@ -9861,7 +9861,7 @@ End Class"
         <Theory>
         <InlineData(True)>
         <InlineData(False)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/37779")>
+        <WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")>
         Public Sub CompilerWarnAsErrorDoesNotEmit(ByVal warnAsError As Boolean)
             ' warning BC40008 : 'C' is obsolete
             Dim source = "
@@ -9908,7 +9908,7 @@ End Class"
         <Theory>
         <InlineData(True)>
         <InlineData(False)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/37779")>
+        <WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")>
         Public Sub AnalyzerConfigSeverityEscalationToErrorDoesNotEmit(ByVal analyzerConfigSetToError As Boolean)
             ' warning BC40008 : 'C' is obsolete
             Dim source = "
@@ -9960,7 +9960,7 @@ dotnet_diagnostic.bc40008.severity = error")
         <Theory>
         <InlineData(True)>
         <InlineData(False)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/37779")>
+        <WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")>
         Public Sub RulesetSeverityEscalationToErrorDoesNotEmit(ByVal rulesetSetToError As Boolean)
             ' warning BC40008 : 'C' is obsolete
             Dim source = "
@@ -10017,7 +10017,7 @@ End Class"
         <Theory>
         <InlineData(True)>
         <InlineData(False)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/37779")>
+        <WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")>
         Public Sub AnalyzerWarnAsErrorDoesNotEmit(ByVal warnAsError As Boolean)
             Dim source = "
 Class C
@@ -10045,7 +10045,7 @@ End Class"
             Assert.True(IO.File.Exists(binaryPath) = Not warnAsError)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/42166")>
+        <WorkItem(42166, "https://github.com/dotnet/roslyn/issues/42166")>
         <CombinatorialData, Theory>
         Public Sub TestAnalyzerFilteringBasedOnSeverity(ByVal defaultSeverity As DiagnosticSeverity, ByVal errorlog As Boolean)
             ' This test verifies that analyzer execution is skipped at build time for the following:
@@ -10080,7 +10080,7 @@ End Class")
             End If
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/47017")>
+        <WorkItem(47017, "https://github.com/dotnet/roslyn/issues/47017")>
         <CombinatorialData, Theory>
         Public Sub TestWarnAsErrorMinusDoesNotEnableDisabledByDefaultAnalyzers(defaultSeverity As DiagnosticSeverity, isEnabledByDefault As Boolean)
             ' This test verifies that '/warnaserror-:DiagnosticId' does not affect if analyzers are executed or skipped.
@@ -10117,7 +10117,7 @@ End Class")
             End If
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/49446")>
+        <WorkItem(49446, "https://github.com/dotnet/roslyn/issues/49446")>
         <Theory>
         <InlineData(False, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)>
         <InlineData(True, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)>
@@ -10204,7 +10204,7 @@ dotnet_diagnostic.BC42024.severity = warning;
         End Sub
 
         <Theory, CombinatorialData>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/43051")>
+        <WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")>
         Public Sub WarnAsErrorIsRespectedForForWarningsConfiguredInRulesetOrGlobalConfig(useGlobalConfig As Boolean)
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("temp.vb").WriteAllText("
@@ -10293,7 +10293,7 @@ End Class"
         <InlineData("warning", Nothing, False, True)>
         <InlineData("error", Nothing, True, False)>
         <InlineData(Nothing, Nothing, False, True)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/43051")>
+        <WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")>
         Public Sub TestCompilationOptionsOverrideAnalyzerConfig_CompilerWarning(analyzerConfigSeverity As String, additionalArg As String, expectError As Boolean, expectWarning As Boolean)
             ' warning BC40008 : 'C' is obsolete
             Dim src = "
@@ -10322,7 +10322,7 @@ End Class"
         <InlineData("warning", Nothing, False, True)>
         <InlineData("error", Nothing, True, False)>
         <InlineData(Nothing, Nothing, False, True)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/43051")>
+        <WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")>
         Public Sub TestCompilationOptionsOverrideAnalyzerConfig_AnalyzerWarning(analyzerConfigSeverity As String, additionalArg As String, expectError As Boolean, expectWarning As Boolean)
             Dim analyzer = New CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable:=True)
             Dim src = "

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class MethodBodyModelTests : CSharpTestBase
     {
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537881")]
+        [WorkItem(537881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537881")]
         [Fact]
         public void BindAliasWithSameNameClass()
         {
@@ -58,7 +58,7 @@ namespace B
             comp.GetMethodBodyDiagnostics().Verify();
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537919")]
+        [Fact, WorkItem(537919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537919")]
         public void NullRefForNameAndOptionalMethod()
         {
             var text = @"
@@ -80,7 +80,7 @@ public class MyClass
             comp.GetMethodBodyDiagnostics().Verify();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538099")]
+        [WorkItem(538099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538099")]
         [Fact]
         public void ConversionsForLiterals()
         {
@@ -101,7 +101,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538100")]
+        [WorkItem(538100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538100")]
         [Fact]
         public void ConversionsFromVoid()
         {
@@ -139,7 +139,7 @@ class Program
             Assert.Equal(1, errors[1503]);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538110")]
+        [WorkItem(538110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538110")]
         [Fact]
         public void NullComparisons()
         {
@@ -164,7 +164,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538114")]
+        [WorkItem(538114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538114")]
         [Fact]
         public void OvldRslnWithExplicitIfaceImpl()
         {
@@ -244,7 +244,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538194")]
+        [WorkItem(538194, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538194")]
         [Fact]
         public void ComparisonOperatorForRefTypes()
         {
@@ -267,7 +267,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538211")]
+        [WorkItem(538211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538211")]
         [Fact]
         public void BindCastConversionOnArithmeticOp()
         {
@@ -295,7 +295,7 @@ public class MyClass
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538212")]
+        [WorkItem(538212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538212")]
         [Fact]
         public void NegBindLHSCStyleArray()
         {
@@ -534,7 +534,7 @@ public class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538650")]
+        [WorkItem(538650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538650")]
         [Fact]
         public void PropertyAmbiguity()
         {
@@ -572,7 +572,7 @@ class C
             );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538770")]
+        [WorkItem(538770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538770")]
         [Fact]
         public void DelegateMethodAmbiguity()
         {
@@ -619,7 +619,7 @@ public class Program : I3
             Assert.Equal(0, diags.Count(d => d.Severity == DiagnosticSeverity.Warning));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538835")]
+        [WorkItem(538835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538835")]
         [Fact]
         public void LocalReferenceTypeConsts()
         {
@@ -645,7 +645,7 @@ public class Program
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538617")]
+        [WorkItem(538617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538617")]
         [Fact]
         public void TypeParameterNotInvocable()
         {
@@ -668,7 +668,7 @@ class A<T> : B
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539591")]
+        [WorkItem(539591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539591")]
         [Fact]
         public void ParenthesizedSetOnlyProperty()
         {
@@ -727,7 +727,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539929")]
+        [WorkItem(539929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539929")]
         [Fact]
         public void TypeWithSameNameAsProp()
         {
@@ -752,7 +752,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541504")]
+        [WorkItem(541504, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541504")]
         [Fact]
         public void TypeWithSameNameAsProp2()
         {
@@ -776,7 +776,7 @@ class F
             );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541505")]
+        [WorkItem(541505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541505")]
         [Fact]
         public void TypeWithSameNameAsProp3()
         {
@@ -797,7 +797,7 @@ class F
             Assert.Equal(string.Empty, string.Join(Environment.NewLine, comp.GetDiagnostics()));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539622")]
+        [WorkItem(539622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539622")]
         [Fact]
         public void AccessTypeThroughAliasNamespace()
         {
@@ -834,7 +834,7 @@ namespace LevelOne.LevelTwo.LevelThree
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540105")]
+        [WorkItem(540105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540105")]
         [Fact]
         public void WarningPassLocalAsRefParameter()
         {
@@ -861,7 +861,7 @@ public static int Main()
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540105")]
+        [WorkItem(540105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540105")]
         [Fact]
         public void WarningPassLocalAsOutParameter()
         {
@@ -886,7 +886,7 @@ public class TestClass
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540270")]
+        [WorkItem(540270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540270")]
         [Fact]
         public void SimpleNameThroughUsingAlias()
         {
@@ -913,7 +913,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544434")]
+        [WorkItem(544434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544434")]
         [Fact]
         public void MethodInvocationWithMultipleArgsToParams()
         {
@@ -934,7 +934,7 @@ class Test
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1118749")]
+        [Fact, WorkItem(1118749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1118749")]
         public void InstanceFieldOfEnclosingStruct()
         {
             var text = @"
@@ -960,7 +960,7 @@ struct Outer
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8556")]
+        [Fact, WorkItem(8556, "https://github.com/dotnet/roslyn/issues/8556")]
         public void CastAmbiguousMethodGroupTypeProducesCorrectErrorMessage()
         {
             var text = @"

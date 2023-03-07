@@ -4262,7 +4262,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly), typeof(NoIOperationValidation)), WorkItem("https://github.com/dotnet/roslyn/issues/62361")]
+        [ConditionalFact(typeof(CoreClrOnly), typeof(NoIOperationValidation)), WorkItem(62361, "https://github.com/dotnet/roslyn/issues/62361")]
         public void DeeplyNestedConcatenation()
         {
             var longConcat = new StringBuilder();

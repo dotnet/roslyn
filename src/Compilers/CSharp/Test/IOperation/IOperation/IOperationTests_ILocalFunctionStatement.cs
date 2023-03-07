@@ -469,7 +469,7 @@ ILocalFunctionOperation (Symbol: X F()) (OperationKind.LocalFunction, Type: null
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24650")]
+        [Fact, WorkItem(24650, "https://github.com/dotnet/roslyn/issues/24650")]
         public void TestInvalidLocalFunction_ExpressionAndBlockBody()
         {
             string source = @"
@@ -504,7 +504,7 @@ ILocalFunctionOperation (Symbol: System.Object F()) (OperationKind.LocalFunction
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24650")]
+        [Fact, WorkItem(24650, "https://github.com/dotnet/roslyn/issues/24650")]
         public void TestInvalidLocalFunction_BlockAndExpressionBody()
         {
             string source = @"
@@ -548,7 +548,7 @@ ILocalFunctionOperation (Symbol: System.Object F()) (OperationKind.LocalFunction
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24650")]
+        [Fact, WorkItem(24650, "https://github.com/dotnet/roslyn/issues/24650")]
         public void TestLocalFunction_ExpressionBodyInnerMember()
         {
             string source = @"

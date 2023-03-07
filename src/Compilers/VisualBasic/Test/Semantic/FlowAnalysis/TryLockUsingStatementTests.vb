@@ -1530,7 +1530,7 @@ End Class
             Assert.Equal("p, local, e", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541892")>
+        <Fact, WorkItem(541892, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541892")>
         Public Sub TestTryWithLambda05()
             Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
                 <compilation name="TestTryWithLambda05">
@@ -1578,7 +1578,7 @@ End Module
             Assert.Equal("p, local", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541892"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528622")>
+        <Fact, WorkItem(541892, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541892"), WorkItem(528622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528622")>
         Public Sub TestTryWithLambda06()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
                 <compilation name="TestTryWithLambda06">
@@ -1613,7 +1613,7 @@ End Class
             Assert.Equal("Me, p, e", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543597")>
+        <WorkItem(543597, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543597")>
         <Fact()>
         Public Sub TryStatement()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1648,7 +1648,7 @@ End Module
             Assert.False(model.AnalyzeDataFlow(statement, statement).Succeeded)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543597")>
+        <WorkItem(543597, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543597")>
         <Fact()>
         Public Sub CatchStatement()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1677,7 +1677,7 @@ End Module
             Assert.False(dataFlowAnalysisResults.Succeeded)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543597")>
+        <WorkItem(543597, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543597")>
         <Fact()>
         Public Sub FinallyStatement()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(

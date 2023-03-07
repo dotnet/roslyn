@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RefSafetyRules(11)").WithArguments("System.Runtime.CompilerServices.RefSafetyRulesAttribute").WithLocation(3, 10));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63692")]
+        [WorkItem(63692, "https://github.com/dotnet/roslyn/issues/63692")]
         [Theory]
         [InlineData("", false)]
         [InlineData("[assembly: System.Reflection.AssemblyDescriptionAttribute(null)] [assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(string))]", false)]
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: expectedIncludesAttributeUse, includesAttributeUse: expectedIncludesAttributeUse, publicDefinition: false));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63692")]
+        [WorkItem(63692, "https://github.com/dotnet/roslyn/issues/63692")]
         [Theory]
         [InlineData("class B { I F() => default; }")]
         [InlineData("class B { A F() => default; }")]

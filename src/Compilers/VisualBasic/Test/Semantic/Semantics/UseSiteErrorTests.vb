@@ -570,7 +570,7 @@ BC30002: Type 'System.Int32' is not defined.
         End Function
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/14267")>
+        <WorkItem(14267, "https://github.com/dotnet/roslyn/issues/14267")>
         Public Sub MissingTypeKindBasisTypes()
             Dim source1 =
             <compilation>
@@ -716,7 +716,7 @@ BC30652: Reference required to assembly 'mincorlib, Version=0.0.0.0, Culture=neu
             Assert.Equal(TypeKind.Interface, compilation7.GetTypeByMetadataName("I1").TypeKind)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15435")>
+        <Fact, WorkItem(15435, "https://github.com/dotnet/roslyn/issues/15435")>
         Public Sub TestGettingAssemblyIdsFromDiagnostic1()
             Dim source =
             <compilation>
@@ -751,7 +751,7 @@ End Class
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub OverrideWithModreq_01()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1
@@ -802,7 +802,7 @@ BC30657: 'get_P' has a return type that is not supported or parameter types that
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub OverrideWithModreq_02()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1
@@ -861,7 +861,7 @@ BC30643: Property 'CL1.P' is of an unsupported type.
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub OverrideWithModreq_03()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1
@@ -920,7 +920,7 @@ BC30657: 'P' has a return type that is not supported or parameter types that are
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub OverrideWithModreq_04()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1
@@ -977,7 +977,7 @@ BC30657: 'P' has a return type that is not supported or parameter types that are
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub OverrideWithModreq_05()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1
@@ -1049,7 +1049,7 @@ BC30657: 'P' has a return type that is not supported or parameter types that are
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub OverrideWithModreq_06()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1
@@ -1117,7 +1117,7 @@ BC30657: 'P' has a return type that is not supported or parameter types that are
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub OverrideWithModreq_07()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1
@@ -1186,7 +1186,7 @@ BC30657: 'P' has a return type that is not supported or parameter types that are
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub OverrideWithModreq_08()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1
@@ -1259,7 +1259,7 @@ BC40004: event 'E' conflicts with event 'E' in the base class 'CL1' and should b
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub ImplementWithModreq_01()
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi CL1
@@ -1296,7 +1296,7 @@ BC30657: 'get_P' has a return type that is not supported or parameter types that
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub ImplementWithModreq_02()
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi CL1
@@ -1344,7 +1344,7 @@ BC30657: 'P' has a return type that is not supported or parameter types that are
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub ImplementWithModreq_03()
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi CL1
@@ -1389,7 +1389,7 @@ BC30657: 'P' has a return type that is not supported or parameter types that are
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub ImplementWithModreq_04()
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi CL1
@@ -1433,7 +1433,7 @@ BC30657: 'P' has a return type that is not supported or parameter types that are
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub ImplementWithModreq_05()
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi CL1
@@ -1489,7 +1489,7 @@ BC30657: 'P' has a return type that is not supported or parameter types that are
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub ImplementWithModreq_06()
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi CL1
@@ -1542,7 +1542,7 @@ BC30657: 'P' has a return type that is not supported or parameter types that are
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub ImplementWithModreq_07()
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi CL1
@@ -1595,7 +1595,7 @@ BC30657: 'P' has a return type that is not supported or parameter types that are
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub ImplementWithModreq_08()
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi CL1
@@ -1656,7 +1656,7 @@ BC30657: 'E' has a return type that is not supported or parameter types that are
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub ImplementWithModreq_09()
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi CL1
@@ -1714,7 +1714,7 @@ BC30657: 'E' has a return type that is not supported or parameter types that are
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub ImplementWithModreq_10()
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi CL1

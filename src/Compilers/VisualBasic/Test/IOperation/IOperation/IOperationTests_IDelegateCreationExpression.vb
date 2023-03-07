@@ -3687,7 +3687,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action)
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/15513")>
+        <WorkItem(15513, "https://github.com/dotnet/roslyn/issues/15513")>
         Public Sub DelegateCreationExpression_DelegateCreationAddressOfArgument()
             Dim source = <![CDATA[
 Option Strict On
@@ -3716,7 +3716,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action)
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/15513")>
+        <WorkItem(15513, "https://github.com/dotnet/roslyn/issues/15513")>
         Public Sub DelegateCreationExpression_DelegateCreationInstanceAddressOfArgument()
             Dim source = <![CDATA[
 Option Strict On
@@ -3745,7 +3745,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action)
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/15513")>
+        <WorkItem(15513, "https://github.com/dotnet/roslyn/issues/15513")>
         Public Sub DelegateCreationExpression_DelegateCreationSharedAddressOfArgument()
             Dim source = <![CDATA[
 Option Strict On

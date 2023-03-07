@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     {
         #region Miscellaneous
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48493")]
+        [Fact, WorkItem(48493, "https://github.com/dotnet/roslyn/issues/48493")]
         public void Repro_48493()
         {
             var source = @"
@@ -54,7 +54,7 @@ namespace Sample
             CompileAndVerify(source, expectedOutput: "stringH");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48493")]
+        [Fact, WorkItem(48493, "https://github.com/dotnet/roslyn/issues/48493")]
         public void Repro_48493_Simple()
         {
             var source = @"
@@ -82,7 +82,7 @@ internal class Program
             CompileAndVerify(source, expectedOutput: @"2");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18811")]
+        [Fact, WorkItem(18811, "https://github.com/dotnet/roslyn/issues/18811")]
         public void MissingNullable_01()
         {
             var source = @"namespace System {
@@ -104,7 +104,7 @@ static class C {
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18811")]
+        [Fact, WorkItem(18811, "https://github.com/dotnet/roslyn/issues/18811")]
         public void MissingNullable_02()
         {
             var source = @"namespace System {
@@ -211,7 +211,7 @@ static class C {
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17266")]
+        [Fact, WorkItem(17266, "https://github.com/dotnet/roslyn/issues/17266")]
         public void DoubleEvaluation01()
         {
             var source =
@@ -289,7 +289,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19122")]
+        [Fact, WorkItem(19122, "https://github.com/dotnet/roslyn/issues/19122")]
         public void PatternCrash_01()
         {
             var source = @"using System;
@@ -368,7 +368,7 @@ class IdentityAccessor<T>
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24522")]
+        [Fact, WorkItem(24522, "https://github.com/dotnet/roslyn/issues/24522")]
         public void IgnoreDeclaredConversion_01()
         {
             var source =
@@ -735,7 +735,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16878")]
+        [Fact, WorkItem(16878, "https://github.com/dotnet/roslyn/issues/16878")]
         public void RedundantNullCheck()
         {
             var source =
@@ -818,7 +818,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12813")]
+        [Fact, WorkItem(12813, "https://github.com/dotnet/roslyn/issues/12813")]
         public void NoBoxingOnIntegerConstantPattern()
         {
             var source =
@@ -843,7 +843,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40403")]
+        [Fact, WorkItem(40403, "https://github.com/dotnet/roslyn/issues/40403")]
         public void RefParameter_StoreToTemp()
         {
             var source =
@@ -878,7 +878,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40403")]
+        [Fact, WorkItem(40403, "https://github.com/dotnet/roslyn/issues/40403")]
         public void RefLocal_StoreToTemp()
         {
             var source =
@@ -918,7 +918,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40403")]
+        [Fact, WorkItem(40403, "https://github.com/dotnet/roslyn/issues/40403")]
         public void InParameter_StoreToTemp()
         {
             var source =
@@ -953,7 +953,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40403")]
+        [Fact, WorkItem(40403, "https://github.com/dotnet/roslyn/issues/40403")]
         public void RefReadonlyLocal_StoreToTemp()
         {
             var source =
@@ -993,7 +993,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40403")]
+        [Fact, WorkItem(40403, "https://github.com/dotnet/roslyn/issues/40403")]
         public void OutParameter_StoreToTemp()
         {
             var source =
@@ -1032,7 +1032,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22654")]
+        [Fact, WorkItem(22654, "https://github.com/dotnet/roslyn/issues/22654")]
         public void NoRedundantTypeCheck()
         {
             var source =
@@ -1092,7 +1092,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15437")]
+        [Fact, WorkItem(15437, "https://github.com/dotnet/roslyn/issues/15437")]
         public void IsTypeDiscard()
         {
             var source =
@@ -1118,7 +1118,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19150")]
+        [Fact, WorkItem(19150, "https://github.com/dotnet/roslyn/issues/19150")]
         public void RedundantHasValue()
         {
             var source =
@@ -1158,7 +1158,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19153")]
+        [Fact, WorkItem(19153, "https://github.com/dotnet/roslyn/issues/19153")]
         public void RedundantBox()
         {
             var source = @"using System;
@@ -1196,7 +1196,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34933")]
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
         public void NoRedundantPropertyRead01()
         {
             var source = @"using System;
@@ -1257,7 +1257,7 @@ public class C {
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34933")]
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
         public void NoRedundantPropertyRead02()
         {
             var source = @"using System;
@@ -1313,7 +1313,7 @@ public class C {
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34933")]
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
         public void NoRedundantPropertyRead03()
         {
             var source = @"using System;
@@ -1369,7 +1369,7 @@ public class C {
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34933")]
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
         public void NoRedundantPropertyRead04()
         {
             // Cannot combine the evaluations of name here, since we first check if p is Teacher,
@@ -1436,7 +1436,7 @@ public class C {
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34933")]
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
         public void NoRedundantPropertyRead05()
         {
             // Cannot combine the evaluations of name here, since we first check if p is Teacher,
@@ -1509,7 +1509,7 @@ public class C {
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34933")]
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
         public void NoRedundantPropertyRead06()
         {
             var source = @"using System;
@@ -1569,7 +1569,7 @@ public class C {
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34933")]
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
         public void NoRedundantPropertyRead07()
         {
             // Cannot combine the evaluations of name here, since we first check if name is MemoryStream,
@@ -1635,7 +1635,7 @@ public class C {
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34933")]
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
         public void NoRedundantPropertyRead08()
         {
             var source = @"
@@ -1686,7 +1686,7 @@ public class C {
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34933")]
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
         public void NoRedundantPropertyRead09()
         {
             var source = @"using System;
@@ -1742,7 +1742,7 @@ public class C {
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34933")]
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
         public void NoRedundantPropertyRead10()
         {
             // Currently we don't combine these redundant property reads.
@@ -1807,7 +1807,7 @@ public class C {
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34933")]
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
         public void CombiningRedundantPropertyReadsDoesNotChangeNullabilityAnalysis01()
         {
             // Currently we don't combine the redundant property reads at all.
@@ -1875,7 +1875,7 @@ public class C {
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34933")]
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
         public void CombiningRedundantPropertyReadsDoesNotChangeNullabilityAnalysis02()
         {
             var source = @"using System;
@@ -1944,7 +1944,7 @@ public class C {
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34933")]
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
         public void CombiningRedundantPropertyReadsDoesNotChangeNullabilityAnalysis03()
         {
             var source = @"using System;
@@ -2010,7 +2010,7 @@ public class C {
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34933")]
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
         public void DoNotCombineDifferentPropertyReadsWithSameName()
         {
             var source = @"using System;
@@ -2072,7 +2072,7 @@ public class C {
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51801")]
+        [Fact, WorkItem(51801, "https://github.com/dotnet/roslyn/issues/51801")]
         public void PropertyOverrideLacksAccessor()
         {
             var source = @"
@@ -2122,7 +2122,7 @@ class C : Base
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20641")]
+        [Fact, WorkItem(20641, "https://github.com/dotnet/roslyn/issues/20641")]
         public void PatternsVsAs01()
         {
             var source = @"using System.Collections;
@@ -2244,7 +2244,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20641")]
+        [Fact, WorkItem(20641, "https://github.com/dotnet/roslyn/issues/20641")]
         public void PatternsVsAs02()
         {
             var source = @"using System.Collections;
@@ -2306,8 +2306,8 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20641")]
-        [WorkItem("https://github.com/dotnet/csharplang/issues/1395")]
+        [WorkItem(20641, "https://github.com/dotnet/roslyn/issues/20641")]
+        [WorkItem(1395, "https://github.com/dotnet/csharplang/issues/1395")]
         public void TupleSwitch01()
         {
             var source = @"using System;
@@ -2504,8 +2504,8 @@ Closed Open -> Opened
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20641")]
-        [WorkItem("https://github.com/dotnet/csharplang/issues/1395")]
+        [WorkItem(20641, "https://github.com/dotnet/roslyn/issues/20641")]
+        [WorkItem(1395, "https://github.com/dotnet/csharplang/issues/1395")]
         public void SharingTemps01()
         {
             var source =
@@ -2590,7 +2590,7 @@ Closed Open -> Opened
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17266")]
+        [Fact, WorkItem(17266, "https://github.com/dotnet/roslyn/issues/17266")]
         public void IrrefutablePatternInIs01()
         {
             var source =
@@ -2616,7 +2616,7 @@ public class C
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17266")]
+        [Fact, WorkItem(17266, "https://github.com/dotnet/roslyn/issues/17266")]
         public void IrrefutablePatternInIs02()
         {
             var source =
@@ -2671,8 +2671,8 @@ public struct Assignment
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24550")]
-        [WorkItem("https://github.com/dotnet/csharplang/issues/1284")]
+        [WorkItem(24550, "https://github.com/dotnet/roslyn/issues/24550")]
+        [WorkItem(1284, "https://github.com/dotnet/csharplang/issues/1284")]
         public void ConstantPatternVsUnconstrainedTypeParameter01()
         {
             var source =
@@ -2777,8 +2777,8 @@ False
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24550")]
-        [WorkItem("https://github.com/dotnet/csharplang/issues/1284")]
+        [WorkItem(24550, "https://github.com/dotnet/roslyn/issues/24550")]
+        [WorkItem(1284, "https://github.com/dotnet/csharplang/issues/1284")]
         public void ConstantPatternVsUnconstrainedTypeParameter02()
         {
             var source =
@@ -2815,7 +2815,7 @@ False
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/26274")]
+        [WorkItem(26274, "https://github.com/dotnet/roslyn/issues/26274")]
         public void VariablesInSwitchExpressionArms()
         {
             var source =
@@ -2868,7 +2868,7 @@ False
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26387")]
+        [Fact, WorkItem(26387, "https://github.com/dotnet/roslyn/issues/26387")]
         public void ValueTypeArgument01()
         {
             var source =
@@ -2958,7 +2958,7 @@ True";
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26387")]
+        [Fact, WorkItem(26387, "https://github.com/dotnet/roslyn/issues/26387")]
         public void ValueTypeArgument02()
         {
             var source =
@@ -3101,7 +3101,7 @@ x = 7, y = 8";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28632")]
+        [Fact, WorkItem(28632, "https://github.com/dotnet/roslyn/issues/28632")]
         public void UnboxNullableInRecursivePattern01()
         {
             var source =
@@ -3348,7 +3348,7 @@ static class C {
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32774")]
+        [Fact, WorkItem(32774, "https://github.com/dotnet/roslyn/issues/32774")]
         public void BadCode_32774()
         {
             var source = @"
@@ -3527,7 +3527,7 @@ public class Program
 ", sequencePoints: "Program.Main", source: source);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33675")]
+        [Fact, WorkItem(33675, "https://github.com/dotnet/roslyn/issues/33675")]
         public void ParsingParenthesizedExpressionAsPatternOfExpressionSwitch()
         {
             var source = @"
@@ -3617,7 +3617,7 @@ public class Class1
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35584")]
+        [Fact, WorkItem(35584, "https://github.com/dotnet/roslyn/issues/35584")]
         public void MatchToTypeParameterUnbox_01()
         {
             var source = @"
@@ -3676,7 +3676,7 @@ class Program
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35584")]
+        [Fact, WorkItem(35584, "https://github.com/dotnet/roslyn/issues/35584")]
         public void MatchToTypeParameterUnbox_02()
         {
             var source =
@@ -3764,7 +3764,7 @@ public class Generic<T>
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35584")]
+        [Fact, WorkItem(35584, "https://github.com/dotnet/roslyn/issues/35584")]
         public void MatchToTypeParameterUnbox_03()
         {
             var source =
@@ -4036,7 +4036,7 @@ byte[]
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/36496")]
+        [WorkItem(36496, "https://github.com/dotnet/roslyn/issues/36496")]
         public void EmptyVarPatternVsDeconstruct()
         {
             var source =
@@ -4072,7 +4072,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/36496")]
+        [WorkItem(36496, "https://github.com/dotnet/roslyn/issues/36496")]
         public void EmptyPositionalPatternVsDeconstruct()
         {
             var source =
@@ -4107,7 +4107,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31494")]
+        [Fact, WorkItem(31494, "https://github.com/dotnet/roslyn/issues/31494")]
         public void NoRedundantNullCheckForStringConstantPattern_01()
         {
             var source =
@@ -4161,7 +4161,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31494")]
+        [Fact, WorkItem(31494, "https://github.com/dotnet/roslyn/issues/31494")]
         public void NoRedundantNullCheckForStringConstantPattern_02()
         {
             var source =
@@ -4201,7 +4201,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31494")]
+        [Fact, WorkItem(31494, "https://github.com/dotnet/roslyn/issues/31494")]
         public void NoRedundantNullCheckForStringConstantPattern_03()
         {
             var source =
@@ -4231,8 +4231,8 @@ public class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42912")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31494")]
+        [WorkItem(42912, "https://github.com/dotnet/roslyn/issues/42912")]
+        [WorkItem(31494, "https://github.com/dotnet/roslyn/issues/31494")]
         public void NoRedundantNullCheckForNullableConstantPattern_04()
         {
             // Note that we do not produce the same code for `x is 1` and `x == 1`.
@@ -4520,7 +4520,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/48259")]
+        [WorkItem(48259, "https://github.com/dotnet/roslyn/issues/48259")]
         public void SwitchExpressionAsExceptionFilter_03()
         {
             var source = @"
@@ -4557,7 +4557,7 @@ public static class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/48259")]
+        [WorkItem(48259, "https://github.com/dotnet/roslyn/issues/48259")]
         public void SwitchExpressionAsExceptionFilter_04()
         {
             var source = @"
@@ -4590,7 +4590,7 @@ public static class Program
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/48563")]
+        [WorkItem(48563, "https://github.com/dotnet/roslyn/issues/48563")]
         [Theory]
         [InlineData("void*")]
         [InlineData("char*")]
@@ -4656,7 +4656,7 @@ True");
             verifier.VerifyIL("Program.IsNotNull", expectedNotEqualNull);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/48563")]
+        [WorkItem(48563, "https://github.com/dotnet/roslyn/issues/48563")]
         [Fact]
         public void IsNull_02()
         {
@@ -4698,7 +4698,7 @@ False");
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/48563")]
+        [WorkItem(48563, "https://github.com/dotnet/roslyn/issues/48563")]
         [Fact]
         public void IsNull_03()
         {
@@ -6173,7 +6173,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46536")]
+        [Fact, WorkItem(46536, "https://github.com/dotnet/roslyn/issues/46536")]
         public void MultiplePathsToNode_SwitchDispatch_01()
         {
             var source = @"
@@ -6252,7 +6252,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46536")]
+        [Fact, WorkItem(46536, "https://github.com/dotnet/roslyn/issues/46536")]
         public void MultiplePathsToNode_SwitchDispatch_02()
         {
             var source = @"
@@ -6341,7 +6341,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46536")]
+        [Fact, WorkItem(46536, "https://github.com/dotnet/roslyn/issues/46536")]
         public void MultiplePathsToNode_SwitchDispatch_03()
         {
             var source = @"
@@ -6442,7 +6442,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46536")]
+        [Fact, WorkItem(46536, "https://github.com/dotnet/roslyn/issues/46536")]
         public void MultiplePathsToNode_SwitchDispatch_04()
         {
             var source = @"
@@ -6535,7 +6535,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46536")]
+        [Fact, WorkItem(46536, "https://github.com/dotnet/roslyn/issues/46536")]
         public void MultiplePathsToNode_SwitchDispatch_05()
         {
             var source = @"
@@ -6613,7 +6613,7 @@ public class Class1
 
         #endregion Pattern Combinators
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62563")]
+        [Fact, WorkItem(62563, "https://github.com/dotnet/roslyn/issues/62563")]
         public void AssignToStructFieldOnClassTypeThroughCall_01()
         {
             var source = @"
@@ -6716,7 +6716,7 @@ class Program
             """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62563")]
+        [Fact, WorkItem(62563, "https://github.com/dotnet/roslyn/issues/62563")]
         public void AssignToStructFieldOnClassTypeThroughCall_02()
         {
             var source = """
@@ -6819,7 +6819,7 @@ class Obj
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62563")]
+        [Fact, WorkItem(62563, "https://github.com/dotnet/roslyn/issues/62563")]
         public void AssignToEventFieldOnClassTypeThroughCall()
         {
             var source = @"

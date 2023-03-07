@@ -1052,7 +1052,7 @@ class Program
             );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/19930")]
+        [WorkItem(19930, "https://github.com/dotnet/roslyn/issues/19930")]
         [Fact]
         public void ReadonlyReturnByRefInStruct()
         {
@@ -1082,7 +1082,7 @@ struct S1
             );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/19930")]
+        [WorkItem(19930, "https://github.com/dotnet/roslyn/issues/19930")]
         [Fact]
         public void ReadonlyReturnByRefRValue()
         {

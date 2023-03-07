@@ -185,7 +185,7 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/1958")>
+        <WorkItem(1958, "https://github.com/dotnet/roslyn/issues/1958")>
         Public Sub TestMyEvents()
             Dim source =
     <compilation>

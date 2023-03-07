@@ -12,7 +12,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [WorkItem("https://github.com/dotnet/csharplang/issues/275")]
+    [WorkItem(275, "https://github.com/dotnet/csharplang/issues/275")]
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class AnonymousFunctionParsingTests : ParsingTests
     {

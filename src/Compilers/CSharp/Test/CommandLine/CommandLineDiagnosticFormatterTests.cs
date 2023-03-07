@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14725")]
+        [WorkItem(14725, "https://github.com/dotnet/roslyn/issues/14725")]
         public void RelativizeNormalizedPathShouldHandleRootPaths_1()
         {
             var formatter = new CommandLineDiagnosticFormatter(
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14725")]
+        [WorkItem(14725, "https://github.com/dotnet/roslyn/issues/14725")]
         public void RelativizeNormalizedPathShouldHandleRootPaths_2()
         {
             var formatter = new CommandLineDiagnosticFormatter(
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14725")]
+        [WorkItem(14725, "https://github.com/dotnet/roslyn/issues/14725")]
         public void RelativizeNormalizedPathShouldHandleDirectoriesWithSamePrefix_1()
         {
             var formatter = new CommandLineDiagnosticFormatter(
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14725")]
+        [WorkItem(14725, "https://github.com/dotnet/roslyn/issues/14725")]
         public void RelativizeNormalizedPathShouldHandleDirectoriesWithSamePrefix_2()
         {
             var formatter = new CommandLineDiagnosticFormatter(

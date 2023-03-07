@@ -2104,7 +2104,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2284")]
+        [Fact, WorkItem(2284, "https://github.com/dotnet/roslyn/issues/2284")]
         public void LambdasMultipleGenerations2()
         {
             var source0 = MarkedSource(@"
@@ -3010,7 +3010,7 @@ class C
 ");
         }
 
-        [Fact(Skip = "2504"), WorkItem("https://github.com/dotnet/roslyn/issues/2504")]
+        [Fact(Skip = "2504"), WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")]
         public void InsertConstructorInPresenceOfFieldInitializersWithLambdas()
         {
             var source0 = MarkedSource(@"
@@ -3547,7 +3547,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")]
+        [Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")]
         public void CapturedAnonymousTypes1()
         {
             var source0 = MarkedSource(@"
@@ -3690,7 +3690,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")]
+        [Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")]
         public void CapturedAnonymousTypes2()
         {
             var template = @"
@@ -3774,7 +3774,7 @@ class C
             diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"));
         }
 
-        [WorkItem("https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/179990")]
+        [WorkItem(179990, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/179990")]
         [Fact]
         public void SynthesizedDelegates()
         {
@@ -4522,7 +4522,7 @@ Console.WriteLine(x());
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/55381")]
+        [WorkItem(55381, "https://github.com/dotnet/roslyn/issues/55381")]
         public void HiddenMethodClosure()
         {
             var source0 = MarkedSource(@"

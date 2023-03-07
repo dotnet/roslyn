@@ -517,7 +517,7 @@ class Program
 
         [Theory]
         [MemberData(nameof(AnalyzeMethodsInEnabledContextOnly_01_Data1))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_01A(NullableContextOptions? projectContext, NullableDirectives classDirectives, NullableDirectives methodDirectives)
         {
             AnalyzeMethodsInEnabledContextOnly_01_Execute(projectContext, classDirectives, methodDirectives);
@@ -525,7 +525,7 @@ class Program
 
         [Theory]
         [MemberData(nameof(AnalyzeMethodsInEnabledContextOnly_01_Data2))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_01B(NullableContextOptions? projectContext, NullableDirectives classDirectives, NullableDirectives methodDirectives)
         {
             AnalyzeMethodsInEnabledContextOnly_01_Execute(projectContext, classDirectives, methodDirectives);
@@ -604,7 +604,7 @@ static class B
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_02()
         {
             var source =
@@ -739,7 +739,7 @@ static class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_03()
         {
             var source =
@@ -990,7 +990,7 @@ struct S
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_04()
         {
             var source1 =
@@ -1071,7 +1071,7 @@ partial class Program
         }
 
         [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_05()
         {
             var source =
@@ -1155,7 +1155,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_06()
         {
             var source =
@@ -1214,7 +1214,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_07()
         {
             var source =
@@ -1305,7 +1305,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_08()
         {
             var source =
@@ -1362,7 +1362,7 @@ class B
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_09()
         {
             var source =
@@ -1457,7 +1457,7 @@ record B2() : A(
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_10()
         {
             var source1 =
@@ -1497,7 +1497,7 @@ record B2() : A(
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_11()
         {
             var source =
@@ -1532,7 +1532,7 @@ record B2() : A(
         }
 
         [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_12()
         {
             var source =
@@ -1618,7 +1618,7 @@ class A : System.Attribute
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_13()
         {
             var source =
@@ -1744,7 +1744,7 @@ _ = x.ToString();
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_MethodBodySemanticModel_01()
         {
             var source =
@@ -1786,7 +1786,7 @@ _ = x.ToString();
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_MethodBodySemanticModel_02()
         {
             var source =
@@ -1849,7 +1849,7 @@ _ = x.ToString();
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_AttributeSemanticModel_01()
         {
             var source =
@@ -1892,7 +1892,7 @@ class B2
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_AttributeSemanticModel_02()
         {
             var source =
@@ -1947,7 +1947,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_InitializerSemanticModel_01()
         {
             var source =
@@ -1984,7 +1984,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_InitializerSemanticModel_02()
         {
             var source =
@@ -2024,7 +2024,7 @@ class B
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_InitializerSemanticModel_03()
         {
             var source =
@@ -2063,7 +2063,7 @@ class B
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_MethodBody()
         {
             var source =
@@ -2093,7 +2093,7 @@ class B
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_Initializer()
         {
             var source =
@@ -2136,7 +2136,7 @@ class B
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_Attribute()
         {
             var source =
@@ -2175,7 +2175,7 @@ class Program
 
         [Theory]
         [MemberData(nameof(AnalyzeMethodsInEnabledContextOnly_01_Data1))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_A(NullableContextOptions? projectContext, NullableDirectives sourceDirectives, NullableDirectives speculativeDirectives)
         {
             AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_Execute(projectContext, sourceDirectives, speculativeDirectives);
@@ -2183,7 +2183,7 @@ class Program
 
         [Theory]
         [MemberData(nameof(AnalyzeMethodsInEnabledContextOnly_01_Data2))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_B(NullableContextOptions? projectContext, NullableDirectives sourceDirectives, NullableDirectives speculativeDirectives)
         {
             AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_Execute(projectContext, sourceDirectives, speculativeDirectives);

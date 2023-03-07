@@ -379,8 +379,8 @@ End Class
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537281")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537300")>
+        <WorkItem(537281, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537281")>
+        <WorkItem(537300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537300")>
         <WorkItem(932303, "DevDiv/Personal")>
         <Fact>
         Public Sub ArrayTypeInterfaces()
@@ -422,8 +422,8 @@ End Class
             Assert.Throws(Of ArgumentNullException)(Sub() compilation.CreateArrayTypeSymbol(Nothing))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537420")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537515")>
+        <WorkItem(537420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537420")>
+        <WorkItem(537515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537515")>
         <Fact>
         Public Sub ArrayTypeGetFullNameAndHashCode()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -528,7 +528,7 @@ End Class
             Assert.Equal("A.Cbc As System.Object()()", sym73.ToTestDisplayString())
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537187"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529941")>
+        <Fact(), WorkItem(537187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537187"), WorkItem(529941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529941")>
         Public Sub EnumFields()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="EnumFields">
@@ -670,7 +670,7 @@ End Namespace
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537199")>
+        <WorkItem(537199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537199")>
         <Fact>
         Public Sub UseTypeInNetModule()
             Dim mscorlibRef = TestMetadata.Net40.mscorlib
@@ -760,7 +760,7 @@ End Namespace
             Assert.Equal("System.DateTime", ary.ElementType.ToTestDisplayString())
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537461")>
+        <WorkItem(537461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537461")>
         <Fact>
         Public Sub SourceTypeUndefinedBaseType()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -775,7 +775,7 @@ End Class
             Assert.Equal(SymbolKind.ErrorType, baseType.Kind)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537467")>
+        <WorkItem(537467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537467")>
         <Fact>
         Public Sub TopLevelPrivateTypes()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -828,7 +828,7 @@ BC31047: Protected types can only be declared inside of a class.
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527185")>
+        <WorkItem(527185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527185")>
         <Fact>
         Public Sub InheritTypeFromMetadata01()
 
@@ -883,7 +883,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537753")>
+        <WorkItem(537753, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537753")>
         <Fact>
         Public Sub ImplementTypeCrossComps()
 
@@ -930,7 +930,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537492")>
+        <WorkItem(537492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537492")>
         <Fact>
         Public Sub PartialClassImplInterface()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -2372,7 +2372,7 @@ BC30270: 'Public' is not valid on an interface method declaration.
 
         ' Constructor initializers don't bind yet
         <WorkItem(7926, "DevDiv_Projects/Roslyn")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541123")>
+        <WorkItem(541123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541123")>
         <Fact>
         Public Sub StructDefaultConstructorInitializer()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -2503,7 +2503,7 @@ End Structure
 )
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530171")>
+        <Fact, WorkItem(530171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530171")>
         Public Sub ErrorTypeTest01()
             Dim compilation = CreateCompilationWithMscorlib40(
     <compilation name="Err">
@@ -3347,7 +3347,7 @@ expectedOutput:="FalseTrue112")
 
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8400")>
+        <Fact, WorkItem(8400, "https://github.com/dotnet/roslyn/issues/8400")>
         Public Sub WrongModifier()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="C">
@@ -3783,7 +3783,7 @@ End Interface
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/30673")>
+        <WorkItem(30673, "https://github.com/dotnet/roslyn/issues/30673")>
         <Fact>
         Public Sub TypeSymbolGetHashCode_ContainingType_GenericNestedType()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -3845,7 +3845,7 @@ End Class
             AssertHashCodesMatch(iDefinition, i4)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/30673")>
+        <WorkItem(30673, "https://github.com/dotnet/roslyn/issues/30673")>
         <Fact>
         Public Sub TypeSymbolGetHashCode_ContainingType_GenericNestedType_Nested()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -3880,7 +3880,7 @@ End Class
             AssertHashCodesMatch(iDefinition, i)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/30673")>
+        <WorkItem(30673, "https://github.com/dotnet/roslyn/issues/30673")>
         <Fact>
         Public Sub TypeSymbolGetHashCode_SubstitutedErrorType()
             Dim missing = CompilationUtils.CreateCompilationWithMscorlib40(

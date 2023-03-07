@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 : code;
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/18300")]
+        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         [CombinatorialData]
         public void InterpolatedStringExpression_Empty(bool hasDefaultHandler)
         {
@@ -45,7 +45,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/18300")]
+        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         [CombinatorialData]
         public void InterpolatedStringExpression_OnlyTextPart(bool hasDefaultHandler)
         {
@@ -73,7 +73,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/18300")]
+        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         [CombinatorialData]
         public void InterpolatedStringExpression_OnlyInterpolationPart(bool hasDefaultHandler)
         {
@@ -105,7 +105,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/18300")]
+        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         [CombinatorialData]
         public void InterpolatedStringExpression_EmptyInterpolationPart(bool hasDefaultHandler)
         {
@@ -142,7 +142,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/18300")]
+        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         [CombinatorialData]
         public void InterpolatedStringExpression_TextAndInterpolationParts(bool hasDefaultHandler)
         {
@@ -187,7 +187,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/18300")]
+        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         [CombinatorialData]
         public void InterpolatedStringExpression_FormatAndAlignment(bool hasDefaultHandler)
         {
@@ -249,7 +249,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/18300")]
+        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         [CombinatorialData]
         public void InterpolatedStringExpression_InterpolationAndFormatAndAlignment(bool hasDefaultHandler)
         {
@@ -291,7 +291,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/18300")]
+        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         [CombinatorialData]
         public void InterpolatedStringExpression_InvocationInInterpolation(bool hasDefaultHandler)
         {
@@ -357,7 +357,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/18300")]
+        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         [CombinatorialData]
         public void InterpolatedStringExpression_NestedInterpolation(bool hasDefaultHandler)
         {
@@ -411,7 +411,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/18300")]
+        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         [CombinatorialData]
         public void InterpolatedStringExpression_InvalidExpressionInInterpolation(bool hasDefaultHandler)
         {
@@ -4693,7 +4693,7 @@ Block[B3] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54703")]
+        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
         public void InterpolationEscapeConstantValue_WithDefaultHandler()
         {
             var code = @"
@@ -4723,7 +4723,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54703")]
+        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
         public void InterpolationEscapeConstantValue_WithoutDefaultHandler1()
         {
             var code = @"
@@ -4755,7 +4755,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54703")]
+        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
         public void RawInterpolationEscapeConstantValue_WithoutDefaultHandler1()
         {
             var code = @"
@@ -4778,7 +4778,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54703")]
+        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
         public void RawInterpolationEscapeConstantValue_WithoutDefaultHandler2()
         {
             var code = @"
@@ -4796,7 +4796,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54703")]
+        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
         public void RawInterpolationEscapeConstantValue_WithoutDefaultHandler3()
         {
             var code = @"
@@ -4814,7 +4814,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54703")]
+        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
         public void RawInterpolationEscapeConstantValue_WithoutDefaultHandler4()
         {
             var code = @"

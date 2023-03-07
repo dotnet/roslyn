@@ -898,7 +898,7 @@ IObjectCreationOperation (Constructor: MyList<System.String>..ctor()) (Operation
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
+        [WorkItem(629368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
         public void AddFieldUsedLikeMethod()
         {
             string source = @"
@@ -944,7 +944,7 @@ IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation,
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
+        [WorkItem(629368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
         public void AddPropertyUsedLikeMethod()
         {
             string source = @"
@@ -1430,7 +1430,7 @@ IInvalidOperation (OperationKind.Invalid, Type: X, IsInvalid) (Syntax: 'new X() 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543936")]
+        [WorkItem(543936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543936")]
         [Fact]
         public void CS0246_ERR_SingleTypeNameNotFound_02()
         {
@@ -2756,7 +2756,7 @@ IBlockOperation (5 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543933")]
+        [WorkItem(543933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543933")]
         [Fact]
         public void ObjectInitializerTest_InvalidComplexElementInitializerExpression()
         {
@@ -2814,7 +2814,7 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543933")]
+        [WorkItem(543933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543933")]
         [Fact]
         public void ObjectInitializerTest_IncompleteComplexElementInitializerExpression()
         {
@@ -2876,7 +2876,7 @@ IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543961")]
+        [WorkItem(543961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543961")]
         [Fact]
         public void CollectionInitializerTest_InvalidComplexElementInitializerSyntax()
         {
@@ -2928,7 +2928,7 @@ IInvalidOperation (OperationKind.Invalid, Type: List<System.Int32>, IsInvalid) (
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544484")]
+        [WorkItem(544484, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544484")]
         [Fact]
         public void EmptyCollectionInitPredefinedType()
         {
@@ -2955,7 +2955,7 @@ IObjectCreationOperation (Constructor: System.Int32..ctor()) (OperationKind.Obje
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544349")]
+        [WorkItem(544349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544349")]
         [Fact]
         public void CollectionInitializerTest_Bug_12635()
         {
@@ -2998,7 +2998,7 @@ IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.In
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544349")]
+        [WorkItem(544349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544349")]
         [Fact]
         public void CollectionInitializerTest_Bug_12635_02()
         {
@@ -3087,7 +3087,7 @@ IObjectCreationOperation (Constructor: N.C..ctor()) (OperationKind.ObjectCreatio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544570")]
+        [WorkItem(544570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544570")]
         [Fact]
         public void CollectionInitializerTest_Bug_12977()
         {
@@ -3184,7 +3184,7 @@ IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation,
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
+        [WorkItem(545123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
         [Fact]
         public void VoidElementType_Bug_13402()
         {
@@ -3425,7 +3425,7 @@ IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation,
 
         #endregion
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
+        [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_01()
         {
@@ -3470,7 +3470,7 @@ class X : List<int>
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
+        [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_02()
         {
@@ -3513,7 +3513,7 @@ class X : Base
                           Roslyn.Utilities.EnumerableExtensions.Order(symbolInfo.CandidateSymbols.Select(s => s.ToTestDisplayString())).ToArray());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
+        [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_03()
         {
@@ -3567,7 +3567,7 @@ class Y
             Assert.Equal("void X.Add(System.String x)", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
+        [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_04()
         {
@@ -3604,7 +3604,7 @@ class X : List<int>
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
+        [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_05()
         {
@@ -3643,7 +3643,7 @@ class X : List<int>
             }
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084686"), WorkItem(390, "CodePlex")]
+        [WorkItem(1084686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084686"), WorkItem(390, "CodePlex")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_CollectionInitializerWithinObjectInitializer_01()
         {
@@ -3686,7 +3686,7 @@ class Test
             }
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084686"), WorkItem(390, "CodePlex")]
+        [WorkItem(1084686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084686"), WorkItem(390, "CodePlex")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_CollectionInitializerWithinObjectInitializer_02()
         {
@@ -3736,7 +3736,7 @@ class Test2
             }
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084686"), WorkItem(390, "CodePlex")]
+        [WorkItem(1084686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084686"), WorkItem(390, "CodePlex")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_CollectionInitializerWithinObjectInitializer_03()
         {
@@ -3780,7 +3780,7 @@ class C : System.Collections.Generic.List<C>
             }
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
+        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerArray()
         {
             var source = @"
@@ -3801,7 +3801,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("C.a").WithLocation(4, 11));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
+        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerMDArray()
         {
             var source = @"
@@ -3822,7 +3822,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("C.a").WithLocation(4, 12));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
+        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerArraySemanticInfo()
         {
             var source = @"
@@ -3856,7 +3856,7 @@ class C
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2046")]
+        [Fact, WorkItem(2046, "https://github.com/dotnet/roslyn/issues/2046")]
         public void ObjectInitializerTest_DynamicPassedToConstructor()
         {
             var source = @"
@@ -3896,7 +3896,7 @@ public class Cc{
             CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "Initialized");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12983")]
+        [WorkItem(12983, "https://github.com/dotnet/roslyn/issues/12983")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_06()
         {
@@ -3935,7 +3935,7 @@ class X
             }
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/27060")]
+        [WorkItem(27060, "https://github.com/dotnet/roslyn/issues/27060")]
         [Fact]
         public void GetTypeInfoForBadExpression_01()
         {
@@ -4010,7 +4010,7 @@ interface I : IEnumerable<int>
             Assert.Equal(SpecialType.System_Int32, typeInfo.ConvertedType.SpecialType);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/27060")]
+        [WorkItem(27060, "https://github.com/dotnet/roslyn/issues/27060")]
         [Fact]
         public void GetTypeInfoForBadExpression_02()
         {

@@ -100,7 +100,7 @@ class C : Abracadabra
             DiagnosticsHelper.VerifyDiagnostics(model, source, @"bracadabra[\r\n]+", ErrorId);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066483")]
+        [Fact, WorkItem(1066483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066483")]
         public void TestDiagnosticWithSeverity()
         {
             var source = @"
@@ -139,7 +139,7 @@ class C
             Assert.Equal(1, info.WarningLevel);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7446")]
+        [Fact, WorkItem(7446, "https://github.com/dotnet/roslyn/issues/7446")]
         public void TestCompilationEventQueueWithSemanticModelGetDiagnostics()
         {
             var source1 = @"
@@ -184,7 +184,7 @@ namespace N1
             Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7477")]
+        [Fact, WorkItem(7477, "https://github.com/dotnet/roslyn/issues/7477")]
         public void TestCompilationEventsForPartialMethod()
         {
             var source1 = @"
@@ -236,7 +236,7 @@ namespace N1
             Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8178")]
+        [Fact, WorkItem(8178, "https://github.com/dotnet/roslyn/issues/8178")]
         public void TestEarlyCancellation()
         {
             var source = @"
@@ -413,7 +413,7 @@ namespace N1
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24351")]
+        [WorkItem(24351, "https://github.com/dotnet/roslyn/issues/24351")]
         public void GettingDeclarationDiagnosticsForATreeShouldNotFreezeCompilation()
         {
             var parseOptions = new CSharpParseOptions(LanguageVersion.Latest);
@@ -430,7 +430,7 @@ namespace N1
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39094")]
+        [WorkItem(39094, "https://github.com/dotnet/roslyn/issues/39094")]
         public void TestSuppressMessageAttributeDoesNotSuppressCompilerDiagnostics()
         {
             var source = @"
@@ -468,7 +468,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42116")]
+        [WorkItem(42116, "https://github.com/dotnet/roslyn/issues/42116")]
         public async Task TestAnalyzerConfigurationDoesNotAffectCompilerDiagnostics()
         {
             var source = @"
@@ -514,7 +514,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/43305")]
+        [WorkItem(43305, "https://github.com/dotnet/roslyn/issues/43305")]
         public async Task TestAnalyzerConfigurationDoesNotAffectNonConfigurableDiagnostics()
         {
             var source = @"class C { }";
@@ -616,7 +616,7 @@ class C3
             await Task.WhenAll(tasks);
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/46874")]
+        [Theory, WorkItem(46874, "https://github.com/dotnet/roslyn/pull/46874")]
         [InlineData(2)]
         [InlineData(50)]
         public async Task TestConcurrentGetAnalyzerDiagnostics_SymbolStartAnalyzer(int partialDeclarationCount)
@@ -670,7 +670,7 @@ class C3
         }
 
         [Theory, CombinatorialData]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/46950")]
+        [WorkItem(46950, "https://github.com/dotnet/roslyn/issues/46950")]
         public async Task TestGetAnalyzerSyntaxDiagnosticsWithCancellation(bool concurrent)
         {
             var source = @"class C { }";
@@ -734,7 +734,7 @@ class C
             Assert.True(eventQueue.IsCompleted);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56843")]
+        [Fact, WorkItem(56843, "https://github.com/dotnet/roslyn/issues/56843")]
         public async Task TestCompilerAnalyzerForSpanBasedSemanticDiagnostics()
         {
             var source = @"
@@ -777,7 +777,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63923")]
+        [WorkItem(63923, "https://github.com/dotnet/roslyn/issues/63923")]
         public async Task TestEqualityForCompilerAnalyzerDiagnosticWithPropertyBag()
         {
             var source = @"using System;

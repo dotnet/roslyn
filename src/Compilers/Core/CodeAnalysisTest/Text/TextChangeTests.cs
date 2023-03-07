@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/10452")]
+        [WorkItem(10452, "https://github.com/dotnet/roslyn/issues/10452")]
         public void TestEmptyChangeAfterChange()
         {
             var original = SourceText.From("Hello World");
@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/10452")]
+        [WorkItem(10452, "https://github.com/dotnet/roslyn/issues/10452")]
         public void TestEmptyChangeAfterChange2()
         {
             var original = SourceText.From("Hello World");
@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22289")]
+        [WorkItem(22289, "https://github.com/dotnet/roslyn/issues/22289")]
         public void TestMergeChanges_Overlapping_NewInsideOld_AndOldHasDeletion()
         {
             var original = SourceText.From("01234");
@@ -679,7 +679,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22289")]
+        [WorkItem(22289, "https://github.com/dotnet/roslyn/issues/22289")]
         public void TestMergeChanges_Overlapping_NewInsideOld_AndOldHasLeadingDeletion_SmallerThanLeadingInsertion()
         {
             var original = SourceText.From("012");
@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22289")]
+        [WorkItem(22289, "https://github.com/dotnet/roslyn/issues/22289")]
         public void TestMergeChanges_Overlapping_NewInsideOld_AndBothHaveDeletion_NewDeletionSmallerThanOld()
         {
             var original = SourceText.From("01234");
@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22289")]
+        [WorkItem(22289, "https://github.com/dotnet/roslyn/issues/22289")]
         public void TestMergeChanges_SameStart_AndBothHaveDeletion_NewDeletionSmallerThanOld()
         {
             var original = SourceText.From("01234");
@@ -828,7 +828,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39405")]
+        [WorkItem(39405, "https://github.com/dotnet/roslyn/issues/39405")]
         public void TestMergeChanges_NewDeletionLargerThanOld()
         {
             var original = SourceText.From("01234");
@@ -947,7 +947,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47234")]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void DebuggerDisplay()
         {
             Assert.Equal("new TextChange(new TextSpan(0, 0), null)", default(TextChange).GetDebuggerDisplay());
@@ -956,7 +956,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47234")]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz()
         {
             var random = new Random();
@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47234")]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_0()
         {
             var originalText = SourceText.From("01234");
@@ -1054,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47234")]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_1()
         {
             var original = SourceText.From("01234");
@@ -1068,7 +1068,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47234")]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_2()
         {
             var originalText = SourceText.From("01234");
@@ -1082,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47234")]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_3()
         {
             var originalText = SourceText.From("01234");
@@ -1095,7 +1095,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47234")]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_4()
         {
             var originalText = SourceText.From("012345");
@@ -1109,7 +1109,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47234")]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_7()
         {
             var originalText = SourceText.From("01234567");
@@ -1123,7 +1123,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47234")]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_10()
         {
             var originalText = SourceText.From("01234");
@@ -1137,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47234")]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_23()
         {
             var originalText = SourceText.From("01234");
@@ -1151,7 +1151,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47234")]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_32()
         {
             var originalText = SourceText.From("012345");
@@ -1165,7 +1165,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47234")]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_39()
         {
             var originalText = SourceText.From("0123456");
@@ -1179,7 +1179,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47234")]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_55()
         {
             var originalText = SourceText.From("012345");
@@ -1193,7 +1193,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47234")]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_110()
         {
             var originalText = SourceText.From("01234");
@@ -1207,7 +1207,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/41413")]
+        [WorkItem(41413, "https://github.com/dotnet/roslyn/issues/41413")]
         public void GetTextChanges_NonOverlappingSpans()
         {
             var content = @"@functions{

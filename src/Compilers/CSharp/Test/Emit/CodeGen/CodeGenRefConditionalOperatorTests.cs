@@ -641,7 +641,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24306")]
+        [WorkItem(24306, "https://github.com/dotnet/roslyn/issues/24306")]
         public void TestRefConditional_71()
         {
             var source = @"
@@ -1203,7 +1203,7 @@ class C
                );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53113")]
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
         public void TestRefOnPointerIndirection_ThroughTernary_01()
         {
             var code = @"
@@ -1270,7 +1270,7 @@ unsafe
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53113")]
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
         public void TestRefOnPointerIndirection_ThroughTernary_02()
         {
             var code = @"

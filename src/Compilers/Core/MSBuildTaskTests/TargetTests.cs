@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Theory, CombinatorialData]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40926")]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
         public void TestSkipAnalyzers(
             [CombinatorialValues(true, false, null)] bool? runAnalyzers,
             [CombinatorialValues(true, false, null)] bool? runAnalyzersDuringBuild)
@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Theory, CombinatorialData]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1337109")]
+        [WorkItem(1337109, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1337109")]
         public void TestImplicitlySkipAnalyzers(
             [CombinatorialValues(true, false, null)] bool? runAnalyzers,
             [CombinatorialValues(true, false, null)] bool? implicitBuild,
@@ -785,7 +785,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Theory, CombinatorialData]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1337109")]
+        [WorkItem(1337109, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1337109")]
         public void TestLastBuildWithSkipAnalyzers(
             [CombinatorialValues(true, false, null)] bool? runAnalyzers,
             bool lastBuildWithSkipAnalyzersFileExists)

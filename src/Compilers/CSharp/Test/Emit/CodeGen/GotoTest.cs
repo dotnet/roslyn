@@ -120,7 +120,7 @@ class C
         }
 
         // Goto location outside enclosing block 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
+        [WorkItem(527952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
         [Fact]
         public void LocationOfGotoOutofClosure()
         {
@@ -159,7 +159,7 @@ class C
         }
 
         // Goto location in enclosing block  
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
+        [WorkItem(527952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
         [Fact]
         public void LocationOfGotoInClosure()
         {
@@ -198,7 +198,7 @@ class C
         }
 
         // Same label in different scope  
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539876")]
+        [WorkItem(539876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539876")]
         [Fact]
         public void SameLabelInDiffScope()
         {
@@ -239,7 +239,7 @@ class C
         }
 
         // Label Next to Label  
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539877")]
+        [WorkItem(539877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539877")]
         [Fact]
         public void LabelNexttoLabel()
         {
@@ -267,7 +267,7 @@ class C
         }
 
         // Infinite loop
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
+        [WorkItem(527952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
         [Fact]
         public void Infiniteloop()
         {
@@ -294,7 +294,7 @@ class C
         }
 
         // unreachable code
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
+        [WorkItem(527952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
         [Fact]
         public void CS0162WRN_UnreachableCode()
         {
@@ -339,7 +339,7 @@ class C
         }
 
         // Declare variable after goto
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
+        [WorkItem(527952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
         [Fact]
         public void DeclareVariableAfterGoto()
         {
@@ -371,7 +371,7 @@ class C
         }
 
         // Finally is executed while use 'goto' to exit try block
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540721")]
+        [WorkItem(540721, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540721")]
         [Fact]
         public void GotoInTry()
         {
@@ -428,7 +428,7 @@ class C
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540716")]
+        [WorkItem(540716, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540716")]
         [Fact]
         public void GotoInFinallyBlock()
         {
@@ -480,7 +480,7 @@ class C
         }
 
         // Optimization redundant branch for code generate
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
+        [Fact, WorkItem(527952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
         public void OptimizationForGoto()
         {
             var source = @"
@@ -512,7 +512,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528010")]
+        [Fact, WorkItem(528010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528010")]
         public void GotoInLambda()
         {
             var text = @"
@@ -610,7 +610,7 @@ class C
         }
 
         // Control is transferred to the target of the goto statement after finally
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540720")]
+        [WorkItem(540720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540720")]
         [Fact]
         public void ControlTransferred()
         {
@@ -637,7 +637,7 @@ Label
         }
 
         // Control is transferred to the target of the goto statement in nested try
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540720")]
+        [WorkItem(540720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540720")]
         [Fact]
         public void ControlTransferred_02()
         {
@@ -708,7 +708,7 @@ label
             CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540719")]
+        [WorkItem(540719, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540719")]
         [Fact]
         public void LabelBetweenLocalAndInitialize()
         {
@@ -730,7 +730,7 @@ class C
             CompileAndVerify(text);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540719")]
+        [WorkItem(540719, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540719")]
         [Fact]
         public void LabelBetweenLocalAndInitialize02()
         {
@@ -766,7 +766,7 @@ public class A
             CompileAndVerify(text, expectedOutput: "Catch");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540719")]
+        [WorkItem(540719, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540719")]
         [Fact]
         public void LabelBetweenLocalAndInitialize03()
         {

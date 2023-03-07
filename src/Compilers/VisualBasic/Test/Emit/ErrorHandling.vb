@@ -579,7 +579,7 @@ End Module
             compilation.VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, "a + 1").WithArguments("Late binding").WithLocation(6, 40))
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545772")>
+        <Fact(), WorkItem(545772, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545772")>
         Public Sub VbCoreMyNamespace()
             Dim source =
 <compilation>

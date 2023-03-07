@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class IOperationTests_IIsPatternExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_VarPatternDeclaration()
         {
             string source = @"
@@ -42,7 +42,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x 
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_PrimitiveTypePatternDeclaration()
         {
             string source = @"
@@ -69,7 +69,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x 
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_ReferenceTypePatternDeclaration()
         {
             string source = @"
@@ -95,7 +95,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x 
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_TypeParameterTypePatternDeclaration()
         {
             string source = @"
@@ -121,7 +121,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x 
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_DynamicTypePatternDeclaration()
         {
             string source = @"
@@ -151,7 +151,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_ConstantPattern()
         {
             string source = @"
@@ -180,7 +180,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x 
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_ConstantPatternWithConversion()
         {
             string source = @"
@@ -212,7 +212,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x 
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_ConstantPatternWithNoImplicitConversion()
         {
             string source = @"
@@ -248,7 +248,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_ConstantPatternWithNoValidImplicitOrExplicitConversion()
         {
             string source = @"
@@ -284,7 +284,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_UndefinedTypeInPatternDeclaration()
         {
             string source = @"
@@ -315,7 +315,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidConstantPatternDeclaration()
         {
             string source = @"
@@ -348,7 +348,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidTypeInPatternDeclaration()
         {
             string source = @"
@@ -379,7 +379,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_DuplicateLocalInPatternDeclaration()
         {
             string source = @"
@@ -410,7 +410,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidMultipleLocalsInPatternDeclaration()
         {
             string source = @"
@@ -459,7 +459,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x 
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidConstDeclarationInPatternDeclaration()
         {
             string source = @"
@@ -510,7 +510,7 @@ class X
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidInDefaultParameterInitializer()
         {
             string source = @"
@@ -541,7 +541,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidInFieldInitializer()
         {
             string source = @"
@@ -566,7 +566,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o 
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidInConstructorInitializer()
         {
             string source = @"
@@ -595,7 +595,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o 
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19927")]
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidInAttributeArgument()
         {
             string source = @"
@@ -2188,7 +2188,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'a 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57884")]
+        [Fact, WorkItem(57884, "https://github.com/dotnet/roslyn/issues/57884")]
         public void TestIsPatternExpression_ListPatterns_Collection_Nullability()
         {
             string source = @"

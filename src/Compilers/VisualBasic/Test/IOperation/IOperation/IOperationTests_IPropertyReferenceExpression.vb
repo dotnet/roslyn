@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
-        <CompilerTrait(CompilerFeature.IOperation), WorkItem("https://github.com/dotnet/roslyn/issues/21769")>
+        <CompilerTrait(CompilerFeature.IOperation), WorkItem(21769, "https://github.com/dotnet/roslyn/issues/21769")>
         <Fact()>
         Public Sub PropertyReferenceExpression_PropertyReferenceInWithDerivedTypeUsesDerivedTypeAsInstanceType_LValue()
             Dim source = <![CDATA[
@@ -41,7 +41,7 @@ IPropertyReferenceOperation: Property M1.C1.P1 As System.Object (OperationKind.P
             VerifyOperationTreeAndDiagnosticsForTest(Of IdentifierNameSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <CompilerTrait(CompilerFeature.IOperation), WorkItem("https://github.com/dotnet/roslyn/issues/21769")>
+        <CompilerTrait(CompilerFeature.IOperation), WorkItem(21769, "https://github.com/dotnet/roslyn/issues/21769")>
         <Fact()>
         Public Sub PropertyReferenceExpression_PropertyReferenceInWithDerivedTypeUsesDerivedTypeAsInstanceType_RValue()
             Dim source = <![CDATA[

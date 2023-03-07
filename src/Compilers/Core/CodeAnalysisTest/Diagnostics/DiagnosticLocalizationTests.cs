@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     public partial class DiagnosticLocalizationTests
     {
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1006")]
+        [Fact, WorkItem(1006, "https://github.com/dotnet/roslyn/issues/1006")]
         public void TestDiagnosticLocalization()
         {
             var resourceManager = GetTestResourceManagerInstance();
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Assert.False(threw);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/887")]
+        [Fact, WorkItem(887, "https://github.com/dotnet/roslyn/issues/887")]
         public void TestDescriptorIsExceptionSafe()
         {
             // Test descriptor with LocalizableResourceString fields that can throw.

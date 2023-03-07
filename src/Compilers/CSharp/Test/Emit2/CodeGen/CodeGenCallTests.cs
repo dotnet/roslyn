@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenCallTests : CSharpTestBase
     {
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_Class()
         {
             var source = @"
@@ -117,7 +117,7 @@ Position GetName for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_Struct()
         {
             var source = @"
@@ -189,7 +189,7 @@ Position GetName for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_Class_Ref()
         {
             var source = @"
@@ -288,7 +288,7 @@ Position GetName for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_Struct_Ref()
         {
             var source = @"
@@ -360,7 +360,7 @@ Position GetName for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_Class_Async_01()
         {
             var source = @"
@@ -617,7 +617,7 @@ Position GetName for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_Struct_Async_01()
         {
             var source = @"
@@ -764,7 +764,7 @@ Position GetName for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_Class_Async_02()
         {
             var source = @"
@@ -1103,7 +1103,7 @@ Position GetName for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_Struct_Async_02()
         {
             var source = @"
@@ -1292,7 +1292,7 @@ Position GetName for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_InterpolationHandler_Class()
         {
             var source = @"
@@ -1448,7 +1448,7 @@ Position GetName for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_InterpolationHandler_Struct()
         {
             var source = @"
@@ -1561,7 +1561,7 @@ Position GetName for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_InterpolationHandler_Class_Ref()
         {
             var source = @"
@@ -1722,7 +1722,7 @@ Position GetName for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_InterpolationHandler_Struct_Ref()
         {
             var source = @"
@@ -1835,7 +1835,7 @@ Position GetName for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_Conditional_Class()
         {
             var source = @"
@@ -1939,7 +1939,7 @@ Position GetName for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_Conditional_Struct()
         {
             var source = @"
@@ -1988,7 +1988,7 @@ Position GetName for item '-1'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_Conditional_Class_Ref()
         {
             var source = @"
@@ -2093,7 +2093,7 @@ Position GetName for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_Conditional_Struct_Ref()
         {
             var source = @"
@@ -2142,7 +2142,7 @@ Position GetName for item '-1'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_Conditional_Class_Async_01()
         {
             var source = @"
@@ -2407,7 +2407,7 @@ Position GetName for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_Conditional_Struct_Async_01()
         {
             var source = @"
@@ -2463,7 +2463,7 @@ Position GetName for item '-1'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_Conditional_Class_Async_02()
         {
             var source = @"
@@ -2810,7 +2810,7 @@ Position GetName for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Call_Conditional_Struct_Async_02()
         {
             var source = @"
@@ -2867,7 +2867,7 @@ Position GetName for item '-1'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Property_Class()
         {
             var source = @"
@@ -2989,7 +2989,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Property_Struct()
         {
             var source = @"
@@ -3075,7 +3075,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Property_Class_Ref()
         {
             var source = @"
@@ -3198,7 +3198,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Property_Struct_Ref()
         {
             var source = @"
@@ -3284,7 +3284,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Property_Class_Async_01()
         {
             var source = @"
@@ -3572,7 +3572,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Property_Struct_Async_01()
         {
             var source = @"
@@ -3738,7 +3738,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Property_Class_Async_02()
         {
             var source = @"
@@ -4108,7 +4108,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Property_Struct_Async_02()
         {
             var source = @"
@@ -4316,7 +4316,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Property_Class()
         {
             var source = @"
@@ -4458,7 +4458,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Property_Struct()
         {
             var source = @"
@@ -4554,7 +4554,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Property_Class_Ref()
         {
             var source = @"
@@ -4697,7 +4697,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Property_Struct_Ref()
         {
             var source = @"
@@ -4793,7 +4793,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Property_Class_Async_01()
         {
             var source = @"
@@ -5098,7 +5098,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Property_Struct_Async_01()
         {
             var source = @"
@@ -5267,7 +5267,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Property_Class_Async_02()
         {
             var source = @"
@@ -5654,7 +5654,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Property_Struct_Async_02()
         {
             var source = @"
@@ -5865,7 +5865,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Index()
         {
             var source = @"
@@ -6003,7 +6003,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Index()
         {
             var source = @"
@@ -6097,7 +6097,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Index_Ref()
         {
             var source = @"
@@ -6236,7 +6236,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Index_Ref()
         {
             var source = @"
@@ -6330,7 +6330,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Index_Async_01()
         {
             var source = @"
@@ -6619,7 +6619,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Index_Async_01()
         {
             var source = @"
@@ -6783,7 +6783,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Index_Async_02()
         {
             var source = @"
@@ -7154,7 +7154,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Index_Async_02()
         {
             var source = @"
@@ -7360,7 +7360,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Increment_Indexer_Class()
         {
             var source = @"
@@ -7498,7 +7498,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Increment_Indexer_Struct()
         {
             var source = @"
@@ -7592,7 +7592,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Increment_Indexer_Class_Ref()
         {
             var source = @"
@@ -7731,7 +7731,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Increment_Indexer_Struct_Ref()
         {
             var source = @"
@@ -7825,7 +7825,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Increment_Indexer_Class_Async_01()
         {
             var source = @"
@@ -8120,7 +8120,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Increment_Indexer_Struct_Async_01()
         {
             var source = @"
@@ -8287,7 +8287,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Increment_Indexer_Class_Async_02()
         {
             var source = @"
@@ -8664,7 +8664,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Increment_Indexer_Struct_Async_02()
         {
             var source = @"
@@ -8873,7 +8873,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Class_Index()
         {
             var source = @"
@@ -9039,7 +9039,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Struct_Index()
         {
             var source = @"
@@ -9147,7 +9147,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Class_Index_Ref()
         {
             var source = @"
@@ -9314,7 +9314,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Struct_Index_Ref()
         {
             var source = @"
@@ -9422,7 +9422,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Class_Index_Async_01()
         {
             var source = @"
@@ -9739,7 +9739,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Struct_Index_Async_01()
         {
             var source = @"
@@ -9917,7 +9917,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Class_Index_Async_02()
         {
             var source = @"
@@ -10316,7 +10316,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Struct_Index_Async_02()
         {
             var source = @"
@@ -10536,7 +10536,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Value()
         {
             var source = @"
@@ -10663,7 +10663,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Value()
         {
             var source = @"
@@ -10754,7 +10754,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Value_Ref()
         {
             var source = @"
@@ -10881,7 +10881,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Value_Ref()
         {
             var source = @"
@@ -10972,7 +10972,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Value_Async_01()
         {
             var source = @"
@@ -11264,7 +11264,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Value_Async_01()
         {
             var source = @"
@@ -11432,7 +11432,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_IndexAndValue()
         {
             var source = @"
@@ -11572,7 +11572,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_IndexAndValue()
         {
             var source = @"
@@ -11667,7 +11667,7 @@ Position set for item '-4'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_IndexAndValue_Ref()
         {
             var source = @"
@@ -11808,7 +11808,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_IndexAndValue_Ref()
         {
             var source = @"
@@ -11903,7 +11903,7 @@ Position set for item '-4'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_IndexAndValue_Async_01()
         {
             var source = @"
@@ -12224,7 +12224,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_IndexAndValue_Async_01()
         {
             var source = @"
@@ -12401,7 +12401,7 @@ Position set for item '-4'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_IndexAndValue_Async_03()
         {
             var source = @"
@@ -12694,7 +12694,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_IndexAndValue_Async_03()
         {
             var source = @"
@@ -12860,7 +12860,7 @@ Position set for item '-4'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_IndexAndValue_Async_04()
         {
             var source = @"
@@ -13254,7 +13254,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_IndexAndValue_Async_04()
         {
             var source = @"
@@ -13467,7 +13467,7 @@ Position set for item '-4'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Class_Value()
         {
             var source = @"
@@ -13627,7 +13627,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Struct_Value()
         {
             var source = @"
@@ -13732,7 +13732,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Class_Value_Ref()
         {
             var source = @"
@@ -13893,7 +13893,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Struct_Value_Ref()
         {
             var source = @"
@@ -13998,7 +13998,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Class_Value_Async_01()
         {
             var source = @"
@@ -14309,7 +14309,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Struct_Value_Async_01()
         {
             var source = @"
@@ -14484,7 +14484,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Class_IndexAndValue()
         {
             var source = @"
@@ -14652,7 +14652,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Struct_IndexAndValue()
         {
             var source = @"
@@ -14761,7 +14761,7 @@ Position set for item '-4'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Class_IndexAndValue_Ref()
         {
             var source = @"
@@ -14930,7 +14930,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Struct_IndexAndValue_Ref()
         {
             var source = @"
@@ -15039,7 +15039,7 @@ Position set for item '-4'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Class_IndexAndValue_Async_01()
         {
             var source = @"
@@ -15364,7 +15364,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Struct_IndexAndValue_Async_01()
         {
             var source = @"
@@ -15546,7 +15546,7 @@ Position set for item '-4'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Class_IndexAndValue_Async_03()
         {
             var source = @"
@@ -15867,7 +15867,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Struct_IndexAndValue_Async_03()
         {
             var source = @"
@@ -16047,7 +16047,7 @@ Position set for item '-4'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Class_IndexAndValue_Async_04()
         {
             var source = @"
@@ -16450,7 +16450,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Struct_IndexAndValue_Async_04()
         {
             var source = @"
@@ -16671,7 +16671,7 @@ Position set for item '-4'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Deconstruction_Property_Class()
         {
             var source = @"
@@ -16789,7 +16789,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Deconstruction_Property_Struct()
         {
             var source = @"
@@ -16872,7 +16872,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Deconstruction_Property_Class_Ref()
         {
             var source = @"
@@ -16991,7 +16991,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Deconstruction_Property_Struct_Ref()
         {
             var source = @"
@@ -17074,7 +17074,7 @@ Position set for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Deconstruction_Property_Class_Async_01()
         {
             var source = @"
@@ -17339,7 +17339,7 @@ Position set for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Deconstruction_Property_Struct_Async_01()
         {
             var source = @"
@@ -17494,7 +17494,7 @@ Position set for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Class()
         {
             var source = @"
@@ -17637,7 +17637,7 @@ Position get for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct()
         {
             var source = @"
@@ -17737,7 +17737,7 @@ Position get for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Class_Ref()
         {
             var source = @"
@@ -17881,7 +17881,7 @@ Position get for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct_Ref()
         {
             var source = @"
@@ -17981,7 +17981,7 @@ Position get for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Class_Async_01()
         {
             var source = @"
@@ -18278,7 +18278,7 @@ Position get for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct_Async_01()
         {
             var source = @"
@@ -18451,7 +18451,7 @@ Position get for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Class_Index()
         {
             var source = @"
@@ -18612,7 +18612,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Struct_Index()
         {
             var source = @"
@@ -18725,7 +18725,7 @@ Position set for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Class_Index_Ref()
         {
             var source = @"
@@ -18887,7 +18887,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Struct_Index_Ref()
         {
             var source = @"
@@ -19000,7 +19000,7 @@ Position set for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Class_Index_Async_01()
         {
             var source = @"
@@ -19325,7 +19325,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Struct_Index_Async_01()
         {
             var source = @"
@@ -19509,7 +19509,7 @@ Position set for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Class_Value()
         {
             var source = @"
@@ -19658,7 +19658,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Struct_Value()
         {
             var source = @"
@@ -19768,7 +19768,7 @@ Position set for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Class_Value_Ref()
         {
             var source = @"
@@ -19918,7 +19918,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Struct_Value_Ref()
         {
             var source = @"
@@ -20028,7 +20028,7 @@ Position set for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Class_Value_Async_01()
         {
             var source = @"
@@ -20354,7 +20354,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Struct_Value_Async_01()
         {
             var source = @"
@@ -20546,7 +20546,7 @@ Position set for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Class_IndexAndValue()
         {
             var source = @"
@@ -20709,7 +20709,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Struct_IndexAndValue()
         {
             var source = @"
@@ -20823,7 +20823,7 @@ Position set for item '-4'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Class_IndexAndValue_Ref()
         {
             var source = @"
@@ -20987,7 +20987,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Struct_IndexAndValue_Ref()
         {
             var source = @"
@@ -21101,7 +21101,7 @@ Position set for item '-4'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Class_IndexAndValue_Async_01()
         {
             var source = @"
@@ -21453,7 +21453,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Struct_IndexAndValue_Async_01()
         {
             var source = @"
@@ -21650,7 +21650,7 @@ Position set for item '-4'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Class_IndexAndValue_Async_03()
         {
             var source = @"
@@ -21979,7 +21979,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Struct_IndexAndValue_Async_03()
         {
             var source = @"
@@ -22165,7 +22165,7 @@ Position set for item '-4'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Class_IndexAndValue_Async_04()
         {
             var source = @"
@@ -22595,7 +22595,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Compound_ImplicitIndexIndexer_Struct_IndexAndValue_Async_04()
         {
             var source = @"
@@ -22828,7 +22828,7 @@ Position set for item '-4'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Class_Index()
         {
             var source = @"
@@ -23017,7 +23017,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Struct_Index()
         {
             var source = @"
@@ -23144,7 +23144,7 @@ Position set for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Class_Index_Ref()
         {
             var source = @"
@@ -23334,7 +23334,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Struct_Index_Ref()
         {
             var source = @"
@@ -23461,7 +23461,7 @@ Position set for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Class_Index_Async_01()
         {
             var source = @"
@@ -23814,7 +23814,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Struct_Index_Async_01()
         {
             var source = @"
@@ -24012,7 +24012,7 @@ Position set for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Class_Value()
         {
             var source = @"
@@ -24195,7 +24195,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Struct_Value()
         {
             var source = @"
@@ -24319,7 +24319,7 @@ Position set for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Class_Value_Ref()
         {
             var source = @"
@@ -24503,7 +24503,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Struct_Value_Ref()
         {
             var source = @"
@@ -24627,7 +24627,7 @@ Position set for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Class_Value_Async_01()
         {
             var source = @"
@@ -24978,7 +24978,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Struct_Value_Async_01()
         {
             var source = @"
@@ -25175,7 +25175,7 @@ Position set for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Class_IndexAndValue()
         {
             var source = @"
@@ -25366,7 +25366,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Struct_IndexAndValue()
         {
             var source = @"
@@ -25494,7 +25494,7 @@ Position set for item '-4'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Class_IndexAndValue_Ref()
         {
             var source = @"
@@ -25686,7 +25686,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Struct_IndexAndValue_Ref()
         {
             var source = @"
@@ -25814,7 +25814,7 @@ Position set for item '-4'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Class_IndexAndValue_Async_01()
         {
             var source = @"
@@ -26175,7 +26175,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Struct_IndexAndValue_Async_01()
         {
             var source = @"
@@ -26377,7 +26377,7 @@ Position set for item '-4'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Class_IndexAndValue_Async_03()
         {
             var source = @"
@@ -26734,7 +26734,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Struct_IndexAndValue_Async_03()
         {
             var source = @"
@@ -26934,7 +26934,7 @@ Position set for item '-4'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Class_IndexAndValue_Async_04()
         {
             var source = @"
@@ -27367,7 +27367,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Conditional_ImplicitIndexIndexer_Struct_IndexAndValue_Async_04()
         {
             var source = @"
@@ -27605,7 +27605,7 @@ Position set for item '-4'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Deconstruction_ImplicitIndexIndexer_Class()
         {
             var source = @"
@@ -27750,7 +27750,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Deconstruction_ImplicitIndexIndexer_Struct()
         {
             var source = @"
@@ -27854,7 +27854,7 @@ Position set for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Deconstruction_ImplicitIndexIndexer_Class_Ref()
         {
             var source = @"
@@ -28000,7 +28000,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Deconstruction_ImplicitIndexIndexer_Struct_Ref()
         {
             var source = @"
@@ -28104,7 +28104,7 @@ Position set for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Deconstruction_ImplicitIndexIndexer_Class_Async_01()
         {
             var source = @"
@@ -28417,7 +28417,7 @@ Position set for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_Assignment_Deconstruction_ImplicitIndexIndexer_Struct_Async_01()
         {
             var source = @"
@@ -28598,7 +28598,7 @@ Position set for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeExpression_Class()
         {
             var source = @"
@@ -28736,7 +28736,7 @@ Position Slice for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeExpression_Struct()
         {
             var source = @"
@@ -28833,7 +28833,7 @@ Position Slice for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeExpression_Class_Ref()
         {
             var source = @"
@@ -28972,7 +28972,7 @@ Position Slice for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeExpression_Struct_Ref()
         {
             var source = @"
@@ -29069,7 +29069,7 @@ Position Slice for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeExpression_Class_Async_01()
         {
             var source = @"
@@ -29361,7 +29361,7 @@ Position Slice for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeExpression_Struct_Async_01()
         {
             var source = @"
@@ -29528,7 +29528,7 @@ Position Slice for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeValue_Class()
         {
             var source = @"
@@ -29700,7 +29700,7 @@ Position Slice for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeValue_Struct()
         {
             var source = @"
@@ -29814,7 +29814,7 @@ Position Slice for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeValue_Class_Ref()
         {
             var source = @"
@@ -29987,7 +29987,7 @@ Position Slice for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeValue_Struct_Ref()
         {
             var source = @"
@@ -30101,7 +30101,7 @@ Position Slice for item '-2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeValue_Class_Async_01()
         {
             var source = @"
@@ -30433,7 +30433,7 @@ Position Slice for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63221")]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeValue_Struct_Async_01()
         {
             var source = @"
@@ -30620,7 +30620,7 @@ Position Slice for item '-2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/66162")]
+        [WorkItem(66162, "https://github.com/dotnet/roslyn/issues/66162")]
         public void GenericTypeParameterAsReceiver_Call_Nullable()
         {
             var source = @"
@@ -30725,7 +30725,7 @@ Position Equals for item '2'
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/66162")]
+        [WorkItem(66162, "https://github.com/dotnet/roslyn/issues/66162")]
         public void GenericTypeParameterAsReceiver_Call_Nullable_Async()
         {
             var source = @"

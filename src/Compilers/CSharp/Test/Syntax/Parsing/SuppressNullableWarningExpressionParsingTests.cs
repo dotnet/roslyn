@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/47712")]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_02()
         {
             UsingNode("x?.y!.z.ToString()");
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/47712")]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_03()
         {
             UsingNode("x?.y!?.z.ToString()");
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/47712")]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_04()
         {
             UsingNode("x?.y?!.z.ToString()", options: null,
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/47712")]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_05()
         {
             UsingNode("x?.y?![0].ToString()", options: null,
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/47712")]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_06()
         {
             UsingNode("x?.y?!().ToString()", options: null,
@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/47712")]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_07()
         {
             UsingNode("x?.y!?!.ToString()", options: null,
@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/47712")]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_ElementAccess()
         {
             UsingNode("x?.y![1].z.ToString()");
@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/47712")]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_SuppressInvocation()
         {
             UsingNode("x?.y!(0)");
@@ -768,7 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/47712")]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_PostfixSuppression()
         {
             UsingNode("x?.y!");
@@ -795,7 +795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/47712")]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_Suppression_LangVersion()
         {
             var text = "x?.y!.z";
@@ -864,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/47712")]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_Repeated_01()
         {
             UsingNode("x?.y!!.z");
@@ -903,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/47712")]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_Repeated_02()
         {
             UsingNode("x?.y!!!!.z");
@@ -950,7 +950,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/47712")]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_Repeated_03()
         {
             UsingNode("x?.y.z!!");

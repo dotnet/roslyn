@@ -489,7 +489,7 @@ class Program
 
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66365")]
+        [Fact, WorkItem(66365, "https://github.com/dotnet/roslyn/issues/66365")]
         public void InvokeOnThisBaseMethods()
         {
             var text = @"

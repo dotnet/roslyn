@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits BasicTestBase
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         Public Sub Test1()
 
             Dim source =
@@ -563,7 +563,7 @@ BC42019: Operands of type Object used for operator 'Not'; runtime errors could o
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")>
+        <WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")>
         <Fact()>
         Public Sub Bug13088()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(

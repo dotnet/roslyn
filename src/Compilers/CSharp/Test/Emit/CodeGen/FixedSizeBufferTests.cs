@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class FixedSizeBufferTests : EmitMetadataTestBase
     {
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/pull/26351")]
+        [WorkItem(26351, "https://github.com/dotnet/roslyn/pull/26351")]
         public void NestedStructFixed()
         {
             var verifier = CompileAndVerify(@"
@@ -581,7 +581,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531407")]
+        [WorkItem(531407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531407")]
         public void FixedBufferPointer()
         {
             var text =
@@ -627,7 +627,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587119")]
+        [WorkItem(587119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587119")]
         public void FixedSizeBufferInFixedSizeBufferSize_Class()
         {
             var source = @"
@@ -650,7 +650,7 @@ unsafe class C
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587119")]
+        [WorkItem(587119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587119")]
         public void FixedSizeBufferInFixedSizeBufferSize_Struct()
         {
             var source = @"
@@ -676,7 +676,7 @@ unsafe struct S
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586977")]
+        [WorkItem(586977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586977")]
         public void FixedSizeBufferInFixedSizeBufferSize_Cycle()
         {
             var source = @"
@@ -703,7 +703,7 @@ unsafe struct S
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587000")]
+        [WorkItem(587000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587000")]
         public void SingleDimensionFixedBuffersOnly()
         {
             var source = @"
@@ -717,7 +717,7 @@ unsafe struct S
                 Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[3, 4]"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
+        [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
         public void UIntFixedBuffer()
         {
             var text =
@@ -773,7 +773,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
+        [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
         public void ReadonlyFixedBuffer()
         {
             var text =
@@ -802,7 +802,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
+        [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
         public void StaticFixedBuffer()
         {
             var text =
@@ -831,7 +831,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
+        [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
         public void ConstFixedBuffer_01()
         {
             var text =
@@ -887,7 +887,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
+        [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
         public void ConstFixedBuffer_02()
         {
             var text =
@@ -928,7 +928,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
+        [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
         public void VolatileFixedBuffer()
         {
             var text =
@@ -957,7 +957,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3392")]
+        [Fact, WorkItem(3392, "https://github.com/dotnet/roslyn/issues/3392")]
         public void StructLayout_01()
         {
             foreach (var layout in new[] { LayoutKind.Auto, LayoutKind.Explicit, LayoutKind.Sequential })
@@ -991,7 +991,7 @@ public unsafe struct Test
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3392")]
+        [Fact, WorkItem(3392, "https://github.com/dotnet/roslyn/issues/3392")]
         public void StructLayout_02()
         {
             foreach (var layout in new[] { LayoutKind.Auto, LayoutKind.Explicit, LayoutKind.Sequential })
@@ -1022,7 +1022,7 @@ public unsafe struct Test
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26688")]
+        [Fact, WorkItem(26688, "https://github.com/dotnet/roslyn/issues/26688")]
         public void FixedFieldDoesNotRequirePinningWithThis()
         {
             CompileAndVerify(@"
@@ -1054,7 +1054,7 @@ class Program
 2");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26743")]
+        [Fact, WorkItem(26743, "https://github.com/dotnet/roslyn/issues/26743")]
         public void FixedFieldDoesNotAllowAddressOfOperator()
         {
             CreateCompilation(@"
@@ -1141,7 +1141,7 @@ unsafe class C
         }
 
         [Fact]
-        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1141012")]
+        [WorkItem(1141012, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1141012")]
         public void FixedSizeBufferRetargeting()
         {
             var source = @"

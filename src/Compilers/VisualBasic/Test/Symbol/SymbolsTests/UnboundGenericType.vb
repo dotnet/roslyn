@@ -243,7 +243,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/3898")>
+        <WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")>
         Public Sub UnboundGenericType_IsSerializable()
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -288,7 +288,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/41779")>
+        <WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")>
         Public Sub UnboundGenericType_Bug41779_Original()
 
             Dim compilation = CompilationUtils.CreateCompilation(
@@ -333,7 +333,7 @@ BC30182: Type expected.
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/41779")>
+        <WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")>
         Public Sub UnboundGenericType_Bug41779_DoubleArgs()
 
             Dim compilation = CompilationUtils.CreateCompilation(
@@ -387,7 +387,7 @@ BC30182: Type expected.
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/41779")>
+        <WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")>
         Public Sub UnboundGenericType_Bug41779_Instance()
 
             Dim compilation = CompilationUtils.CreateCompilation(
@@ -460,7 +460,7 @@ BC30182: Type expected.
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/41779")>
+        <WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")>
         Public Sub UnboundGenericType_Bug41779_Extension()
 
             Dim compilation = CompilationUtils.CreateCompilation(
@@ -540,7 +540,7 @@ BC30182: Type expected.
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/41779")>
+        <WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")>
         Public Sub UnboundGenericType_Bug41779_Function()
 
             Dim compilation = CompilationUtils.CreateCompilation(

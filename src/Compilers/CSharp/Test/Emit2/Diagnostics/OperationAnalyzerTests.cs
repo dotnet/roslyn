@@ -1300,7 +1300,7 @@ class C
         }
 
         [ConditionalFact(typeof(NoIOperationValidation))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/9025")]
+        [WorkItem(9025, "https://github.com/dotnet/roslyn/issues/9025")]
         public void LongArithmeticExpressionCSharp()
         {
             Func<int, string> buildSequenceOfBinaryExpressions =
@@ -1341,7 +1341,7 @@ class Test
                 Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentSyntaxDescriptor.Id, $"x = {expr}").WithLocation(7, 9));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/9020")]
+        [WorkItem(9020, "https://github.com/dotnet/roslyn/issues/9020")]
         [Fact]
         public void AddressOfExpressionCSharp()
         {
@@ -1439,7 +1439,7 @@ class C
                 Diagnostic(LambdaTestAnalyzer.TooManyStatementsInLambdaExpressionDescriptor.Id, "(s, e) => { int i = 0; i++; i++; i++; }").WithLocation(23, 19));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/8385")]
+        [WorkItem(8385, "https://github.com/dotnet/roslyn/issues/8385")]
         [Fact]
         public void StaticMemberReferenceCSharp()
         {
@@ -1614,7 +1614,7 @@ class C
              .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new OperatorPropertyPullerTestAnalyzer() }, null, null);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8520")]
+        [Fact, WorkItem(8520, "https://github.com/dotnet/roslyn/issues/8520")]
         public void NullOperationSyntaxCSharp()
         {
             const string source = @"
@@ -1643,7 +1643,7 @@ class C
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0(1, 2)").WithLocation(12, 9));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/9113")]
+        [WorkItem(9113, "https://github.com/dotnet/roslyn/issues/9113")]
         [Fact]
         public void ConversionExpressionCSharp()
         {
@@ -1678,7 +1678,7 @@ class X
                 Diagnostic(ConversionExpressionCSharpTestAnalyzer.InvalidConversionExpressionDescriptor.Id, "global::MyType()").WithLocation(12, 17));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/8114")]
+        [WorkItem(8114, "https://github.com/dotnet/roslyn/issues/8114")]
         [Fact]
         public void InvalidOperatorCSharp()
         {
@@ -1712,7 +1712,7 @@ public class A
                 Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidIncrementDescriptor.Id, "f++").WithLocation(16, 9));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9114")]
+        [Fact, WorkItem(9114, "https://github.com/dotnet/roslyn/issues/9114")]
         public void InvalidArgumentCSharp()
         {
             const string source = @"
@@ -1798,7 +1798,7 @@ class C
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1").WithLocation(32, 9));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9116")]
+        [Fact, WorkItem(9116, "https://github.com/dotnet/roslyn/issues/9116")]
         public void LiteralCSharp()
         {
             const string source = @"

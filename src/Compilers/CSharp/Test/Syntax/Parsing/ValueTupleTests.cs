@@ -701,7 +701,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13667")]
+        [Fact, WorkItem(13667, "https://github.com/dotnet/roslyn/issues/13667")]
         public void MissingShortTupleErrorWhenWarningPresent()
         {
             // Diff errors
@@ -725,7 +725,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 22));
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/0bdbc590-a062-4c3f-b0f6-9383f67865ee/_workitems?id=377111")]
+        [Fact, WorkItem(377111, "https://devdiv.visualstudio.com/0bdbc590-a062-4c3f-b0f6-9383f67865ee/_workitems?id=377111")]
         public void TernaryVersusDeclaration_01()
         {
             UsingStatement("return (i, isValid ? Errors.IsValid : Errors.HasErrors);");
@@ -786,7 +786,7 @@ class Program
             EOF();
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/0bdbc590-a062-4c3f-b0f6-9383f67865ee/_workitems?id=377111")]
+        [Fact, WorkItem(377111, "https://devdiv.visualstudio.com/0bdbc590-a062-4c3f-b0f6-9383f67865ee/_workitems?id=377111")]
         public void TernaryVersusDeclaration_02()
         {
             UsingStatement("return (isValid ? Errors.IsValid : Errors.HasErrors, i);");
@@ -847,7 +847,7 @@ class Program
             EOF();
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/0bdbc590-a062-4c3f-b0f6-9383f67865ee/_workitems?id=377111")]
+        [Fact, WorkItem(377111, "https://devdiv.visualstudio.com/0bdbc590-a062-4c3f-b0f6-9383f67865ee/_workitems?id=377111")]
         public void TernaryVersusDeclaration_03()
         {
             UsingStatement("return (i, a < b, c > d);");
@@ -900,7 +900,7 @@ class Program
             EOF();
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/0bdbc590-a062-4c3f-b0f6-9383f67865ee/_workitems?id=377111")]
+        [Fact, WorkItem(377111, "https://devdiv.visualstudio.com/0bdbc590-a062-4c3f-b0f6-9383f67865ee/_workitems?id=377111")]
         public void TernaryVersusDeclaration_04()
         {
             UsingStatement("return (i, a < b, c > d.x);");
@@ -964,7 +964,7 @@ class Program
             EOF();
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/0bdbc590-a062-4c3f-b0f6-9383f67865ee/_workitems?id=377111")]
+        [Fact, WorkItem(377111, "https://devdiv.visualstudio.com/0bdbc590-a062-4c3f-b0f6-9383f67865ee/_workitems?id=377111")]
         public void TernaryVersusDeclaration_05()
         {
             UsingStatement("return (i, a < b, c > d && x);");

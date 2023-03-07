@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class IOperationTests_ISymbolInitializer : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void NoInitializers()
         {
             var source = @"
@@ -41,7 +41,7 @@ class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void ConstantInitializers_StaticField()
         {
             string source = @"
@@ -64,7 +64,7 @@ IFieldInitializerOperation (Field: System.Int32 C.s1) (OperationKind.FieldInitia
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void ConstantInitializers_InstanceField()
         {
             string source = @"
@@ -90,7 +90,7 @@ IFieldInitializerOperation (Field: System.Int32 C.i2) (OperationKind.FieldInitia
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void ConstantInitializers_Property()
         {
             string source = @"
@@ -109,7 +109,7 @@ IPropertyInitializerOperation (Property: System.Int32 C.P1 { get; }) (OperationK
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void ConstantInitializers_DefaultValueParameter()
         {
             string source = @"
@@ -132,7 +132,7 @@ IParameterInitializerOperation (Parameter: [System.Int32 p1 = 0]) (OperationKind
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void ConstantInitializers_DefaultValueParamsArray()
         {
             string source = @"
@@ -158,7 +158,7 @@ IParameterInitializerOperation (Parameter: params System.Int32[] p2) (OperationK
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void ExpressionInitializers_StaticField()
         {
             string source = @"
@@ -186,7 +186,7 @@ IFieldInitializerOperation (Field: System.Int32 C.s1) (OperationKind.FieldInitia
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void ExpressionInitializers_InstanceField()
         {
             string source = @"
@@ -216,7 +216,7 @@ IFieldInitializerOperation (Field: System.Int32 C.s1) (OperationKind.FieldInitia
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void ExpressionInitializers_Property()
         {
             string source = @"
@@ -244,7 +244,7 @@ IFieldInitializerOperation (Field: System.Int32 C.i1) (OperationKind.FieldInitia
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void PartialClasses_StaticField()
         {
             string source = @"
@@ -283,7 +283,7 @@ IFieldInitializerOperation (Field: System.Int32 C.s1) (OperationKind.FieldInitia
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void PartialClasses_InstanceField()
         {
             string source = @"
@@ -322,7 +322,7 @@ IFieldInitializerOperation (Field: System.Int32 C.i2) (OperationKind.FieldInitia
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void Events_StaticField()
         {
             string source = @"
@@ -350,7 +350,7 @@ IFieldInitializerOperation (Field: System.Action C.e) (OperationKind.FieldInitia
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void Events_InstanceField()
         {
             string source = @"
@@ -378,7 +378,7 @@ IFieldInitializerOperation (Field: System.Action C.f) (OperationKind.FieldInitia
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7299")]
+        [Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")]
         public void FieldInitializer_ConstantConversions_01()
         {
             string source = @"
@@ -407,7 +407,7 @@ IFieldInitializerOperation (Field: System.Single C.f) (OperationKind.FieldInitia
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7299")]
+        [Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")]
         public void FieldInitializer_ConstantConversions_02()
         {
             string source = @"

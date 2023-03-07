@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         /// potential load conflicts for dependencies when loading custom versions of our task.
         /// </summary>
         [Fact]
-        [WorkItem("https://github.com/Microsoft/msbuild/issues/1183")]
+        [WorkItem(1183, "https://github.com/Microsoft/msbuild/issues/1183")]
         public void EnsureDependencies()
         {
             var assembly = typeof(ManagedCompiler).Assembly;

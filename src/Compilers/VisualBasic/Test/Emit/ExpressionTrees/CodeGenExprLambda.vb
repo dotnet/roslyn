@@ -1993,7 +1993,7 @@ Public Enum E_Long As Long : Dummy : End Enum
 #Region "Lambdas"
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530883")>
+        <WorkItem(530883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530883")>
         Public Sub ExpressionTreeParameterWithLambdaArgumentAndTypeInference()
             Dim source = <compilation>
                              <file name="expr.vb"><![CDATA[
@@ -2016,7 +2016,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577271")>
+        <WorkItem(577271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577271")>
         Public Sub Bug577271()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict On 
@@ -2042,7 +2042,7 @@ BC36675: Statement lambdas cannot be converted to expression trees.
 </errors>, addXmlReferences:=True)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577272")>
+        <WorkItem(577272, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577272")>
         <Fact>
         Public Sub Bug577272()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -3435,7 +3435,7 @@ End Module
             TestExpressionTrees(file, ExpTreeTestResources.XmlLiteralsInExprLambda03_Result, addXmlReferences:=True)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545738")>
+        <WorkItem(545738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545738")>
         <Fact>
         Public Sub Bug_14377b()
             ' Expression Trees: Xml literals NYI
@@ -4958,7 +4958,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         <Fact>
         Public Sub ExprTree_LegacyTests06_IL()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -6473,7 +6473,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         <Fact>
         Public Sub ExprTreeIL()
             CompileAndVerify(
@@ -6685,7 +6685,7 @@ Lambda(
 )]]>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         <Fact>
         Public Sub LocalVariableAccessIL()
             Dim c = CompileAndVerify(
@@ -7032,7 +7032,7 @@ End Module]]></file>
                  expectedOutput:=<![CDATA[f1 f1 g1]]>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545757")>
+        <WorkItem(545757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545757")>
         <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug_14402()
             Dim source = <compilation>
@@ -7059,7 +7059,7 @@ End Module
                  expectedOutput:="() => (value(Form1+_Closure$__0-0).$VB$Local_s1_a ?? Convert(value(Form1+_Closure$__0-0).$VB$Local_s1_b))").VerifyDiagnostics()
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531513")>
+        <WorkItem(531513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531513")>
         <Fact>
         Public Sub Bug_18234()
             Dim file = <file name="a.vb"><![CDATA[
@@ -7155,7 +7155,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545738")>
+        <WorkItem(545738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545738")>
         <Fact>
         Public Sub Bug_14377a()
             Dim source = <compilation>
@@ -7177,7 +7177,7 @@ End Module
                  expectedOutput:="10").VerifyDiagnostics()
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547151")>
+        <WorkItem(547151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547151")>
         <Fact>
         Public Sub Bug_18156()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -7226,7 +7226,7 @@ End Module
             VerifyExpressionTreesDiagnostics(file, <errors></errors>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957927")>
+        <WorkItem(957927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957927")>
         <Fact>
         Public Sub Bug957927()
             Dim source = <compilation>
@@ -7256,7 +7256,7 @@ end class
                  expectedOutput:="m => m").VerifyDiagnostics()
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/3906")>
+        <WorkItem(3906, "https://github.com/dotnet/roslyn/issues/3906")>
         <Fact>
         Public Sub GenericField01()
             Dim source = <compilation>
@@ -7648,7 +7648,7 @@ BC36603: Multi-dimensional array cannot be converted to an expression tree.
 </errors>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531526")>
+        <WorkItem(531526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531526")>
         <Fact>
         Public Sub ByRefParamsInExpressionLambdas_BC36538()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -7778,7 +7778,7 @@ BC36675: Statement lambdas cannot be converted to expression trees.
 </errors>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545804")>
+        <WorkItem(545804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545804")>
         <Fact>
         Public Sub Bug_14469()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -7812,7 +7812,7 @@ BC36675: Statement lambdas cannot be converted to expression trees.
 </errors>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531420")>
+        <WorkItem(531420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531420")>
         <Fact>
         Public Sub ExprTreeLiftedUserDefinedOperatorsWithNullableResult_Binary_BC36534()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -7855,7 +7855,7 @@ BC36534: Expression cannot be converted into an expression tree.
 </errors>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531423")>
+        <WorkItem(531423, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531423")>
         <Fact>
         Public Sub ExprTreeUserDefinedAndAlsoOrElseWithNullableResult_BC36534()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -7901,7 +7901,7 @@ BC36534: Expression cannot be converted into an expression tree.
 </errors>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531424")>
+        <WorkItem(531424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531424")>
         <Fact>
         Public Sub ExprTreeUserDefinedUnaryWithNullableResult_BC36534()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -7980,7 +7980,7 @@ BC36604: Late binding operations cannot be converted to an expression tree.
 </errors>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
+        <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact>
         Public Sub MissingMember_System_Type__GetTypeFromHandle()
             Dim compilation = CreateEmptyCompilation(
@@ -8042,7 +8042,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </errors>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
+        <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact>
         Public Sub MissingMember_System_Reflection_FieldInfo__GetFieldFromHandle()
             Dim compilation = CreateEmptyCompilation(
@@ -8119,7 +8119,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </errors>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
+        <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact>
         Public Sub MissingMember_System_Reflection_MethodBase__GetMethodFromHandle()
             Dim compilation = CreateEmptyCompilation(
@@ -8233,7 +8233,7 @@ BC35000: Requested operation is not available because the runtime library functi
 
 #End Region
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808608")>
+        <WorkItem(808608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808608")>
         <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug808608_01()
 
@@ -8299,7 +8299,7 @@ End Module
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808608")>
+        <WorkItem(808608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808608")>
         <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug808608_02()
 
@@ -8359,7 +8359,7 @@ End Module
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808651")>
+        <WorkItem(808651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808651")>
         <Fact>
         Public Sub Bug808651()
 
@@ -8391,7 +8391,7 @@ End Module
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/1190")>
+        <WorkItem(1190, "https://github.com/dotnet/roslyn/issues/1190")>
         <Fact>
         Public Sub CollectionInitializers()
 
@@ -8446,7 +8446,7 @@ e2 => () => new MyStack`1() {Void Add(Int32)(42)}
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/4524")>
+        <WorkItem(4524, "https://github.com/dotnet/roslyn/issues/4524")>
         <Fact>
         Public Sub PropertyAssignment()
 
@@ -8512,7 +8512,7 @@ aa
 
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/4524")>
+        <WorkItem(4524, "https://github.com/dotnet/roslyn/issues/4524")>
         <Fact>
         Public Sub PropertyAssignmentParameterized()
 
@@ -8588,7 +8588,7 @@ aa23
 
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/4524")>
+        <WorkItem(4524, "https://github.com/dotnet/roslyn/issues/4524")>
         <Fact>
         Public Sub PropertyAssignmentCompound()
 
@@ -8652,7 +8652,7 @@ End Module
 
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/6416")>
+        <WorkItem(6416, "https://github.com/dotnet/roslyn/issues/6416")>
         <Fact>
         Public Sub CapturedMe001()
 

@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub SimpleArrayCreation_PrimitiveType()
             Dim source = <![CDATA[
 Class C
@@ -39,7 +39,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String()) (Sy
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub SimpleArrayCreation_UserDefinedType()
             Dim source = <![CDATA[
 Class M
@@ -66,7 +66,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub SimpleArrayCreation_ConstantDimension()
             Dim source = <![CDATA[
 Class M
@@ -98,7 +98,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub SimpleArrayCreation_NonConstantDimension()
             Dim source = <![CDATA[
 Class M
@@ -129,7 +129,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub SimpleArrayCreation_DimensionWithImplicitConversion()
             Dim source = <![CDATA[
 Imports System
@@ -165,7 +165,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub SimpleArrayCreation_DimensionWithExplicitConversion()
             Dim source = <![CDATA[
 Class M
@@ -199,7 +199,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationWithInitializer_PrimitiveType()
             Dim source = <![CDATA[
 Class C
@@ -226,7 +226,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String()) (Sy
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationWithInitializer_WithExplicitDimension()
             Dim source = <![CDATA[
 Class C
@@ -261,7 +261,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: C()) (Syntax: 'New C
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationWithInitializerErrorCase_WithIncorrectExplicitDimension()
             Dim source = <![CDATA[
 Class C
@@ -296,7 +296,7 @@ BC30567: Array initializer is missing 2 elements.
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationWithInitializerErrorCase_WithNonConstantExpressionExplicitDimension()
             Dim source = <![CDATA[
 Class C
@@ -334,7 +334,7 @@ BC30949: Array initializer cannot be specified for a non constant dimension; use
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationWithInitializer_UserDefinedType()
             Dim source = <![CDATA[
 Class M
@@ -365,7 +365,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationWithInitializer_ImplicitlyTyped_01()
             Dim source = <![CDATA[
 Class M
@@ -395,7 +395,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: '{New 
             VerifyOperationTreeAndDiagnosticsForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationWithInitializer_ImplicitlyTyped_02()
             Dim source = <![CDATA[
 Class C
@@ -424,7 +424,7 @@ BC30451: 'M' is not declared. It may be inaccessible due to its protection level
             VerifyOperationTreeAndDiagnosticsForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationWithInitializer_ImplicitlyTypedWithoutInitializerAndDimension()
             Dim source = <![CDATA[
 Class C
@@ -455,7 +455,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationWithInitializer_MultipleInitializersWithConversions()
             Dim source = <![CDATA[
 Class C
@@ -486,7 +486,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String()) (Sy
             VerifyOperationTreeAndDiagnosticsForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub MultiDimensionalArrayCreation()
             Dim source = <![CDATA[
 Class C
@@ -525,7 +525,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Byte(,,)) (Sy
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub MultiDimensionalArrayCreation_WithInitializer()
             Dim source = <![CDATA[
 Class C
@@ -583,7 +583,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Byte(,,)) (Sy
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationOfSingleDimensionalArrays()
             Dim source = <![CDATA[
 Class C
@@ -619,7 +619,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Sy
             VerifyOperationTreeAndDiagnosticsForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationOfMultiDimensionalArrays()
             Dim source = <![CDATA[
 Class C
@@ -647,7 +647,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()(,)) (
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationOfMultiDimensionalArrays_MultipleExplicitNonConstantDimensions()
             Dim source = <![CDATA[
 Class C
@@ -687,7 +687,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Sy
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationOfMultiDimensionalArrays_MultipleExplicitConstantDimensions()
             Dim source = <![CDATA[
 Class C
@@ -719,7 +719,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Sy
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationOfMultiDimensionalArraysErrorCase_InitializerMissingElements()
             Dim source = <![CDATA[
 Class C
@@ -760,7 +760,7 @@ BC30567: Array initializer is missing 2 elements.
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationOfMultiDimensionalArraysErrorCase_InitializerMissingElements02()
             Dim source = <![CDATA[
 Class C
@@ -803,7 +803,7 @@ BC30567: Array initializer is missing 2 elements.
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationOfMultiDimensionalArraysErrorCase_InitializerMissingElements03()
             Dim source = <![CDATA[
 Class C
@@ -843,7 +843,7 @@ BC30567: Array initializer is missing 1 elements.
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationOfMultiDimensionalArraysErrorCase_InitializerMissingElements04()
             Dim source = <![CDATA[
 Class C
@@ -885,7 +885,7 @@ BC30567: Array initializer is missing 2 elements.
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationOfMultiDimensionalArrays_InitializerWithNestedArrayInitializers()
             Dim source = <![CDATA[
 Class C
@@ -925,7 +925,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Sy
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationOfImplicitlyTypedMultiDimensionalArrays_WithInitializer()
             Dim source = <![CDATA[
 Class C
@@ -968,7 +968,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,,,)) (
             VerifyOperationTreeAndDiagnosticsForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationErrorCase_MissingDimension()
             Dim source = <![CDATA[
 Class C
@@ -1005,7 +1005,7 @@ BC30306: Array subscript expression missing.
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationErrorCase_InvalidInitializer()
             Dim source = <![CDATA[
 Class C
@@ -1036,7 +1036,7 @@ BC30311: Value of type 'Integer' cannot be converted to 'C'.
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationErrorCase_MissingExplicitCast()
             Dim source = <![CDATA[
 Class C
@@ -1070,7 +1070,7 @@ BC30311: Value of type 'C' cannot be converted to 'Integer'.
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreation_InvocationExpressionAsDimension()
             Dim source = <![CDATA[
 Class C
@@ -1104,7 +1104,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: C()) (Syntax: 'New C
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreation_InvocationExpressionWithConversionAsDimension()
             Dim source = <![CDATA[
 Option Strict On
@@ -1142,7 +1142,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: C()) (Syntax: 'New C
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationErrorCase_InvocationExpressionAsDimension()
             Dim source = <![CDATA[
 Option Strict On
@@ -1184,7 +1184,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Integ
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreationErrorCase_InvocationExpressionWithConversionAsDimension()
             Dim source = <![CDATA[
 Option Strict On
@@ -1226,7 +1226,7 @@ BC30311: Value of type 'C' cannot be converted to 'Integer'.
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub ArrayCreation_DeclarationWithExplicitDimension()
             Dim source = <![CDATA[
 Class C
@@ -1260,7 +1260,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7299")>
+        <Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")>
         Public Sub SimpleArrayCreation_ConstantConversion()
             Dim source = <![CDATA[
 Option Strict On

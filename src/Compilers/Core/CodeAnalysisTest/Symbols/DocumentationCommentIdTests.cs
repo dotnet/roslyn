@@ -119,7 +119,7 @@ class C
             Assert.Equal(new[] { symbol }, foundSymbols);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65396")]
+        [Fact, WorkItem(65396, "https://github.com/dotnet/roslyn/issues/65396")]
         public void InvalidTypeParameterIndex_CSharp()
         {
             var comp = CreateCSharpCompilation("""
@@ -135,7 +135,7 @@ class C
             Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(``1[])", comp));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65396")]
+        [Fact, WorkItem(65396, "https://github.com/dotnet/roslyn/issues/65396")]
         public void InvalidTypeParameterIndex_VisualBasic()
         {
             var comp = CreateVisualBasicCompilation("""

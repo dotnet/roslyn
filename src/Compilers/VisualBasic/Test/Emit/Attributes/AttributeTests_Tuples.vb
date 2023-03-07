@@ -682,7 +682,7 @@ BC37269: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttr
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/14844")>
+        <WorkItem(14844, "https://github.com/dotnet/roslyn/issues/14844")>
         Public Sub AttributesOnTypeConstraints()
             Dim src = <compilation>
                           <file src="a.vb">
@@ -789,7 +789,7 @@ End Interface
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/14844")>
+        <WorkItem(14844, "https://github.com/dotnet/roslyn/issues/14844")>
         Public Sub AttributesOnInterfaceImplementations()
             Dim src = <compilation>
                           <file name="a.vb">

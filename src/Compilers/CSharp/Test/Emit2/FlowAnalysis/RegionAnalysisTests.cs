@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region "Expressions"
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545047")]
+        [WorkItem(545047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545047")]
         [Fact]
         public void DataFlowsInAndNullable_Field()
         {
@@ -145,7 +145,7 @@ struct S
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538238")]
+        [WorkItem(538238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538238")]
         [Fact]
         public void TestDataFlowsIn03()
         {
@@ -240,7 +240,7 @@ enum E1
             Assert.Null(GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538997")]
+        [WorkItem(538997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538997")]
         [Fact]
         public void TestDataFlowsIn04()
         {
@@ -281,7 +281,7 @@ class C {
             Assert.Equal("this, x, a, y", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540171")]
+        [WorkItem(540171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540171")]
         [Fact]
         public void TestIncrement()
         {
@@ -306,7 +306,7 @@ class C
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543695")]
+        [WorkItem(543695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543695")]
         [Fact]
         public void FlowAnalysisOnTypeOrNamespace1()
         {
@@ -322,7 +322,7 @@ class C
             Assert.False(results.Succeeded);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543695")]
+        [WorkItem(543695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543695")]
         [Fact]
         public void FlowAnalysisOnTypeOrNamespace3()
         {
@@ -346,7 +346,7 @@ class C
             Assert.False(results.Succeeded);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543695")]
+        [WorkItem(543695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543695")]
         [Fact]
         public void FlowAnalysisOnTypeOrNamespace4()
         {
@@ -370,7 +370,7 @@ class C
             Assert.False(results.Succeeded);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540183")]
+        [WorkItem(540183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540183")]
         [Fact]
         public void DataFlowsOutIncrement01()
         {
@@ -440,7 +440,7 @@ x
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540832")]
+        [WorkItem(540832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540832")]
         [Fact]
         public void TestAssignmentExpressionAsBranchOfTernaryOperator()
         {
@@ -1048,7 +1048,7 @@ x
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540066")]
+        [WorkItem(540066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540066")]
         [Fact]
         public void AnalysisOfBadRef()
         {
@@ -1082,7 +1082,7 @@ class C {
             Assert.Equal("args, a", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528662")]
+        [WorkItem(528662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528662")]
         [Fact]
         public void TestNullCoalescingWithConstNullLeft()
         {
@@ -1105,7 +1105,7 @@ struct STest {
             Assert.Equal("s, ss", GetSymbolNamesJoined(dataFlows.DefinitelyAssignedOnExit));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528662")]
+        [WorkItem(528662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528662")]
         [Fact]
         public void TestNullCoalescingWithConstNotNullLeft()
         {
@@ -1314,7 +1314,7 @@ y
             Assert.Equal("z, y, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")]
+        [WorkItem(539286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")]
         [Fact]
         public void TestAnalysisInFieldInitializers()
         {
@@ -1376,7 +1376,7 @@ class C {
                 string.Join(", ", new string[] { "f" }.Concat((results2.WrittenOutside).Select(symbol => symbol.Name)).OrderBy(name => name)));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")]
+        [WorkItem(539286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")]
         [Fact]
         public void TestAnalysisInSimpleFieldInitializers()
         {
@@ -1425,7 +1425,7 @@ class C {
                 GetSymbolNamesJoined(results2.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541968")]
+        [WorkItem(541968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541968")]
         [Fact]
         public void ConstantFieldInitializerExpression()
         {
@@ -1442,7 +1442,7 @@ public class Aa
             Assert.Null(GetSymbolNamesJoined(dataFlows.DefinitelyAssignedOnExit));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541968")]
+        [WorkItem(541968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541968")]
         [Fact]
         public void ConstantFieldInitializerExpression2()
         {
@@ -1461,7 +1461,7 @@ public class Aa
             Assert.Equal("System.Int32 y", dataFlows.ReadInside.Single().ToTestDisplayString());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541968")]
+        [WorkItem(541968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541968")]
         [Fact]
         public void FieldInitializerExpression()
         {
@@ -1479,7 +1479,7 @@ public class Aa
             Assert.Equal("System.Int32 y", dataFlows.ReadInside.Single().ToTestDisplayString());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542454")]
+        [WorkItem(542454, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542454")]
         [Fact]
         public void IdentifierNameInObjectCreationExpr()
         {
@@ -1498,7 +1498,7 @@ class myClass
             Assert.Null(GetSymbolNamesJoined(dataFlows.DefinitelyAssignedOnExit));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542463")]
+        [WorkItem(542463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542463")]
         [Fact]
         public void MethodGroupInDelegateCreation()
         {
@@ -1515,7 +1515,7 @@ class C
             Assert.Equal("this", dataFlows.ReadInside.Single().Name);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542771")]
+        [WorkItem(542771, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542771")]
         [Fact]
         public void BindInCaseLabel()
         {
@@ -1538,7 +1538,7 @@ enum color { blue, green }");
             Assert.Empty(dataFlows.VariablesDeclared);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542915")]
+        [WorkItem(542915, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542915")]
         [Fact]
         public void BindLiteralExprInEnumDecl()
         {
@@ -1552,7 +1552,7 @@ enum Number
             Assert.Empty(dataFlows.VariablesDeclared);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542944")]
+        [WorkItem(542944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542944")]
         [Fact]
         public void AssignToConst()
         {
@@ -1571,7 +1571,7 @@ class Program
             Assert.Equal("args, a", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543987")]
+        [WorkItem(543987, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543987")]
         [Fact]
         public void TestAddressOfUnassignedStructLocal()
         {
@@ -1605,7 +1605,7 @@ class Program
             Assert.Equal("px", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543987")]
+        [WorkItem(543987, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543987")]
         [Fact]
         public void TestAddressOfAssignedStructLocal()
         {
@@ -1639,7 +1639,7 @@ class Program
             Assert.Equal("x, px", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543987")]
+        [WorkItem(543987, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543987")]
         [Fact]
         public void TestAddressOfUnassignedStructField()
         {
@@ -1679,7 +1679,7 @@ class Program
             Assert.Equal("px", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543987")]
+        [WorkItem(543987, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543987")]
         [Fact]
         public void TestAddressOfAssignedStructField()
         {
@@ -1800,7 +1800,7 @@ class Program
             Assert.Equal("x", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544314")]
+        [Fact, WorkItem(544314, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544314")]
         public void TestOmittedLambdaPointerTypeParameter()
         {
             var analysis = CompileAndAnalyzeDataFlowExpression(@"
@@ -2318,7 +2318,7 @@ public class Test
             Assert.Null(GetSymbolNamesJoined(dataFlows.WrittenOutside));
         }
 
-        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529329")]
+        [Fact(), WorkItem(529329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529329")]
         public void QueryAsFieldInitializer()
         {
             var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
@@ -2351,7 +2351,7 @@ class Test
             Assert.Null(GetSymbolNamesJoined(dataFlows.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544361")]
+        [WorkItem(544361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544361")]
         [Fact]
         public void FullQueryExpression()
         {
@@ -2372,7 +2372,7 @@ class Program
             Assert.Equal("args", GetSymbolNamesJoined(dataFlows.DefinitelyAssignedOnExit));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/669341")]
+        [WorkItem(669341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/669341")]
         [Fact]
         public void ReceiverRead()
         {
@@ -2406,7 +2406,7 @@ class Test
             Assert.Equal("x", GetSymbolNamesJoined(dataFlows.DefinitelyAssignedOnExit));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/669341")]
+        [WorkItem(669341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/669341")]
         [Fact]
         public void ReceiverWritten()
         {
@@ -2440,7 +2440,7 @@ class Test
             Assert.Equal("x", GetSymbolNamesJoined(dataFlows.DefinitelyAssignedOnExit));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/669341")]
+        [WorkItem(669341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/669341")]
         [Fact]
         public void ReceiverReadAndWritten()
         {
@@ -2918,7 +2918,7 @@ class C {
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542231")]
+        [WorkItem(542231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542231")]
         [Fact]
         public void TestUnreachableRegion()
         {
@@ -2939,7 +2939,7 @@ class C {
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542231")]
+        [WorkItem(542231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542231")]
         [Fact]
         public void TestUnreachableRegion2()
         {
@@ -2972,7 +2972,7 @@ l2:
             Assert.Equal("i, k", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542231")]
+        [WorkItem(542231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542231")]
         [Fact]
         public void TestUnreachableRegionInExpression()
         {
@@ -3084,7 +3084,7 @@ class C {
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542435")]
+        [WorkItem(542435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542435")]
         [Fact]
         public void NullArgsToAnalyzeControlFlowStatements()
         {
@@ -3108,7 +3108,7 @@ class C
             Assert.Throws<ArgumentNullException>(() => semanticModel.AnalyzeDataFlow((StatementSyntax)null));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542507")]
+        [WorkItem(542507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542507")]
         [Fact]
         public void DateFlowAnalyzeForLocalWithInvalidRHS()
         {
@@ -3295,7 +3295,7 @@ class C {
             Assert.Equal("y", GetSymbolNamesJoined(analysis.AlwaysAssigned));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538170")]
+        [WorkItem(538170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538170")]
         [Fact]
         public void TestVariablesDeclared02()
         {
@@ -3315,7 +3315,7 @@ class C {
             Assert.Equal("a, b, x, y, z, c", GetSymbolNamesJoined(analysis.VariablesDeclared));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541280")]
+        [WorkItem(541280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541280")]
         [Fact]
         public void TestVariablesDeclared03()
         {
@@ -3336,7 +3336,7 @@ class C {
             Assert.Equal("Int64", longsym.Type.Name);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539229")]
+        [WorkItem(539229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539229")]
         [Fact]
         public void UnassignedVariableFlowsOut01()
         {
@@ -3416,7 +3416,7 @@ class C {
             Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsOut));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538146")]
+        [WorkItem(538146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538146")]
         [Fact]
         public void TestDataFlowsOut02()
         {
@@ -3533,7 +3533,7 @@ class Program
             Assert.Equal("i", GetSymbolNamesJoined(analysis.ReadOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540793")]
+        [WorkItem(540793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540793")]
         [Fact]
         public void TestDataFlowsOut08()
         {
@@ -3629,7 +3629,7 @@ class C {
             Assert.Equal("a", GetSymbolNamesJoined(analysis.AlwaysAssigned));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540795")]
+        [WorkItem(540795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540795")]
         [Fact]
         public void TestAlwaysAssigned03()
         {
@@ -4026,7 +4026,7 @@ class C {
             Assert.Equal("x, y, z", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538979")]
+        [Fact, WorkItem(538979, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538979")]
         public void AssertFromInvalidLocalDeclaration()
         {
             var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
@@ -4045,7 +4045,7 @@ public class MyClass
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538979")]
+        [Fact, WorkItem(538979, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538979")]
         public void AssertFromInvalidKeywordAsExpr()
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
@@ -4070,7 +4070,7 @@ class A {}
             Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539071")]
+        [WorkItem(539071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539071")]
         [Fact]
         public void AssertFromFoldConstantEnumConversion()
         {
@@ -4171,7 +4171,7 @@ class Program
             Assert.Equal("this, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528308")]
+        [WorkItem(528308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528308")]
         [Fact]
         public void RegionForIfElseIfWithoutElse()
         {
@@ -4250,7 +4250,7 @@ public class Test
         //            Assert.Null(GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
         //        }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541331")]
+        [WorkItem(541331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541331")]
         [Fact]
         public void AttributeOnAccessorInvalid()
         {
@@ -4273,7 +4273,7 @@ public class C
             Assert.Equal(1, controlFlowAnalysisResults.ExitPoints.Count());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541585")]
+        [WorkItem(541585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541585")]
         [Fact]
         public void BadAssignThis()
         {
@@ -4307,7 +4307,7 @@ struct S
             Assert.Equal("args", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528623")]
+        [WorkItem(528623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528623")]
         [Fact]
         public void TestElementAccess01()
         {
@@ -4338,7 +4338,7 @@ public class Test
             Assert.Equal("this, p, v", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541947")]
+        [WorkItem(541947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541947")]
         [Fact]
         public void BindPropertyAccessorBody()
         {
@@ -4361,8 +4361,8 @@ public class A
         }
 
         [WorkItem(8926, "DevDiv_Projects/Roslyn")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542346")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528775")]
+        [WorkItem(542346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542346")]
+        [WorkItem(528775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528775")]
         [Fact]
         public void BindEventAccessorBody()
         {
@@ -4386,7 +4386,7 @@ public class A
             Assert.Null(GetSymbolNamesJoined(dataFlows.VariablesDeclared));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541980")]
+        [WorkItem(541980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541980")]
         [Fact]
         public void BindDuplicatedAccessor()
         {
@@ -4409,7 +4409,7 @@ public class A
             Assert.Empty(dataFlows.VariablesDeclared);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543737")]
+        [WorkItem(543737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543737")]
         [Fact]
         public void BlockSyntaxInAttributeDecl()
         {
@@ -4442,7 +4442,7 @@ public class C {
             }
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529273")]
+        [Fact, WorkItem(529273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529273")]
         public void IncrementDecrementOnNullable()
         {
             var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
@@ -4474,7 +4474,7 @@ class C
             Assert.Equal("this, p1, p2, local_0, non_nullable", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17971")]
+        [WorkItem(17971, "https://github.com/dotnet/roslyn/issues/17971")]
         [Fact]
         public void VariablesDeclaredInBrokenForeach()
         {
@@ -4495,7 +4495,7 @@ struct S
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/4950")]
+        [WorkItem(4950, "https://github.com/dotnet/roslyn/issues/4950")]
         public void RegionWithUnsafeBlock()
         {
             var source =
@@ -4549,7 +4549,7 @@ class Program {
         #region "lambda"
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/pull/41600")]
+        [WorkItem(41600, "https://github.com/dotnet/roslyn/pull/41600")]
         public void DataFlowAnalysisLocalFunctions10()
         {
             var dataFlow = CompileAndAnalyzeDataFlowExpression(@"
@@ -4668,7 +4668,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
+        [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
         public void DataFlowAnalysisLocalFunctions9()
         {
             var results = CompileAndAnalyzeControlAndDataFlowStatements(@"
@@ -4715,7 +4715,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
+        [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
         public void ControlFlowAnalysisLocalFunctions01()
         {
             var controlFlow = CompileAndAnalyzeControlFlowStatements(@"
@@ -4742,7 +4742,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
+        [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
         public void ControlFlowAnalysisLocalFunctions02()
         {
             var controlFlow = CompileAndAnalyzeControlFlowStatements(@"
@@ -4768,7 +4768,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
+        [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
         public void ControlFlowAnalysisLocalFunctions03()
         {
             var controlFlow = CompileAndAnalyzeControlFlowStatements(@"
@@ -4794,7 +4794,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
+        [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
         public void ControlFlowAnalysisLocalFunctions04()
         {
             var controlFlow = CompileAndAnalyzeControlFlowStatements(@"
@@ -4820,7 +4820,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
+        [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
         public void ControlFlowAnalysisLocalFunctions05()
         {
             var controlFlow = CompileAndAnalyzeControlFlowStatements(@"
@@ -4846,7 +4846,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
+        [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
         public void ControlFlowAnalysisLocalFunctions06()
         {
             var controlFlow = CompileAndAnalyzeControlFlowStatements(@"
@@ -4961,7 +4961,7 @@ class C {
             Assert.Equal(1, analysis.ExitPoints.Count());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541198")]
+        [WorkItem(541198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541198")]
         [Fact]
         public void TestReturnStatements07()
         {
@@ -5005,7 +5005,7 @@ class C
             Assert.Equal("this", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53591")]
+        [Fact, WorkItem(53591, "https://github.com/dotnet/roslyn/issues/53591")]
         public void TestNameOfInLambda()
         {
             var analysis = CompileAndAnalyzeDataFlowExpression(@"
@@ -5023,7 +5023,7 @@ class C
             Assert.Null(GetSymbolNamesJoined(analysis.CapturedOutside));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53591")]
+        [Fact, WorkItem(53591, "https://github.com/dotnet/roslyn/issues/53591")]
         public void TestNameOfWithAssignmentInLambda()
         {
             var analysis = CompileAndAnalyzeDataFlowExpression(@"
@@ -5041,7 +5041,7 @@ class C
             Assert.Null(GetSymbolNamesJoined(analysis.CapturedOutside));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53591")]
+        [Fact, WorkItem(53591, "https://github.com/dotnet/roslyn/issues/53591")]
         public void TestUnreachableThisInLambda()
         {
             var analysis = CompileAndAnalyzeDataFlowExpression(@"
@@ -5176,7 +5176,7 @@ class Program
             Assert.Equal("args, i", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538984")]
+        [WorkItem(538984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538984")]
         [Fact]
         public void TestReadInside02()
         {
@@ -5224,7 +5224,7 @@ class C
             Assert.Equal("this, x, a, y, lambda", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539648"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529185")]
+        [Fact, WorkItem(539648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539648"), WorkItem(529185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529185")]
         public void ReturnsInsideLambda()
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
@@ -5253,7 +5253,7 @@ class Program
             Assert.Equal("f, arg, s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539861")]
+        [WorkItem(539861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539861")]
         [Fact]
         public void VariableDeclaredLambda01()
         {
@@ -5281,7 +5281,7 @@ class Program
             Assert.Equal("testDel, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539861")]
+        [WorkItem(539861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539861")]
         [Fact]
         public void VariableDeclaredLambda02()
         {
@@ -5317,7 +5317,7 @@ class Program
             Assert.Equal("p", GetSymbolNamesJoined(results1.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540449")]
+        [WorkItem(540449, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540449")]
         [Fact]
         public void AnalysisInsideLambdas()
         {
@@ -5350,7 +5350,7 @@ class C {
             Assert.Equal("f, p, x, y", GetSymbolNamesJoined(results1.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528622")]
+        [WorkItem(528622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528622")]
         [Fact]
         public void AlwaysAssignedParameterLambda()
         {
@@ -5380,7 +5380,7 @@ internal class Test
             Assert.Equal("this, ary", GetSymbolNamesJoined(dataFlows.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541946")]
+        [WorkItem(541946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541946")]
         [Fact]
         public void LambdaInTernaryWithEmptyBody()
         {
@@ -5452,7 +5452,7 @@ class Program
             Assert.Equal("nums, num, f, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543398")]
+        [WorkItem(543398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543398")]
         [Fact]
         public void LambdaBlockSyntax()
         {
@@ -5779,7 +5779,7 @@ class Program
             Assert.Equal("nums, q2, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541916")]
+        [WorkItem(541916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541916")]
         [Fact]
         public void ForEachVariableInQueryExpr()
         {
@@ -5814,7 +5814,7 @@ class Program
             Assert.Equal("nums, num, q, n", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541945")]
+        [WorkItem(541945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541945")]
         [Fact]
         public void ForVariableInQueryExpr()
         {
@@ -5847,7 +5847,7 @@ class Program
             Assert.Equal("nums, num, q, n", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541926")]
+        [WorkItem(541926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541926")]
         [Fact]
         public void Bug8863()
         {
@@ -5913,7 +5913,7 @@ class Program
             Assert.Equal("args, q1, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543546")]
+        [WorkItem(543546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543546")]
         [Fact]
         public void GroupByClause()
         {
@@ -5934,7 +5934,7 @@ public class Test
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/1291")]
+        [WorkItem(1291, "https://github.com/dotnet/roslyn/issues/1291")]
         [Fact]
         public void CaptureInQuery()
         {
@@ -5990,7 +5990,7 @@ public class Test
             Assert.Empty(dataFlows.DataFlowsOut);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541639")]
+        [WorkItem(541639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541639")]
         [Fact]
         public void VariableDeclInsideSwitchCaptureInLambdaExpr()
         {
@@ -6026,7 +6026,7 @@ class C
             Assert.Equal("i, f1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541710")]
+        [WorkItem(541710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541710")]
         [Fact]
         public void ArrayCreationExprInForEachInsideSwitchSection()
         {
@@ -6140,7 +6140,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17281")]
+        [WorkItem(17281, "https://github.com/dotnet/roslyn/issues/17281")]
         public void DiscardVsVariablesDeclared()
         {
             var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
@@ -6235,7 +6235,7 @@ public class MyClass : BaseClass
             Assert.Equal("this, f", GetSymbolNamesJoined(flowAnalysis.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543101")]
+        [WorkItem(543101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543101")]
         [Fact]
         public void AnalysisInsideBaseClause()
         {
@@ -6262,7 +6262,7 @@ class A
             Assert.Equal("this, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543758")]
+        [WorkItem(543758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543758")]
         [Fact]
         public void BlockSyntaxOfALambdaInAttributeArg()
         {
@@ -6278,7 +6278,7 @@ class Test
             Assert.False(controlFlowAnalysisResults.Succeeded);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529196")]
+        [WorkItem(529196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529196")]
         [Fact()]
         public void DefaultValueOfOptionalParam()
         {
@@ -6330,7 +6330,7 @@ class C
             Assert.Null(GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545372")]
+        [WorkItem(545372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545372")]
         [Fact]
         public void AnalysisInSyntaxError01()
         {
@@ -6359,7 +6359,7 @@ class Program
             Assert.Equal("args, f3", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546964")]
+        [WorkItem(546964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546964")]
         [Fact]
         public void AnalysisWithMissingMember()
         {
@@ -6385,7 +6385,7 @@ class Program
             var v = analysis.DataFlowsOut;
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547059")]
+        [Fact, WorkItem(547059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547059")]
         public void ObjectInitIncompleteCodeInQuery()
         {
             var source = @"
@@ -6486,7 +6486,7 @@ public class ExportedSymbol
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14110")]
+        [Fact, WorkItem(14110, "https://github.com/dotnet/roslyn/issues/14110")]
         public void Test14110()
         {
             var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
@@ -6523,7 +6523,7 @@ class Program
             Assert.Equal("a, b, c, d, e, f, g, h, i, j", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15640")]
+        [Fact, WorkItem(15640, "https://github.com/dotnet/roslyn/issues/15640")]
         public void Test15640()
         {
             var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
@@ -7021,7 +7021,7 @@ class C
             Assert.Equal("x, y", GetSymbolNamesJoined(results.AlwaysAssigned));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37421")]
+        [Fact, WorkItem(37421, "https://github.com/dotnet/roslyn/issues/37421")]
         public void LocalFuncCapture8()
         {
             var analysis = CompileAndAnalyzeDataFlowStatements(@"
@@ -7052,7 +7052,7 @@ class C
             Assert.Equal("this, x, a, y", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37421")]
+        [Fact, WorkItem(37421, "https://github.com/dotnet/roslyn/issues/37421")]
         public void LocalFuncCapture9()
         {
             var analysis = CompileAndAnalyzeDataFlowStatements(@"
@@ -7218,7 +7218,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39569")]
+        [WorkItem(39569, "https://github.com/dotnet/roslyn/issues/39569")]
         public void AssignmentInsideLocal05()
         {
             var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
@@ -7399,7 +7399,7 @@ class Program
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25043")]
+        [Fact, WorkItem(25043, "https://github.com/dotnet/roslyn/issues/25043")]
         public void FallThroughInSwitch_01()
         {
             var analysis = CompileAndAnalyzeControlFlowStatements(@"
@@ -7421,7 +7421,7 @@ class C
             Assert.Equal(0, analysis.EntryPoints.Count());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25043")]
+        [Fact, WorkItem(25043, "https://github.com/dotnet/roslyn/issues/25043")]
         public void FallThroughInSwitch_02()
         {
             var analysis = CompileAndAnalyzeControlFlowStatements(@"
@@ -7807,7 +7807,7 @@ struct MyStruct
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/27969")]
+        [WorkItem(27969, "https://github.com/dotnet/roslyn/issues/27969")]
         public void CodeInInitializer01()
         {
             var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
@@ -7836,7 +7836,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/27969")]
+        [WorkItem(27969, "https://github.com/dotnet/roslyn/issues/27969")]
         public void CodeInInitializer02()
         {
             var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
@@ -7865,7 +7865,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/19845")]
+        [WorkItem(19845, "https://github.com/dotnet/roslyn/issues/19845")]
         public void CodeInInitializer03()
         {
             var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
@@ -7890,7 +7890,7 @@ class C {
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/26028")]
+        [WorkItem(26028, "https://github.com/dotnet/roslyn/issues/26028")]
         public void BrokenForeach01()
         {
             var source = @"class C
@@ -7926,7 +7926,7 @@ class C {
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30548")]
+        [WorkItem(30548, "https://github.com/dotnet/roslyn/issues/30548")]
         public void SymbolInDataFlowInButNotInReadInside()
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
@@ -7975,7 +7975,7 @@ namespace ConsoleApp39
             Assert.Equal("this, test, a", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37427")]
+        [Fact, WorkItem(37427, "https://github.com/dotnet/roslyn/issues/37427")]
         public void RegionWithLocalFunctions()
         {
             // local functions inside the region
@@ -8076,7 +8076,7 @@ class Program
             Assert.Equal("px", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/57428")]
+        [WorkItem(57428, "https://github.com/dotnet/roslyn/issues/57428")]
         [Fact]
         public void AttributeArgumentWithLambdaBody_01()
         {
@@ -9157,7 +9157,7 @@ class C {
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/57572")]
+        [WorkItem(57572, "https://github.com/dotnet/roslyn/issues/57572")]
         public void TestDataFlowsArrayInit_04()
         {
             var analysis = CompileAndAnalyzeDataFlowExpression(@"
@@ -9173,7 +9173,7 @@ class C {
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/57572")]
+        [WorkItem(57572, "https://github.com/dotnet/roslyn/issues/57572")]
         public void TestDataFlowsArrayInit_05()
         {
             var analysis = CompileAndAnalyzeDataFlowExpression(@"
@@ -9189,7 +9189,7 @@ class C {
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/57572")]
+        [WorkItem(57572, "https://github.com/dotnet/roslyn/issues/57572")]
         public void TestDataFlowsArrayInit_06()
         {
             var analysis = CompileAndAnalyzeDataFlowExpression(@"
@@ -9220,7 +9220,7 @@ class C {
             Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60134")]
+        [Fact, WorkItem(60134, "https://github.com/dotnet/roslyn/issues/60134")]
         public void TestDataFlowsStackArrayInit_01()
         {
             var analysis = CompileAndAnalyzeDataFlowExpression(@"
@@ -9237,7 +9237,7 @@ class C
             Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60134")]
+        [Fact, WorkItem(60134, "https://github.com/dotnet/roslyn/issues/60134")]
         public void TestDataFlowsStackArrayInit_02()
         {
             var comp = CreateCompilation(@"
@@ -9260,7 +9260,7 @@ unsafe class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59738")]
+        [Fact, WorkItem(59738, "https://github.com/dotnet/roslyn/issues/59738")]
         public void TestDataFlowsOfIdentifierWithDelegateConversion()
         {
             var results = CompileAndAnalyzeDataFlowExpression(@"
@@ -9368,7 +9368,7 @@ internal static class NoExtensionMethods
             Assert.Equal("value, result", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59738")]
+        [Fact, WorkItem(59738, "https://github.com/dotnet/roslyn/issues/59738")]
         public void DefiniteAssignmentInReceiverOfExtensionMethodInDelegateCreation()
         {
             var comp = CreateCompilation(@"
@@ -9393,7 +9393,7 @@ static class Extension
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59738")]
+        [Fact, WorkItem(59738, "https://github.com/dotnet/roslyn/issues/59738")]
         public void DefiniteAssignmentShouldSkipImplicitThisInStaticMethodConversion()
         {
             var comp = CreateCompilation(@"
@@ -9442,7 +9442,7 @@ public struct C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59738")]
+        [Fact, WorkItem(59738, "https://github.com/dotnet/roslyn/issues/59738")]
         public void DefiniteAssignmentWithExplicitThisInStaticMethodConversion()
         {
             var comp = CreateCompilation(@"

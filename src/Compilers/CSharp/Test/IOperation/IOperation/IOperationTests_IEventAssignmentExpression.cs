@@ -335,7 +335,7 @@ IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: Syste
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/8909")]
+        [WorkItem(8909, "https://github.com/dotnet/roslyn/issues/8909")]
         public void AddEventHandler_AssignToNonStaticEventOnType()
         {
             string source = @"

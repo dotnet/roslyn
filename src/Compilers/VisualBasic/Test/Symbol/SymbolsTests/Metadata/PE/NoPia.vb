@@ -1018,7 +1018,7 @@ End interface
             GC.KeepAlive(tc7)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
+        <WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
         <ConditionalFact(GetType(DesktopOnly), Reason:=ConditionalSkipReason.NoPiaNeedsDesktop)>
         Public Sub Bug16689_1()
             Dim ilSource =
@@ -1086,7 +1086,7 @@ Derived
 ]]>)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
+        <Fact(), WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
         Public Sub Bug16689_2()
             Dim ilSource =
             <![CDATA[
@@ -1157,7 +1157,7 @@ Derived
 ]]>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
+        <WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
         <ConditionalFact(GetType(DesktopOnly), Reason:=ConditionalSkipReason.NoPiaNeedsDesktop)>
         Public Sub Bug16689_3()
 
@@ -1250,7 +1250,7 @@ Derived
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/62863")>
+        <WorkItem(62863, "https://github.com/dotnet/roslyn/issues/62863")>
         Public Sub ExplicitInterfaceImplementations()
             Dim sourcePIA =
 "Imports System.Runtime.InteropServices

@@ -53,7 +53,7 @@ BC30002: Type 'Microsoft.VisualBasic.Embedded' is not defined.
 
         ' The Embedded attribute should only be available for 
         ' user-define code if vb runtime is included.
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546059")>
+        <WorkItem(546059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546059")>
         <Fact()>
         Public Sub EmbeddedAttributeRequiresOtherEmbeddedCode2()
             Dim sources = <compilation>
@@ -78,7 +78,7 @@ BC30002: Type 'Microsoft.VisualBasic.Embedded' is not defined.
 
         ' The Embedded attribute should only be available for 
         ' user-define code if vb runtime is included.
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546059")>
+        <WorkItem(546059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546059")>
         <Fact()>
         Public Sub EmbeddedAttributeRequiresOtherEmbeddedCode3()
             Dim sources = <compilation>
@@ -201,7 +201,7 @@ End Class
             compilationVerifier.Compilation.AssertNoErrors()
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545438"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546887")>
+        <WorkItem(545438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545438"), WorkItem(546887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546887")>
         <Fact()>
         Public Sub InternalXmlHelper_ValueProperty()
             Dim symbols = <expected>
@@ -1709,7 +1709,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544511")>
+        <WorkItem(544511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544511")>
         Public Sub VbCore_SingleSymbol_Strings_AscW_Char()
             CompileAndVerify(
 <compilation>
@@ -2211,7 +2211,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40683: The test hook is blocked by this issue.
-        <WorkItem("https://github.com/dotnet/roslyn/issues/40683")>
+        <WorkItem(40683, "https://github.com/dotnet/roslyn/issues/40683")>
         Public Sub VbCore_InvisibleViaInternalsVisibleTo()
             Dim other As VisualBasicCompilation = CompilationUtils.CreateEmptyCompilationWithReferences(
     <compilation name="HasIVTToCompilationVbCore">
@@ -3060,7 +3060,7 @@ End Namespace
             Next
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544291")>
+        <Fact, WorkItem(544291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544291")>
         Public Sub VbCoreSyncLockOnObject()
             CompileAndVerify(
 <compilation>
@@ -3103,7 +3103,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545772")>
+        <Fact(), WorkItem(545772, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545772")>
         Public Sub VbCoreNoStdLib()
             Dim source =
 <compilation>

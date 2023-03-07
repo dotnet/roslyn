@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029928")]
+        [WorkItem(1029928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029928")]
         public void BadAnalyzerReference_DisplayName()
         {
             var directory = Temp.CreateDirectory();
@@ -211,8 +211,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2781")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2782")]
+        [WorkItem(2781, "https://github.com/dotnet/roslyn/issues/2781")]
+        [WorkItem(2782, "https://github.com/dotnet/roslyn/issues/2782")]
         public void ValidAnalyzerReference_Id()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(_testFixture.Alpha);
@@ -223,8 +223,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2781")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2782")]
+        [WorkItem(2781, "https://github.com/dotnet/roslyn/issues/2781")]
+        [WorkItem(2782, "https://github.com/dotnet/roslyn/issues/2782")]
         public void BadAnalyzerReference_Id()
         {
             var directory = Temp.CreateDirectory();
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032909")]
+        [WorkItem(1032909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032909")]
         public void TestFailedLoadDoesntCauseNoAnalyzersWarning()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(_testFixture.FaultyAnalyzer);
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032909")]
+        [WorkItem(1032909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032909")]
         public void TestReferencingFakeCompiler()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(_testFixture.AnalyzerWithFakeCompilerDependency);
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032909")]
+        [WorkItem(1032909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032909")]
         public void TestReferencingLaterFakeCompiler()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(_testFixture.AnalyzerWithLaterFakeCompilerDependency);
@@ -511,7 +511,7 @@ public class Generator : ISourceGenerator
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/52035")]
+        [WorkItem(52035, "https://github.com/dotnet/roslyn/issues/52035")]
         public void TestLoadedAnalyzerOrderIsDeterministic()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
@@ -544,7 +544,7 @@ public class Generator : ISourceGenerator
         }
 
         [ConditionalFact(typeof(CoreClrOnly), Reason = "Can't load a framework targeting generator, which these are in desktop")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/52035")]
+        [WorkItem(52035, "https://github.com/dotnet/roslyn/issues/52035")]
         public void TestLoadedGeneratorOrderIsDeterministic()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);

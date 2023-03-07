@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseExpression(text, options: (options ?? TestOptions.Regular).WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32318")]
+        [Theory, WorkItem(32318, "https://github.com/dotnet/roslyn/issues/32318")]
         [InlineData(true)]
         [InlineData(false)]
         public void AwaitUsingDeclaration(bool useCSharp8)
@@ -170,7 +170,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30565")]
+        [Fact, WorkItem(30565, "https://github.com/dotnet/roslyn/issues/30565")]
         public void AwaitUsingWithExpression_Reversed()
         {
             UsingTree(@"
@@ -339,7 +339,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30565")]
+        [Fact, WorkItem(30565, "https://github.com/dotnet/roslyn/issues/30565")]
         public void AwaitForeach_Reversed()
         {
             UsingTree(@"

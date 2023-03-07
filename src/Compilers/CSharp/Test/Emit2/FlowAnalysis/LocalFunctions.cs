@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctions : FlowTestBase
     {
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17829")]
+        [WorkItem(17829, "https://github.com/dotnet/roslyn/issues/17829")]
         public void UncalledLambdaInLocalFunction()
         {
             var comp = CreateCompilation(@"
@@ -44,7 +44,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17829")]
+        [WorkItem(17829, "https://github.com/dotnet/roslyn/issues/17829")]
         public void LambdaInNestedUncalledLocalFunctions()
         {
             var comp = CreateCompilation(@"
@@ -77,7 +77,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17829")]
+        [WorkItem(17829, "https://github.com/dotnet/roslyn/issues/17829")]
         public void CapturedInLambdaInUncalledLocalFunction()
         {
             var comp = CreateCompilation(@"
@@ -103,7 +103,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17829")]
+        [WorkItem(17829, "https://github.com/dotnet/roslyn/issues/17829")]
         public void CapturedInNestedUncalledLocalFunctions()
         {
             var comp = CreateCompilation(@"
@@ -189,7 +189,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14243")]
+        [WorkItem(14243, "https://github.com/dotnet/roslyn/issues/14243")]
         public void AssignInsideCallToLocalFunc()
         {
             var comp = CreateCompilation(@"
@@ -221,7 +221,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14046")]
+        [WorkItem(14046, "https://github.com/dotnet/roslyn/issues/14046")]
         public void UnreachableAfterThrow()
         {
             var comp = CreateCompilation(@"
@@ -249,7 +249,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/13739")]
+        [WorkItem(13739, "https://github.com/dotnet/roslyn/issues/13739")]
         public void UnreachableRecursion()
         {
             var comp = CreateCompilation(@"
@@ -296,7 +296,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/13739")]
+        [WorkItem(13739, "https://github.com/dotnet/roslyn/issues/13739")]
         public void MutualRecursiveUnreachable()
         {
             var comp = CreateCompilation(@"
@@ -328,7 +328,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/13739")]
+        [WorkItem(13739, "https://github.com/dotnet/roslyn/issues/13739")]
         public void AssignedInDeadBranch()
         {
             var comp = CreateCompilation(@"
@@ -402,7 +402,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/13762")]
+        [WorkItem(13762, "https://github.com/dotnet/roslyn/issues/13762")]
         public void AssignsInAsync()
         {
             var comp = CreateCompilationWithMscorlib46(@"
@@ -440,7 +440,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/13762")]
+        [WorkItem(13762, "https://github.com/dotnet/roslyn/issues/13762")]
         public void AssignsInIterator()
         {
             var comp = CreateCompilationWithMscorlib46(@"
@@ -1279,7 +1279,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/15298")]
+        [WorkItem(15298, "https://github.com/dotnet/roslyn/issues/15298")]
         public void UnassignedUndefinedVariable()
         {
             var comp = CreateCompilation(@"
@@ -1309,7 +1309,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/15322")]
+        [WorkItem(15322, "https://github.com/dotnet/roslyn/issues/15322")]
         public void UseBeforeDeclarationInSwitch()
         {
             var comp = CreateCompilation(@"
@@ -1335,7 +1335,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14097")]
+        [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
         public void PiecewiseStructAssign()
         {
             var comp = CreateCompilation(@"
@@ -1359,7 +1359,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14097")]
+        [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
         public void PiecewiseStructAssign2()
         {
             var comp = CreateCompilation(@"
@@ -1385,7 +1385,7 @@ struct S
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14097")]
+        [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
         public void PiecewiseStructAssign3()
         {
             var comp = CreateCompilation(@"
@@ -1441,7 +1441,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14097")]
+        [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
         public void PiecewiseStructAssignmentInConstructor()
         {
             var comp = CreateCompilation(@"
@@ -1473,7 +1473,7 @@ struct S
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14097")]
+        [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
         public void PiecewiseStructAssignmentInConstructor2()
         {
             var source = @"
@@ -1508,7 +1508,7 @@ struct S
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18813")]
+        [WorkItem(18813, "https://github.com/dotnet/roslyn/issues/18813")]
         public void LocalIEnumerableFunctionWithOutParameter1()
         {
             var comp = CreateCompilation(@"
@@ -1536,7 +1536,7 @@ class @c
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18813")]
+        [WorkItem(18813, "https://github.com/dotnet/roslyn/issues/18813")]
         public void LocalIEnumerableFunctionWithOutParameter2()
         {
             var comp = CreateCompilation(@"
@@ -1569,7 +1569,7 @@ class @c
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/41631")]
+        [WorkItem(41631, "https://github.com/dotnet/roslyn/issues/41631")]
         public void UseOfCapturedVariableAssignedByOutParameter()
         {
             CreateCompilation(@"

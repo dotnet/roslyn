@@ -692,7 +692,7 @@ End Class
             Assert.Null(symbol)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541850")>
+        <WorkItem(541850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541850")>
         <Fact>
         Public Sub Bug8757_AttributeWithParamArray()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -774,7 +774,7 @@ End Module
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542186")>
+        <WorkItem(542186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542186")>
         <Fact>
         Public Sub Bug9321_IndexerParameter()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -810,7 +810,7 @@ End Class
             Assert.Equal(symbol, lookupSymbols.Single())
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542186")>
+        <WorkItem(542186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542186")>
         <Fact>
         Public Sub Bug9321_IndexerValueParameterWithoutParameterDeclaration()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -847,7 +847,7 @@ End Class
             Assert.Equal(symbol, lookupSymbols.Single())
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542186")>
+        <WorkItem(542186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542186")>
         <Fact>
         Public Sub Bug9321_IndexerValueParameterWithParameterDeclaration()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -879,7 +879,7 @@ End Class
             Assert.Equal(SymbolKind.Method, parameter.ContainingSymbol.Kind)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542186")>
+        <WorkItem(542186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542186")>
         <Fact>
         Public Sub Bug9321_IndexerValueParameterWithParameterDeclaration2()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -916,7 +916,7 @@ End Class
             Assert.Equal(symbol, lookupSymbols.Single())
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542777")>
+        <WorkItem(542777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542777")>
         <Fact>
         Public Sub Bug10154_IndexerThisParameter()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -950,7 +950,7 @@ End Class
             ' TODO: Assert.Equal(SymbolKind.Method, symbol.ContainingSymbol.Kind)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542335")>
+        <WorkItem(542335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542335")>
         <Fact>
         Public Sub Bug9530_LabelsSymbolInfo()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -1025,7 +1025,7 @@ End Class
             Assert.Equal("mylabel", declaredSymbol.Name)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542335")>
+        <WorkItem(542335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542335")>
         <Fact>
         Public Sub Bug9530_LabelsDeclaredSymbol()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -1052,7 +1052,7 @@ End Class
             Assert.Equal("mylabel", declaredSymbol.Name)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545562")>
+        <WorkItem(545562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545562")>
         <Fact()>
         Public Sub SymbolInfo_HexadecimalLabel()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -1342,7 +1342,7 @@ End Module
             Assert.Same(sym2, sym3)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543192")>
+        <WorkItem(543192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543192")>
         <Fact()>
         Public Sub BindingParameterDefaultValue()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -1473,7 +1473,7 @@ End Module
             Assert.Equal("Roslyn", semanticInfo.ConstantValue.Value)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545207")>
+        <WorkItem(545207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545207")>
         <Fact()>
         Public Sub BindingAttributeWithNamedArgument1()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -1514,7 +1514,7 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545558")>
+        <WorkItem(545558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545558")>
         <Fact()>
         Public Sub BindingAttributeWithUndefinedEnumArgument()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1549,7 +1549,7 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529096")>
+        <WorkItem(529096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529096")>
         <Fact()>
         Public Sub MemberAccessExpressionResults()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -1758,7 +1758,7 @@ BC42104: Variable 'o' is used before it has been assigned a value. A null refere
             Assert.Null(typeInfo.Type)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543572")>
+        <WorkItem(543572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543572")>
         <Fact()>
         Public Sub DefaultValueWithConversion()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -2435,7 +2435,7 @@ End Class
 
 #End Region
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544083")>
+        <Fact(), WorkItem(544083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544083")>
         Public Sub PropertySpeculativeBinding()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
             <compilation>
@@ -2464,7 +2464,7 @@ End Module
             Assert.Equal(SymbolKind.Property, speculativeSymbolInfo.Symbol.Kind)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544083")>
+        <Fact(), WorkItem(544083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544083")>
         Public Sub WriteOnlyPropertySpeculativeBinding()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
             <compilation>
@@ -3697,7 +3697,7 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545976")>
+        <Fact(), WorkItem(545976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545976")>
         Public Sub ArrayLiteralSpeculativeBinding()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
             <compilation>
@@ -3721,7 +3721,7 @@ End Module
             Assert.Equal(ConversionKind.Widening, speculativeConversion.Kind)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545346")>
+        <WorkItem(545346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545346")>
         <Fact()>
         Public Sub Bug13693()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -3745,7 +3745,7 @@ End Class
         ''' Bind reference to property with no accessors.
         ''' </summary>
         ''' <remarks></remarks>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546182")>
+        <WorkItem(546182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546182")>
         <Fact>
         Public Sub ReferenceToPropertyWithNoAccessors()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
@@ -3825,7 +3825,7 @@ End Module
             Assert.False(speculativeConstantValue.HasValue)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546270")>
+        <WorkItem(546270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546270")>
         <Fact()>
         Public Sub SpeculativeConstantValueForLabelSyntax()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -3892,7 +3892,7 @@ End Module
 
 #Region "Diagnostics"
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541269")>
+        <WorkItem(541269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541269")>
         <Fact()>
         Public Sub GetDiagnosticsAddressOfOperatorWithoutMscorlibRef()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
@@ -4022,7 +4022,7 @@ BC31143: Method 'Friend Sub TestSub(x As Integer)' does not have a signature com
 </errors>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541271")>
+        <WorkItem(541271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541271")>
         <Fact()>
         Public Sub GetDiagnosticsSubInsideAnInterfaceWithoutMscorlibRef()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
@@ -4049,7 +4049,7 @@ BC30002: Type 'System.Void' is not defined.
 </expected>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541304")>
+        <WorkItem(541304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541304")>
         <Fact()>
         Public Sub GetDiagnosticsDoLoopWithConditionAtBottomAndTopPart()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
@@ -4128,7 +4128,7 @@ BC30491: Expression does not produce a value.
 </expected>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541407")>
+        <WorkItem(541407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541407")>
         <Fact>
         Public Sub GetDiagnosticsWithRootNamespace()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -4175,7 +4175,7 @@ BC30647: 'Return' statement in a Sub or a Set cannot return a value.
 
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541479")>
+        <Fact, WorkItem(541479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541479")>
         Public Sub GetDiagnosticsPropNameAsForLoopVariable()
             CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Compilation">
@@ -4204,7 +4204,7 @@ End Module
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541480")>
+        <WorkItem(541480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541480")>
         <Fact()>
         Public Sub GetDiagnosticsWithEventsInStruct()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -4236,7 +4236,7 @@ BC30435: Members in a Structure cannot be declared 'WithEvents'.
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541559")>
+        <WorkItem(541559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541559")>
         <Fact()>
         Public Sub BindIncompleteFieldDeclAsArray()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -4251,7 +4251,7 @@ Public Module publicHMod
             Assert.NotEqual(0, errs.Length())
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541578")>
+        <WorkItem(541578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541578")>
         <Fact()>
         Public Sub PassByRefArgumentWithAlias()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -4278,7 +4278,7 @@ End Namespace
             compilation.AssertNoDiagnostics()
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541579")>
+        <WorkItem(541579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541579")>
         <Fact()>
         Public Sub InvalidLabelsWithNumericSuffix()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -4352,7 +4352,7 @@ BC30035: Syntax error.
 </Expected>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541619")>
+        <WorkItem(541619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541619")>
         <Fact()>
         Public Sub ExceptionVariableUsedInLambda()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -4375,7 +4375,7 @@ End Module
             Assert.Equal(0, errs.Length())
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543393")>
+        <WorkItem(543393, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543393")>
         <Fact()>
         Public Sub MemberOfIncompleteClassDecl()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -4399,7 +4399,7 @@ Class TestMethod
             Assert.NotEmpty(bindingsA.GetDiagnostics())
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529095")>
+        <WorkItem(529095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529095")>
         <Fact>
         Public Sub CannotConvertConstExprToType()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -4434,7 +4434,7 @@ End Module
             Return semanticModel.GetDeclaredSymbol(syntax)
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543603")>
+        <WorkItem(543603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543603")>
         <Fact()>
         Public Sub BC30282ERR_InvalidConstructorCall_AddressOfConstructor()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -4461,7 +4461,7 @@ End Module
                 Diagnostic(ERRID.ERR_InvalidConstructorCall, "class1.New"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544648")>
+        <WorkItem(544648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544648")>
         <Fact>
         Public Sub SpeculativelyBindExtensionMethod()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
@@ -4534,7 +4534,7 @@ End Module
             Assert.Equal(method1, method2)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546126")>
+        <WorkItem(546126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546126")>
         <Fact>
         Public Sub SpeculativelyBindExtensionMethod2()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
@@ -4724,7 +4724,7 @@ End Class
             Assert.True(tpSymbol1.IsValueType)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546520")>
+        <WorkItem(546520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546520")>
         <Fact()>
         Public Sub ContainingSymbolOfBinderMayNotFindMembers()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -4782,7 +4782,7 @@ End Namespace
             Assert.Null(symbol)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531304")>
+        <Fact, WorkItem(531304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531304")>
         Public Sub GetPreprocessingSymbolInfoForIdentifierInIfDirective()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -4806,7 +4806,7 @@ End Namespace
             Assert.Equal(symbolInfo.Symbol.GetHashCode(), symbolInfo2.Symbol.GetHashCode())
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531304")>
+        <Fact, WorkItem(531304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531304")>
         Public Sub GetPreprocessingSymbolInfoForIdentifierInElseIfDirective()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -4824,7 +4824,7 @@ End Namespace
             Assert.Equal(0, symbolInfo.ConstantValue)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531304")>
+        <Fact, WorkItem(531304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531304")>
         Public Sub GetPreprocessingSymbolInfoForIdentifierInConstDirective()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -4840,7 +4840,7 @@ End Namespace
             Assert.Equal("SomeValue", symbolInfo.ConstantValue)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531304")>
+        <Fact, WorkItem(531304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531304")>
         Public Sub GetPreprocessingSymbolInfoForIdentifierInBinaryExpression()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -4860,7 +4860,7 @@ End Namespace
             Assert.Equal("SomeValueSuffix", symbolInfo.ConstantValue)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531304")>
+        <Fact, WorkItem(531304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531304")>
         Public Sub GetPreprocessingSymbolInfoForIdentifierUsedBeforeDefinition()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -4880,7 +4880,7 @@ End Namespace
             Assert.False(symbolInfo.IsDefined, "must not have a constant value before definition")
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531304")>
+        <Fact, WorkItem(531304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531304")>
         Public Sub GetPreprocessingSymbolInfoForIdentifierWithMultipleDefinitions()
             ' Multiple definitions for ccConst, last definition wins.
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -4936,7 +4936,7 @@ End Namespace
             Assert.Equal(1, symbolInfo.ConstantValue)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531304")>
+        <Fact, WorkItem(531304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531304")>
         Public Sub GetPreprocessingSymbolInfoForIdentifierNotInPreprocessingDirective()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -4955,7 +4955,7 @@ End Class
             Assert.Null(symbolInfo.Symbol)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531536")>
+        <WorkItem(531536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531536")>
         <Fact()>
         Public Sub Bug18263()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -4997,7 +4997,7 @@ ReadOnly Property SharedFolderBrowseButton() As Button
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531549")>
+        <WorkItem(531549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531549")>
         <Fact()>
         Public Sub Bug531549()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -5040,7 +5040,7 @@ End Module
             Assert.Equal(ConversionKind.WideningNullable, conv1.Kind)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633340")>
+        <WorkItem(633340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633340")>
         <Fact>
         Public Sub MemberOfInaccessibleType()
             Dim text =
@@ -5089,7 +5089,7 @@ End Class
                 Diagnostic(ERRID.ERR_InaccessibleSymbol2, "Nested").WithArguments("A.Nested", "Private"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633340")>
+        <WorkItem(633340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633340")>
         <Fact>
         Public Sub NotReferencableMemberOfInaccessibleType()
             Dim text =
@@ -5132,7 +5132,7 @@ End Class
                 Diagnostic(ERRID.ERR_InaccessibleSymbol2, "Nested").WithArguments("A.Nested", "Private"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633340")>
+        <WorkItem(633340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633340")>
         <Fact>
         Public Sub AccessibleMethodOfInaccessibleType()
             Dim text =
@@ -5176,7 +5176,7 @@ End Class
                 Diagnostic(ERRID.ERR_InaccessibleSymbol2, "Nested").WithArguments("A.Nested", "Private"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761212")>
+        <WorkItem(761212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761212")>
         <Fact>
         Public Sub AccessiblePropertyOfInaccessibleType()
             Dim text =
@@ -5221,7 +5221,7 @@ End Class
                 Diagnostic(ERRID.ERR_InaccessibleSymbol2, "A.B").WithArguments("A.B", "Private"))
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652039")>
+        <Fact, WorkItem(652039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652039")>
         Public Sub Bug652039()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="BindingEnumMembers">
@@ -5303,7 +5303,7 @@ End Namespace End Class
             Dim symbol = compilation.GetSemanticModel(tree).GetTypeInfo(DirectCast(node, ExpressionSyntax))
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")>
+        <Fact, WorkItem(665920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")>
         Public Sub ObjectCreation1()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -5379,7 +5379,7 @@ End Namespace
             Next
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")>
+        <Fact, WorkItem(665920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")>
         Public Sub ObjectCreation2()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -5466,7 +5466,7 @@ End Namespace
             Next
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")>
+        <Fact, WorkItem(665920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")>
         Public Sub ObjectCreation3()
             Dim pia = CreateCompilationWithMscorlib40(
 <compilation>
@@ -5572,7 +5572,7 @@ End Namespace
             Next
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530931")>
+        <WorkItem(530931, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530931")>
         <Fact()>
         Public Sub SemanticModelLateBoundInvocation()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
@@ -5613,7 +5613,7 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709331")>
+        <Fact, WorkItem(709331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709331")>
         Public Sub ClassifyConversionFromLambdaToExplicitDirectCastType()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -5650,7 +5650,7 @@ End Class
             Assert.Equal(ConversionKind.Widening Or ConversionKind.Lambda, lambdaExprToDirectCastType.Kind)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709331")>
+        <Fact, WorkItem(709331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709331")>
         Public Sub ClassifyConversionFromLambdaToExplicitTryCastType()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -5687,9 +5687,9 @@ End Class
             Assert.Equal(ConversionKind.Widening Or ConversionKind.Lambda, lambdaExprToDirectCastType.Kind)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849371")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854543")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854548")>
+        <WorkItem(849371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849371")>
+        <WorkItem(854543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854543")>
+        <WorkItem(854548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854548")>
         <Fact> ' If this starts failing when 854543 is fixed, the new skip reason is 854548.
         Public Sub SemanticModelLambdaErrorRecovery()
             Dim source = <compilation>
@@ -5743,7 +5743,7 @@ End Class
             End If
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854543")>
+        <WorkItem(854543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854543")>
         <Fact>
         Public Sub ClassifyConversionOnNothingLiteral()
             Dim source = <compilation>
@@ -5792,7 +5792,7 @@ BC30521: Overload resolution failed because no accessible 'M' is most specific f
             Assert.Equal(ConversionKind.WideningNothingLiteral, conversion.Kind)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854543")>
+        <WorkItem(854543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854543")>
         <Fact>
         Public Sub ClassifyConversionOnLambda()
             Dim source = <compilation>
@@ -5832,7 +5832,7 @@ End Class
             Assert.Equal(ConversionKind.Widening Or ConversionKind.Lambda, conversion.Kind)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854543")>
+        <WorkItem(854543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854543")>
         <Fact>
         Public Sub ClassifyConversionOnAmbiguousLambda()
             Dim source = <compilation>
@@ -5884,7 +5884,7 @@ BC30521: Overload resolution failed because no accessible 'M' is most specific f
             Assert.Equal(ConversionKind.Widening Or ConversionKind.Lambda, conversion.Kind)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854543")>
+        <WorkItem(854543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854543")>
         <Fact>
         Public Sub ClassifyConversionOnAmbiguousMethodGroup()
             Dim source = <compilation>
@@ -5957,7 +5957,7 @@ BC30516: Overload resolution failed because no accessible 'N' accepts this numbe
             Assert.Equal(ConversionKind.DelegateRelaxationLevelNone, conversionC.Kind)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068547")>
+        <Fact, WorkItem(1068547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068547")>
         Public Sub Bug1068547_01()
             Dim source = <compilation>
                              <file name="a.vb"><![CDATA[
@@ -5983,7 +5983,7 @@ End Module
             Assert.Equal(CandidateReason.StaticInstanceMismatch, symbolInfo.CandidateReason)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068547")>
+        <Fact, WorkItem(1068547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068547")>
         Public Sub Bug1068547_02()
             Dim source = <compilation>
                              <file name="a.vb"><![CDATA[
@@ -6004,7 +6004,7 @@ End Module
             Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108036")>
+        <WorkItem(1108036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108036")>
         <Fact()>
         Public Sub Bug1108036()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -6061,7 +6061,7 @@ BC30521: Overload resolution failed because no accessible 'Color' is most specif
             Assert.Equal(SymbolKind.Property, sortedCandidates(1).Kind)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/8401")>
+        <WorkItem(8401, "https://github.com/dotnet/roslyn/issues/8401")>
         <Fact()>
         Public Sub EventAccessorsWithOptionalParameters()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -6111,7 +6111,7 @@ BC31138: 'AddHandler', 'RemoveHandler' and 'RaiseEvent' method parameters cannot
             Next
         End Sub
 
-        <WorkItem("https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=233671")>
+        <WorkItem(233671, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=233671")>
         <Fact()>
         Public Sub QueryClauseInBadStatement_ElseIf()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -6156,7 +6156,7 @@ BC30087: 'End If' must be preceded by a matching 'If'.
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType)
         End Sub
 
-        <WorkItem("https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=233671")>
+        <WorkItem(233671, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=233671")>
         <Fact()>
         Public Sub QueryClauseInBadStatement_Case()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -6223,7 +6223,7 @@ BC30088: 'End Select' must be preceded by a matching 'Select Case'.
             Assert.Equal(SpecialType.System_Object, model.GetTypeInfo(expr).Type.SpecialType)
         End Sub
 
-        <WorkItem("https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=233671")>
+        <WorkItem(233671, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=233671")>
         <Fact()>
         Public Sub QueryClauseInBadStatement_Select()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -6253,7 +6253,7 @@ BC36593: Expression of type 'Object' is not queryable. Make sure you are not mis
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType)
         End Sub
 
-        <WorkItem("https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=233671")>
+        <WorkItem(233671, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=233671")>
         <Fact()>
         Public Sub QueryClauseInBadStatement_LoopUntil()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -6283,7 +6283,7 @@ BC36593: Expression of type 'Object' is not queryable. Make sure you are not mis
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType)
         End Sub
 
-        <WorkItem("https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=233671")>
+        <WorkItem(233671, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=233671")>
         <Fact()>
         Public Sub QueryClauseInBadStatement_LoopWhile()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -6313,7 +6313,7 @@ BC36593: Expression of type 'Object' is not queryable. Make sure you are not mis
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType)
         End Sub
 
-        <WorkItem("https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=233671")>
+        <WorkItem(233671, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=233671")>
         <Fact()>
         Public Sub QueryClauseInBadStatement_Catch()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -6401,7 +6401,7 @@ End Class
             Assert.True(exceptionThrown, $"{NameOf(GetSpecialType)} did not throw when it should have.")
         End Sub
 
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
         <Fact(), CompilerTrait(CompilerFeature.IOperation)>
         Public Sub DefaultPropertyTransformation_01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -6460,7 +6460,7 @@ IPropertyReferenceOperation: Property C1.Item(x As System.String) As System.Stri
 ]]>.Value)
         End Sub
 
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
         <Fact(), CompilerTrait(CompilerFeature.IOperation)>
         Public Sub DefaultPropertyTransformation_02()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -6519,7 +6519,7 @@ IPropertyReferenceOperation: Property C1.Item(x As System.String) As System.Stri
 ]]>.Value)
         End Sub
 
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
         <Fact(), CompilerTrait(CompilerFeature.IOperation)>
         Public Sub DefaultPropertyTransformation_03()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -6581,7 +6581,7 @@ IPropertyReferenceOperation: Property C1.Item(x As System.String) As System.Stri
 ]]>.Value)
         End Sub
 
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
         <Fact(), CompilerTrait(CompilerFeature.IOperation)>
         Public Sub DefaultPropertyTransformation_04()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(

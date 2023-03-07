@@ -694,8 +694,8 @@ Derived.Interface.Property",
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540558")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540561")]
+        [WorkItem(540558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540558")]
+        [WorkItem(540561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540561")]
         [Fact]
         public void TestInterfaceMappingAcrossBaseClasses3()
         {
@@ -786,8 +786,8 @@ Derived.Property",
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540558")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540561")]
+        [WorkItem(540558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540558")]
+        [WorkItem(540561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540561")]
         [Fact]
         public void TestInterfaceMappingAcrossBaseClasses3A()
         {
@@ -2112,7 +2112,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Explicit.I1<int, int>.Method<V>(int, System.Func<int, int, V>, int)"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540581")]
+        [WorkItem(540581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540581")]
         [Fact]
         public void TestImplementAmbiguousSignaturesFromDifferentInterfaces()
         {
@@ -2277,7 +2277,7 @@ Explicit2.I3<string>.get_Property");
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("Base2.Property", "Base.Property"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540581")]
+        [WorkItem(540581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540581")]
         [Fact]
         public void RegressionTestRefEmitBugRelatedToHidingInInterfaces()
         {
@@ -2491,7 +2491,7 @@ int Method(int x, Func<int, int> v, params int[] y)");
                 Diagnostic(ErrorCode.WRN_NewRequired, "Method").WithArguments("ImplicitInBase.Method(int, System.Func<int, int>, params int[])", "Base.Method(int, System.Func<int, int>, int[])"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540582")]
+        [WorkItem(540582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540582")]
         [Fact]
         public void TestImplementNestedInterface()
         {
@@ -2567,7 +2567,7 @@ U.set_Property").VerifyDiagnostics(); // No errors
             });
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545625")]
+        [WorkItem(545625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545625")]
         [Fact]
         public void ReverseArrayRankSpecifiersInExplicitImplementationName()
         {
@@ -2596,7 +2596,7 @@ class C : I<int[][,]>
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530164"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531642"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531643")]
+        [WorkItem(530164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530164"), WorkItem(531642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531642"), WorkItem(531643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531643")]
         public void SynthesizedExplicitImplementationOfByRefReturn()
         {
             var il = @"
@@ -2657,7 +2657,7 @@ public class D : B, I
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530164")]
+        [WorkItem(530164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530164")]
         public void SynthesizedExplicitImplementationOfGenericByRefReturn()
         {
             var il = @"

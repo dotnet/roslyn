@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.AnonymousDelegates
     Public Class CreationAndEmit : Inherits BasicTestBase
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024401")>
+        <WorkItem(1024401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024401")>
         Public Sub DebuggerDisplayAttributeWithNoTypeMember()
             Dim src = "
 Module Test
@@ -471,7 +471,7 @@ VB$AnonymousDelegate_6`2[System.Int64,System.Int64]
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/2928")>
+        <WorkItem(2928, "https://github.com/dotnet/roslyn/issues/2928")>
         Public Sub ContainingSymbol()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>

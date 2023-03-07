@@ -358,7 +358,7 @@ class C
                 );
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65363")]
+        [Theory, CombinatorialData, WorkItem(65363, "https://github.com/dotnet/roslyn/issues/65363")]
         public void TestWithMoveNextAsync_ReturnsValueTaskOfObject_Extension(bool useCsharp8)
         {
             string source = @"
@@ -2133,7 +2133,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31609")]
+        [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
         public void TestWithPattern_MoveNextAsyncReturnsAwaitable()
         {
             string source = @"
@@ -2193,7 +2193,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31609")]
+        [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
         public void TestWithPattern_MoveNextAsyncReturnsAwaitable_WithoutGetAwaiter()
         {
             string source = @"
@@ -2227,7 +2227,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31609")]
+        [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
         public void TestWithPattern_MoveNextAsyncReturnsAwaitable_WithoutIsCompleted()
         {
             string source = @"
@@ -2278,7 +2278,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31609")]
+        [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
         public void TestWithPattern_MoveNextAsyncReturnsAwaitable_WithoutGetResult()
         {
             string source = @"
@@ -2318,7 +2318,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31609")]
+        [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
         public void TestWithPattern_MoveNextAsyncReturnsAwaitable_WithoutOnCompleted()
         {
             string source = @"
@@ -3368,7 +3368,7 @@ class C : IAsyncEnumerable<int>
                 expectedOutput: "NextAsync(0) Current(0) Got(1) NextAsync(1) Current(1) Got(2) NextAsync(2) Current(2) Got(3) NextAsync(3) Current(3) Got(4) NextAsync(4) Dispose(4) Done");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27651")]
+        [Fact, WorkItem(27651, "https://github.com/dotnet/roslyn/issues/27651")]
         public void TestControlFlowAnalysis()
         {
             string source = @"
@@ -4453,7 +4453,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50182")]
+        [WorkItem(50182, "https://github.com/dotnet/roslyn/issues/50182")]
         public void GetAsyncEnumerator_CancellationTokenMustBeOptional_OnIAsyncEnumerable()
         {
             string source = @"
@@ -4498,7 +4498,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50182")]
+        [WorkItem(50182, "https://github.com/dotnet/roslyn/issues/50182")]
         public void GetAsyncEnumerator_CancellationTokenMustBeOptional_OnIAsyncEnumerable_ImplicitImplementation()
         {
             string source = @"
@@ -4544,7 +4544,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50182")]
+        [WorkItem(50182, "https://github.com/dotnet/roslyn/issues/50182")]
         public void GetAsyncEnumerator_CancellationTokenMustBeOptional_OnIAsyncEnumerable_ExplicitImplementation()
         {
             string source = @"
@@ -4745,7 +4745,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal()
         {
             string source = @"
@@ -4788,7 +4788,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_TwoOverloads()
         {
             string source = @"
@@ -4833,7 +4833,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_NoExtensions()
         {
             string source = @"
@@ -4876,7 +4876,7 @@ public static class Extension
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_NoExtensions_TwoExtensions()
         {
             string source = @"
@@ -4924,7 +4924,7 @@ public static class Extension2
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_InstanceMethodPreferredOverInterface()
         {
             string source = @"
@@ -4968,7 +4968,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_ReturnsVoid()
         {
             string source = @"
@@ -5004,7 +5004,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_ReturnsInt()
         {
             string source = @"
@@ -5047,7 +5047,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_ReturnsAwaitable()
         {
             string source = @"
@@ -5102,7 +5102,7 @@ public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_ReturnsTask()
         {
             string source = @"
@@ -5146,7 +5146,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_ReturnsTaskOfInt()
         {
             string source = @"
@@ -5237,7 +5237,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30956")]
+        [WorkItem(30956, "https://github.com/dotnet/roslyn/issues/30956")]
         public void GetAwaiterBoxingConversion()
         {
             var source =
@@ -8097,7 +8097,7 @@ public static class Extensions
             CompileAndVerify(comp, expectedOutput: "123123");
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/59955")]
+        [Theory, WorkItem(59955, "https://github.com/dotnet/roslyn/issues/59955")]
         [InlineData(true)]
         [InlineData(false)]
         public void DisposePatternPreferredOverIAsyncDisposable(bool withCSharp8)
@@ -8177,7 +8177,7 @@ struct AsyncEnumerator : IAsyncEnumerator<int>
             Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString());
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/59955")]
+        [Theory, WorkItem(59955, "https://github.com/dotnet/roslyn/issues/59955")]
         [InlineData(true)]
         [InlineData(false)]
         public void DisposePatternPreferredOverIAsyncDisposable_NoIAsyncEnumerable(bool withCSharp8)
@@ -8253,7 +8253,7 @@ struct AsyncEnumerator : IAsyncDisposable
             Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString());
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/59955")]
+        [Theory, WorkItem(59955, "https://github.com/dotnet/roslyn/issues/59955")]
         [InlineData(true)]
         [InlineData(false)]
         public void AsyncEnumerationViaInterfaceUsesIAsyncDisposable(bool withCSharp8)
@@ -8331,7 +8331,7 @@ struct AsyncEnumerator : IAsyncEnumerator<int>
             Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59955")]
+        [Fact, WorkItem(59955, "https://github.com/dotnet/roslyn/issues/59955")]
         public void EnumerationViaInterfaceUsesIDisposable()
         {
             var source = @"
@@ -8383,7 +8383,7 @@ struct Enumerator : IEnumerator<int>
             Assert.Equal("void System.IDisposable.Dispose()", info.DisposeMethod.ToTestDisplayString());
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/59955")]
+        [Theory, WorkItem(59955, "https://github.com/dotnet/roslyn/issues/59955")]
         [InlineData(true)]
         [InlineData(false)]
         public void DisposePatternPreferredOverIAsyncDisposable_Deconstruction(bool withCSharp8)

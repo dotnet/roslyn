@@ -344,7 +344,7 @@ ref struct B
             VerifyFieldSymbol(field, "ref readonly System.Int32 A.F", RefKind.RefReadOnly, new string[0]);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64682")]
+        [WorkItem(64682, "https://github.com/dotnet/roslyn/issues/64682")]
         [Fact]
         public void RefFieldInNonRefStruct()
         {
@@ -1665,7 +1665,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63018")]
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
         public void InitRefField_AutoDefault()
         {
             var source = """
@@ -1702,7 +1702,7 @@ ref struct R
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63018")]
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
         public void InitRefField_UnsafeNullRef()
         {
             var source = """
@@ -1739,7 +1739,7 @@ ref struct R
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63018")]
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
         public void InitRefField_AutoDefault_RefReadonly()
         {
             var source = """
@@ -1777,7 +1777,7 @@ ref struct R
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63018")]
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
         public void InitRefField_AutoDefault_ReadonlyRef()
         {
             var source = """
@@ -1817,7 +1817,7 @@ ref struct R
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63018")]
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
         public void InitRefField_AutoDefault_WithOtherFieldInitializer()
         {
             var source = """
@@ -2037,7 +2037,7 @@ class Program
             AssertEx.Equal(expectedReferences, fieldReferences.ToTestDisplayStrings());
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/62596")]
+        [WorkItem(62596, "https://github.com/dotnet/roslyn/issues/62596")]
         [Theory]
         [InlineData("class")]
         [InlineData("struct")]
@@ -2108,7 +2108,7 @@ $@"#pragma warning disable 169
             Assert.Equal(expectedDisplayString, field.ToTestDisplayString());
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/62131")]
+        [WorkItem(62131, "https://github.com/dotnet/roslyn/issues/62131")]
         [CombinatorialData]
         [Theory]
         public void RuntimeFeature(bool useCompilationReference)
@@ -2612,7 +2612,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63434")]
+        [WorkItem(63434, "https://github.com/dotnet/roslyn/issues/63434")]
         public void RefFields_RefReassignment_02()
         {
             var source =
@@ -2701,7 +2701,7 @@ ref struct R
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63434")]
+        [WorkItem(63434, "https://github.com/dotnet/roslyn/issues/63434")]
         public void RefFields_RefReassignment_04()
         {
             var source =
@@ -8075,7 +8075,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S<T>(1).F").WithLocation(15, 16));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/62122")]
+        [WorkItem(62122, "https://github.com/dotnet/roslyn/issues/62122")]
         [Fact]
         public void ReadAndDiscard()
         {
@@ -8664,7 +8664,7 @@ class Program
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64448")]
+        [WorkItem(64448, "https://github.com/dotnet/roslyn/issues/64448")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -8704,7 +8704,7 @@ class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64448")]
+        [WorkItem(64448, "https://github.com/dotnet/roslyn/issues/64448")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -8727,7 +8727,7 @@ static class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64448")]
+        [WorkItem(64448, "https://github.com/dotnet/roslyn/issues/64448")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -8750,7 +8750,7 @@ static class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64448")]
+        [WorkItem(64448, "https://github.com/dotnet/roslyn/issues/64448")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -8794,7 +8794,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "s.Deconstruct(out x1, out y1)").WithArguments("Program.Deconstruct(System.Span<int>, out int, out System.Span<byte>)", "s").WithLocation(10, 9));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64448")]
+        [WorkItem(64448, "https://github.com/dotnet/roslyn/issues/64448")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -8927,7 +8927,7 @@ static class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64448")]
+        [WorkItem(64448, "https://github.com/dotnet/roslyn/issues/64448")]
         [Fact]
         public void Deconstruct_07()
         {
@@ -9348,7 +9348,7 @@ class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/62098")]
+        [WorkItem(62098, "https://github.com/dotnet/roslyn/issues/62098")]
         [Fact]
         public void RefToContainingType()
         {
@@ -9526,7 +9526,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60807")]
+        [WorkItem(60807, "https://github.com/dotnet/roslyn/issues/60807")]
         public void RefAndOut_PropertiesAndIndexers_As_ValuesAndParameters()
         {
             var source =
@@ -9729,7 +9729,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(7, 20));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63104")]
+        [Fact, WorkItem(63104, "https://github.com/dotnet/roslyn/issues/63104")]
         public void RefFieldsConsideredManaged()
         {
             var source = @"
@@ -9764,7 +9764,7 @@ class C
             Assert.True(comp.GetTypeByMetadataName("StructWithRefField").IsManagedTypeNoUseSiteDiagnostics);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63104")]
+        [Fact, WorkItem(63104, "https://github.com/dotnet/roslyn/issues/63104")]
         public void RefFieldsConsideredManaged_Generic()
         {
             var source = @"
@@ -9809,7 +9809,7 @@ class C
             Assert.True(comp.GetTypeByMetadataName("StructWithIndirectRefField").IsManagedTypeNoUseSiteDiagnostics);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63104")]
+        [Fact, WorkItem(63104, "https://github.com/dotnet/roslyn/issues/63104")]
         public void RefFieldsConsideredManaged_Indirect()
         {
             var source = @"
@@ -9840,7 +9840,7 @@ public ref struct StructWithRefField
             Assert.True(comp.GetTypeByMetadataName("StructWithIndirectRefField").IsManagedTypeNoUseSiteDiagnostics);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/62618")]
+        [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
         [Theory]
         [CombinatorialData]
         public void RefAssignValueScopeMismatch_01A(
@@ -9884,7 +9884,7 @@ class Program
             }
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/62618")]
+        [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
         [Theory]
         [CombinatorialData]
         public void RefAssignValueScopeMismatch_01B(
@@ -9934,7 +9934,7 @@ class Program
             }
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/62618")]
+        [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
         [Theory]
         [CombinatorialData]
         public void RefAssignValueScopeMismatch_02(
@@ -9986,7 +9986,7 @@ class Program
             }
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/62618")]
+        [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -10031,7 +10031,7 @@ class Program
             }
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/62618")]
+        [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
         [Fact]
         public void RefAssignValueScopeMismatch_04()
         {
@@ -10059,7 +10059,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "r2 = ref r1").WithArguments("r2", "r1").WithLocation(11, 13));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/62618")]
+        [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
         [Fact]
         public void RefAssignValueScopeMismatch_05()
         {
@@ -10273,7 +10273,7 @@ public class A
 
         // Another version of the breaking change above, this time
         // with ref structs passed by reference as constructor this.
-        [WorkItem("https://github.com/dotnet/roslyn/issues/62940")]
+        [WorkItem(62940, "https://github.com/dotnet/roslyn/issues/62940")]
         [Theory]
         [CombinatorialData]
         public void BreakingChange_RefStructReturnFromRefArguments_02(
@@ -10913,7 +10913,7 @@ class Program
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.FA").Parameters[0], "out scoped s", RefKind.Out, ScopedKind.ScopedRef);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/62080")]
+        [WorkItem(62080, "https://github.com/dotnet/roslyn/issues/62080")]
         [Fact]
         public void ParameterScope_11()
         {
@@ -10988,7 +10988,7 @@ class Program
             VerifyParameterSymbol(comp.GetMember<PEMethodSymbol>("A.F1").Parameters[0], "out System.Int32 i", RefKind.Out, ScopedKind.ScopedRef);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/62691")]
+        [WorkItem(62691, "https://github.com/dotnet/roslyn/issues/62691")]
         [CombinatorialData]
         [Theory]
         public void RefToRefStructParameter_01(bool useCompilationReference)
@@ -11025,7 +11025,7 @@ public class A
             VerifyParameterSymbol(parameters[3], "out R d", RefKind.Out, ScopedKind.ScopedRef);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/62691")]
+        [WorkItem(62691, "https://github.com/dotnet/roslyn/issues/62691")]
         [Fact]
         public void RefToRefStructParameter_02()
         {
@@ -13293,7 +13293,7 @@ class Program
                 );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64009")]
+        [WorkItem(64009, "https://github.com/dotnet/roslyn/issues/64009")]
         [Fact]
         public void LocalScope_09()
         {
@@ -13308,7 +13308,7 @@ ref struct @scoped { }
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64009")]
+        [WorkItem(64009, "https://github.com/dotnet/roslyn/issues/64009")]
         [Fact]
         public void LocalScope_09_For_01()
         {
@@ -13322,7 +13322,7 @@ ref struct @scoped { }
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64009")]
+        [WorkItem(64009, "https://github.com/dotnet/roslyn/issues/64009")]
         [Fact]
         public void LocalScope_09_For_02()
         {
@@ -14918,7 +14918,7 @@ class Enumerator1
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64218")]
+        [WorkItem(64218, "https://github.com/dotnet/roslyn/issues/64218")]
         public void LocalScope_12_Foreach_01()
         {
             var source =
@@ -15030,7 +15030,7 @@ class Enumerator1
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64218")]
+        [WorkItem(64218, "https://github.com/dotnet/roslyn/issues/64218")]
         public void LocalScope_12_Foreach_03()
         {
             var source =
@@ -15073,7 +15073,7 @@ ref struct Enumerator1
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64218")]
+        [WorkItem(64218, "https://github.com/dotnet/roslyn/issues/64218")]
         public void LocalScope_12_Foreach_04()
         {
             var source =
@@ -16288,7 +16288,7 @@ class C
             Assert.Equal("System.String o2", lambdaSymbol.GetParameters()[0].ToTestDisplayString());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64984")]
+        [Fact, WorkItem(64984, "https://github.com/dotnet/roslyn/issues/64984")]
         public void DelegateConversions_ImplicitlyTypedParameter_Conversion()
         {
             // The existence of conversions with incompatible `scoped` differences affects overload resolution
@@ -19376,7 +19376,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("R<T>.F").WithLocation(4, 19));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63140")]
+        [WorkItem(63140, "https://github.com/dotnet/roslyn/issues/63140")]
         [Fact]
         public void Scoped_Cycle()
         {
@@ -19533,7 +19533,7 @@ class Program
             }
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63016")]
+        [WorkItem(63016, "https://github.com/dotnet/roslyn/issues/63016")]
         [Fact]
         public void RefToLocalFromInstanceMethod_01()
         {
@@ -19558,7 +19558,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "_i = ref i").WithArguments("_i", "i").WithLocation(11, 9));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63016")]
+        [WorkItem(63016, "https://github.com/dotnet/roslyn/issues/63016")]
         [Fact]
         public void RefToLocalFromInstanceMethod_02()
         {
@@ -19709,7 +19709,7 @@ class C
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(5, 32));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63526")]
+        [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
         public void ReturnThis_03()
         {
             var source = """
@@ -21641,7 +21641,7 @@ ref struct R
                 );
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/62931")]
+        [Theory, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
         [InlineData("class")]
         [InlineData("struct")]
         [InlineData("interface")]
@@ -21667,7 +21667,7 @@ ref struct R
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62931")]
+        [Fact, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
         public void ScopedReserved_Type_Escaped()
         {
             var source = """
@@ -21680,7 +21680,7 @@ class @scoped { }
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62931")]
+        [Fact, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
         public void ScopedReserved_TypeParameter()
         {
             var source = """
@@ -21735,7 +21735,7 @@ class D2
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62931")]
+        [Fact, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
         public void ScopedReserved_Alias()
         {
             var source = """
@@ -21762,7 +21762,7 @@ using scoped = System.Int32;
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62931")]
+        [Fact, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
         public void ScopedReserved_Alias_Escaped()
         {
             var source = """
@@ -22492,7 +22492,7 @@ record struct S
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(8, 6));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/62691")]
+        [WorkItem(62691, "https://github.com/dotnet/roslyn/issues/62691")]
         [Fact]
         public void UnscopedRefAttribute_RefRefStructParameter_01()
         {
@@ -22521,7 +22521,7 @@ class Program
         }
 
         [CombinatorialData]
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/63070")]
+        [Theory, WorkItem(63070, "https://github.com/dotnet/roslyn/issues/63070")]
         public void UnscopedRefAttribute_RefRefStructParameter_02(bool useCompilationReference)
         {
             var sourceA =
@@ -22622,7 +22622,7 @@ public class A<T>
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(18, 20));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63057")]
+        [Fact, WorkItem(63057, "https://github.com/dotnet/roslyn/issues/63057")]
         public void UnscopedScoped_Source()
         {
             var sourceA =
@@ -22674,7 +22674,7 @@ public class A<T>
             VerifyParameterSymbol(type.GetMethod("F4").Parameters[0], "R<T> t4", RefKind.None, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63070")]
+        [Fact, WorkItem(63070, "https://github.com/dotnet/roslyn/issues/63070")]
         public void UnscopedScoped_Metadata()
         {
             // Equivalent to:
@@ -23439,7 +23439,7 @@ class Program
             VerifyParameterSymbol(lambdas[3].Parameters[0], "ref R<System.Object> r2", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: false);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64569")]
+        [WorkItem(64569, "https://github.com/dotnet/roslyn/issues/64569")]
         [Fact]
         public void UnscopedRefAttribute_RefParameter_01()
         {
@@ -23503,7 +23503,7 @@ ref struct R
                 Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "i6").WithArguments("i6").WithLocation(29, 25));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64569")]
+        [WorkItem(64569, "https://github.com/dotnet/roslyn/issues/64569")]
         [Fact]
         public void UnscopedRefAttribute_RefParameter_02()
         {
@@ -23863,7 +23863,7 @@ class Program
             VerifyParameterSymbol(typeA.GetMethod("ScopedRefAndUnscopedRef").Parameters[0], "out System.Int32 i", RefKind.Out, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64778")]
+        [WorkItem(64778, "https://github.com/dotnet/roslyn/issues/64778")]
         [Fact]
         public void UnscopedRefAttribute_ScopeRefAttribute_RefToRefStruct()
         {
@@ -23966,7 +23966,7 @@ class Program
         }
 
         // As above, but with ref readonly parameters.
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64778")]
+        [WorkItem(64778, "https://github.com/dotnet/roslyn/issues/64778")]
         [Fact]
         public void UnscopedRefAttribute_ScopeRefAttribute_RefReadOnlyToRefStruct()
         {
@@ -24074,7 +24074,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63529")]
+        [WorkItem(63529, "https://github.com/dotnet/roslyn/issues/63529")]
         public void CallUnscopedRefMethodFromScopedOne()
         {
             var source =
@@ -24558,7 +24558,7 @@ public delegate ref T D5<T>(out R<T> r5);
             }
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63761")]
+        [WorkItem(63761, "https://github.com/dotnet/roslyn/issues/63761")]
         [Theory]
         [CombinatorialData]
         public void RefSafetyRulesAttribute_11(bool useCompilationReference)
@@ -24939,7 +24939,7 @@ public class A
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64508")]
+        [WorkItem(64508, "https://github.com/dotnet/roslyn/issues/64508")]
         public void UnscopedRefAttribute_InterfaceImplementation_01()
         {
             string source = """
@@ -25016,7 +25016,7 @@ public class A
 
         // As above, but interface members are also marked [UnscopedRef].
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64508")]
+        [WorkItem(64508, "https://github.com/dotnet/roslyn/issues/64508")]
         public void UnscopedRefAttribute_InterfaceImplementation_02()
         {
             string source = """
@@ -25104,7 +25104,7 @@ public class A
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64508")]
+        [WorkItem(64508, "https://github.com/dotnet/roslyn/issues/64508")]
         public void UnscopedRefAttribute_InterfaceImplementation_03()
         {
             string source = """
@@ -25621,7 +25621,7 @@ public class A
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(17, 6));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64507")]
+        [WorkItem(64507, "https://github.com/dotnet/roslyn/issues/64507")]
         [Theory]
         [InlineData(0)]
         [InlineData(-1)]
@@ -25677,7 +25677,7 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             Assert.Equal(version == 11, method.ContainingModule.UseUpdatedEscapeRules);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64507")]
+        [WorkItem(64507, "https://github.com/dotnet/roslyn/issues/64507")]
         [Fact]
         public void RefSafetyRulesAttribute_UnrecognizedConstructor_NoArguments()
         {
@@ -25716,7 +25716,7 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             Assert.False(method.ContainingModule.UseUpdatedEscapeRules);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64507")]
+        [WorkItem(64507, "https://github.com/dotnet/roslyn/issues/64507")]
         [Fact]
         public void RefSafetyRulesAttribute_UnrecognizedConstructor_StringArgument()
         {
@@ -25806,7 +25806,7 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             Assert.Equal(expectedUseUpdatedEscapeRules, method.ContainingModule.UseUpdatedEscapeRules);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63691")]
+        [WorkItem(63691, "https://github.com/dotnet/roslyn/issues/63691")]
         [Theory]
         [CombinatorialData]
         public void DetectUpdatedEscapeRulesFromCorlib(
@@ -25863,7 +25863,7 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             Assert.False(module.UseUpdatedEscapeRules);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63691")]
+        [WorkItem(63691, "https://github.com/dotnet/roslyn/issues/63691")]
         [Theory]
         [CombinatorialData]
         public void DetectUpdatedEscapeRulesFromCorlib_Retargeting(
@@ -25929,7 +25929,7 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             Assert.False(module.UseUpdatedEscapeRules);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63691")]
+        [WorkItem(63691, "https://github.com/dotnet/roslyn/issues/63691")]
         [Theory]
         [InlineData("System.Runtime", 7, 0, false)]
         [InlineData("System.Runtime", 7, 1, false)]
@@ -25995,7 +25995,7 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63565")]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
         public void UnscopedRefInInferredDelegateType_01()
         {
             var source =
@@ -26043,7 +26043,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63565")]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
         public void UnscopedRefInInferredDelegateType_02()
         {
             var source =
@@ -26095,7 +26095,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63565")]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
         public void UnscopedRefInInferredDelegateType_03()
         {
             var source =
@@ -26146,7 +26146,7 @@ public class C1
             Assert.Equal(3, count);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63526")]
+        [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
         public void UnscopedRef_ArgumentsMustMatch_01()
         {
             var source = """
@@ -27073,7 +27073,7 @@ struct S<T> : System.IDisposable
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63526")]
+        [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
         public void ReturnOnlyScope_01()
         {
             // test that return scope is used in all return-ey locations.
@@ -27150,7 +27150,7 @@ struct S<T> : System.IDisposable
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63526")]
+        [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
         public void ReturnOnlyScope_02()
         {
             var source = """
@@ -27266,7 +27266,7 @@ struct S<T> : System.IDisposable
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63526")]
+        [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
         public void ReturnOnlyScope_02_UnsafeContext()
         {
             var source = """
@@ -27373,7 +27373,7 @@ struct S<T> : System.IDisposable
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63526")]
+        [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
         public void ReturnOnlyScope_03()
         {
             var source = """
@@ -27538,7 +27538,7 @@ struct S<T> : System.IDisposable
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63526")]
+        [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
         public void ReturnOnlyScope_UnsafeStatement()
         {
             var source = """
@@ -27694,7 +27694,7 @@ struct S<T> : System.IDisposable
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/62094")]
+        [WorkItem(62094, "https://github.com/dotnet/roslyn/issues/62094")]
         public void OutReturnOnly_4()
         {
             var source = """
@@ -27767,7 +27767,7 @@ struct S<T> : System.IDisposable
                 );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64720")]
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
         [ConditionalTheory(typeof(CoreClrOnly))]
         [InlineData("ref")]
         [InlineData("ref readonly")]
@@ -27810,7 +27810,7 @@ $@"{{
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64720")]
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
         [ConditionalFact(typeof(CoreClrOnly))]
         public void FieldInitializer_02A()
         {
@@ -27841,7 +27841,7 @@ ref struct R
         }
 
         // Similar to above but with scoped parameter.
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64720")]
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
         [ConditionalFact(typeof(CoreClrOnly))]
         public void FieldInitializer_02B()
         {
@@ -27900,7 +27900,7 @@ class Program
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64725")]
+        [WorkItem(64725, "https://github.com/dotnet/roslyn/issues/64725")]
         [ConditionalFact(typeof(CoreClrOnly))]
         public void FieldInitializer_03()
         {
@@ -27928,7 +27928,7 @@ ref struct R
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(5, 28));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64725")]
+        [WorkItem(64725, "https://github.com/dotnet/roslyn/issues/64725")]
         [ConditionalFact(typeof(CoreClrOnly))]
         public void FieldInitializer_04()
         {
@@ -27963,7 +27963,7 @@ ref struct R
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[1]").WithArguments("System.Span<byte>").WithLocation(5, 31));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64725")]
+        [WorkItem(64725, "https://github.com/dotnet/roslyn/issues/64725")]
         [ConditionalFact(typeof(CoreClrOnly))]
         public void FieldInitializer_05()
         {
@@ -27988,7 +27988,7 @@ ref struct R
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "stackalloc int[1]").WithLocation(4, 39));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64720")]
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
         [ConditionalFact(typeof(CoreClrOnly))]
         public void FieldInitializer_06A()
         {
@@ -28008,7 +28008,7 @@ ref struct R
         }
 
         // Similar to above but with [UnscopedRef] out parameter.
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64720")]
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
         [ConditionalFact(typeof(CoreClrOnly))]
         public void FieldInitializer_06B()
         {
@@ -28041,7 +28041,7 @@ ref struct R
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "var b2").WithArguments("b2").WithLocation(5, 45));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64720")]
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
         [ConditionalFact(typeof(CoreClrOnly))]
         public void FieldInitializer_07()
         {
@@ -28188,7 +28188,7 @@ Block[B2] - Exit
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63565")]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
         public void UnscopedRefAttribute_DelegateConversion_01()
         {
             string source = """
@@ -28213,7 +28213,7 @@ Block[B2] - Exit
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63565")]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
         public void UnscopedRefAttribute_DelegateConversion_02()
         {
             string source = """
@@ -28245,7 +28245,7 @@ Block[B2] - Exit
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63565")]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
         public void UnscopedRefAttribute_DelegateConversion_03()
         {
             string source = """
@@ -28285,7 +28285,7 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "F3").WithArguments("x", "<anonymous delegate>").WithLocation(15, 14));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64045")]
+        [Fact, WorkItem(64045, "https://github.com/dotnet/roslyn/issues/64045")]
         public void ConstructorInvocationValEscape_01()
         {
             var source = """
@@ -28337,7 +28337,7 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "i4").WithArguments("i4").WithLocation(12, 27));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64045")]
+        [Fact, WorkItem(64045, "https://github.com/dotnet/roslyn/issues/64045")]
         public void ConstructorInvocationValEscape_02()
         {
             var source = """
@@ -28394,7 +28394,7 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "i4").WithArguments("i4").WithLocation(14, 31));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65648")]
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
         public void ReturnRefToRefStruct_ValEscape_01()
         {
             var source = """
@@ -28441,7 +28441,7 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefMethod().RefField = ref value").WithArguments("RefField", "value").WithLocation(20, 9));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65648")]
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
         public void ReturnRefToRefStruct_ValEscape_02()
         {
             var source = """
@@ -28536,7 +28536,7 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefMethod().RefField = ref value").WithArguments("RefField", "value").WithLocation(47, 9));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65648")]
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
         public void ReturnRefToRefStruct_ValEscape_03()
         {
             var source = """
@@ -28603,7 +28603,7 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "value").WithArguments("value").WithLocation(22, 44));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65648")]
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
         public void ReturnRefToRefStruct_ValEscape_04()
         {
             // test that the appropriate filtering of escape-values is occurring when the RTRS expression is on the RHS of an an assignment.
@@ -28642,7 +28642,7 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(10, 14));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65648")]
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
         public void ReturnRefToRefStruct_RefEscape_01()
         {
             var source = """
@@ -28681,7 +28681,7 @@ Block[B2] - Exit
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65648")]
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
         public void ReturnRefToRefStruct_RefEscape_BothScopedAndUnscopedRefParameters()
         {
             var source = """
@@ -28712,7 +28712,7 @@ Block[B2] - Exit
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65648")]
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
         public void ReturnRefToRefStruct_RefEscape_02()
         {
             var source = """
@@ -28749,7 +28749,7 @@ Block[B2] - Exit
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65648")]
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
         public void ReturnRefToRefStruct_VariousInputAndOutputRefKinds()
         {
             var source = """
@@ -28805,7 +28805,7 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "GetReadonlyReference3(out s1).RefField").WithArguments("method", "GetReadonlyReference3").WithLocation(14, 9));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/66128")]
+        [WorkItem(66128, "https://github.com/dotnet/roslyn/issues/66128")]
         [ConditionalFact(typeof(CoreClrOnly))]
         public void DefensiveCopy_RefReadOnlyReceiver_01()
         {
@@ -28859,7 +28859,7 @@ Block[B2] - Exit
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/66128")]
+        [WorkItem(66128, "https://github.com/dotnet/roslyn/issues/66128")]
         [ConditionalFact(typeof(CoreClrOnly))]
         public void DefensiveCopy_RefReadOnlyReceiver_02()
         {
@@ -28928,7 +28928,7 @@ Block[B2] - Exit
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/66128")]
+        [WorkItem(66128, "https://github.com/dotnet/roslyn/issues/66128")]
         [ConditionalFact(typeof(CoreClrOnly))]
         public void DefensiveCopy_RefReadOnlyReceiver_03()
         {

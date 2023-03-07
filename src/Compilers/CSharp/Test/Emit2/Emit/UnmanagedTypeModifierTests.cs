@@ -1387,7 +1387,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/25654")]
+        [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
         public void UnmanagedConstraint_PointersTypeInference()
         {
             var code = @"

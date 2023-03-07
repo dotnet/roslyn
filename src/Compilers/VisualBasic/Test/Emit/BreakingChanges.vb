@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         ' In Dev10 (and earlier), this didn't generate an error.
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529599")>
+        <Fact, WorkItem(529599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529599")>
         Public Sub ParsePreprocessorEndIfInMethodBody()
             ParseAndVerify(<![CDATA[
                 Module Module1
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ''' Roslyn doesn't give warning BC30934 while Dev10 does (Eval ctor as no const)
         '''  but gives new warning BC42025 for accessing const field through object instance
         ''' This is an improvement in Roslyn that we are able to eval the const access through 'new object()' instance
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528223")>
+        <WorkItem(528223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528223")>
         <Fact>
         Public Sub BC30934ERR_RequiredAttributeConstConversion2_1()
             Dim errs = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -89,7 +89,7 @@ End Class
             Assert.Equal(DiagnosticSeverity.Warning, errs(0).Severity)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542389")>
+        <Fact(), WorkItem(542389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542389")>
         Public Sub BC30519_InferVariableAsRHSValueType()
             Dim text =
 <compilation>
@@ -116,8 +116,8 @@ End Namespace
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531529")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543241")>
+        <WorkItem(531529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531529")>
+        <WorkItem(543241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543241")>
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef01()
             Dim errs = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -148,8 +148,8 @@ End Module
             'Assert.Equal(DiagnosticSeverity.Warning, errs(0).Severity)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543241")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531310")>
+        <WorkItem(543241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543241")>
+        <WorkItem(531310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531310")>
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef02()
             Dim errs = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -179,7 +179,7 @@ End Module
             'Assert.Equal(DiagnosticSeverity.Warning, errs(0).Severity)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543241")>
+        <WorkItem(543241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543241")>
         <Fact()>
         Public Sub BC42109WRN_DefAsgUseNullRefStr01()
             Dim errs = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -211,7 +211,7 @@ End Module
             Assert.Equal(DiagnosticSeverity.Warning, errs(0).Severity)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529262")>
+        <WorkItem(529262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529262")>
         <Fact()>
         Public Sub PartialMethod_EmitNamesInProperCase()
             CompileAndVerify(
@@ -236,7 +236,7 @@ End Class
 </compilation>, expectedOutput:="Void M[T,U](T, U) | T X, U Y") 'Dev10 would emit "Void m[t,u](t, u) | t x, u y"
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529261")>
+        <WorkItem(529261, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529261")>
         <Fact()>
         Public Sub PartialMethod_AllowNonExecutableStatements()
             'Dev10 used to report errors for each of the three cases identified below. Roslyn doesn't.
@@ -275,7 +275,7 @@ End Module
                              </compilation>, expectedOutput:="Success")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543241")>
+        <WorkItem(543241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543241")>
         <Fact()>
         Public Sub BC42109WRN_DefAsgUseNullRefStr02()
             Dim errs = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -306,7 +306,7 @@ End Module
             Assert.Equal(DiagnosticSeverity.Warning, errs(0).Severity)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544500")>
+        <WorkItem(544500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544500")>
         <Fact>
         Public Sub PartialConstructors()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -354,7 +354,7 @@ BC30269: 'Private Sub New(x As T, y As C1(Of U, V).C1(Of U), z As U, w As C1(Of 
 </errors>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544500")>
+        <WorkItem(544500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544500")>
         <Fact>
         Public Sub PartialConstructors2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -382,7 +382,7 @@ BC36969: 'Sub New' cannot be declared 'Partial'.
 </errors>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528311")>
+        <WorkItem(528311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528311")>
         <Fact()>
         Public Sub TestHideBySigChangeForOverriddenMethods()
             Dim vbCompilation = CreateVisualBasicCompilation("TestHideBySigChangeForOverriddenMethods",
@@ -470,7 +470,7 @@ public class Program
             csCompilation.VerifyDiagnostics() 'No errors
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529471")>
+        <Fact(), WorkItem(529471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529471")>
         Public Sub LiftedLogicalOperationsNoSideEffect()
             CompileAndVerify(
                 <compilation>
@@ -520,7 +520,7 @@ End Module
                 </compilation>, expectedOutput:="F OrElse F=False |T AndAlso T=True | F Or F=False | T Or F=True | T And T=True | F And T=False")
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545050")>
+        <Fact(), WorkItem(545050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545050")>
         Public Sub NoBC32126ERR_AddressOfNullableMethod_Static()
 
             ' Native: error BC32126: Methods of 'System.Nullable(Of T)' cannot be used as operands of the 'AddressOf' operator.
@@ -539,7 +539,7 @@ End Module
     </compilation>).AssertNoDiagnostics()
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529544")>
+        <Fact(), WorkItem(529544, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529544")>
         Public Sub TestMissingSynchronizedFlagForEvents()
             Dim comp = CreateVisualBasicCompilation("TestMissingSynchronizedFlagForEvents",
             <![CDATA[Public Class C1
@@ -558,7 +558,7 @@ End Class]]>,
             verifier.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529653")>
+        <Fact, WorkItem(529653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529653")>
         Public Sub TestExecutionOrderForHandles()
             Dim vbCompilation = CreateVisualBasicCompilation("TestExecutionOrderForHandles",
             <![CDATA[Option Strict Off
@@ -619,7 +619,7 @@ Base F]]>)
             vbVerifier.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529574")>
+        <Fact, WorkItem(529574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529574")>
         Public Sub TestCrossLanguageOptionalAndParamarrayForHandles()
             Dim csCompilation = CreateCSharpCompilation("TestCrossLanguageOptionalAndParamarrayForHandles_CS",
             <![CDATA[public class CSClass
@@ -671,7 +671,7 @@ End Module]]>,
                 Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"))
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569036")>
+        <Fact, WorkItem(569036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569036")>
         Public Sub DifferenceInExceptionEvaluationWithRoslyn()
             CompileAndVerify(
 <compilation>

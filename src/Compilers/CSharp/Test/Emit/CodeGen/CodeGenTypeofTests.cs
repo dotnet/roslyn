@@ -275,7 +275,7 @@ Class2`2[T,U]");
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")]
+        [WorkItem(542581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")]
         [Fact]
         public void TestTypeofInheritedNestedTypeThroughUnboundGeneric_01()
         {
@@ -334,8 +334,8 @@ H`2[T,System.Int32]";
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/9850")]
+        [WorkItem(542581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")]
+        [WorkItem(9850, "https://github.com/dotnet/roslyn/issues/9850")]
         [Fact]
         public void TestTypeofInheritedNestedTypeThroughUnboundGeneric_02()
         {
@@ -393,7 +393,7 @@ True";
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")]
+        [WorkItem(542581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")]
         [Fact]
         public void TestTypeofInheritedNestedTypeThroughUnboundGeneric_Attribute()
         {
@@ -632,7 +632,7 @@ Outer`1+Inner`1[System.Int32,System.Byte]");
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541600")]
+        [WorkItem(541600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541600")]
         [Fact]
         public void TestTypeOfAlias4TypeMemberOfGeneric()
         {
@@ -660,7 +660,7 @@ public class mem178
             CompileAndVerify(source, expectedOutput: @"TestClass`1+TestEnum[System.String]");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541618")]
+        [WorkItem(541618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541618")]
         [Fact]
         public void TestTypeOfAlias5TypeMemberOfGeneric()
         {

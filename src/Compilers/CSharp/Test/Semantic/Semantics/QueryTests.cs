@@ -38,7 +38,7 @@ class Query
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17838")]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
         public void FromClause_IOperation()
         {
             string source = @"
@@ -104,7 +104,7 @@ class Query
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17838")]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
         public void QueryContinuation_IOperation()
         {
             string source = @"
@@ -185,7 +185,7 @@ class Query
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17838")]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
         public void SelectClause_IOperation()
         {
             string source = @"
@@ -253,7 +253,7 @@ class Query
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17838")]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
         public void GroupByClause_IOperation()
         {
             string source = @"
@@ -337,7 +337,7 @@ class Query
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17838")]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
         public void CastInFromClause_IOperation()
         {
             string source = @"
@@ -407,7 +407,7 @@ class Query
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17838")]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
         public void WhereClause_IOperation()
         {
             string source = @"
@@ -485,7 +485,7 @@ class Query
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17838")]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
         public void FromJoinSelect_IOperation()
         {
             string source = @"
@@ -590,7 +590,7 @@ class Query
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17838")]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
         public void OrderByClause_IOperation()
         {
             string source = @"
@@ -685,7 +685,7 @@ class Query
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17838")]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
         public void GroupJoinClause_IOperation()
         {
             string source = @"
@@ -799,7 +799,7 @@ class Query
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17838")]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
         public void SelectMany_IOperation()
         {
             string source = @"
@@ -903,7 +903,7 @@ class Query
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17838")]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
         public void LetClause_IOperation()
         {
             string source = @"
@@ -1076,7 +1076,7 @@ class Query
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17838")]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
         public void TransparentIdentifiers_FromLet_IOperation()
         {
             string source = @"
@@ -1489,7 +1489,7 @@ class Query
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17838")]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
         public void RangeVariables_IOperation()
         {
             string source = @"
@@ -1781,7 +1781,7 @@ class Query
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541774")]
+        [WorkItem(541774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541774")]
         [Fact]
         public void MultipleFromClauseIdentifierInExprNotInContext()
         {
@@ -1830,7 +1830,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541906")]
+        [WorkItem(541906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541906")]
         [Fact]
         public void NullLiteralFollowingJoinInQuery()
         {
@@ -1903,7 +1903,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541779")]
+        [WorkItem(541779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541779")]
         [Fact]
         public void MultipleFromClauseQueryExpr()
         {
@@ -1933,7 +1933,7 @@ class Program
             CompileAndVerify(csSource, expectedOutput: "3 3 4 4");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541782")]
+        [WorkItem(541782, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541782")]
         [Fact]
         public void FromSelectQueryExprOnArraysWithTypeImplicit()
         {
@@ -1960,7 +1960,7 @@ class Program
             CompileAndVerify(csSource, expectedOutput: "3 4");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541788")]
+        [WorkItem(541788, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541788")]
         [Fact]
         public void JoinClauseTest()
         {
@@ -1990,7 +1990,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17838")]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
         public void JoinClause_IOperation()
         {
             string source = @"
@@ -2092,7 +2092,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541789")]
+        [WorkItem(541789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541789")]
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
         [Fact]
         public void WhereClauseTest()
@@ -2123,7 +2123,7 @@ class Program
             CompileAndVerify(csSource, expectedOutput: "3 4");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541942")]
+        [WorkItem(541942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541942")]
         [Fact]
         public void WhereDefinedInType()
         {
@@ -2249,7 +2249,7 @@ public class Test2
             Assert.Equal("System.Int32 System.Int32.op_Addition(System.Int32 left, System.Int32 right)", info2.Symbol.ToTestDisplayString());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541806")]
+        [WorkItem(541806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541806")]
         [Fact]
         public void GetDeclaredSymbolForQueryContinuation()
         {
@@ -2277,7 +2277,7 @@ public class Test2
             Assert.Equal(SymbolKind.RangeVariable, symbol.Kind);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541899")]
+        [WorkItem(541899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541899")]
         [Fact]
         public void ComputeQueryVariableType()
         {
@@ -2301,7 +2301,7 @@ public class Test2
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541893")]
+        [WorkItem(541893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541893")]
         [Fact]
         public void GetDeclaredSymbolForJoinIntoClause()
         {
@@ -2331,8 +2331,8 @@ static class Test
             Assert.Equal("? x8", symbol.ToTestDisplayString());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541982")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543494")]
+        [WorkItem(541982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541982")]
+        [WorkItem(543494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543494")]
         [Fact()]
         public void GetDeclaredSymbolAddAccessorDeclIncompleteQuery()
         {
@@ -2360,7 +2360,7 @@ public class QueryExpressionTest
             Assert.True(symbols.All(s => ReferenceEquals(s, null)));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542235")]
+        [WorkItem(542235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542235")]
         [Fact]
         public void TwoFromClauseFollowedBySelectClause()
         {
@@ -2400,7 +2400,7 @@ class Test
             Assert.Equal(CandidateReason.None, symbolInfoForSelect.CandidateReason);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528747")]
+        [WorkItem(528747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528747")]
         [Fact]
         public void SemanticInfoForOrderingClauses()
         {
@@ -2434,7 +2434,7 @@ public class QueryExpressionTest
             Assert.Equal(3, count);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542266")]
+        [WorkItem(542266, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542266")]
         [Fact]
         public void FromOrderBySelectQueryTranslation()
         {
@@ -2487,7 +2487,7 @@ class Program
             Assert.Null(symbolInfoForSelect.Symbol);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528756")]
+        [WorkItem(528756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528756")]
         [Fact]
         public void FromWhereSelectTranslation()
         {
@@ -2525,7 +2525,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_QueryNoProviderStandard, "System.Linq.Enumerable.Range(4, 5).Where(n => n > 10)").WithArguments("System.Collections.Generic.IEnumerable<int>", "Select"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528760")]
+        [WorkItem(528760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528760")]
         [Fact]
         public void FromJoinSelectTranslation()
         {
@@ -2551,8 +2551,8 @@ class Program
             Assert.Null(symbolInfoForSelect.Symbol);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528761")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544585")]
+        [WorkItem(528761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528761")]
+        [WorkItem(544585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544585")]
         [Fact]
         public void OrderingSyntaxWithOverloadResolutionFailure()
         {
@@ -2586,7 +2586,7 @@ class Program
             Assert.Null(symbolInfoForOrdering.Symbol);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542292")]
+        [WorkItem(542292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542292")]
         [Fact]
         public void EmitIncompleteQueryWithSyntaxErrors()
         {
@@ -2608,7 +2608,7 @@ class Program
             }
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542294")]
+        [WorkItem(542294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542294")]
         [Fact]
         public void EmitQueryWithBindErrors()
         {
@@ -2630,7 +2630,7 @@ class Program
             }
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542372")]
+        [WorkItem(542372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542372")]
         [Fact]
         public void BindToIncompleteSelectManyDecl()
         {
@@ -2665,7 +2665,7 @@ class C<T>
             Assert.NotEmpty(diags);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542419")]
+        [WorkItem(542419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542419")]
         [Fact]
         public void BindIdentifierInWhereErrorTolerance()
         {
@@ -2691,7 +2691,7 @@ class Program
             Assert.NotEmpty(diags);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542460")]
+        [WorkItem(542460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542460")]
         [Fact]
         public void QueryWithMultipleParseErrorsAndScriptParseOption()
         {
@@ -2719,7 +2719,7 @@ public class QueryExpressionTest
             Assert.Null(symbolInfo.Symbol);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542496")]
+        [WorkItem(542496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542496")]
         [Fact]
         public void QueryExpressionInFieldInitReferencingAnotherFieldWithScriptParseOption()
         {
@@ -2746,7 +2746,7 @@ class P
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542559")]
+        [WorkItem(542559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542559")]
         [ConditionalFact(typeof(DesktopOnly))]
         public void StaticTypeInFromClause()
         {
@@ -2829,7 +2829,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542560")]
+        [WorkItem(542560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542560")]
         [Fact]
         public void MethodGroupInFromClause()
         {
@@ -2874,7 +2874,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542558")]
+        [WorkItem(542558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542558")]
         [Fact]
         public void SelectFromType01()
         {
@@ -2907,7 +2907,7 @@ class C
             Assert.Equal("Select", infoSelect.Symbol.Name);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542558")]
+        [WorkItem(542558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542558")]
         [Fact]
         public void SelectFromType02()
         {
@@ -2965,7 +2965,7 @@ class C
             );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542624")]
+        [WorkItem(542624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542624")]
         [Fact]
         public void QueryColorColor()
         {
@@ -3004,7 +3004,7 @@ class Program
             );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542704")]
+        [WorkItem(542704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542704")]
         [Fact]
         public void QueryOnSourceWithGroupByMethod()
         {
@@ -3109,7 +3109,7 @@ public class QueryExpressionTest
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543787")]
+        [WorkItem(543787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543787")]
         [ClrOnlyFact]
         public void GetSymbolInfoOfSelectNodeWhenTypeOfRangeVariableIsErrorType()
         {
@@ -3141,7 +3141,7 @@ class Test
             Assert.Equal(SymbolKind.ErrorType, typeInfo.Type.Kind);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543790")]
+        [WorkItem(543790, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543790")]
         [Fact]
         public void GetQueryClauseInfoForQueryWithSyntaxErrors()
         {
@@ -3168,7 +3168,7 @@ class Test
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545797")]
+        [WorkItem(545797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545797")]
         [Fact]
         public void QueryOnNull()
         {
@@ -3211,7 +3211,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Object, I
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545797")]
+        [WorkItem(545797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545797")]
         [Fact]
         public void QueryOnLambda()
         {
@@ -3257,7 +3257,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Object, I
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545444")]
+        [WorkItem(545444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545444")]
         [Fact]
         public void RefOmittedOnComCall()
         {
@@ -3293,7 +3293,7 @@ class Test
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5728")]
+        [Fact, WorkItem(5728, "https://github.com/dotnet/roslyn/issues/5728")]
         public void RefOmittedOnComCallErr()
         {
             string source = @"
@@ -3340,7 +3340,7 @@ class Test1
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529350")]
+        [WorkItem(529350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529350")]
         [Fact]
         public void BindLambdaBodyWhenError()
         {
@@ -3739,7 +3739,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: X, IsInvalid) (S
         }
 
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
+        [WorkItem(204561, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
         public void Bug204561_01()
         {
             string sourceCode =
@@ -3774,7 +3774,7 @@ public static class TestExtensions
         }
 
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
+        [WorkItem(204561, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
         public void Bug204561_02()
         {
             string sourceCode =
@@ -3813,7 +3813,7 @@ static class TestExtensions
         }
 
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
+        [WorkItem(204561, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
         public void Bug204561_03()
         {
             string sourceCode =
@@ -3856,7 +3856,7 @@ static class TestExtensions
         }
 
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
+        [WorkItem(204561, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
         public void Bug204561_04()
         {
             string sourceCode =
@@ -3882,7 +3882,7 @@ class Test
             CompileAndVerify(compilation, expectedOutput: "Select");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/15910")]
+        [WorkItem(15910, "https://github.com/dotnet/roslyn/issues/15910")]
         [Fact]
         public void ExpressionVariablesInQueryClause_01()
         {
@@ -3953,7 +3953,7 @@ class Program
             CreateCompilationWithMscorlib40AndSystemCore(csSource).VerifyDiagnostics();
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/15910")]
+        [WorkItem(15910, "https://github.com/dotnet/roslyn/issues/15910")]
         [Fact]
         public void ExpressionVariablesInQueryClause_02()
         {
@@ -4024,7 +4024,7 @@ class Program
             CreateCompilationWithMscorlib40AndSystemCore(csSource).VerifyDiagnostics();
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/15910")]
+        [WorkItem(15910, "https://github.com/dotnet/roslyn/issues/15910")]
         [Fact]
         public void ExpressionVariablesInQueryClause_03()
         {
@@ -4116,7 +4116,7 @@ namespace System
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14689")]
+        [Fact, WorkItem(14689, "https://github.com/dotnet/roslyn/issues/14689")]
         public void SelectFromNamespaceShouldGiveAnError()
         {
             string source = @"
@@ -4169,7 +4169,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12052")]
+        [Fact, WorkItem(12052, "https://github.com/dotnet/roslyn/issues/12052")]
         public void LambdaParameterConflictsWithRangeVariable_01()
         {
             string source = @"
@@ -4232,7 +4232,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12052")]
+        [Fact, WorkItem(12052, "https://github.com/dotnet/roslyn/issues/12052")]
         public void LambdaParameterConflictsWithRangeVariable_02()
         {
             string source = @"
@@ -4290,7 +4290,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17838")]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
         public void IOperationForQueryClause()
         {
             string source = @"
@@ -4341,7 +4341,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17838")]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
         public void IOperationForRangeVariableDefinition()
         {
             string source = @"
@@ -4393,7 +4393,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17838")]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
         public void IOperationForRangeVariableReference()
         {
             string source = @"
@@ -4417,7 +4417,7 @@ IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.
             VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21484")]
+        [Fact, WorkItem(21484, "https://github.com/dotnet/roslyn/issues/21484")]
         public void QueryOnTypeExpression()
         {
             var code = @"
@@ -4469,7 +4469,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50316")]
+        [Fact, WorkItem(50316, "https://github.com/dotnet/roslyn/issues/50316")]
         public void SetOnlyProperty()
         {
             var comp = CreateCompilation(@"
@@ -4495,7 +4495,7 @@ public class C {
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50316")]
+        [Fact, WorkItem(50316, "https://github.com/dotnet/roslyn/issues/50316")]
         public void DefaultIndexedPropertyParameters_IndexerCall()
         {
             CompileAndVerify(@"
@@ -4518,7 +4518,7 @@ public class C {
 ", expectedOutput: "2");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50316")]
+        [Fact, WorkItem(50316, "https://github.com/dotnet/roslyn/issues/50316")]
         public void DefaultIndexedPropertyParameters_PropertyGroup()
         {
             var vb = CreateVisualBasicCompilation(@"

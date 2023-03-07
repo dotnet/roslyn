@@ -45,8 +45,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/33564")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720708")>
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(720708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720708")>
         Public Sub TestLiteralDefaultStringValues()
 
             ' string

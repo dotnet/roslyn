@@ -83,7 +83,7 @@ public class T
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546862")]
+        [WorkItem(546862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546862")]
         [Fact]
         public void InvalidUnicodeString()
         {
@@ -382,7 +382,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543342")]
+        [WorkItem(543342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543342")]
         [Fact]
         public void IteratorLocalConstants()
         {
@@ -467,7 +467,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         public void LocalConstantsTypes()
         {
             var text = @"
@@ -647,7 +647,7 @@ this is a string constant that is too long to fit into the PDB"";
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
+        [WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
         [Fact]
         public void StringWithNulCharacter_MaxSupportedLength()
         {
@@ -707,7 +707,7 @@ class C
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
+        [WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
         [Fact]
         public void StringWithNulCharacter_OverSupportedLength()
         {

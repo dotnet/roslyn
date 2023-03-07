@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return DirectCast(node, TypeSyntax)
         End Function
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546400")>
+        <Fact(), WorkItem(546400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546400")>
         Public Sub TestGetEnclosingBinder()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
       <compilation name="Compilation">
@@ -610,7 +610,7 @@ End Class
             Assert.Equal(cBase1, cBase2) ' check that the Bindings API returned the actual base type.
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538878")>
+        <WorkItem(538878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538878")>
         <Fact>
         Public Sub TestTypeBinding4()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -641,7 +641,7 @@ End Class
             Assert.Same(db, ef.BaseType)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539968")>
+        <WorkItem(539968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539968")>
         <Fact>
         Public Sub BindingInaccessibleType()
 
@@ -681,7 +681,7 @@ End Class
             Assert.Equal(TypeKind.Class, info.Type.TypeKind)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539968")>
+        <WorkItem(539968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539968")>
         <Fact>
         Public Sub InstantiatingNamespace()
 

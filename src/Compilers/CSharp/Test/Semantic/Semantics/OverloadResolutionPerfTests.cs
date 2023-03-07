@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     // test timeout, without shortcuts in overload resolution.
     public class OverloadResolutionPerfTests : CSharpTestBase
     {
-        [WorkItem("https://github.com/dotnet/roslyn/issues/13685")]
+        [WorkItem(13685, "https://github.com/dotnet/roslyn/issues/13685")]
         [ConditionalFact(typeof(IsRelease), typeof(NoIOperationValidation))]
         public void Overloads()
         {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("C.F(C0)", "C.F(C1)").WithLocation(3, 23));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/13685")]
+        [WorkItem(13685, "https://github.com/dotnet/roslyn/issues/13685")]
         [ConditionalFact(typeof(IsRelease), typeof(NoIOperationValidation))]
         public void BinaryOperatorOverloads()
         {
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyDiagnostics(diagnostics);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/29360")]
+        [Fact, WorkItem(29360, "https://github.com/dotnet/roslyn/pull/29360")]
         public void RaceConditionOnImproperlyCapturedAnalyzedArguments()
         {
             const int n = 6;
@@ -235,7 +235,7 @@ public static class Class
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/35949")]
+        [WorkItem(35949, "https://github.com/dotnet/roslyn/issues/35949")]
         [ConditionalFact(typeof(IsRelease))]
         public void NotNull_Complexity()
         {
@@ -288,7 +288,7 @@ static class Ext
         }
 
         [ConditionalFact(typeof(IsRelease))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40495")]
+        [WorkItem(40495, "https://github.com/dotnet/roslyn/issues/40495")]
         public void NestedLambdas_01()
         {
             var source =
@@ -346,7 +346,7 @@ class Program
         // Test should complete in several seconds if UnboundLambda.ReallyBind
         // uses results from _returnInferenceCache.
         [ConditionalFact(typeof(IsRelease))]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1083969")]
+        [WorkItem(1083969, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1083969")]
         public void NestedLambdas_02()
         {
             var source =
@@ -383,7 +383,7 @@ class Program
         }
 
         [ConditionalFact(typeof(NoIOperationValidation), Reason = "Timeouts")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/48886")]
+        [WorkItem(48886, "https://github.com/dotnet/roslyn/issues/48886")]
         public void ArrayInitializationAnonymousTypes()
         {
             const int nTypes = 250;
@@ -410,7 +410,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49746")]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly()
         {
             const int nMethods = 10000;
@@ -436,7 +436,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49745")]
+        [WorkItem(49745, "https://github.com/dotnet/roslyn/issues/49745")]
         public void NullableStateLambdas()
         {
             const int nFunctions = 10000;
@@ -466,7 +466,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49745")]
+        [WorkItem(49745, "https://github.com/dotnet/roslyn/issues/49745")]
         public void NullableStateLocalFunctions()
         {
             const int nFunctions = 2000;
@@ -587,7 +587,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "value").WithLocation(16395, 16));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/51739")]
+        [WorkItem(51739, "https://github.com/dotnet/roslyn/issues/51739")]
         [ConditionalFact(typeof(IsRelease))]
         public void NullableAnalysisNestedExpressionsInMethod()
         {
@@ -618,7 +618,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_InsufficientStack, "new").WithLocation(7, 15));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/51739")]
+        [WorkItem(51739, "https://github.com/dotnet/roslyn/issues/51739")]
         [ConditionalFact(typeof(IsRelease))]
         public void NullableAnalysisNestedExpressionsInLocalFunction()
         {

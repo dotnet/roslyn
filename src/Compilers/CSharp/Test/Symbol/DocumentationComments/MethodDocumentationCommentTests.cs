@@ -166,14 +166,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("M:Acme.MyList`1.Test(`0)", _acmeNamespace.GetTypeMembers("MyList", 1).Single().GetMembers("Test").Single().GetDocumentationCommentId());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766313")]
+        [WorkItem(766313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766313")]
         [Fact]
         public void TestMethodWithGenericDeclaringTypeAsParameter()
         {
             Assert.Equal("M:Acme.MyList`1.Zip(Acme.MyList{`0})", _acmeNamespace.GetTypeMembers("MyList", 1).Single().GetMembers("Zip").Single().GetDocumentationCommentId());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766313")]
+        [WorkItem(766313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766313")]
         [Fact]
         public void TestMethodWithGenericDeclaringTypeAsTypeParameter()
         {
@@ -213,14 +213,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530924")]
+        [Fact, WorkItem(530924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530924")]
         public void TestConversionOperator()
         {
             Assert.Equal("M:Acme.ValueType.op_Explicit(System.Byte)~Acme.ValueType", _acmeNamespace.GetTypeMembers("ValueType").Single().GetMembers("op_Explicit").Single().GetDocumentationCommentId());
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/4699")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/25781")]
+        [WorkItem(4699, "https://github.com/dotnet/roslyn/issues/4699")]
+        [WorkItem(25781, "https://github.com/dotnet/roslyn/issues/25781")]
         [ConditionalFact(typeof(IsEnglishLocal))]
         public void GetMalformedDocumentationCommentXml()
         {

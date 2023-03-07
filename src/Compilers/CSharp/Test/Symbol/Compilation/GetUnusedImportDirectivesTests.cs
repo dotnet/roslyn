@@ -38,7 +38,7 @@ class C
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865627")]
+        [WorkItem(865627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865627")]
         [Fact]
         public void TestUnusedExtensionMarksImportsAsUsed()
         {
@@ -262,7 +262,7 @@ public class C
             libCompilation.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
+        [WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
         [Fact]
         public void SemanticModelCallDoesNotCountsAsUse()
         {
@@ -318,7 +318,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
+        [WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
         [Fact]
         public void INF_UnusedUsingDirective()
         {
@@ -336,7 +336,7 @@ using C = System.Console;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using C = System.Console;"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
+        [WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
         [Fact]
         public void INF_UnusedExternAlias()
         {
@@ -352,7 +352,7 @@ extern alias A;
                 Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias A;"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
+        [WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
         [Fact]
         public void CrefCountsAsUse()
         {
@@ -369,7 +369,7 @@ public class C { }
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770147")]
+        [WorkItem(770147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770147")]
         [Fact]
         public void InfoAndWarnAsError()
         {
@@ -404,7 +404,7 @@ using System;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18348")]
+        [Fact, WorkItem(18348, "https://github.com/dotnet/roslyn/issues/18348")]
         public void IncorrectUnusedUsingWhenAttributeOnParameter_01()
         {
             var source1 =
@@ -432,7 +432,7 @@ partial class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18348")]
+        [Fact, WorkItem(18348, "https://github.com/dotnet/roslyn/issues/18348")]
         public void IncorrectUnusedUsingWhenAttributeOnParameter_02()
         {
             var source1 =
@@ -460,7 +460,7 @@ partial class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2773")]
+        [Fact, WorkItem(2773, "https://github.com/dotnet/roslyn/issues/2773")]
         public void UsageInDocComment()
         {
             var source = @"using X;

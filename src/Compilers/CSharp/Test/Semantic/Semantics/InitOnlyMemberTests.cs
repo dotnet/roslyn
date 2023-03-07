@@ -50,7 +50,7 @@ public class C
             Assert.True(publicProperty.SetMethod.IsInitOnly);
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/50245")]
+        [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
         public void TestCSharp8_ConsumptionInObjectInitializer(bool useMetadataImage)
         {
             string lib_cs = @"
@@ -84,7 +84,7 @@ public class D
                 );
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/50245")]
+        [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
         public void TestCSharp8_ConsumptionInNestedObjectInitializer(bool useMetadataImage)
         {
             string lib_cs = @"
@@ -121,7 +121,7 @@ public class D
                 );
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/50245")]
+        [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
         public void TestCSharp8_ConsumptionInWithExpression(bool useMetadataImage)
         {
             string lib_cs = @"
@@ -158,7 +158,7 @@ public class D
                 );
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/50245")]
+        [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
         public void TestCSharp8_ConsumptionInAssignment(bool useMetadataImage)
         {
             string lib_cs = @"
@@ -193,7 +193,7 @@ public class D
                 );
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/50245")]
+        [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
         public void TestCSharp8_ConsumptionInAttribute(bool useMetadataImage)
         {
             string lib_cs = @"
@@ -231,7 +231,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50245")]
+        [Fact, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
         public void TestCSharp8_ConsumptionWithinSameCompilation()
         {
             string source = @"
@@ -258,7 +258,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50245")]
+        [Fact, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
         public void TestCSharp8_ConsumptionWithinSameCompilation_InAttribute()
         {
             string source = @"
@@ -285,7 +285,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50245")]
+        [Fact, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
         public void TestCSharp8_ConsumptionFromCompilationReference()
         {
             string lib_cs = @"
@@ -318,7 +318,7 @@ public class D
                 );
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/50245")]
+        [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
         public void TestCSharp8_ConsumptionWithDynamicArgument(bool useMetadataImage)
         {
             string lib_cs = @"
@@ -945,7 +945,7 @@ class Other
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
         public void InitOnlyPropertyAssignmentAllowedInWithInitializer_Evaluation()
         {
             string source = @"
@@ -1659,7 +1659,7 @@ class Derived2 : Derived
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50053")]
+        [Fact, WorkItem(50053, "https://github.com/dotnet/roslyn/issues/50053")]
         public void PrivatelyImplementingInitOnlyProperty_ReferenceConversion()
         {
             string source = @"
@@ -1687,7 +1687,7 @@ public record DerivedType : BaseType
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50053")]
+        [Fact, WorkItem(50053, "https://github.com/dotnet/roslyn/issues/50053")]
         public void PrivatelyImplementingInitOnlyProperty_BoxingConversion()
         {
             string source = @"
@@ -2891,7 +2891,7 @@ public class Caller
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45657")]
+        [Fact, WorkItem(45657, "https://github.com/dotnet/roslyn/issues/45657")]
         public void ReadonlyFieldsMembers()
         {
             string source = @"
@@ -2972,7 +2972,7 @@ public class Derived : C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45657")]
+        [Fact, WorkItem(45657, "https://github.com/dotnet/roslyn/issues/45657")]
         public void ReadonlyFieldsMembers_Evaluation()
         {
             string source = @"
@@ -3006,7 +3006,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "RAN 42", verify: Verification.Skipped /* init-only */);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45657")]
+        [Fact, WorkItem(45657, "https://github.com/dotnet/roslyn/issues/45657")]
         public void ReadonlyFieldsMembers_Static()
         {
             string source = @"
@@ -4196,7 +4196,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47612")]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
         public void InitOnlyOnReadonlyStruct_AutoProp()
         {
             var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
@@ -4231,7 +4231,7 @@ public readonly struct S
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47612")]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
         public void InitOnlyOnReadonlyStruct_ManualProp()
         {
             var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
@@ -4271,7 +4271,7 @@ public readonly struct S
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47612")]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
         public void InitOnlyOnReadonlyProperty_AutoProp()
         {
             var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
@@ -4310,7 +4310,7 @@ public struct S
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47612")]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
         public void InitOnlyOnReadonlyProperty_ManualProp()
         {
             var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
@@ -4350,7 +4350,7 @@ public struct S
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47612")]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
         public void InitOnlyOnReadonlyInit_AutoProp()
         {
             var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, @"
@@ -4373,7 +4373,7 @@ public struct S
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47612")]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
         public void InitOnlyOnReadonlyInit_ManualProp()
         {
             var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, @"
@@ -4396,7 +4396,7 @@ public struct S
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/47612")]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
         public void InitOnlyOnReadonlyInit_ReassignsSelf()
         {
             var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
@@ -4454,7 +4454,7 @@ I1 is 0");
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50126")]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
         public void NestedInitializer()
         {
             var source = @"
@@ -4478,7 +4478,7 @@ public record Container(Person Person);
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50126")]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
         public void NestedInitializer_NewT()
         {
             var source = @"
@@ -4507,7 +4507,7 @@ public record Container(Person Person);
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50126")]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
         public void NestedInitializer_UsingGenericType()
         {
             var source = @"
@@ -4531,7 +4531,7 @@ public record Container<T>(T PropertyT) where T : Person;
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50126")]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
         public void NestedInitializer_UsingNew()
         {
             var source = @"
@@ -4555,7 +4555,7 @@ public record Container(Person Person);
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50126")]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
         public void NestedInitializer_UsingNewNoPia()
         {
             string pia = @"
@@ -4607,7 +4607,7 @@ class UsePia
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50696")]
+        [Fact, WorkItem(50696, "https://github.com/dotnet/roslyn/issues/50696")]
         public void PickAmbiguousTypeFromCorlib()
         {
             var corlib_cs = @"

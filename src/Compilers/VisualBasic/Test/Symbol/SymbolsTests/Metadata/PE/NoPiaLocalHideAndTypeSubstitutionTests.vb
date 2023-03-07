@@ -177,7 +177,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=531054")>
+        <WorkItem(531054, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=531054")>
         Public Sub NoPIALocalTypesEquivalentToEachOtherInterfaceAsReturnTypeInExternalAssembly()
             ' Interface - As property in external assembly
             Dim localTypeSource =
@@ -200,7 +200,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=531054")>
+        <WorkItem(531054, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=531054")>
         Public Sub NoPIALocalTypesEquivalentToEachOtherDelegateAsReturnTypeInExternalAssembly()
             'Same as previous scenario but with Delegate
             Dim localTypeSource =

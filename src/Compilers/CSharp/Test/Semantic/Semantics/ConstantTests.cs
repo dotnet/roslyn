@@ -901,8 +901,8 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/33564")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528727")]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem(528727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528727")]
         public void TestConstantNumericConversionsNotOverflow()
         {
             var source = @"
@@ -1483,7 +1483,7 @@ ulong.MinValue --> 0";
         /// Breaking change from the native compiler for
         /// certain constant expressions involving +0m and -0m.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529730")]
+        [WorkItem(529730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529730")]
         [WorkItem(1043494, "DevDiv")]
         [Fact(Skip = "1043494")]
         public void TestConstantFoldingDecimalOperations01()
@@ -1543,7 +1543,7 @@ class C
         /// Breaking change from the native compiler for
         /// certain constant expressions involving +0m and -0m.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529730")]
+        [WorkItem(529730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529730")]
         [Fact]
         public void TestConstantFoldingDecimalOperations02()
         {
@@ -1669,7 +1669,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538179")]
+        [WorkItem(538179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538179")]
         [Fact]
         public void TestConstantErrors()
         {
@@ -2785,7 +2785,7 @@ float.PositiveInfinity --> Infinity
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50127")]
+        [WorkItem(50127, "https://github.com/dotnet/roslyn/issues/50127")]
         public void DeterministicCycleReporting()
         {
             var source =
@@ -2927,7 +2927,7 @@ class c1
             Assert.Equal(6, constantValue.Value);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")]
+        [WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")]
         [Fact]
         public void NoConstantValueForOverflows()
         {
@@ -2955,7 +2955,7 @@ class c1
             Assert.False(((FieldSymbol)symbol).HasConstantValue);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")]
+        [WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")]
         [Fact]
         public void NoConstantValueForOverflows_02()
         {
@@ -2979,7 +2979,7 @@ class c1
                 Diagnostic(ErrorCode.ERR_ConstOutOfRange, "(decimal)1e100").WithArguments("1E+100", "decimal").WithLocation(7, 23));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
+        [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
         [Fact]
         public void CircularConstantReportingRace()
         {
@@ -3009,7 +3009,7 @@ class C{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "X").WithArguments("C0.X"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
+        [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
         [Fact]
         public void MultiCircularConstantReportingRace()
         {
@@ -3066,7 +3066,7 @@ class C{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "X").WithArguments("C8.X"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
+        [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
         [Fact]
         public void CircularEnumReportingRace()
         {
@@ -3096,7 +3096,7 @@ enum E{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "X").WithArguments("E0.X"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
+        [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
         [Fact]
         public void MultiCircularEnumReportingRace()
         {
@@ -3153,7 +3153,7 @@ enum E{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "X").WithArguments("E8.X").WithLocation(44, 5));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
+        [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
         [Fact]
         public void CircularImplicitEnumReportingRace()
         {
@@ -3186,7 +3186,7 @@ enum E{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E0.A"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
+        [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
         [Fact]
         public void MultiCircularImplicitEnumReportingRace()
         {
@@ -3246,7 +3246,7 @@ enum E{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E8.A"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544941")]
+        [Fact, WorkItem(544941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544941")]
         public static void ConstantNullNotObject()
         {
             var source =
@@ -3264,7 +3264,7 @@ class MyClass
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098197")]
+        [Fact, WorkItem(1098197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098197")]
         public static void Bug1098197_01_WithCSharp6()
         {
             var source =
@@ -3333,7 +3333,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098197")]
+        [Fact, WorkItem(1098197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098197")]
         public static void Bug1098197_02()
         {
             var source =
@@ -3356,7 +3356,7 @@ void f() { if () const int i = 0; }
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098605")]
+        [Fact, WorkItem(1098605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098605")]
         public static void Bug1098605_01()
         {
             var source =
@@ -3421,7 +3421,7 @@ void f() { if () const int i = 0; }
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24869")]
+        [WorkItem(24869, "https://github.com/dotnet/roslyn/issues/24869")]
         public void TestSelfReferencingViaLambda()
         {
             string source = @"
@@ -3444,7 +3444,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24869")]
+        [WorkItem(24869, "https://github.com/dotnet/roslyn/issues/24869")]
         public void TestSelfReferencingViaLambda2()
         {
             string source = @"
@@ -3467,7 +3467,7 @@ class C
 
         // Attempting to call `ConstantValue` on every constituent string component times out the IOperation runner.
         // Instead, we manually validate just the top level
-        [ConditionalFact(typeof(NoIOperationValidation)), WorkItem("https://github.com/dotnet/roslyn/issues/43019")]
+        [ConditionalFact(typeof(NoIOperationValidation)), WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019")]
         public void TestLargeStringConcatenation()
         {
             // When the compiler folds string concatenations using an O(n^2) algorithm, this program cannot be

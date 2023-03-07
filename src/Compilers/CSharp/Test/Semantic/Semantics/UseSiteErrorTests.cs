@@ -1018,7 +1018,7 @@ class C : ILErrors.InterfaceEvents
                 Diagnostic(ErrorCode.ERR_NoTypeDef, @"x => ""Hello World""").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(18, 68));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531090")]
+        [Fact, WorkItem(531090, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531090")]
         public void Constructor()
         {
             string srcLib1 = @"
@@ -1056,7 +1056,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "A").WithArguments("System.Func<,>", "System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
+        [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void SynthesizedInterfaceImplementation()
         {
             var xSource = @"
@@ -1088,7 +1088,7 @@ class B : C, I { }
                 Diagnostic(ErrorCode.ERR_MissingTypeInAssembly, "B").WithArguments("X", "Test").WithLocation(2, 7));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
+        [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void NoSynthesizedInterfaceImplementation()
         {
             var xSource = @"
@@ -1117,7 +1117,7 @@ class B : C, I { }
             main.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
+        [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void SynthesizedInterfaceImplementation_Indexer()
         {
             var xSource = @"
@@ -1152,7 +1152,7 @@ class B : C, I { }
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "B").WithArguments("X", "X, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
+        [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void SynthesizedInterfaceImplementation_ModOpt()
         {
             var unavailableRef = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
@@ -1166,7 +1166,7 @@ class B : ILErrors.ClassEventsNonVirtual, ILErrors.InterfaceEvents { }
             CompileAndVerify(main);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
+        [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void NoSynthesizedInterfaceImplementation_ModOpt()
         {
             var unavailableRef = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
@@ -1180,7 +1180,7 @@ class B : ILErrors.ClassEvents, ILErrors.InterfaceEvents { }
             CompileAndVerify(main);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
+        [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void SynthesizedInterfaceImplementation_ModReq()
         {
             var unavailableRef = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
@@ -1584,7 +1584,7 @@ namespace System.Security
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "SecurityAction").WithArguments("System.Int32"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors()
         {
@@ -1680,7 +1680,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "new Indexer2()[2]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors_LessDerived()
         {
@@ -1733,7 +1733,7 @@ class Derived : Base
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "d[1]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors_NoCorrespondingParameter()
         {
@@ -1790,7 +1790,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoTypeDef, @"c[""A""]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors_NameUsedForPositional()
         {
@@ -1847,7 +1847,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoTypeDef, @"c[""A"", null]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors_RequiredParameterMissing()
         {
@@ -1949,7 +1949,7 @@ class Test
                 setMissingDiagnostic);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void OverloadResolutionWithUnsupportedMetadata_UnsupportedMetadata_SupportedExists()
         {
@@ -2072,7 +2072,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void OverloadResolutionWithUnsupportedMetadata_UnsupportedMetadata_SupportedDoesNotExist()
         {
@@ -2167,7 +2167,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "new Indexers()[null]").WithArguments("Indexers.this[string]", "Indexers.get_Item(string)").WithLocation(14, 18));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939928")]
+        [WorkItem(939928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939928")]
         [WorkItem(132, "CodePlex")]
         [Fact]
         public void MissingBaseTypeForCatch()
@@ -2279,7 +2279,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14267")]
+        [WorkItem(14267, "https://github.com/dotnet/roslyn/issues/14267")]
         public void MissingTypeKindBasisTypes()
         {
             var source1 = @"
@@ -2418,7 +2418,7 @@ interface I2
             Assert.Equal(TypeKind.Interface, compilation7.GetTypeByMetadataName("I1").TypeKind);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15435")]
+        [Fact, WorkItem(15435, "https://github.com/dotnet/roslyn/issues/15435")]
         public void TestGettingAssemblyIdsFromDiagnostic1()
         {
             var text = @"

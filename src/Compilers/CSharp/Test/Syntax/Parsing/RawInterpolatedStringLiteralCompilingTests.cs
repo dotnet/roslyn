@@ -2198,7 +2198,7 @@ int M(out int val)
                     Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, " 	").WithArguments(@"\t", @"\u0020").WithLocation(4, 1));
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59603")]
+    [Fact, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
     public void TestWhitespaceMismatch5()
     {
         RenderAndVerify(
@@ -2207,7 +2207,7 @@ int M(out int val)
                     Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, "").WithArguments(@"\f", @"\v").WithLocation(4, 1));
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59603")]
+    [Fact, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
     public void TestThreeDollarTwoCurly_SingleLine()
     {
         RenderAndVerify(@"
@@ -2225,7 +2225,7 @@ System.Console.Write(
     """""");", expectedOutput: "{{1 + 2}}");
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59603")]
+    [Fact, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
     public void TestFourDollarTwoCurly_SingleLine()
     {
         RenderAndVerify(@"
@@ -2243,7 +2243,7 @@ System.Console.Write(
     """""");", expectedOutput: "{{1 + 2}}");
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59603")]
+    [Fact, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
     public void TestThreeDollarThreeCurly_SingleLine()
     {
         RenderAndVerify(@"
@@ -2261,7 +2261,7 @@ System.Console.Write(
     """""");", expectedOutput: "3");
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59603")]
+    [Fact, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
     public void TestFourDollarThreeCurly_SingleLine()
     {
         RenderAndVerify(@"

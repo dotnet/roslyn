@@ -46,7 +46,7 @@ delegate void A();
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530363")]
+        [WorkItem(530363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530363")]
         [Fact]
         public void MissingAsyncTypes()
         {
@@ -116,7 +116,7 @@ class A {
             Assert.Equal(comp.GetSpecialType(SpecialType.System_IntPtr), ctor.Parameters[1].Type);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537188")]
+        [WorkItem(537188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537188")]
         [Fact]
         public void SimpleDelegate()
         {
@@ -138,8 +138,8 @@ class A {
             Assert.Equal("System.MulticastDelegate", v.BaseType().ToTestDisplayString());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537188")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538707")]
+        [WorkItem(537188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537188")]
+        [WorkItem(538707, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538707")]
         [Fact]
         public void BeginInvokeEndInvoke()
         {
@@ -188,7 +188,7 @@ namespace System
             Assert.Equal(k, endInvoke.Parameters.Length);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537188")]
+        [WorkItem(537188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537188")]
         [Fact]
         public void GenericDelegate()
         {
@@ -217,7 +217,7 @@ namespace System
             Assert.Equal(1, d.TypeArguments().Length);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
+        [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
         [Fact]
         public void DelegateEscapedIdentifier()
         {
@@ -303,7 +303,7 @@ namespace CSSample
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "d3").WithArguments("CSSample.Program.d3"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538722")]
+        [WorkItem(538722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538722")]
         [Fact]
         public void MulticastIsNotDelegate()
         {
@@ -325,7 +325,7 @@ class Program
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538706")]
+        [WorkItem(538706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538706")]
         [Fact]
         public void DelegateMethodParameterNames()
         {
@@ -361,7 +361,7 @@ delegate int D(int x, ref int y, out int z);
             Assert.Equal("result", endInvokeParameters[2].Name);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541179")]
+        [WorkItem(541179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541179")]
         [Fact]
         public void DelegateWithTypeParameterNamedInvoke()
         {
@@ -379,7 +379,7 @@ class Goo
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612002")]
+        [WorkItem(612002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612002")]
         [Fact]
         public void DelegateWithOutParameterNamedResult()
         {
@@ -410,7 +410,7 @@ delegate void D(out int result);
             Assert.Equal("__result", endInvokeParameters[1].Name);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612002")]
+        [WorkItem(612002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612002")]
         [Fact]
         public void DelegateWithOutParameterNamedResult2()
         {
@@ -441,7 +441,7 @@ delegate void D(out int @__result);
             Assert.Equal("result", endInvokeParameters[1].Name);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612002")]
+        [WorkItem(612002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612002")]
         [Fact]
         public void DelegateWithOutParameterNamedResult3()
         {
@@ -475,7 +475,7 @@ delegate void D(out int result, out int @__result);
             Assert.Equal("____result", endInvokeParameters[2].Name);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612002")]
+        [WorkItem(612002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612002")]
         [Fact]
         public void DelegateWithParametersNamedCallbackAndObject()
         {
@@ -701,7 +701,7 @@ class Program
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634014")]
+        [WorkItem(634014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634014")]
         [Fact]
         public void DelegateTest634014()
         {

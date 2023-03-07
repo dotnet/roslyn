@@ -14,7 +14,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Partial Public Class DiagnosticAnalyzerTests
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897137")>
+        <WorkItem(897137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897137")>
         <Fact>
         Public Sub DiagnosticAnalyzerAllInOne()
             Dim source = TestResource.AllInOneVisualBasicBaseline
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds()
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/896273")>
+        <WorkItem(896273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/896273")>
         <Fact>
         Public Sub DiagnosticAnalyzerEnumBlock()
             Dim source =
@@ -42,7 +42,7 @@ End Enum
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/759")>
+        <WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")>
         Public Sub AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
             Dim compilation = CreateCompilationWithMscorlib40({TestResource.AllInOneVisualBasicCode})
             Dim options = New AnalyzerOptions({CType(new TestAdditionalText(), AdditionalText)}.ToImmutableArray())

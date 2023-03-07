@@ -130,7 +130,7 @@ namespace N4
                 Diagnostic("Declaration", "N3"));
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/486")]
+        [Theory, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
         [MemberData(nameof(SimpleAttributeNames))]
         public async Task GlobalSuppressionOnNamespaces_NamespaceAndDescendants(string attrName)
         {
@@ -165,7 +165,7 @@ namespace N.N1.N6.N7
                 Diagnostic("Declaration", "N"));
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/486")]
+        [Theory, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
         [MemberData(nameof(SimpleAttributeNames))]
         public async Task GlobalSuppressionOnTypesAndNamespaces_NamespaceAndDescendants(string attrName)
         {
@@ -503,7 +503,7 @@ namespace A
                 Diagnostic("Token", "}").WithLocation(9, 1));
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/486")]
+        [Theory, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
         [MemberData(nameof(QualifiedAttributeNames))]
         public async Task SuppressSyntaxDiagnosticsOnNamespaceAndChildDeclarationCSharp(string attrName)
         {
@@ -542,7 +542,7 @@ End|] Namespace
                 Diagnostic("Token", "End").WithLocation(8, 1));
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/486")]
+        [Theory, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
         [MemberData(nameof(QualifiedAttributeNames))]
         public async Task SuppressSyntaxDiagnosticsOnNamespaceAndDescendantsDeclarationBasic(string attrName)
         {
@@ -559,7 +559,7 @@ End|] Namespace
                 Diagnostic("Token", "End").WithLocation(8, 1));
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/486")]
+        [Theory, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
         [InlineData("Namespace")]
         [InlineData("NamespaceAndDescendants")]
         public async Task DontSuppressSyntaxDiagnosticsInRootNamespaceBasic(string scope)
@@ -660,7 +660,7 @@ class C
         }
 
         [Theory]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/6379")]
+        [WorkItem(6379, "https://github.com/dotnet/roslyn/issues/6379")]
         [MemberData(nameof(QualifiedAttributeNames))]
         public async Task SuppressSyntaxDiagnosticsOnEnumFieldsCSharp(string attrName)
         {
@@ -821,7 +821,7 @@ End Class
                 Diagnostic("Token", "RaiseEvent"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1103442")]
+        [WorkItem(1103442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1103442")]
         [Theory]
         [MemberData(nameof(QualifiedAttributeNames))]
         public async Task SuppressSyntaxDiagnosticsOnRaiseEventAccessorBasic(string attrName)

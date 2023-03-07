@@ -1025,7 +1025,7 @@ class B4 : A
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63860")]
+        [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
         public void AddUIntPtrAndInt()
         {
             var source = @"
@@ -1058,7 +1058,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63860")]
+        [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
         public void AddNUIntAndInt()
         {
             var source = @"
@@ -1081,7 +1081,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63860")]
+        [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
         public void AddIntPtrAndInt()
         {
             var source = @"
@@ -1121,7 +1121,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63860")]
+        [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
         public void AddNIntAndInt()
         {
             var source = @"
@@ -1811,7 +1811,7 @@ public class A
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63860")]
+        [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
         public void IntPtrOperator_OnPlatformWithNumericIntPtr()
         {
             var source = """
@@ -1835,7 +1835,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63860")]
+        [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
         public void IntPtrOperator_OnPlatformWithoutNumericIntPtr()
         {
             var source = """
@@ -2222,7 +2222,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput(IntPtr.Size == 4 ? "System.OverflowException" : "1152921504606846975"), verify: Verification.FailsPEVerify);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/45531")]
+        [WorkItem(45531, "https://github.com/dotnet/roslyn/issues/45531")]
         [Fact]
         public void ConstantConversions_02()
         {
@@ -11265,7 +11265,7 @@ public class C
             Assert.Equal("nint nint.Zero", symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43347")]
+        [Fact, WorkItem(43347, "https://github.com/dotnet/roslyn/issues/43347")]
         public void MaskShiftCount()
         {
             // positive nint shift right
@@ -11688,7 +11688,7 @@ static class C
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63348")]
+        [WorkItem(63348, "https://github.com/dotnet/roslyn/issues/63348")]
         [Fact]
         public void ConditionalStackalloc()
         {

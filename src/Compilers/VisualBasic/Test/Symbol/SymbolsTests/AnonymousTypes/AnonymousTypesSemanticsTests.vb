@@ -81,7 +81,7 @@ End Module
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543829")>
+        <WorkItem(543829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543829")>
         <Fact()>
         Public Sub AnonymousTypeSymbolWithExplicitNew()
             Dim compilationDef =
@@ -189,7 +189,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543829")>
+        <WorkItem(543829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543829")>
         <Fact()>
         Public Sub AnonymousTypeSymbolImplicit()
             Dim compilationDef =
@@ -267,7 +267,7 @@ End Module
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543829")>
+        <WorkItem(543829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543829")>
         <Fact()>
         Public Sub AnonymousDelegateSymbolImplicit()
             Dim compilationDef =
@@ -338,7 +338,7 @@ End Module
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543829")>
+        <WorkItem(543829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543829")>
         <Fact()>
         Public Sub AnonymousDelegateSymbolImplicit2()
             Dim compilationDef =
@@ -674,7 +674,7 @@ End Module
             Assert.Equal(1, typeInfo.Type.Interfaces.Length)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542245")>
+        <Fact(), WorkItem(542245, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542245")>
         Public Sub AnonymousTypeReferenceLambdas()
             Dim compilationDef =
     <compilation name="AnonymousTypeReferenceLambda">
@@ -1049,7 +1049,7 @@ End Module
             Assert.Equal("Public Property a As Integer", info.Symbol.ToDisplayString())
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543723")>
+        <WorkItem(543723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543723")>
         <Fact()>
         Public Sub AnonymousTypeFieldDeclarationIdentifier4()
             Dim compilationDef =
@@ -1076,7 +1076,7 @@ End Class
             Assert.Equal("Program", info.Symbol.ToDisplayString())
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543723")>
+        <WorkItem(543723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543723")>
         <Fact()>
         Public Sub AnonymousTypePropertyDeclarationIdentifier4()
             Dim compilationDef =
@@ -1321,7 +1321,7 @@ End Module
                          model.GetTypeInfo(DirectCast(nodes(0), ExpressionSyntax)).Type.ToDisplayString())
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542268")>
+        <WorkItem(542268, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542268")>
         <Fact()>
         Public Sub AnonymousTypeCreationSymbolInAsNew_TypeInference_Cycle()
             Dim compilationDef =
@@ -1355,7 +1355,7 @@ BC42104: Variable 'tmp' is used before it has been assigned a value. A null refe
                          model.GetTypeInfo(DirectCast(nodes(0), ExpressionSyntax)).Type.ToDisplayString())
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542268")>
+        <WorkItem(542268, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542268")>
         <Fact()>
         Public Sub AnonymousTypeCreationSymbolInAsNew_TypeInference_Cycle1()
             Dim compilationDef =
@@ -1452,7 +1452,7 @@ BC36010: 'Using' operand of type '&lt;anonymous type: Key aa As Integer, bb As I
                          model.GetSymbolInfo(DirectCast(nodes(0), ExpressionSyntax)).Symbol.ToDisplayString())
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528745")>
+        <Fact(), WorkItem(528745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528745")>
         Public Sub AnonymousTypeCreationSymbolInAsNew_Field()
             Dim compilationDef =
     <compilation name="AnonymousTypeCreationSymbolInAsNew_Field">
@@ -2039,7 +2039,7 @@ End Module
 #End Region
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/2928")>
+        <WorkItem(2928, "https://github.com/dotnet/roslyn/issues/2928")>
         Public Sub ContainingSymbol()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>

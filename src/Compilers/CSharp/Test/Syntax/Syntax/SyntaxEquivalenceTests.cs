@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyNotEquivalent(tree1, tree2, topLevel: false);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7380")]
+        [Fact, WorkItem(7380, "https://github.com/dotnet/roslyn/issues/7380")]
         public void TestExpressionBodiedMethod()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void M() => 1; }");
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyNotEquivalent(tree1, tree2, topLevel: false);
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/38694")]
+        [Theory, WorkItem(38694, "https://github.com/dotnet/roslyn/issues/38694")]
         [InlineData("#nullable enable", "#nullable disable")]
         [InlineData("#nullable enable", "#nullable restore")]
         [InlineData("#nullable disable", "#nullable restore")]
@@ -512,7 +512,7 @@ class C
             VerifyEquivalent(tree3.GetRoot(), tree4.GetRoot(), ignoreChildNode: k => k == SyntaxKind.NullableDirectiveTrivia);
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/38694")]
+        [Theory, WorkItem(38694, "https://github.com/dotnet/roslyn/issues/38694")]
         [InlineData("#nullable enable")]
         [InlineData("#nullable disable")]
         [InlineData("#nullable restore")]
@@ -541,7 +541,7 @@ class C
             VerifyNotEquivalent(tree1, tree2, topLevel: false);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38694")]
+        [Fact, WorkItem(38694, "https://github.com/dotnet/roslyn/issues/38694")]
         public void TestNullableDirectives_InvalidDirective()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
@@ -564,7 +564,7 @@ class C
             VerifyNotEquivalent(tree1, tree2, topLevel: false);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38694")]
+        [Fact, WorkItem(38694, "https://github.com/dotnet/roslyn/issues/38694")]
         public void TestNullableDirectives_DifferentNumberOfDirectives()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"

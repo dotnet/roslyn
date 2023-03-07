@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         ' Enumerator initializers must be of integral or enumeration type 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539945")>
+        <WorkItem(539945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539945")>
         <Fact>
         Public Sub OutOfUnderlyingRange()
             Dim text =
@@ -352,7 +352,7 @@ End Enum
         End Sub
 
         ' Modifiers for enum
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539944")>
+        <WorkItem(539944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539944")>
         <Fact>
         Public Sub BC30396ERR_BadEnumFlags1_ModifiersForEnum()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -607,7 +607,7 @@ BC30354: Interface can inherit only from another interface.
         End Sub
 
         ' Enums can Not be declared in nested enum declaration
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539943")>
+        <WorkItem(539943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539943")>
         <Fact>
         Public Sub BC30619ERR_InvInsideEndsEnum_NestedFromEnum()
             Dim text =
@@ -822,7 +822,7 @@ End Class
         End Sub
 
         ' No Base type after 'As' 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528031")>
+        <WorkItem(528031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528031")>
         <Fact>
         Public Sub BC30182ERR_UnrecognizedType_NoUnderlyingTypeForEnum()
             Dim text =
@@ -846,7 +846,7 @@ Public Enum Figure  As
         End Sub
 
         ' All integral type could be as BASE type
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539945")>
+        <WorkItem(539945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539945")>
         <Fact>
         Public Sub BC30650ERR_InvalidEnumBase_BaseType()
             Dim text =
@@ -933,7 +933,7 @@ End Class
             CompilationUtils.AssertTheseDeclarationDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540427")>
+        <WorkItem(540427, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540427")>
         <Fact>
         Public Sub EnumInitializerCircularReference()
             Dim text =
@@ -948,7 +948,7 @@ End Enum
             CompilationUtils.CreateCompilationWithMscorlib40(text).VerifyDiagnostics(Diagnostic(ERRID.ERR_CircularEvaluation1, "A").WithArguments("A"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540526")>
+        <WorkItem(540526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540526")>
         <Fact>
         Public Sub EnumBadMember()
             Dim text =
@@ -967,7 +967,7 @@ End Enum
                     Diagnostic(ERRID.ERR_BadEmptyEnum1, "E").WithArguments("E"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540526")>
+        <WorkItem(540526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540526")>
         <Fact>
         Public Sub EnumBadMember2()
             Dim text =
@@ -982,7 +982,7 @@ End Enum
                     Diagnostic(ERRID.ERR_InvInsideEnum, "goo:"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540557")>
+        <WorkItem(540557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540557")>
         <Fact>
         Public Sub EnumInDifferentFile()
             Dim text =
@@ -1161,7 +1161,7 @@ BC30500: Constant 'ValueDoesntWork4' cannot depend on its own value.
         End Sub
 
         ' The value can be used off an enum member 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541364")>
+        <WorkItem(541364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541364")>
         <Fact>
         Public Sub EnumUseQualified()
             Dim text =
@@ -1181,7 +1181,7 @@ BC30500: Constant 'ValueDoesntWork4' cannot depend on its own value.
             VerifyEnumsValue(text, "Y", 0, 0)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750553")>
+        <WorkItem(750553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750553")>
         <Fact>
         Public Sub InvalidEnumUnderlyingType()
             Dim text =
@@ -1212,7 +1212,7 @@ BC30650: Enums must be declared as an integral type.
             Assert.Equal(type.SpecialType, SpecialType.System_Int32)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/895284")>
+        <Fact, WorkItem(895284, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/895284")>
         Public Sub CircularDefinition_Explicit()
             ' Bug#895284 Roslyn gives extra error BC30060: 
             '      Conversion from 'E2' to 'Integer' cannot occur in a constant expression.
@@ -1264,8 +1264,8 @@ BC30500: Constant 'M0' cannot depend on its own value.
         End Sub
 
         <Fact,
-         WorkItem("https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=123937"),
-         WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/886047")>
+         WorkItem(123937, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=123937"),
+         WorkItem(886047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/886047")>
         Public Sub CircularDefinitionManyMembers_Explicit()
             ' Enum E
             '     M0 = Mn + 1
@@ -1295,8 +1295,8 @@ BC30060: Conversion from 'E' to 'Integer' cannot occur in a constant expression.
         End Sub
 
         <Fact,
-          WorkItem("https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=123937"),
-         WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/886047")>
+          WorkItem(123937, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=123937"),
+         WorkItem(886047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/886047")>
         Public Sub InvertedDefinitionManyMembers_Explicit()
             ' Enum E
             '     M0 = M1 - 1
@@ -1403,7 +1403,7 @@ BC30060: Conversion from 'E' to 'Integer' cannot occur in a constant expression.
             Return currentSymbol
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/45625")>
+        <WorkItem(45625, "https://github.com/dotnet/roslyn/issues/45625")>
         <Fact>
         Public Sub UseSiteError_01()
             Dim sourceA =
@@ -1453,7 +1453,7 @@ BC30652: Reference required to assembly 'UseSiteError_sourceA, Version=0.0.0.0, 
             Assert.Equal(-1, value.Value)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/45625")>
+        <WorkItem(45625, "https://github.com/dotnet/roslyn/issues/45625")>
         <Fact>
         Public Sub UseSiteError_02()
             Dim sourceA =
@@ -1506,7 +1506,7 @@ BC30652: Reference required to assembly 'UseSiteError_sourceA, Version=0.0.0.0, 
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50163")>
+        <WorkItem(50163, "https://github.com/dotnet/roslyn/issues/50163")>
         Public Sub LongDependencyChain()
             Dim text As New StringBuilder()
 
@@ -1531,7 +1531,7 @@ End Enum
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/52624")>
+        <WorkItem(52624, "https://github.com/dotnet/roslyn/issues/52624")>
         Public Sub Issue52624()
             Dim source1 =
 "

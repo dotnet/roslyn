@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class IOperationTests_IFieldReferenceExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void FieldReference_Attribute()
         {
             string source = @"
@@ -177,7 +177,7 @@ IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (Sys
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7582")]
+        [WorkItem(7582, "https://github.com/dotnet/roslyn/issues/7582")]
         [Fact]
         public void IFieldReferenceExpression_ImplicitThis()
         {
@@ -203,7 +203,7 @@ IFieldReferenceOperation: System.Int32 C.i (OperationKind.FieldReference, Type: 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7582")]
+        [WorkItem(7582, "https://github.com/dotnet/roslyn/issues/7582")]
         [Fact]
         public void IFieldReferenceExpression_ExplicitThis()
         {
@@ -229,7 +229,7 @@ IFieldReferenceOperation: System.Int32 C.i (OperationKind.FieldReference, Type: 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7582")]
+        [WorkItem(7582, "https://github.com/dotnet/roslyn/issues/7582")]
         [Fact]
         public void IFieldReferenceExpression_base()
         {
@@ -679,7 +679,7 @@ Block[B2] - Exit
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38195")]
+        [WorkItem(38195, "https://github.com/dotnet/roslyn/issues/38195")]
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.NullableReferenceTypes)]
         public void NullableFieldReference()
         {

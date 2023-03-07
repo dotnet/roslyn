@@ -708,7 +708,7 @@ Public Partial Class A
         ''' would expect.
         ''' </summary>
         <ConditionalFact(GetType(OSVersionWin8))>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/18092")>
+        <WorkItem(18092, "https://github.com/dotnet/roslyn/issues/18092")>
         Public Sub WinMdEvent()
 
             Dim source =

@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         <InlineData(DebugInformationFormat.PortablePdb)> '<MemberData(NameOf(ExternalPdbFormats))>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50611")>
+        <WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")>
         Public Sub MethodExtents(format As DebugInformationFormat)
             Dim source0 = MarkedSource("
 Imports System

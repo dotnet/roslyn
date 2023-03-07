@@ -743,7 +743,7 @@ End Class]]>
         End Sub
 
         ''' Did not Skip the test - will remove the explicit cast (from IMethodSymbol to MethodSymbol) once this bug is fixed
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528029")>
+        <WorkItem(528029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528029")>
         <Fact>
         Public Sub TestInteropAttributesInterface()
 
@@ -810,7 +810,7 @@ End Class]]>
             Assert.Equal(32, attrSym.CommonConstructorArguments(0).Value)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539942")>
+        <WorkItem(539942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539942")>
         <Fact>
         Public Sub TestInteropAttributesDelegate()
 
@@ -1034,7 +1034,7 @@ End Class]]>
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539965")>
+        <WorkItem(539965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539965")>
         <Fact>
         Public Sub TestAttributesOnTypeParameters()
 
@@ -1131,7 +1131,7 @@ End Class]]>
         '    // Explicit NotImpl
         '    // ushort IFoo<T, ushort>.Method(T t) { return 0; }
         '}
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539965")>
+        <WorkItem(539965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539965")>
         <Fact>
         Public Sub TestAttributesMultiples()
 
@@ -1242,7 +1242,7 @@ End Class]]>
 
 #Region "Regression"
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539995")>
+        <WorkItem(539995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539995")>
         <Fact>
         Public Sub TestAttributesAssemblyVersionValue()
 
@@ -1266,7 +1266,7 @@ End Class]]>
             Assert.Equal("4.0.30319.18408", attr1.CommonConstructorArguments(0).Value)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539996")>
+        <WorkItem(539996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539996")>
         <Fact>
         Public Sub TestAttributesWithTypeOfInternalClass()
 
@@ -1298,7 +1298,7 @@ End Class]]>
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539999")>
+        <WorkItem(539999, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539999")>
         <Fact>
         Public Sub TestAttributesStaticInstanceCtors()
 
@@ -1331,7 +1331,7 @@ End Class]]>
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540000")>
+        <WorkItem(540000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540000")>
         <Fact>
         Public Sub TestAttributesOverloadedCtors()
 
@@ -1373,7 +1373,7 @@ End Class]]>
 
 #End Region
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")>
+        <WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")>
         <Fact>
         Public Sub Bug530209_DecimalConstant()
             Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -1417,7 +1417,7 @@ End Class
                                                   End Sub)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")>
+        <WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")>
         <Fact>
         Public Sub Bug530209_DecimalConstant_FromIL()
 
@@ -1575,7 +1575,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/18092")>
+        <WorkItem(18092, "https://github.com/dotnet/roslyn/issues/18092")>
         Public Sub ForwardedSystemType()
 
             Dim ilSource = <![CDATA[

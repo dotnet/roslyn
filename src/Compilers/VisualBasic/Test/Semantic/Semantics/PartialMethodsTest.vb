@@ -255,7 +255,7 @@ End Class
             Assert.Equal(1, ppSym02.Locations.Length)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545469")>
+        <WorkItem(545469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545469")>
         <Fact()>
         Public Sub MetadataNameOnPartialMethodImplementation()
 
@@ -712,7 +712,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544502")>
+        <WorkItem(544502, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544502")>
         <Fact()>
         Public Sub MergePartialMethodEvents()
             CompileAndVerify(
@@ -753,7 +753,7 @@ End Class
 expectedOutput:="1;2;2;3;")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544502")>
+        <WorkItem(544502, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544502")>
         <Fact()>
         Public Sub MergePartialMethodEvents2()
             CompileAndVerify(
@@ -794,7 +794,7 @@ End Class
 expectedOutput:="1;2;2;3;")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544502")>
+        <WorkItem(544502, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544502")>
         <Fact()>
         Public Sub MergePartialMethodEvents3()
             CompileAndVerify(
@@ -940,7 +940,7 @@ End Class
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_InterfaceNotImplemented1, "A").WithArguments("A"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544432")>
+        <WorkItem(544432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544432")>
         <Fact()>
         Public Sub TestCaseWithTypeArgumentsAndConstraints()
             Dim text1 = <text>
@@ -974,7 +974,7 @@ End Module
             Assert.Same(methodImpl.PartialDefinitionPart, methodDecl)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544445")>
+        <WorkItem(544445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544445")>
         <Fact()>
         Public Sub TestCaseWithTypeArgumentsAndConstraints2()
             Dim text1 = <text>
@@ -1121,7 +1121,7 @@ End Class
             Assert.NotEqual(typeParaSym1.Locations(0), typeParaSym2.Locations(0))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544499")>
+        <WorkItem(544499, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544499")>
         <Fact()>
         Public Sub GetMembersForMustoverridePartialMethod()
             'TODO: Please add any additional verification below if necessary.
@@ -1140,7 +1140,7 @@ End Class
             Assert.NotNull(methodSym)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/921704")>
+        <WorkItem(921704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/921704")>
         <Fact()>
         Public Sub Bug921704()
             CompileAndVerify(

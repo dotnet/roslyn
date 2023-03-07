@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/19819")>
+        <WorkItem(19819, "https://github.com/dotnet/roslyn/issues/19819")>
         Public Sub UsingDeclarationSyntaxNotNull()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -48,7 +48,7 @@ End Module
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/19887")>
+        <WorkItem(19887, "https://github.com/dotnet/roslyn/issues/19887")>
         Public Sub UsingDeclarationIncompleteUsingInvalidExpression()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -901,7 +901,7 @@ End Module]]>
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22362")>
+        <Fact, WorkItem(22362, "https://github.com/dotnet/roslyn/issues/22362")>
         Public Sub IUsingStatement_UsingStatementSyntax_VariablesSyntax()
             Dim source = <![CDATA[
 Option Strict On

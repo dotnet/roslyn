@@ -129,7 +129,7 @@ End Class
             ClassfiConversionTestForLoops(compilation1)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
+        <WorkItem(542080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
         <Fact>
         Public Sub ForLoopNested()
             Dim compilation1 = CreateCompilationWithMscorlib40(
@@ -188,7 +188,7 @@ End Class
             ClassfiConversionTestForLoops(compilation1, 4)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
+        <WorkItem(542080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
         <Fact>
         Public Sub ChangeOuterVarInInnerFor()
             Dim compilation1 = CreateCompilationWithMscorlib40(
@@ -227,7 +227,7 @@ End Class
             ClassfiConversionTestForLoops(compilation1, 2)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
+        <WorkItem(542080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
         <Fact>
         Public Sub InnerForRefOuterForVar()
             Dim compilation1 = CreateCompilationWithMscorlib40(
@@ -531,7 +531,7 @@ End Class
             GetDeclareSymbolTestForLoops(compilation1, Nothing, 2)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543649")>
+        <WorkItem(543649, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543649")>
         <Fact()>
         Public Sub TestTypeInferenceWithGarbageTypes()
             Dim vbCompilation = CreateVisualBasicCompilation("TestTypeInferenceWithGarbageTypes",
@@ -670,7 +670,7 @@ End Module]]>,
             Return DirectCast(node, ForBlockSyntax)
         End Function
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652041")>
+        <Fact, WorkItem(652041, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652041")>
         Public Sub Bug652041()
             Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>

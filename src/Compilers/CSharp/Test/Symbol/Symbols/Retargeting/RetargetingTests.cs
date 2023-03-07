@@ -225,7 +225,7 @@ delegate T D<T>() where T : I<T>;";
             RetargetingSymbolChecker.CheckSymbols(sourceNamespace.GetMember<NamedTypeSymbol>("D"), retargetingNamespace.GetMember<NamedTypeSymbol>("D"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542571")]
+        [WorkItem(542571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542571")]
         [Fact]
         public void RetargetExplicitImplementationDifferentModule()
         {
@@ -321,7 +321,7 @@ class C<CT> : I<CT>
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
+        [WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
         public void RetargetMissingEnumUnderlyingType_Implicit()
         {
             var source = @"
@@ -358,7 +358,7 @@ public enum E
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
+        [WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
         public void RetargetMissingEnumUnderlyingType_Explicit()
         {
             var source = @"
@@ -395,7 +395,7 @@ public enum E : short
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
+        [WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
         public void RetargetInvalidBaseType_Class()
         {
             var source = @"
@@ -420,7 +420,7 @@ public class Test : short { }
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
+        [WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
         public void RetargetMissingBaseType_Class()
         {
             var source = @"
@@ -450,7 +450,7 @@ public class Test : short { }
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/3898")]
+        [WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")]
         public void Retarget_IsSerializable()
         {
             var source = @"
@@ -473,7 +473,7 @@ public class TestS { }
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
+        [WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
         public void RetargetInvalidBaseType_Struct()
         {
             var source = @"
@@ -498,8 +498,8 @@ public struct Test : short { }
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609515")]
+        [WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
+        [WorkItem(609515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609515")]
         public void RetargetMissingBaseType_Struct()
         {
             var source = @"
@@ -534,7 +534,7 @@ public struct Test : short { }
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
+        [WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
         public void RetargetInvalidBaseType_Interface()
         {
             var source = @"
@@ -559,8 +559,8 @@ public interface Test : short { }
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609515")]
+        [WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
+        [WorkItem(609515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609515")]
         public void RetargetMissingBaseType_Interface()
         {
             var source = @"
@@ -590,8 +590,8 @@ public interface Test : short { }
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609519")]
+        [WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
+        [WorkItem(609519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609519")]
         public void RetargetInvalidConstraint()
         {
             var source = @"
@@ -618,8 +618,8 @@ public class C<T> where T : int
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609519")]
+        [WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
+        [WorkItem(609519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609519")]
         public void RetargetMissingConstraint()
         {
             var source = @"
@@ -719,7 +719,7 @@ public class C<T> where T : int
             CheckMethods(source.ReducedFrom, retargeting.ReducedFrom);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703433")]
+        [Fact, WorkItem(703433, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703433")]
         public void Bug703433()
         {
             var source =

@@ -544,7 +544,7 @@ End Module
             Assert.Equal(#8/13/2002 12:14:00 PM#, semanticSummary.ConstantValue.Value)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543098")>
+        <WorkItem(543098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543098")>
         <Fact()>
         Public Sub SelectCase_BoundLocal()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -587,7 +587,7 @@ End Class
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543387")>
+        <WorkItem(543387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543387")>
         <Fact()>
         Public Sub SelectCase_AnonymousLambda()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -700,7 +700,7 @@ ISwitchOperation (2 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null) 
             VerifyOperationTreeAndDiagnosticsForTest(Of SelectBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/948019")>
+        <WorkItem(948019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/948019")>
         <Fact()>
         Public Sub Bug948019_01()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -737,7 +737,7 @@ End Class
             Assert.Equal(SymbolKind.Parameter, symbolInfo.Symbol.Kind)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/948019")>
+        <WorkItem(948019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/948019")>
         <Fact()>
         Public Sub Bug948019_02()
             Dim compilation = CreateCompilationWithMscorlib40(

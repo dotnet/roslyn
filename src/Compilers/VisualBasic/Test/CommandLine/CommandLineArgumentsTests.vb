@@ -12,8 +12,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         Inherits BasicTestBase
 
         <Fact()>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543297")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546751")>
+        <WorkItem(543297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543297")>
+        <WorkItem(546751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546751")>
         Public Sub TestParseConditionalCompilationSymbols1()
             Dim errors As IEnumerable(Of Diagnostic) = Nothing
             Dim text As String
@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Assert.Equal(4, dict("A"))
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546034"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780817")>
+        <Fact(), WorkItem(546034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546034"), WorkItem(780817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780817")>
         Public Sub TestParseConditionalCompilationCaseInsensitiveSymbols()
             Dim errors As IEnumerable(Of Diagnostic) = Nothing
             Dim text = "Blah,blah"
@@ -276,7 +276,7 @@ blah
         End Sub
 
         <Fact()>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546035")>
+        <WorkItem(546035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546035")>
         Public Sub TestParseConditionalCompilationSymbolsInSingleQuote()
             Dim errors As IEnumerable(Of Diagnostic) = Nothing
 

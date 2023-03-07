@@ -322,7 +322,7 @@ class C
                     Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "1").WithLocation(11, 26));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52956")]
+        [Fact, WorkItem(52956, "https://github.com/dotnet/roslyn/issues/52956")]
         public void ExtendedPropertyPatterns_05()
         {
             var program = @"
@@ -353,7 +353,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52956")]
+        [Fact, WorkItem(52956, "https://github.com/dotnet/roslyn/issues/52956")]
         public void ExtendedPropertyPatterns_05_NestedRecursivePattern()
         {
             var program = @"
@@ -383,7 +383,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52956")]
+        [Fact, WorkItem(52956, "https://github.com/dotnet/roslyn/issues/52956")]
         public void ExtendedPropertyPatterns_05_Properties()
         {
             var program = @"
@@ -725,7 +725,7 @@ class B
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52956")]
+        [Fact, WorkItem(52956, "https://github.com/dotnet/roslyn/issues/52956")]
         public void ExtendedPropertyPatterns_BadMemberAccess()
         {
             var program = @"
@@ -924,7 +924,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53484")]
+        [Fact, WorkItem(53484, "https://github.com/dotnet/roslyn/issues/53484")]
         public void ExtendedPropertyPatterns_SuppressionOnPattern()
         {
             var program = @"
@@ -1049,7 +1049,7 @@ public class ContainerType
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53484")]
+        [Fact, WorkItem(53484, "https://github.com/dotnet/roslyn/issues/53484")]
         public void ExtendedPropertyPatterns_PointerAccessInPattern()
         {
             var program = @"
@@ -1922,7 +1922,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55184")]
+        [Fact, WorkItem(55184, "https://github.com/dotnet/roslyn/issues/55184")]
         public void Repro55184()
         {
             var source = @"
@@ -2613,7 +2613,7 @@ _ = x is { Length.Error: > 0 };
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64399")]
+        [Fact, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
         public void ShortestPathToDefaultNodeYieldsNoRemainingValues()
         {
             var source = """
@@ -2650,7 +2650,7 @@ class N
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64399")]
+        [Fact, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
         public void ShortestPathToDefaultNodeYieldsNoRemainingValues_RequiringFalseWhenClause()
         {
             var source = """
@@ -2688,7 +2688,7 @@ class N
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64399")]
+        [Fact, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
         public void ShortestPathToDefaultNodeYieldsNoRemainingValues_NullBranch()
         {
             var source = """
@@ -2726,7 +2726,7 @@ class N
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64399")]
+        [Fact, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
         public void ShortestPathToDefaultNodeYieldsNoRemainingValues_Nullability()
         {
             var source = """
@@ -2762,7 +2762,7 @@ class N
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64399")]
+        [Fact, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
         public void ShortestPathToDefaultNodeYieldsNoRemainingValues_Nullability_NullableString()
         {
             var source = """
@@ -2889,7 +2889,7 @@ class N
                 );
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/64399")]
+        [Theory, CombinatorialData, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
         public void ShortestPathToDefaultNodeYieldsNoRemainingValues_Nullability_Deconstruction(bool nullableEnable)
         {
             var source = """
@@ -3082,7 +3082,7 @@ class N
             }
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/64399")]
+        [Theory, CombinatorialData, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
         public void ShortestPathToDefaultNodeYieldsNoRemainingValues_Nullability_NullableBool(bool nullableEnable)
         {
             var source = """
@@ -3149,7 +3149,7 @@ class N
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45679")]
+        [Fact, WorkItem(45679, "https://github.com/dotnet/roslyn/issues/45679")]
         public void IsExpression_SwitchDispatch_Numeric()
         {
             var source = """
@@ -3197,7 +3197,7 @@ class C
 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45679")]
+        [Fact, WorkItem(45679, "https://github.com/dotnet/roslyn/issues/45679")]
         public void IsExpression_SwitchDispatch_SwitchIL()
         {
             var source = """
@@ -3265,7 +3265,7 @@ class C
 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45679")]
+        [Fact, WorkItem(45679, "https://github.com/dotnet/roslyn/issues/45679")]
         public void IsExpression_SwitchDispatch_String()
         {
             var source = """

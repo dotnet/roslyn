@@ -693,7 +693,7 @@ class Query
             );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543022")]
+        [WorkItem(543022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543022")]
         [ClrOnlyFact]
         public void AnonymousTypeSymbol_StandardNames()
         {
@@ -716,7 +716,7 @@ class Query
                 expectedOutput: "<>f__AnonymousType0`1[<>f__AnonymousType1]-<>f__AnonymousType1");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543022")]
+        [WorkItem(543022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543022")]
         [ClrOnlyFact]
         public void AnonymousTypeSymbol_StandardNames2()
         {
@@ -1481,7 +1481,7 @@ class Class3
             }
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543134")]
+        [WorkItem(543134, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543134")]
         [ClrOnlyFact]
         public void AnonymousTypeSymbol_Simple_1()
         {
@@ -1520,7 +1520,7 @@ class Test
             CompileAndVerify(source, expectedOutput: "1221");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543693")]
+        [WorkItem(543693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543693")]
         [ClrOnlyFact]
         public void Bug11593a()
         {
@@ -1557,7 +1557,7 @@ class P
             CompileAndVerify(source, expectedOutput: "Success");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543693")]
+        [WorkItem(543693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543693")]
         [ClrOnlyFact]
         public void Bug11593b()
         {
@@ -1596,7 +1596,7 @@ class P
             CompileAndVerify(source, expectedOutput: "Success");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543177")]
+        [WorkItem(543177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543177")]
         [ClrOnlyFact]
         public void AnonymousTypePropertyValueWithWarning()
         {
@@ -1620,7 +1620,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "True");
         }
 
-        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544323")]
+        [Fact(), WorkItem(544323, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544323")]
         public void AnonymousTypeAndMemberSymbolsLocations()
         {
             var source = @"
@@ -1738,7 +1738,7 @@ namespace System.Collections.Generic
         /// <summary>
         /// Bug#15914: Breaking Changes
         /// </summary>
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530365")]
+        [Fact, WorkItem(530365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530365")]
         public void NoStdLibNoEmitToStringForAnonymousType()
         {
             var source = @"
@@ -1768,7 +1768,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.String", "Format"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530365")]
+        [Fact, WorkItem(530365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530365")]
         public void NoDebuggerBrowsableStateType()
         {
             var stateSource = @"
@@ -1853,7 +1853,7 @@ class C
         }
 
         [ClrOnlyFact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991505")]
+        [WorkItem(991505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991505")]
         [WorkItem(199, "CodePlex")]
         public void Bug991505()
         {

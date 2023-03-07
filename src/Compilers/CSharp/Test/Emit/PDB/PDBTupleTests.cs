@@ -283,7 +283,7 @@ string.Format(@"<symbols>
 </symbols>"));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17947")]
+        [WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")]
         [Fact]
         public void VariablesAndConstantsInUnreachableCode()
         {

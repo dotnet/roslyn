@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class DisabledRegionTests : CSharpTestBase
     {
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
+        [WorkItem(544917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
         [Fact]
         public void DisabledError_DiagnosticsAndEffect()
         {
@@ -28,7 +28,7 @@ class C { }
                 Diagnostic(ErrorCode.ERR_ErrorDirective, @"""error2""").WithArguments(@"""error2"""));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
+        [WorkItem(544917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
         [Fact]
         public void DisabledWarning_DiagnosticsAndEffect()
         {
@@ -44,7 +44,7 @@ class C { }
                 Diagnostic(ErrorCode.WRN_WarningDirective, @"""warning2""").WithArguments(@"""warning2"""));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
+        [WorkItem(544917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
         [Fact]
         public void DisabledLine_Diagnostics()
         {
@@ -63,7 +63,7 @@ class C { }
                 Diagnostic(ErrorCode.ERR_InvalidLineNumber, "0"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
+        [WorkItem(544917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
         [Fact]
         public void DisabledPragma_Diagnostics()
         {
@@ -104,7 +104,7 @@ class C { }
                 Diagnostic(ErrorCode.WRN_IllegalPPChecksum, @"""bytes"""));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
+        [WorkItem(544917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
         [Fact]
         public void DisabledReference_Diagnostics()
         {
@@ -120,7 +120,7 @@ class C { }
                 Diagnostic(ErrorCode.ERR_ExpectedPPFile, ""));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
+        [WorkItem(544917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
         [Fact]
         public void DisabledDefine_Effect()
         {
@@ -137,7 +137,7 @@ class C { }
             ParserErrorMessageTests.ParseAndValidate(source);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
+        [WorkItem(544917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
         [Fact]
         public void DisabledDefine_Diagnostics()
         {
@@ -152,7 +152,7 @@ class C { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ""));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
+        [WorkItem(544917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
         [Fact]
         public void DisabledUndef_Effect()
         {
@@ -171,7 +171,7 @@ class C { }
                 Diagnostic(ErrorCode.WRN_WarningDirective, @"""warning""").WithArguments(@"""warning"""));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
+        [WorkItem(544917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
         [Fact]
         public void DisabledUndef_Diagnostics()
         {
@@ -186,7 +186,7 @@ class C { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ""));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
+        [WorkItem(544917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
         [Fact]
         public void DisabledRegion_Diagnostics()
         {
@@ -209,7 +209,7 @@ class C { }
                 Diagnostic(ErrorCode.ERR_EndRegionDirectiveExpected, ""));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
+        [WorkItem(544917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
         [Fact]
         public void DisabledEndRegion_Diagnostics()
         {
@@ -225,7 +225,7 @@ class C { }
                 Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "#endregion"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
+        [WorkItem(544917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
         [Fact]
         public void DisabledIf_Effect()
         {
@@ -241,7 +241,7 @@ class C { }
             ParserErrorMessageTests.ParseAndValidate(source);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
+        [WorkItem(544917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
         [Fact]
         public void DisabledIf_Diagnostics()
         {

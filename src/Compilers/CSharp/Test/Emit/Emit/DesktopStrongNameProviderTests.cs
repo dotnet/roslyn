@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class DesktopStrongNameProviderTests : CSharpTestBase
     {
-        [WorkItem("https://github.com/dotnet/roslyn/issues/13995")]
+        [WorkItem(13995, "https://github.com/dotnet/roslyn/issues/13995")]
         [Fact]
         public void RespectCustomTempPath()
         {

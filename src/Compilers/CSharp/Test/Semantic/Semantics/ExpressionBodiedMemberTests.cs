@@ -244,7 +244,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009638")]
+        [WorkItem(1009638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009638")]
         public void ExprBodiedFunc02()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -332,7 +332,7 @@ class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065375"), WorkItem(313, "CodePlex")]
+        [WorkItem(1065375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065375"), WorkItem(313, "CodePlex")]
         [Fact]
         public void Bug1065375_1()
         {
@@ -352,7 +352,7 @@ public static class TestExtension
             CompileAndVerify(source, expectedOutput: "GetAction 1");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13691")]
+        [Fact, WorkItem(13691, "https://github.com/dotnet/roslyn/issues/13691")]
         public void RunCtorProp()
         {
             string source = @"
@@ -372,7 +372,7 @@ public class Program
             CompileAndVerify(source, expectedOutput: "12");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13691")]
+        [Fact, WorkItem(13691, "https://github.com/dotnet/roslyn/issues/13691")]
         public void RunCtorWithBase01()
         {
             string source = @"
@@ -389,7 +389,7 @@ public class Program
             CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13691")]
+        [Fact, WorkItem(13691, "https://github.com/dotnet/roslyn/issues/13691")]
         public void RunCtorWithBase02()
         {
             string source = @"
@@ -410,7 +410,7 @@ public class Program : Base
             CompileAndVerify(source, expectedOutput: "12");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069421")]
+        [Fact, WorkItem(1069421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069421")]
         public void Bug1069421()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -431,7 +431,7 @@ class Program
             Assert.Equal(typeInfo1.Type, typeInfo2.Type);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112875")]
+        [WorkItem(1112875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112875")]
         [Fact]
         public void Bug1112875()
         {
@@ -447,7 +447,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(new object())").WithLocation(4, 25));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1702")]
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_01()
         {
             var comp = CreateCompilation(@"
@@ -478,7 +478,7 @@ public class C
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1702")]
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_02()
         {
             var comp = CreateCompilation(@"
@@ -509,7 +509,7 @@ public class C
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1702")]
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_03()
         {
             var comp = CreateCompilation(@"
@@ -547,7 +547,7 @@ public class C
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node2).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1702")]
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_04()
         {
             var comp = CreateCompilation(@"
@@ -587,7 +587,7 @@ public class C
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node2).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1702")]
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_05()
         {
             var comp = CreateCompilation(@"
@@ -616,7 +616,7 @@ public class C
             Assert.Equal(1, tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Count());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1702")]
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_06()
         {
             var comp = CreateCompilation(@"
@@ -652,7 +652,7 @@ public class C
             Assert.Null(model.GetSymbolInfo(node).Symbol);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1702")]
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_07()
         {
             var comp = CreateCompilation(@"
@@ -683,7 +683,7 @@ public class C
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1702")]
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_08()
         {
             var comp = CreateCompilation(@"
@@ -714,7 +714,7 @@ public class C
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1702")]
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_09()
         {
             var comp = CreateCompilation(@"
@@ -745,7 +745,7 @@ public class C
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1702")]
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_10()
         {
             var comp = CreateCompilation(@"
@@ -780,7 +780,7 @@ public class C
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1702")]
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_11()
         {
             var comp = CreateCompilation(@"
@@ -992,7 +992,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "add { } => null;").WithLocation(5, 22));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/971")]
+        [Fact, WorkItem(971, "https://github.com/dotnet/roslyn/issues/971")]
         public void LookupSymbols()
         {
             var comp = CreateCompilation(@"
@@ -1028,7 +1028,7 @@ public class D
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13578")]
+        [Fact, WorkItem(13578, "https://github.com/dotnet/roslyn/issues/13578")]
         public void ExpressionBodiesNotSupported()
         {
             var source = @"

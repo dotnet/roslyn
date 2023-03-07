@@ -220,7 +220,7 @@ public class Test : Class2
             });
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/687434")]
+        [WorkItem(687434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/687434")]
         [Fact()]
         public void Bug687434()
         {
@@ -230,7 +230,7 @@ public class Test : Class2
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.NetModule));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529006")]
+        [Fact, WorkItem(529006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529006")]
         public void AddModule()
         {
             var netModule1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule1).GetReference(filePath: Path.GetFullPath("netModule1.netmodule"));
@@ -1192,7 +1192,7 @@ public class C : I
         // Property/method override should succeed (and should reference
         // the correct base method, even if there is a method/property
         // with the same name in an intermediate class.
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538720")]
+        [WorkItem(538720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538720")]
         [Fact]
         public void TestPropertyOverrideGet()
         {
@@ -1965,7 +1965,7 @@ True
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540581")]
+        [WorkItem(540581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540581")]
         [Fact]
         public void RefEmit_DependencyGraphAndCachedTypeReferences()
         {
@@ -2202,7 +2202,7 @@ class Program
                 Assert.Null(member);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/90")]
+        [WorkItem(90, "https://github.com/dotnet/roslyn/issues/90")]
         [Fact]
         public void EmitWithNoResourcesAllPlatforms()
         {

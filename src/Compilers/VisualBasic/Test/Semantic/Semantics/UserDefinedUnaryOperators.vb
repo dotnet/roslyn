@@ -650,7 +650,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544313")>
+        <Fact(), WorkItem(544313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544313")>
         Public Sub IsTrueIsFalseInOverloadResolutionTakeWhile()
             Dim compilationDef =
 <compilation name="IsTrueIsFalseInOverloadResolutionTakeWhile">
@@ -736,7 +736,7 @@ S4_TakeWhileBaseClass S4_Select
 
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/56376")>
+        <WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")>
         <Fact>
         Public Sub UserDefinedUnaryOperatorInGenericExpressionTree()
             Dim compilationDef =

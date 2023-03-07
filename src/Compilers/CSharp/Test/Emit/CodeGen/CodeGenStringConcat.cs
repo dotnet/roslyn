@@ -79,7 +79,7 @@ B
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38858")]
+        [Fact, WorkItem(38858, "https://github.com/dotnet/roslyn/issues/38858")]
         public void ConcatEnumWithToString()
         {
             var source = @"
@@ -100,7 +100,7 @@ public enum Enum { A = 0, ToString = 1 }
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38858")]
+        [Fact, WorkItem(38858, "https://github.com/dotnet/roslyn/issues/38858")]
         public void ConcatStructWithToString()
         {
             var source = @"
@@ -362,7 +362,7 @@ OAFABOFA");
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37830")]
+        [WorkItem(37830, "https://github.com/dotnet/roslyn/issues/37830")]
         public void ConcatMerge_MarshalByRefObject()
         {
             var source = @"
@@ -716,7 +716,7 @@ F");
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679120")]
+        [WorkItem(679120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679120")]
         public void ConcatEmptyArray()
         {
             var source = @"
@@ -768,7 +768,7 @@ End");
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529064")]
+        [WorkItem(529064, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529064")]
         [Fact]
         public void TestStringConcatOnLiteralAndCompound()
         {
@@ -1316,7 +1316,7 @@ public class Test
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092853")]
+        [Fact, WorkItem(1092853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092853")]
         public void ConcatWithNullCoalescedNullLiteral()
         {
             const string source = @"
@@ -1354,7 +1354,7 @@ class Repro
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092853")]
+        [Fact, WorkItem(1092853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092853")]
         public void ConcatWithNullCoalescedNullLiteral_2()
         {
             const string source = @"

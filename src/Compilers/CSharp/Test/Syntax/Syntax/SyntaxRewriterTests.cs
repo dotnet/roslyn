@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22010")]
+        [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
         public void TestReplaceNodeShouldNotLoseParseOptions()
         {
             var tree = SyntaxFactory.ParseSyntaxTree("System.Console.Write(\"Before\")", TestOptions.Script);
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22010")]
+        [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
         public void TestReplaceNodeInListShouldNotLoseParseOptions()
         {
             var tree = SyntaxFactory.ParseSyntaxTree("m(a, b)", TestOptions.Script);
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22010")]
+        [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
         public void TestInsertNodeShouldNotLoseParseOptions()
         {
             var tree = SyntaxFactory.ParseSyntaxTree("m(a, b)", TestOptions.Script);
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22010")]
+        [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
         public void TestReplaceTokenShouldNotLoseParseOptions()
         {
             var tree = SyntaxFactory.ParseSyntaxTree("private class C { }", options: TestOptions.Script);
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22010")]
+        [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
         public void TestInsertTokenShouldNotLoseParseOptions()
         {
             var tree = SyntaxFactory.ParseSyntaxTree("public class C { }", options: TestOptions.Script);
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22010")]
+        [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
         public void TestReplaceTriviaShouldNotLoseParseOptions()
         {
             var tree = SyntaxFactory.ParseSyntaxTree("/* c */ identifier", options: TestOptions.Script);
@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22010")]
+        [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
         public void TestInsertTriviaShouldNotLoseParseOptions()
         {
             var tree = SyntaxFactory.ParseSyntaxTree("/* c */ identifier", options: TestOptions.Script);
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22010")]
+        [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
         public void TestRemoveNodeShouldNotLoseParseOptions()
         {
             var tree = SyntaxFactory.ParseSyntaxTree("private class C { }", options: TestOptions.Script);
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22010")]
+        [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
         public void TestNormalizeWhitespaceShouldNotLoseParseOptions()
         {
             var tree = SyntaxFactory.ParseSyntaxTree("private class C { }", options: TestOptions.Script);
@@ -545,8 +545,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(rewrittenRoot, rewrittenRoot.SyntaxTree.GetRoot());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545049")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/896538")]
+        [WorkItem(545049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545049")]
+        [WorkItem(896538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/896538")]
         [Fact]
         public void RewriteMissingIdentifierInExpressionStatement_ImplicitlyCreatedSyntaxTree()
         {
@@ -592,8 +592,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFacts.IsStatementExpression(expression);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545049")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/896538")]
+        [WorkItem(545049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545049")]
+        [WorkItem(896538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/896538")]
         [Fact]
         public void RewriteMissingIdentifierInExpressionStatement_WithSyntaxTree()
         {
@@ -654,7 +654,7 @@ class C { }
             Assert.Equal(expectedNewSource, newRoot.ToFullString());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991474")]
+        [WorkItem(991474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991474")]
         [Fact]
         public void ReturnNullFromStructuredTriviaRoot_Succeeds()
         {

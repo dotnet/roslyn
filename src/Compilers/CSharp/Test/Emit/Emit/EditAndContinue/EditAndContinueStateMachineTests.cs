@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     public class EditAndContinueStateMachineTests : EditAndContinueTestBase
     {
         [Fact]
-        [WorkItem(1068894, "DevDiv"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1137300")]
+        [WorkItem(1068894, "DevDiv"), WorkItem(1137300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1137300")]
         public void AddIteratorMethod()
         {
             var source0 = WithWindowsLineBreaks(@"
@@ -8065,7 +8065,7 @@ class C
                 "<>u__2: System.Runtime.CompilerServices.TaskAwaiter<int>");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63294")]
+        [Fact, WorkItem(63294, "https://github.com/dotnet/roslyn/issues/63294")]
         public void LiftedClosure()
         {
             var source0 = MarkedSource(@"
@@ -8175,7 +8175,7 @@ static class C
                 "C.<>c__DisplayClass0_0: {num}");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")]
+        [Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")]
         public void HoistedAnonymousTypes1()
         {
             var source0 = MarkedSource(@"
@@ -8324,7 +8324,7 @@ class C
             diff2.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "3"));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3192")]
+        [Fact, WorkItem(3192, "https://github.com/dotnet/roslyn/issues/3192")]
         public void HoistedAnonymousTypes_Nested()
         {
             var source0 = MarkedSource(@"
@@ -8469,7 +8469,7 @@ class C
             diff2.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "3"));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3192")]
+        [Fact, WorkItem(3192, "https://github.com/dotnet/roslyn/issues/3192")]
         public void HoistedGenericTypes()
         {
             var source0 = MarkedSource(@"
@@ -8779,7 +8779,7 @@ class C
             diff2.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "2"));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3192")]
+        [Fact, WorkItem(3192, "https://github.com/dotnet/roslyn/issues/3192")]
         public void HoistedAnonymousTypes_Delete()
         {
             var source0 = MarkedSource(@"
@@ -9665,7 +9665,7 @@ class Program
                 "<>f__AnonymousType2<<<>h__TransparentIdentifier0>j__TPar, <y>j__TPar>: {Equals, GetHashCode, ToString}");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9119")]
+        [Fact, WorkItem(9119, "https://github.com/dotnet/roslyn/issues/9119")]
         public void MissingIteratorStateMachineAttribute()
         {
             var source0 = MarkedSource(@"
@@ -9722,7 +9722,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("C.F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute").WithLocation(7, 29));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9119")]
+        [Fact, WorkItem(9119, "https://github.com/dotnet/roslyn/issues/9119")]
         public void BadIteratorStateMachineAttribute()
         {
             var source0 = MarkedSource(@"
@@ -9920,7 +9920,7 @@ class C
             diff1.EmitResult.Diagnostics.Verify();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9119")]
+        [Fact, WorkItem(9119, "https://github.com/dotnet/roslyn/issues/9119")]
         public void MissingAsyncStateMachineAttribute()
         {
             var source0 = MarkedSource(@"
@@ -10097,7 +10097,7 @@ class C
             diff1.EmitResult.Diagnostics.Verify();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10190")]
+        [Fact, WorkItem(10190, "https://github.com/dotnet/roslyn/issues/10190")]
         public void NonAsyncToAsync()
         {
             var source0 = MarkedSource(@"

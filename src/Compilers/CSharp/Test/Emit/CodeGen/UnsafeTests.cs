@@ -1296,7 +1296,7 @@ public class Program
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22306")]
+        [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
         [Fact]
         public void FixedStatementMultipleFields()
         {
@@ -1363,7 +1363,7 @@ unsafe class C
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22306")]
+        [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
         [Fact]
         public void FixedStatementMultipleMethods()
         {
@@ -1434,7 +1434,7 @@ unsafe class C
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546866")]
+        [WorkItem(546866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546866")]
         [Fact]
         public void FixedStatementProperty()
         {
@@ -7067,7 +7067,7 @@ unsafe struct S
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546750")]
+        [WorkItem(546750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546750")]
         [Fact]
         public void NumericAdditionUnchecked_SizeOne()
         {
@@ -7154,8 +7154,8 @@ unsafe class C
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18871")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546750")]
+        [WorkItem(18871, "https://github.com/dotnet/roslyn/issues/18871")]
+        [WorkItem(546750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546750")]
         [Fact]
         public void NumericAdditionChecked_SizeOne()
         {
@@ -8031,7 +8031,7 @@ unsafe struct S
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544155")]
+        [WorkItem(544155, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544155")]
         [Fact]
         public void SubtractPointerTypes()
         {
@@ -9536,7 +9536,7 @@ unsafe struct S
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49639")]
+        [Fact, WorkItem(49639, "https://github.com/dotnet/roslyn/issues/49639")]
         public void CompareToNullWithNestedUnconstrainedTypeParameter()
         {
             var verifier = CompileAndVerify(@"
@@ -9580,7 +9580,7 @@ False", verify: Verification.Skipped);
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49639")]
+        [Fact, WorkItem(49639, "https://github.com/dotnet/roslyn/issues/49639")]
         public void CompareToNullWithPointerToUnmanagedTypeParameter()
         {
             var verifier = CompileAndVerify(@"
@@ -10265,7 +10265,7 @@ unsafe class C
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544229")]
+        [WorkItem(544229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544229")]
         [Fact]
         public void UnsafeTypeAsAttributeArgument()
         {
@@ -10301,7 +10301,7 @@ class A : Attribute
 
         #region Regression tests
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545026")]
+        [WorkItem(545026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545026")]
         [Fact]
         public void MixedSafeAndUnsafeFields()
         {
@@ -10337,7 +10337,7 @@ public class Test
             }).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545026")]
+        [WorkItem(545026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545026")]
         [Fact]
         public void SafeFieldBeforeUnsafeField()
         {
@@ -10359,7 +10359,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545026")]
+        [WorkItem(545026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545026")]
         [Fact]
         public void SafeFieldAfterUnsafeField()
         {
@@ -10381,7 +10381,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545026"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598170")]
+        [WorkItem(545026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545026"), WorkItem(598170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598170")]
         [Fact]
         public void FixedPassByRef()
         {
@@ -10434,7 +10434,7 @@ unsafe struct S
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "s.i"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545293"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/881188")]
+        [Fact, WorkItem(545293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545293"), WorkItem(881188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/881188")]
         public void EmptyAndFixedBufferStructIsInitialized()
         {
             var text = @"
@@ -10458,7 +10458,7 @@ public struct OuterStruct
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545296"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545999")]
+        [Fact, WorkItem(545296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545296"), WorkItem(545999, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545999")]
         public void FixedBufferAndStatementWithFixedArrayElementAsInitializer()
         {
             var text = @"
@@ -10556,7 +10556,7 @@ unsafe public struct FixedStruct
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545299")]
+        [Fact, WorkItem(545299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545299")]
         public void FixedStatementInlambda()
         {
             var text = @"
@@ -10594,7 +10594,7 @@ class A
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "b", verify: Verification.Fails);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546865")]
+        [Fact, WorkItem(546865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546865")]
         public void DontStackScheduleLocalPerformingPointerConversion()
         {
             var text = @"
@@ -10674,7 +10674,7 @@ unsafe class Test
 }");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546807")]
+        [Fact, WorkItem(546807, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546807")]
         public void PointerMemberAccessReadonlyField()
         {
             var text = @"
@@ -10742,7 +10742,7 @@ True");
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546807")]
+        [Fact, WorkItem(546807, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546807")]
         public void PointerMemberAccessCall()
         {
             var text = @"
@@ -10817,7 +10817,7 @@ unsafe class Test
 }");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531327")]
+        [Fact, WorkItem(531327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531327")]
         public void PointerParameter()
         {
             var text = @"
@@ -10839,7 +10839,7 @@ namespace N
             var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.Passes);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531327")]
+        [Fact, WorkItem(531327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531327")]
         public void PointerReturn()
         {
             var text = @"
@@ -10863,7 +10863,7 @@ unsafe struct S1
             var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.FailsPEVerify);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748530")]
+        [Fact, WorkItem(748530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748530")]
         public void Repro748530()
         {
             var text = @"
@@ -10882,7 +10882,7 @@ unsafe class A
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682584")]
+        [WorkItem(682584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682584")]
         [Fact]
         public void UnsafeMathConv()
         {
@@ -10928,7 +10928,7 @@ unsafe class C
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682584")]
+        [WorkItem(682584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682584")]
         [Fact]
         public void UnsafeMathConv001()
         {
@@ -10978,7 +10978,7 @@ unsafe class C
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682584")]
+        [WorkItem(682584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682584")]
         [Fact]
         public void UnsafeMathConv002()
         {
@@ -11020,7 +11020,7 @@ unsafe class C
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682584")]
+        [WorkItem(682584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682584")]
         [Fact]
         public void UnsafeMathConv002a()
         {
@@ -11061,7 +11061,7 @@ unsafe class C
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/857598")]
+        [WorkItem(857598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/857598")]
         [Fact]
         public void VoidToNullable()
         {
@@ -11098,7 +11098,7 @@ class c1
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907771")]
+        [WorkItem(907771, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907771")]
         [Fact]
         public void UnsafeBeforeReturn001()
         {
@@ -11171,7 +11171,7 @@ public unsafe class C
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907771")]
+        [WorkItem(907771, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907771")]
         [Fact]
         public void UnsafeBeforeReturn002()
         {
@@ -11334,7 +11334,7 @@ public unsafe class C
             var result = CompileAndVerify(compilation, expectedOutput: "5");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7550")]
+        [Fact, WorkItem(7550, "https://github.com/dotnet/roslyn/issues/7550")]
         public void EnsureNullPointerIsPoppedIfUnused()
         {
             string source = @"
@@ -11356,7 +11356,7 @@ public class A
             CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "OK", verify: Verification.Passes);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40768")]
+        [Fact, WorkItem(40768, "https://github.com/dotnet/roslyn/issues/40768")]
         public void DoesNotEmitArrayDotEmptyForEmptyPointerArrayParams()
         {
             var source = @"

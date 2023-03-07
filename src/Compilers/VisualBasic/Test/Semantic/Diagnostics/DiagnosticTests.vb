@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ''' <summary>
         ''' ERRID should not have duplicates.
         ''' </summary>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/20701")>
+        <WorkItem(20701, "https://github.com/dotnet/roslyn/issues/20701")>
         <Fact()>
         Public Sub NoDuplicates()
             Dim values = [Enum].GetValues(GetType(ERRID))

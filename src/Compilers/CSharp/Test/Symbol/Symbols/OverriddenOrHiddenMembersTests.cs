@@ -1241,7 +1241,7 @@ class CSHide : VBIMeth02Impl, IMeth02, IMeth03
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "n").WithArguments("CSHide.n"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
+        [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
         [Fact]
         public void TestMixedPropertyAccessorModifiers_EmptyAbstract()
         {
@@ -1255,7 +1255,7 @@ abstract class Derived : AccessorModifierMismatch
             CreateCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
+        [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
         [Fact]
         public void TestMixedPropertyAccessorModifiers_EmptyConcrete()
         {
@@ -1275,7 +1275,7 @@ class Derived : AccessorModifierMismatch
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "AccessorModifierMismatch.AbstractNone.get"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
+        [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
         [Fact]
         public void TestMixedPropertyAccessorModifiers_OverrideGetters()
         {
@@ -1374,7 +1374,7 @@ class Derived : AccessorModifierMismatch // CS0534 (didn't implement AbstractAbs
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "AccessorModifierMismatch.NoneAbstract.set"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
+        [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
         [Fact]
         public void TestMixedPropertyAccessorModifiers_OverrideSetters()
         {
@@ -1473,7 +1473,7 @@ class Derived : AccessorModifierMismatch // CS0534 (didn't implement AbstractAbs
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "AccessorModifierMismatch.AbstractNone.get"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
+        [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
         [Fact]
         public void TestMixedPropertyAccessorModifiers_AbstractSealed()
         {
@@ -1537,7 +1537,7 @@ class Derived : AccessorModifierMismatch
             CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
+        [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
         [Fact]
         public void TestMixedEventAccessorModifiers_EmptyAbstract()
         {
@@ -1551,7 +1551,7 @@ abstract class Derived : AccessorModifierMismatch
             CreateCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
+        [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
         [Fact]
         public void TestMixedEventAccessorModifiers_EmptyConcrete()
         {
@@ -1572,7 +1572,7 @@ class Derived : AccessorModifierMismatch
         }
 
         // NOTE: The behavior is quite different from the analogous property tests.
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
+        [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
         [Fact]
         public void TestMixedEventAccessorModifiers_OverrideAccessors()
         {
@@ -1667,7 +1667,7 @@ class Derived : AccessorModifierMismatch
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "SealedSealed").WithArguments("Derived.SealedSealed", "AccessorModifierMismatch.SealedSealed"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
+        [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
         [Fact]
         public void TestMixedEventAccessorModifiers_AbstractSealed()
         {
@@ -1770,7 +1770,7 @@ class Derived : AccessorModifierMismatch
 
         #region "Regressions"
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546834")]
+        [WorkItem(546834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546834")]
         [Fact]
         public void PropertyHidingAccessor()
         {
@@ -1819,7 +1819,7 @@ public class MainClass
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539623")]
+        [WorkItem(539623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539623")]
         [Fact]
         public void GenericTypeWithDiffTypeParamNotHideBase()
         {
@@ -1891,7 +1891,7 @@ public class TestClass3 : TestClass2
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "TestClass3").WithArguments("TestClass3", "TestClass1.P2.get"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
+        [WorkItem(540383, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
         [Fact]
         public void HideBaseImplementationWithPrivateProperty()
         {
@@ -1919,7 +1919,7 @@ class B2 : B1, I1
                     global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Goo")));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
+        [WorkItem(540383, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
         [Fact]
         public void HideBaseImplementationWithStaticProperty()
         {
@@ -1947,7 +1947,7 @@ class B2 : B1, I1
                     global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Goo")));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
+        [WorkItem(540383, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
         [Fact]
         public void HideBaseImplementationWithWrongTypeProperty()
         {
@@ -1975,7 +1975,7 @@ class B2 : B1, I1
                     global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Goo")));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
+        [WorkItem(540383, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
         [Fact]
         public void HideInvalidBaseImplementationWithPrivateProperty()
         {
@@ -2004,7 +2004,7 @@ class B2 : B1, I1
                     global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Goo")));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
+        [WorkItem(540383, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
         [Fact]
         public void HideInvalidBaseImplementationWithStaticProperty()
         {
@@ -2071,7 +2071,7 @@ class B3 : I
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "I").WithArguments("B3", "I.M<T>()", "B3.M<T>()").WithLocation(8, 12));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
+        [WorkItem(540383, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
         [Fact]
         public void HideInvalidBaseImplementationWithWrongTypeProperty()
         {
@@ -2100,7 +2100,7 @@ class B2 : B1, I1
                     global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Goo")));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540420")]
+        [WorkItem(540420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540420")]
         [Fact]
         public void HidingInEnum()
         {
@@ -2113,7 +2113,7 @@ enum E
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543448")]
+        [Fact, WorkItem(543448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543448")]
         public void GenericMethodsHidingFieldsAndEvents()
         {
             CreateCompilation(@"
@@ -2138,7 +2138,7 @@ class Derived : Base
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "C").WithArguments("Base.C"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543448")]
+        [WorkItem(543448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543448")]
         [Fact]
         public void GenericMethodHidesArityZero()
         {
@@ -2169,7 +2169,7 @@ class Sub : Base
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "C").WithArguments("Base.C"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543908")]
+        [WorkItem(543908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543908")]
         [Fact]
         public void OverrideMemberOfConstructedProtectedInnerClass()
         {
@@ -2198,7 +2198,7 @@ internal class Outer2 : Outer1<Outer2>
             c2.GetDiagnostics().Verify();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543908")]
+        [WorkItem(543908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543908")]
         [Fact]
         public void Repro11967()
         {
@@ -2401,7 +2401,7 @@ class Test
             CompileAndVerify(CreateCompilationWithILAndMscorlib40(csharp, il));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545653")]
+        [WorkItem(545653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545653")]
         [Fact]
         public void Repro14242_Property()
         {
@@ -2463,7 +2463,7 @@ class D : C
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "D").WithArguments("D", "A.X.get"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545653")]
+        [WorkItem(545653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545653")]
         [Fact]
         public void Repro14242_Event()
         {
@@ -2528,7 +2528,7 @@ class D : C
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(14, 47));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545653")]
+        [WorkItem(545653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545653")]
         [Fact]
         public void Repro14242_Method()
         {
@@ -2584,7 +2584,7 @@ class D : C
                 Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M").WithArguments("D.M()", "C.M()", "string"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545653")]
+        [WorkItem(545653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545653")]
         [Fact]
         public void Repro14242_Indexer()
         {
@@ -2647,8 +2647,8 @@ class D : C
         }
 
         [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545658")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem(545658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545658")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void MethodConstructedFromOverrideWithCustomModifiers()
         {
             var il = @"
@@ -2851,7 +2851,7 @@ Base[C].Meth(C,System.Int32)");
         }
 
         [ClrOnlyFact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546816")]
+        [WorkItem(546816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546816")]
         public void Bug16887()
         {
             var text = @"
@@ -2873,7 +2873,7 @@ class Test
             CompileAndVerify(compilation);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
+        [Fact, WorkItem(546836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
         public void OverriddenPropertyAccessibility1()
         {
             var source1 = @"
@@ -2921,7 +2921,7 @@ public class C : B
                 p.DeclaredAccessibility == (p.ContainingType.Name == "A" ? Accessibility.ProtectedOrInternal : Accessibility.Protected));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
+        [Fact, WorkItem(546836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
         public void OverriddenPropertyAccessibility2()
         {
             var source1 = @"
@@ -2969,7 +2969,7 @@ public class C : B
                 p.DeclaredAccessibility == (p.ContainingType.Name == "A" ? Accessibility.ProtectedOrInternal : Accessibility.Protected));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
+        [Fact, WorkItem(546836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
         public void OverriddenPropertyAccessibility3()
         {
             var source1 = @"
@@ -3016,7 +3016,7 @@ public class C : B
             AssertEx.All(properties, p => p.DeclaredAccessibility == Accessibility.Public);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
+        [Fact, WorkItem(546836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
         public void OverriddenPropertyAccessibility4()
         {
             var source1 = @"
@@ -3063,7 +3063,7 @@ public class C : B
             AssertEx.All(properties, p => p.DeclaredAccessibility == Accessibility.Public);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
+        [Fact, WorkItem(546836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
         public void OverriddenPropertyAccessibility5()
         {
             var source1 = @"
@@ -3110,7 +3110,7 @@ public class C : B
             AssertEx.All(properties, p => p.DeclaredAccessibility == Accessibility.Public);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
+        [Fact, WorkItem(546836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
         public void OverriddenPropertyAccessibility6()
         {
             var source1 = @"
@@ -3157,7 +3157,7 @@ public class C : B
             AssertEx.All(properties, p => p.DeclaredAccessibility == Accessibility.Public);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
+        [Fact, WorkItem(546836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
         public void OverriddenPropertyAccessibility7()
         {
             var source1 = @"
@@ -3231,7 +3231,7 @@ public class B : A
             AssertEx.All(properties, p => p.DeclaredAccessibility == Accessibility.ProtectedOrInternal);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
+        [Fact, WorkItem(546836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
         public void OverriddenEventAccessibility()
         {
             var source1 = @"
@@ -3285,7 +3285,7 @@ public class C : B
                 e.DeclaredAccessibility == (e.ContainingType.Name == "A" ? Accessibility.ProtectedOrInternal : Accessibility.Protected));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
+        [Fact, WorkItem(546836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
         public void HideDestructorOperatorConversion1()
         {
             var source = @"
@@ -3401,7 +3401,7 @@ public class D8 : B
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
+        [Fact, WorkItem(546836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")]
         public void HideDestructorOperatorConversion2()
         {
             var source = @"
@@ -3554,7 +3554,7 @@ public class D8 : B
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/661370")]
+        [WorkItem(661370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/661370")]
         public void HideAndOverride1()
         {
             var source = @"
@@ -3627,7 +3627,7 @@ class Derived : Base
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/6148")]
+        [WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")]
         public void AbstractGenericBase_01()
         {
             var text = @"
@@ -3699,7 +3699,7 @@ void ValidatorBase<T>.DoValidate(T objectToValidate)");
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/6148")]
+        [WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")]
         public void AbstractGenericBase_02()
         {
             var text = @"
@@ -3760,7 +3760,7 @@ public class Required : ValidatorBase<object>
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/6148")]
+        [WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")]
         public void AbstractGenericBase_03()
         {
             var text = @"
@@ -3817,7 +3817,7 @@ void ValidatorBase<T>.DoValidate(T objectToValidate)");
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/6148")]
+        [WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")]
         public void AbstractGenericBase_04()
         {
             var text = @"
@@ -3883,7 +3883,7 @@ void Validator<T>.DoValidate(T objectToValidate)");
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/6148")]
+        [WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")]
         public void AbstractGenericBase_05()
         {
             var text = @"

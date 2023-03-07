@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         End Sub
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546314")>
+        <WorkItem(546314, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546314")>
         Public Sub Bug15562()
             Dim assembly = MetadataTestHelpers.LoadFromBytes(TestMetadata.ResourcesNet40.mscorlib)
             Dim module0 = assembly.Modules(0)

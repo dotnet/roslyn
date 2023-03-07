@@ -100,7 +100,7 @@ static class MyAwaitableExtension
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/711413")]
+        [WorkItem(711413, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/711413")]
         public void TestAwaitInfo()
         {
             var text =
@@ -120,7 +120,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084696")]
+        [WorkItem(1084696, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084696")]
         public void TestAwaitInfo2()
         {
             var text =
@@ -138,7 +138,7 @@ public class C {
         }
 
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/744146")]
+        [WorkItem(744146, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/744146")]
         public void DefaultAwaitExpressionInfo()
         {
             AwaitExpressionInfo info = default;
@@ -167,7 +167,7 @@ public class C {
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748533")]
+        [WorkItem(748533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748533")]
         public void Bug748533()
         {
             var text =
@@ -225,7 +225,7 @@ class Driver
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576316")]
+        [WorkItem(576316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576316")]
         public void Bug576316()
         {
             var text =
@@ -247,7 +247,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/3951")]
+        [WorkItem(3951, "https://github.com/dotnet/roslyn/issues/3951")]
         public void TestAwaitInNonAsync()
         {
             var text =
@@ -300,7 +300,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/52639")]
+        [WorkItem(52639, "https://github.com/dotnet/roslyn/issues/52639")]
         public void Issue52639_1()
         {
             var text =
@@ -377,7 +377,7 @@ public class SecondImplementation : MyBaseClass
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/52639")]
+        [WorkItem(52639, "https://github.com/dotnet/roslyn/issues/52639")]
         public void Issue52639_2()
         {
             var text =

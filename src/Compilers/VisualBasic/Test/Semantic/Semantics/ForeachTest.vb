@@ -107,7 +107,7 @@ End Class
         End Sub
 
         ' Using the iteration variable in the collection expression
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
+        <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub IterationVarInCollectionExpression()
             Dim compilation1 = CreateCompilationWithMscorlib40(
@@ -233,8 +233,8 @@ End Class
         End Sub
 
         ' Nested ForEach can use a var declared in the outer ForEach
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
+        <WorkItem(542080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
+        <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub NestedForeach()
             Dim compilation1 = CreateCompilationWithMscorlib40(
@@ -279,7 +279,7 @@ End Class
         End Sub
 
         ' Inner foreach loop referencing the outer foreach loop iteration variable
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
+        <WorkItem(542080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
         <Fact>
         Public Sub NestedForeach_1()
             Dim compilation1 = CreateCompilationWithMscorlib40(
@@ -365,7 +365,7 @@ End Class
         End Sub
 
         ' Continuing for nested Loops
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
+        <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub ContinueInForeach()
             Dim compilation1 = CreateCompilationWithMscorlib40(
@@ -641,7 +641,7 @@ End Class
             VerifyForeachSemanticInfo(compilation1)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
+        <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub BC30290ERR_LocalSameAsFunc_1()
             Dim compilation1 = CreateCompilationWithMscorlib40(
@@ -791,7 +791,7 @@ End Class
             VerifyForeachSemanticInfo(compilation1)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542083")>
+        <WorkItem(542083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542083")>
         <Fact>
         Public Sub BC30369ERR_BadInstanceMemberAccess_5()
             Dim compilation1 = CreateCompilationWithMscorlib40(
@@ -880,7 +880,7 @@ End Class
             VerifyForeachSemanticInfo(compilation1)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
+        <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact()>
         Public Sub BC32006ERR_CharToIntegralTypeMismatch1_1()
             Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
@@ -936,7 +936,7 @@ End Class
             VerifyForeachSemanticInfo(compilation1)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
+        <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub VarDeclOutOfForeach()
             Dim compilation1 = CreateCompilationWithMscorlib40(
@@ -966,7 +966,7 @@ End Class
         End Sub
 
         ' No confusion in a foreach statement when from is a value type
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542081")>
+        <WorkItem(542081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542081")>
         <Fact>
         Public Sub LambdaAsIteration()
             Dim compilation1 = CreateCompilationWithMscorlib40(
@@ -1135,7 +1135,7 @@ End Class
             GetDeclareSymbolTestForeach(compilation1, Nothing, 2)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667616")>
+        <WorkItem(667616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667616")>
         <Fact>
         Public Sub PortableLibraryStringForEach()
             Dim comp = CreateEmptyCompilationWithReferences(
@@ -1175,7 +1175,7 @@ End Class
             Assert.Equal(ConversionKind.Identity, conv.Kind)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667616")>
+        <WorkItem(667616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667616")>
         <Fact>
         Public Sub PortableLibraryStringForEach_ExplicitCast()
             Dim comp = CreateEmptyCompilationWithReferences(
@@ -1215,7 +1215,7 @@ End Class
             Assert.Equal(ConversionKind.Identity, conv.Kind)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529956")>
+        <WorkItem(529956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529956")>
         <Fact>
         Public Sub CastArrayToIEnumerable()
             Dim source =

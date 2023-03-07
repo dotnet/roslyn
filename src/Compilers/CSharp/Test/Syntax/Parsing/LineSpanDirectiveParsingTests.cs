@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61663")]
+        [Fact, WorkItem(61663, "https://github.com/dotnet/roslyn/issues/61663")]
         public void LineDirective_06()
         {
             string source = @"#line(1,2)-(3,4)5""file.cs""";
@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61663")]
+        [Fact, WorkItem(61663, "https://github.com/dotnet/roslyn/issues/61663")]
         public void Incomplete_11()
         {
             string source = @"#line (1, 2) - (3, 4)";
@@ -789,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61663")]
+        [Fact, WorkItem(61663, "https://github.com/dotnet/roslyn/issues/61663")]
         public void Incomplete_12()
         {
             string source = @"#line (1, 2) - (3, 4) 5";
@@ -2344,7 +2344,7 @@ file.cs
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61663")]
+        [Fact, WorkItem(61663, "https://github.com/dotnet/roslyn/issues/61663")]
         public void RequireSpace_BeforeFirstParen()
         {
             string source = @"#line(1, 2) - (3, 4) ""file.cs""";
@@ -2382,7 +2382,7 @@ file.cs
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61663")]
+        [Fact, WorkItem(61663, "https://github.com/dotnet/roslyn/issues/61663")]
         public void RequireSpace_BeforeCharacterOffset()
         {
             string source = @"#line (1, 2) - (3, 4)5 ""file.cs""";
@@ -2421,7 +2421,7 @@ file.cs
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61663")]
+        [Fact, WorkItem(61663, "https://github.com/dotnet/roslyn/issues/61663")]
         public void RequireSpace_BeforeFilename()
         {
             string source = @"#line (1, 2) - (3, 4) 5""file.cs""";
@@ -2460,7 +2460,7 @@ file.cs
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61663")]
+        [Fact, WorkItem(61663, "https://github.com/dotnet/roslyn/issues/61663")]
         public void RequireSpace_BeforeFilename_WithoutCharacterOffset()
         {
             string source = @"#line (1, 2) - (3, 4)""file.cs""";

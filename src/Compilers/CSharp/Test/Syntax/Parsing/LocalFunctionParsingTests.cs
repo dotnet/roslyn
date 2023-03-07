@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public LocalFunctionParsingTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/13480")]
+        [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         public void IncompleteLocalFunc()
         {
             UsingTree(@"
@@ -350,7 +350,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38801")]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
         public void LocalFunctionAttribute()
         {
             var tree = UsingTree(@"
@@ -547,7 +547,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38801")]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
         public void LocalFunctionModifier_Error_LocalVariable()
         {
             var tree = UsingTree(@"
@@ -622,7 +622,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38801")]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
         public void LocalFunction_NoBody()
         {
             UsingTree(@"
@@ -681,7 +681,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38801")]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
         public void LocalFunction_Extern()
         {
             const string code = @"
@@ -774,7 +774,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38801")]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
         public void LocalFunction_Extern_Body()
         {
             const string code = @"
@@ -864,7 +864,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38801")]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
         public void LocalVariable_Extern()
         {
             const string statement = "extern object obj;";
@@ -903,7 +903,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38801")]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
         public void LocalFunctionAttribute_Error_LocalVariable()
         {
             var tree = UsingTree(@"
@@ -983,7 +983,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38801")]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
         public void LocalFunctionAttribute_Error_LocalVariable_MultipleDeclarators()
         {
             var tree = UsingTree(@"
@@ -1071,7 +1071,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12280")]
+        [WorkItem(12280, "https://github.com/dotnet/roslyn/issues/12280")]
         public void LocalFunctionAttribute_Error_IncompleteMember()
         {
             var tree = UsingTree(@"
@@ -1151,7 +1151,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12280")]
+        [WorkItem(12280, "https://github.com/dotnet/roslyn/issues/12280")]
         public void LocalFuncWithWhitespace()
         {
             var file = ParseFile(@"
@@ -1671,7 +1671,7 @@ class c
             EOF();
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/13090")]
+        [WorkItem(13090, "https://github.com/dotnet/roslyn/issues/13090")]
         [Fact]
         public void AsyncVariable()
         {
@@ -2110,7 +2110,7 @@ class c
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32106")]
+        [Fact, WorkItem(32106, "https://github.com/dotnet/roslyn/issues/32106")]
         public void DuplicateAsyncs1()
         {
             const string text = """
@@ -2187,7 +2187,7 @@ class c
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32106")]
+        [Fact, WorkItem(32106, "https://github.com/dotnet/roslyn/issues/32106")]
         public void DuplicateAsyncs2()
         {
             const string text = """
@@ -2271,7 +2271,7 @@ class c
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32106")]
+        [Fact, WorkItem(32106, "https://github.com/dotnet/roslyn/issues/32106")]
         public void DuplicateAsyncs3()
         {
             const string text = """
@@ -2362,7 +2362,7 @@ class c
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32106")]
+        [Fact, WorkItem(32106, "https://github.com/dotnet/roslyn/issues/32106")]
         public void DuplicateAsyncs4()
         {
             const string text = """

@@ -992,7 +992,7 @@ class Program
             comp.VerifyIL("Program.M6", expectedIL6);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/663")]
+        [Fact, WorkItem(663, "https://github.com/dotnet/roslyn/issues/663")]
         public void TestNullableComparisonOpsOneNullOneNonNull()
         {
             // An ==, !=, <, >, <= or >= operation where one operand is null and the

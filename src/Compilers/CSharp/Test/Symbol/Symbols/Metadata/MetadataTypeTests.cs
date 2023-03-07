@@ -340,7 +340,7 @@ namespace System.Diagnostics.Eventing
             Assert.Empty(compilation2.GetDeclarationDiagnostics());
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531619"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531619")]
+        [Fact, WorkItem(531619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531619"), WorkItem(531619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531619")]
         public void InheritFromNetModuleMetadata01()
         {
             var modRef = TestReferences.MetadataTests.NetModule01.ModuleCS00;
@@ -388,7 +388,7 @@ class Test : StaticModClass
             Assert.NotNull(symInfo.Symbol);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066489")]
+        [WorkItem(1066489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066489")]
         [Fact]
         public void InstanceIterator_ExplicitInterfaceImplementation_OldName()
         {
@@ -517,7 +517,7 @@ class Test : StaticModClass
         }
 
         [ConditionalFact(typeof(ClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23761")] // reason for skipping mono
+        [WorkItem(23761, "https://github.com/dotnet/roslyn/issues/23761")] // reason for skipping mono
         public void EmptyNamespaceNames()
         {
             var ilSource =

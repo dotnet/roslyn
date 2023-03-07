@@ -1286,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         #endregion
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")]
+        [WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")]
         public void Bug530209_DecimalConstant()
         {
             var compilation = CreateCompilation(
@@ -1317,8 +1317,8 @@ public class Class1
         }
 
         [ConditionalFact(typeof(ClrOnly))]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23760")] // reason for skipping Mono
+        [WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")]
+        [WorkItem(23760, "https://github.com/dotnet/roslyn/issues/23760")] // reason for skipping Mono
         public void Bug530209_DecimalConstant_FromIL()
         {
             var ilSource = @"
@@ -1477,7 +1477,7 @@ class Class2 : Class1
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18092")]
+        [WorkItem(18092, "https://github.com/dotnet/roslyn/issues/18092")]
         public void ForwardedSystemType()
         {
             var ilSource = @"

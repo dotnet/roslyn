@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenInterfaceImplementationTests
         Inherits BasicTestBase
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540794")>
+        <WorkItem(540794, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540794")>
         <Fact>
         Public Sub TestInterfaceMembersSignature()
             Dim source =
@@ -36,10 +36,10 @@ End Interface
             verifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540794")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540805")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540861")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540807")>
+        <WorkItem(540794, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540794")>
+        <WorkItem(540805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540805")>
+        <WorkItem(540861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540861")>
+        <WorkItem(540807, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540807")>
         <Fact>
         Public Sub TestNestedInterface()
             Dim source =
@@ -99,7 +99,7 @@ End Class
             verifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543426")>
+        <WorkItem(543426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543426")>
         <Fact()>
         Public Sub TestExplicitlyImplementInterfaceNestedInGenericType()
             Dim source =

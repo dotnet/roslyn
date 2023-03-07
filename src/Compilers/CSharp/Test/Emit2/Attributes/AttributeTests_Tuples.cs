@@ -849,7 +849,7 @@ public struct S
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14844")]
+        [WorkItem(14844, "https://github.com/dotnet/roslyn/issues/14844")]
         public void AttributesOnTypeConstraints()
         {
             var src = @"
@@ -951,7 +951,7 @@ public interface I3<T>
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14844")]
+        [WorkItem(14844, "https://github.com/dotnet/roslyn/issues/14844")]
         public void AttributesOnInterfaceImplementations()
         {
             var src = @"

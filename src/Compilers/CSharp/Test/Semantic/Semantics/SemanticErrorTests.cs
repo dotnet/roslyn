@@ -66,7 +66,7 @@ class C
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadBinaryOps, Line = 8, Column = 12 });
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
+        [WorkItem(539906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
         [Fact]
         public void CS0019ERR_BadBinaryOps03()
         {
@@ -117,7 +117,7 @@ class Program
         }
 
         // Method List to removal or concatenation
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
+        [WorkItem(539906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
         [Fact]
         public void CS0019ERR_BadBinaryOps04()
         {
@@ -168,7 +168,7 @@ class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
+        [WorkItem(539906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
         [Fact]
         public void CS0019ERR_BadBinaryOps05()
         {
@@ -194,7 +194,7 @@ class C
         }
 
         // Anonymous  method to removal or concatenation
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
+        [WorkItem(539906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
         [Fact]
         public void CS0019ERR_BadBinaryOps06()
         {
@@ -227,7 +227,7 @@ class C
         }
 
         // Lambda expression to removal or concatenation
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
+        [WorkItem(539906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
         [Fact]
         public void CS0019ERR_BadBinaryOps07()
         {
@@ -260,7 +260,7 @@ class C
         }
 
         // Successive operator for addition and subtraction assignment
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
+        [WorkItem(539906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
         [Fact]
         public void CS0019ERR_BadBinaryOps08()
         {
@@ -301,7 +301,7 @@ class C
         }
 
         // Removal or concatenation for the delegate on Variance
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
+        [WorkItem(539906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
         [Fact]
         public void CS0019ERR_BadBinaryOps09()
         {
@@ -350,7 +350,7 @@ class C
         }
 
         // generic-delegate (goo<t>(...)) += non generic-methodgroup(bar<t>(...))
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
+        [WorkItem(539906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
         [Fact]
         public void CS0019ERR_BadBinaryOps10()
         {
@@ -425,7 +425,7 @@ class C
         }
 
         // generic-delegate (goo<t>(...)) += generic-methodgroup(bar<t>(...))
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
+        [WorkItem(539906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
         [Fact]
         public void CS0019ERR_BadBinaryOps11()
         {
@@ -451,7 +451,7 @@ class C
         }
 
         // non generic-delegate (goo<t>(...)) += generic-methodgroup(bar<t>(...))
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
+        [WorkItem(539906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
         [Fact]
         public void CS0019ERR_BadBinaryOps12()
         {
@@ -477,7 +477,7 @@ class C
         }
 
         // distinguish '|' from '||'
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540235")]
+        [WorkItem(540235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540235")]
         [Fact]
         public void CS0019ERR_BadBinaryOps13()
         {
@@ -570,7 +570,7 @@ public class Error
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "a ?? b").WithArguments("??", "Error", "D"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542115")]
+        [WorkItem(542115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542115")]
         [Fact]
         public void CS0019ERR_BadBinaryOps15()
         {
@@ -970,7 +970,7 @@ namespace x
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_BadIndexCount, Line = 9, Column = 25 } });
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542486")]
+        [WorkItem(542486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542486")]
         [Fact]
         public void CS0022ERR_BadIndexCount02()
         {
@@ -988,7 +988,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(","));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542486")]
+        [WorkItem(542486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542486")]
         [Fact]
         public void CS0022ERR_BadIndexCount03()
         {
@@ -1009,7 +1009,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "1"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542486")]
+        [WorkItem(542486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542486")]
         [Fact]
         public void CS0022ERR_BadIndexCount04()
         {
@@ -1027,7 +1027,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_ValueExpected, ""));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542486")]
+        [WorkItem(542486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542486")]
         [Fact]
         public void CS0022ERR_BadIndexCount05()
         {
@@ -1045,7 +1045,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_ValueExpected, ""));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539590")]
+        [WorkItem(539590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539590")]
         [Fact]
         public void CS0023ERR_BadUnaryOp1()
         {
@@ -1096,7 +1096,7 @@ namespace X
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539590")]
+        [WorkItem(539590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539590")]
         [Fact]
         public void CS0023ERR_BadUnaryOp_Nullable()
         {
@@ -1133,7 +1133,7 @@ public class Test
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539590")]
+        [WorkItem(539590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539590")]
         [Fact]
         public void CS0023ERR_BadUnaryOp2()
         {
@@ -1158,7 +1158,7 @@ namespace X
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "+(() => { })").WithArguments("+", "lambda expression"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540211")]
+        [WorkItem(540211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540211")]
         [Fact]
         public void CS0023ERR_BadUnaryOp_VoidMissingInstanceMethod()
         {
@@ -1175,7 +1175,7 @@ namespace X
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "void"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540211")]
+        [WorkItem(540211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540211")]
         [Fact]
         public void CS0023ERR_BadUnaryOp_VoidToString()
         {
@@ -1192,7 +1192,7 @@ namespace X
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "void"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540329")]
+        [WorkItem(540329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540329")]
         [Fact]
         public void CS0023ERR_BadUnaryOp_null()
         {
@@ -1209,7 +1209,7 @@ class X
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "null.Length").WithArguments(".", "<null>"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540329")]
+        [WorkItem(540329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540329")]
         [Fact]
         public void CS0023ERR_BadUnaryOp_lambdaExpression()
         {
@@ -1477,7 +1477,7 @@ class D
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "F()").WithArguments("D", "C").WithLocation(5, 21));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541719")]
+        [WorkItem(541719, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541719")]
         [Fact]
         public void CS0029ERR_NoImplicitConv04()
         {
@@ -1497,7 +1497,7 @@ class D
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "m").WithArguments("bool", "int").WithLocation(6, 29));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40405")]
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
         public void ThrowExpression_ImplicitVoidConversion_Return()
         {
             string text = @"
@@ -1517,7 +1517,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "throw null").WithArguments("<throw expression>", "void").WithLocation(6, 23));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40405")]
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
         public void ThrowExpression_ImplicitVoidConversion_Assignment()
         {
             string text = @"
@@ -1537,7 +1537,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "throw null").WithArguments("<throw expression>", "void").WithLocation(6, 29));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40405")]
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
         public void IntLiteral_ImplicitVoidConversion_Assignment()
         {
             string text = @"
@@ -1558,7 +1558,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40405")]
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
         public void VoidCall_ImplicitVoidConversion_Assignment()
         {
             string text = @"
@@ -1578,7 +1578,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "true ? M2() : M2()").WithArguments("void", "object").WithLocation(6, 22));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40405")]
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
         public void VoidCall_ImplicitVoidConversion_DiscardAssignment()
         {
             string text = @"
@@ -1598,7 +1598,7 @@ class C
                 Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(6, 9));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40405")]
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
         public void VoidCall_Assignment()
         {
             string text = @"
@@ -1618,7 +1618,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "M2()").WithArguments("void", "object").WithLocation(6, 22));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40405")]
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
         public void VoidCall_DiscardAssignment()
         {
             string text = @"
@@ -1638,7 +1638,7 @@ class C
                 Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(6, 9));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40405")]
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
         public void VoidCall_ImplicitVoidConversion_Return()
         {
             string text = @"
@@ -1678,9 +1678,9 @@ namespace x
                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(iii)0").WithArguments("int", "x.iii"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528539")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119609")]
-        [WorkItem("http://github.com/dotnet/roslyn/issues/920")]
+        [WorkItem(528539, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528539")]
+        [WorkItem(1119609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119609")]
+        [WorkItem(920, "http://github.com/dotnet/roslyn/issues/920")]
         [Fact]
         public void CS0030ERR_NoExplicitConv02()
         {
@@ -1749,7 +1749,7 @@ public class Test
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "num").WithArguments("a.num"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528539")]
+        [WorkItem(528539, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528539")]
         [Fact]
         public void CS0031ERR_ConstOutOfRange02()
         {
@@ -1828,7 +1828,7 @@ class A
         // Note that the errors for Int64 and UInt64 are not
         // exactly the same as for Int32, etc. above, but the
         // differences match the native compiler.
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528715")]
+        [WorkItem(528715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528715")]
         [Fact]
         public void CS0221ERR_ConstOutOfRangeChecked05()
         {
@@ -2061,7 +2061,7 @@ class B<T1, T2, T3, T4, T5, T6, T7>
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "(T7)null").WithArguments("T7").WithLocation(19, 13));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539589")]
+        [WorkItem(539589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539589")]
         [Fact]
         public void CS0037ERR_ValueCantBeNull03()
         {
@@ -2088,7 +2088,7 @@ class Program
             CreateCompilation(text).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_ValueCantBeNull, "(MyEnum)null").WithArguments("Program.MyEnum").WithLocation(12, 20));
         }
 
-        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528875")]
+        [Fact(), WorkItem(528875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528875")]
         public void CS0038ERR_WrongNestedThis()
         {
             var text = @"
@@ -2157,7 +2157,7 @@ class M
                 Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, "b as C").WithArguments("B", "C").WithLocation(24, 13));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541142")]
+        [Fact, WorkItem(541142, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541142")]
         public void CS0039ERR_NoExplicitBuiltinConv02()
         {
             var text =
@@ -2185,7 +2185,7 @@ class C
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "G as D").WithLocation(8, 10));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542047")]
+        [Fact, WorkItem(542047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542047")]
         public void CS0039ERR_ConvTypeReferenceToObject()
         {
             var text = @"using System;
@@ -2344,7 +2344,7 @@ public class Class1
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_BadEventUsageNoField, Line = 28, Column = 13 } });
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538213")]
+        [WorkItem(538213, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538213")]
         [Fact]
         public void CS0103ERR_NameNotInContext()
         {
@@ -2361,7 +2361,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "IO").WithArguments("IO").WithLocation(6, 9));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542574")]
+        [WorkItem(542574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542574")]
         [Fact]
         public void CS0103ERR_NameNotInContextLambdaExtension()
         {
@@ -2395,7 +2395,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(5, 43));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528780")]
+        [WorkItem(528780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528780")]
         [Fact]
         public void CS0103ERR_NameNotInContext_namedAndOptional()
         {
@@ -2497,7 +2497,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadSKknown, "System").WithArguments("System", "namespace", "variable"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542773")]
+        [WorkItem(542773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542773")]
         [Fact]
         public void CS0119ERR_BadSKunknown01_switch()
         {
@@ -2524,7 +2524,7 @@ enum @color
                 .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_BadSKunknown, "color").WithArguments("color", "type"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538214"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528703")]
+        [Fact, WorkItem(538214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538214"), WorkItem(528703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528703")]
         public void CS0119ERR_BadSKunknown01()
         {
             var source =
@@ -2578,7 +2578,7 @@ class B<T, U> where T : A
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541203")]
+        [WorkItem(541203, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541203")]
         [Fact]
         public void CS0119ERR_BadSKunknown_InThrowStmt()
         {
@@ -2784,7 +2784,7 @@ namespace ns1
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 7, Column = 15 });
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540091")]
+        [WorkItem(540091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540091")]
         [Fact]
         public void CS0116ERR_NamespaceUnexpected_4()
         {
@@ -2802,7 +2802,7 @@ D d = null;
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540091")]
+        [WorkItem(540091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540091")]
         [Fact]
         public void CS0116ERR_NamespaceUnexpected_5()
         {
@@ -2824,7 +2824,7 @@ D d = {;}
                 Diagnostic(ErrorCode.ERR_ArrayInitToNonArrayType, "{"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539129")]
+        [WorkItem(539129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539129")]
         [Fact]
         public void CS0117ERR_NoSuchMember()
         {
@@ -2946,7 +2946,7 @@ class C
             );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543950")]
+        [WorkItem(543950, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543950")]
         [Fact]
         public void CS0120ERR_ObjectRequired04()
         {
@@ -3156,7 +3156,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field2").WithArguments("C.D.field2", "null"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541505")]
+        [Fact, WorkItem(541505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541505")]
         public void CS0120ERR_ObjectRequired_Attribute()
         {
             var text = @"
@@ -3202,7 +3202,7 @@ public class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539817")]
+        [WorkItem(539817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539817")]
         [Fact]
         public void CS0122ERR_BadAccess()
         {
@@ -3237,7 +3237,7 @@ class Test : Base
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "X").WithArguments("Base.P.X"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537683")]
+        [WorkItem(537683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537683")]
         [Fact]
         public void CS0122ERR_BadAccess02()
         {
@@ -3258,7 +3258,7 @@ public class MyClass : Outer.base1
             Assert.Equal(122, errs.First().Code);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539628")]
+        [WorkItem(539628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539628")]
         [Fact]
         public void CS0122ERR_BadAccess03()
         {
@@ -3297,8 +3297,8 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadAccess, "C2").WithArguments("C2.C2()"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539628")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540336")]
+        [WorkItem(539628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539628")]
+        [WorkItem(540336, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540336")]
         [Fact]
         public void CS0122ERR_BadAccess04()
         {
@@ -3366,7 +3366,7 @@ class Error
                 Diagnostic(ErrorCode.ERR_BadAccess, "Goo").WithArguments("Error.Goo<A.ProtectedClass>(I<A.ProtectedClass>)"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539628")]
+        [WorkItem(539628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539628")]
         [Fact]
         public void CS0122ERR_BadAccess05()
         {
@@ -3387,7 +3387,7 @@ class Derived : Base
                 Diagnostic(ErrorCode.ERR_BadAccess, "base").WithArguments("Base.Base()"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539628")]
+        [WorkItem(539628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539628")]
         [Fact]
         public void CS0122ERR_BadAccess06()
         {
@@ -3429,7 +3429,7 @@ public class C
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_MethDelegateMismatch, Line = 11, Column = 15 } });
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539909")]
+        [WorkItem(539909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539909")]
         [Fact]
         public void CS0123ERR_MethDelegateMismatch_01()
         {
@@ -3451,8 +3451,8 @@ class C
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "far<int>").WithArguments("C.far<int>(int)", "boo"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539909")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540053")]
+        [WorkItem(539909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539909")]
+        [WorkItem(540053, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540053")]
         [Fact]
         public void CS0123ERR_MethDelegateMismatch_02()
         {
@@ -3578,7 +3578,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("Y").WithLocation(8, 21));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540115")]
+        [WorkItem(540115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540115")]
         [Fact]
         public void CS0126ERR_RetObjectRequired_02()
         {
@@ -3776,7 +3776,7 @@ namespace MyNamespace
         /// types, not just struct types. Specifically, CS0131 is now reported
         /// for type parameters constrained to "struct". (See also CS1612.)
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528763")]
+        [WorkItem(528763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528763")]
         [Fact]
         public void CS0131ERR_AssgLvalueExpected03()
         {
@@ -3813,7 +3813,7 @@ class C
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T)[0]").WithLocation(19, 9));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538077")]
+        [WorkItem(538077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538077")]
         [Fact]
         public void CS0132ERR_StaticConstParam()
         {
@@ -4097,7 +4097,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field").WithArguments("C.field"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538045")]
+        [WorkItem(538045, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538045")]
         [Fact]
         public void CS0139ERR_NoBreakOrCont()
         {
@@ -4120,7 +4120,7 @@ namespace x
                                          new ErrorDescription { Code = (int)ErrorCode.ERR_NoBreakOrCont, Line = 11, Column = 17 }});
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542400")]
+        [WorkItem(542400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542400")]
         [Fact]
         public void CS0140ERR_DuplicateLabel()
         {
@@ -4146,7 +4146,7 @@ namespace MyNamespace
             );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542420")]
+        [WorkItem(542420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542420")]
         [Fact]
         public void ErrorMeansSuccess_Attribute()
         {
@@ -4178,7 +4178,7 @@ class Xyzzy
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542420")]
+        [WorkItem(542420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542420")]
         [Fact]
         public void ErrorMeansSuccess_var()
         {
@@ -4240,7 +4240,7 @@ public class @a
                 });
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539583")]
+        [WorkItem(539583, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539583")]
         [Fact]
         public void CS0150ERR_ConstantExpected()
         {
@@ -4760,7 +4760,7 @@ class C
             CreateCompilation(text).VerifyDiagnostics(); // dynamic conversion to Exception
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542995")]
+        [WorkItem(542995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542995")]
         [Fact]
         public void CS0155ERR_BadExceptionType_Struct()
         {
@@ -5014,7 +5014,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadEmptyThrow, "throw"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540817")]
+        [WorkItem(540817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540817")]
         [Fact]
         public void CS0157ERR_BadFinallyLeave01()
         {
@@ -5089,7 +5089,7 @@ class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540817")]
+        [WorkItem(540817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540817")]
         [Fact]
         public void CS0157ERR_BadFinallyLeave02()
         {
@@ -5125,7 +5125,7 @@ class C
                     Diagnostic(ErrorCode.ERR_BadFinallyLeave, "continue").WithLocation(21, 27));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540817")]
+        [WorkItem(540817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540817")]
         [Fact]
         public void CS0157ERR_BadFinallyLeave03()
         {
@@ -5154,7 +5154,7 @@ class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539890")]
+        [WorkItem(539890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539890")]
         [Fact]
         public void CS0158ERR_LabelShadow()
         {
@@ -5178,7 +5178,7 @@ namespace MyNamespace
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_LabelShadow, Line = 11, Column = 13 } });
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539890")]
+        [WorkItem(539890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539890")]
         [Fact]
         public void CS0158ERR_LabelShadow_02()
         {
@@ -5210,7 +5210,7 @@ class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539875")]
+        [WorkItem(539875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539875")]
         [Fact]
         public void CS0159ERR_LabelNotFound()
         {
@@ -5228,7 +5228,7 @@ public class Cls
                 });
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528799")]
+        [WorkItem(528799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528799")]
         [Fact()]
         public void CS0159ERR_LabelNotFound_2()
         {
@@ -5257,7 +5257,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 23:").WithArguments("case 23:"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539876")]
+        [WorkItem(539876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539876")]
         [Fact]
         public void CS0159ERR_LabelNotFound_3()
         {
@@ -5280,7 +5280,7 @@ class Program
                                     Diagnostic(ErrorCode.WRN_UnreferencedLabel, "Label"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539876")]
+        [WorkItem(539876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539876")]
         [Fact]
         public void CS0159ERR_LabelNotFound_4()
         {
@@ -5303,7 +5303,7 @@ class Program
                                     Diagnostic(ErrorCode.WRN_UnreferencedLabel, "Label"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539876")]
+        [WorkItem(539876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539876")]
         [Fact]
         public void CS0159ERR_LabelNotFound_5()
         {
@@ -5333,7 +5333,7 @@ class Program
                                     Diagnostic(ErrorCode.WRN_UnreferencedLabel, "Label2"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539876")]
+        [WorkItem(539876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539876")]
         [Fact]
         public void CS0159ERR_LabelNotFound_6()
         {
@@ -5352,7 +5352,7 @@ class Program
                                     Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539876")]
+        [WorkItem(539876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539876")]
         [Fact]
         public void CS0159ERR_LabelNotFound_7()
         {
@@ -5408,7 +5408,7 @@ class Program
                                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label5"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540818")]
+        [WorkItem(540818, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540818")]
         [Fact]
         public void CS0159ERR_LabelNotFound_8()
         {
@@ -5442,7 +5442,7 @@ class C
                     );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539876")]
+        [WorkItem(539876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539876")]
         [Fact]
         public void CS0159ERR_LabelNotFound_9()
         {
@@ -6351,7 +6351,7 @@ class MyClass2
                     Diagnostic(ErrorCode.ERR_BadArgCount, "N").WithArguments("N", "2"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540860")]
+        [WorkItem(540860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540860")]
         [Fact]
         public void CS0165ERR_UseDefViolation06()
         {
@@ -6579,7 +6579,7 @@ public class MyClass
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528331")]
+        [WorkItem(528331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528331")]
         [Fact]
         public void CS0173ERR_InvalidQM_FuncCall()
         {
@@ -6618,7 +6618,7 @@ class A<T>
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540902")]
+        [WorkItem(540902, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540902")]
         [Fact]
         public void CS0173ERR_InvalidQM_foreach()
         {
@@ -6660,7 +6660,7 @@ class C { }
         //            CreateCompilationWithMscorlib(text).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoBaseClass, "?"));
         //        }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543360")]
+        [WorkItem(543360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543360")]
         [Fact()]
         public void CS0175ERR_BaseIllegal()
         {
@@ -6688,7 +6688,7 @@ class MyClass : Base
             );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528624")]
+        [WorkItem(528624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528624")]
         [Fact()]
         public void CS0175ERR_BaseIllegal_02()
         {
@@ -6793,7 +6793,7 @@ class B<T> where T : A
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("A.F", "null").WithLocation(3, 28));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543361")]
+        [WorkItem(543361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543361")]
         [Fact]
         public void CS0176ERR_ObjectProhibited04()
         {
@@ -6817,7 +6817,7 @@ class Test
         }
 
         // Identical to CS0176ERR_ObjectProhibited04, but with event keyword removed (i.e. field instead of field-like event).
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543361")]
+        [WorkItem(543361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543361")]
         [Fact]
         public void CS0176ERR_ObjectProhibited05()
         {
@@ -6867,7 +6867,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("y").WithLocation(3, 17));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528243")]
+        [WorkItem(528243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528243")]
         [Fact]
         public void CS0177ERR_ParamUnassigned02()
         {
@@ -6950,7 +6950,7 @@ public class Test
                 VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NullNotValid, "default(int[])"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540983")]
+        [WorkItem(540983, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540983")]
         [Fact]
         public void CS0188ERR_UseDefViolationThis()
         {
@@ -7005,7 +7005,7 @@ namespace MyNamespace
 }");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579533"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864605")]
+        [Fact, WorkItem(579533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579533"), WorkItem(864605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864605")]
         public void CS0188ERR_UseDefViolationThis_MethodGroupInIsOperator_ImplicitReceiver()
         {
             string source = @"
@@ -7039,7 +7039,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "F is Action").WithLocation(10, 18));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579533"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864605")]
+        [Fact, WorkItem(579533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579533"), WorkItem(864605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864605")]
         public void CS0188ERR_UseDefViolationThis_MethodGroupInIsOperator_ExplicitReceiver()
         {
             string source = @"
@@ -7074,7 +7074,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "this.F is Action").WithLocation(10, 18));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579533")]
+        [Fact, WorkItem(579533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579533")]
         public void CS0188ERR_UseDefViolationThis_ImplicitReceiverInDynamic()
         {
             string source = @"
@@ -7145,7 +7145,7 @@ struct S
 }");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579533")]
+        [Fact, WorkItem(579533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579533")]
         public void CS0188ERR_UseDefViolationThis_ExplicitReceiverInDynamic()
         {
             string source = @"
@@ -7344,7 +7344,7 @@ public class C
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538008")]
+        [Fact, WorkItem(538008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538008")]
         public void CS0191ERR_AssgReadonly()
         {
             var source =
@@ -7392,7 +7392,7 @@ class MyDerived : MyClass
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "TestInt").WithLocation(16, 9));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538009")]
+        [WorkItem(538009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538009")]
         [Fact]
         public void CS0192ERR_RefReadonly()
         {
@@ -7548,7 +7548,7 @@ class MyDerived : MyClass
             });
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/990")]
+        [Fact, WorkItem(990, "https://github.com/dotnet/roslyn/issues/990")]
         public void WriteOfReadonlyStaticMemberOfAnotherInstantiation01()
         {
             var text =
@@ -7579,7 +7579,7 @@ class MyDerived : MyClass
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/990")]
+        [Fact, WorkItem(990, "https://github.com/dotnet/roslyn/issues/990")]
         public void WriteOfReadonlyStaticMemberOfAnotherInstantiation02()
         {
             var text =
@@ -7619,7 +7619,7 @@ String
             CompileAndVerify(text, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65428")]
+        [Theory, WorkItem(65428, "https://github.com/dotnet/roslyn/issues/65428")]
         [CombinatorialData]
         public void WriteOfReadonlyStaticMemberOfAnotherInstantiation03(NullableContextOptions nullableContextOptions)
         {
@@ -7838,7 +7838,7 @@ public class MyList<T>
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "checked(i++)"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536863")]
+        [Fact, WorkItem(536863, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536863")]
         public void CS0201ERR_IllegalStatement2()
         {
             var text = @"
@@ -7871,7 +7871,7 @@ class A
     );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536863")]
+        [Fact, WorkItem(536863, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536863")]
         public void CS0201ERR_IllegalStatement2WithCSharp6()
         {
             var test = @"
@@ -8444,7 +8444,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "E.A - 1").WithArguments("-1", "E"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119609")]
+        [WorkItem(1119609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119609")]
         [Fact(Skip = "1119609")]
         public void CS0221ERR_ConstOutOfRangeChecked03()
         {
@@ -8747,7 +8747,7 @@ public class MyClass
                 });
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541501")]
+        [WorkItem(541501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541501")]
         [Fact]
         public void CS0236ERR_FieldInitRefNonstaticProperty()
         {
@@ -8771,7 +8771,7 @@ class F
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "ProtectionLevel").WithArguments("F.ProtectionLevel"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541501")]
+        [WorkItem(541501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541501")]
         [Fact]
         public void CS0236ERR_FieldInitRefNonstatic_ObjectInitializer()
         {
@@ -8918,7 +8918,7 @@ class MyClass // : IDisposable
                 Diagnostic(ErrorCode.ERR_CallingFinalizeDeprecated, "this.Finalize()"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540722")]
+        [WorkItem(540722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540722")]
         [Fact]
         public void CS0246ERR_SingleTypeNameNotFound05()
         {
@@ -8942,7 +8942,7 @@ namespace nms
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "e").WithArguments("e"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528446")]
+        [WorkItem(528446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528446")]
         [Fact]
         public void CS0246ERR_SingleTypeNameNotFoundNoCS8000()
         {
@@ -9015,7 +9015,7 @@ class MyClass
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "-1L").WithLocation(10, 35));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528912")]
+        [WorkItem(528912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528912")]
         [Fact]
         public void CS0250ERR_CallingBaseFinalizeDeprecated()
         {
@@ -9326,7 +9326,7 @@ class E
                 VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b").WithArguments("bool?", "bool"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541718")]
+        [WorkItem(541718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541718")]
         [Fact]
         public void CS0266ERR_NoImplicitConvCast12()
         {
@@ -9350,7 +9350,7 @@ enum Number
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "Number.One").WithArguments("Number", "int").WithLocation(6, 28));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541718")]
+        [WorkItem(541718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541718")]
         [Fact]
         public void CS0266ERR_NoImplicitConvCast13()
         {
@@ -9775,7 +9775,7 @@ class C<T, U>
                 Diagnostic(ErrorCode.ERR_NoNewTyvar, "new U()").WithArguments("U").WithLocation(21, 13));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542377")]
+        [WorkItem(542377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542377")]
         [Fact]
         public void CS0304ERR_NoNewTyvar02()
         {
@@ -9803,7 +9803,7 @@ class B3 : A<C>
                 Diagnostic(ErrorCode.ERR_NoNewTyvar, "new U()").WithArguments("U").WithLocation(17, 39));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542547")]
+        [WorkItem(542547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542547")]
         [Fact]
         public void CS0305ERR_BadArity()
         {
@@ -10496,7 +10496,7 @@ class B<T1, T2, T3, T4, T5, T6, T7>
             );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539901")]
+        [WorkItem(539901, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539901")]
         [Fact]
         public void CS0407ERR_BadRetType_01()
         {
@@ -10540,7 +10540,7 @@ class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925899")]
+        [WorkItem(925899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925899")]
         [Fact]
         public void CS0407ERR_BadRetType_02()
         {
@@ -10576,7 +10576,7 @@ class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539924")]
+        [WorkItem(539924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539924")]
         [Fact]
         public void CS0407ERR_BadRetType_03()
         {
@@ -10633,7 +10633,7 @@ class C
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_CantInferMethTypeArgs, Line = 11, Column = 11 } });
         }
 
-        [WorkItem("https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/2099")]
+        [WorkItem(2099, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/2099")]
         [Fact(Skip = "529560")]
         public void CS0411ERR_CantInferMethTypeArgs02()
         {
@@ -10801,7 +10801,7 @@ namespace ConsoleApplication1
                                             new ErrorDescription { Code = (int)ErrorCode.ERR_MethGrpToNonDel, Line = 15, Column = 31 }});
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528649")]
+        [Fact, WorkItem(528649, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528649")]
         public void CS0431ERR_ColColWithTypeAlias()
         {
             var text = @"
@@ -10876,7 +10876,7 @@ class Tester
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/36203")]
+        [WorkItem(36203, "https://github.com/dotnet/roslyn/issues/36203")]
         public void CS0452_GenericConstraintError_HasHigherPriorityThanMethodOverloadError()
         {
             var code = @"
@@ -10930,7 +10930,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "h1a").WithArguments("H1<A>.implicit operator G1<A>(H1<A>)", "H0.implicit operator G0(H0)", "H1<A>", "G0"));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22306")]
+        [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
         [Fact]
         public void AddrOnReadOnlyLocal()
         {
@@ -10975,7 +10975,7 @@ class MyClass
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_DecConstError, Line = 7, Column = 31 } });
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543272")]
+        [WorkItem(543272, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543272")]
         [Fact]
         public void CS0463ERR_DecConstError_02()
         {
@@ -11068,7 +11068,7 @@ namespace x
                 Diagnostic(ErrorCode.ERR_RecursiveConstructorCall, "this").WithArguments("x.clx.clx()"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751825")]
+        [WorkItem(751825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751825")]
         [Fact]
         public void Repro751825()
         {
@@ -11087,7 +11087,7 @@ public class A : A<int>
                 Diagnostic(ErrorCode.ERR_RecursiveConstructorCall, "base").WithArguments("A.A()"));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/366")]
+        [WorkItem(366, "https://github.com/dotnet/roslyn/issues/366")]
         [Fact]
         public void IndirectConstructorCycle()
         {
@@ -11510,7 +11510,7 @@ namespace x
                 Diagnostic(ErrorCode.ERR_BadDestructorName, "iiii").WithLocation(6, 10));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541951")]
+        [WorkItem(541951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541951")]
         [Fact]
         public void CS0611ERR_ArrayElementCantBeRefAny()
         {
@@ -11531,7 +11531,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "System.RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(5, 12));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541951")]
+        [WorkItem(541951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541951")]
         [Fact]
         public void CS0611ERR_ArrayElementCantBeRefAny_1()
         {
@@ -11559,7 +11559,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "new[] { new RuntimeArgumentHandle() }").WithArguments("System.RuntimeArgumentHandle").WithLocation(8, 17));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546062")]
+        [Fact, WorkItem(546062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546062")]
         public void CS0619ERR_DeprecatedSymbolStr()
         {
             var text = @"
@@ -11646,7 +11646,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "out").WithLocation(11, 37));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529305")]
+        [WorkItem(529305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529305")]
         [Fact()]
         public void CS0664ERR_LiteralDoubleCast()
         {
@@ -11702,7 +11702,7 @@ var x = default(void);
                 Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "var"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538016")]
+        [WorkItem(538016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538016")]
         [Fact]
         public void CS0687ERR_AliasQualAsExpression()
         {
@@ -11821,7 +11821,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/36203")]
+        [WorkItem(36203, "https://github.com/dotnet/roslyn/issues/36203")]
         public void CS0718_StaticClassError_HasHigherPriorityThanMethodOverloadError()
         {
             var code = @"
@@ -11915,7 +11915,7 @@ class X
                 Diagnostic(ErrorCode.ERR_BadEmptyThrowInFinally, "throw").WithLocation(19, 17));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040213")]
+        [Fact, WorkItem(1040213, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040213")]
         public void CS0724ERR_BadEmptyThrowInFinally_Nesting()
         {
             var text = @"
@@ -13060,7 +13060,7 @@ namespace ConsoleApplication3
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545063")]
+        [WorkItem(545063, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545063")]
         [Fact]
         public void CS0853ERR_ExpressionTreeContainsNamedArgument02()
         {
@@ -13233,7 +13233,7 @@ class C
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23004")]
+        [WorkItem(23004, "https://github.com/dotnet/roslyn/issues/23004")]
         public void CS0856ERR_IndexedPropertyRequiresParams01()
         {
             var source1 =
@@ -13759,7 +13759,7 @@ static class E
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "t4.M2<T4, object>").WithArguments("E.M2<T4, object>(T4)", "T4").WithLocation(24, 13));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528758")]
+        [WorkItem(528758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528758")]
         [Fact(Skip = "528758")]
         public void CS1113ERR_ValueTypeExtDelegate03()
         {
@@ -13960,7 +13960,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgType, "(int)E2.Z").WithArguments("1", "int", "E1").WithLocation(14, 11));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538939")]
+        [WorkItem(538939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538939")]
         [Fact]
         public void CS1503ERR_BadArgType03()
         {
@@ -14310,7 +14310,7 @@ public class A : Attribute
                 .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543167")]
+        [WorkItem(543167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543167")]
         [Fact]
         public void CS1525ERR_InvalidExprTerm_1()
         {
@@ -14388,7 +14388,7 @@ public class A : Attribute
                 Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(10, 50));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528657")]
+        [WorkItem(528657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528657")]
         [Fact]
         public void CS0106ERR_BadMemberFlag()
         {
@@ -14578,7 +14578,7 @@ class B : A
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540271")]
+        [WorkItem(540271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540271")]
         [Fact]
         public void CS0122ERR_BadAccessProtectedCtor()
         {
@@ -14629,7 +14629,7 @@ class B : A
         // CS1545ERR_BindToBogusProp2 --> Symbols\Source\EventTests.cs
         // CS1546ERR_BindToBogusProp1 --> Symbols\Source\PropertyTests.cs
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528658")]
+        [WorkItem(528658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528658")]
         [Fact()]
         public void CS1560ERR_FileNameTooLong()
         {
@@ -14919,7 +14919,7 @@ public class MyClass
         /// types, not just struct types. Specifically, CS1612 is now reported
         /// for type parameters constrained to "struct". (See also CS0131.)
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528821")]
+        [WorkItem(528821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528821")]
         [Fact]
         public void CS1612ERR_ReturnNotLValue02()
         {
@@ -16401,7 +16401,7 @@ unsafe class Test
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580537")]
+        [WorkItem(580537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580537")]
         [Fact]
         public void CS1686ERR_LocalCantBeFixedAndHoisted03()
         {
@@ -16505,7 +16505,7 @@ public unsafe class C
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543995"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544258")]
+        [Fact, WorkItem(543995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543995"), WorkItem(544258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544258")]
         public void CS1728ERR_DelegateOnNullable()
         {
             var text = @"
@@ -16537,7 +16537,7 @@ class Test
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999399")]
+        [Fact, WorkItem(999399, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999399")]
         public void CS1729ERR_BadCtorArgCount()
         {
             var text = @"
@@ -16591,7 +16591,7 @@ public class Child2 : Parent
             compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, compilation.SyntaxTrees.Single(), filterSpanWithinTree: null, includeEarlierStages: true).Verify(expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539631")]
+        [WorkItem(539631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539631")]
         [Fact]
         public void CS1729ERR_BadCtorArgCount02()
         {
@@ -16652,7 +16652,7 @@ class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539007")]
+        [WorkItem(539007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539007")]
         [Fact]
         public void DevDiv4792_OptionalBeforeParams()
         {
@@ -16669,7 +16669,7 @@ class C
             Assert.False(comp.GetDiagnostics().Any());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527351")]
+        [WorkItem(527351, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527351")]
         [Fact]
         public void CS1738ERR_NamedArgumentSpecificationBeforeFixedArgument()
         {
@@ -16710,7 +16710,7 @@ public class C
                 new ErrorDescription[] { new ErrorDescription { Code = 1739, Line = 6, Column = 20 } });
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866112")]
+        [Fact, WorkItem(866112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866112")]
         public void CS1739ERR_BadNamedArgument_1()
         {
             var text = @"
@@ -17078,7 +17078,7 @@ class Test
              );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528756")]
+        [WorkItem(528756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528756")]
         [Fact()]
         public void CS1933ERR_QueryNotAllowed()
         {
@@ -17398,7 +17398,7 @@ class Test
             );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546510")]
+        [Fact, WorkItem(546510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546510")]
         public void CS1944ERR_ExpressionTreeContainsPointerOp()
         {
             var text = @"
@@ -17603,7 +17603,7 @@ class Test
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864605")]
+        [WorkItem(864605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864605")]
         [Fact]
         public void CS1953ERR_MemGroupInExpressionTree()
         {
@@ -18318,7 +18318,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/54804")]
+        [WorkItem(54804, "https://github.com/dotnet/roslyn/issues/54804")]
         public void BadNestedTypeof()
         {
             var source = @"
@@ -18531,7 +18531,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "delegate () {}"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578352")]
+        [Fact, WorkItem(578352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578352")]
         public void CS1977ERR_BadDynamicMethodArgLambda_CreateObject()
         {
             string source = @"
@@ -18678,7 +18678,7 @@ class Program
         // Test CS1980ERR_DynamicAttributeMissing moved to AttributeTests_Dynamic.cs
 
         // CS1763 is covered for different code path by SymbolErrorTests.CS1763ERR_NotNullRefDefaultParameter()
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528854")]
+        [WorkItem(528854, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528854")]
         [Fact]
         public void CS1763ERR_NotNullRefDefaultParameter02()
         {
@@ -18703,7 +18703,7 @@ class Program
 
         #region "Targeted Warning Tests - please arrange tests in the order of error code"
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542396"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546817")]
+        [Fact, WorkItem(542396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542396"), WorkItem(546817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546817")]
         public void CS0067WRN_UnreferencedEvent()
         {
             var text = @"
@@ -18722,7 +18722,7 @@ class MyClass
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "evt").WithArguments("MyClass.evt"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542396"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546817")]
+        [Fact, WorkItem(542396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542396"), WorkItem(546817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546817")]
         public void CS0067WRN_UnreferencedEvent_Accessibility()
         {
             var text = @"
@@ -18754,7 +18754,7 @@ class MyClass
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E5").WithArguments("MyClass.E5"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542396"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546817")]
+        [Fact, WorkItem(542396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542396"), WorkItem(546817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546817")]
         public void CS0067WRN_UnreferencedEvent_StructLayout()
         {
             var text = @"
@@ -18770,7 +18770,7 @@ struct S
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542396"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546817")]
+        [Fact, WorkItem(542396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542396"), WorkItem(546817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546817")]
         public void CS0067WRN_UnreferencedEvent_Kind()
         {
             var text = @"
@@ -18788,7 +18788,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("C.E1"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542396"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546817")]
+        [Fact, WorkItem(542396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542396"), WorkItem(546817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546817")]
         public void CS0067WRN_UnreferencedEvent_Accessed()
         {
             var text = @"
@@ -18818,7 +18818,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "None").WithArguments("C.None"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581002")]
+        [Fact, WorkItem(581002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581002")]
         public void CS0067WRN_UnreferencedEvent_Virtual()
         {
             var text = @"class A
@@ -18845,7 +18845,7 @@ class C
     Diagnostic(ErrorCode.WRN_UnreferencedEvent, "B").WithArguments("A.C.B"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539630")]
+        [Fact, WorkItem(539630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539630")]
         public void CS0162WRN_UnreachableCode01()
         {
             var text = @"
@@ -18878,7 +18878,7 @@ class MyClass
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "return"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530037")]
+        [Fact, WorkItem(530037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530037")]
         public void CS0162WRN_UnreachableCode02()
         {
             var text = @"
@@ -18913,7 +18913,7 @@ public class Test
             );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539873"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539981")]
+        [Fact, WorkItem(539873, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539873"), WorkItem(539981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539981")]
         public void CS0162WRN_UnreachableCode04()
         {
             var text = @"
@@ -18942,7 +18942,7 @@ public class Cls
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "return"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540901")]
+        [Fact, WorkItem(540901, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540901")]
         public void CS0162WRN_UnreachableCode06_Loops()
         {
             var text = @"
@@ -19216,7 +19216,7 @@ public class IsTest10
 
         // Note: CS0184 tests moved to CodeGenOperator.cs to include IL verification.
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530361")]
+        [WorkItem(530361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530361")]
         [Fact]
         public void CS0197WRN_ByRefNonAgileField()
         {
@@ -19253,7 +19253,7 @@ class M
                 Diagnostic(ErrorCode.WRN_ByRefNonAgileField, "x.i").WithArguments("X.i"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530361")]
+        [WorkItem(530361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530361")]
         [Fact]
         public void CS0197WRN_ByRefNonAgileField_RefKind()
         {
@@ -19305,7 +19305,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_ByRefNonAgileField, "b.Instance").WithArguments("ByRef.Instance"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530361")]
+        [WorkItem(530361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530361")]
         [Fact]
         public void CS0197WRN_ByRefNonAgileField_Receiver()
         {
@@ -19398,7 +19398,7 @@ public class @clx
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 14));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542473"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542474")]
+        [Fact, WorkItem(542473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542473"), WorkItem(542474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542474")]
         public void CS0219WRN_UnreferencedVarAssg_StructString()
         {
             var text = @"
@@ -19420,7 +19420,7 @@ struct @s1 { }
             );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542494")]
+        [Fact, WorkItem(542494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542494")]
         public void CS0219WRN_UnreferencedVarAssg_Default()
         {
             var text = @"
@@ -19463,7 +19463,7 @@ class C
             );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546619")]
+        [Fact, WorkItem(546619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546619")]
         public void NoCS0219WRN_UnreferencedVarAssg_ObjectInitializer()
         {
             var text = @"
@@ -19482,7 +19482,7 @@ class C
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542472")]
+        [Fact, WorkItem(542472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542472")]
         public void CS0251WRN_NegativeArrayIndex()
         {
             var text = @"
@@ -19508,7 +19508,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadIndexCount, "b[-1]").WithArguments("2"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530362"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670322")]
+        [WorkItem(530362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530362"), WorkItem(670322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670322")]
         [Fact]
         public void CS0252WRN_BadRefCompareLeft()
         {
@@ -19530,7 +19530,7 @@ class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/781070")]
+        [WorkItem(781070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/781070")]
         [Fact]
         public void CS0252WRN_BadRefCompareLeft_02()
         {
@@ -19586,7 +19586,7 @@ class Program
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/781070")]
+        [WorkItem(781070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/781070")]
         [Fact]
         public void CS0252WRN_BadRefCompareLeft_03()
         {
@@ -19646,7 +19646,7 @@ class Program
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530362"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670322")]
+        [WorkItem(530362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530362"), WorkItem(670322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670322")]
         [Fact]
         public void CS0253WRN_BadRefCompareRight()
         {
@@ -19671,7 +19671,7 @@ class MyClass
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730177")]
+        [WorkItem(730177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730177")]
         [Fact]
         public void CS0253WRN_BadRefCompare_None()
         {
@@ -19691,7 +19691,7 @@ class MyClass
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542399")]
+        [WorkItem(542399, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542399")]
         [Fact]
         public void CS0278WRN_PatternIsAmbiguous01()
         {
@@ -20018,7 +20018,7 @@ class TestClass
                 Diagnostic(ErrorCode.WRN_VolatileByRef, "x").WithArguments("TestClass.x"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728380")]
+        [WorkItem(728380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728380")]
         [Fact]
         public void Repro728380()
         {
@@ -20044,7 +20044,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_VolatileByRef, "x").WithArguments("Test.x"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528275")]
+        [Fact, WorkItem(528275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528275")]
         public void CS0429WRN_UnreachableExpr()
         {
             var text = @"
@@ -20072,7 +20072,7 @@ public class cs0429
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528275"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530071")]
+        [Fact, WorkItem(528275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528275"), WorkItem(530071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530071")]
         public void CS0429WRN_UnreachableExpr_02()
         {
             var text = @"
@@ -20099,7 +20099,7 @@ class Program
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543943")]
+        [Fact, WorkItem(543943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543943")]
         public void CS0458WRN_AlwaysNull()
         {
             var text = @"
@@ -20707,7 +20707,7 @@ class Test
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/663")]
+        [Fact, WorkItem(663, "https://github.com/dotnet/roslyn/issues/663")]
         public void CS0472WRN_NubExprIsConstBool()
         {
             // Due to a long-standing bug, the native compiler does not produce warnings for "guid == null",
@@ -20978,7 +20978,7 @@ class MainClass
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "MyClass.ObsoleteField").WithArguments("MyClass.ObsoleteField"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546062")]
+        [Fact, WorkItem(546062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546062")]
         public void CS0618WRN_DeprecatedSymbol()
         {
             var text = @"
@@ -21000,7 +21000,7 @@ public class ConsoleStub
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545347")]
+        [WorkItem(545347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545347")]
         [Fact]
         public void CS0649WRN_UnassignedInternalField()
         {
@@ -21025,7 +21025,7 @@ class MyClass
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543454")]
+        [Fact, WorkItem(543454, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543454")]
         public void CS0649WRN_UnassignedInternalField_1()
         {
             var text = @"
@@ -21044,8 +21044,8 @@ public class Outer
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Fld").WithArguments("Outer.Test.Fld", "null"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546449")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546949")]
+        [WorkItem(546449, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546449")]
+        [WorkItem(546949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546949")]
         [Fact]
         public void CS0652WRN_VacuousIntegralComp()
         {
@@ -21073,7 +21073,7 @@ public class Class1
                 Diagnostic(ErrorCode.WRN_VacuousIntegralComp, "i == j").WithArguments("byte"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546790")]
+        [WorkItem(546790, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546790")]
         [Fact]
         public void CS0652WRN_VacuousIntegralComp_ExplicitCast()
         {
@@ -21120,7 +21120,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_IncorrectBooleanAssg, "i = true"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540777")]
+        [Fact, WorkItem(540777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540777")]
         public void CS0665WRN_IncorrectBooleanAssg_ConditionalOperator()
         {
             var text = @"
@@ -21225,7 +21225,7 @@ class B
                 Diagnostic(ErrorCode.WRN_IncorrectBooleanAssg, "b = false"));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/909")]
+        [Fact, WorkItem(909, "https://github.com/dotnet/roslyn/issues/909")]
         public void CS0675WRN_BitwiseOrSignExtend()
         {
             var text = @"
@@ -21381,7 +21381,7 @@ class C
                     Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "d").WithArguments("d").WithLocation(16, 19));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543615"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546550")]
+        [WorkItem(543615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543615"), WorkItem(546550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546550")]
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void CS0811ERR_DebugFullNameTooLong()
         {
@@ -21835,7 +21835,7 @@ public class Test
         }
 
         // TODO (tomat): Also fix AttributeTests.DllImport_AttributeRedefinition
-        [Fact(Skip = "530377"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530377"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685159")]
+        [Fact(Skip = "530377"), WorkItem(530377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530377"), WorkItem(685159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685159")]
         public void CS1685WRN_MultiplePredefTypes()
         {
             var text = @"
@@ -21849,7 +21849,7 @@ public static class C
                 VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MultiplePredefTypes, ""));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530379")]
+        [Fact, WorkItem(530379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530379")]
         public void CS1690WRN_CallOnNonAgileField()
         {
             var text = @"
@@ -21873,7 +21873,7 @@ class WarningCS1690 : MarshalByRefObject
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.WRN_CallOnNonAgileField, Line = 11, Column = 9, IsWarning = true } });
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530379")]
+        [Fact, WorkItem(530379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530379")]
         public void CS1690WRN_CallOnNonAgileField_Variations()
         {
             var text = @"
@@ -21932,7 +21932,7 @@ struct S
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "Event").WithArguments("S.Event"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530379")]
+        [Fact, WorkItem(530379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530379")]
         public void CS1690WRN_CallOnNonAgileField_Class()
         {
             var text = @"
@@ -21985,7 +21985,7 @@ class S
         //                );
         //        }
 
-        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530384")]
+        [Fact(), WorkItem(530384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530384")]
         public void CS1709WRN_EmptyFileName()
         {
             var text = @"
@@ -22090,7 +22090,7 @@ public class Test
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.WRN_AssignmentToSelf, Line = 7, Column = 7, IsWarning = true } });
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543470")]
+        [WorkItem(543470, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543470")]
         [Fact]
         public void CS1717WRN_AssignmentToSelf02()
         {
@@ -22314,7 +22314,7 @@ struct S
                 Diagnostic(ErrorCode.WRN_AssignmentToSelf, "st = (S)st"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546493")]
+        [Fact, WorkItem(546493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546493")]
         public void CS1718WRN_ComparisonToSelf()
         {
             var text = @"
@@ -22339,7 +22339,7 @@ class Tester
                 Diagnostic(ErrorCode.WRN_ComparisonToSelf, "j == Tester.j"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580501")]
+        [Fact, WorkItem(580501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580501")]
         public void CS1718WRN_ComparisonToSelf2()
         {
             var text = @"
@@ -22696,7 +22696,7 @@ class Outer<T>
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "Inner<>"));
         }
 
-        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529583")]
+        [Fact(), WorkItem(529583, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529583")]
         public void CS7003ERR_UnexpectedUnboundGenericName_Attributes()
         {
             var text = @"
@@ -22836,7 +22836,7 @@ namespace CSSample
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "d3").WithArguments("CSSample.Program.d3", "null").WithLocation(17, 19));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7359")]
+        [Fact, WorkItem(7359, "https://github.com/dotnet/roslyn/issues/7359")]
         public void DelegateCreationWithRefOut()
         {
             var source = @"
@@ -22925,7 +22925,7 @@ public class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7359")]
+        [Fact, WorkItem(7359, "https://github.com/dotnet/roslyn/issues/7359")]
         public void DelegateCreationWithRefOut_Parens()
         {
             // these are allowed in compat mode without the parenthesis
@@ -22994,7 +22994,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "Id").WithArguments("Id", "method group").WithLocation(21, 47));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7359")]
+        [Fact, WorkItem(7359, "https://github.com/dotnet/roslyn/issues/7359")]
         public void DelegateCreationWithRefOut_MultipleArgs()
         {
             var source = @"
@@ -23040,7 +23040,7 @@ public class Program
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538430")]
+        [WorkItem(538430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538430")]
         [Fact]
         public void NestedGenericAccessibility()
         {
@@ -23059,7 +23059,7 @@ public class E
             });
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542419")]
+        [WorkItem(542419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542419")]
         [Fact]
         public void EmptyAngleBrackets()
         {
@@ -23249,7 +23249,7 @@ class Program
             );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542419")]
+        [WorkItem(542419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542419")]
         [Fact]
         public void EmptyAngleBrackets_Events()
         {
@@ -23319,8 +23319,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "F").WithArguments("Program.F").WithLocation(16, 14));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542419")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542679")]
+        [WorkItem(542419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542419")]
+        [WorkItem(542679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542679")]
         [Fact]
         public void EmptyAngleBrackets_TypeParameters()
         {
@@ -23341,7 +23341,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "T<>").WithArguments("T", "type parameter"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542796")]
+        [Fact, WorkItem(542796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542796")]
         public void EmptyAngleBrackets_TypeWithCorrectArity()
         {
             var text = @"
@@ -23358,7 +23358,7 @@ class C<T>
                 Diagnostic(ErrorCode.ERR_BadArity, "C<>").WithArguments("C<T>", "type", "1"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542796")]
+        [Fact, WorkItem(542796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542796")]
         public void EmptyAngleBrackets_MethodWithCorrectArity()
         {
             var text = @"
@@ -23375,7 +23375,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArity, "M<>").WithArguments("M", "method group", "1"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542796")]
+        [Fact, WorkItem(542796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542796")]
         public void EmptyAngleBrackets_QualifiedTypeWithCorrectArity()
         {
             var text = @"
@@ -23395,7 +23395,7 @@ class A
                 Diagnostic(ErrorCode.ERR_BadArity, "C<>").WithArguments("A.C<T>", "type", "1"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542796")]
+        [Fact, WorkItem(542796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542796")]
         public void EmptyAngleBrackets_QualifiedMethodWithCorrectArity()
         {
             var text = @"
@@ -23450,7 +23450,7 @@ class C
 
         #region regression tests
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541605")]
+        [WorkItem(541605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541605")]
         [Fact]
         public void CS0019ERR_ImplicitlyTypedVariableAssignedNullCoalesceExpr()
         {
@@ -23467,7 +23467,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "null ?? null").WithArguments("??", "<null>", "<null>"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528577")]
+        [WorkItem(528577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528577")]
         [Fact(Skip = "528577")]
         public void CS0122ERR_InaccessibleGenericType()
         {
@@ -23492,7 +23492,7 @@ public class MyClass
                 Diagnostic(ErrorCode.ERR_BadAccess, "new Top<int>.Outer<string>()").WithArguments("Top<int>.Outer<string>"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528591")]
+        [WorkItem(528591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528591")]
         [Fact]
         public void CS0121ERR_IncorrectErrorSpan1()
         {
@@ -23518,7 +23518,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Method1").WithArguments("Test.Method1(int, long)", "Test.Method1(long, int)"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528592")]
+        [WorkItem(528592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528592")]
         [Fact]
         public void CS0121ERR_IncorrectErrorSpan2()
         {
@@ -23547,7 +23547,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Class1").WithArguments("Class1.Class1(int, long)", "Class1.Class1(long, int)"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542468")]
+        [WorkItem(542468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542468")]
         [Fact]
         public void CS1513ERR_RbraceExpected_DevDiv9741()
         {
@@ -23578,7 +23578,7 @@ class Program
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543473")]
+        [WorkItem(543473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543473")]
         [Fact]
         public void CS0815ERR_CannotAssignLambdaExpressionToAnImplicitlyTypedLocalVariable()
         {
@@ -23597,7 +23597,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(a) => a").WithLocation(5, 26));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543665")]
+        [Fact, WorkItem(543665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543665")]
         public void CS0246ERR_SingleTypeNameNotFound_UndefinedTypeInDelegateSignature()
         {
             var text = @"
@@ -23620,7 +23620,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633183")]
+        [WorkItem(633183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633183")]
         public void CS0199ERR_RefReadonlyStatic_StaticFieldInitializer()
         {
             var source = @"
@@ -23637,7 +23637,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633183")]
+        [WorkItem(633183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633183")]
         public void CS0199ERR_RefReadonlyStatic_NestedStaticFieldInitializer()
         {
             var source = @"
@@ -23844,7 +23844,7 @@ Diagnostic(ErrorCode.ERR_BadAccess, "M").WithArguments("Program.M<A.B>(I<A.B>)")
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/630799")]
+        [WorkItem(630799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/630799")]
         [Fact]
         public void Bug630799()
         {
@@ -23982,7 +23982,7 @@ class Program
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23009")]
+        [WorkItem(23009, "https://github.com/dotnet/roslyn/issues/23009")]
         public void ConditionalElementAccess001()
         {
             var text = @"
@@ -24054,7 +24054,7 @@ IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/976765")]
+        [WorkItem(976765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/976765")]
         public void ConditionalMemberAccessPtr()
         {
             var text = @"
@@ -24078,7 +24078,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991490")]
+        [WorkItem(991490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991490")]
         public void ConditionalMemberAccessExprLambda()
         {
             var text = @"
@@ -24122,7 +24122,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/915609")]
+        [WorkItem(915609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/915609")]
         public void DictionaryInitializerInExprLambda()
         {
             var text = @"
@@ -24151,7 +24151,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/915609")]
+        [WorkItem(915609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/915609")]
         public void DictionaryInitializerInExprLambda1()
         {
             var text = @"
@@ -24190,7 +24190,7 @@ namespace ConsoleApplication31
                );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/310")]
+        [WorkItem(310, "https://github.com/dotnet/roslyn/issues/310")]
         [Fact]
         public void ExtensionElementInitializerInExpressionLambda()
         {
@@ -24218,8 +24218,8 @@ class C
                );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12900")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17138")]
+        [WorkItem(12900, "https://github.com/dotnet/roslyn/issues/12900")]
+        [WorkItem(17138, "https://github.com/dotnet/roslyn/issues/17138")]
         [Fact]
         public void CSharp7FeaturesInExprTrees()
         {
@@ -24437,7 +24437,7 @@ class Program
                );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23422")]
+        [WorkItem(23422, "https://github.com/dotnet/roslyn/issues/23422")]
         [Fact]
         public void ConditionalMemberAccessRefLike()
         {
@@ -24484,7 +24484,7 @@ public ref struct S2
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179322")]
+        [WorkItem(1179322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179322")]
         public void LabelSameNameAsParameter()
         {
             var text = @"
@@ -24552,7 +24552,7 @@ namespace ConsoleApplication1
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17674")]
+        [Fact, WorkItem(17674, "https://github.com/dotnet/roslyn/issues/17674")]
         public void VoidDiscardAssignment()
         {
             var text = @"
@@ -24572,7 +24572,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22880")]
+        [Fact, WorkItem(22880, "https://github.com/dotnet/roslyn/issues/22880")]
         public void AttributeCtorInParam()
         {
             var text = @"

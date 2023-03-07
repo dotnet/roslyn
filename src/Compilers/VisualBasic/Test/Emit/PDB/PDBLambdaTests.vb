@@ -222,7 +222,7 @@ End Class"
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544000")>
+        <WorkItem(544000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544000")>
         Public Sub TestLambdaNameStability()
             Dim source =
             <compilation>
@@ -478,7 +478,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50611")>
+        <WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")>
         Public Sub PartiallyDefinedClass_3()
             Dim source =
 <compilation>
@@ -536,7 +536,7 @@ End Class
 </symbols>, format:=DebugInformationFormat.PortablePdb)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery()
             Dim source =
@@ -699,7 +699,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_01()
             Dim source =
@@ -780,7 +780,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_02()
             Dim source =
@@ -888,7 +888,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_03()
             Dim source =
@@ -978,7 +978,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_04()
             Dim source =
@@ -1077,7 +1077,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_05()
             Dim source =
@@ -1167,7 +1167,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_06()
             Dim source =
@@ -1257,7 +1257,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_07()
             Dim source =
@@ -1348,7 +1348,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_08()
             Dim source =
@@ -1457,7 +1457,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_09()
             Dim source =
@@ -1580,7 +1580,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_10()
             Dim source =
@@ -1690,7 +1690,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_11()
             Dim source =
@@ -1867,7 +1867,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_12()
             Dim source =
@@ -1989,7 +1989,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_13()
             Dim source =
@@ -2089,7 +2089,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_14()
             Dim source =
@@ -2189,7 +2189,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_15()
             Dim source =
@@ -2289,7 +2289,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_16()
             Dim source =
@@ -2367,7 +2367,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_17()
             Dim source =
@@ -2445,7 +2445,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_18()
             Dim source =
@@ -2547,7 +2547,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_19()
             Dim source =
@@ -2667,7 +2667,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_20()
             Dim source =
@@ -2789,7 +2789,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_21()
             Dim source =
@@ -2898,7 +2898,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_22()
             Dim source =
@@ -3017,7 +3017,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_23()
             Dim source =
@@ -3136,7 +3136,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_24()
             Dim source =
@@ -3247,7 +3247,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_25()
             Dim source =
@@ -3377,7 +3377,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_26()
             Dim source =
@@ -3516,7 +3516,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_27()
             Dim source =
@@ -3636,7 +3636,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_28()
             Dim source =
@@ -3775,7 +3775,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_29()
             Dim source =
@@ -3923,7 +3923,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_30()
             Dim source =
@@ -4016,7 +4016,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_31()
             Dim source =
@@ -4120,7 +4120,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/841361")>
+        <WorkItem(841361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/841361")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointsInAQuery_32()
             Dim source =

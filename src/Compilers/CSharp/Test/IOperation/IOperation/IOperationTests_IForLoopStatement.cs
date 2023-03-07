@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class IOperationTests_IForLoopStatement : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ForSimpleLoop()
         {
             string source = @"
@@ -80,7 +80,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_TrueCondition()
         {
             string source = @"
@@ -142,7 +142,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_FalseCondition()
         {
             string source = @"
@@ -204,7 +204,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_WithContinue()
         {
             string source = @"
@@ -287,7 +287,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_WithBreak()
         {
             string source = @"
@@ -370,7 +370,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_WithNoStatement()
         {
             string source = @"
@@ -423,7 +423,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_MultipleInitializer()
         {
             string source = @"
@@ -501,7 +501,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_InitializerMissing()
         {
             string source = @"
@@ -545,7 +545,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_DecreasingIterator()
         {
             string source = @"
@@ -598,7 +598,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_MethodCall()
         {
             string source = @"
@@ -645,7 +645,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_MissingForBody()
         {
             string source = @"
@@ -695,7 +695,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_Nested()
         {
             string source = @"
@@ -782,7 +782,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ChangeOuterVariableInInnerLoop()
         {
             string source = @"
@@ -878,7 +878,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_InnerLoopRefOuterIteration()
         {
             string source = @"
@@ -970,7 +970,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_BreakFromNestedLoop()
         {
             string source = @"
@@ -1071,7 +1071,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ContinueForNestedLoop()
         {
             string source = @"
@@ -1198,7 +1198,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_GotoForNestedLoop_1()
         {
             string source = @"
@@ -1303,7 +1303,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ThrowException()
         {
             string source = @"
@@ -1386,7 +1386,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ReturnInFor()
         {
             string source = @"
@@ -1456,7 +1456,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ChangeValueOfInit()
         {
             string source = @"
@@ -1522,7 +1522,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ChangeValueOfCondition()
         {
             string source = @"
@@ -1604,7 +1604,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_UnreachableCode1()
         {
             string source = @"
@@ -1642,7 +1642,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ObjectInitAsInitializer()
         {
             string source = @"
@@ -1724,7 +1724,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_DynamicInFor()
         {
             string source = @"
@@ -1806,7 +1806,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_VarInFor()
         {
             string source = @"
@@ -1857,7 +1857,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_QueryInInit()
         {
             string source = @"
@@ -2007,7 +2007,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_QueryInBody()
         {
             string source = @"
@@ -2143,7 +2143,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ExpressiontreeInInit()
         {
             string source = @"
@@ -2232,7 +2232,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ExpressiontreeInIterator()
         {
             string source = @"
@@ -2336,7 +2336,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_CustomerTypeInFor()
         {
             string source = @"
@@ -2396,7 +2396,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_PostFixIncrementInFor()
         {
             string source = @"
@@ -2456,7 +2456,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_PreFixIncrementInFor()
         {
             string source = @"
@@ -2517,7 +2517,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_PreFixIncrementInCondition()
         {
             string source = @"
@@ -2571,7 +2571,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_PostFixDecrementInCondition()
         {
             string source = @"
@@ -2639,7 +2639,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_InfiniteLoopVerify()
         {
             string source = @"
@@ -2677,7 +2677,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_InvalidExpression()
         {
             string source = @"
@@ -2734,7 +2734,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ConditionOutVar()
         {
             string source = @"
@@ -2881,7 +2881,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21823")]
+        [WorkItem(21823, "https://github.com/dotnet/roslyn/issues/21823")]
         [Fact]
         public void IForLoopStatement_CollectionLocals()
         {

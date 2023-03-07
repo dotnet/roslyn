@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [WorkItem("https://github.com/dotnet/csharplang/issues/275")]
+    [WorkItem(275, "https://github.com/dotnet/csharplang/issues/275")]
     [CompilerTrait(CompilerFeature.AnonymousFunctions)]
     public class AnonymousFunctionTests : CSharpTestBase
     {

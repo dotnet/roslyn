@@ -79,7 +79,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(7, 5));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540005")]
+        [WorkItem(540005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540005")]
         [Fact]
         public void c01()
         {
@@ -88,7 +88,7 @@ class Program
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540006")]
+        [WorkItem(540006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540006")]
         [Fact]
         public void c02()
         {
@@ -97,7 +97,7 @@ class Program
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
+        [WorkItem(540007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
         [Fact]
         public void c03()
         {
@@ -107,7 +107,7 @@ class Program
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
+        [WorkItem(540007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
         [Fact]
         public void c04()
         {
@@ -117,7 +117,7 @@ class Program
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
+        [WorkItem(540007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
         [Fact]
         public void c000138()
         {
@@ -127,7 +127,7 @@ class Program
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
+        [WorkItem(540007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
         [Fact]
         public void c000241()
         {
@@ -137,7 +137,7 @@ class Program
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
+        [WorkItem(540007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
         [Fact]
         public void c024928()
         {
@@ -147,14 +147,14 @@ class Program
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2771")]
+        [WorkItem(2771, "https://github.com/dotnet/roslyn/issues/2771")]
         [ConditionalFact(typeof(IsRelease))]
         public void TestBinary()
         {
             CSharpSyntaxTree.ParseText(new RandomizedSourceText());
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/8200")]
+        [WorkItem(8200, "https://github.com/dotnet/roslyn/issues/8200")]
         [Fact]
         public void EolParsing()
         {
@@ -169,7 +169,7 @@ class Program
             var lines2 = line + 1;
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12197")]
+        [WorkItem(12197, "https://github.com/dotnet/roslyn/issues/12197")]
         [Fact]
         public void ThrowInInvocationCompletes()
         {
@@ -178,7 +178,7 @@ class Program
             SyntaxFactory.ParseExpression(code);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13719")]
+        [Fact, WorkItem(13719, "https://github.com/dotnet/roslyn/issues/13719")]
         public void ReportErrorForIncompleteMember1()
         {
             var test = @"
@@ -193,7 +193,7 @@ class A
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(6, 1));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13719")]
+        [Fact, WorkItem(13719, "https://github.com/dotnet/roslyn/issues/13719")]
         public void ReportErrorForIncompleteMember2()
         {
             var test = @"
@@ -212,7 +212,7 @@ class A
         }
 
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217398")]
+        [WorkItem(217398, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217398")]
         public void LexerTooManyBadTokens()
         {
             var source = new StringBuilder();
@@ -230,7 +230,7 @@ class A
         }
 
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217398")]
+        [WorkItem(217398, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217398")]
         public void LexerTooManyBadTokens_LongUnicode()
         {
             var source = new StringBuilder();

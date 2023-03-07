@@ -1228,7 +1228,7 @@ BC30521: Overload resolution failed because no accessible 'Add' is most specific
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529265")>
+        <WorkItem(529265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529265")>
         <Fact()>
         Public Sub CollectionInitializerCollectionInitializerArityCheck()
             Dim source = <![CDATA[
@@ -1757,7 +1757,7 @@ Hello World!!!
 ]]>)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
+        <Fact(), WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
         Public Sub GetCollectionInitializerSymbolInfo_01()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -1810,7 +1810,7 @@ End Class
             End If
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
+        <Fact(), WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
         Public Sub GetCollectionInitializerSymbolInfo_02()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -1852,7 +1852,7 @@ End Class
                          Roslyn.Utilities.EnumerableExtensions.Order(symbolInfo.CandidateSymbols.Select(Function(s) s.ToTestDisplayString())).ToArray())
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
+        <Fact(), WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
         Public Sub GetCollectionInitializerSymbolInfo_03()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -1894,7 +1894,7 @@ End Class
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
+        <Fact(), WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
         Public Sub GetCollectionInitializerSymbolInfo_04()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -1931,7 +1931,7 @@ End Class
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
+        <Fact(), WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
         Public Sub GetCollectionInitializerSymbolInfo_05()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -1971,7 +1971,7 @@ End Class
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/12983")>
+        <WorkItem(12983, "https://github.com/dotnet/roslyn/issues/12983")>
         Public Sub GetCollectionInitializerSymbolInfo_06()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -2010,7 +2010,7 @@ End Class
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/27034")>
+        <WorkItem(27034, "https://github.com/dotnet/roslyn/issues/27034")>
         Public Sub LateBoundCollectionInitializer()
             Dim source =
     <compilation>

@@ -171,7 +171,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37789")]
+        [WorkItem(37789, "https://github.com/dotnet/roslyn/issues/37789")]
         public void PatternIndexAndRangeCompoundOperatorRefIndexer()
         {
             var src = @"
@@ -227,7 +227,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37789")]
+        [WorkItem(37789, "https://github.com/dotnet/roslyn/issues/37789")]
         public void PatternIndexCompoundOperator()
         {
             var src = @"
@@ -367,7 +367,7 @@ public struct S
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37789")]
+        [WorkItem(37789, "https://github.com/dotnet/roslyn/issues/37789")]
         public void PatternRangeCompoundOperator()
         {
             var src = @"
@@ -454,7 +454,7 @@ Slice 1
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37789")]
+        [WorkItem(37789, "https://github.com/dotnet/roslyn/issues/37789")]
         public void PatternindexNullableCoalescingAssignmentClass()
         {
             var src = @"
@@ -620,7 +620,7 @@ abc");
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37789")]
+        [WorkItem(37789, "https://github.com/dotnet/roslyn/issues/37789")]
         public void PatternindexNullableCoalescingAssignmentStruct()
         {
             var src = @"
@@ -1773,7 +1773,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40776")]
+        [Fact, WorkItem(40776, "https://github.com/dotnet/roslyn/issues/40776")]
         public void FakeIndexIndexerOnDefaultStruct()
         {
             var verifier = CompileAndVerifyWithIndexAndRange(@"
@@ -1809,7 +1809,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40776")]
+        [Fact, WorkItem(40776, "https://github.com/dotnet/roslyn/issues/40776")]
         public void FakeIndexIndexerOnStructConstructor()
         {
             var comp = CreateCompilationWithIndexAndRangeAndSpan(@"
@@ -3144,7 +3144,7 @@ partial class Program
 }";
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/54085")]
+        [WorkItem(54085, "https://github.com/dotnet/roslyn/issues/54085")]
         public void OrderOfEvaluation_01()
         {
             var comp = CreateCompilationWithIndexAndRangeAndSpan(@"
@@ -3203,7 +3203,7 @@ Indexer get
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/54085")]
+        [WorkItem(54085, "https://github.com/dotnet/roslyn/issues/54085")]
         public void OrderOfEvaluation_02()
         {
             var comp = CreateCompilationWithIndexAndRangeAndSpan(@"
@@ -3278,7 +3278,7 @@ Indexer get
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/57349")]
+        [WorkItem(57349, "https://github.com/dotnet/roslyn/issues/57349")]
         public void OrderOfEvaluation_03()
         {
             var comp = CreateCompilationWithIndexAndRangeAndSpan(@"
@@ -3381,7 +3381,7 @@ Get GetIdx3 GetIdx2 Length Slice 1, 2
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57745")]
+        [Fact, WorkItem(57745, "https://github.com/dotnet/roslyn/issues/57745")]
         public void ObsoleteRangeType()
         {
             var source = @"
@@ -3663,7 +3663,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/58569")]
+        [WorkItem(58569, "https://github.com/dotnet/roslyn/issues/58569")]
         public void PatternIndexArrayAndAwait_04()
         {
             var src = @"
@@ -3691,7 +3691,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/58569")]
+        [WorkItem(58569, "https://github.com/dotnet/roslyn/issues/58569")]
         public void PatternIndexArrayAndAwait_05()
         {
             var src = @"
@@ -3789,7 +3789,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/65586")]
+        [WorkItem(65586, "https://github.com/dotnet/roslyn/issues/65586")]
         public void SideeffectsOfSlicing_01()
         {
             var src = @"
@@ -3841,7 +3841,7 @@ struct S
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/65586")]
+        [WorkItem(65586, "https://github.com/dotnet/roslyn/issues/65586")]
         public void SideeffectsOfSlicing_02()
         {
             var src = @"

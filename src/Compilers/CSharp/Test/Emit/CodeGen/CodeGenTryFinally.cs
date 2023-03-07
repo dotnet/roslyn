@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 }");
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/4729")]
+        [Theory, WorkItem(4729, "https://github.com/dotnet/roslyn/issues/4729")]
         [InlineData("")]
         [InlineData(";")]
         public void NopInTryCatchFinally(string doNothingStatements)
@@ -414,7 +414,7 @@ class C
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813428")]
+        [WorkItem(813428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813428")]
         [Fact]
         public void TryCatchOptimized001()
         {
@@ -802,7 +802,7 @@ class Program
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854935")]
+        [Fact, WorkItem(854935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854935")]
         public void LiftedExceptionVariableInGenericIterator()
         {
             var source = @"
@@ -833,7 +833,7 @@ class C
             CompileAndVerify(source, expectedOutput: "Hi");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854935")]
+        [Fact, WorkItem(854935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854935")]
         public void GenericLiftedExceptionVariableInGenericIterator()
         {
             var source = @"
@@ -864,7 +864,7 @@ class C
             CompileAndVerify(source, expectedOutput: "Hi");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579778")]
+        [WorkItem(579778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579778")]
         [Fact]
         public void Regression579778()
         {
@@ -2011,7 +2011,7 @@ class D
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540716")]
+        [WorkItem(540716, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540716")]
         [Fact]
         public void ThrowInFinally()
         {
@@ -2549,7 +2549,7 @@ class C
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18678")]
+        [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
         [Fact]
         public void TryCatchConstantFalseFilter1()
         {
@@ -2579,7 +2579,7 @@ class C
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18678")]
+        [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
         [Fact]
         public void TryCatchConstantFalseFilter2()
         {
@@ -2617,7 +2617,7 @@ class C
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18678")]
+        [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
         [Fact]
         public void TryCatchConstantFalseFilter3()
         {
@@ -2679,7 +2679,7 @@ class C
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18678")]
+        [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
         [Fact]
         public void TryCatchConstantFalseFilterCombined()
         {
@@ -2758,7 +2758,7 @@ class C
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18678")]
+        [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
         [Fact]
         public void TryCatchFinallyConstantFalseFilter()
         {
@@ -2987,7 +2987,7 @@ class C
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541494")]
+        [WorkItem(541494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541494")]
         [Fact]
         public void CatchT()
         {
@@ -3049,7 +3049,7 @@ Unhandled");
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540664")]
+        [WorkItem(540664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540664")]
         [Fact]
         public void ExceptionAlreadyCaught1()
         {
@@ -3107,7 +3107,7 @@ class Program
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540666")]
+        [WorkItem(540666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540666")]
         [Fact]
         public void EmptyTryFinally_Simple()
         {
@@ -3123,7 +3123,7 @@ class Program
             CompileAndVerify(source);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542002")]
+        [WorkItem(542002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542002")]
         [Fact]
         public void ConditionInTry()
         {
@@ -3174,7 +3174,7 @@ class Program
 ");
         }
 
-        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
+        [Fact(), WorkItem(544911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
         public void UnreachableAfterTryFinally()
         {
             var source = @"
@@ -3227,7 +3227,7 @@ class Program
 ");
         }
 
-        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
+        [Fact(), WorkItem(544911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
         public void ReachableAfterBlockingCatch()
         {
             var source =
@@ -3282,7 +3282,7 @@ class Program
 }");
         }
 
-        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
+        [Fact(), WorkItem(544911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
         public void UnreachableAfterTryFinallyConditional()
         {
             var source = @"
@@ -3423,7 +3423,7 @@ class Program
 ");
         }
 
-        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
+        [Fact(), WorkItem(544911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
         public void ReachableAfterFinallyButNotFromTryConditional()
         {
             var source = @"
@@ -3506,7 +3506,7 @@ class Program
 ");
         }
 
-        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713418")]
+        [Fact(), WorkItem(713418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713418")]
         public void ConditionalUnconditionalBranches()
         {
             var source = @"
@@ -3583,7 +3583,7 @@ Out");
 ");
         }
 
-        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713418")]
+        [Fact(), WorkItem(713418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713418")]
         public void ConditionalUnconditionalBranches001()
         {
             var source = @"
@@ -3658,7 +3658,7 @@ Out");
 ");
         }
 
-        [Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/2443")]
+        [Fact(), WorkItem(2443, "https://github.com/dotnet/roslyn/issues/2443")]
         public void OptimizeEmptyTryBlock()
         {
             var source = @"
@@ -3690,7 +3690,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/29481")]
+        [WorkItem(29481, "https://github.com/dotnet/roslyn/issues/29481")]
         public void Issue29481()
         {
             var source = @"

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
     public class PropertyAccessTests : CompilingTestBase
     {
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1140706")]
+        [WorkItem(1140706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1140706")]
         public void SetArrayLength()
         {
             var text =

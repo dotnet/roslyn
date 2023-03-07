@@ -82,7 +82,7 @@ struct S
             Assert.Equal(0, synthesizedConstructor.Parameters.Length);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543133")]
+        [Fact, WorkItem(543133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543133")]
         public void FieldAssignedAndReferenced()
         {
             var text =
@@ -132,7 +132,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545509")]
+        [WorkItem(545509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545509")]
         public void StructIndexerReceiver()
         {
             string program = @"
@@ -178,7 +178,7 @@ class SectionInformation2
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545710")]
+        [WorkItem(545710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545710")]
         public void StructFieldWithAssignedPropertyMembers()
         {
             string program = @"
@@ -205,7 +205,7 @@ class GraphicsContext
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/874526")]
+        [WorkItem(874526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/874526")]
         public void GenericStructWithPropertyUsingStruct()
         {
             var source =
@@ -219,7 +219,7 @@ class GraphicsContext
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S<T>.P", "S<T[]>?").WithLocation(3, 13));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1017887")]
+        [Fact, WorkItem(1017887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1017887")]
         public void EmptyStructsFromMetadata()
         {
             var comp1 = CreateCompilation(
@@ -282,7 +282,7 @@ public struct StructWithValue
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
+        [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
         public void DoNotIgnorePrivateStructFieldsOfTypeParameterTypeFromMetadata()
         {
             var comp1 = CreateCompilation(
@@ -315,7 +315,7 @@ public struct StructWithValue
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
+        [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
         public void IgnoreInternalStructFieldsOfReferenceTypeFromMetadata()
         {
             var comp1 = CreateCompilation(
@@ -352,7 +352,7 @@ public struct StructWithValue
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
+        [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
         public void IgnoreEffectivelyInternalStructFieldsOfReferenceTypeFromMetadata()
         {
             var comp1 = CreateCompilation(
@@ -397,7 +397,7 @@ public struct Struct
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
+        [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
         public void IgnoreEffectivelyInternalStructFieldsOfReferenceTypeFromAddedModule()
         {
             var source = @"
@@ -438,7 +438,7 @@ public struct Struct
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30756")]
+        [WorkItem(30756, "https://github.com/dotnet/roslyn/issues/30756")]
         public void IgnoreEffectivelyInternalStructFieldsOfReferenceTypeFromAddedModule_PlusNullable()
         {
             var source = @"
@@ -480,7 +480,7 @@ public struct Struct
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
+        [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
         public void IgnorePrivateStructFieldsOfReferenceTypeFromAddedModule02()
         {
             var source = @"

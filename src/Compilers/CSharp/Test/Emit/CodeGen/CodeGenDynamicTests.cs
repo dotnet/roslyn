@@ -311,7 +311,7 @@ class C
             Assert.Equal(1, ((CSharpCompilation)c.Compilation).GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMember<NamedTypeSymbol>("Func`13").Arity);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
+        [Fact, WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void InvalidFunc_Constraints()
         {
             var systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
@@ -715,7 +715,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/625282")]
+        [WorkItem(625282, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/625282")]
         public void GenericIterator()
         {
             string source = @"
@@ -1015,7 +1015,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627091")]
+        [WorkItem(627091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627091")]
         public void GenericContainer_Lambda()
         {
             string source = @"
@@ -1093,7 +1093,7 @@ public class C
             CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef });
         }
 
-        [Fact, WorkItem("http://roslyn.codeplex.com/workitem/16")]
+        [Fact, WorkItem(16, "http://roslyn.codeplex.com/workitem/16")]
         public void RemoveAtOfKeywordAsDynamicMemberName()
         {
             string source = @"
@@ -3683,7 +3683,7 @@ public class C
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547676")]
+        [WorkItem(547676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547676")]
         [Fact]
         public void BooleanOperation_Bug547676()
         {
@@ -6468,7 +6468,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622532")]
+        [WorkItem(622532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622532")]
         public void InvokeMember_Static_Outer()
         {
             string source = @"
@@ -6532,7 +6532,7 @@ public class A
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622532")]
+        [WorkItem(622532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622532")]
         public void InvokeMember_Static_Outer_AmbiguousAtRuntime()
         {
             string source = @"
@@ -6617,7 +6617,7 @@ public class A
                 expectedOutput: "The call is ambiguous between the following methods or properties: 'A.M(A)' and 'A.M(string)'");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_StaticContext_StaticProperty()
         {
             string source = @"
@@ -6745,7 +6745,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_StaticContext_InstanceProperty()
         {
             string source = @"
@@ -6876,7 +6876,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_StaticContext_Parameter()
         {
             string source = @"
@@ -7002,7 +7002,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_InstanceContext_StaticProperty()
         {
             string source = @"
@@ -7130,7 +7130,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_InstanceContext_Parameter()
         {
             string source = @"
@@ -7256,7 +7256,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_InstanceContext_InstanceProperty()
         {
             string source = @"
@@ -7386,7 +7386,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_InFieldInitializer()
         {
             string source = @"
@@ -7446,7 +7446,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_InScriptVariableInitializer()
         {
             var sourceLib = @"
@@ -7539,7 +7539,7 @@ dynamic x = Color.F((dynamic)1);
 }", realIL: true);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_InScriptMethod()
         {
             var sourceLib = @"
@@ -8066,7 +8066,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598043")]
+        [WorkItem(598043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598043")]
         public void InvokeMember_NamedArguments_PartialMethods()
         {
             string source = @"
@@ -8989,7 +8989,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627091")]
+        [WorkItem(627091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627091")]
         public void InvokeStaticMember_InLambda()
         {
             string source = @"
@@ -14718,7 +14718,7 @@ class C
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2720")]
+        [WorkItem(2720, "https://github.com/dotnet/roslyn/issues/2720")]
         [Fact]
         public void ContextTypeInAsyncLambda()
         {
@@ -14934,7 +14934,7 @@ class C
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5323")]
+        [WorkItem(5323, "https://github.com/dotnet/roslyn/issues/5323")]
         [Fact]
         public void DynamicUsingWithYield1()
         {
@@ -14978,7 +14978,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5323")]
+        [WorkItem(5323, "https://github.com/dotnet/roslyn/issues/5323")]
         [Fact]
         public void DynamicUsingWithYield2()
         {
@@ -15430,7 +15430,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=377883")]
+        [WorkItem(377883, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=377883")]
         public void MissingCSharpArgumentInfoCreate_Async()
         {
             string source =
@@ -15491,7 +15491,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/41947")]
+        [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
         public void DynamicInGenericLocalFunction1()
         {
             var source = @"
@@ -15585,7 +15585,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/41947")]
+        [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
         public void DynamicInGenericLocalFunction2()
         {
             var source = @"
@@ -15715,7 +15715,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/41947")]
+        [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
         public void DynamicInGenericLocalFunction3()
         {
             var source = @"
@@ -15826,7 +15826,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/41947")]
+        [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
         public void DynamicInGenericLocalFunction4()
         {
             var source = @"
@@ -15940,7 +15940,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/41947")]
+        [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
         public void DynamicInGenericLocalFunction5()
         {
             var source = @"

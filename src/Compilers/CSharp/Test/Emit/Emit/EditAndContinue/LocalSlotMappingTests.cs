@@ -1166,7 +1166,7 @@ class C
 }");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770053")]
+        [WorkItem(770053, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770053")]
         [Fact]
         public void FixedMultiple()
         {

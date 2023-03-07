@@ -289,7 +289,7 @@ class C
 1");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543521")]
+        [WorkItem(543521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543521")]
         [Fact()]
         public void TestConstructorWithOutParameter()
         {
@@ -308,7 +308,7 @@ class Class1
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24014")]
+        [WorkItem(24014, "https://github.com/dotnet/roslyn/issues/24014")]
         [Fact]
         public void RefExtensionMethods_OutParam()
         {
@@ -372,7 +372,7 @@ public struct S1
 
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24014")]
+        [WorkItem(24014, "https://github.com/dotnet/roslyn/issues/24014")]
         [Fact]
         public void OutParamAndOptional()
         {
@@ -432,7 +432,7 @@ public class C
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24014")]
+        [WorkItem(24014, "https://github.com/dotnet/roslyn/issues/24014")]
         [Fact]
         public void OutParamAndOptionalNested()
         {
@@ -498,7 +498,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53113")]
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
         public void TestRefOnPointerIndirection()
         {
             var code = @"
@@ -546,7 +546,7 @@ unsafe
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53113")]
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
         public void TestOutOnPointerIndirection()
         {
             var code = @"
@@ -633,7 +633,7 @@ unsafe
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53113")]
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
         public void TestRefOnPointerIndirection_ThroughTernary_01()
         {
             var code = @"
@@ -695,7 +695,7 @@ unsafe
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53113")]
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
         public void TestRefOnPointerIndirection_ThroughTernary_02()
         {
             var code = @"
@@ -781,7 +781,7 @@ unsafe
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53113")]
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
         public void TestRefOnPointerArrayAccess()
         {
             var code = @"

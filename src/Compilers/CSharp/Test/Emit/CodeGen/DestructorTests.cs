@@ -363,7 +363,7 @@ public class Program
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542828")]
+        [WorkItem(542828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542828")]
         [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void BaseTypeHasNonVirtualFinalize()
         {
@@ -419,7 +419,7 @@ public class Program
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542828")]
+        [WorkItem(542828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542828")]
         [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void GenericBaseTypeHasNonVirtualFinalize()
         {
@@ -674,7 +674,7 @@ public class M<T> : L<T>
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("Finalize").IsRuntimeFinalizer()); //same but has "newslot"
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528903")] // Won't fix - test just captures behavior.
+        [WorkItem(528903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528903")] // Won't fix - test just captures behavior.
         [Fact]
         public void DestructorOverridesPublicFinalize()
         {
@@ -719,7 +719,7 @@ public class B : A
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528907")]
+        [WorkItem(528907, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528907")]
         [Fact]
         public void BaseTypeHasGenericFinalize()
         {
@@ -756,7 +756,7 @@ public class B : A
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528903")]
+        [WorkItem(528903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528903")]
         [Fact]
         public void MethodImplEntry()
         {

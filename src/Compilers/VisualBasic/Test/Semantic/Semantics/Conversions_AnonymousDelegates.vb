@@ -557,7 +557,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Sub <generated me
 ]]></expected>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543114")>
+        <WorkItem(543114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543114")>
         <Fact()>
         Public Sub ArgumentIsNarrowing2()
 
@@ -649,7 +649,7 @@ End Module
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543114")>
+        <WorkItem(543114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543114")>
         <Fact()>
         Public Sub ArgumentIsNarrowing3()
 
@@ -737,7 +737,7 @@ End Module
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543114")>
+        <WorkItem(543114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543114")>
         <Fact()>
         Public Sub ArgumentIsNarrowing3_2()
 
@@ -825,7 +825,7 @@ End Module
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543114")>
+        <WorkItem(543114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543114")>
         <Fact()>
         Public Sub ArgumentIsNarrowing3_3()
 
@@ -2508,7 +2508,7 @@ BC30521: Overload resolution failed because no accessible 'Test1' is most specif
 </expected>)
         End Sub
 
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/377")>
+        <Fact(), WorkItem(377, "https://github.com/dotnet/roslyn/issues/377")>
         Public Sub ConvertingNullDelegate()
 
             Dim compilationDef =

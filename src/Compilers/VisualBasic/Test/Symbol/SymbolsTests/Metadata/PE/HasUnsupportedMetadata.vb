@@ -431,8 +431,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         ''' for a TypeRef resolution scope with Nil reference.
         ''' </summary>
         <Fact>
-        <WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=217689")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/11795")>
+        <WorkItem(217689, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=217689")>
+        <WorkItem(11795, "https://github.com/dotnet/roslyn/issues/11795")>
         Public Sub ResolutionScopeNilRef()
             Dim options = TestOptions.ReleaseDll.WithDeterministic(True)
             Dim comp1 = CreateCompilationWithMscorlib40(

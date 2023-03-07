@@ -318,7 +318,7 @@ End Module
             End Sub
         End Class
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998724")>
+        <WorkItem(998724, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998724")>
         <Fact>
         Public Sub TestSymbolAnalyzerNotInvokedForMyTemplateSymbols()
             Dim analyzer = New MockSymbolAnalyzer()
@@ -413,7 +413,7 @@ End Namespace
             End Sub
         End Class
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1008059")>
+        <Fact, WorkItem(1008059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1008059")>
         Public Sub TestCodeBlockAnalyzersForNoExecutableCode()
             Dim analyzer = New CodeBlockAnalyzer()
             Dim sources = <compilation>
@@ -436,7 +436,7 @@ End Class
             compilation.VerifyAnalyzerDiagnostics({analyzer})
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1008059")>
+        <Fact, WorkItem(1008059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1008059")>
         Public Sub TestCodeBlockAnalyzersForEmptyMethodBody()
             Dim analyzer = New CodeBlockAnalyzer()
             Dim sources = <compilation>
@@ -458,7 +458,7 @@ End Class
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, Diagnostic("CodeBlockDiagnostic", <![CDATA[Public Sub Method()]]>))
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1096600")>
+        <Fact, WorkItem(1096600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1096600")>
         Private Sub TestDescriptorForConfigurableCompilerDiagnostics()
             ' Verify that all configurable compiler diagnostics, i.e. all non-error diagnostics,
             ' have a non-null and non-empty Title and Category.
@@ -512,7 +512,7 @@ End Class
             End Sub
         End Class
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109126")>
+        <Fact, WorkItem(1109126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109126")>
         Public Sub TestFieldSymbolAnalyzer_EnumField()
             Dim analyzer = New FieldSymbolAnalyzer()
             Dim sources = <compilation>
@@ -534,7 +534,7 @@ End Enum
                 Diagnostic("FieldSymbolDiagnostic", <![CDATA[X]]>))
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111667")>
+        <Fact, WorkItem(1111667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111667")>
         Public Sub TestFieldSymbolAnalyzer_FieldWithoutInitializer()
             Dim analyzer = New FieldSymbolAnalyzer()
             Dim sources = <compilation>
@@ -577,7 +577,7 @@ End Class
             End Sub
         End Class
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/565")>
+        <Fact, WorkItem(565, "https://github.com/dotnet/roslyn/issues/565")>
         Public Sub TestFieldDeclarationAnalyzer()
             Dim analyzer = New FieldDeclarationAnalyzer()
             Dim sources = <compilation>
@@ -605,7 +605,7 @@ End Class
                 Diagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim z2 = 0]]>))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4745")>
+        <Fact, WorkItem(4745, "https://github.com/dotnet/roslyn/issues/4745")>
         Public Sub TestNamespaceDeclarationAnalyzer()
             Dim analyzer = New VisualBasicNamespaceDeclarationAnalyzer()
             Dim sources = <compilation>
@@ -626,7 +626,7 @@ End Namespace
                 Diagnostic(VisualBasicNamespaceDeclarationAnalyzer.DiagnosticId, <![CDATA[Namespace Goo.Bar.GooBar]]>))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5463")>
+        <Fact, WorkItem(5463, "https://github.com/dotnet/roslyn/issues/5463")>
         Public Sub TestObjectCreationInCodeBlockAnalyzer()
             Dim analyzer = New VisualBasicCodeBlockObjectCreationAnalyzer()
             Dim sources = <compilation>
@@ -661,7 +661,7 @@ End Class
                 Diagnostic(VisualBasicCodeBlockObjectCreationAnalyzer.DiagnosticDescriptor.Id, <![CDATA[New C3()]]>))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1473")>
+        <Fact, WorkItem(1473, "https://github.com/dotnet/roslyn/issues/1473")>
         Public Sub TestReportingNotConfigurableDiagnostic()
             Dim analyzer = New NotConfigurableDiagnosticAnalyzer()
             Dim sources = <compilation>
@@ -706,7 +706,7 @@ End Class
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1709")>
+        <Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
         Public Sub TestCodeBlockAction()
             Dim analyzer = New CodeBlockActionAnalyzer()
             Dim sources = <compilation>
@@ -728,7 +728,7 @@ End Class
                 Diagnostic(CodeBlockActionAnalyzer.CodeBlockPerCompilationRule.Id, <![CDATA[M]]>).WithArguments("M"))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1709")>
+        <Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
         Public Sub TestCodeBlockAction_OnlyStatelessAction()
             Dim analyzer = New CodeBlockActionAnalyzer(onlyStatelessAction:=True)
             Dim sources = <compilation>
@@ -760,15 +760,15 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/2598")>
+        <WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
+        <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
         Public Sub EffectiveSeverity_DiagnosticDefault1()
             TestEffectiveSeverity(DiagnosticSeverity.Warning, ReportDiagnostic.Warn)
         End Sub
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/2598")>
+        <WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
+        <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
         Public Sub EffectiveSeverity_DiagnosticDefault2()
             Dim specificOptions = New Dictionary(Of String, ReportDiagnostic) From {{"Test0001", ReportDiagnostic.Default}}
             Dim generalOption = ReportDiagnostic.Error
@@ -777,16 +777,16 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/2598")>
+        <WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
+        <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
         Public Sub EffectiveSeverity_GeneralOption()
             Dim generalOption = ReportDiagnostic.Error
             TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity:=generalOption, generalOption:=generalOption)
         End Sub
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/2598")>
+        <WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
+        <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
         Public Sub EffectiveSeverity_SpecificOption()
             Dim specificOption = ReportDiagnostic.Suppress
             Dim specificOptions = New Dictionary(Of String, ReportDiagnostic) From {{"Test0001", specificOption}}
@@ -796,8 +796,8 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/2598")>
+        <WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
+        <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
         Public Sub EffectiveSeverity_GeneralOptionDoesNotEnableDisabledDiagnostic()
             Dim generalOption = ReportDiagnostic.Error
             Dim enabledByDefault = False
@@ -806,8 +806,8 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/2598")>
+        <WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
+        <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
         Public Sub EffectiveSeverity_SpecificOptionEnablesDisabledDiagnostic()
             Dim specificOption = ReportDiagnostic.Warn
             Dim specificOptions = New Dictionary(Of String, ReportDiagnostic) From {{"Test0001", specificOption}}
@@ -817,7 +817,7 @@ End Class
             TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity:=specificOption, specificOptions:=specificOptions, generalOption:=generalOption, isEnabledByDefault:=enabledByDefault)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6998")>
+        <Fact, WorkItem(6998, "https://github.com/dotnet/roslyn/issues/6998")>
         Public Sub TestGeneratedCodeAnalyzer()
             Dim source = <![CDATA[
 <System.CodeDom.Compiler.GeneratedCodeAttribute("tool", "version")> _
@@ -901,7 +901,7 @@ End Class
             VerifyGeneratedCodeAnalyzerDiagnostics(warnAsErrorCompilation, isGeneratedFile, generatedCodeAnalysisFlagsOpt:=Nothing)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6998")>
+        <Fact, WorkItem(6998, "https://github.com/dotnet/roslyn/issues/6998")>
         Public Sub TestGeneratedCodeAnalyzerPartialType()
             Dim source As String = <![CDATA['
 <System.CodeDom.Compiler.GeneratedCodeAttribute("tool", "version")> _
@@ -998,7 +998,7 @@ End Class
                 Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "12").WithLocation(12, 36))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8753")>
+        <Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
         Public Sub TestParametersAnalyzer_InRegularMethods()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1018,7 +1018,7 @@ End Class
                 Diagnostic("Parameter_ID", "b").WithLocation(2, 32))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8753")>
+        <Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
         Public Sub TestParametersAnalyzer_InConstructors()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1038,7 +1038,7 @@ End Class
                 Diagnostic("Parameter_ID", "b").WithLocation(2, 34))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8753")>
+        <Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
         Public Sub TestParametersAnalyzer_InIndexers()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1064,7 +1064,7 @@ End Class
                 Diagnostic("Parameter_ID", "Value").WithLocation(6, 19))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/14062"), WorkItem("https://github.com/dotnet/roslyn/issues/8753")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/14062"), WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
         Public Sub TestParametersAnalyzer_InDelegateTypes()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1083,7 +1083,7 @@ End Class
                 Diagnostic("Parameter_ID", "b").WithLocation(2, 48))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8753")>
+        <Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
         Public Sub TestParametersAnalyzer_InOperators()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1104,7 +1104,7 @@ End Class
                 Diagnostic("Parameter_ID", "h2").WithLocation(2, 51))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8753")>
+        <Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
         Public Sub TestParametersAnalyzer_InInterfaceImplementations()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1131,7 +1131,7 @@ End Class
                 Diagnostic("Parameter_ID", "b").WithLocation(7, 32))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8753")>
+        <Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
         Public Sub TestParametersAnalyzer_InParameterizedProperties()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1346,7 +1346,7 @@ End Class
             End Property
         End Class
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23309")>
+        <Fact, WorkItem(23309, "https://github.com/dotnet/roslyn/issues/23309")>
         Public Sub TestFieldReferenceAnalyzer_InAttributes()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1493,7 +1493,7 @@ End Class
                 Diagnostic("ID", "FieldForIndexerReturnType").WithArguments("FieldForIndexerReturnType", "31").WithLocation(83, 101))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25167")>
+        <Fact, WorkItem(25167, "https://github.com/dotnet/roslyn/issues/25167")>
         Public Sub TestMethodBodyOperationAnalyzer()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1620,7 +1620,7 @@ Block[B2] - Exit
             Next
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30309")>
+        <Fact, WorkItem(30309, "https://github.com/dotnet/roslyn/issues/30309")>
         Public Sub TestSymbolStartAnalyzer_MyApplication()
 
             Dim sources = <compilation>

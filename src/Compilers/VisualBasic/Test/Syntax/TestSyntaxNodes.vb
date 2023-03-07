@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/21812")>
+        <WorkItem(21812, "https://github.com/dotnet/roslyn/issues/21812")>
         Public Sub TestTupleTypeInSyntaxFactory()
             Dim int = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntegerKeyword))
             Dim tuple = SyntaxFactory.TupleType(SyntaxFactory.TypedTupleElement(int), SyntaxFactory.TypedTupleElement(int))
@@ -1943,7 +1943,7 @@ End Module
             Assert.Equal(vbLf, newline.ToString)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789824"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
+        <Fact, WorkItem(789824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789824"), WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestGetPreviousToken()
             Dim prog = ParseAndVerify(<![CDATA[
 Module Module1
@@ -1991,7 +1991,7 @@ End Module
             Assert.Equal(SyntaxKind.IdentifierToken, listToken.Kind)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789824"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
+        <Fact, WorkItem(789824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789824"), WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestGetNextSibling()
             Dim prog = ParseAndVerify(<![CDATA[Module Module1
     dim xxxx ::: Dim yyyy
@@ -2009,7 +2009,7 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789824"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
+        <Fact, WorkItem(789824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789824"), WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestGetPreviousSibling()
             Dim prog = ParseAndVerify(<![CDATA[Module Module1
     dim xxxx ::: Dim yyyy
@@ -2162,7 +2162,7 @@ End Module
             TestContainsHelper1("#region", {SyntaxKind.RegionDirectiveTrivia})
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537404")>
+        <WorkItem(537404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537404")>
         <Fact>
         Public Sub TestNodeTokenConversion01()
             Dim prog = ParseAndVerify(<![CDATA[ Class A
@@ -2188,7 +2188,7 @@ End Class
             Assert.Equal(sN.Width, cS.Span.Length)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537403")>
+        <WorkItem(537403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537403")>
         <Fact>
         Public Sub TestNodeTokenConversion02()
 
@@ -2199,15 +2199,15 @@ End Class
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537673")>
+        <WorkItem(537673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537673")>
         <Fact>
         Public Sub SyntaxTriviaDefaultIsDirective()
             Dim trivia As New SyntaxTrivia()
             Assert.False(trivia.IsDirective)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538362")>
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
+        <WorkItem(538362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538362")>
+        <Fact, WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestGetNextTokenCommon()
             Dim tree As SyntaxTree = VisualBasicSyntaxTree.ParseText("public class goo : end class")
 
@@ -2239,8 +2239,8 @@ End Class
             Debug.Assert(lastToken.Kind = SyntaxKind.EndOfFileToken)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755236")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/9896")>
+        <WorkItem(755236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755236")>
+        <WorkItem(9896, "https://github.com/dotnet/roslyn/issues/9896")>
         <Fact>
         Public Sub TestFindNode()
             Dim code = <code><![CDATA[
@@ -2338,7 +2338,7 @@ End Class]]>
             Next
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539940")>
+        <WorkItem(539940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539940")>
         <Fact>
         Public Sub TestFindTriviaNoTriviaExistsAtPosition()
             Dim code = <code>Class Goo
@@ -2470,7 +2470,7 @@ End Class</code>.Value
             Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(4).Kind)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
+        <Fact, WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestDescendantTrivia()
             Dim text = <![CDATA[' Goo
 a + b
@@ -2485,7 +2485,7 @@ a + b
             Assert.Equal(SyntaxKind.WhitespaceTrivia, list(3).Kind)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
+        <Fact, WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestDescendantTriviaIntoStructuredTrivia()
             Dim text = <![CDATA[
 ''' <goo >
@@ -2729,7 +2729,7 @@ End Class
 
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
+        <Fact, WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestRemove_KeepExternalTrivia_KeepUnbalancedDirectives()
             Dim text = <![CDATA[
 #If True
@@ -2868,7 +2868,7 @@ End Module
             Assert.Equal(ChangesFromTransform, changes2UsingCommonSyntax)
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658329")>
+        <Fact, WorkItem(658329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658329")>
         Public Sub TestSyntaxTree_GetChangesInValid()
             'GetChanges with two Scenarios where either new or old tree is nothing
             Dim SourceText = <String>
@@ -2890,7 +2890,7 @@ End Module
             Assert.Throws(Of ArgumentNullException)(Sub() FirstImportsClause.SyntaxTree.GetChanges(BlankTree))
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658329")>
+        <Fact, WorkItem(658329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658329")>
         Public Sub TestSyntaxTree_GetChangeSpans()
             Dim oldTree = VisualBasicSyntaxTree.ParseText("class A : End Class")
             Dim newTree = oldTree.WithInsertAt(0, "class B : End Class")
@@ -3152,8 +3152,8 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem("https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=111538")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=658398")>
+        <WorkItem(111538, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=111538")>
+        <WorkItem(658398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=658398")>
         Public Sub Test_UnaryOperatorsInvalid()
             'Added for Code Coverage 
             Dim compilationDef =
@@ -3391,7 +3391,7 @@ End Module
             Assert.Equal(1, x.Count)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/6536")>
+        <WorkItem(6536, "https://github.com/dotnet/roslyn/issues/6536")>
         <Fact>
         Public Sub TestFindTrivia_NoStackOverflowOnLargeExpression()
             Dim code As New StringBuilder()

@@ -556,7 +556,7 @@ System.Int32[]
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
+        [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
         public void ByRefBeforeCustomModifiers()
         {
             var il = @"
@@ -610,7 +610,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
+        [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
         public void ByRefBeforeCustomModifiersOnSourceParameter()
         {
             var il = @"
@@ -673,7 +673,7 @@ class Test
             CompileAndVerify(comp, expectedOutput: "2");
         }
 
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=294553")]
+        [WorkItem(294553, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=294553")]
         [Fact]
         public void VoidPointerWithCustomModifiers()
         {

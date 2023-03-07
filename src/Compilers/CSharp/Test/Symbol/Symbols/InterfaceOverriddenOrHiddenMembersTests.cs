@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     /// </summary>
     public class InterfaceOverriddenOrHiddenMembersTests : CSharpTestBase
     {
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void Repro581173()
         {
@@ -59,7 +59,7 @@ interface I0 : I1, I2
         /// 
         /// All have method.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Method_1()
         {
@@ -100,7 +100,7 @@ public interface IBottom : ILeft, IRight
         /// <summary>
         /// All have method but IRight.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Method_2()
         {
@@ -138,7 +138,7 @@ public interface IBottom : ILeft, IRight
         /// <summary>
         /// All have method but ILeft and IRight.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Method_3()
         {
@@ -173,7 +173,7 @@ public interface IBottom : ILeft, IRight
         /// <summary>
         /// All have method but ITop.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Method_4()
         {
@@ -209,7 +209,7 @@ public interface IBottom : ILeft, IRight
         /// <summary>
         /// All have method but ITop and IRight.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Method_5()
         {
@@ -253,7 +253,7 @@ public interface IBottom : ILeft, IRight
         /// 
         /// All have unmodified method.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Overload_1()
         {
@@ -263,7 +263,7 @@ public interface IBottom : ILeft, IRight
         /// <summary>
         /// All have unmodified method but IRight.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Overload_2()
         {
@@ -301,7 +301,7 @@ public interface IBottom : ILeft, IRight
         /// <summary>
         /// All have unmodified method but ILeft and IRight.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Overload_3()
         {
@@ -336,7 +336,7 @@ public interface IBottom : ILeft, IRight
         /// <summary>
         /// All have unmodified method but ITop.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Overload_4()
         {
@@ -373,7 +373,7 @@ public interface IBottom : ILeft, IRight
         /// All have unmodified method but ITop and IRight.
         /// Unlike the other TestDiamond_Overload tests, this one reports different diagnostics than its TestDiamond_Method counterpart.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Overload_5()
         {
@@ -420,7 +420,7 @@ public interface IBottom : ILeft, IRight
         /// 
         /// All have unmodified method.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Arity_1()
         {
@@ -430,7 +430,7 @@ public interface IBottom : ILeft, IRight
         /// <summary>
         /// All have unmodified method but IRight.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Arity_2()
         {
@@ -468,7 +468,7 @@ public interface IBottom : ILeft, IRight
         /// <summary>
         /// All have unmodified method but ILeft and IRight.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Arity_3()
         {
@@ -503,7 +503,7 @@ public interface IBottom : ILeft, IRight
         /// <summary>
         /// All have unmodified method but ITop.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Arity_4()
         {
@@ -540,7 +540,7 @@ public interface IBottom : ILeft, IRight
         /// All have unmodified method but ITop and IRight.
         /// Unlike the other TestDiamond_Overload tests, this one reports different diagnostics than its TestDiamond_Method counterpart.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Arity_5()
         {
@@ -587,7 +587,7 @@ public interface IBottom : ILeft, IRight
         /// 
         /// All have unmodified method.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Kind_1()
         {
@@ -597,7 +597,7 @@ public interface IBottom : ILeft, IRight
         /// <summary>
         /// All have unmodified method but IRight.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Kind_2()
         {
@@ -638,7 +638,7 @@ public interface IBottom : ILeft, IRight
         /// <summary>
         /// All have unmodified method but ILeft and IRight.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Kind_3()
         {
@@ -679,7 +679,7 @@ public interface IBottom : ILeft, IRight
         /// <summary>
         /// All have unmodified method but ITop.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Kind_4()
         {
@@ -722,7 +722,7 @@ public interface IBottom : ILeft, IRight
         /// All have unmodified method but ITop and IRight.
         /// Unlike the other TestDiamond_Overload tests, this one reports different diagnostics than its TestDiamond_Method counterpart.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
+        [WorkItem(581173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581173")]
         [Fact]
         public void TestDiamond_Kind_5()
         {
@@ -761,7 +761,7 @@ public interface IBottom : ILeft, IRight
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/661370")]
+        [WorkItem(661370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/661370")]
         public void HideAndOverride()
         {
             var source = @"
@@ -814,7 +814,7 @@ public interface Derived2 : Base
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667278")]
+        [WorkItem(667278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667278")]
         public void FalseIdentificationOfCircularDependency()
         {
             var source = @"

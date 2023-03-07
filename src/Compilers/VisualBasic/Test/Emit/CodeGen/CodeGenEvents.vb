@@ -380,7 +380,7 @@ End Module
 
         <Fact()>
         <CompilerTrait(CompilerFeature.IOperation)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/23282")>
+        <WorkItem(23282, "https://github.com/dotnet/roslyn/issues/23282")>
         Public Sub SimpleRaiseHandlerWithBlockEvent_01()
             Dim verifier = CompileAndVerify(
     <compilation>
@@ -503,7 +503,7 @@ IRaiseEventOperation (OperationKind.RaiseEvent, Type: null) (Syntax: 'RaiseEvent
 
         <Fact()>
         <CompilerTrait(CompilerFeature.IOperation)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/23282")>
+        <WorkItem(23282, "https://github.com/dotnet/roslyn/issues/23282")>
         Public Sub SimpleRaiseHandlerWithBlockEvent_02()
             Dim verifier = CompileAndVerify(
     <compilation>
@@ -1006,7 +1006,7 @@ End Module]]>,
 
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543612")>
+        <Fact(), WorkItem(543612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543612")>
         Public Sub CallEventHandlerThroughWithEvent01()
             CompileAndVerify(
     <compilation>
@@ -1060,7 +1060,7 @@ End Class
     ]]>)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543612")>
+        <Fact(), WorkItem(543612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543612")>
         Public Sub CallEventHandlerThroughWithEvent02()
             CompileAndVerify(
     <compilation>
@@ -1092,7 +1092,7 @@ End Class
     </compilation>, expectedOutput:="1")
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543612")>
+        <Fact(), WorkItem(543612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543612")>
         Public Sub ObsoleteRaiseEvent()
             CompileAndVerify(
     <compilation>
@@ -1134,7 +1134,7 @@ End Module
     </compilation>, expectedOutput:="")
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545428")>
+        <Fact(), WorkItem(545428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545428")>
         Public Sub AddHandlerConflictingLocal()
             CompileAndVerify(
     <compilation>
@@ -1160,7 +1160,7 @@ End Module
     </compilation>, expectedOutput:="System.Int32")
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546055")>
+        <Fact(), WorkItem(546055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546055")>
         Public Sub AddHandlerEventNameLookupViaImport()
             CompileAndVerify(
     <compilation>
@@ -1201,7 +1201,7 @@ hello from ev1
         End Sub
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=529574")>
+        <WorkItem(529574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=529574")>
         Public Sub TestCrossLanguageOptionalAndParamarray1()
             Dim csCompilation = CreateCSharpCompilation("CS",
             <![CDATA[public class CSClass
@@ -1433,7 +1433,7 @@ PASS
             vbVerifier.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545257")>
+        <Fact, WorkItem(545257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545257")>
         Public Sub TestCrossLanguageOptionalAndParamarray_Error1()
             Dim csCompilation = CreateCSharpCompilation("CS",
             <![CDATA[public class CSClass
@@ -1883,7 +1883,7 @@ End Namespace
     ]]>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069554")>
+        <WorkItem(1069554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069554")>
         <Fact>
         Public Sub LocalDefinitionInEventHandler()
             Dim c = CompileAndVerify(
@@ -1918,7 +1918,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069554")>
+        <WorkItem(1069554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069554")>
         <Fact>
         Public Sub ClosureInEventHandler()
             Dim c = CompileAndVerify(
@@ -1964,7 +1964,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7659")>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
         Public Sub HandlesOnMultipleLevels_01()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -2154,7 +2154,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7659")>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
         Public Sub HandlesOnMultipleLevels_02()
 
             Dim source1 =
@@ -2241,7 +2241,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7659")>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
         Public Sub HandlesOnMultipleLevels_03()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -2329,7 +2329,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7659")>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
         Public Sub HandlesOnMultipleLevels_04()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -2403,7 +2403,7 @@ BC30506: Handles clause requires a WithEvents variable defined in the containing
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7659")>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
         Public Sub HandlesOnMultipleLevels_05()
 
             Dim source1 =
@@ -2505,7 +2505,7 @@ BC30506: Handles clause requires a WithEvents variable defined in the containing
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7659")>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
         Public Sub HandlesOnMultipleLevels_06()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -2571,7 +2571,7 @@ BC30506: Handles clause requires a WithEvents variable defined in the containing
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7659")>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
         Public Sub HandlesOnMultipleLevels_07()
 
             Dim source1 =
@@ -2654,7 +2654,7 @@ BC30506: Handles clause requires a WithEvents variable defined in the containing
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7659")>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
         Public Sub HandlesOnMultipleLevels_08()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -2721,8 +2721,8 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7659")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/14104")>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
+        <WorkItem(14104, "https://github.com/dotnet/roslyn/issues/14104")>
         <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub HandlesOnMultipleLevels_09()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(

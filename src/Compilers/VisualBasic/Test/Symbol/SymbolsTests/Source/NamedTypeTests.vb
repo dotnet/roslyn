@@ -33,7 +33,7 @@ delegate sub C()"
         }
 
         <Theory, MemberData(NameOf(TestData))>
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
+        <WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
         Public Sub IsExplicitDefinitionOfNoPiaLocalType1(type As String)
 
             Dim compilation = CreateCompilation($"<System.CLSCompliant(false)> {type}")
@@ -42,7 +42,7 @@ delegate sub C()"
         End Sub
 
         <Theory, MemberData(NameOf(TestData))>
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
+        <WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
         Public Sub IsExplicitDefinitionOfNoPiaLocalType2(type As String)
 
             Dim compilation = CreateCompilation($"<System.Runtime.InteropServices.TypeIdentifierAttribute> {type}")
@@ -51,7 +51,7 @@ delegate sub C()"
         End Sub
 
         <Theory, MemberData(NameOf(TestData))>
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
+        <WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
         Public Sub IsExplicitDefinitionOfNoPiaLocalType3(type As String)
 
             Dim compilation = CreateCompilation($"<System.Runtime.InteropServices.TypeIdentifier> {type}")
@@ -60,7 +60,7 @@ delegate sub C()"
         End Sub
 
         <Theory, MemberData(NameOf(TestData))>
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
+        <WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
         Public Sub IsExplicitDefinitionOfNoPiaLocalType4(type As String)
 
             Dim compilation = CreateCompilation($"
@@ -72,7 +72,7 @@ imports System.Runtime.InteropServices
         End Sub
 
         <Theory, MemberData(NameOf(TestData))>
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
+        <WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
         Public Sub IsExplicitDefinitionOfNoPiaLocalType5(type As String)
 
             Dim compilation = CreateCompilation($"
@@ -84,7 +84,7 @@ imports System.Runtime.InteropServices
         End Sub
 
         <Theory, MemberData(NameOf(TestData))>
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
+        <WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
         Public Sub IsExplicitDefinitionOfNoPiaLocalType6(type As String)
 
             Dim compilation = CreateCompilation($"
@@ -96,7 +96,7 @@ imports TI = System.Runtime.InteropServices.TypeIdentifierAttribute
         End Sub
 
         <Theory, MemberData(NameOf(TestData))>
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
+        <WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
         Public Sub IsExplicitDefinitionOfNoPiaLocalType7(type As String)
 
             Dim compilation = CreateCompilation($"
@@ -108,7 +108,7 @@ imports TIAttribute = System.Runtime.InteropServices.TypeIdentifierAttribute
         End Sub
 
         <Theory, MemberData(NameOf(TestData))>
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
+        <WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
         Public Sub IsExplicitDefinitionOfNoPiaLocalType8(type As String)
 
             Dim compilation = CreateCompilation($"
@@ -120,7 +120,7 @@ imports TIAttribute = System.Runtime.InteropServices.TypeIdentifierAttribute
         End Sub
 
         <Theory, MemberData(NameOf(TestData))>
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
+        <WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
         Public Sub IsExplicitDefinitionOfNoPiaLocalType9(type As String)
 
             Dim compilation = CreateCompilation({
@@ -135,7 +135,7 @@ imports TIAttribute = System.Runtime.InteropServices.TypeIdentifierAttribute
         End Sub
 
         <Theory, MemberData(NameOf(TestData))>
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
+        <WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
         Public Sub IsExplicitDefinitionOfNoPiaLocalType10(type As String)
 
             Dim compilation = CreateCompilation({
@@ -150,7 +150,7 @@ imports TIAttribute = System.Runtime.InteropServices.TypeIdentifierAttribute
         End Sub
 
         <Theory, MemberData(NameOf(TestData))>
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
+        <WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
         Public Sub IsExplicitDefinitionOfNoPiaLocalType11(type As String)
 
             Dim compilation = CreateCompilation({
@@ -165,7 +165,7 @@ imports TIAttribute = System.Runtime.InteropServices.TypeIdentifierAttribute
         End Sub
 
         <Theory, MemberData(NameOf(TestData))>
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
+        <WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
         Public Sub IsExplicitDefinitionOfNoPiaLocalType12(type As String)
 
             Dim compilation = CreateCompilation({
@@ -187,7 +187,7 @@ namespace N
         End Sub
 
         <Theory, MemberData(NameOf(TestData))>
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
+        <WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
         Public Sub IsExplicitDefinitionOfNoPiaLocalType13(type As String)
 
             Dim compilation = CreateCompilation({
@@ -209,7 +209,7 @@ namespace N
         End Sub
 
         <Theory, MemberData(NameOf(TestData))>
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
+        <WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")>
         Public Sub IsExplicitDefinitionOfNoPiaLocalType14(type As String)
             Dim compilation = CreateCompilation({
                 "global imports TIAttribute = System.Runtime.InteropServices.TypeIdentifierAttribute",

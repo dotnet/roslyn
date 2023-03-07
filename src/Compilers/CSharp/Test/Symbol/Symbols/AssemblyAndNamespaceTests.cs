@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(sym.ContainingSymbol);
         }
 
-        [Theory, MemberData(nameof(FileScopedOrBracedNamespace)), WorkItem(1979, "DevDiv_Projects/Roslyn"), WorkItem(2026, "DevDiv_Projects/Roslyn"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544009")]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace)), WorkItem(1979, "DevDiv_Projects/Roslyn"), WorkItem(2026, "DevDiv_Projects/Roslyn"), WorkItem(544009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544009")]
         public void SourceModule(string ob, string cb)
         {
             var text = @"namespace NS.NS1.NS2
@@ -228,7 +228,7 @@ namespace NS.NS1 {
             }
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537287")]
+        [WorkItem(537287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537287")]
         [Fact]
         public void MultiModulesNamespaceCorLibraries()
         {
@@ -306,7 +306,7 @@ namespace NS.NS1 {
             Assert.Equal(5, b.Length);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537958")]
+        [WorkItem(537958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537958")]
         [Fact]
         public void GetDeclaredSymbolDupNsAliasErr()
         {
@@ -337,7 +337,7 @@ namespace NS
             var b = type1.BaseType();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540785")]
+        [WorkItem(540785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540785")]
         [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
         public void GenericNamespace(string ob, string cb)
         {
@@ -364,7 +364,7 @@ namespace Goo<T>
             Assert.NotNull(method);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690871")]
+        [WorkItem(690871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690871")]
         [Fact]
         public void SpecialTypesAndAliases()
         {
@@ -386,7 +386,7 @@ namespace Goo<T>
             Assert.Equal(objectType, comp.Assembly.CorLibrary.GetSpecialType(SpecialType.System_Object));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690871")]
+        [WorkItem(690871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690871")]
         [Fact]
         public void WellKnownTypesAndAliases()
         {
@@ -677,7 +677,7 @@ int x; // 1
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "x").WithLocation(3, 5));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54836")]
+        [Fact, WorkItem(54836, "https://github.com/dotnet/roslyn/issues/54836")]
         public void AssemblyRetargetableAttributeIsRespected()
         {
             var code = @"

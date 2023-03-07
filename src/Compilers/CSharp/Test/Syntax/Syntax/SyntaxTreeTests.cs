@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(oldTree.ToString(), newTree.ToString());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12638")]
+        [Fact, WorkItem(12638, "https://github.com/dotnet/roslyn/issues/12638")]
         public void WithFilePath_Null()
         {
             SyntaxTree oldTree = new CSharpSyntaxTree.DummySyntaxTree();

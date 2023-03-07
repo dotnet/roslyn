@@ -3520,7 +3520,7 @@ N1N2
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/564")>
+        <Fact, WorkItem(564, "https://github.com/dotnet/roslyn/issues/564")>
         Public Sub NameOfTypeParameterInDefaultValue()
             Dim compilationDef =
 <compilation>
@@ -3543,7 +3543,7 @@ TP
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10839")>
+        <Fact, WorkItem(10839, "https://github.com/dotnet/roslyn/issues/10839")>
         Public Sub NameOfByRefInLambda()
             Dim compilationDef =
                 <compilation>
@@ -3566,7 +3566,7 @@ End Module
             CompileAndVerify(comp, expectedOutput:="x").VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10839")>
+        <Fact, WorkItem(10839, "https://github.com/dotnet/roslyn/issues/10839")>
         Public Sub NameOfByRefInQuery()
             Dim compilationDef =
                 <compilation>
@@ -3590,7 +3590,7 @@ End Module
             CompileAndVerify(comp, expectedOutput:="xxx").VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10839")>
+        <Fact, WorkItem(10839, "https://github.com/dotnet/roslyn/issues/10839")>
         Public Sub ForbidInstanceQualifiedFromTypeInNestedExpression()
             Dim compilationDef =
                 <compilation>
@@ -3634,7 +3634,7 @@ BC30469: Reference to a non-shared member requires an object reference.
 ]]></expected>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23019")>
+        <Fact, WorkItem(23019, "https://github.com/dotnet/roslyn/issues/23019")>
         Public Sub NameOfInAsync()
             Dim compilationDef =
 <compilation>

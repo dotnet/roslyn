@@ -1128,7 +1128,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56412")]
+        [WorkItem(56412, "https://github.com/dotnet/roslyn/issues/56412")]
         public void Issue56412()
         {
             string source = @"

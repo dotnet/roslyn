@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         [Theory]
         [InlineData(DebugInformationFormat.PortablePdb)]
         [InlineData(DebugInformationFormat.Pdb)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/28045")]
+        [WorkItem(28045, "https://github.com/dotnet/roslyn/issues/28045")]
         public void StandalonePdb(DebugInformationFormat format)
         {
             string source1 = WithWindowsLineBreaks(@"

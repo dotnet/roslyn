@@ -640,7 +640,7 @@ class C {
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14167")]
+        [Fact, WorkItem(14167, "https://github.com/dotnet/roslyn/issues/14167")]
         public void HangingLambdaParsing_Bug14167()
         {
             var tree = UsingNode(@"(int a, int b Main();");
@@ -5060,7 +5060,7 @@ class C {
             EOF();
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60661")]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
         [InlineData(LanguageVersion.CSharp9)]
         [InlineData(LanguageVersion.CSharp11)]
         [Theory]
@@ -5090,7 +5090,7 @@ class C {
             EOF();
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60661")]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
         [InlineData(LanguageVersion.CSharp9)]
         [InlineData(LanguageVersion.CSharp11)]
         [Theory]
@@ -5118,7 +5118,7 @@ class C {
             EOF();
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60661")]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
         [InlineData(LanguageVersion.CSharp9)]
         [InlineData(LanguageVersion.CSharp11)]
         [Theory]
@@ -5153,7 +5153,7 @@ class C {
             EOF();
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60661")]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
         [Fact]
         public void KeywordParameterName_04()
         {
@@ -5469,7 +5469,7 @@ class C {
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
         public void ScopedAsParameterName_01()
         {
             string source = "scoped => { }";
@@ -5491,7 +5491,7 @@ class C {
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
         public void ScopedAsParameterName_02()
         {
             string source = "(scoped) => { }";
@@ -5518,7 +5518,7 @@ class C {
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
         public void ScopedAsParameterName_03()
         {
             string source = "(a, scoped) => { }";
@@ -5550,7 +5550,7 @@ class C {
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
         public void ScopedAsParameterName_04()
         {
             string source = "(int scoped) => { }";
@@ -5581,7 +5581,7 @@ class C {
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
         public void ScopedAsParameterName_05()
         {
             string source = "(scoped int scoped) => { }";
@@ -5613,7 +5613,7 @@ class C {
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
         public void ScopedAsParameterName_06()
         {
             string source = "(scoped scoped) => { }";

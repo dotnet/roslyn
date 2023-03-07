@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 SymbolDisplayPartKind.ClassName);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46985")]
+        [Fact, WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
         public void TestRecordNameOnlySimple()
         {
             var text = "record A {}";
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 SymbolDisplayPartKind.RecordClassName);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46985")]
+        [Fact, WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
         public void TestRecordNameOnlyComplex()
         {
             var text = @"
@@ -2510,7 +2510,7 @@ abstract class C
                 "void M()");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537447")]
+        [WorkItem(537447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537447")]
         [Fact]
         public void TestBug2239()
         {
@@ -4367,7 +4367,7 @@ enum E { A = 1, B = 2, C = 4, D = A | B | C }";
                 SymbolDisplayPartKind.NumericLiteral);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545462")]
+        [Fact, WorkItem(545462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545462")]
         public void DateTimeDefaultParameterValue()
         {
             var text = @"
@@ -4403,7 +4403,7 @@ class C
                 SymbolDisplayPartKind.Punctuation);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545681")]
+        [Fact, WorkItem(545681, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545681")]
         public void TypeParameterFromMetadata()
         {
             var src1 = @"
@@ -4441,7 +4441,7 @@ public class Gen<V>
             Assert.Equal(msym1.ToDisplayString(), msym2.ToDisplayString());
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545625")]
+        [Fact, WorkItem(545625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545625")]
         public void ReverseArrayRankSpecifiers()
         {
             var text = @"
@@ -4482,7 +4482,7 @@ public class C
                 SymbolDisplayPartKind.Punctuation);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546638")]
+        [Fact, WorkItem(546638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546638")]
         public void InvariantCultureNegatives()
         {
             var text = @"
@@ -4603,7 +4603,7 @@ class C
                 SymbolDisplayPartKind.Keyword);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/791756")]
+        [WorkItem(791756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/791756")]
         [Theory]
         [MemberData(nameof(FileScopedOrBracedNamespace))]
         public void KindOptions(string ob, string cb)
@@ -4699,7 +4699,7 @@ namespace N
                 SymbolDisplayPartKind.EventName);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/765287")]
+        [WorkItem(765287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/765287")]
         [Fact]
         public void TestVbSymbols()
         {
@@ -4777,7 +4777,7 @@ End Class
             Assert.Null(SymbolDisplay.FormatPrimitive(SymbolDisplayFormat.TestFormat, quoteStrings: false, useHexadecimalNumbers: false));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879984")]
+        [WorkItem(879984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879984")]
         [Fact]
         public void EnumAmbiguityResolution()
         {
@@ -4814,7 +4814,7 @@ enum E2 // Identical to E1, but has [Flags]
             Assert.Equal("M(e1 = A, e2 = A)", method.ToDisplayString(memberFormat)); // Alphabetically first candidate chosen for both enums.
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028003")]
+        [Fact, WorkItem(1028003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028003")]
         public void UnconventionalExplicitInterfaceImplementation()
         {
             var il = @"
@@ -4990,7 +4990,7 @@ enum E2 // Identical to E1, but has [Flags]
             Assert.Equal("E1", e1.ToDisplayString(format));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/6262")]
+        [WorkItem(6262, "https://github.com/dotnet/roslyn/issues/6262")]
         [Fact]
         public void FormattedSymbolEquality()
         {
@@ -5082,7 +5082,7 @@ public class C
             Assert.Equal(SymbolDisplayPartKind.FieldName, description[2].Kind);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18311")]
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
         [Fact, CompilerTrait(CompilerFeature.Tuples)]
         public void TupleWith1Arity()
         {
@@ -5294,7 +5294,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/pull/23970")]
+        [WorkItem(23970, "https://github.com/dotnet/roslyn/pull/23970")]
         public void ThisDisplayParts()
         {
             var text =
@@ -5335,7 +5335,7 @@ class A
                 SymbolDisplayPartKind.ParameterName);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11356")]
+        [WorkItem(11356, "https://github.com/dotnet/roslyn/issues/11356")]
         [Fact]
         public void RefReturn()
         {
@@ -5730,7 +5730,7 @@ public class C
                 SymbolDisplayPartKind.Punctuation);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5002")]
+        [WorkItem(5002, "https://github.com/dotnet/roslyn/issues/5002")]
         [Fact]
         public void AliasInSpeculativeSemanticModel()
         {
@@ -5911,7 +5911,7 @@ class B
                 "static A<object>? F3(A<object?> o)");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31700")]
+        [WorkItem(31700, "https://github.com/dotnet/roslyn/issues/31700")]
         [Fact]
         public void NullableArrays()
         {
@@ -6641,7 +6641,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22507")]
+        [WorkItem(22507, "https://github.com/dotnet/roslyn/issues/22507")]
         public void EdgeCasesForEnumFieldComparer()
         {
             // A bad comparer could cause sorting the enum fields
@@ -6671,7 +6671,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22507")]
+        [WorkItem(22507, "https://github.com/dotnet/roslyn/issues/22507")]
         public void Repro22507()
         {
             var text = @"
@@ -7578,7 +7578,7 @@ class X
                 SymbolDisplayPartKind.Keyword);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27104")]
+        [Fact, WorkItem(27104, "https://github.com/dotnet/roslyn/issues/27104")]
         public void BadDiscardInForeachLoop_01()
         {
             var source = @"
@@ -7765,7 +7765,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38794")]
+        [WorkItem(38794, "https://github.com/dotnet/roslyn/issues/38794")]
         public void LinqGroupVariableDeclaration()
         {
             var source =
@@ -7980,7 +7980,7 @@ readonly record struct Person(string First, string Last);
                 SymbolDisplayPartKind.RecordStructName);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51222")]
+        [Fact, WorkItem(51222, "https://github.com/dotnet/roslyn/issues/51222")]
         public void TestFunctionPointerWithoutIncludeTypesInParameterOptions()
         {
             var text = @"
@@ -8001,7 +8001,7 @@ class A {
                 "delegate*<Int32, String>");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51222")]
+        [Fact, WorkItem(51222, "https://github.com/dotnet/roslyn/issues/51222")]
         public void TestFunctionPointerWithTupleParameter()
         {
             var text = @"
@@ -8022,7 +8022,7 @@ class A {
                 "delegate*<(Int32, String), Void>");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51222")]
+        [Fact, WorkItem(51222, "https://github.com/dotnet/roslyn/issues/51222")]
         public void TestFunctionPointerWithTupleParameterWithNames()
         {
             var text = @"
@@ -8043,7 +8043,7 @@ class A {
                 "delegate*<(Int32 i, String s), (Int32 i, String s)>");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51222")]
+        [Fact, WorkItem(51222, "https://github.com/dotnet/roslyn/issues/51222")]
         public void TestFunctionPointerWithRefParameters()
         {
             var text = @"
@@ -8536,7 +8536,7 @@ class Program
                 SymbolDisplayPartKind.LocalName);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38783")]
+        [Fact, WorkItem(38783, "https://github.com/dotnet/roslyn/issues/38783")]
         public void Operator1()
         {
             var source = """

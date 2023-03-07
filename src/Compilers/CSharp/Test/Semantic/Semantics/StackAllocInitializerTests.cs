@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.StackAllocInitializer)]
     public class StackAllocInitializerTests : CompilingTestBase
     {
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33945")]
+        [Fact, WorkItem(33945, "https://github.com/dotnet/roslyn/issues/33945")]
         public void RestrictedTypesAllowedInStackalloc()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"

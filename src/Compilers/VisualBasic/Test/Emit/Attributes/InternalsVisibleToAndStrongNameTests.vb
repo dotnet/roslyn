@@ -364,7 +364,7 @@ End Class
 
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
-    <WorkItem("https://github.com/dotnet/roslyn/issues/11427")>
+    <WorkItem(11427, "https://github.com/dotnet/roslyn/issues/11427")>
     Public Sub PublicKeyFromOptions_PublicSign(parseOptions As VisualBasicParseOptions)
         ' attributes are ignored
         Dim source =
@@ -762,7 +762,7 @@ End Class
 
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/781312")>
+    <WorkItem(781312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/781312")>
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub Bug781312(parseOptions As VisualBasicParseOptions)
@@ -991,7 +991,7 @@ End Class
         Assert.False(DirectCast(other.Assembly, IAssemblySymbol).GivesAccessTo(requestor.Assembly))
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820450")>
+    <WorkItem(820450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820450")>
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub IVTGivesAccessToUsingDifferentKeys(parseOptions As VisualBasicParseOptions)
@@ -1262,8 +1262,8 @@ End Class
         Assert.True(ILValidation.IsStreamFullSigned(outStrm))
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545720")>
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530050")>
+    <WorkItem(545720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545720")>
+    <WorkItem(530050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530050")>
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub InvalidAssemblyName(parseOptions As VisualBasicParseOptions)
@@ -1339,7 +1339,7 @@ End Class
     ''' <summary>
     ''' Won't fix (easy to be tested here)
     ''' </summary>
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529953"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530112")>
+    <WorkItem(529953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529953"), WorkItem(530112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530112")>
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub DeclareAssemblyKeyNameAndFile_BC41008(parseOptions As VisualBasicParseOptions)
@@ -1449,7 +1449,7 @@ End Class
             parseOptions)
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
+    <WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
     <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub SignModuleKeyContainerCmdLine(parseOptions As VisualBasicParseOptions)
@@ -1473,7 +1473,7 @@ End Class
             parseOptions)
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
+    <WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
     <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub SignModuleKeyContainerCmdLine_1(parseOptions As VisualBasicParseOptions)
@@ -1526,7 +1526,7 @@ End Class
             parseOptions)
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
+    <WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub SignModuleKeyContainerCmdLine_2(parseOptions As VisualBasicParseOptions)
@@ -1548,7 +1548,7 @@ BC37207: Attribute 'System.Reflection.AssemblyKeyNameAttribute' given in a sourc
 </expected>)
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
+    <WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub SignModuleKeyFileCmdLine(parseOptions As VisualBasicParseOptions)
@@ -1574,7 +1574,7 @@ End Class
             parseOptions)
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
+    <WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub SignModuleKeyFileCmdLine_1(parseOptions As VisualBasicParseOptions)
@@ -1624,7 +1624,7 @@ BC37207: Attribute 'System.Reflection.AssemblyKeyFileAttribute' given in a sourc
 </expected>)
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529779")>
+    <WorkItem(529779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529779")>
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub Bug529779_1(parseOptions As VisualBasicParseOptions)
@@ -1658,7 +1658,7 @@ End Class
         CompileAndVerify(other.WithReferences({other.References(0), MetadataReference.CreateFromImage(unsigned.EmitToArray)})).VerifyDiagnostics()
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529779")>
+    <WorkItem(529779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529779")>
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub Bug529779_2(parseOptions As VisualBasicParseOptions)
@@ -2152,7 +2152,7 @@ End Class
         Assert.False(comp.Options.DelaySign)
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769840")>
+    <WorkItem(769840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769840")>
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub Bug769840(parseOptions As VisualBasicParseOptions)
@@ -2183,7 +2183,7 @@ End Class
         CompileAndVerify(cb, verify:=Verification.Fails).Diagnostics.Verify()
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072350")>
+    <WorkItem(1072350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072350")>
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub Bug1072350(parseOptions As VisualBasicParseOptions)
@@ -2215,7 +2215,7 @@ End Class]]>
         CompileAndVerify(cb, expectedOutput:="42").Diagnostics.Verify()
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072339")>
+    <WorkItem(1072339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072339")>
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub Bug1072339(parseOptions As VisualBasicParseOptions)
@@ -2247,7 +2247,7 @@ End Class]]>
         CompileAndVerify(cb, expectedOutput:="42").Diagnostics.Verify()
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095618")>
+    <WorkItem(1095618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095618")>
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub Bug1095618(parseOptions As VisualBasicParseOptions)
@@ -2264,7 +2264,7 @@ End Class]]>
 
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
-    <WorkItem("https://github.com/dotnet/roslyn/issues/11497")>
+    <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
     Public Sub ConsistentErrorMessageWhenProvidingNullKeyFile(parseOptions As VisualBasicParseOptions)
         Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile:=Nothing)
         Dim compilation = CreateCompilationWithMscorlib40(String.Empty, options:=options, parseOptions:=parseOptions).VerifyEmitDiagnostics()
@@ -2274,7 +2274,7 @@ End Class]]>
 
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
-    <WorkItem("https://github.com/dotnet/roslyn/issues/11497")>
+    <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
     Public Sub ConsistentErrorMessageWhenProvidingEmptyKeyFile(parseOptions As VisualBasicParseOptions)
         Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile:=String.Empty)
         Dim compilation = CreateCompilationWithMscorlib40(String.Empty, options:=options, parseOptions:=parseOptions).VerifyEmitDiagnostics()
@@ -2284,7 +2284,7 @@ End Class]]>
 
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
-    <WorkItem("https://github.com/dotnet/roslyn/issues/11497")>
+    <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
     Public Sub ConsistentErrorMessageWhenProvidingNullKeyFile_PublicSign(parseOptions As VisualBasicParseOptions)
         Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile:=Nothing, publicSign:=True)
         Dim compilation = CreateCompilationWithMscorlib40(String.Empty, options:=options, parseOptions:=parseOptions)
@@ -2297,7 +2297,7 @@ BC37254: Public sign was specified and requires a public key, but no public key 
 
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
-    <WorkItem("https://github.com/dotnet/roslyn/issues/11497")>
+    <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
     Public Sub ConsistentErrorMessageWhenProvidingEmptyKeyFile_PublicSign(parseOptions As VisualBasicParseOptions)
         Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile:=String.Empty, publicSign:=True)
         Dim compilation = CreateCompilationWithMscorlib40(String.Empty, options:=options, parseOptions:=parseOptions)
@@ -2310,7 +2310,7 @@ BC37254: Public sign was specified and requires a public key, but no public key 
 
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
-    <WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1341051")>
+    <WorkItem(1341051, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1341051")>
     Public Sub IVT_Circularity(parseOptions As VisualBasicParseOptions)
         Dim other As VisualBasicCompilation = CreateCompilation(
 <compilation name="HasIVTToCompilation">
@@ -2358,7 +2358,7 @@ BC31504: 'Class1' cannot be used as an attribute because it does not inherit fro
 
     <Theory>
     <MemberData(NameOf(AllProviderParseOptions))>
-    <WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1341051")>
+    <WorkItem(1341051, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1341051")>
     Public Sub IVT_Circularity_AttributeReferencesProperty(parseOptions As VisualBasicParseOptions)
         Dim other As VisualBasicCompilation = CreateCompilation(
 <compilation name="HasIVTToCompilation">
@@ -2410,7 +2410,7 @@ End Class
     End Sub
 
     <Fact>
-    <WorkItem("https://github.com/dotnet/roslyn/issues/57742")>
+    <WorkItem(57742, "https://github.com/dotnet/roslyn/issues/57742")>
     Public Sub Issue57742_01()
         Dim other As VisualBasicCompilation = CreateCompilation(
 <compilation name="Issue57742_01_Lib">
@@ -2453,7 +2453,7 @@ BC36957: Friend access was granted by 'Issue57742_01_Lib, Version=0.0.0.0, Cultu
     End Sub
 
     <Fact>
-    <WorkItem("https://github.com/dotnet/roslyn/issues/57742")>
+    <WorkItem(57742, "https://github.com/dotnet/roslyn/issues/57742")>
     Public Sub Issue57742_02()
         Dim other As VisualBasicCompilation = CreateCompilation(
 <compilation name="Issue57742_02_Lib">
@@ -2491,7 +2491,7 @@ BC36957: Friend access was granted by 'Issue57742_02_Lib, Version=0.0.0.0, Cultu
     End Sub
 
     <Fact>
-    <WorkItem("https://github.com/dotnet/roslyn/issues/57742")>
+    <WorkItem(57742, "https://github.com/dotnet/roslyn/issues/57742")>
     Public Sub Issue57742_03()
         Dim other As VisualBasicCompilation = CreateCompilation(
 <compilation name="Issue57742_03_Lib">
@@ -2614,7 +2614,7 @@ BC36981: Error extracting public key from container 'somethingSomething': Assemb
     End Sub
 
     <Fact>
-    <WorkItem("https://github.com/dotnet/roslyn/issues/57742")>
+    <WorkItem(57742, "https://github.com/dotnet/roslyn/issues/57742")>
     Public Sub Issue57742_04()
         Dim other As VisualBasicCompilation = CreateCompilation(
 <compilation name="Issue57742_04_Lib">

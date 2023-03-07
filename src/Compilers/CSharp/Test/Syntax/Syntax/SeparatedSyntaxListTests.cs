@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<NotSupportedException>(() => default(SeparatedSyntaxList<CSharpSyntaxNode>.Enumerator).Equals(default(SeparatedSyntaxList<CSharpSyntaxNode>.Enumerator)));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
+        [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
         [Fact]
         public void TestSeparatedListInsert()
         {
@@ -291,7 +291,7 @@ c,b", insertAfterEOL.ToFullString());
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2630")]
+        [WorkItem(2630, "https://github.com/dotnet/roslyn/issues/2630")]
         public void ReplaceSeparator()
         {
             var list = SyntaxFactory.SeparatedList<SyntaxNode>(

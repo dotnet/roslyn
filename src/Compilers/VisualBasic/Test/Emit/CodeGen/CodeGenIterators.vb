@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081584")>
+        <WorkItem(1081584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081584")>
         Public Sub TestYieldInSelectCase()
             CompileAndVerify(
 <compilation>
@@ -1568,7 +1568,7 @@ End Module
 ]]>)
         End Sub
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703361")>
+        <WorkItem(703361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703361")>
         Public Sub VerifyHelpers()
             Dim source = <compilation>
                              <file name="a.vb"><![CDATA[
@@ -1585,7 +1585,7 @@ End Class]]></file>
             Assert.Contains("System.Environment.get_CurrentManagedThreadId()", il, StringComparison.Ordinal)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835430")>
+        <WorkItem(835430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835430")>
         <Fact>
         Public Sub YieldInWith()
             Dim source =
@@ -1627,7 +1627,7 @@ End Module
             CompileAndVerify(source, expectedOutput:="420420")
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9167")>
+        <Fact, WorkItem(9167, "https://github.com/dotnet/roslyn/issues/9167")>
         Public Sub IteratorShouldCompileWithoutOptionalAttributes()
 
 #Region "IL For corlib without CompilerGeneratedAttribute Or DebuggerNonUserCodeAttribute"
@@ -1698,7 +1698,7 @@ End Class
             verifier.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9463")>
+        <Fact, WorkItem(9463, "https://github.com/dotnet/roslyn/issues/9463")>
         Public Sub IEnumerableIteratorReportsDiagnosticsWhenCoreTypesAreMissing()
             ' Note that IDisposable.Dispose, IEnumerator.Current and other types are missing
             ' Also, IEnumerator(Of T) doesn't have a get accessor
@@ -1773,7 +1773,7 @@ BC35000: Requested operation is not available because the runtime library functi
                 </expected>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9463")>
+        <Fact, WorkItem(9463, "https://github.com/dotnet/roslyn/issues/9463")>
         Public Sub IEnumeratorIteratorReportsDiagnosticsWhenCoreTypesAreMissing()
             ' Note that IDisposable.Dispose and other types are missing
             ' Also IEnumerator.Current lacks a get accessor

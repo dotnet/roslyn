@@ -145,7 +145,7 @@ class D { void M() {} }
 ", format: DebugInformationFormat.PortablePdb, options: PdbValidationOptions.ExcludeMethods);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")]
+        [WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void RelativePathForExternalSource_Sha1_Windows()
         {
@@ -189,7 +189,7 @@ public class C
 </symbols>");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")]
+        [WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")]
         [ConditionalFact(typeof(UnixLikeOnly))]
         public void RelativePathForExternalSource_Sha1_Unix()
         {
@@ -361,7 +361,7 @@ public class C
             Assert.False(result.Success);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]
+        [WorkItem(1067635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]
         [Fact]
         public void SuppressDynamicAndEncCDIForWinRT()
         {
@@ -452,7 +452,7 @@ public class C
 </symbols>", format: DebugInformationFormat.Pdb, options: PdbValidationOptions.SkipConversionValidation);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]
+        [WorkItem(1067635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]
         [Fact]
         public void SuppressTupleElementNamesCDIForWinRT()
         {
@@ -646,7 +646,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/768862")]
+        [WorkItem(768862, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/768862")]
         public void TestLargeLineDelta()
         {
             var verbatim = string.Join("\r\n", Enumerable.Repeat("x", 1000));
@@ -699,7 +699,7 @@ class C {{ public static void Main() => System.Console.WriteLine(@""{verbatim}""
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20118")]
+        [WorkItem(20118, "https://github.com/dotnet/roslyn/issues/20118")]
         public void TestLargeStartAndEndColumn_SameLine()
         {
             var spaces = new string(' ', 0x10000);
@@ -734,7 +734,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20118")]
+        [WorkItem(20118, "https://github.com/dotnet/roslyn/issues/20118")]
         public void TestLargeStartAndEndColumn_DifferentLine()
         {
             var spaces = new string(' ', 0x10000);
@@ -892,7 +892,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/7244")]
+        [WorkItem(7244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/7244")]
         public void ConstructorsWithoutInitializers()
         {
             var source = WithWindowsLineBreaks(
@@ -957,7 +957,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/7244")]
+        [WorkItem(7244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/7244")]
         [Fact]
         public void ConstructorsWithInitializers()
         {
@@ -1221,7 +1221,7 @@ class Program
         /// the method must have a sequence point at
         /// offset 0 for correct stepping behavior.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/804681")]
+        [WorkItem(804681, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/804681")]
         [Fact]
         public void SequencePointAtOffset0()
         {
@@ -1810,7 +1810,7 @@ class C
 
         #region WhileStatement
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538299")]
+        [WorkItem(538299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538299")]
         [Fact]
         public void WhileStatement()
         {
@@ -2190,7 +2190,7 @@ public class C
 </symbols>");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]
+        [WorkItem(544937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]
         [Fact]
         public void ForEachStatement_MultiDimensionalArray()
         {
@@ -2284,7 +2284,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12564")]
+        [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ConditionalInAsyncMethod()
         {
             var source = WithWindowsLineBreaks(@"
@@ -2417,7 +2417,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12564")]
+        [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ConditionalBeforeLocalFunction()
         {
             var source = @"
@@ -2478,7 +2478,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12564")]
+        [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ConditionalInAsyncMethodWithExplicitReturn()
         {
             var source = @"
@@ -2563,7 +2563,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12564")]
+        [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ConditionalInSimpleMethod()
         {
             var source = @"
@@ -2611,7 +2611,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12564")]
+        [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ElseConditionalInAsyncMethod()
         {
             var source = WithWindowsLineBreaks(@"
@@ -2754,7 +2754,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12564")]
+        [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ConditionalInTry()
         {
             var source = WithWindowsLineBreaks(@"
@@ -2861,7 +2861,7 @@ class Program
 </symbols>");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]
+        [WorkItem(544937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]
         [Fact]
         public void ForEachStatement_MultiDimensionalArrayBreakAndContinue()
         {
@@ -3070,7 +3070,7 @@ public class C
 ", sequencePoints: "C.Main");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718501")]
+        [WorkItem(718501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718501")]
         [Fact]
         public void ForEachNops()
         {
@@ -3582,7 +3582,7 @@ class Student : Person { public double GPA; }
 </symbols>");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17090"), WorkItem("https://github.com/dotnet/roslyn/issues/19731")]
+        [WorkItem(17090, "https://github.com/dotnet/roslyn/issues/17090"), WorkItem(19731, "https://github.com/dotnet/roslyn/issues/19731")]
         [Fact]
         public void SwitchWithConstantPattern()
         {
@@ -3704,7 +3704,7 @@ expectedIL: @"{
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/19734")]
+        [WorkItem(19734, "https://github.com/dotnet/roslyn/issues/19734")]
         [Fact]
         public void SwitchWithConstantGenericPattern_01()
         {
@@ -3885,7 +3885,7 @@ expectedIL: @"{
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/19734")]
+        [WorkItem(19734, "https://github.com/dotnet/roslyn/issues/19734")]
         [Fact]
         public void SwitchWithConstantGenericPattern_02()
         {
@@ -3963,7 +3963,7 @@ expectedIL: @"{
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31665")]
+        [WorkItem(31665, "https://github.com/dotnet/roslyn/issues/31665")]
         public void TestSequencePoints_31665()
         {
             var source = @"
@@ -4038,7 +4038,7 @@ internal class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17076")]
+        [WorkItem(17076, "https://github.com/dotnet/roslyn/issues/17076")]
         public void TestSequencePoints_17076()
         {
             var source = @"
@@ -4292,7 +4292,7 @@ class B : Node { }
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/28288")]
+        [WorkItem(28288, "https://github.com/dotnet/roslyn/issues/28288")]
         public void TestSequencePoints_28288()
         {
             var source = @"
@@ -4598,7 +4598,7 @@ public class SeqPointForWhile
 
         #region Constructor
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538317")]
+        [WorkItem(538317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538317")]
         [Fact]
         public void ConstructorSequencePoints1()
         {
@@ -4851,7 +4851,7 @@ public class Derived : Base
         #region Field and Property Initializers
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50611")]
+        [WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")]
         public void TestPartialClassFieldInitializers()
         {
             var text1 = WithWindowsLineBreaks(@"
@@ -4914,7 +4914,7 @@ public partial class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50611")]
+        [WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")]
         public void TestPartialClassFieldInitializersWithLineDirectives()
         {
             var text1 = WithWindowsLineBreaks(@"
@@ -5008,7 +5008,7 @@ public partial class C
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543313")]
+        [WorkItem(543313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543313")]
         [Fact]
         public void TestFieldInitializerExpressionLambda()
         {
@@ -5085,7 +5085,7 @@ class C
 
         #region Auto-Property
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820806")]
+        [WorkItem(820806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820806")]
         [Fact]
         public void BreakpointForAutoImplementedProperty()
         {
@@ -5248,7 +5248,7 @@ public class C
 </symbols>");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538298")]
+        [WorkItem(538298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538298")]
         [Fact]
         public void RegressSeqPtEndOfMethodAfterReturn()
         {
@@ -5422,7 +5422,7 @@ public class SeqPointAfterReturn
 
         #region Exception Handling
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542064")]
+        [WorkItem(542064, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542064")]
         [Fact]
         public void ExceptionHandling()
         {
@@ -5503,7 +5503,7 @@ class Test
 </symbols>");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2911")]
+        [WorkItem(2911, "https://github.com/dotnet/roslyn/issues/2911")]
         [Fact]
         public void ExceptionHandling_Filter_Debug1()
         {
@@ -5659,7 +5659,7 @@ class Test
 </symbols>");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2911")]
+        [WorkItem(2911, "https://github.com/dotnet/roslyn/issues/2911")]
         [Fact]
         public void ExceptionHandling_Filter_Debug2()
         {
@@ -5751,7 +5751,7 @@ class Test
 </symbols>");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2911")]
+        [WorkItem(2911, "https://github.com/dotnet/roslyn/issues/2911")]
         [Fact]
         public void ExceptionHandling_Filter_Debug3()
         {
@@ -5840,7 +5840,7 @@ class Test
 </symbols>");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2911")]
+        [WorkItem(2911, "https://github.com/dotnet/roslyn/issues/2911")]
         [Fact]
         public void ExceptionHandling_Filter_Release3()
         {
@@ -5914,7 +5914,7 @@ class Test
 </symbols>");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/778655")]
+        [WorkItem(778655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/778655")]
         [Fact]
         public void BranchToStartOfTry()
         {
@@ -6232,7 +6232,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18844")]
+        [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
         [Fact]
         public void UsingStatement_EmbeddedConditional()
         {
@@ -6323,7 +6323,7 @@ class C
 ", sequencePoints: "C.F", source: source);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18844")]
+        [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
         [Fact]
         public void UsingStatement_EmbeddedConditional2()
         {
@@ -6420,7 +6420,7 @@ class C
 ", sequencePoints: "C.F", source: source);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18844")]
+        [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
         [Fact]
         public void UsingStatement_EmbeddedWhile()
         {
@@ -6481,7 +6481,7 @@ class C
 ", sequencePoints: "C.F", source: source);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18844")]
+        [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
         [Fact]
         public void UsingStatement_EmbeddedFor()
         {
@@ -6542,7 +6542,7 @@ class C
 ", sequencePoints: "C.F", source: source);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18844")]
+        [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
         [Fact]
         public void LockStatement_EmbeddedIf()
         {
@@ -6629,7 +6629,7 @@ class C
 
         #region Using Declaration
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37417")]
+        [WorkItem(37417, "https://github.com/dotnet/roslyn/issues/37417")]
         [Fact]
         public void UsingDeclaration_BodyBlockScope()
         {
@@ -6743,7 +6743,7 @@ class C
  </symbols>");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37417")]
+        [WorkItem(37417, "https://github.com/dotnet/roslyn/issues/37417")]
         [Fact]
         public void UsingDeclaration_BodyBlockScopeWithReturn()
         {
@@ -6840,7 +6840,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37417")]
+        [WorkItem(37417, "https://github.com/dotnet/roslyn/issues/37417")]
         [Fact]
         public void UsingDeclaration_IfBodyScope()
         {
@@ -7582,7 +7582,7 @@ unsafe class C
 </symbols>");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
+        [WorkItem(544917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
         [Fact]
         public void DisabledLineDirective()
         {
@@ -8160,7 +8160,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
+        [WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
         [Fact]
         public void ExpressionBodiedConstructor()
         {
@@ -8197,7 +8197,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
+        [WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
         [Fact]
         public void ExpressionBodiedDestructor()
         {
@@ -8230,7 +8230,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
+        [WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
         [Fact]
         public void ExpressionBodiedAccessor()
         {
@@ -8451,7 +8451,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2501")]
+        [WorkItem(2501, "https://github.com/dotnet/roslyn/issues/2501")]
         [Fact]
         public void ImportsInAsyncLambda()
         {
@@ -8555,7 +8555,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [Fact]
         public void Patterns_SwitchStatement()
         {
@@ -8952,7 +8952,7 @@ class Program
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [Fact]
         public void Patterns_SwitchExpression()
         {
@@ -9322,7 +9322,7 @@ class Program
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [Fact]
         public void Patterns_IsPattern()
         {
@@ -9563,9 +9563,9 @@ class Program
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37172")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37232")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37237")]
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem(37232, "https://github.com/dotnet/roslyn/issues/37232")]
+        [WorkItem(37237, "https://github.com/dotnet/roslyn/issues/37237")]
         [Fact]
         public void Patterns_SwitchExpression_Closures()
         {
@@ -9977,7 +9977,7 @@ public class C
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50321")]
+        [WorkItem(50321, "https://github.com/dotnet/roslyn/issues/50321")]
         [ConditionalFact(typeof(CoreClrOnly))]
         public void NestedSwitchExpressions_Closures_01()
         {
@@ -10186,7 +10186,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50321")]
+        [WorkItem(50321, "https://github.com/dotnet/roslyn/issues/50321")]
         [ConditionalFact(typeof(CoreClrOnly))]
         public void NestedSwitchExpressions_Closures_02()
         {
@@ -10424,7 +10424,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37261")]
+        [WorkItem(37261, "https://github.com/dotnet/roslyn/issues/37261")]
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SwitchExpression_MethodBody()
         {
@@ -10604,7 +10604,7 @@ public class C
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37261")]
+        [WorkItem(37261, "https://github.com/dotnet/roslyn/issues/37261")]
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SwitchExpression_MethodBody_02()
         {
@@ -10802,7 +10802,7 @@ public class C
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/43468")]
+        [WorkItem(43468, "https://github.com/dotnet/roslyn/issues/43468")]
         [Fact]
         public void HiddenSequencePointAtSwitchExpressionFinalMergePoint()
         {
@@ -10868,8 +10868,8 @@ public class C
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12378")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/13971")]
+        [WorkItem(12378, "https://github.com/dotnet/roslyn/issues/12378")]
+        [WorkItem(13971, "https://github.com/dotnet/roslyn/issues/13971")]
         [Fact]
         public void Patterns_SwitchStatement_Constant()
         {
@@ -11066,7 +11066,7 @@ expectedIL: @"{
 </symbols>");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [Fact]
         public void Patterns_SwitchStatement_Tuple()
         {
@@ -12269,7 +12269,7 @@ class C
 
         #endregion
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/4370")]
+        [WorkItem(4370, "https://github.com/dotnet/roslyn/issues/4370")]
         [Fact]
         public void HeadingHiddenSequencePointsPickUpDocumentFromVisibleSequencePoint()
         {
@@ -12361,7 +12361,7 @@ public class C
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12923")]
+        [WorkItem(12923, "https://github.com/dotnet/roslyn/issues/12923")]
         [Fact]
         public void SequencePointsForConstructorWithHiddenInitializer()
         {
@@ -12429,7 +12429,7 @@ partial class C
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
+        [WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
         [Fact]
         public void LocalFunctionSequencePoints()
         {
@@ -12501,7 +12501,7 @@ partial class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12564")]
+        [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void SwitchInAsyncMethod()
         {
             var source = @"
@@ -12589,7 +12589,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12564")]
+        [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void WhileInAsyncMethod()
         {
             var source = @"
@@ -12671,7 +12671,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12564")]
+        [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ForInAsyncMethod()
         {
             var source = @"
@@ -12762,7 +12762,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12564")]
+        [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ForWithInnerLocalsInAsyncMethod()
         {
             var source = @"
@@ -12856,7 +12856,7 @@ class Program
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23525")]
+        [WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")]
         public void InvalidCharacterInPdbPath()
         {
             using (var outStream = Temp.CreateFile().Open())
@@ -12871,7 +12871,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38954")]
+        [WorkItem(38954, "https://github.com/dotnet/roslyn/issues/38954")]
         public void FilesOneWithNoMethodBody()
         {
             string source1 = WithWindowsLineBreaks(@"
@@ -12921,7 +12921,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38954")]
+        [WorkItem(38954, "https://github.com/dotnet/roslyn/issues/38954")]
         public void SingleFileWithNoMethodBody()
         {
             string source = WithWindowsLineBreaks(@"

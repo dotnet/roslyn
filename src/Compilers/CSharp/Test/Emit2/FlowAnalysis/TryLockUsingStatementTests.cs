@@ -153,7 +153,7 @@ public class TryCatchFinally
             Assert.Equal("this, para, by", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528296")]
+        [WorkItem(528296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528296")]
         [Fact]
         public void TestReturnInTry01()
         {
@@ -307,7 +307,7 @@ public class TryCatchFinally
             Assert.Equal("this, para", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541724")]
+        [WorkItem(541724, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541724")]
         [Fact]
         public void TestThrowInTry02()
         {
@@ -497,8 +497,8 @@ public class TryCatchFinally
             Assert.Equal("this, para", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528567")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541723")]
+        [WorkItem(528567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528567")]
+        [WorkItem(541723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541723")]
         [Fact]
         public void TestAlwaysAssignedInTry03()
         {
@@ -584,7 +584,7 @@ public class TryCatchFinally
             Assert.Equal("this, p, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540797")]
+        [WorkItem(540797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540797")]
         [Fact]
         public void TestDataFlowsInOut02()
         {
@@ -624,7 +624,7 @@ public class TryCatchFinally
             Assert.Equal("this, p, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540798")]
+        [WorkItem(540798, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540798")]
         [Fact]
         public void TestDataFlowsInOut03()
         {
@@ -672,8 +672,8 @@ L1:
             Assert.Equal("this, p, x, z", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541655")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541723")]
+        [WorkItem(541655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541655")]
+        [WorkItem(541723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541723")]
         [Fact]
         public void TestVariablesDeclaredInTry01()
         {
@@ -872,7 +872,7 @@ public class TryCatchFinally
             Assert.Equal("this, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528297")]
+        [Fact, WorkItem(528297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528297")]
         public void TestTryInWhile()
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
@@ -910,7 +910,7 @@ public class TryCatchFinally
             Assert.Equal("this, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528298")]
+        [Fact, WorkItem(528298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528298")]
         public void TestTryInDoWhile()
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
@@ -1003,7 +1003,7 @@ public class TryCatchFinally
             Assert.Equal("this, p", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540835")]
+        [WorkItem(540835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540835")]
         [Fact]
         public void TestBracketRegionsInTry()
         {
@@ -1103,7 +1103,7 @@ public class TryCatchFinally
             Assert.Equal("this, refp", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541723")]
+        [WorkItem(541723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541723")]
         [Fact]
         public void TestTryWithLambda02()
         {
@@ -1395,7 +1395,7 @@ public class Program
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529180")]
+        [Fact, WorkItem(529180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529180")]
         public void AlwaysAssignedInTry()
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;

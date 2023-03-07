@@ -316,7 +316,7 @@ class C
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "_ro").WithLocation(15, 47));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42259")]
+        [Fact, WorkItem(42259, "https://github.com/dotnet/roslyn/issues/42259")]
         public void RefReturnLocalFunction()
         {
             var source = @"
@@ -339,7 +339,7 @@ class C {
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42259")]
+        [Fact, WorkItem(42259, "https://github.com/dotnet/roslyn/issues/42259")]
         public void RefReadonlyReturnLocalFunction()
         {
             var source = @"
@@ -1028,7 +1028,7 @@ class C
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "P").WithLocation(8, 9));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44153")]
+        [Fact, WorkItem(44153, "https://github.com/dotnet/roslyn/issues/44153")]
         public void RefErrorProperty()
         {
             CreateCompilation(@"
@@ -2648,7 +2648,7 @@ public class Test
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13062")]
+        [Fact, WorkItem(13062, "https://github.com/dotnet/roslyn/issues/13062")]
         public void NoRefInIndex()
         {
             var text = @"
@@ -2704,7 +2704,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14174")]
+        [Fact, WorkItem(14174, "https://github.com/dotnet/roslyn/issues/14174")]
         public void RefDynamicBinding()
         {
             var text = @"
@@ -2832,7 +2832,7 @@ public delegate ref TR RefFunc<T1, T2, TR>(T1 t1, T2 t2);
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13073")]
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
         public void CannotUseYieldReturnInAReturnByRefFunction()
         {
             var code = @"
@@ -2896,7 +2896,7 @@ class TestClass
                 Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "TestFunction").WithArguments("TestClass.TestFunction()").WithLocation(5, 13));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13073")]
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
         public void CannotUseRefReturnInExpressionTree_ParenthesizedLambdaExpression()
         {
             var code = @"
@@ -2919,7 +2919,7 @@ class TestClass
                 Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "(y) => ref x").WithLocation(11, 51));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13073")]
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
         public void CannotUseRefReturnInExpressionTree_SimpleLambdaExpression()
         {
             var code = @"
@@ -2942,7 +2942,7 @@ class TestClass
                 Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "y => ref x").WithLocation(11, 51));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13073")]
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
         public void CannotCallExpressionThatReturnsByRefInExpressionTree_01()
         {
             var code = @"
@@ -2995,8 +2995,8 @@ namespace TestRefReturns
                 Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "this[0]").WithLocation(34, 71));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/19930")]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13073")]
+        [WorkItem(19930, "https://github.com/dotnet/roslyn/issues/19930")]
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
         public void CannotRefReturnQueryRangeVariable()
         {
             var code = @"
@@ -3026,7 +3026,7 @@ class TestClass
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13073")]
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
         public void CannotAssignRefInNonIdentityConversion()
         {
             var code = @"
@@ -3062,7 +3062,7 @@ class TestClass
                 Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "stringVar").WithArguments("System.IFormattable").WithLocation(15, 61));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13073")]
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
         public void IteratorMethodsCannotHaveRefLocals()
         {
             var code = @"
@@ -3097,7 +3097,7 @@ class TestClass
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "y").WithLocation(8, 17));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13073")]
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
         public void AsyncMethodsCannotHaveRefLocals()
         {
             var code = @"
@@ -3124,7 +3124,7 @@ class TestClass
                 Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "z").WithLocation(11, 21));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13073")]
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
         public void CannotUseAwaitExpressionInACallToAFunctionThatReturnsByRef()
         {
             var code = @"
@@ -3894,7 +3894,7 @@ class Program
         }
 
         [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39971
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39971")]
+        [WorkItem(39971, "https://github.com/dotnet/roslyn/issues/39971")]
         public void BadIteratorReturnInRefReturningMethod()
         {
             var text = @"
@@ -4183,7 +4183,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(9, 11));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26418")]
+        [Fact, WorkItem(26418, "https://github.com/dotnet/roslyn/issues/26418")]
         public void OutArgumentsDeclaration_Ref()
         {
             CreateCompilation(@"
@@ -4216,7 +4216,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_OutVariableCannotBeByRef, "ref var").WithLocation(14, 15));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26418")]
+        [Fact, WorkItem(26418, "https://github.com/dotnet/roslyn/issues/26418")]
         public void OutArgumentsDeclaration_RefReadOnly()
         {
             CreateCompilation(@"
@@ -4249,7 +4249,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_OutVariableCannotBeByRef, "ref readonly var").WithLocation(14, 15));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26418")]
+        [Fact, WorkItem(26418, "https://github.com/dotnet/roslyn/issues/26418")]
         public void OutArgumentsDeclaration_Out()
         {
             CreateCompilation(@"
@@ -4272,7 +4272,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(10, 15));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26418")]
+        [Fact, WorkItem(26418, "https://github.com/dotnet/roslyn/issues/26418")]
         public void OutArgumentsDeclaration_In()
         {
             CreateCompilation(@"
@@ -4302,7 +4302,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/28117")]
+        [WorkItem(28117, "https://github.com/dotnet/roslyn/issues/28117")]
         public void AssigningRefToParameter()
         {
             CreateCompilation(@"
@@ -4319,7 +4319,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/26516")]
+        [WorkItem(26516, "https://github.com/dotnet/roslyn/issues/26516")]
         public void BindingRefVoidAssignment()
         {
             CreateCompilation(@"
@@ -4336,7 +4336,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/28087")]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
         public void AssigningRef_ArrayElement()
         {
             var compilation = CreateCompilation(@"
@@ -4364,7 +4364,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/28087")]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
         public void AssigningRef_PointerIndirectionOperator()
         {
             var compilation = CreateCompilation(@"
@@ -4392,7 +4392,7 @@ public unsafe class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/28087")]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
         public void AssigningRef_PointerElementAccess()
         {
             var compilation = CreateCompilation(@"
@@ -4420,7 +4420,7 @@ public unsafe class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/28087")]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
         public void AssigningRef_RefvalueExpression()
         {
             var compilation = CreateCompilation(@"
@@ -4448,7 +4448,7 @@ public unsafe class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/28087")]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
         public void AssigningRef_DynamicIndexerAccess()
         {
             var compilation = CreateCompilation(@"
@@ -4476,7 +4476,7 @@ public unsafe class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/28087")]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
         public void AssigningRef_DynamicMemberAccess()
         {
             var compilation = CreateCompilation(@"
@@ -4504,7 +4504,7 @@ public unsafe class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/28238")]
+        [WorkItem(28238, "https://github.com/dotnet/roslyn/issues/28238")]
         public void AssigningRef_TypeExpression()
         {
             var compilation = CreateCompilation(@"
@@ -4540,7 +4540,7 @@ public unsafe class C
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/27772")]
+        [WorkItem(27772, "https://github.com/dotnet/roslyn/issues/27772")]
         public void RefReturnInvocationOfRefLikeTypeRefResult(LanguageVersion langVersion)
         {
             string source = @"
@@ -4580,7 +4580,7 @@ ref struct S
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/27772")]
+        [WorkItem(27772, "https://github.com/dotnet/roslyn/issues/27772")]
         public void RefReturnInvocationOfRefLikeTypeRefResult_Repro(LanguageVersion langVersion)
         {
             string source = @"
@@ -4627,7 +4627,7 @@ ref struct S
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "z").WithArguments("z").WithLocation(19, 18));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49617")]
+        [Fact, WorkItem(49617, "https://github.com/dotnet/roslyn/issues/49617")]
         public void CannotCallExpressionThatReturnsByRefInExpressionTree_02()
         {
             var code = @"
@@ -4654,7 +4654,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49617")]
+        [Fact, WorkItem(49617, "https://github.com/dotnet/roslyn/issues/49617")]
         public void CannotCallExpressionThatReturnsByRefInExpressionTree_03()
         {
             var code = @"
@@ -4689,7 +4689,7 @@ namespace RefPropCrash
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49617")]
+        [Fact, WorkItem(49617, "https://github.com/dotnet/roslyn/issues/49617")]
         public void CannotCallExpressionThatReturnsByRefInExpressionTree_04()
         {
             var code = @"
@@ -4755,7 +4755,7 @@ struct R : System.IDisposable
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64259")]
+        [WorkItem(64259, "https://github.com/dotnet/roslyn/issues/64259")]
         public void RefLocalInDeconstruct_01()
         {
             var code = @"
@@ -4780,7 +4780,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64259")]
+        [WorkItem(64259, "https://github.com/dotnet/roslyn/issues/64259")]
         public void RefLocalInDeconstruct_02()
         {
             var code = @"
@@ -4832,7 +4832,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64259")]
+        [WorkItem(64259, "https://github.com/dotnet/roslyn/issues/64259")]
         public void RefLocalInDeconstruct_03()
         {
             var code = @"

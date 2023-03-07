@@ -723,7 +723,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/25038")]
+        [WorkItem(25038, "https://github.com/dotnet/roslyn/issues/25038")]
         public void StackAllocToSpanWithRefStructType()
         {
             CreateCompilationWithMscorlibAndSpan(@"
@@ -750,7 +750,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/25086")]
+        [WorkItem(25086, "https://github.com/dotnet/roslyn/issues/25086")]
         public void StaackAllocToSpanWithCustomSpanAndConstraints()
         {
             var code = @"
@@ -791,7 +791,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/26195")]
+        [WorkItem(26195, "https://github.com/dotnet/roslyn/issues/26195")]
         public void StackAllocImplicitConversion_TwpStep_ToPointer()
         {
             var code = @"
@@ -817,7 +817,7 @@ unsafe class Test
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/26195")]
+        [WorkItem(26195, "https://github.com/dotnet/roslyn/issues/26195")]
         public void StackAllocImplicitConversion_TwpStep_ToSpan()
         {
             var code = @"

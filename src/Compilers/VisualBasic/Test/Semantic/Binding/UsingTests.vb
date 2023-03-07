@@ -1260,7 +1260,7 @@ End Structure
             VerifyDiagnostics(compilation1)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
+        <WorkItem(543059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
         <Fact()>
         Public Sub MultipleResource()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1305,7 +1305,7 @@ BC30203: Identifier expected.
 </expected>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
+        <WorkItem(543059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
         <Fact()>
         Public Sub MultipleResource_2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1343,7 +1343,7 @@ End Class
             Diagnostic(ERRID.ERR_UsingRequiresDisposePattern, "goo3").WithArguments("Object"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528963")>
+        <WorkItem(528963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528963")>
         <Fact()>
         Public Sub InitWithMultipleDeclarators()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -1472,7 +1472,7 @@ End Class
         End Sub
 
         'Anonymous Delegate in using block
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528974")>
+        <WorkItem(528974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528974")>
         <Fact()>
         Public Sub AnonymousDelegateInUsing()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1543,7 +1543,7 @@ End Class
 
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528975")>
+        <WorkItem(528975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528975")>
         <Fact>
         Public Sub InitMultipleResourceWithUsingDecl()
             CompileAndVerify(
@@ -1572,7 +1572,7 @@ End Class
 </compilation>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
+        <WorkItem(543059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
         <Fact()>
         Public Sub MultipleResource_3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1607,7 +1607,7 @@ End Class
                                             Diagnostic(ERRID.ERR_UsingResourceVarNeedsInitializer, "x"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
+        <WorkItem(543059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
         <Fact()>
         Public Sub MultipleResource_4()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1645,7 +1645,7 @@ End Class
                                             Diagnostic(ERRID.ERR_UsingRequiresDisposePattern, "goo3").WithArguments("Object"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529046")>
+        <WorkItem(529046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529046")>
         <Fact>
         Public Sub UsingOutOfMethod()
             CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1660,7 +1660,7 @@ End Class
                                 Diagnostic(ERRID.ERR_EndUsingWithoutUsing, "End Using"))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529046")>
+        <WorkItem(529046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529046")>
         <Fact>
         Public Sub UsingOutOfMethod_1()
             CreateCompilationWithMscorlib40AndVBRuntime(

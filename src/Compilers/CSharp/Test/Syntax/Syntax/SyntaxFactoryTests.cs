@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SyntaxFactoryTests : CSharpTestBase
     {
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33713")]
+        [Fact, WorkItem(33713, "https://github.com/dotnet/roslyn/issues/33713")]
         public void AlternateVerbatimString()
         {
             var token = SyntaxFactory.Token(SyntaxKind.InterpolatedVerbatimStringStartToken);
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, c.SemicolonToken.Kind());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528399")]
+        [WorkItem(528399, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528399")]
         [Fact()]
         public void PassExpressionToSyntaxToken()
         {
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<ArgumentException>(() => SyntaxFactory.Token(SyntaxKind.NumericLiteralExpression));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546101")]
+        [WorkItem(546101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546101")]
         [Fact]
         public void TestConstructPragmaChecksumDirective()
         {
@@ -276,8 +276,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/33564")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720708")]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem(720708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720708")]
         public void TestLiteralDefaultStringValues()
         {
             // string
@@ -351,8 +351,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/33564")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849836")]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem(849836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849836")]
         public void TestLiteralToStringDifferentCulture()
         {
             var culture = CultureInfo.CurrentCulture;
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CultureInfo.CurrentCulture = culture;
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/9484")]
+        [WorkItem(9484, "https://github.com/dotnet/roslyn/issues/9484")]
         [Fact]
         public void TestEscapeLineSeparator()
         {
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("\"\\u2028\"", literal.Text);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20693")]
+        [WorkItem(20693, "https://github.com/dotnet/roslyn/issues/20693")]
         [Fact]
         public void TestEscapeSurrogate()
         {
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17067")]
+        [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
         public void GetTokenDiagnosticsWithoutSyntaxTree_WithDiagnostics()
         {
             var tokens = SyntaxFactory.ParseTokens("1l").ToList();
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17067")]
+        [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
         public void GetTokenDiagnosticsWithoutSyntaxTree_WithoutDiagnostics()
         {
             var tokens = SyntaxFactory.ParseTokens("1L").ToList();
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17067")]
+        [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
         public void GetTokenDiagnosticsWithSyntaxTree_WithDiagnostics()
         {
             var expression = (LiteralExpressionSyntax)SyntaxFactory.ParseExpression("1l");
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17067")]
+        [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
         public void GetTokenDiagnosticsWithSyntaxTree_WithoutDiagnostics()
         {
             var expression = (LiteralExpressionSyntax)SyntaxFactory.ParseExpression("1L");
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17067")]
+        [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
         public void GetDiagnosticsFromNullToken()
         {
             var token = new SyntaxToken(null);
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21231")]
+        [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
         public void TestSpacingOnNullableIntType()
         {
             var syntaxNode =
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21231")]
+        [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
         public void TestSpacingOnNullableDatetimeType()
         {
             var syntaxNode =
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21231")]
+        [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
         public void TestSpacingOnTernary()
         {
             var syntaxNode = SyntaxFactory.ParseExpression("x is int? y: z").NormalizeWhitespace();
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21231")]
+        [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
         public void TestSpacingOnCoalescing()
         {
             var syntaxNode = SyntaxFactory.ParseExpression("x is int??y").NormalizeWhitespace();
@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37467")]
+        [WorkItem(37467, "https://github.com/dotnet/roslyn/issues/37467")]
         public void TestUnnecessarySemicolon()
         {
             var syntaxNode = SyntaxFactory.MethodDeclaration(
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("int[]M(){};", syntaxNode.ToFullString());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40342")]
+        [Fact, WorkItem(40342, "https://github.com/dotnet/roslyn/issues/40342")]
         public void TestParenthesizedLambdaNoParameterList()
         {
             var lambda = SyntaxFactory.ParenthesizedLambdaExpression(body: SyntaxFactory.Block());
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(fullySpecified.ToFullString(), lambda.ToFullString());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40342")]
+        [Fact, WorkItem(40342, "https://github.com/dotnet/roslyn/issues/40342")]
         public void TestParenthesizedLambdaNoParameterList_ExpressionBody()
         {
             var lambda = SyntaxFactory.ParenthesizedLambdaExpression(body: SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)));

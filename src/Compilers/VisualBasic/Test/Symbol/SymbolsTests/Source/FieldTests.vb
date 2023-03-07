@@ -174,7 +174,7 @@ End Class
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537491")>
+        <WorkItem(537491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537491")>
         <Fact>
         Public Sub ImplicitTypedFields01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -431,7 +431,7 @@ End Class
             Next
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543689")>
+        <WorkItem(543689, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543689")>
         <Fact()>
         Public Sub TestReadonlyFieldAccessWithoutQualifyingInstance()
             Dim vbCompilation = CreateVisualBasicCompilation("TestReadonlyFieldAccessWithoutQualifyingInstance",
@@ -451,8 +451,8 @@ End Class]]>,
         ''' <summary>
         ''' Fields named "value__" should be marked rtspecialname.
         ''' </summary>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546185")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/6190")>
+        <WorkItem(546185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546185")>
+        <WorkItem(6190, "https://github.com/dotnet/roslyn/issues/6190")>
         <ConditionalFact(GetType(DesktopOnly))>
         Public Sub RTSpecialName()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -539,8 +539,8 @@ End Class
             Assert.Equal(substitutedProperty, substitutedField.AssociatedSymbol)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/26364")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/54799")>
+        <WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")>
+        <WorkItem(54799, "https://github.com/dotnet/roslyn/issues/54799")>
         <Fact>
         Public Sub FixedSizeBufferFalse()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(

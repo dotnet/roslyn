@@ -152,7 +152,7 @@ using Blah;
             Assert.Equal("a", directives[2].File.Value);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546207")]
+        [WorkItem(546207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546207")]
         [Fact]
         public void DocumentationCommentsLocation_SingleLine()
         {
@@ -168,7 +168,7 @@ class Program
             Assert.Equal(SyntaxKind.StaticKeyword, trivia.Token.Kind());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546207")]
+        [WorkItem(546207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546207")]
         [Fact]
         public void DocumentationCommentsLocation_MultiLine()
         {

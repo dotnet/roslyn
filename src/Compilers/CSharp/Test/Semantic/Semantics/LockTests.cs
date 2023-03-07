@@ -431,7 +431,7 @@ class Test
             CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543168")]
+        [WorkItem(543168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543168")]
         [Fact()]
         public void MalformedLock_1()
         {
@@ -716,7 +716,7 @@ class Test
 
         #endregion
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543168")]
+        [WorkItem(543168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543168")]
         [Fact]
         public void EmbeddedDeclaration()
         {
@@ -735,8 +735,8 @@ class C
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = new object();"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529001")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/1067")]
+        [WorkItem(529001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529001")]
+        [WorkItem(1067, "https://github.com/dotnet/roslyn/issues/1067")]
         [Fact]
         public void LockTypeGenericTypeParam()
         {

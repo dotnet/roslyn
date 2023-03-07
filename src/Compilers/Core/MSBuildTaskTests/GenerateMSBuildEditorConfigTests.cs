@@ -100,7 +100,7 @@ build_metadata.AdditionalFiles.ToRetrieve = ghi789
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/52469")]
+        [WorkItem(52469, "https://github.com/dotnet/roslyn/issues/52469")]
         public void MultipleSpecialCharacterItemMetaDataCreatesSections()
         {
             ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:/{f*i?le1}.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
@@ -289,7 +289,7 @@ build_metadata.AdditionalFile.ToRetrieve = def456
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/43970")]
+        [WorkItem(43970, "https://github.com/dotnet/roslyn/issues/43970")]
         public void PropertiesWithNewLines()
         {
             // Currently new lines transfer from MSBuild through to the resulting configuration

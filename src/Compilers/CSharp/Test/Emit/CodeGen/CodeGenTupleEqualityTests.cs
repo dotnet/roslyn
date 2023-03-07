@@ -129,7 +129,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25295")]
+        [Fact, WorkItem(25295, "https://github.com/dotnet/roslyn/issues/25295")]
         public void TestWithoutValueTuple()
         {
             var source = @"
@@ -619,7 +619,7 @@ struct S
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25488")]
+        [Fact, WorkItem(25488, "https://github.com/dotnet/roslyn/issues/25488")]
         public void TestThisStruct()
         {
             var source = @"
@@ -1437,7 +1437,7 @@ struct S
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25318")]
+        [Fact, WorkItem(25318, "https://github.com/dotnet/roslyn/issues/25318")]
         public void TestNullableStructAndDefault_WithComparisonOperator()
         {
             var source = @"
@@ -3111,7 +3111,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27047")]
+        [Fact, WorkItem(27047, "https://github.com/dotnet/roslyn/issues/27047")]
         public void TestWithObsoleteImplicitConversion()
         {
             var source = @"
@@ -3157,7 +3157,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27047")]
+        [Fact, WorkItem(27047, "https://github.com/dotnet/roslyn/issues/27047")]
         public void TestWithObsoleteBoolConversion()
         {
             var source = @"
@@ -3194,7 +3194,7 @@ public class NotBool
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27047")]
+        [Fact, WorkItem(27047, "https://github.com/dotnet/roslyn/issues/27047")]
         public void TestWithObsoleteComparisonOperators()
         {
             var source = @"
@@ -3229,7 +3229,7 @@ public class A
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27047")]
+        [Fact, WorkItem(27047, "https://github.com/dotnet/roslyn/issues/27047")]
         public void TestWithObsoleteTruthOperators()
         {
             var source = @"
@@ -5590,7 +5590,7 @@ False
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35958")]
+        [Fact, WorkItem(35958, "https://github.com/dotnet/roslyn/issues/35958")]
         public void TestMethodGroupConversionInTupleEquality_01()
         {
             var source = @"
@@ -5609,7 +5609,7 @@ public class C {
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35958")]
+        [Fact, WorkItem(35958, "https://github.com/dotnet/roslyn/issues/35958")]
         public void TestMethodGroupConversionInTupleEquality_02()
         {
             var source = @"
@@ -5628,7 +5628,7 @@ public class C {
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35958")]
+        [Fact, WorkItem(35958, "https://github.com/dotnet/roslyn/issues/35958")]
         public void TestMethodGroupConversionInTupleEquality_03()
         {
             var source = @"
@@ -5656,7 +5656,7 @@ class K
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35958")]
+        [Fact, WorkItem(35958, "https://github.com/dotnet/roslyn/issues/35958")]
         public void TestInterpolatedStringConversionInTupleEquality_01()
         {
             var source = @"

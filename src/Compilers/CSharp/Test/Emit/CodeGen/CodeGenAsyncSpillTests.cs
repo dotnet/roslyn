@@ -977,7 +977,7 @@ public class C
              });
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/4628")]
+        [WorkItem(4628, "https://github.com/dotnet/roslyn/issues/4628")]
         [Fact]
         public void AsyncWithShortCircuiting001()
         {
@@ -1006,7 +1006,7 @@ True
             CompileAndVerify(source, expectedOutput: expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/4628")]
+        [WorkItem(4628, "https://github.com/dotnet/roslyn/issues/4628")]
         [Fact]
         public void AsyncWithShortCircuiting002()
         {
@@ -1035,7 +1035,7 @@ True
             CompileAndVerify(source, expectedOutput: expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/4628")]
+        [WorkItem(4628, "https://github.com/dotnet/roslyn/issues/4628")]
         [Fact]
         public void AsyncWithShortCircuiting003()
         {
@@ -1067,7 +1067,7 @@ hello
             CompileAndVerify(source, expectedOutput: expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/4638")]
+        [WorkItem(4638, "https://github.com/dotnet/roslyn/issues/4638")]
         [Fact]
         public void AsyncWithShortCircuiting004()
         {
@@ -1755,7 +1755,7 @@ class TestCase
             CompileAndVerify(source, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/19609")]
+        [WorkItem(19609, "https://github.com/dotnet/roslyn/issues/19609")]
         [Fact]
         public void SpillArrayAssign2()
         {
@@ -3010,7 +3010,7 @@ class Driver
             CompileAndVerify(source, "0");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36443")]
+        [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
         public void SpillCompoundAssignmentToNullableMemberOfLocal_01()
         {
             var source = @"
@@ -3032,7 +3032,7 @@ struct S
             CompileAndVerify(source, expectedOutput: "", options: TestOptions.DebugExe);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36443")]
+        [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
         public void SpillCompoundAssignmentToNullableMemberOfLocal_02()
         {
             var source = @"
@@ -3061,7 +3061,7 @@ class C
             CompileAndVerify(source, expectedOutput: "43", options: TestOptions.ReleaseExe);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36443")]
+        [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
         public void SpillCompoundAssignmentToNullableMemberOfLocal_03()
         {
             var source = @"
@@ -3090,7 +3090,7 @@ class C
             CompileAndVerify(source, expectedOutput: "43", options: TestOptions.DebugExe);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36443")]
+        [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
         public void SpillCompoundAssignmentToNullableMemberOfLocal_04()
         {
             var source = @"
@@ -3254,7 +3254,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/13734")]
+        [WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")]
         public void MethodGroupConversionNoSpill()
         {
             string source = @"
@@ -3278,7 +3278,7 @@ public class AsyncBug {
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/13734")]
+        [WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")]
         public void MethodGroupConversionWithSpill()
         {
             string source = @"
@@ -3323,7 +3323,7 @@ namespace AsyncBug
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17706")]
+        [WorkItem(17706, "https://github.com/dotnet/roslyn/issues/17706")]
         public void SpillAwaitBeforeRefReordered()
         {
             string source = @"
@@ -3359,7 +3359,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17706")]
+        [WorkItem(17706, "https://github.com/dotnet/roslyn/issues/17706")]
         public void SpillRefBeforeAwaitReordered()
         {
             string source = @"
@@ -3400,7 +3400,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/27831")]
+        [WorkItem(27831, "https://github.com/dotnet/roslyn/issues/27831")]
         public void AwaitWithInParameter_ArgModifier()
         {
             CreateCompilation(@"
@@ -3420,7 +3420,7 @@ class Foo
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/27831")]
+        [WorkItem(27831, "https://github.com/dotnet/roslyn/issues/27831")]
         public void AwaitWithInParameter_NoArgModifier()
         {
             CompileAndVerify(@"
@@ -3449,7 +3449,7 @@ test
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36856")]
+        [Fact, WorkItem(36856, "https://github.com/dotnet/roslyn/issues/36856")]
         public void Crash36856()
         {
             var source = @"
@@ -3600,7 +3600,7 @@ namespace System.Text.Json.Serialization
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37461")]
+        [Fact, WorkItem(37461, "https://github.com/dotnet/roslyn/issues/37461")]
         public void ShouldNotSpillStackallocToField_01()
         {
             var source = @"
@@ -3642,7 +3642,7 @@ public class P
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37461")]
+        [Fact, WorkItem(37461, "https://github.com/dotnet/roslyn/issues/37461")]
         public void ShouldNotSpillStackallocToField_02()
         {
             var source = @"
@@ -3684,7 +3684,7 @@ public class P
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37461")]
+        [Fact, WorkItem(37461, "https://github.com/dotnet/roslyn/issues/37461")]
         public void ShouldNotSpillStackallocToField_03()
         {
             var source = @"
@@ -3765,7 +3765,7 @@ struct F
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37713")]
+        [WorkItem(37713, "https://github.com/dotnet/roslyn/issues/37713")]
         public void RefStructInAsyncStateMachineWithWhenClause()
         {
             var source = @"
@@ -3831,7 +3831,7 @@ public ref struct S
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37783")]
+        [WorkItem(37783, "https://github.com/dotnet/roslyn/issues/37783")]
         public void ExpressionLambdaWithObjectInitializer()
         {
             var source =
@@ -3863,7 +3863,7 @@ class Box<T>
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38309")]
+        [WorkItem(38309, "https://github.com/dotnet/roslyn/issues/38309")]
         public void ExpressionLambdaWithUserDefinedControlFlow()
         {
             var source =
@@ -3901,7 +3901,7 @@ namespace RoslynFailFastReproduction
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42755")]
+        [WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")]
         public void KeepLtrSemantics_ClassFieldAccessOnProperty()
         {
             var source = @"
@@ -4080,7 +4080,7 @@ After Assignment a.B.x is: 42")
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42755")]
+        [WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")]
         public void KeepLtrSemantics_ClassFieldAccessOnArray()
         {
             var source = @"
@@ -4319,7 +4319,7 @@ After Assignment a.x is: 42")
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42755")]
+        [WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")]
         public void KeepLtrSemantics_StructFieldAccessOnArray()
         {
             var source = @"
@@ -4537,7 +4537,7 @@ Before Assignment arr[0].y is: True")
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42755")]
+        [WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")]
         public void KeepLtrSemantics_AssignmentToArray()
         {
             var source = @"
@@ -4716,7 +4716,7 @@ After Assignment arrCopy[0] is: 42")
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42755")]
+        [WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")]
         public void KeepLtrSemantics_StructFieldAccessOnStructFieldAccessOnClassField()
         {
             var source = @"
@@ -4912,7 +4912,7 @@ After Assignment aCopy.b.c.x is: 42")
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42755")]
+        [WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")]
         public void KeepLtrSemantics_ClassPropertyAssignmentOnClassProperty()
         {
             var source = @"
@@ -5103,7 +5103,7 @@ After Assignment aCopy._b._x is: 42")
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/19609")]
+        [WorkItem(19609, "https://github.com/dotnet/roslyn/issues/19609")]
         [Fact]
         public void KeepLtrSemantics_FieldAccessOnClass()
         {
@@ -5285,7 +5285,7 @@ After Assignment aCopy.x is: 42")
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42755")]
+        [WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")]
         public void KeepLtrSemantics_CompoundAssignment()
         {
             var source = @"
@@ -5498,7 +5498,7 @@ After Assignment a.x is: 43")
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42755")]
+        [WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")]
         public void KeepLtrSemantics_CompoundAssignmentProperties()
         {
             var source = @"
@@ -5717,7 +5717,7 @@ After Assignment a._x is: 43")
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/19609")]
+        [WorkItem(19609, "https://github.com/dotnet/roslyn/issues/19609")]
         [Fact]
         public void KeepLtrSemantics_AssignmentToAssignment()
         {
@@ -5960,7 +5960,7 @@ After Assignment b.x is: 42")
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/19609")]
+        [WorkItem(19609, "https://github.com/dotnet/roslyn/issues/19609")]
         [Fact]
         public void KeepLtrSemantics_AssignmentToAssignmentProperties()
         {
@@ -6212,7 +6212,7 @@ After Assignment b._x is: 42")
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42755")]
+        [WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")]
         public void AssignmentToFieldOfStaticFieldOfStruct()
         {
             var source = @"
@@ -6331,7 +6331,7 @@ After Assignment A.b.x is: 42")
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47191")]
+        [Fact, WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")]
         public void AssignStaticStructField()
         {
             var source = @"
@@ -6361,7 +6361,7 @@ public class C
             verifier.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47191")]
+        [Fact, WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")]
         public void AssignStaticStructField_ViaUsingStatic()
         {
             var source = @"
@@ -6397,7 +6397,7 @@ public class Program
             verifier.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47191")]
+        [Fact, WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")]
         public void AssignInstanceStructField()
         {
             var source = @"

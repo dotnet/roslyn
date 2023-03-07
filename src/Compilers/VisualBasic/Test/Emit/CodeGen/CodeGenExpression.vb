@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenExpression
         Inherits BasicTestBase
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntFix_01()
             Dim source =
 <compilation>
@@ -260,7 +260,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntFix_Checked_01()
             Dim source =
 <compilation>
@@ -528,7 +528,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntFix_Implicit_01()
             Dim source =
 <compilation>
@@ -780,7 +780,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntFix_CheckedImplicit_01()
             Dim source =
 <compilation>
@@ -1048,7 +1048,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntTruncate_01()
             Dim source =
 <compilation>
@@ -1189,7 +1189,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntTruncate_Checked_01()
             Dim source =
 <compilation>
@@ -1338,7 +1338,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntTruncate_Implicit_01()
             Dim source =
 <compilation>
@@ -1479,7 +1479,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntTruncate_CheckedImplicit_01()
             Dim source =
 <compilation>
@@ -1628,7 +1628,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntCeiling_01()
             Dim source =
 <compilation>
@@ -1777,7 +1777,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntCeiling_Checked_01()
             Dim source =
 <compilation>
@@ -1934,7 +1934,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntCeiling_Implicit_01()
             Dim source =
 <compilation>
@@ -2083,7 +2083,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntCeiling_CheckedImplicit_01()
             Dim source =
 <compilation>
@@ -2240,7 +2240,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntFloor_01()
             Dim source =
 <compilation>
@@ -2389,7 +2389,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntFloor_Checked_01()
             Dim source =
 <compilation>
@@ -2546,7 +2546,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntFloor_Implicit_01()
             Dim source =
 <compilation>
@@ -2694,7 +2694,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntFloor_CheckedImplicit_01()
             Dim source =
 <compilation>
@@ -2851,7 +2851,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntRound_01()
             Dim source =
 <compilation>
@@ -3000,7 +3000,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntRound_Checked_01()
             Dim source =
 <compilation>
@@ -3157,7 +3157,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntRound_Implicit_01()
             Dim source =
 <compilation>
@@ -3306,7 +3306,7 @@ done
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntRound_CheckedImplicit_01()
             Dim source =
 <compilation>
@@ -3463,7 +3463,7 @@ done
 ]]>)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub CIntInt_01()
             Dim source =
@@ -3613,7 +3613,7 @@ done
 ]]>)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub CIntInt_Checked_01()
             Dim source =
@@ -3771,7 +3771,7 @@ done
 ]]>)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub CIntInt_Implicit_01()
             Dim source =
@@ -3920,7 +3920,7 @@ done
 ]]>)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub CIntInt_CheckedImplicit_01()
             Dim source =
@@ -4078,7 +4078,7 @@ done
 ]]>)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub CIntInt_Single_01()
             Dim source =
@@ -4224,7 +4224,7 @@ done
 ]]>)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub CIntInt_Single_Checked_01()
             Dim source =
@@ -4382,7 +4382,7 @@ done
 ]]>)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub CIntInt_Single_Implicit_01()
             Dim source =
@@ -4532,7 +4532,7 @@ done
 ]]>)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/25692")>
+        <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub CIntInt_Single_CheckedImplicit_01()
             Dim source =

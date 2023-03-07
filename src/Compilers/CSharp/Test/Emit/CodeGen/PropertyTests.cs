@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class PropertyTests : EmitMetadataTestBase
     {
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
         [CompilerTrait(CompilerFeature.ExpressionBody)]
         public void ExpressionBodedProperty()
         {

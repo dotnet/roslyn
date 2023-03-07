@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Call_Class()
             Dim comp =
 <compilation>
@@ -100,7 +100,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Call_Struct()
             Dim comp =
 <compilation>
@@ -171,7 +171,7 @@ Position GetName for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Call_Class_Ref()
             Dim comp =
 <compilation>
@@ -260,7 +260,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Call_Struct_Ref()
             Dim comp =
 <compilation>
@@ -331,7 +331,7 @@ Position GetName for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Call_Class_Async_01()
             Dim comp =
 <compilation>
@@ -568,7 +568,7 @@ Position GetName for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Call_Struct_Async_01()
             Dim comp =
 <compilation>
@@ -716,7 +716,7 @@ Position GetName for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Call_Class_Async_02()
             Dim comp =
 <compilation>
@@ -1039,7 +1039,7 @@ Position GetName for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Call_Struct_Async_02()
             Dim comp =
 <compilation>
@@ -1231,7 +1231,7 @@ Position GetName for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Call_Conditional_Class()
             Dim comp =
 <compilation>
@@ -1326,7 +1326,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Call_Conditional_Struct()
             Dim comp =
 <compilation>
@@ -1375,7 +1375,7 @@ Position GetName for item '-1'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Call_Conditional_Class_Ref()
             Dim comp =
 <compilation>
@@ -1479,7 +1479,7 @@ Position GetName for item '2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Call_Conditional_Struct_Ref()
             Dim comp =
 <compilation>
@@ -1528,7 +1528,7 @@ Position GetName for item '-1'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Call_Conditional_Class_Async_01()
             Dim comp =
 <compilation>
@@ -1784,7 +1784,7 @@ Position GetName for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Call_Conditional_Struct_Async_01()
             Dim comp =
 <compilation>
@@ -1838,7 +1838,7 @@ Position GetName for item '-1'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Call_Conditional_Class_Async_02()
             Dim comp =
 <compilation>
@@ -2180,7 +2180,7 @@ Position GetName for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Call_Conditional_Struct_Async_02()
             Dim comp =
 <compilation>
@@ -2235,7 +2235,7 @@ Position GetName for item '-1'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Property_Class()
             Dim comp =
 <compilation>
@@ -2340,7 +2340,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Property_Struct()
             Dim comp =
 <compilation>
@@ -2423,7 +2423,7 @@ Position set for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Property_Class_Ref()
             Dim comp =
 <compilation>
@@ -2528,7 +2528,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Property_Struct_Ref()
             Dim comp =
 <compilation>
@@ -2611,7 +2611,7 @@ Position set for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Property_Class_Async_01()
             Dim comp =
 <compilation>
@@ -2874,7 +2874,7 @@ Position set for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Property_Struct_Async_01()
             Dim comp =
 <compilation>
@@ -3039,7 +3039,7 @@ Position set for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Property_Class_Async_02()
             Dim comp =
 <compilation>
@@ -3388,7 +3388,7 @@ Position set for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Property_Struct_Async_02()
             Dim comp =
 <compilation>
@@ -3597,7 +3597,7 @@ Position set for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Index()
             Dim comp =
 <compilation>
@@ -3711,7 +3711,7 @@ Position set for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Index()
             Dim comp =
 <compilation>
@@ -3799,7 +3799,7 @@ Position set for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Index_Ref()
             Dim comp =
 <compilation>
@@ -3913,7 +3913,7 @@ Position set for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Index_Ref()
             Dim comp =
 <compilation>
@@ -4001,7 +4001,7 @@ Position set for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Index_Async_01()
             Dim comp =
 <compilation>
@@ -4266,7 +4266,7 @@ Position set for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Index_Async_01()
             Dim comp =
 <compilation>
@@ -4432,7 +4432,7 @@ Position set for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Index_Async_02()
             Dim comp =
 <compilation>
@@ -4783,7 +4783,7 @@ Position set for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Index_Async_02()
             Dim comp =
 <compilation>
@@ -4993,7 +4993,7 @@ Position set for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Value()
             Dim comp =
 <compilation>
@@ -5102,7 +5102,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Value()
             Dim comp =
 <compilation>
@@ -5187,7 +5187,7 @@ Position set for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Value_Ref()
             Dim comp =
 <compilation>
@@ -5296,7 +5296,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Value_Ref()
             Dim comp =
 <compilation>
@@ -5381,7 +5381,7 @@ Position set for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Value_Async_01()
             Dim comp =
 <compilation>
@@ -5648,7 +5648,7 @@ Position set for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Value_Async_01()
             Dim comp =
 <compilation>
@@ -5815,7 +5815,7 @@ Position set for item '-2'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_IndexAndValue()
             Dim comp =
 <compilation>
@@ -5932,7 +5932,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_IndexAndValue()
             Dim comp =
 <compilation>
@@ -6021,7 +6021,7 @@ Position set for item '-4'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_IndexAndValue_Ref()
             Dim comp =
 <compilation>
@@ -6138,7 +6138,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_IndexAndValue_Ref()
             Dim comp =
 <compilation>
@@ -6227,7 +6227,7 @@ Position set for item '-4'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_IndexAndValue_Async_01()
             Dim comp =
 <compilation>
@@ -6520,7 +6520,7 @@ Position set for item '-4'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_IndexAndValue_Async_01()
             Dim comp =
 <compilation>
@@ -6700,7 +6700,7 @@ Position set for item '-4'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_IndexAndValue_Async_03()
             Dim comp =
 <compilation>
@@ -6970,7 +6970,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_IndexAndValue_Async_03()
             Dim comp =
 <compilation>
@@ -7138,7 +7138,7 @@ Position set for item '-4'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_IndexAndValue_Async_04()
             Dim comp =
 <compilation>
@@ -7509,7 +7509,7 @@ Position set for item '-4'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/63221")>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_IndexAndValue_Async_04()
             Dim comp =
 <compilation>
@@ -7728,7 +7728,7 @@ Position set for item '-4'
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66135")>
+        <WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")>
         Public Sub InvokeAddedStructToStringOverrideOnReadOnlyField()
             Dim libOrig_vb =
 <compilation>
@@ -7828,7 +7828,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66135")>
+        <WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")>
         Public Sub InvokeAddedStructToStringOverrideOnField()
             Dim libOrig_vb =
 <compilation>
@@ -7923,7 +7923,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66135")>
+        <WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")>
         Public Sub InvokeStructToAddedStringOverrideOnRefParameter()
             Dim libOrig_vb =
 <compilation>
@@ -8010,7 +8010,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66135")>
+        <WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")>
         Public Sub ForEachOnReadOnlyField()
             Dim src =
 <compilation>
@@ -8117,7 +8117,7 @@ End Structure
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66135")>
+        <WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")>
         Public Sub ForEachOnField()
             Dim src =
 <compilation>

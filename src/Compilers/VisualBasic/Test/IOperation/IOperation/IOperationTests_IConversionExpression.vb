@@ -3186,7 +3186,7 @@ IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (S
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/23203")>
+        <WorkItem(23203, "https://github.com/dotnet/roslyn/issues/23203")>
         Public Sub ConversionExpression_IntegerOverflow()
             Dim source = <![CDATA[
 Imports System

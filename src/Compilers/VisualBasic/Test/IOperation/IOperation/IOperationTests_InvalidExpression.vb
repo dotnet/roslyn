@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits SemanticModelTestBase
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")>
+        <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidInvocationExpression_BadReceiver()
             Dim source = <![CDATA[
 Imports System
@@ -43,7 +43,7 @@ BC30456: 'WriteLine2' is not a member of 'Console'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")>
+        <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidInvocationExpression_OverloadResolutionFailureBadArgument()
             Dim source = <![CDATA[
 Class Program
@@ -81,7 +81,7 @@ BC30369: Cannot refer to an instance member of a class from within a shared meth
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")>
+        <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidInvocationExpression_OverloadResolutionFailureExtraArgument()
             Dim source = <![CDATA[
 Class Program
@@ -114,7 +114,7 @@ BC30057: Too many arguments to 'Private Sub F()'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")>
+        <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidFieldReferenceExpression()
             Dim source = <![CDATA[
 Class Program
@@ -143,7 +143,7 @@ BC30456: 'MissingField' is not a member of 'Program'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")>
+        <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidConversionExpression_ImplicitCast()
             Dim source = <![CDATA[
 Class Program
@@ -173,7 +173,7 @@ BC30311: Value of type 'Integer' cannot be converted to 'Program'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")>
+        <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidConversionExpression_ExplicitCast()
             Dim source = <![CDATA[
 Class Program
@@ -206,7 +206,7 @@ BC30311: Value of type 'Integer' cannot be converted to 'Program'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")>
+        <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidUnaryExpression()
             Dim source = <![CDATA[
 Imports System
@@ -237,7 +237,7 @@ BC30487: Operator '+' is not defined for type 'Program'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")>
+        <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidBinaryExpression()
             Dim source = <![CDATA[
 Imports System
@@ -279,7 +279,7 @@ BC30451: 'y' is not declared. It may be inaccessible due to its protection level
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")>
+        <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidLambdaBinding_UnboundLambda()
             Dim source = <![CDATA[
 Imports System
@@ -323,7 +323,7 @@ BC30491: Expression does not produce a value.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")>
+        <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidFieldInitializer()
             Dim source = <![CDATA[
 Imports System.Collections.Generic
@@ -360,7 +360,7 @@ BC30109: 'Program' is a class type and cannot be used as an expression.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18074"), WorkItem("https://github.com/dotnet/roslyn/issues/17598")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18074"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidArrayInitializer()
             Dim source = <![CDATA[
 Class Program
@@ -387,7 +387,7 @@ BC30566: Array initializer has too many dimensions.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")>
+        <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidArrayCreation()
             Dim source = <![CDATA[
 Class Program
@@ -437,7 +437,7 @@ BC30566: Array initializer has too many dimensions.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")>
+        <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidParameterDefaultValueInitializer()
             Dim source = <![CDATA[
 Class Program
@@ -914,7 +914,7 @@ Block[B8] - Exit
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35813"), WorkItem("https://github.com/dotnet/roslyn/issues/45382")>
+        <Fact, WorkItem(35813, "https://github.com/dotnet/roslyn/issues/35813"), WorkItem(45382, "https://github.com/dotnet/roslyn/issues/45382")>
         Public Sub InvalidTypeArguments()
             Dim source = <![CDATA[
 Class C

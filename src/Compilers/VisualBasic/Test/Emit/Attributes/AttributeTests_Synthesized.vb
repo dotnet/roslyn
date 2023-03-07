@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
 #Region "CompilerGenerated, DebuggerBrowsable, DebuggerDisplay"
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546956")>
+        <Fact, WorkItem(546956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546956")>
         Public Sub PrivateImplementationDetails()
             Dim source =
 <compilation>
@@ -128,7 +128,7 @@ End Class
 
         <Theory>
         <MemberData(NameOf(OptimizationLevelTheoryData))>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546899")>
+        <WorkItem(546899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546899")>
         Public Sub Accessors(optimizationLevel As OptimizationLevel)
             Dim source =
 <compilation>
@@ -191,7 +191,7 @@ End Class
 
         <Theory>
         <MemberData(NameOf(OptimizationLevelTheoryData))>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543254")>
+        <WorkItem(543254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543254")>
         Public Sub Constructors(optimizationLevel As OptimizationLevel)
             Dim source =
 <compilation>
@@ -1757,7 +1757,7 @@ BC30002: Type 'System.Void' is not defined.
         End Sub
 #End Region
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7809")>
+        <Fact, WorkItem(7809, "https://github.com/dotnet/roslyn/issues/7809")>
         Public Sub SynthesizeAttributeWithUseSiteErrorFails()
 #Region "mslib"
             Dim mslibNoString = "

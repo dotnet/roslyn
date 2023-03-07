@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60394")]
+        [Fact, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
         public void UnqualifiedOperatorMember1_Unchecked()
         {
             UsingNode("operator unchecked +", TestOptions.RegularWithDocumentationComments,
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60394")]
+        [Fact, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
         public void UnqualifiedOperatorMember2_Unchecked()
         {
             UsingNode("operator unchecked +(A)", TestOptions.RegularWithDocumentationComments,
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60394")]
+        [Fact, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
         public void QualifiedOperatorMember1_Unchecked()
         {
             UsingNode("T.operator unchecked +", TestOptions.RegularWithDocumentationComments,
@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region Ambiguities
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546992")]
+        [WorkItem(546992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546992")]
         [Fact]
         public void GreaterThanGreaterThan()
         {
@@ -761,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60394")]
+        [Fact, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
         public void GreaterThanGreaterThan_Unchecked()
         {
             UsingNode("operator unchecked }}(A{A{T}})", TestOptions.RegularWithDocumentationComments,
@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546992")]
+        [WorkItem(546992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546992")]
         [Fact]
         public void GreaterThanGreaterThanGreaterThan()
         {
@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60394")]
+        [Fact, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
         public void UnqualifiedConversionOperatorMember1_Unchecked()
         {
             UsingNode("implicit operator unchecked A", TestOptions.RegularWithDocumentationComments,
@@ -977,7 +977,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60394")]
+        [Fact, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
         public void UnqualifiedConversionOperatorMember2_Unchecked()
         {
             UsingNode("explicit operator unchecked A(B)", TestOptions.RegularWithDocumentationComments,
@@ -1065,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60394")]
+        [Fact, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
         public void QualifiedConversionOperatorMember1_Unchecked()
         {
             UsingNode("T.implicit operator unchecked A", TestOptions.RegularWithDocumentationComments,
@@ -1169,7 +1169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60394")]
+        [Fact, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
         public void QualifiedConversionOperatorMember2_Unchecked()
         {
             UsingNode("T.explicit operator unchecked A(B)", TestOptions.RegularWithDocumentationComments,
@@ -1401,7 +1401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531157")]
+        [WorkItem(531157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531157")]
         [Fact]
         public void ParameterVoidPointerType()
         {
@@ -1634,7 +1634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531154")]
+        [WorkItem(531154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531154")]
         [Fact]
         public void NestedArrayTypes()
         {
@@ -1726,7 +1726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region Conversion operator return types
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531154")]
+        [WorkItem(531154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531154")]
         [Fact]
         public void PrimitiveArrayReturnType()
         {
@@ -1786,7 +1786,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531154")]
+        [WorkItem(531154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531154")]
         [Fact]
         public void NamedTypeArrayReturnType()
         {

@@ -759,7 +759,7 @@ End Module
 }]]>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542208")>
+        <WorkItem(542208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542208")>
         <Fact()>
         Public Sub OverlappingCatch()
             CompileAndVerify(
@@ -780,7 +780,7 @@ End Module
             expectedOutput:="")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542208")>
+        <WorkItem(542208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542208")>
         <Fact>
         Public Sub DuplicateCatch()
             CompileAndVerify(
@@ -864,7 +864,7 @@ Unhandled
 ]]>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542510")>
+        <WorkItem(542510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542510")>
         <Fact()>
         Public Sub ExitTryFromCatch()
             CompileAndVerify(
@@ -961,7 +961,7 @@ expectedOutput:="Finally 1 Try 2 Try 3").
 ]]>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7144")>
+        <Fact, WorkItem(7144, "https://github.com/dotnet/roslyn/issues/7144")>
         Public Sub ExitTryNoCatchEmptyFinally_01()
             Dim source =
 <compilation>
@@ -992,7 +992,7 @@ End Module
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:="Exited Try")
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7144")>
+        <Fact, WorkItem(7144, "https://github.com/dotnet/roslyn/issues/7144")>
         Public Sub ExitTryNoCatchEmptyFinally_02()
             Dim source =
 <compilation>
@@ -1021,7 +1021,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/29481")>
+        <WorkItem(29481, "https://github.com/dotnet/roslyn/issues/29481")>
         Public Sub Issue29481()
             Dim source =
 <compilation>

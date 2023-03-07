@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, trivia[0].Kind());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537500")]
+        [WorkItem(537500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537500")]
         [Fact]
         [Trait("Feature", "Comments")]
         public void TestSingleLineDocCommentFollowedBySlash()
@@ -1535,8 +1535,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547238")]
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547238")]
+        [WorkItem(547238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547238")]
+        [Fact, WorkItem(547238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547238")]
         [Trait("Feature", "Literals")]
         public void TestNumericLiteralWithExponentAndDecimalSpecifier04()
         {
@@ -3131,7 +3131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// Earlier identifier syntax "[0-9]+#" not supported.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1071347")]
+        [WorkItem(1071347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1071347")]
         [Fact]
         public void TestDebuggerAliasIdentifiers()
         {
@@ -3332,7 +3332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(LexerCache.MaxKeywordLength, max);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545781")]
+        [WorkItem(545781, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545781")]
         [Fact]
         public void DecimalLiteralsOtherCulture()
         {

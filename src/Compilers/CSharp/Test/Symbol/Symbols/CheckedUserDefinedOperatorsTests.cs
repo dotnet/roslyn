@@ -7157,7 +7157,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60419")]
+        [WorkItem(60419, "https://github.com/dotnet/roslyn/issues/60419")]
         public void ClassifyConversion_01()
         {
             var source1 =
@@ -7300,7 +7300,7 @@ regular C0
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60419")]
+        [WorkItem(60419, "https://github.com/dotnet/roslyn/issues/60419")]
         public void ClassifyConversion_03()
         {
             var source1 =
@@ -7373,7 +7373,7 @@ regular C0
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60419")]
+        [WorkItem(60419, "https://github.com/dotnet/roslyn/issues/60419")]
         public void GetSpeculativeSymbolInfo_01()
         {
             var source1 =
@@ -7437,7 +7437,7 @@ checked C0
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60419")]
+        [WorkItem(60419, "https://github.com/dotnet/roslyn/issues/60419")]
         public void GetSpeculativeSymbolInfo_02()
         {
             var source1 =

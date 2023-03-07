@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region CompilerGeneratedAttribute, DebuggerBrowsableAttribute, DebuggerStepThroughAttribute, DebuggerDisplayAttribute
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546632")]
+        [WorkItem(546632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546632")]
         public void PrivateImplementationDetails()
         {
             string source = @"
@@ -133,7 +133,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546958")]
+        [WorkItem(546958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546958")]
         public void FixedSizeBuffers()
         {
             string source = @"
@@ -156,7 +156,7 @@ unsafe struct S
 
         [Theory]
         [MemberData(nameof(OptimizationLevelTheoryData))]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546927")]
+        [WorkItem(546927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546927")]
         public void BackingFields_Property(OptimizationLevel optimizationLevel)
         {
             string source = @"
@@ -204,7 +204,7 @@ class Test
 
         [Theory]
         [MemberData(nameof(OptimizationLevelTheoryData))]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546927")]
+        [WorkItem(546927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546927")]
         public void Accessors(OptimizationLevel optimizationLevel)
         {
             string source = @"
@@ -514,7 +514,7 @@ class C
 
         [Theory]
         [MemberData(nameof(OptimizationLevelTheoryData))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/431")]
+        [WorkItem(431, "https://github.com/dotnet/roslyn/issues/431")]
         public void BaseMethodWrapper(OptimizationLevel optimizationLevel)
         {
             string source = @"
@@ -548,7 +548,7 @@ class B : A
 
         [Theory]
         [MemberData(nameof(OptimizationLevelTheoryData))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38801")]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
         public void BaseMethodWrapper_DoNotInheritAttributes(OptimizationLevel optimizationLevel)
         {
             string source = @"
@@ -589,7 +589,7 @@ class B : A
 
         [Theory]
         [MemberData(nameof(OptimizationLevelTheoryData))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38801")]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
         public void BaseMethodWrapper_DoNotInheritAttributes_TypeParameter(OptimizationLevel optimizationLevel)
         {
             string source = @"
@@ -653,7 +653,7 @@ internal class C1<T1>
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/46439")]
+        [WorkItem(46439, "https://github.com/dotnet/roslyn/issues/46439")]
         public void RecordSynthesizedMembers()
         {
             string source = @"
@@ -723,7 +723,7 @@ record R
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/46439")]
+        [WorkItem(46439, "https://github.com/dotnet/roslyn/issues/46439")]
         public void RecordStructSynthesizedMembers()
         {
             string source = @"
@@ -780,7 +780,7 @@ record struct R
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/46439")]
+        [WorkItem(46439, "https://github.com/dotnet/roslyn/issues/46439")]
         public void RecordSynthesizedMembers_2()
         {
             string source = @"
@@ -862,7 +862,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/46439")]
+        [WorkItem(46439, "https://github.com/dotnet/roslyn/issues/46439")]
         public void RecordStructSynthesizedMembers_2()
         {
             string source = @"
@@ -926,7 +926,7 @@ record struct R(int P1);
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/46439")]
+        [WorkItem(46439, "https://github.com/dotnet/roslyn/issues/46439")]
         public void AttributeIsMissing()
         {
             string source = @"
@@ -1908,7 +1908,7 @@ public class Test<T>
         }
         #endregion
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7809")]
+        [Fact, WorkItem(7809, "https://github.com/dotnet/roslyn/issues/7809")]
         public void SynthesizeAttributeWithUseSiteErrorFails()
         {
             var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();

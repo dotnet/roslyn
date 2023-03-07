@@ -1211,7 +1211,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(7, 25));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22306")]
+        [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
         [Fact]
         public void InParamCannotTakePtr()
         {
@@ -1316,7 +1316,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18357")]
+        [Fact, WorkItem(18357, "https://github.com/dotnet/roslyn/issues/18357")]
         public void InParamCanReturnByRefReadonlyNested()
         {
             var text = @"
@@ -1359,7 +1359,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18357")]
+        [Fact, WorkItem(18357, "https://github.com/dotnet/roslyn/issues/18357")]
         public void InParamCannotReturnByRefNested()
         {
             var text = @"
@@ -1847,7 +1847,7 @@ class Program
             CompileAndVerify(comp, verify: Verification.Passes, expectedOutput: @"6");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20764")]
+        [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
         [Fact]
         public void InParamAsyncSpillMethods()
         {
@@ -1915,7 +1915,7 @@ public struct S1
 3");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20764")]
+        [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
         [Fact]
         public void InParamAsyncSpillMethodsWriteable()
         {
@@ -1983,7 +1983,7 @@ public struct S1
 3");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20764")]
+        [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
         [Fact]
         public void InParamAsyncSpillStructField()
         {
@@ -2636,7 +2636,7 @@ class Program
 }", expectedOutput: "5-9");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23338")]
+        [WorkItem(23338, "https://github.com/dotnet/roslyn/issues/23338")]
         [Fact]
         public void InParamsNullable()
         {
@@ -2737,7 +2737,7 @@ struct S1
         }
 
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Binary()
         {
             var reference = CreateCompilation(@"
@@ -2768,7 +2768,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Binary_Right()
         {
             var reference = CreateCompilation(@"
@@ -2799,7 +2799,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Binary_Left()
         {
             var reference = CreateCompilation(@"
@@ -2830,7 +2830,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Unary()
         {
             var reference = CreateCompilation(@"
@@ -2860,7 +2860,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Conversion()
         {
             var reference = CreateCompilation(@"
@@ -2891,7 +2891,7 @@ class Program
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23691")]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_Method_Optional_NoArgs()
         {
             var code = @"
@@ -2934,7 +2934,7 @@ IInvocationOperation (void Program.Test([in System.Int32 value = 5])) (Operation
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23691")]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_Method_Optional_OneArg()
         {
             var code = @"
@@ -2977,7 +2977,7 @@ IInvocationOperation (void Program.Test([in System.Int32 value = 5])) (Operation
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23691")]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_Method_Optional_Optional_NoArgs()
         {
             var code = @"
@@ -3028,7 +3028,7 @@ IInvocationOperation (void Program.Test([in System.Int32 value1 = 1], [in System
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23691")]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_Method_Optional_Optional_OneArg()
         {
             var code = @"
@@ -3079,7 +3079,7 @@ IInvocationOperation (void Program.Test([in System.Int32 value1 = 1], [in System
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23691")]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_Method_Optional_Optional_TwoArgs()
         {
             var code = @"
@@ -3130,7 +3130,7 @@ IInvocationOperation (void Program.Test([in System.Int32 value1 = 1], [in System
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23691")]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_Method_Required_Optional_OneArg()
         {
             var code = @"
@@ -3181,7 +3181,7 @@ IInvocationOperation (void Program.Test(in System.Int32 value1, [in System.Int32
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23691")]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_Method_Required_Optional_TwoArgs()
         {
             var code = @"
@@ -3232,7 +3232,7 @@ IInvocationOperation (void Program.Test(in System.Int32 value1, [in System.Int32
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23691")]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_CompoundAssignment_Optional_Optional_OneArg()
         {
             var code = @"
@@ -3312,7 +3312,7 @@ IPropertyReferenceOperation: System.Int32 Program.this[[in System.Int32 p1 = 1],
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23691")]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_CompoundAssignment_Optional_Optional_TwoArgs()
         {
             var code = @"
@@ -3392,7 +3392,7 @@ IPropertyReferenceOperation: System.Int32 Program.this[[in System.Int32 p1 = 1],
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23691")]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_CompoundAssignment_Required_Optional_OneArg()
         {
             var code = @"
@@ -3472,7 +3472,7 @@ IPropertyReferenceOperation: System.Int32 Program.this[in System.Int32 p1, [in S
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23691")]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void OptionalInParameters_CompoundAssignment_Required_Optional_TwoArgs()
         {
             var code = @"
@@ -3552,7 +3552,7 @@ IPropertyReferenceOperation: System.Int32 Program.this[in System.Int32 p1, [in S
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23691")]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void Issue23691_PassingInOptionalArgumentsByRef_OneArg()
         {
             var code = @"
@@ -3605,7 +3605,7 @@ IInvocationOperation (void Program.A([in System.Double x = 1], [in System.String
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23691")]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
         public void Issue23691_PassingInOptionalArgumentsByRef_TwoArgs()
         {
             var code = @"
@@ -3667,7 +3667,7 @@ IInvocationOperation (void Program.B(in System.Single x, in System.Single y, [in
         DiagnosticDescription.None);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23692")]
+        [WorkItem(23692, "https://github.com/dotnet/roslyn/issues/23692")]
         [Fact]
         public void ThisToInParam()
         {
@@ -3716,7 +3716,7 @@ class Program
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24806")]
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
         [Fact]
         public void OptimizedRValueToIn_Local()
         {
@@ -3767,7 +3767,7 @@ public class Test
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24806")]
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
         [Fact]
         public void OptimizedRValueToIn_ArrayAccess()
         {
@@ -3825,7 +3825,7 @@ public class Test
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24806")]
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
         [Fact]
         public void OptimizedRValueToIn_ArrayAccessReordered()
         {
@@ -3883,7 +3883,7 @@ public class Test
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24806")]
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
         [Fact]
         public void OptimizedRValueToIn_FieldAcces()
         {
@@ -3931,7 +3931,7 @@ public class Test
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24806")]
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
         [Fact]
         public void OptimizedRValueToIn_RoFieldAcces()
         {
@@ -4029,7 +4029,7 @@ public class Test
 
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24806")]
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
         [Fact]
         public void OptimizedRValueToIn_ThisAcces()
         {
@@ -4075,7 +4075,7 @@ public class Test
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24806")]
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
         [Fact]
         public void OptimizedRValueToIn_RefMethod()
         {
@@ -4136,7 +4136,7 @@ public class Test
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24806")]
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
         [Fact]
         public void OptimizedRValueToIn_InOperator()
         {
@@ -4190,7 +4190,7 @@ public class Test
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24806")]
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
         [Fact]
         public void OptimizedRValueToIn_InOperatorLifted()
         {
@@ -4272,7 +4272,7 @@ public struct Test
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24806")]
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
         [Fact]
         public void OptimizedRValueToIn_InOperatorUnary()
         {
@@ -4323,7 +4323,7 @@ public class Test
 ");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24806")]
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
         [Fact]
         public void OptimizedRValueToIn_InConversion()
         {
@@ -4387,7 +4387,7 @@ class Derived : Test { }
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66135")]
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
         public void ConstrainedCallOnInParameter()
         {
             var source = @"
@@ -4459,7 +4459,7 @@ public struct S : IEnumerable<int>
 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66135")]
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
         public void ConstrainedCallOnInParameter_ConstrainedGenericReceiver()
         {
             var source = @"
@@ -4530,7 +4530,7 @@ public struct S : IEnumerable<int>
 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66135")]
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
         public void ConstrainedCallOnReadonlyField()
         {
             var source = @"
@@ -4614,7 +4614,7 @@ public struct S : IEnumerable<int>
 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66135")]
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
         public void ConstrainedCallOnField()
         {
             var source = @"
@@ -4695,7 +4695,7 @@ public struct S : IEnumerable<int>
 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66135")]
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
         public void InvokeStructToStringOverrideOnInParameter()
         {
             var text = @"
@@ -4739,7 +4739,7 @@ struct S1
 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66135")]
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
         public void InvokeAddedStructToStringOverrideOnInParameter()
         {
             var libOrig_cs = """
@@ -4799,7 +4799,7 @@ Console.Write(C.M(in s));
             CompileAndVerify(comp, expectedOutput: "RAN 00");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66135")]
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
         public void InvokeAddedStructToStringOverrideOnReadonlyField()
         {
             var libOrig_cs = """

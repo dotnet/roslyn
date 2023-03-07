@@ -251,7 +251,7 @@ class C {}
             Assert.Equal("O=System.Object", symbols[0].ToDisplayString(format: SymbolDisplayFormat.TestFormat));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
+        [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
         [Fact]
         public void EventEscapedIdentifier()
         {
@@ -267,7 +267,7 @@ namespace @foreach { }
             Assert.Equal("@for", alias.ToString());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541937")]
+        [WorkItem(541937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541937")]
         [Fact]
         public void LocalDeclaration()
         {
@@ -287,7 +287,7 @@ class Program
             Assert.Equal(SymbolKind.Alias, model.GetAliasInfo(exprSyntaxToBind).Kind);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576809")]
+        [WorkItem(576809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576809")]
         [Fact]
         public void AsClause()
         {
@@ -310,7 +310,7 @@ class Program
             Assert.Equal("System.Int32?", model.GetAliasInfo(exprSyntaxToBind).Target.ToTestDisplayString());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542552")]
+        [WorkItem(542552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542552")]
         [Fact]
         public void IncompleteDuplicateAlias()
         {
@@ -325,7 +325,7 @@ namespace prog
             var discarded = comp.GetDiagnostics();
         }
 
-        [ClrOnlyFact, WorkItem("https://github.com/dotnet/roslyn/issues/2805")]
+        [ClrOnlyFact, WorkItem(2805, "https://github.com/dotnet/roslyn/issues/2805")]
         public void AliasWithAnError()
         {
             var text =
@@ -370,7 +370,7 @@ namespace NS
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
         }
 
-        [ClrOnlyFact, WorkItem("https://github.com/dotnet/roslyn/issues/2805")]
+        [ClrOnlyFact, WorkItem(2805, "https://github.com/dotnet/roslyn/issues/2805")]
         public void AliasWithAnErrorFileScopedNamespace()
         {
             var text =

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class GivesAccessTo
     {
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26459")]
+        [Fact, WorkItem(26459, "https://github.com/dotnet/roslyn/issues/26459")]
         public void TestGivesAccessTo_CrossLanguageAndCompilation()
         {
             var csharpTree = CSharpTestSource.Parse(@"

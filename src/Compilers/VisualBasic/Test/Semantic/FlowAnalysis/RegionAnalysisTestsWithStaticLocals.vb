@@ -1950,7 +1950,7 @@ end class
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541891")>
+        <WorkItem(541891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541891")>
         <Fact()>
         Public Sub TestRefArgumentSelection02()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -1983,7 +1983,7 @@ end class
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541891")>
+        <WorkItem(541891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541891")>
         <Fact()>
         Public Sub TestRefArgumentSelection02a()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -4303,7 +4303,7 @@ End Class
             Debug.Assert(comp.Succeeded)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546820")>
+        <WorkItem(546820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546820")>
         <Fact()>
         Public Sub TestDataFlowsInAndOut()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -4329,7 +4329,7 @@ end class
             Assert.Equal("args, y", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546820")>
+        <WorkItem(546820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546820")>
         <Fact()>
         Public Sub TestDataFlowsInAndOut2()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -4357,7 +4357,7 @@ end class
             Assert.Equal("args, x, y", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546820")>
+        <WorkItem(546820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546820")>
         <Fact()>
         Public Sub TestDataFlowsInAndOut3()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -4381,7 +4381,7 @@ end class
             Assert.Equal("args, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546820")>
+        <WorkItem(546820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546820")>
         <Fact()>
         Public Sub TestDataFlowsInAndOut4()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -4404,7 +4404,7 @@ end class
             Assert.Equal("args, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546820")>
+        <WorkItem(546820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546820")>
         <Fact()>
         Public Sub TestDataFlowsInAndOut5()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -4428,7 +4428,7 @@ end class
             Assert.Equal("args, x, y", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546820")>
+        <WorkItem(546820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546820")>
         <Fact()>
         Public Sub TestDataFlowsInAndOut6()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -5549,7 +5549,7 @@ End Class
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40684: The test hook is blocked by this issue.
-        <WorkItem("https://github.com/dotnet/roslyn/issues/40684")>
+        <WorkItem(40684, "https://github.com/dotnet/roslyn/issues/40684")>
         Public Sub WithStatement_Expression_LValue_4d()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
 <compilation>
@@ -5607,7 +5607,7 @@ End Class
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40684: The test hook is blocked by this issue.
-        <WorkItem("https://github.com/dotnet/roslyn/issues/40684")>
+        <WorkItem(40684, "https://github.com/dotnet/roslyn/issues/40684")>
         Public Sub WithStatement_Expression_LValue_4e()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
 <compilation>
@@ -6445,7 +6445,7 @@ End Module
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529089")>
+        <WorkItem(529089, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529089")>
         <Fact>
         Public Sub CaseClauseNotReachable()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(

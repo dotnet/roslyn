@@ -104,7 +104,7 @@ namespace System.Runtime.CompilerServices
 ";
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23358")]
+        [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void EmptyOrNullStringConv()
         {
             var comp = CreateCompilation(@"
@@ -163,7 +163,7 @@ class Test
         }
 
         [Theory]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23358")]
+        [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         [InlineData("byte")]
         [InlineData("char")]
         [InlineData("uint")]
@@ -229,7 +229,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23358")]
+        [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void EmptyArrayCtor()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -284,7 +284,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23358")]
+        [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void NotConstArrayCtor()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -341,7 +341,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23358")]
+        [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void NotConstArrayCtorByte()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -398,7 +398,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23358")]
+        [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void NotBlittableArrayConv()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -456,7 +456,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23358")]
+        [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void EnumArrayCtor()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -513,7 +513,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23358")]
+        [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void EnumArrayCtorPEVerify()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -586,7 +586,7 @@ class Test
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23358")]
+        [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void ConvInMethodCall()
         {
             var comp = CreateCompilation(@"
@@ -623,7 +623,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31685")]
+        [WorkItem(31685, "https://github.com/dotnet/roslyn/issues/31685")]
         public void ImplicitSpanConversionInLambdaInGenericMethod_01()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -700,7 +700,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31685")]
+        [WorkItem(31685, "https://github.com/dotnet/roslyn/issues/31685")]
         public void ImplicitSpanConversionInLambdaInGenericMethod_02()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -742,7 +742,7 @@ public class X
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24621")]
+        [WorkItem(24621, "https://github.com/dotnet/roslyn/issues/24621")]
         public void StaticFieldIsUsedForSpanCreatedFromArrayWithInitializer_Verifiable()
         {
             var csharp = @"
@@ -783,7 +783,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24621")]
+        [WorkItem(24621, "https://github.com/dotnet/roslyn/issues/24621")]
         public void StaticFieldIsUsedForSpanCreatedFromArrayWithInitializer_01()
         {
             var csharp = @"

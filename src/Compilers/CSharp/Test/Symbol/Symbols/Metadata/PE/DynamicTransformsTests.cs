@@ -454,7 +454,7 @@ class D
         }
 
         [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void TestDynamicTransformsBadMetadata()
         {
             var il = @"

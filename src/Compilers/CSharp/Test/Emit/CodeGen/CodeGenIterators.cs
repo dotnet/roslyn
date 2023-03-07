@@ -679,7 +679,7 @@ class C: Base
             CompileAndVerify(source, expectedOutput: "444888");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543165")]
+        [WorkItem(543165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543165")]
         [Fact]
         public void TestIteratorWithLambda()
         {
@@ -758,7 +758,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "ab01");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543178")]
+        [WorkItem(543178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543178")]
         [Fact]
         public void TestIteratorWithLambda02()
         {
@@ -792,7 +792,7 @@ public class A
             CompileAndVerify(source, expectedOutput: "abc");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543373")]
+        [WorkItem(543373, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543373")]
         [Fact]
         public void TestIteratorWithNestedForEachAndThrow()
         {
@@ -868,7 +868,7 @@ public class MyEnumerator : IEnumerator<int>
             CompileAndVerify(source, expectedOutput: "InnerOuterExInner");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543542")]
+        [WorkItem(543542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543542")]
         [Fact]
         public void TestIteratorWithSwitchBreak()
         {
@@ -905,7 +905,7 @@ class Test
             CompileAndVerify(source, expectedOutput: "234");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546128")]
+        [WorkItem(546128, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546128")]
         [Fact]
         public void TestIteratorWithCapturedStruct()
         {
@@ -945,7 +945,7 @@ struct B
             CompileAndVerify(source, expectedOutput: "3210");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544908")]
+        [Fact, WorkItem(544908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544908")]
         public void TestIteratorWithNullableAsCollectionVariable_NonNull()
         {
             var source = @"
@@ -1030,7 +1030,7 @@ struct S : IEnumerable
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544908")]
+        [WorkItem(544908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544908")]
         public void TestIteratorWithNullableAsCollectionVariable_Null()
         {
             var source = @"
@@ -1128,7 +1128,7 @@ struct S : IEnumerable
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545650")]
+        [WorkItem(545650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545650")]
         public void TestIteratorWithUsing()
         {
             var source =
@@ -1155,7 +1155,7 @@ class T
             CompileAndVerify(source, expectedOutput: "");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545767")]
+        [Fact, WorkItem(545767, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545767")]
         public void DoNotCaptureUnusedParameters_Release()
         {
             var source = @"
@@ -1403,7 +1403,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563925")]
+        [WorkItem(563925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563925")]
         public void CaptureRefLocalNoParts()
         {
             var source =
@@ -1472,7 +1472,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620862")]
+        [WorkItem(620862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620862")]
         public void DelegateCreationInIterator()
         {
             var source =
@@ -1919,7 +1919,7 @@ class A
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703361")]
+        [WorkItem(703361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703361")]
         public void VerifyHelpers()
         {
             var source =
@@ -1943,7 +1943,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703361")]
+        [WorkItem(703361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703361")]
         public void VerifyHelpers001()
         {
             var source =
@@ -2086,7 +2086,7 @@ class Program
             CompileAndVerify(source, expectedOutput: @"");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718498")]
+        [WorkItem(718498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718498")]
         [Fact]
         public void Regress718498a()
         {
@@ -2127,7 +2127,7 @@ class Program
             CompileAndVerify(source, expectedOutput: @"12");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718498")]
+        [WorkItem(718498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718498")]
         [Fact]
         public void Regress718498b()
         {
@@ -2172,7 +2172,7 @@ class Program
             CompileAndVerify(source, expectedOutput: @"12");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718498")]
+        [WorkItem(718498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718498")]
         [Fact]
         public void Regress718498c()
         {
@@ -2214,7 +2214,7 @@ class Program
         /// Name of public fields for spill temps must start with
         /// "&lt;&gt;[c]__" so the fields are hidden in the debugger.
         /// </summary>
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808600")]
+        [WorkItem(808600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808600")]
         [Fact]
         public void SpillFieldName()
         {
@@ -2326,7 +2326,7 @@ class Program
             Assert.True(expectedIL.IndexOf("<>_", StringComparison.Ordinal) < 0);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9167")]
+        [Fact, WorkItem(9167, "https://github.com/dotnet/roslyn/issues/9167")]
         public void IteratorShouldCompileWithoutOptionalAttributes()
         {
             #region IL for corlib without CompilerGeneratedAttribute or DebuggerNonUserCodeAttribute
@@ -2395,7 +2395,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9463")]
+        [Fact, WorkItem(9463, "https://github.com/dotnet/roslyn/issues/9463")]
         public void IEnumerableIteratorReportsDiagnosticsWhenCoreTypesAreMissing()
         {
             // Note that IDisposable.Dispose, IEnumerator.Current and other types are missing
@@ -2463,7 +2463,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.Generic.IEnumerable`1", "GetEnumerator").WithLocation(31, 57));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9463")]
+        [Fact, WorkItem(9463, "https://github.com/dotnet/roslyn/issues/9463")]
         public void IEnumeratorIteratorReportsDiagnosticsWhenCoreTypesAreMissing()
         {
             // Note that IDisposable.Dispose and other types are missing
@@ -2522,7 +2522,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21077")]
+        [Fact, WorkItem(21077, "https://github.com/dotnet/roslyn/issues/21077")]
         public void NoExtraCapturing_01()
         {
             // Note that the variable i is not captured in any of these three async methods.
@@ -2877,7 +2877,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5062")]
+        [Fact, WorkItem(5062, "https://github.com/dotnet/roslyn/issues/5062")]
         public void LocalLiftingVsSwitch()
         {
             var source =

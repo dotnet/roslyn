@@ -3376,7 +3376,7 @@ public class C
             );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25264"), CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(25264, "https://github.com/dotnet/roslyn/issues/25264"), CompilerTrait(CompilerFeature.IOperation)]
         public void TestNewRefArray()
         {
             var text = @"
@@ -3415,7 +3415,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new ref[
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(text, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53113")]
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
         public void TestRefOnPointerIndirection_01()
         {
             var code = @"
@@ -3469,7 +3469,7 @@ unsafe
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53113")]
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
         public void TestRefOnPointerIndirection_02()
         {
             var unsafeAsPointerIl = @"
@@ -3538,7 +3538,7 @@ unsafe
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53113")]
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
         public void TestRefOnPointerIndirection_03()
         {
             var code = @"
@@ -3603,7 +3603,7 @@ unsafe
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53113")]
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
         public void TestRefOnPointerArrayAccess_01()
         {
             var code = @"
@@ -3655,7 +3655,7 @@ unsafe
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53113")]
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
         public void TestRefOnPointerArrayAccess_02()
         {
             var code = @"
@@ -3712,7 +3712,7 @@ unsafe
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60905")]
+        [WorkItem(60905, "https://github.com/dotnet/roslyn/issues/60905")]
         public void ReadValueAndDiscard_01()
         {
             var source =
@@ -3762,7 +3762,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60905")]
+        [WorkItem(60905, "https://github.com/dotnet/roslyn/issues/60905")]
         public void ReadValueAndDiscard_02()
         {
             var source =
@@ -3813,7 +3813,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60905")]
+        [WorkItem(60905, "https://github.com/dotnet/roslyn/issues/60905")]
         public void ReadValueAndDiscard_03()
         {
             var source =
@@ -3865,7 +3865,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60905")]
+        [WorkItem(60905, "https://github.com/dotnet/roslyn/issues/60905")]
         public void ReadValueAndDiscard_04()
         {
             var source =

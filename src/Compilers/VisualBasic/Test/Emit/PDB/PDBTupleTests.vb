@@ -49,7 +49,7 @@ End Class
 </symbols>)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/17947")>
+        <WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub VariablesAndConstantsInUnreachableCode()
             Dim source = "

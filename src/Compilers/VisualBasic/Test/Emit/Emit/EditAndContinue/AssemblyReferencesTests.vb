@@ -277,7 +277,7 @@ End Class
                         "Lib, Version=1.0.2000.1001, Culture=neutral, PublicKeyToken=null", "1.0.2000.1002")))
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9004")>
+        <Fact, WorkItem(9004, "https://github.com/dotnet/roslyn/issues/9004")>
         Public Sub DependencyVersionWildcardsCollisions()
             Dim srcLib01 = "
 <Assembly: System.Reflection.AssemblyVersion(""1.0.0.1"")>
@@ -353,7 +353,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/202017")>
+        <WorkItem(202017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/202017")>
         Public Sub CurrentCompilationVersionWildcards()
             Dim source0 = MarkedSource("
 Imports System

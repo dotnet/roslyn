@@ -386,7 +386,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530663")>
+    <WorkItem(530663, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530663")>
     <Fact()>
     Public Sub Bug16663()
         Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -430,7 +430,7 @@ End Module
         compilation.AssertNoErrors()
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530663")>
+    <WorkItem(530663, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530663")>
     <Fact()>
     Public Sub ParseXmlNameWithLeadingSpaces()
         ParseAndVerify(<![CDATA[
@@ -465,8 +465,8 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530663")>
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547297")>
+    <WorkItem(530663, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530663")>
+    <WorkItem(547297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547297")>
     <Fact>
     Public Sub ParseOpenBracket()
         ParseAndVerify(<![CDATA[
@@ -476,7 +476,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697115")>
+    <WorkItem(697115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697115")>
     <Fact()>
     Public Sub Bug697115()
         ParseAndVerify(<![CDATA[
@@ -513,7 +513,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697269")>
+    <WorkItem(697269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697269")>
     <Fact()>
     Public Sub Bug697269()
         ParseAndVerify(<![CDATA[

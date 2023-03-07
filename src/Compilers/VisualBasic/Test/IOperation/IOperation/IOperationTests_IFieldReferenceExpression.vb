@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits SemanticModelTestBase
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub FieldReference_Attribute()
             Dim source = <![CDATA[
 Imports System.Diagnostics
@@ -46,7 +46,7 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Conditional(
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7582")>
+        <Fact, WorkItem(7582, "https://github.com/dotnet/roslyn/issues/7582")>
         Public Sub FieldReference_ImplicitMe()
             Dim source = <![CDATA[
 Class C
@@ -69,7 +69,7 @@ IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Typ
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7582")>
+        <Fact, WorkItem(7582, "https://github.com/dotnet/roslyn/issues/7582")>
         Public Sub FieldReference_ExplicitMe()
             Dim source = <![CDATA[
 Class C
@@ -92,7 +92,7 @@ IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Typ
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7582")>
+        <Fact, WorkItem(7582, "https://github.com/dotnet/roslyn/issues/7582")>
         Public Sub FieldReference_MyBase()
             Dim source = <![CDATA[
 Class C
@@ -117,7 +117,7 @@ IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Typ
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7582")>
+        <Fact, WorkItem(7582, "https://github.com/dotnet/roslyn/issues/7582")>
         Public Sub FieldReference_MyClass()
             Dim source = <![CDATA[
 Class C

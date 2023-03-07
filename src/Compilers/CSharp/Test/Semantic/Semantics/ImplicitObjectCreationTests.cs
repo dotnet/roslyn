@@ -4437,7 +4437,7 @@ public class Source
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49547")]
+        [Fact, WorkItem(49547, "https://github.com/dotnet/roslyn/issues/49547")]
         public void CallerMemberNameAttributeWithImplicitObjectCreation()
         {
             string source = @"
@@ -4504,7 +4504,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50030")]
+        [WorkItem(50030, "https://github.com/dotnet/roslyn/issues/50030")]
         public void GetCollectionInitializerSymbolInfo()
         {
             var source = @"
@@ -4584,7 +4584,7 @@ class X
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50489")]
+        [WorkItem(50489, "https://github.com/dotnet/roslyn/issues/50489")]
         public void InEarlyWellknownAttribute_01()
         {
             var source1 = @"
@@ -4712,7 +4712,7 @@ public class C : System.Attribute
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54193")]
+        [Fact, WorkItem(54193, "https://github.com/dotnet/roslyn/issues/54193")]
         public void InSwitchExpression()
         {
             var source = @"
@@ -4736,7 +4736,7 @@ class C
                 .VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57088")]
+        [Fact, WorkItem(57088, "https://github.com/dotnet/roslyn/issues/57088")]
         public void ConstantPattern_01()
         {
             var source = @"
@@ -4775,7 +4775,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57088")]
+        [Fact, WorkItem(57088, "https://github.com/dotnet/roslyn/issues/57088")]
         public void ConstantPattern_02()
         {
             var source = @"
@@ -4801,7 +4801,7 @@ class C
             verifier.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57088")]
+        [Fact, WorkItem(57088, "https://github.com/dotnet/roslyn/issues/57088")]
         public void ConstantPattern_03()
         {
             var source = @"
@@ -4825,7 +4825,7 @@ namespace SomeNamespace{
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(5, 8));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57088")]
+        [Fact, WorkItem(57088, "https://github.com/dotnet/roslyn/issues/57088")]
         public void ConstantPattern_04()
         {
             var source = @"
@@ -4861,7 +4861,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60960")]
+        [Fact, WorkItem(60960, "https://github.com/dotnet/roslyn/issues/60960")]
         public void TestInCollectionInitializer()
         {
             var source = @"

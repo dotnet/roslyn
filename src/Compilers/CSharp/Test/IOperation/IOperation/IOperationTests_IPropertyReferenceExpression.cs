@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class IOperationTests_IPropertyReferenceExpression : SemanticModelTestBase
     {
-        [CompilerTrait(CompilerFeature.IOperation), WorkItem("https://github.com/dotnet/roslyn/issues/21769")]
+        [CompilerTrait(CompilerFeature.IOperation), WorkItem(21769, "https://github.com/dotnet/roslyn/issues/21769")]
         [Fact]
         public void IPropertyReferenceExpression_PropertyReferenceInDerivedTypeUsesDerivedTypeAsInstanceType()
         {
@@ -1007,7 +1007,7 @@ Block[B12] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45692")]
+        [Fact, WorkItem(45692, "https://github.com/dotnet/roslyn/issues/45692")]
         public void NestedObjectInitializerMissingGet()
         {
             var comp = CreateCompilation(@"
@@ -1045,7 +1045,7 @@ IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation,
             ", DiagnosticDescription.None);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45692")]
+        [Fact, WorkItem(45692, "https://github.com/dotnet/roslyn/issues/45692")]
         public void NestedObjectInitializerMissingGet_NestedInitializer()
         {
             var comp = CreateCompilation(@"

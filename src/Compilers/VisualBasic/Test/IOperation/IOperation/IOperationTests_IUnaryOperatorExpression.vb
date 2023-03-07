@@ -1818,7 +1818,7 @@ IUnaryOperation (UnaryOperatorKind.Not) (OperatorMethod: Function CustomType.op_
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/18135")>
+        <Fact(), WorkItem(18135, "https://github.com/dotnet/roslyn/issues/18135")>
         Public Sub Test_UnaryOperatorExpression_Type_And_TrueFalse()
             Dim source = <![CDATA[
 
@@ -1871,7 +1871,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If x And
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/18135")>
+        <Fact(), WorkItem(18135, "https://github.com/dotnet/roslyn/issues/18135")>
         Public Sub Test_UnaryOperatorExpression_Type_Or_TrueFalse()
             Dim source = <![CDATA[
 

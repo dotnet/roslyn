@@ -2141,7 +2141,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MaxValue + 1"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648109")]
+        [WorkItem(648109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648109")]
         [Fact]
         public void CheckedExpressionWithDecimal()
         {
@@ -2168,7 +2168,7 @@ class M
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543894"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543924")]
+        [WorkItem(543894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543894"), WorkItem(543924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543924")]
         [Fact]
         public void CheckedOperatorOnEnumOverflow()
         {
@@ -2199,7 +2199,7 @@ class Test
                 expectedOutput: "PASS");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529263")]
+        [WorkItem(529263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529263")]
         [Fact]
         public void CheckedOperatorOnLambdaExpr()
         {
@@ -2231,7 +2231,7 @@ class Program
                 expectedOutput: "PASS");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543981")]
+        [Fact, WorkItem(543981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543981")]
         public void CheckedOperatorOnUnaryExpression()
         {
             var source = @"
@@ -2277,7 +2277,7 @@ class Program
                 expectedOutput: "OV-0");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543983")]
+        [Fact, WorkItem(543983, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543983")]
         public void CheckedStatementWithCompoundAssignment()
         {
             var source = @"
@@ -2308,7 +2308,7 @@ public class MyClass
                 expectedOutput: "32000OV");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546872")]
+        [Fact, WorkItem(546872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546872")]
         public void CheckPostIncrementOnBaseProtectedClassMember()
         {
             var source = @"
@@ -2473,7 +2473,7 @@ class Derived2 : Base1
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18459")]
+        [WorkItem(18459, "https://github.com/dotnet/roslyn/issues/18459")]
         public void CheckedConversionsInExpressionTrees_ImplicitTuple()
         {
             CheckedConversionInExpressionTree_Implicit("(int, int)", "(int, int)?", ConvertMethod.Convert);
@@ -2784,7 +2784,7 @@ class C
                 expectedMethod == ConvertMethod.ConvertChecked);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61843")]
+        [Fact, WorkItem(61843, "https://github.com/dotnet/roslyn/issues/61843")]
         public void SwitchExpressionInCheckedExpression()
         {
             var source = """
@@ -2899,7 +2899,7 @@ public static class C
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61843")]
+        [Fact, WorkItem(61843, "https://github.com/dotnet/roslyn/issues/61843")]
         public void SpeculationInCheckedExpression()
         {
             var source = """
@@ -2926,7 +2926,7 @@ class C
                 model.GetSpeculativeSymbolInfo(checkedNode.Position + 2, nodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61843")]
+        [Fact, WorkItem(61843, "https://github.com/dotnet/roslyn/issues/61843")]
         public void SpeculationInUncheckedExpression()
         {
             var source = """

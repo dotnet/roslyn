@@ -423,7 +423,7 @@ End Class
 
 #Region "For Loop"
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529183")>
+        <WorkItem(529183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529183")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ForLoop01()
             Dim source =
@@ -482,7 +482,7 @@ End Module
  </symbols>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529183")>
+        <WorkItem(529183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529183")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ForLoop02()
             Dim source =

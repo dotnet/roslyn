@@ -978,7 +978,7 @@ class Program
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/58790")]
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(null)]
@@ -1067,7 +1067,7 @@ class Program
                 actualText);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/58790")]
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(null)]
@@ -1162,7 +1162,7 @@ class Program
                 actualText);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/58790")]
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(null)]
@@ -1597,7 +1597,7 @@ record struct R1
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y1").WithArguments("R1.y1").WithLocation(12, 14));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/58790")]
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(null)]
@@ -1683,7 +1683,7 @@ record struct R3
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y3").WithArguments("R3.y3").WithLocation(13, 14));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/58790")]
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
         [Fact]
         public void DefaultThisInitializer_11()
         {
@@ -1781,7 +1781,7 @@ class Program
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/58790")]
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(null)]
@@ -2502,7 +2502,7 @@ class Program
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/57870")]
+        [WorkItem(57870, "https://github.com/dotnet/roslyn/issues/57870")]
         [Fact]
         public void FieldInitializers_06()
         {
@@ -2584,7 +2584,7 @@ struct S4
                 Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(2, 8));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/57870")]
+        [WorkItem(57870, "https://github.com/dotnet/roslyn/issues/57870")]
         [Fact]
         public void FieldInitializers_07()
         {
@@ -2666,7 +2666,7 @@ struct S4
                 Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(2, 8));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/57870")]
+        [WorkItem(57870, "https://github.com/dotnet/roslyn/issues/57870")]
         [Fact]
         public void FieldInitializers_08()
         {
@@ -3005,7 +3005,7 @@ S3 { X = 30 }
             CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, verify: Verification.Skipped, expectedOutput: expectedOutput);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/57870")]
+        [WorkItem(57870, "https://github.com/dotnet/roslyn/issues/57870")]
         [Fact]
         public void FieldInitializers_13()
         {
@@ -3680,7 +3680,7 @@ public struct S1
                 Diagnostic(ErrorCode.ERR_InteropStructContainsMethods, "i.F1()").WithArguments("S1").WithLocation(6, 18));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60568")]
+        [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
         [Fact]
         public void FieldInitializer_EscapeAnalysis_01()
         {
@@ -3703,7 +3703,7 @@ ref struct Example
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(6, 43));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60568")]
+        [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
         [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
         public void FieldInitializer_EscapeAnalysis_02()
         {
@@ -3726,7 +3726,7 @@ ref struct Example
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(6, 50));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60568")]
+        [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
         [Fact]
         public void FieldInitializer_EscapeAnalysis_03()
         {
@@ -3777,7 +3777,7 @@ ref struct Example
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(6, 51));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60568")]
+        [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
         [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
         public void FieldInitializer_EscapeAnalysis_05()
         {
@@ -3805,7 +3805,7 @@ struct Example
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60568")]
+        [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
         [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
         public void FieldInitializer_EscapeAnalysis_06()
         {
@@ -3832,7 +3832,7 @@ record struct Example()
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60568")]
+        [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
         [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
         public void FieldInitializer_EscapeAnalysis_07()
         {
@@ -4091,7 +4091,7 @@ public struct S
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66046")]
+        [Fact, WorkItem(66046, "https://github.com/dotnet/roslyn/issues/66046")]
         public void ImplicitlyInitializedField_ConstructorInitializer_01()
         {
             var source = """
@@ -4111,7 +4111,7 @@ public struct S1
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("S1.F").WithLocation(7, 24));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66046")]
+        [Fact, WorkItem(66046, "https://github.com/dotnet/roslyn/issues/66046")]
         public void ImplicitlyInitializedField_ConstructorInitializer_02()
         {
             var source = """
@@ -4133,7 +4133,7 @@ public struct S1
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("S1.F").WithLocation(9, 26));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66046")]
+        [Fact, WorkItem(66046, "https://github.com/dotnet/roslyn/issues/66046")]
         public void ImplicitlyInitializedField_ConstructorInitializer_03()
         {
             var source = """
@@ -4288,7 +4288,7 @@ public struct S2
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/59890")]
+        [WorkItem(59890, "https://github.com/dotnet/roslyn/issues/59890")]
         public void ImplicitlyInitializedFields_Nested_PartiallyInitialized()
         {
             var source = @"
@@ -4330,7 +4330,7 @@ public struct S2
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/59890")]
+        [WorkItem(59890, "https://github.com/dotnet/roslyn/issues/59890")]
         public void ImplicitlyInitializedFields_Conditional_01()
         {
             var source = @"

@@ -239,7 +239,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")>
+        <WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")>
         <Fact>
         Public Sub PartialMethod()
             Dim source =
@@ -458,7 +458,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/930065")>
+        <Fact, WorkItem(930065, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/930065")>
         Public Sub ModifyConstructorBodyInPresenceOfExplicitInterfaceImplementation()
             Dim source =
 <compilation>
@@ -643,7 +643,7 @@ End Namespace
 ")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829353")>
+        <WorkItem(829353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829353")>
         <Fact()>
         Public Sub PrivateImplementationDetails_ArrayInitializer_FromMetadata()
             Dim sources0 = <compilation>
@@ -736,7 +736,7 @@ End Class
         ''' Should not generate method for string switch since
         ''' the CLR only allows adding private members.
         ''' </summary>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834086")>
+        <WorkItem(834086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834086")>
         <Fact()>
         Public Sub PrivateImplementationDetails_ComputeStringHash()
             Dim sources = <compilation>
@@ -1087,7 +1087,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/54939")>
+        <WorkItem(54939, "https://github.com/dotnet/roslyn/issues/54939")>
         Sub AddNamespace()
             Dim source0 = "
 Class C
@@ -1176,7 +1176,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844472")>
+        <WorkItem(844472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844472")>
         <Fact()>
         Public Sub MethodSignatureWithNoPIAType()
             Dim sourcesPIA = <compilation>
@@ -1360,7 +1360,7 @@ BC37230: Cannot continue since the edit includes a reference to an embedded type
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844536")>
+        <WorkItem(844536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844536")>
         <Fact()>
         Public Sub NoPIATypeInNamespace()
             Dim sourcesPIA = <compilation>
@@ -1431,7 +1431,7 @@ BC37230: Cannot continue since the edit includes a reference to an embedded type
             End Using
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1175704")>
+        <Fact, WorkItem(1175704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1175704")>
         Public Sub EventFields()
             Dim source0 = MarkedSource("
 Imports System
@@ -1782,7 +1782,7 @@ End Class" & attributeSource
         ''' Should use TypeDef rather than TypeRef for unrecognized
         ''' local of a type defined in the original assembly.
         ''' </summary>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910777")>
+        <WorkItem(910777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910777")>
         <Fact()>
         Public Sub UnrecognizedLocalOfTypeFromAssembly()
             Dim source =
@@ -1845,7 +1845,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837315")>
+        <Fact, WorkItem(837315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837315")>
         Public Sub AddingSetAccessor()
             Dim source0 =
 <compilation>
@@ -1982,7 +1982,7 @@ End Module</file>
         End Sub
 
 #Region "Local Slots"
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828389")>
+        <Fact, WorkItem(828389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828389")>
         Public Sub CatchClause()
             Dim source0 =
 <compilation>
@@ -2441,7 +2441,7 @@ End Class
         ''' used by the method body, since there may be existing
         ''' references to that slot, in a Watch window for instance.
         ''' </summary>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843320")>
+        <WorkItem(843320, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843320")>
         <Fact>
         Public Sub PreserveLocalTypes()
             Dim sources0 = <compilation>
@@ -4574,7 +4574,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/1292")>
+        <WorkItem(1292, "https://github.com/dotnet/roslyn/issues/1292")>
         <Fact>
         Public Sub AnonymousTypes_Key()
             Dim sources0 = <compilation>
@@ -4990,7 +4990,7 @@ End Class
         ''' Should not re-use locals with custom modifiers.
         ''' </summary>
         <Fact(Skip:="9854")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/9854")>
+        <WorkItem(9854, "https://github.com/dotnet/roslyn/issues/9854")>
         Public Sub LocalType_CustomModifiers()
             ' Equivalent method signature to VB, but
             ' with optional modifiers on locals.
@@ -5094,7 +5094,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/839414")>
+        <WorkItem(839414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/839414")>
         <Fact>
         Public Sub Bug839414()
             Dim source0 =
@@ -5130,7 +5130,7 @@ End Module
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849649")>
+        <WorkItem(849649, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849649")>
         <Fact>
         Public Sub Bug849649()
             Dim source0 =
@@ -5222,7 +5222,7 @@ End Module
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003274")>
+        <WorkItem(1003274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003274")>
         <Fact>
         Public Sub ConditionalAttribute()
             Const source0 = "

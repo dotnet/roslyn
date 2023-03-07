@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<BadImageFormatException>(() => metadata.GetModules());
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547015")]
+        [Fact, WorkItem(547015, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547015")]
         public void IncorrectCustomAssemblyTableSize_TooManyMethodSpecs()
         {
             var metadata = AssemblyMetadata.CreateFromImage(TestResources.MetadataTests.Invalid.IncorrectCustomAssemblyTableSize_TooManyMethodSpecs);

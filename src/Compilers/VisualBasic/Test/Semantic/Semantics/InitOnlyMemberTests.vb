@@ -3031,7 +3031,7 @@ BC30937: Member 'CL1.P' that matches this signature cannot be implemented becaus
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/56665")>
+        <WorkItem(56665, "https://github.com/dotnet/roslyn/issues/56665")>
         Public Sub LateBound_01()
 
             Dim csSource =
@@ -3120,7 +3120,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/56665")>
+        <WorkItem(56665, "https://github.com/dotnet/roslyn/issues/56665")>
         Public Sub LateBound_02()
 
             Dim csSource =
@@ -4294,7 +4294,7 @@ BC37311: Init-only property 'Item' can only be assigned by an object member init
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub ModReqOnSetAccessorParameter()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit C extends System.Object
@@ -4876,7 +4876,7 @@ BC30643: Property 'C.Property1' is of an unsupported type.
         End Sub
 
         <Fact()>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/50327")>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
         Public Sub ModReqOnGetAccessorReturnValue()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit C extends System.Object

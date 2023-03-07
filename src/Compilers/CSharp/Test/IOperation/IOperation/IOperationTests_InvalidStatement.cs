@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class IOperationTests_InvalidStatement : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidVariableDeclarationStatement()
         {
             string source = @"
@@ -67,7 +67,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidSwitchStatementExpression()
         {
             string source = @"
@@ -118,7 +118,7 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidSwitchStatementCaseLabel()
         {
             string source = @"
@@ -166,7 +166,7 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidIfStatement()
         {
             string source = @"
@@ -212,7 +212,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidIfElseStatement()
         {
             string source = @"
@@ -277,7 +277,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidForStatement()
         {
             string source = @"
@@ -326,7 +326,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidGotoCaseStatement_MissingLabel()
         {
             string source = @"
@@ -360,7 +360,7 @@ IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40714")]
+        [Fact, WorkItem(40714, "https://github.com/dotnet/roslyn/issues/40714")]
         public void InvalidGotoCaseStatement_BadLabel()
         {
             string source = @"
@@ -416,7 +416,7 @@ IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidGotoCaseStatement_OutsideSwitchStatement()
         {
             string source = @"
@@ -445,7 +445,7 @@ IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidBreakStatement_OutsideLoopOrSwitch()
         {
             string source = @"
@@ -473,7 +473,7 @@ IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'break
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidContinueStatement_OutsideLoopOrSwitch()
         {
             string source = @"

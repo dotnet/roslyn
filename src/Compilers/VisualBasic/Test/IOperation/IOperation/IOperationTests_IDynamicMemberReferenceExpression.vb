@@ -686,7 +686,7 @@ Block[B6] - Exit
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/27034")>
+        <WorkItem(27034, "https://github.com/dotnet/roslyn/issues/27034")>
         <Fact()>
         Public Sub DynamicMemberReference_OffObjectCollectionInitializer()
             Dim source = <![CDATA[

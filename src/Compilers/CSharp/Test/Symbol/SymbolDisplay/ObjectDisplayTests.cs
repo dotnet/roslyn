@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("@\"\"\"\n\"", ObjectDisplay.FormatLiteral("\"\n", ObjectDisplayOptions.UseQuotes));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529850")]
+        [Fact, WorkItem(529850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529850")]
         public void CultureInvariance()
         {
             using (new CultureContext(new CultureInfo("de-DE", useUserOverride: false)))

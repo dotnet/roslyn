@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546277")]
+        [WorkItem(546277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546277")]
         [Fact]
         public void TestDecodeTypeNameMatrix()
         {
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             DecodeTypeNamesAndVerify(namesToDecode, expectedDecodedNames);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546277")]
+        [WorkItem(546277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546277")]
         [Fact]
         public void TestDecodeArrayTypeName_Bug15478()
         {
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expectedArrayRanks: new[] { 1 });
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546277")]
+        [WorkItem(546277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546277")]
         [Fact]
         public void TestDecodeArrayTypeName_Valid()
         {
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expectedArrayRanks: new[] { 0, 2 });
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546277")]
+        [WorkItem(546277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546277")]
         [Fact]
         public void TestDecodeArrayTypeName_Invalid()
         {
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expectedArrayRanks: new[] { 0 });
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7396")]
+        [Fact, WorkItem(7396, "https://github.com/dotnet/roslyn/issues/7396")]
         public void ObfuscatedNamespaceNames_01()
         {
             var result = new ArrayBuilder<IGrouping<string, TypeDefinitionHandle>>();
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(1, array[2].Value.Count());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7396")]
+        [Fact, WorkItem(7396, "https://github.com/dotnet/roslyn/issues/7396")]
         public void ObfuscatedNamespaceNames_02()
         {
             var result = new ArrayBuilder<IGrouping<string, TypeDefinitionHandle>>();

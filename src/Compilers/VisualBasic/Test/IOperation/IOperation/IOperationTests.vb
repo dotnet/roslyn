@@ -329,7 +329,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=382240")>
+        <WorkItem(382240, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=382240")>
         Public Sub NothingOrAddressOfInPlaceOfParamArray()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -842,7 +842,7 @@ IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, T
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23001")>
+        <Fact, WorkItem(23001, "https://github.com/dotnet/roslyn/issues/23001")>
         Public Sub TestGetOperationForQualifiedName()
             Dim source = <![CDATA[
 Public Class Test
@@ -876,7 +876,7 @@ End Class
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/23283")>
+        <WorkItem(23283, "https://github.com/dotnet/roslyn/issues/23283")>
         <Fact()>
         Public Sub TestOptionStatement_01()
             Dim source = <![CDATA[
@@ -902,7 +902,7 @@ BC30024: Statement is not valid inside a method.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/23283")>
+        <WorkItem(23283, "https://github.com/dotnet/roslyn/issues/23283")>
         <Fact()>
         Public Sub TestOptionStatement_02()
             Dim source = <![CDATA[

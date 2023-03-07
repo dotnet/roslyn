@@ -306,7 +306,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/48417")>
+        <WorkItem(48417, "https://github.com/dotnet/roslyn/issues/48417")>
         Public Sub CheckPropertyFieldAndAccessorsNamesTest()
             Dim compilationDef =
     <compilation name="CheckPropertyFieldAndAccessorsNamesTest">
@@ -616,7 +616,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641639")>
+        <WorkItem(641639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641639")>
         Public Sub Bug641639()
             Dim moduleDef =
     <compilation name="TestModule">
@@ -749,7 +749,7 @@ End Module
 
 #End Region
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/1319")>
+        <WorkItem(1319, "https://github.com/dotnet/roslyn/issues/1319")>
         <ConditionalFact(GetType(DesktopOnly), Reason:=ConditionalSkipReason.NetModulesNeedDesktop)>
         Public Sub MultipleNetmodulesWithAnonymousTypes()
             Dim compilationDef1 =

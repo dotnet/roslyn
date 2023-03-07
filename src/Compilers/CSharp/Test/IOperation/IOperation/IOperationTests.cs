@@ -382,7 +382,7 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=382240")]
+        [WorkItem(382240, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=382240")]
         public void NullInPlaceOfParamArray()
         {
             var text = @"
@@ -494,7 +494,7 @@ public class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22964")]
+        [WorkItem(22964, "https://github.com/dotnet/roslyn/issues/22964")]
         [Fact]
         public void GlobalStatement_Parent()
         {
@@ -528,7 +528,7 @@ System.Console.WriteLine();
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23001")]
+        [WorkItem(23001, "https://github.com/dotnet/roslyn/issues/23001")]
         [Fact]
         public void TestGetOperationForQualifiedName()
         {
@@ -639,7 +639,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26649")]
+        [Fact, WorkItem(26649, "https://github.com/dotnet/roslyn/issues/26649")]
         public void IncrementalBindingReusesBlock()
         {
             var source = @"
@@ -695,7 +695,7 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation)), WorkItem("https://github.com/dotnet/roslyn/issues/45955")]
+        [ConditionalFact(typeof(NoIOperationValidation)), WorkItem(45955, "https://github.com/dotnet/roslyn/issues/45955")]
         public void SemanticModelFieldInitializerRace()
         {
             var source = $@"

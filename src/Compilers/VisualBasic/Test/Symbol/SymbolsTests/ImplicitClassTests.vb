@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class ImplicitClassTests
         Inherits BasicTestBase
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6040")>
+        <Fact, WorkItem(6040, "https://github.com/dotnet/roslyn/issues/6040")>
         Public Sub ImplicitClassSymbol()
             Dim c = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
@@ -52,7 +52,7 @@ End Namespace
         End Sub
 
         <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40682: The test hook is blocked by this issue.
-        <WorkItem("https://github.com/dotnet/roslyn/issues/40682")>
+        <WorkItem(40682, "https://github.com/dotnet/roslyn/issues/40682")>
         Public Sub ScriptClassSymbol()
             Dim c = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">

@@ -578,7 +578,7 @@ class C
             }
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530445")]
+        [WorkItem(530445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530445")]
         [Fact]
         public void TestFieldInitializersInOptimizedMode6()
         {

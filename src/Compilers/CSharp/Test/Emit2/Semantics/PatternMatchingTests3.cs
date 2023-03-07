@@ -423,7 +423,7 @@ public class C
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35278")]
+        [Fact, WorkItem(35278, "https://github.com/dotnet/roslyn/issues/35278")]
         public void ValEscapeForSwitchExpression_01()
         {
             var source = @"
@@ -474,7 +474,7 @@ class Program
             var comp = CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35278")]
+        [Fact, WorkItem(35278, "https://github.com/dotnet/roslyn/issues/35278")]
         public void ValEscapeForSwitchExpression_02()
         {
             var source = @"
@@ -1243,7 +1243,7 @@ Target->Ultimate
             CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38226")]
+        [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
         public void TargetTypedSwitch_NaturalTypeWithUntypedArm_01()
         {
             var source = @"
@@ -1264,7 +1264,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38226")]
+        [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
         public void TargetTypedSwitch_NaturalTypeWithUntypedArm_02()
         {
             var source = @"
@@ -1282,7 +1282,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38226")]
+        [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
         public void TargetTypedSwitch_NaturalTypeWithUntypedArm_03()
         {
             var source = @"
@@ -1306,7 +1306,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38226")]
+        [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
         public void TargetTypedSwitch_NaturalTypeWithUntypedArm_04()
         {
             var source = @"
@@ -1331,7 +1331,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38226")]
+        [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
         public void TargetTypedSwitch_NaturalTypeWithUntypedArm_05()
         {
             var source = @"
@@ -1355,7 +1355,7 @@ class Program
             CompileAndVerify(CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(), expectedOutput: "0");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38226")]
+        [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
         public void TargetTypedSwitch_NaturalTypeWithUntypedArm_06()
         {
             var source = @"
@@ -1379,7 +1379,7 @@ class Program
             CompileAndVerify(CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(), expectedOutput: "null");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38686")]
+        [Fact, WorkItem(38686, "https://github.com/dotnet/roslyn/issues/38686")]
         public void TargetTypedSwitch_AnyTypedSwitchWithoutTargetType()
         {
             var source = @"
@@ -1613,7 +1613,7 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph: expectedFlowGraph);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39082")]
+        [Fact, WorkItem(39082, "https://github.com/dotnet/roslyn/issues/39082")]
         public void TargetTypedSwitch_CastSwitchContainingOnlyLambda()
         {
             var source = @"
@@ -1633,7 +1633,7 @@ public static class C {
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39082")]
+        [Fact, WorkItem(39082, "https://github.com/dotnet/roslyn/issues/39082")]
         public void TargetTypedSwitch_CastSwitchContainingOnlyMethodGroup()
         {
             var source = @"
@@ -1654,7 +1654,7 @@ public static class C {
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39767")]
+        [Fact, WorkItem(39767, "https://github.com/dotnet/roslyn/issues/39767")]
         public void PreferUserDefinedConversionOverSwitchExpressionConversion()
         {
             var source = @"
@@ -1699,7 +1699,7 @@ class Source2
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40295")]
+        [WorkItem(40295, "https://github.com/dotnet/roslyn/issues/40295")]
         [Fact]
         public void SwitchExpressionWithAmbiguousImplicitConversion_01()
         {
@@ -1734,7 +1734,7 @@ class C
                 );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40295")]
+        [WorkItem(40295, "https://github.com/dotnet/roslyn/issues/40295")]
         [Fact]
         public void SwitchExpressionWithAmbiguousImplicitConversion_02()
         {
@@ -1766,7 +1766,7 @@ class C
                 );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40295")]
+        [WorkItem(40295, "https://github.com/dotnet/roslyn/issues/40295")]
         [Fact]
         public void SwitchExpressionWithAmbiguousImplicitConversion_03()
         {
@@ -1798,7 +1798,7 @@ class C
                 );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40295")]
+        [WorkItem(40295, "https://github.com/dotnet/roslyn/issues/40295")]
         [Fact]
         public void SwitchExpressionWithAmbiguousImplicitConversion_04()
         {
@@ -1830,7 +1830,7 @@ class C
                 );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40714")]
+        [WorkItem(40714, "https://github.com/dotnet/roslyn/issues/40714")]
         [Fact]
         public void BadGotoCase_01()
         {
@@ -1895,7 +1895,7 @@ class C
             VerifyModelForDuplicateVariableDeclarationInSameScope(model, arrDecl[1], LocalDeclarationKind.DeclarationExpressionVariable);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40714")]
+        [WorkItem(40714, "https://github.com/dotnet/roslyn/issues/40714")]
         [Fact]
         public void BadGotoCase_02()
         {
@@ -1947,7 +1947,7 @@ class C
             VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl[0], x2Ref);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40533")]
+        [Fact, WorkItem(40533, "https://github.com/dotnet/roslyn/issues/40533")]
         public void DisallowDesignatorsUnderNotAndOr()
         {
             var source = @"
@@ -2023,7 +2023,7 @@ class Animal { }
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40149")]
+        [Fact, WorkItem(40149, "https://github.com/dotnet/roslyn/issues/40149")]
         public void ArrayTypePattern_01()
         {
             var source = @"
@@ -2096,7 +2096,7 @@ N.G<B>[]
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40149")]
+        [Fact, WorkItem(40149, "https://github.com/dotnet/roslyn/issues/40149")]
         public void ArrayTypePattern_02()
         {
             var source = @"
@@ -2168,7 +2168,7 @@ N.G<B>[]";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40149")]
+        [Fact, WorkItem(40149, "https://github.com/dotnet/roslyn/issues/40149")]
         public void ArrayTypePattern_03()
         {
             var source = @"
@@ -2240,7 +2240,7 @@ N.G<B>[]";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40149")]
+        [Fact, WorkItem(40149, "https://github.com/dotnet/roslyn/issues/40149")]
         public void ParsedAsExpressionBoundAsType_01()
         {
             var source = @"
@@ -2289,7 +2289,7 @@ System.Int32";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40149")]
+        [Fact, WorkItem(40149, "https://github.com/dotnet/roslyn/issues/40149")]
         public void ParsedAsExpressionBoundAsType_02()
         {
             var source = @"
@@ -2930,7 +2930,7 @@ class C
         }
 
         [ConditionalTheory(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/44657
-        [WorkItem("https://github.com/dotnet/roslyn/issues/44657")]
+        [WorkItem(44657, "https://github.com/dotnet/roslyn/issues/44657")]
         [InlineData("sbyte", true)]
         [InlineData("short", true)]
         [InlineData("int", true)]
@@ -3281,7 +3281,7 @@ System.Int64
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43377")]
+        [Fact, WorkItem(43377, "https://github.com/dotnet/roslyn/issues/43377")]
         public void OutputType_02()
         {
             var source = @"#nullable enable
@@ -4062,7 +4062,7 @@ struct S
         }
 
         [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/44658
-        [WorkItem("https://github.com/dotnet/roslyn/issues/44658")]
+        [WorkItem(44658, "https://github.com/dotnet/roslyn/issues/44658")]
         public void New9PatternsSemanticModel_01()
         {
             // Tests for the semantic model in new patterns as of C# 9.0.
@@ -4291,7 +4291,7 @@ class Program
         }
 
         [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/44658
-        [WorkItem("https://github.com/dotnet/roslyn/issues/44658")]
+        [WorkItem(44658, "https://github.com/dotnet/roslyn/issues/44658")]
         public void New9PatternsSemanticModel_02()
         {
             // Tests for the semantic model in new patterns as of C# 9.0.
@@ -5068,7 +5068,7 @@ class BoundNode
             compVerifier.VerifyIL("C.Main3", code);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38665")]
+        [Fact, WorkItem(38665, "https://github.com/dotnet/roslyn/issues/38665")]
         public void SpanForFallThrough()
         {
             var source = @"
@@ -5504,7 +5504,7 @@ static class Assert
             });
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43308")]
+        [Fact, WorkItem(43308, "https://github.com/dotnet/roslyn/issues/43308")]
         public void RelationalEdgeTest_01()
         {
             var source =
@@ -5858,7 +5858,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44398")]
+        [Fact, WorkItem(44398, "https://github.com/dotnet/roslyn/issues/44398")]
         public void MismatchedExpressionPattern()
         {
             var source =
@@ -5894,7 +5894,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44518")]
+        [Fact, WorkItem(44518, "https://github.com/dotnet/roslyn/issues/44518")]
         public void ErrorRecovery_01()
         {
             var source =
@@ -5914,7 +5914,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44540")]
+        [Fact, WorkItem(44540, "https://github.com/dotnet/roslyn/issues/44540")]
         public void ErrorRecovery_02()
         {
             var source =
@@ -5952,7 +5952,7 @@ public class C {
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44540")]
+        [Fact, WorkItem(44540, "https://github.com/dotnet/roslyn/issues/44540")]
         public void ErrorRecovery_03()
         {
             var source =
@@ -5975,7 +5975,7 @@ public class C {
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44540")]
+        [Fact, WorkItem(44540, "https://github.com/dotnet/roslyn/issues/44540")]
         public void ErrorRecovery_04()
         {
             var source =
@@ -6462,7 +6462,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49262")]
+        [WorkItem(49262, "https://github.com/dotnet/roslyn/issues/49262")]
         public void IsNot_12()
         {
             var source =
@@ -6666,7 +6666,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49262")]
+        [WorkItem(49262, "https://github.com/dotnet/roslyn/issues/49262")]
         public void IsNot_16()
         {
             var source =
@@ -7424,7 +7424,7 @@ class C
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50232")]
+        [WorkItem(50232, "https://github.com/dotnet/roslyn/issues/50232")]
         public void Nonexhaustive_InvalidConstant_01()
         {
             var source =
@@ -7458,7 +7458,7 @@ static class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50232")]
+        [WorkItem(50232, "https://github.com/dotnet/roslyn/issues/50232")]
         public void Nonexhaustive_InvalidConstant_02()
         {
             var source =
@@ -7493,7 +7493,7 @@ static class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50232")]
+        [WorkItem(50232, "https://github.com/dotnet/roslyn/issues/50232")]
         public void Nonexhaustive_InvalidConstant_03()
         {
             var source =
@@ -7523,7 +7523,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "Color.Red.ToArgb()").WithArguments("red").WithLocation(13, 25));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/51936")]
+        [WorkItem(51936, "https://github.com/dotnet/roslyn/issues/51936")]
         [Theory]
         [InlineData("sbyte")]
         [InlineData("byte")]
@@ -7562,7 +7562,7 @@ $@"class Circle
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "100.0").WithArguments("double", type).WithLocation(5, 42));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/51936")]
+        [WorkItem(51936, "https://github.com/dotnet/roslyn/issues/51936")]
         [Theory]
         [InlineData("float")]
         [InlineData("double")]
@@ -7591,7 +7591,7 @@ $@"class Circle
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "shape").WithArguments("shape").WithLocation(5, 13));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/51936")]
+        [WorkItem(51936, "https://github.com/dotnet/roslyn/issues/51936")]
         [Fact]
         public void MismatchedConstantType_03()
         {
@@ -7621,7 +7621,7 @@ $@"class Circle
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56199")]
+        [WorkItem(56199, "https://github.com/dotnet/roslyn/issues/56199")]
         public void ArrayLength()
         {
             var source = @"using System;

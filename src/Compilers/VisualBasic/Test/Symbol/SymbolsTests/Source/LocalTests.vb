@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class LocalTests
         Inherits BasicTestBase
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/59709")>
+        <WorkItem(59709, "https://github.com/dotnet/roslyn/issues/59709")>
         <Fact>
         Public Sub UsingBlock()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -37,7 +37,7 @@ End Module
             Assert.True(local.IsUsing)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/59709")>
+        <WorkItem(59709, "https://github.com/dotnet/roslyn/issues/59709")>
         <Fact>
         Public Sub ForEach()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(

@@ -945,7 +945,7 @@ class C1
             );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22198")]
+        [WorkItem(22198, "https://github.com/dotnet/roslyn/issues/22198")]
         [Theory]
         [CombinatorialData]
         public void SpecialTypes_CorLib(bool includeCompilerFeatureRequired)

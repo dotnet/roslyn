@@ -552,7 +552,7 @@ using System;
             TestConditionMethods_DifferentSource(conditionalDefsDummy, conditionalDefs);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529683")]
+        [Fact, WorkItem(529683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529683")]
         public void CondMethodInDelegateCreationExpr()
         {
             var compilation = CreateCompilation(@"

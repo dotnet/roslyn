@@ -1399,7 +1399,7 @@ public class C : IA, IB<(nint, object, nuint[], object, nint, object, (System.In
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/45519")]
+        [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
         public void EmitAttribute_PartialMethods()
         {
             var source =

@@ -45,7 +45,7 @@ End Module
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
-        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/744146")>
+        <Fact, WorkItem(744146, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/744146")>
         Public Sub DefaultAwaitExpressionInfo()
             Dim awaitInfo As AwaitExpressionInfo = Nothing
 
@@ -4990,7 +4990,7 @@ BC42357: Some overloads here take an Async Function rather than an Async Sub. Co
 ]]></expected>)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547087")>
+        <Fact(), WorkItem(547087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547087")>
         Public Sub Bug17912_1()
             Dim source =
 <compilation>
@@ -5067,7 +5067,7 @@ BC42105: Function 'Test3' doesn't return a value on all code paths. A null refer
 
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547087")>
+        <Fact(), WorkItem(547087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547087")>
         Public Sub Bug17912_2()
             Dim source =
 <compilation>
@@ -5116,7 +5116,7 @@ BC42105: Function 'Test3' doesn't return a value on all code paths. A null refer
 </expected>)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547087")>
+        <Fact(), WorkItem(547087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547087")>
         Public Sub Bug17912_3()
             Dim source =
 <compilation>
@@ -5219,7 +5219,7 @@ BC42105: Function '<anonymous method>' doesn't return a value on all code paths.
 ]]></expected>)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568948")>
+        <Fact(), WorkItem(568948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568948")>
         Public Sub Bug568948()
             Dim source =
 <compilation>
@@ -5507,7 +5507,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066694")>
+        <Fact(), WorkItem(1066694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066694")>
         Public Sub Bug1066694()
             Dim source =
 <compilation>
@@ -5580,7 +5580,7 @@ Changed
 ]]>)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068084")>
+        <Fact(), WorkItem(1068084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068084")>
         Public Sub Bug1068084()
             Dim source =
 <compilation>
@@ -5610,7 +5610,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </expected>)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
+        <Fact(), WorkItem(1021941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
         Public Sub Bug1021941()
             Dim source =
 <compilation>
@@ -5672,7 +5672,7 @@ M1 is called for item 'Bar'
 ]]>)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1173166"), WorkItem("https://github.com/dotnet/roslyn/issues/2878")>
+        <Fact(), WorkItem(1173166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1173166"), WorkItem(2878, "https://github.com/dotnet/roslyn/issues/2878")>
         Public Sub CompoundAssignment()
             Dim source =
 <compilation>

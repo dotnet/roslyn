@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region Naming Tests
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529419")]
+        [WorkItem(529419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529419")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void AssemblyKeyFileAttributeNotExistFile(CSharpParseOptions parseOptions)
@@ -348,7 +348,7 @@ public class Test
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5662")]
+        [WorkItem(5662, "https://github.com/dotnet/roslyn/issues/5662")]
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void PubKeyContainerBogusOptions(CSharpParseOptions parseOptions)
@@ -433,7 +433,7 @@ public class C {}";
             Assert.Equal(CorFlags.ILOnly, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/9150")]
+        [WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void PublicKeyFromOptions_PublicSign(CSharpParseOptions parseOptions)
@@ -492,7 +492,7 @@ public class C {}
             );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/9150")]
+        [WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void KeyFileFromAttributes_PublicSign(CSharpParseOptions parseOptions)
@@ -512,7 +512,7 @@ public class C {}
             Assert.True(c.Options.PublicSign);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/9150")]
+        [WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void KeyContainerFromAttributes_PublicSign(CSharpParseOptions parseOptions)
@@ -1300,7 +1300,7 @@ public class A
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820450")]
+        [WorkItem(820450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820450")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void IVTGivesAccessToUsingDifferentKeys(CSharpParseOptions parseOptions)
@@ -1539,7 +1539,7 @@ public class Z
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyNameAttribute, parseOptions);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5665")]
+        [WorkItem(5665, "https://github.com/dotnet/roslyn/issues/5665")]
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void SignModuleKeyContainerBogus(CSharpParseOptions parseOptions)
@@ -1598,7 +1598,7 @@ public class Z
             Assert.True(success.Diagnostics[0].Code == (int)ErrorCode.ERR_SignButNoPrivateKey);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
+        [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void SignModuleKeyContainerCmdLine(CSharpParseOptions parseOptions)
@@ -1615,7 +1615,7 @@ public class Z
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyNameAttribute, parseOptions);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
+        [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void SignModuleKeyContainerCmdLine_1(CSharpParseOptions parseOptions)
@@ -1635,7 +1635,7 @@ public class C {}";
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyNameAttribute, parseOptions);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
+        [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void SignModuleKeyContainerCmdLine_2(CSharpParseOptions parseOptions)
@@ -1655,7 +1655,7 @@ public class C {}";
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
+        [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void SignModuleKeyFileCmdLine(CSharpParseOptions parseOptions)
@@ -1714,7 +1714,7 @@ public class C {}";
             Assert.True(ILValidation.IsStreamFullSigned(refStrm));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
+        [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void SignModuleKeyFileCmdLine_1(CSharpParseOptions parseOptions)
@@ -1732,7 +1732,7 @@ public class C {}";
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyFileAttribute, parseOptions);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
+        [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void SignModuleKeyFileCmdLine_2(CSharpParseOptions parseOptions)
@@ -1937,8 +1937,8 @@ public class C
             }
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545720")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530050")]
+        [WorkItem(545720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545720")]
+        [WorkItem(530050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530050")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void InvalidAssemblyName(CSharpParseOptions parseOptions)
@@ -1980,7 +1980,7 @@ class Derived : Base
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546331")]
+        [WorkItem(546331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546331")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void IvtVirtualCall1(CSharpParseOptions parseOptions)
@@ -2087,7 +2087,7 @@ public class C : B
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546331")]
+        [WorkItem(546331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546331")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void IvtVirtualCall2(CSharpParseOptions parseOptions)
@@ -2334,7 +2334,7 @@ public class C : B
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[1]").WithArguments("a", "B.this[int, int[]]").WithLocation(10, 17));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529779")]
+        [WorkItem(529779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529779")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void Bug529779_1(CSharpParseOptions parseOptions)
@@ -2362,7 +2362,7 @@ public class C
             CompileAndVerify(other.WithReferences(new[] { other.References.ElementAt(0), MetadataReference.CreateFromStream(unsigned.EmitToStream()) })).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529779")]
+        [WorkItem(529779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529779")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void Bug529779_2(CSharpParseOptions parseOptions)
@@ -2404,7 +2404,7 @@ public class C
 
 #if !NETCOREAPP
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/399")]
+        [WorkItem(399, "https://github.com/dotnet/roslyn/issues/399")]
         public void Bug399()
         {
             // The referenced assembly Signed.dll from the repro steps
@@ -2639,7 +2639,7 @@ public class C
             }
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/781312")]
+        [WorkItem(781312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/781312")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void Bug781312(CSharpParseOptions parseOptions)
@@ -2673,7 +2673,7 @@ internal class B
             CompileAndVerify(cb, verify: Verification.Fails).Diagnostics.Verify();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072350")]
+        [WorkItem(1072350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072350")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void Bug1072350(CSharpParseOptions parseOptions)
@@ -2701,7 +2701,7 @@ class B
             CompileAndVerify(cb, expectedOutput: "42").Diagnostics.Verify();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072339")]
+        [WorkItem(1072339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072339")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void Bug1072339(CSharpParseOptions parseOptions)
@@ -2729,7 +2729,7 @@ class B
             CompileAndVerify(cb, expectedOutput: "42").Diagnostics.Verify();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095618")]
+        [WorkItem(1095618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095618")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void Bug1095618(CSharpParseOptions parseOptions)
@@ -2750,7 +2750,7 @@ class B
             });
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11497")]
+        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void ConsistentErrorMessageWhenProvidingNullKeyFile(CSharpParseOptions parseOptions)
@@ -2762,7 +2762,7 @@ class B
             VerifySignedBitSetAfterEmit(compilation, expectedToBeSigned: false);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11497")]
+        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void ConsistentErrorMessageWhenProvidingEmptyKeyFile(CSharpParseOptions parseOptions)
@@ -2773,7 +2773,7 @@ class B
             VerifySignedBitSetAfterEmit(compilation, expectedToBeSigned: false);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11497")]
+        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void ConsistentErrorMessageWhenProvidingNullKeyFile_PublicSign(CSharpParseOptions parseOptions)
@@ -2785,7 +2785,7 @@ class B
                 Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11497")]
+        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
         public void ConsistentErrorMessageWhenProvidingEmptyKeyFile_PublicSign(CSharpParseOptions parseOptions)
@@ -2828,7 +2828,7 @@ public class C
 
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
-        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1341051")]
+        [WorkItem(1341051, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1341051")]
         public void IVT_Circularity(CSharpParseOptions parseOptions)
         {
             string lib_cs = @"
@@ -2861,7 +2861,7 @@ public class Class1 : TestBaseClass
                 );
         }
 
-        [Fact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1341051")]
+        [Fact, WorkItem(1341051, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1341051")]
         public void IVT_Circularity_AttributeReferencesProperty()
         {
             string lib_cs = @"
@@ -2895,7 +2895,7 @@ public class Class1 : TestBaseClass
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/57742")]
+        [WorkItem(57742, "https://github.com/dotnet/roslyn/issues/57742")]
         public void Issue57742_01()
         {
             string lib_cs = @"
@@ -2933,7 +2933,7 @@ class TestAttribute : System.Attribute
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/57742")]
+        [WorkItem(57742, "https://github.com/dotnet/roslyn/issues/57742")]
         public void Issue57742_02()
         {
             string lib_cs = @"
@@ -2968,7 +2968,7 @@ using System.Runtime.CompilerServices;
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/57742")]
+        [WorkItem(57742, "https://github.com/dotnet/roslyn/issues/57742")]
         public void Issue57742_03()
         {
             string lib_cs = @"
@@ -3096,7 +3096,7 @@ using System.Reflection;
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/57742")]
+        [WorkItem(57742, "https://github.com/dotnet/roslyn/issues/57742")]
         public void Issue57742_04()
         {
             string lib_cs = @"
@@ -3170,7 +3170,7 @@ using System.Runtime.CompilerServices;
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/57742")]
+        [WorkItem(57742, "https://github.com/dotnet/roslyn/issues/57742")]
         public void Issue57742_05()
         {
             string lib_cs = @"

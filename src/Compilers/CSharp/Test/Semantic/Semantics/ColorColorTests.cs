@@ -147,7 +147,7 @@ class F
                 SymbolKind.Method, "void E.M(System.Int32 x)");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestNonInitializedLocalOnLeft()
         {
@@ -290,7 +290,7 @@ class F
             );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542407")]
+        [WorkItem(542407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542407")]
         [Fact]
         public void TestClassOnRight()
         {
@@ -603,7 +603,7 @@ class F
 
         #endregion Aliases
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864605")]
+        [WorkItem(864605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864605")]
         [Fact]
         public void TestTypeOrValueInMethodGroupIsExpression()
         {
@@ -728,7 +728,7 @@ class Program
             Assert.NotEqual(default, info);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestAliasNameCollisionMemberNameMatchesAlias01()
         {
@@ -767,7 +767,7 @@ class F
 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestAliasNameCollisionMemberNameMatchesAlias02()
         {
@@ -806,7 +806,7 @@ class F
 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestAliasNameCollisionMemberNameMatchesDefinition01()
         {
@@ -845,7 +845,7 @@ class F
 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestAliasNameCollisionMemberNameMatchesDefinition02()
         {
@@ -931,7 +931,7 @@ class C
                 SymbolKind.Method, "void C.Static()");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void LambdaConversion()
         {
@@ -982,7 +982,7 @@ class Program
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543551")]
+        [WorkItem(543551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543551")]
         [Fact]
         public void FieldOfEnumType()
         {
@@ -1005,7 +1005,7 @@ class C
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531386")]
+        [WorkItem(531386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531386")]
         [Fact]
         public void AlternateTypeAndVariable()
         {
@@ -1294,7 +1294,7 @@ enum Color
             Assert.Equal(0, parentInfo.CandidateSymbols.Length);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542586")]
+        [WorkItem(542586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542586")]
         [Fact]
         public void TestNestedNameCollisionType()
         {
@@ -1327,7 +1327,7 @@ class F
 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542586")]
+        [WorkItem(542586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542586")]
         [Fact]
         public void TestNestedNameCollisionType02()
         {
@@ -1353,7 +1353,7 @@ class F
                 SymbolKind.Method, "void E.M(params System.Int32[] a)");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542586")]
+        [WorkItem(542586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542586")]
         [Fact]
         public void TestNestedNameCollisionValue()
         {
@@ -1386,7 +1386,7 @@ class F
 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestNameCollisionType()
         {
@@ -1413,7 +1413,7 @@ class F
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "E").WithArguments("E"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestNameCollisionValue()
         {
@@ -1439,7 +1439,7 @@ class F
                 SymbolKind.Method, "void E.M(System.Int32 x)");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
+        [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
         [Fact]
         public void FieldAndMethodSameName()
         {
@@ -1463,7 +1463,7 @@ class F
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
+        [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
         [Fact]
         public void TypeAndMethodSameName()
         {
@@ -1491,7 +1491,7 @@ class F
 
         #region Regression cases
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546427")]
+        [WorkItem(546427, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546427")]
         [Fact]
         public void ExtensionMethodWithColorColorReceiver()
         {
@@ -1550,7 +1550,7 @@ static class Test
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
+        [WorkItem(938389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
         [Fact]
         public void ShadowedTypeReceiver_1()
         {
@@ -1591,7 +1591,7 @@ namespace Goo
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(12, 38));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
+        [WorkItem(938389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
         [Fact]
         public void ShadowedTypeReceiver_2()
         {
@@ -1629,7 +1629,7 @@ namespace Goo
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(8, 39));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
+        [WorkItem(938389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
         [Fact]
         public void ShadowedTypeReceiver_3()
         {
@@ -1670,7 +1670,7 @@ namespace Goo
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(12, 38));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
+        [WorkItem(938389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
         [Fact]
         public void ShadowedTypeReceiver_4()
         {
@@ -1708,7 +1708,7 @@ namespace Goo
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(8, 39));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095020")]
+        [WorkItem(1095020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095020")]
         [Fact]
         public void RangeVariableColorColor()
         {
@@ -1740,7 +1740,7 @@ class X
             CompileAndVerify(comp, expectedOutput: "42");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5362")]
+        [WorkItem(5362, "https://github.com/dotnet/roslyn/issues/5362")]
         [Fact]
         public void TestColorColorSymbolInfoInArrowExpressionClauseSyntax()
         {
@@ -1790,7 +1790,7 @@ public class Example
             }
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5362")]
+        [WorkItem(5362, "https://github.com/dotnet/roslyn/issues/5362")]
         [Fact]
         public void TestColorColorSymbolInfoInArrowExpressionClauseSyntax_2()
         {
@@ -1855,7 +1855,7 @@ public class Example
             Assert.Equal(parentDisplayString, parentInfo.Symbol.ToTestDisplayString());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")]
+        [WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")]
         [Fact]
         public void Bug969006_1()
         {
@@ -1908,7 +1908,7 @@ class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112493")]
+        [WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006"), WorkItem(1112493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112493")]
         [Fact]
         public void Bug969006_2()
         {
@@ -1968,7 +1968,7 @@ class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")]
+        [WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")]
         [Fact]
         public void Bug969006_3()
         {
@@ -2018,7 +2018,7 @@ class C
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")]
+        [WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")]
         [Fact]
         public void Bug969006_4()
         {
@@ -2070,7 +2070,7 @@ class C
                 );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/19458")]
+        [WorkItem(19458, "https://github.com/dotnet/roslyn/issues/19458")]
         [Fact]
         public void VersionUnificationConstColorColorEnum()
         {
@@ -2116,7 +2116,7 @@ class M
             main.VerifyEmitDiagnostics(unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61284")]
+        [Fact, WorkItem(61284, "https://github.com/dotnet/roslyn/issues/61284")]
         public void PatternMatchToBaseTypeWithUseSiteWarningOnBaseType()
         {
             string sourceRefLib = @"
@@ -2155,7 +2155,7 @@ class C
             main.VerifyEmitDiagnostics(unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/19458")]
+        [WorkItem(19458, "https://github.com/dotnet/roslyn/issues/19458")]
         [Fact]
         public void ObsoleteConstColorColorEnum()
         {
@@ -2184,8 +2184,8 @@ class M
             compilation.VerifyEmitDiagnostics(obsoleteWarning, obsoleteWarning);
         }
 
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/718761")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/41457")]
+        [WorkItem(718761, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/718761")]
+        [WorkItem(41457, "https://github.com/dotnet/roslyn/issues/41457")]
         [Fact]
         public void WorkItem718761()
         {
@@ -2221,7 +2221,7 @@ class C2
                 );
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/61171")]
+        [WorkItem(61171, "https://github.com/dotnet/roslyn/issues/61171")]
         [Theory]
         [InlineData(null)]
         [InlineData("class")]
@@ -2272,7 +2272,7 @@ public sealed class Tree<TValue>
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/61171")]
+        [WorkItem(61171, "https://github.com/dotnet/roslyn/issues/61171")]
         [Theory]
         [InlineData("dynamic", "object")]
         [InlineData("(int a, int b)", "(int, int)")]
@@ -2306,7 +2306,7 @@ public class Tree2 : Tree1
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/61171")]
+        [WorkItem(61171, "https://github.com/dotnet/roslyn/issues/61171")]
         [Fact]
         public void WorkItem61171_ModoptObject()
         {

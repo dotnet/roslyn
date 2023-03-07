@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits SemanticModelTestBase
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17588")>
+        <Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")>
         Public Sub ObjectCreationWithMemberInitializers()
             Dim source = <![CDATA[
 Structure B
@@ -217,7 +217,7 @@ BC36718: Cannot initialize the type 'F' with a collection initializer because it
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17588")>
+        <Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")>
         Public Sub ObjectCreationWithCollectionInitializer()
             Dim source = <![CDATA[
 Imports System.Collections.Generic
@@ -271,7 +271,7 @@ IObjectCreationOperation (Constructor: Sub System.Collections.Generic.List(Of Sy
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17588")>
+        <Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")>
         Public Sub ObjectCreationWithNestedCollectionInitializer()
             Dim source = <![CDATA[
 Imports System.Collections.Generic
@@ -343,7 +343,7 @@ IObjectCreationOperation (Constructor: Sub System.Collections.Generic.List(Of Sy
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17588")>
+        <Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")>
         Public Sub ObjectCreationWithMemberAndCollectionInitializers()
             Dim source = <![CDATA[
 Imports System.Collections.Generic
@@ -446,7 +446,7 @@ IObjectCreationOperation (Constructor: Sub [Class]..ctor()) (OperationKind.Objec
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22967")>
+        <Fact, WorkItem(22967, "https://github.com/dotnet/roslyn/issues/22967")>
         Public Sub ObjectCreationWithInvalidInitializer()
             Dim source = <![CDATA[
 Class C
@@ -485,7 +485,7 @@ BC30456: 'MissingField' is not a member of 'C'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22967")>
+        <Fact, WorkItem(22967, "https://github.com/dotnet/roslyn/issues/22967")>
         Public Sub ObjectCreationWithInvalidCollectionInitializer()
             Dim source = <![CDATA[
 Class C
@@ -536,7 +536,7 @@ BC30451: 'x' is not declared. It may be inaccessible due to its protection level
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22967")>
+        <Fact, WorkItem(22967, "https://github.com/dotnet/roslyn/issues/22967")>
         Public Sub ObjectCreationWithInvalidCollectionInitializer02()
             Dim source = <![CDATA[
 Class C
@@ -581,7 +581,7 @@ BC30456: 'MissingField' is not a member of 'C'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22967")>
+        <Fact, WorkItem(22967, "https://github.com/dotnet/roslyn/issues/22967")>
         Public Sub ObjectCreationCollectionInitializerWithByRefAddMethod()
             Dim source = <![CDATA[
 Imports System
@@ -642,7 +642,7 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22967")>
+        <Fact, WorkItem(22967, "https://github.com/dotnet/roslyn/issues/22967")>
         Public Sub ObjectCreationCollectionInitializerWithOptionalParameterAddMethod()
             Dim source = <![CDATA[
 Imports System

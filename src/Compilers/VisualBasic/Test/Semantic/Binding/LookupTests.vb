@@ -1535,7 +1535,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545575")>
+        <WorkItem(545575, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545575")>
         Public Sub Bug14079()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -1568,7 +1568,7 @@ End Class
             CompilationUtils.AssertNoDiagnostics(compilation)
         End Sub
 
-        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531293")>
+        <Fact(), WorkItem(531293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531293")>
         Public Sub Bug17900()
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -2755,7 +2755,7 @@ BC30109: 'Module1.T1' is a class type and cannot be used as an expression.
             Next
         End Sub
 
-        <Fact()> <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842056")>
+        <Fact()> <WorkItem(842056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842056")>
         Public Sub AmbiguousNamespaces_11()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -2787,7 +2787,7 @@ BC37229: 'C' is ambiguous between declarations in namespaces 'A.X, B.X'.
                                                     ]]></expected>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2909")>
+        <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
         Public Sub AmbiguousEnumConstants01()
             Dim csCompilation = CreateCSharpCompilation("CSEnum",
             <![CDATA[
@@ -2815,7 +2815,7 @@ End Module]]>,
             CompileAndVerify(vbCompilation, expectedOutput:="2")
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2909")>
+        <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
         Public Sub AmbiguousEnumConstants01b()
             Dim csCompilation = CreateCSharpCompilation("CSEnum",
             <![CDATA[
@@ -2844,7 +2844,7 @@ End Module]]>,
             CompileAndVerify(vbCompilation, expectedOutput:="2")
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2909")>
+        <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
         Public Sub AmbiguousEnumConstants02()
             Dim csCompilation = CreateCSharpCompilation("CSEnum",
             <![CDATA[
@@ -2876,7 +2876,7 @@ BC31429: 'DateTime' is ambiguous because multiple kinds of members with this nam
                                                     ]]></expected>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2909")>
+        <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
         Public Sub AmbiguousEnumConstants02b()
             Dim csCompilation = CreateCSharpCompilation("CSEnum",
             <![CDATA[
@@ -2909,7 +2909,7 @@ BC31429: 'DateTime' is ambiguous because multiple kinds of members with this nam
                                                     ]]></expected>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2909")>
+        <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
         Public Sub AmbiguousEnumConstants02c()
             Dim csCompilation = CreateCSharpCompilation("CSEnum",
             <![CDATA[
@@ -2942,7 +2942,7 @@ BC31429: 'DateTime' is ambiguous because multiple kinds of members with this nam
                                                     ]]></expected>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2909")>
+        <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
         Public Sub AmbiguousEnumConstants02d()
             Dim vbCompilation1 = CreateVisualBasicCompilation("VBEnum",
             <![CDATA[
@@ -2985,7 +2985,7 @@ BC31429: 'DateTime' is ambiguous because multiple kinds of members with this nam
                                                     ]]></expected>)
         End Sub
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2909")>
+        <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
         Public Sub AmbiguousEnumConstants02e()
             Dim vbCompilation1 = CreateVisualBasicCompilation("VBEnum",
             <![CDATA[

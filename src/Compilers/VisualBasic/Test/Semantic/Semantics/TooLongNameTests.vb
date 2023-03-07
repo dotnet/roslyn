@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class TooLongNames
         Inherits BasicTestBase
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531481")>
+        <WorkItem(531481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531481")>
         <Fact>
         Public Sub NestedTypeNamesShouldNotCountOuterTypes()
             Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             CompilationUtils.AssertTheseDiagnostics(c, <expected></expected>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531481")>
+        <WorkItem(531481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531481")>
         <Fact>
         Public Sub NestedTypeNamesShouldNotCountOuterTypes2()
             Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             CompilationUtils.AssertTheseDiagnostics(c, <expected></expected>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530442")>
+        <WorkItem(530442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530442")>
         <Fact>
         Public Sub StaticLocalWithTooLongName()
             Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -74,7 +74,7 @@ BC37220: Name '$STATIC$MaximumLengthIdentifierIn2012$001$abcdefghijklmnopqrstuvw
 </expected>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530442")>
+        <WorkItem(530442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530442")>
         <Fact>
         Public Sub StaticLocalWithTooLongName2()
             Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(

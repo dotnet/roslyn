@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class BreakingChanges : CSharpTestBase
     {
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527050")]
+        [Fact, WorkItem(527050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527050")]
         [Trait("Feature", "Directives")]
         public void TestCS1024DefineWithUnicodeInMiddle()
         {
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             SyntaxFactory.ParseSyntaxTree(test).GetDiagnostics().Verify(Diagnostic(ErrorCode.ERR_PPDirectiveExpected, @"de\u0066in\U00000065"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527951")]
+        [Fact, WorkItem(527951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527951")]
         public void CS0133ERR_NotConstantExpression05()
         {
             var text = @"
@@ -47,7 +47,7 @@ class A
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527943")]
+        [WorkItem(527943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527943")]
         [Fact]
         public void CS0146ERR_CircularBase05()
         {
@@ -67,7 +67,7 @@ class B : IFace<B.C.D>
             Assert.Equal(0, comp.GetDiagnostics().Count());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540371"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530792")]
+        [WorkItem(540371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540371"), WorkItem(530792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530792")]
         [Fact]
         public void CS0507ERR_CantChangeAccessOnOverride_TestSynthesizedSealedAccessorsInDifferentAssembly()
         {
@@ -167,7 +167,7 @@ public class MonthDays : idx
             Assert.Equal("MonthInfoIndexer", indexer.MetadataName);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527116")]
+        [WorkItem(527116, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527116")]
         [Fact]
         public void RegressWarningInSingleMultiLineMixedXml()
         {
@@ -202,7 +202,7 @@ class Test
             Assert.Equal(8, tree.GetDiagnostics().Count());
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527093")]
+        [Fact, WorkItem(527093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527093")]
         public void NoCS1570ForUndefinedXmlNamespace()
         {
             var text = @"
@@ -221,7 +221,7 @@ class A { }
             Assert.Empty(tree.GetDiagnostics());
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541345")]
+        [Fact, WorkItem(541345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541345")]
         public void CS0019_TestNullCoalesceWithNullOperandsErrors()
         {
             var source = @"
@@ -255,7 +255,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int?)null ?? 123").WithArguments("d"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528676"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528676")]
+        [Fact, WorkItem(528676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528676"), WorkItem(528676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528676")]
         public         // CS0657WRN_AttributeLocationOnBadDeclaration_AfterAttrDeclOrDelegate
                 void CS1730ERR_CantUseAttributeOnInvaildLocation()
         {
@@ -279,7 +279,7 @@ public class Test { }
             SyntaxFactory.ParseSyntaxTree(test).GetDiagnostics().Verify(Diagnostic(ErrorCode.ERR_GlobalAttributesNotFirst, "assembly"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528711")]
+        [WorkItem(528711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528711")]
         [Fact]
         public void CS9259_StructLayoutCycle()
         {
@@ -303,7 +303,7 @@ public class Test { }
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528094")]
+        [WorkItem(528094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528094")]
         [Fact]
         public void FormattingUnicodeNotPartOfId()
         {
@@ -338,7 +338,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529000")]
+        [WorkItem(529000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529000")]
         [Fact]
         public void NoCS0121ForSwitchedParamNames_Dev10814222()
         {
@@ -381,9 +381,9 @@ class Test01
             CompileAndVerify(source, expectedOutput: "0000");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529001")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529002")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/1067")]
+        [WorkItem(529001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529001")]
+        [WorkItem(529002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529002")]
+        [WorkItem(1067, "https://github.com/dotnet/roslyn/issues/1067")]
         [Fact]
         public void CS0185ERR_LockNeedsReference_RequireRefType()
         {
@@ -442,7 +442,7 @@ class C
                 );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528972")]
+        [WorkItem(528972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528972")]
         [Fact]
         public void CS0121ERR_AmbigCall_Lambda1()
         {
@@ -473,7 +473,7 @@ class A
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529202")]
+        [Fact, WorkItem(529202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529202")]
         public void NoCS0029_ErrorOnZeroToEnumToTypeConversion()
         {
             string source = @"
@@ -505,7 +505,7 @@ struct S
                 );
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529242")]
+        [Fact, WorkItem(529242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529242")]
         public void ThrowOverflowExceptionForUncheckedCheckedLambda()
         {
             string source = @"
@@ -536,7 +536,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "OV 9");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529262")]
+        [WorkItem(529262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529262")]
         [Fact]
         public void PartialMethod_ParameterAndTypeParameterNames()
         {
@@ -564,7 +564,7 @@ partial class C
             CompileAndVerify(source, expectedOutput: "2, 1 | T, U | x, y");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529279")]
+        [Fact, WorkItem(529279, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529279")]
         public void NewCS0029_ImplicitlyUnwrapGenericNullable()
         {
             string source = @"
@@ -598,7 +598,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529280"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546864")]
+        [Fact, WorkItem(529280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529280"), WorkItem(546864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546864")]
         public void ExplicitUDCWithGenericConstraints()
         {
             // This compiles successfully in Dev10 dues to a bug; a user-defined conversion
@@ -640,7 +640,7 @@ public class Test
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529362")]
+        [Fact, WorkItem(529362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529362")]
         public void TestNullCoalescingOverImplicitExplicitUDC()
         {
             string source = @"using System;
@@ -679,7 +679,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "2");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529362")]
+        [Fact, WorkItem(529362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529362")]
         public void TestNullCoalescingOverImplicitExplicitUDC_2()
         {
             string source = @"using System;
@@ -713,7 +713,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "Implicit");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529363")]
+        [Fact, WorkItem(529363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529363")]
         public void AssignmentNullCoalescingOperator()
         {
             string source = @"using System;
@@ -739,7 +739,7 @@ class NullCoalescingTest
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529464")]
+        [Fact, WorkItem(529464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529464")]
         public void MultiDimensionArrayWithDiffTypeIndexDevDiv31328()
         {
             var text = @"
@@ -840,7 +840,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "m").WithArguments("m"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529974")]
+        [WorkItem(529974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529974")]
         [Fact]
         public void TestCollisionForLoopControlVariable()
         {
@@ -913,7 +913,7 @@ public class Program
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530301")]
+        [Fact, WorkItem(530301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530301")]
         public void NoMore_CS0458WRN_AlwaysNull02()
         {
             CreateCompilation(
@@ -952,7 +952,7 @@ public class Test
                     );
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530403")]
+        [WorkItem(530403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530403")]
         [Fact]
         public void CS0135_local_param_cannot_be_declared()
         {
@@ -987,7 +987,7 @@ public class @c
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530518")]
+        [WorkItem(530518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530518")]
         public void ExpressionTreeExplicitOpVsConvert()
         {
             var text = @"
@@ -1014,7 +1014,7 @@ x => Convert(Convert(Convert(x)))
 ");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530531")]
+        [WorkItem(530531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530531")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void ExpressionTreeNoCovertForIdentityConversion()
         {
@@ -1041,7 +1041,7 @@ True
 ");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530548")]
+        [Fact, WorkItem(530548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530548")]
         public void CS0219WRN_UnreferencedVarAssg_RHSMidRefType()
         {
             string source = @"
@@ -1067,7 +1067,7 @@ public class Test
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b3").WithArguments("b3"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530556")]
+        [Fact, WorkItem(530556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530556")]
         public void NoCS0591ERR_InvalidAttributeArgument()
         {
             string source = @"
@@ -1082,7 +1082,7 @@ public class Test {}
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530586")]
+        [Fact, WorkItem(530586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530586")]
         public void ThrowOnceInIteratorFinallyBlock()
         {
             string source = @"
@@ -1229,7 +1229,7 @@ class Program
 
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530587")]
+        [Fact, WorkItem(530587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530587")]
         public void NoFormatCharInIDEqual()
         {
             string source = @"
@@ -1251,7 +1251,7 @@ return x;
             CompileAndVerify(source, expectedOutput: "1"); // Native print 0
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530614")]
+        [Fact, WorkItem(530614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530614")]
         public void CS1718WRN_ComparisonToSelf_Roslyn()
         {
             string source = @"
@@ -1272,7 +1272,7 @@ if (esbyte.e0 == esbyte.e0)
                 Diagnostic(ErrorCode.WRN_ComparisonToSelf, "esbyte.e0 == esbyte.e0"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530629")]
+        [Fact, WorkItem(530629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530629")]
         public void CS0414WRN_UnreferencedFieldAssg_Roslyn()
         {
             string source = @"
@@ -1299,7 +1299,7 @@ namespace VS7_336319
     Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "PredefinedTypes").WithArguments("VS7_336319.ExpressionBinder.PredefinedTypes"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530666")]
+        [WorkItem(530666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530666")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void ExpressionTreeWithNullableUDCandOperator()
         {
@@ -1331,7 +1331,7 @@ static int Main()
             CompileAndVerify(source, expectedOutput: "3");
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530696")]
+        [Fact, WorkItem(530696, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530696")]
         public void CS0121Err_AmbiguousMethodCall()
         {
             string source = @"
@@ -1359,7 +1359,7 @@ static int Main()
     Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params double[])", "C.M(params G<int>[])"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530653")]
+        [Fact, WorkItem(530653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530653")]
         public void RepeatedObsoleteWarnings()
         {
             // <quote source="Srivatsn's comments from bug 16642">
@@ -1402,7 +1402,7 @@ public class Program
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "ObsoleteType").WithArguments("ObsoleteType"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530303")]
+        [Fact, WorkItem(530303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530303")]
         public void TestReferenceResolution()
         {
             var cs1Compilation = CreateCSharpCompilation("CS1",
@@ -1438,7 +1438,7 @@ public class Program
             cs4Compilation.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531014")]
+        [Fact, WorkItem(531014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531014")]
         public void TestVariableAndTypeNameClashes()
         {
             CompileAndVerify(@"
@@ -1475,7 +1475,7 @@ public class Class1
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "A6").WithArguments("A6"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530584")]
+        [WorkItem(530584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530584")]
         [Fact]
         public void NotRuntimeAmbiguousBecauseOfReturnTypes()
         {
@@ -1509,7 +1509,7 @@ class Derived : Base<int, int>
             CompileAndVerify(source, expectedOutput: "Derived.Out");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695311")]
+        [WorkItem(695311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695311")]
         [Fact]
         public void NestedCollectionInitializerOnGenericProperty()
         {
@@ -1658,7 +1658,7 @@ class Test
             }
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770424"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079034")]
+        [Fact, WorkItem(770424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770424"), WorkItem(1079034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079034")]
         public void UserDefinedShortCircuitingOperators()
         {
             var source = @"

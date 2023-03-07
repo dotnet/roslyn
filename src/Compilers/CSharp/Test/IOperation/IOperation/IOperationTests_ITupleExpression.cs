@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class IOperationTests_ITupleExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_NoConversions()
         {
             string source = @"
@@ -42,7 +42,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Synta
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_NoConversions_ParentVariableDeclaration()
         {
             string source = @"
@@ -78,7 +78,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_ImplicitConversions()
         {
             string source = @"
@@ -112,7 +112,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.UInt32, System.UInt32)) (Syn
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_ImplicitConversions_ParentVariableDeclaration()
         {
             string source = @"
@@ -154,7 +154,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_ImplicitConversionsWithTypedExpression_01()
         {
             string source = @"
@@ -190,7 +190,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int64 a, System.Int64 b)) (S
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_ImplicitConversionsWithTypedExpression_02()
         {
             string source = @"
@@ -230,7 +230,7 @@ IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (S
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_ImplicitConversionsWithTypedExpression_03()
         {
             string source = @"
@@ -267,7 +267,7 @@ IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (S
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_ImplicitConversionsWithTypedExpression_WithParentDeclaration()
         {
             string source = @"
@@ -314,7 +314,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_ImplicitConversionFromNull()
         {
             string source = @"
@@ -348,7 +348,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.UInt32, System.String)) (Syn
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_ImplicitConversionFromNull_ParentVariableDeclaration()
         {
             string source = @"
@@ -390,7 +390,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_NamedElements()
         {
             string source = @"
@@ -418,7 +418,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int32 A, System.Int32 B)) (S
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_NamedElements_ParentVariableDeclaration()
         {
             string source = @"
@@ -454,7 +454,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_NamedElementsInTupleType()
         {
             string source = @"
@@ -482,7 +482,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Synta
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_NamedElementsInTupleType_ParentVariableDeclaration()
         {
             string source = @"
@@ -521,7 +521,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_NamedElementsAndImplicitConversions()
         {
             string source = @"
@@ -562,7 +562,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int16 A, System.String B)) (
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_NamedElementsAndImplicitConversions_ParentVariableDeclaration()
         {
             string source = @"
@@ -614,7 +614,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_UserDefinedConversionsForArguments()
         {
             string source = @"
@@ -676,7 +676,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int16, System.String c1)) (S
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_UserDefinedConversionsForArguments_ParentVariableDeclaration()
         {
             string source = @"
@@ -749,7 +749,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_UserDefinedConversionFromTupleExpression()
         {
             string source = @"
@@ -796,7 +796,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.String)) (Synt
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_UserDefinedConversionFromTupleExpression_ParentVariableDeclaration()
         {
             string source = @"
@@ -854,7 +854,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_UserDefinedConversionToTupleType()
         {
             string source = @"
@@ -894,7 +894,7 @@ IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Sy
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_UserDefinedConversionToTupleType_ParentVariableDeclaration()
         {
             string source = @"
@@ -945,7 +945,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_InvalidConversion()
         {
             string source = @"
@@ -1014,7 +1014,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int16, System.String c1), Is
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_InvalidConversion_ParentVariableDeclaration()
         {
             string source = @"
@@ -1094,7 +1094,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_Deconstruction()
         {
             string source = @"
@@ -1153,7 +1153,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_Deconstruction_ForEach()
         {
             string source = @"
@@ -1228,7 +1228,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10856")]
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_DeconstructionWithConversion()
         {
             string source = @"

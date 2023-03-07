@@ -272,7 +272,7 @@ abstract class AbstractGoo : IGoo
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("AbstractGoo.IGoo.this[long, int, long, int].set"));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542158")]
+        [Fact, WorkItem(542158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542158")]
         public void TestModifiersOnExplicitEventImpl()
         {
             var text = @"
@@ -5449,7 +5449,7 @@ public class Derived1 : Base
             });
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540185")]
+        [WorkItem(540185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540185")]
         [Fact]
         public void TestChangeVirtualPropertyAccessorAccessibilityWithinAssembly()
         {
@@ -5883,7 +5883,7 @@ class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.this[int, string, string, string].set").WithLocation(17, 15));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539162")]
+        [WorkItem(539162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539162")]
         [Fact]
         public void TestAbstractTypeMember()
         {
@@ -5939,7 +5939,7 @@ public class Derived1 : Base
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "set").WithArguments("Derived1.this[int].set"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540221")]
+        [WorkItem(540221, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540221")]
         [Fact]
         public void AbstractOverrideOnePropertyAccessor()
         {
@@ -6386,7 +6386,7 @@ class NS4
                 Diagnostic(ErrorCode.ERR_CantOverrideNonFunction, "Method").WithArguments("NS3.Derived.Method<U>(System.Collections.Generic.List<int>)", "NS3.Base2.Method<T>"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540348")]
+        [WorkItem(540348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540348")]
         [Fact]
         public void TestOverridingBrokenTypes()
         {
@@ -6705,7 +6705,7 @@ class C2 : C1, I1, I2
             comp.VerifyDiagnostics(DiagnosticDescription.None);
             Assert.True(c2Type.Interfaces().All(iface => iface.Name == "I1" || iface.Name == "I2"));
         }
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
+        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         [Fact]
         public void TestImplicitImplSignatureMismatches()
         {
@@ -6943,7 +6943,7 @@ class Class7 : Base7, Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class5", "Interface.Method<T>(long, int)").WithLocation(44, 16));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540470")]
+        [WorkItem(540470, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540470")]
         [Fact]
         public void TestExplicitImplSignatureMismatches2()
         {
@@ -8169,7 +8169,7 @@ class Test
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542361")]
+        [WorkItem(542361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542361")]
         [Fact]
         public void TestTypeParameterExplicitMethodImplementation()
         {
@@ -8190,7 +8190,7 @@ class A<T> : global::T
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "global::T").WithArguments("A<T>", "T.T<S>()"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542361")]
+        [WorkItem(542361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542361")]
         [Fact]
         public void TestTypeParameterExplicitPropertyImplementation()
         {
@@ -8211,7 +8211,7 @@ class A<T> : global::T
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "global::T").WithArguments("A<T>", "T.T"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542361")]
+        [WorkItem(542361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542361")]
         [Fact]
         public void TestTypeParameterExplicitEventImplementation()
         {
@@ -8253,7 +8253,7 @@ class A<T> : global::T
         }
 
         [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016693")]
+        [WorkItem(1016693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016693")]
         public void Bug1016693()
         {
             const string source = @"
@@ -8270,7 +8270,7 @@ public class A
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31974")]
+        [WorkItem(31974, "https://github.com/dotnet/roslyn/issues/31974")]
         public void Issue31974()
         {
             const string source = @"
@@ -8417,7 +8417,7 @@ public class D : C, I0<dynamic>
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34508")]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
         public void ImplementMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter1()
         {
             var source = @"
@@ -8444,7 +8444,7 @@ class C2 : I
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34508")]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
         public void ImplementMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter2()
         {
             var source = @"
@@ -8471,7 +8471,7 @@ class C2 : I
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34508")]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
         public void ImplementMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter3()
         {
             var source = @"
@@ -8501,7 +8501,7 @@ class C2 : I
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34508")]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
         public void ImplementMethodReturningNullableStructParameter_WithMethodReturningNullableStruct1()
         {
             var source = @"
@@ -8528,7 +8528,7 @@ class C2 : I
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34508")]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
         public void ImplementMethodReturningNullableStructParameter_WithMethodReturningNullableStruct2()
         {
             var source = @"
@@ -8555,7 +8555,7 @@ class C2 : I
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34508")]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
         public void ImplementMethodReturningNullableStructParameter_WithMethodReturningNullableStruct3()
         {
             var source = @"
@@ -8585,7 +8585,7 @@ class C2 : I
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34508")]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
         public void OverrideMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter1()
         {
             var source = @"
@@ -8607,7 +8607,7 @@ class Derived : Base
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34508")]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
         public void OverrideMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter2()
         {
             var source = @"
@@ -8629,7 +8629,7 @@ class Derived : Base
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34508")]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
         public void OverrideMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter3()
         {
             var source = @"
@@ -8654,7 +8654,7 @@ class Derived : Base
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34508")]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
         public void OverrideMethodReturningNullableStructParameter_WithMethodReturningNullableStruct1()
         {
             var source = @"
@@ -8676,7 +8676,7 @@ class Derived : Base
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34508")]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
         public void OverrideMethodReturningNullableStructParameter_WithMethodReturningNullableStruct2()
         {
             var source = @"
@@ -8698,7 +8698,7 @@ class Derived : Base
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34508")]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
         public void OverrideMethodReturningNullableStructParameter_WithMethodReturningNullableStruct3()
         {
             var source = @"
@@ -9772,7 +9772,7 @@ class Derived : Base
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34583")]
+        [WorkItem(34583, "https://github.com/dotnet/roslyn/issues/34583")]
         public void ExplicitImplementationOfNullableStructWithMultipleTypeParameters()
         {
             var source = @"
@@ -9795,7 +9795,7 @@ class C2 : I
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63490")]
+        [WorkItem(63490, "https://github.com/dotnet/roslyn/issues/63490")]
         public void MultipleBasesWithObliviousDifferencesAndInterfaces()
         {
             var source1 = @"

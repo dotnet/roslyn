@@ -1271,7 +1271,7 @@ public class D
                 Diagnostic(ErrorCode.ERR_BindToBogus, "VT").WithArguments("C.VT()"));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7971")]
+        [WorkItem(7971, "https://github.com/dotnet/roslyn/issues/7971")]
         [Fact(Skip = "7971")]
         public void MemberSignature_CycleTrhuTypeSpecInCustomModifiers()
         {
@@ -1291,7 +1291,7 @@ class P
             c.VerifyDiagnostics();
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7970")]
+        [WorkItem(7970, "https://github.com/dotnet/roslyn/issues/7970")]
         [Fact]
         public void MemberSignature_TypeSpecInWrongPlace()
         {
@@ -1314,7 +1314,7 @@ class P
                 Diagnostic(ErrorCode.ERR_BindToBogus, "X").WithArguments("User.X(?)"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666162")]
+        [WorkItem(666162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666162")]
         [Fact]
         public void Repro666162()
         {
@@ -1352,7 +1352,7 @@ class P
             Assert.False(method.ReturnTypeWithAnnotations.IsDefault);
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217681")]
+        [Fact, WorkItem(217681, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217681")]
         public void LoadingMethodWithPublicAndPrivateAccessibility()
         {
             string source =

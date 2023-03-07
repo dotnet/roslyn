@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class GetSemanticInfoBrokenCodeTests
         Inherits SemanticModelTestBase
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544328")>
+        <WorkItem(544328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544328")>
         <Fact>
         Public Sub Bug12601()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
@@ -31,7 +31,7 @@ End Module
             VisitAllExpressions(model, tree.GetCompilationUnitRoot())
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544455")>
+        <WorkItem(544455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544455")>
         <Fact>
         Public Sub EmptyDefaultPropertyName()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
@@ -52,7 +52,7 @@ End Module
             VisitAllExpressions(model, tree.GetCompilationUnitRoot())
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545233")>
+        <WorkItem(545233, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545233")>
         <Fact>
         Public Sub Bug13538()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -93,7 +93,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545667")>
+        <WorkItem(545667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545667")>
         <Fact()>
         Public Sub Bug14266()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -117,7 +117,7 @@ End Enum
             VisitAllDeclarations(model, newTree.GetCompilationUnitRoot())
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546685")>
+        <WorkItem(546685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546685")>
         <Fact()>
         Public Sub Bug16557()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -161,7 +161,7 @@ End Module
         ''' <summary>
         ''' Me references are not valid within a Module.
         ''' </summary>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546570")>
+        <WorkItem(546570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546570")>
         <Fact()>
         Public Sub AnalyzeForEachMeInModule()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -182,7 +182,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546914")>
+        <WorkItem(546914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546914")>
         <Fact()>
         Public Sub Bug17230_If()
             AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib40(
@@ -231,7 +231,7 @@ End Module
 </compilation>))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546914")>
+        <WorkItem(546914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546914")>
         <Fact()>
         Public Sub Bug17230_Other()
             AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib40(
@@ -316,7 +316,7 @@ End Module
 </compilation>))
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/571062")>
+        <WorkItem(571062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/571062")>
         <Fact()>
         Public Sub Bug571062()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -345,7 +345,7 @@ End Namespace
             VisitAllExpressions(model, tree.GetCompilationUnitRoot())
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578141")>
+        <WorkItem(578141, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578141")>
         <Fact()>
         Public Sub IsImplicitlyDeclared()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -371,9 +371,9 @@ MustOverride Sub M()
             Assert.False(member.IsImplicitlyDeclared)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578141")>
+        <WorkItem(578141, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578141")>
         <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40682: The test hook is blocked by this issue.
-        <WorkItem("https://github.com/dotnet/roslyn/issues/40682")>
+        <WorkItem(40682, "https://github.com/dotnet/roslyn/issues/40682")>
         Public Sub MustOverrideMember()
             ' MustOverride method in script class.
             MustOverrideMemberCore(CompilationUtils.CreateCompilationWithMscorlib40({VisualBasicSyntaxTree.ParseText(<![CDATA[
@@ -425,7 +425,7 @@ End Class
             Assert.NotEmpty(diagnostics)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611707")>
+        <WorkItem(611707, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611707")>
         <Fact()>
         Public Sub UnexpectedVarianceKeyword()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -440,7 +440,7 @@ Interface(Await
             Assert.NotEmpty(diagnostics)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611707")>
+        <WorkItem(611707, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611707")>
         <Fact()>
         Public Sub UnexpectedVarianceKeyword_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -455,7 +455,7 @@ Delegate Sub D(Of From
             Assert.NotEmpty(diagnostics)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762034")>
+        <WorkItem(762034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762034")>
         <Fact()>
         Public Sub Bug762034()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(

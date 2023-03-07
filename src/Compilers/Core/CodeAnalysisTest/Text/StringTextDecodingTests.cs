@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [ConditionalFact(typeof(HasEnglishDefaultEncoding))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5663")]
+        [WorkItem(5663, "https://github.com/dotnet/roslyn/issues/5663")]
         public void Decode_NonUtf8()
         {
             // Unicode text with extended characters that map to interesting code points in CodePage 1252.
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611805")]
+        [WorkItem(611805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611805")]
         [Fact]
         public void TestMultithreadedDecoding()
         {
@@ -327,8 +327,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [ConditionalFact(typeof(HasEnglishDefaultEncoding))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2081")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5663")]
+        [WorkItem(2081, "https://github.com/dotnet/roslyn/issues/2081")]
+        [WorkItem(5663, "https://github.com/dotnet/roslyn/issues/5663")]
         public void HorizontalEllipsis()
         {
             // Character 0x85 in CodePage 1252 is a horizontal ellipsis.
