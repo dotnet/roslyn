@@ -71,12 +71,12 @@ There are three significant candidates to investigate:
 1. analyzer issue:  
   Use `/p:ReportAnalyzer=true` to add analyzer timing information to the binary log.  
   The binary log viewer can display that information.
-2. difference in inputs:  
-  Use `/p:Features=debug-determinism` to create an additional output file that documents all the inputs to a particular compilation.  
-  The file is written next to the compilation output and has a `.key` suffix.  
-  Comparing those files between slow and fast runs helps detect pertinent changes (new inputs, new references, etc).  
-3. compiler server issue:  
+2. compiler server issue:  
   Inspect the binary log (search for `$message CompilerServer failed` or "Error:").  
   If the compiler server is having issues, there will be many such entries.  
   In that case, use the environment variable `set RoslynCommandLineLogFile=c:\some\dir\log.txt` to enable additional logging.  
   In that log, "Keep alive" entries indicate that the compiler server restarted (which we don't expect to happen very often).
+3. difference in inputs:  
+  Use `/p:Features=debug-determinism` to create an additional output file that documents all the inputs to a particular compilation.  
+  The file is written next to the compilation output and has a `.key` suffix.  
+  Comparing those files between slow and fast runs helps detect pertinent changes (new inputs, new references, etc).  
