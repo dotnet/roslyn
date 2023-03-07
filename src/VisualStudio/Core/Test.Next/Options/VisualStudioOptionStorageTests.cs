@@ -289,7 +289,7 @@ public class VisualStudioOptionStorageTests
             {
                 var stringToInsert = builder.Length == 0 ? currentGroup.Name : currentGroup.Name + ".";
                 builder.Insert(0, stringToInsert);
-                currentGroup =currentGroup.Parent;
+                currentGroup = currentGroup.Parent;
             }
 
             return builder.ToString();
