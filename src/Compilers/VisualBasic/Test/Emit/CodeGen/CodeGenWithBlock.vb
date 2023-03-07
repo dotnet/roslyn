@@ -2689,7 +2689,7 @@ End Structure
                     Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "c").WithArguments("c"))
         End Sub
 
-        <WorkItem(545120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545120")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545120")>
         <Fact()>
         Public Sub TestWith_NestedWithWithLambdasAndObjectInitializers()
             CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -3382,7 +3382,7 @@ End Namespace
             VerifyDiagnostics()
         End Sub
 
-        <Fact(), WorkItem(2640, "https://github.com/dotnet/roslyn/issues/2640")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/2640")>
         Public Sub WithUnusedArrayElement()
             CompileAndVerify(
 <compilation>
@@ -3411,7 +3411,7 @@ Hello, World
         End Sub
 
         <Fact()>
-        <WorkItem(16968, "https://github.com/dotnet/roslyn/issues/16968")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16968")>
         Public Sub WithExpressionIsAccessedFromLambdaExecutedAfterTheBlock()
             CompileAndVerify(
 <compilation>

@@ -226,7 +226,7 @@ Next
         ''' <summary>
         ''' LookupSymbols should not include the submission class.
         ''' </summary>
-        <WorkItem(530986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530986")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530986")>
         <Fact>
         Public Sub LookupSymbols()
             Dim text = "1 + "
@@ -254,7 +254,7 @@ Next
             'Assert.False(symbols.Any(Function(s) s.Name = "Roslyn"))
         End Sub
 
-        <WorkItem(3817, "https://github.com/dotnet/roslyn/issues/3817")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3817")>
         <Fact>
         Public Sub LabelLookup()
             Const source = "Imports System : 1"
@@ -264,7 +264,7 @@ Next
             Assert.Empty(model.LookupLabels(source.Length - 1))
         End Sub
 
-        <WorkItem(3795, "https://github.com/dotnet/roslyn/issues/3795")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3795")>
         <Fact>
         Public Sub ErrorInUsing()
             Dim submission = VisualBasicCompilation.CreateScriptCompilation("sub1", Parse("Imports Unknown", options:=TestOptions.Script), {MscorlibRef})
@@ -288,7 +288,7 @@ Imports Unknown
         ''' <summary>
         ''' The script entry point should complete synchronously.
         ''' </summary>
-        <WorkItem(4495, "https://github.com/dotnet/roslyn/issues/4495")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4495")>
         <Fact>
         Public Sub ScriptEntryPoint()
             Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
@@ -403,7 +403,7 @@ System.Console.Write("complete")
         End Sub
 
         <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40682: The test hook is blocked by this issue.
-        <WorkItem(40682, "https://github.com/dotnet/roslyn/issues/40682")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/40682")>
         Public Sub ScriptEntryPoint_MissingMethods()
             Dim comp = CreateCompilationWithMscorlib40(
                 <compilation>

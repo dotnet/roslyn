@@ -196,7 +196,7 @@ End Class
             Assert.Equal(f0, mf1)
         End Sub
 
-        <WorkItem(1533, "https://github.com/dotnet/roslyn/issues/1533")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1533")>
         <Fact>
         Public Sub PreviousType_ArrayType()
             Dim sources0 = <compilation>
@@ -229,7 +229,7 @@ End Class
             Assert.NotNull(other)
         End Sub
 
-        <WorkItem(1533, "https://github.com/dotnet/roslyn/issues/1533")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1533")>
         <Fact>
         Public Sub NoPreviousType_ArrayType()
             Dim sources0 = <compilation>
@@ -262,7 +262,7 @@ End Class
             Assert.Null(other)
         End Sub
 
-        <WorkItem(1533, "https://github.com/dotnet/roslyn/issues/1533")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1533")>
         <Fact>
         Public Sub NoPreviousType_GenericType()
             Dim sources0 = <compilation>

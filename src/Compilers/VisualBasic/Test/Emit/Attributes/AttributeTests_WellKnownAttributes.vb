@@ -279,7 +279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
 
-        <WorkItem(540573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540573")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540573")>
         <Fact()>
         Public Sub TestPseudoAttributes01()
             Dim source =
@@ -435,7 +435,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3898")>
         Sub SerializableFromPE()
             Dim lib_vb =
 <compilation>
@@ -485,7 +485,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3898")>
         Sub SerializableSubstitutedType()
             Dim lib_vb =
 <compilation>
@@ -521,7 +521,7 @@ End Class
             Assert.False(DirectCast(dOfInt.ConstructedFrom, INamedTypeSymbol).IsSerializable)
         End Sub
 
-        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
         <Fact()>
         Public Sub DateTimeConstantAttribute()
             Dim source =
@@ -566,7 +566,7 @@ End Class
             CompileAndVerify(source, symbolValidator:=symValidator)
         End Sub
 
-        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
         <Fact()>
         Public Sub DateTimeConstantAttributeWithBadDefaultValue()
             Dim source =
@@ -605,7 +605,7 @@ BC37226: The parameter has multiple distinct default values.
 ]]></expected>)
         End Sub
 
-        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
         <Fact()>
         Public Sub DateTimeConstantAttributeWithValidDefaultValue()
             Dim source =
@@ -645,7 +645,7 @@ BC37226: The parameter has multiple distinct default values.
 ]]></expected>)
         End Sub
 
-        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
         <Fact()>
         Public Sub DateTimeConstantAttributeWithBadDefaultValueOnField()
             Dim source =
@@ -676,7 +676,7 @@ BC37228: The field has multiple distinct constant values.
 
         End Sub
 
-        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
         <Fact()>
         Public Sub DateTimeConstantAttributeWithValidDefaultValueOnField()
             Dim source =
@@ -707,7 +707,7 @@ BC37228: The field has multiple distinct constant values.
 
         End Sub
 
-        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
         <Fact()>
         Public Sub DateTimeConstantAttributeReferencedViaRef()
             Dim source1 =
@@ -758,7 +758,7 @@ BC30455: Argument not specified for parameter 'p1' of 'Public Sub Method(p1 As D
 ]]></expected>)
         End Sub
 
-        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
         <Fact()>
         Public Sub LoadingDateTimeConstantWithBadValueOnField()
             Dim ilSource = <![CDATA[
@@ -802,7 +802,7 @@ BC30799: Field 'C.F' has an invalid constant value.
 ]]></expected>)
         End Sub
 
-        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
         <Fact()>
         Public Sub LoadingDateTimeConstantWithBadValue()
             Dim ilSource = <![CDATA[
@@ -857,7 +857,7 @@ End Class
             ' The native compiler would produce a working exe, but that exe would fail at runtime
         End Sub
 
-        <WorkItem(531121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531121")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531121")>
         <Fact()>
         Public Sub TestDecimalConstantAttribute()
             Dim source =
@@ -910,7 +910,7 @@ End Class
 #Region "DllImportAttribute, MethodImplAttribute, PreserveSigAttribute"
         ''' 6879: Pseudo DllImport looks very different in metadata: pinvokeimpl(...) +
         ''' PreserveSig
-        <WorkItem(540573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540573")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540573")>
         <Fact>
         Public Sub TestPseudoDllImport()
             Dim source =
@@ -1209,7 +1209,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(544176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544176")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544176")>
         Public Sub TestPseudoAttributes_DllImport_AllTrue()
             Dim source =
 <compilation>
@@ -1284,7 +1284,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(544601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544601")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544601")>
         Public Sub GetDllImportData_UnspecifiedProperties()
             Dim source =
 <compilation>
@@ -1321,7 +1321,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(544601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544601")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544601")>
         Public Sub GetDllImportData_Declare()
             Dim source =
 <compilation>
@@ -2227,7 +2227,7 @@ End Module
 #End Region
 
 #Region "DefaultCharSetAttribute"
-        <Fact, WorkItem(544518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544518")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544518")>
         Public Sub DllImport_DefaultCharSet1()
             Dim source =
 <compilation>
@@ -2428,7 +2428,7 @@ End Class
         ''' <summary>
         ''' DefaultCharSet is not applied on embedded types.
         ''' </summary>
-        <WorkItem(546644, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546644")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546644")>
         <Fact>
         Public Sub DefaultCharSet_EmbeddedTypes()
             Dim source =
@@ -2790,7 +2790,7 @@ End Class
 #End Region
 
 #Region "ParamArrayAttribute"
-        <WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")>
         <Fact>
         Public Sub TestParamArrayAttributeForParams2()
             Dim source =
@@ -3094,7 +3094,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(545199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545199")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545199")>
         <Fact>
         Public Sub Serializable_NonSerialized_CustomEvents()
             Dim source =
@@ -3134,8 +3134,8 @@ BC30662: Attribute 'NonSerializedAttribute' cannot be applied to 'e2' because th
         End Sub
 
         <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40682: The test hook is blocked by this issue.
-        <WorkItem(40682, "https://github.com/dotnet/roslyn/issues/40682")>
-        <WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/40682")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3898")>
         Public Sub TestIsSerializableProperty()
             Dim missing =
 <compilation>
@@ -3323,7 +3323,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3898")>
         Public Sub TestAttributeWithNestedUnboundGeneric()
             Dim library =
     <file name="Library.vb"><![CDATA[
@@ -3374,7 +3374,7 @@ End Module
 
 #Region "AttributeUsageAttribute"
 
-        <WorkItem(541733, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541733")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541733")>
         <Fact()>
         Public Sub TestSourceOverrideWellKnownAttribute_01()
             Dim source = <compilation>
@@ -3398,7 +3398,7 @@ End Namespace
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidMultipleAttributeUsage1, "AttributeUsage(AttributeTargets.Class)").WithArguments("AttributeUsageAttribute"))
         End Sub
 
-        <WorkItem(541733, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541733")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541733")>
         <Fact()>
         Public Sub TestSourceOverrideWellKnownAttribute_02()
             Dim source = <compilation>
@@ -4167,7 +4167,7 @@ BC31213: SecurityAction value '1' is invalid for security attributes applied to 
                 Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "SecurityAction.RequestRefuse").WithArguments("SecurityAction.RequestRefuse"))
         End Sub
 
-        <WorkItem(546623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546623")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546623")>
         <Fact>
         Public Sub TestSecurityAttributeInvalidTarget()
             Dim source = <compilation>
@@ -4202,7 +4202,7 @@ End Class
                 Diagnostic(ERRID.ERR_SecurityAttributeInvalidTarget, "MyPermission").WithArguments("MyPermissionAttribute"))
         End Sub
 
-        <WorkItem(544929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544929")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544929")>
         <Fact>
         Public Sub PrincipalPermissionAttribute()
             Dim source = <compilation>
@@ -4231,7 +4231,7 @@ End Class
                                                                     Diagnostic(ERRID.ERR_PrincipalPermissionInvalidAction, "SecurityAction.LinkDemand").WithArguments("SecurityAction.LinkDemand"))
         End Sub
 
-        <WorkItem(544929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544929")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544929")>
         <Fact>
         Public Sub PrincipalPermissionAttribute_UserDefinedWithOptionalParameterInCtor()
             Dim source = <compilation>
@@ -4270,7 +4270,7 @@ BC31215: SecurityAction value '7' is invalid for PrincipalPermission attribute.
 ]]></errors>)
         End Sub
 
-        <WorkItem(544956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544956")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544956")>
         <Fact>
         Public Sub SuppressUnmanagedCodeSecurityAttribute()
             Dim source = <compilation>
@@ -4659,7 +4659,7 @@ BC30127: Attribute 'InterfaceTypeAttribute' is not valid: Incorrect argument val
 ]]></expected>)
         End Sub
 
-        <WorkItem(546664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546664")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546664")>
         <Fact()>
         Public Sub TestIsExtensibleInterface()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -4739,7 +4739,7 @@ End Interface
             CompileAndVerify(compilation, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
-        <WorkItem(546664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546664")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546664")>
         <Fact()>
         Public Sub TestIsExtensibleInterface_LateBinding()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -4845,7 +4845,7 @@ BC30456: 'LateBound' is not a member of 'NotExtensibleInterface3'.
             CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors)
         End Sub
 
-        <WorkItem(546664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546664")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546664")>
         <Fact()>
         Public Sub Bug16489_StackOverflow()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -5332,7 +5332,7 @@ BC32500: 'GuidAttribute' cannot be applied because the format of the GUID 'Nothi
 ]]></expected>)
         End Sub
 
-        <WorkItem(545490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545490")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545490")>
         <Fact>
         Public Sub TestInvalidGuidAttribute_02()
             Dim source = <compilation>
@@ -5410,8 +5410,8 @@ BC32500: 'GuidAttribute' cannot be applied because the format of the GUID '69D3E
 #Region "WindowsRuntimeImportAttribute"
 
         <ConditionalFact(GetType(WindowsDesktopOnly))>
-        <WorkItem(6190, "https://github.com/dotnet/roslyn/issues/6190")>
-        <WorkItem(531295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531295")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/6190")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531295")>
         Public Sub TestWindowsRuntimeImportAttribute()
             Dim source = <compilation>
                              <file name="a.vb">
@@ -6091,7 +6091,7 @@ BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not suppor
 
 #Region "RequiredAttributeAttribute"
 
-        <Fact, WorkItem(81, "https://github.com/dotnet/roslyn/issues/81")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81")>
         Public Sub DisallowRequiredAttributeInSource()
             Dim source = <compilation>
                              <file name="a.vb">
@@ -6136,7 +6136,7 @@ BC37235: The RequiredAttribute attribute is not permitted on Visual Basic types.
 ]]></expected>)
         End Sub
 
-        <Fact, WorkItem(81, "https://github.com/dotnet/roslyn/issues/81")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81")>
         Public Sub DisallowRequiredAttributeFromMetadata01()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit RequiredAttrClass
@@ -6186,7 +6186,7 @@ BC30649: 'RequiredAttrClass' is an unsupported type.
 ]]></expected>)
         End Sub
 
-        <Fact, WorkItem(81, "https://github.com/dotnet/roslyn/issues/81")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81")>
         Public Sub DisallowRequiredAttributeFromMetadata02()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit RequiredAttr.Scenario1
@@ -6690,7 +6690,7 @@ End Class
 
 #End Region
 
-        <Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/807")>
         Public Sub TestAttributePropagationForAsyncAndIterators_01()
             Dim source =
             <compilation>
@@ -6802,7 +6802,7 @@ End Class
             Return result
         End Function
 
-        <Fact, WorkItem(4521, "https://github.com/dotnet/roslyn/issues/4521")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4521")>
         Public Sub TestAttributePropagationForAsyncAndIterators_02()
             Dim source =
             <compilation>
@@ -6888,7 +6888,7 @@ End Class
             CompileAndVerify(CreateCompilationWithMscorlib45AndVBRuntime(source), symbolValidator:=attributeValidator)
         End Sub
 
-        <Fact, WorkItem(10639, "https://github.com/dotnet/roslyn/issues/10639")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10639")>
         Public Sub UsingStaticDirectiveDoesNotIgnoreObsoleteAttribute_DifferentSeverity()
             Dim source = <compilation>
                              <file name="a.vb">
@@ -6932,7 +6932,7 @@ Imports TestAssembly.TestWarning
 ]]></expected>)
         End Sub
 
-        <Fact, WorkItem(10639, "https://github.com/dotnet/roslyn/issues/10639")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10639")>
         Public Sub UsingStaticDirectiveDoesNotIgnoreObsoleteAttribute_NestedClasses()
             Dim source = <compilation>
                              <file name="a.vb">
@@ -6998,7 +6998,7 @@ Imports TestAssembly.BothObsoleteParent.BothObsoleteChild
         End Sub
 
         <Fact>
-        <WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/19394")>
         Public Sub WellKnownTypeAsStruct_DefaultConstructor_ParamArrayAttribute()
             Dim code = <compilation><file name="a.vb"><![CDATA[
 Namespace System
@@ -7017,7 +7017,7 @@ BC31503: 'ParamArrayAttribute' cannot be used as an attribute because it is not 
         End Sub
 
         <Fact>
-        <WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/19394")>
         Public Sub WellKnownTypeAsStruct_NonDefaultConstructor_TupleElementNamesAttribute()
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(
 <compilation>
@@ -7063,7 +7063,7 @@ second",
         End Sub
 
         <Fact>
-        <WorkItem(59003, "https://github.com/dotnet/roslyn/issues/59003")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/59003")>
         Public Sub ErrorInPropertyValue_01()
             Dim source =
 <compilation>
@@ -7089,7 +7089,7 @@ BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
         End Sub
 
         <Fact>
-        <WorkItem(59003, "https://github.com/dotnet/roslyn/issues/59003")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/59003")>
         Public Sub ErrorInPropertyValue_02()
             Dim source =
 <compilation>

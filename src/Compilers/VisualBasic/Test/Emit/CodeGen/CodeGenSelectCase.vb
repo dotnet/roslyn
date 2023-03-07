@@ -2845,8 +2845,8 @@ End Module
 
         ' TODO: Update test case once bug 10352 and bug 10354 are fixed.
         ' TODO: Verify switch table is used in codegen for select case statement.
-        <WorkItem(542910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542910")>
-        <WorkItem(10354, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/10354")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542910")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/10354")>
         <Fact()>
         Public Sub SelectCase_SwitchTable_Conversions_01()
             Dim compVerifier = CompileAndVerify(
@@ -3255,7 +3255,7 @@ End Module
 
 #Region "Select case string tests"
 
-        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         Public Sub SelectCase_Hash_SwitchTable_String_OptionCompareBinary()
             Dim compVerifier = CompileAndVerify(
 <compilation>
@@ -3698,7 +3698,7 @@ End Module
 Equal to A]]>)
         End Sub
 
-        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         Public Sub SelectCase_Hash_SwitchTable_String_OptionCompareBinary_02()
             Dim compVerifier = CompileAndVerify(
 <compilation>
@@ -4028,7 +4028,7 @@ Equal to a]]>).VerifyIL("M1.Test", <![CDATA[
             VerifySynthesizedStringHashMethod(compVerifier, expected:=False)
         End Sub
 
-        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         Public Sub SelectCase_SwitchTable_String_RelationalEqualityClause()
             Dim compVerifier = CompileAndVerify(
 <compilation>
@@ -4215,7 +4215,7 @@ End Module
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <WorkItem(23818, "https://github.com/dotnet/roslyn/issues/23818")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/23818")>
         <Fact()>
         Public Sub SelectCase_IfList_String_RelationalRangeClauses()
             Dim compVerifier = CompileAndVerify(
@@ -4373,7 +4373,7 @@ IRangeCaseClauseOperation (CaseKind.Range) (OperationKind.CaseClause, Type: null
 ]]>.Value)
         End Sub
 
-        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         Public Sub SelectCase_String_Multiple_Hash_SwitchTable()
             Dim compVerifier = CompileAndVerify(
 <compilation>
@@ -4615,7 +4615,7 @@ End Class
             VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, "number").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.CompareString"))
         End Sub
 
-        <WorkItem(529047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529047")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529047")>
         <Fact>
         Public Sub SelectOutOfMethod()
             CompilationUtils.CreateCompilationWithMscorlib40(
@@ -4631,7 +4631,7 @@ End Class
                 Diagnostic(ERRID.ERR_EndSelectNoSelect, "End Select"))
         End Sub
 
-        <WorkItem(529047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529047")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529047")>
         <Fact>
         Public Sub SelectOutOfMethod_1()
             CompilationUtils.CreateCompilationWithMscorlib40(
@@ -4645,7 +4645,7 @@ End Class
                 Diagnostic(ERRID.ERR_EndSelectNoSelect, "End Select"))
         End Sub
 
-        <WorkItem(543410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543410")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543410")>
         <Fact()>
         Public Sub SelectCase_GetType()
             Dim compVerifier = CompileAndVerify(
@@ -4670,8 +4670,8 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(634404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634404")>
-        <WorkItem(913556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913556")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634404")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913556")>
         <Fact()>
         Public Sub MissingCharsProperty()
             CompilationUtils.CreateEmptyCompilationWithReferences(

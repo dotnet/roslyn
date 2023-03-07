@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class AsyncTests
         Inherits BasicTestBase
 
-        <WorkItem(1004348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1004348")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1004348")>
         <Fact>
         Public Sub StructVsClass()
             Dim source =
@@ -247,7 +247,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(13867, "https://github.com/dotnet/roslyn/issues/13867")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13867")>
         Public Sub Simple_Test_ManyLocals()
             Dim c = CompileAndVerify(
 <compilation>
@@ -310,7 +310,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(13867, "https://github.com/dotnet/roslyn/issues/13867")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13867")>
         Public Sub Simple_Test_ManyLocals_Rel()
             Dim c = CompileAndVerify(
 <compilation>
@@ -1744,7 +1744,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
         Public Sub Simple_LateBinding_1()
             Dim c = CompileAndVerify(
 <compilation>
@@ -2003,7 +2003,7 @@ End Module
             sequencePoints:="Program+VB$StateMachine_0_Test2.MoveNext")
         End Sub
 
-        <Fact, WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
         Public Sub Simple_LateBinding_2()
             Dim c = CompileAndVerify(
 <compilation>
@@ -2410,7 +2410,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(553894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553894")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553894")>
         <Fact()>
         Public Sub Simple_TaskOfT_EmitMetadataOnly()
             Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
@@ -3802,8 +3802,8 @@ End Module
         End Sub
 
         <Fact,
-         WorkItem(94940, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=94940"),
-         WorkItem(785170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/785170")>
+         WorkItem("https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=94940"),
+         WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/785170")>
         Public Sub Imported_AsyncWithEH()
             CompileAndVerify(
 <compilation>
@@ -7432,7 +7432,7 @@ End Module
 </compilation>, useLatestFramework:=True, expectedOutput:="1 3 5 7 9")
         End Sub
 
-        <Fact, WorkItem(1003196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003196")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003196")>
         Public Sub AsyncAndPartialMethods()
             CompileAndVerify(
 <compilation>
@@ -8513,7 +8513,7 @@ End Class
                 symbolValidator:=moduleValidator)
         End Sub
 
-        <Fact, WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
         Public Sub EmittedSymbolsCheck_Debug()
             EmittedSymbolsCheck(True)
         End Sub
@@ -8523,7 +8523,7 @@ End Class
             EmittedSymbolsCheck(False)
         End Sub
 
-        <WorkItem(840843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840843")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840843")>
         <Fact>
         Public Sub MissingAsyncVoidMethodBuilder()
             Dim source =
@@ -8632,7 +8632,7 @@ BC42356: This async method lacks 'Await' operators and so will run synchronously
 </errors>)
         End Sub
 
-        <WorkItem(863, "https://github.com/dotnet/roslyn/issues/863")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/863")>
         <Fact()>
         Public Sub CatchInIteratorStateMachine()
             CompileAndVerify(
@@ -8674,7 +8674,7 @@ End Class
    at C.VB$StateMachine_2_M.MoveNext()")
         End Sub
 
-        <WorkItem(863, "https://github.com/dotnet/roslyn/issues/863")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/863")>
         <Fact()>
         Public Sub CatchInAsyncStateMachine()
             CompileAndVerify(
@@ -8715,7 +8715,7 @@ End Class
    at C.VB$StateMachine_2_M.MoveNext()")
         End Sub
 
-        <Fact, WorkItem(1942, "https://github.com/dotnet/roslyn/issues/1942")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1942")>
         Public Sub HoistStructure()
             Dim source =
 <compilation name="Async">
@@ -8753,7 +8753,7 @@ After 12]]>
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
 
-        <Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7669")>
         Public Sub HoistUsing001()
             Dim source =
 <compilation name="Async">
@@ -8804,7 +8804,7 @@ result]]>
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
 
-        <Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7669")>
         Public Sub HoistUsing002()
             Dim source =
 <compilation name="Async">
@@ -8858,7 +8858,7 @@ result]]>
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
 
-        <Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7669")>
         Public Sub HoistUsing003()
             Dim source =
 <compilation name="Async">
@@ -8914,7 +8914,7 @@ result]]>
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
 
-        <Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7669")>
         Public Sub HoistUsing004()
             Dim source =
 <compilation name="Async">
@@ -8971,7 +8971,7 @@ result]]>
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
 
-        <Fact, WorkItem(9463, "https://github.com/dotnet/roslyn/issues/9463")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9463")>
         Public Sub AsyncIteratorReportsDiagnosticsWhenCoreTypesAreMissing()
 
             Dim source = "
@@ -9068,7 +9068,7 @@ BC30456: 'AwaitOnCompleted' is not a member of 'AsyncVoidMethodBuilder'.
                 </expected>)
         End Sub
 
-        <Fact, WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13734")>
         Public Sub MethodGroupWithConversionNoSpill()
 
             Dim source = <compilation name="Async">
@@ -9096,7 +9096,7 @@ End Class
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
 
-        <Fact, WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13734")>
         Public Sub MethodGroupConversionWithSpill()
             Dim source = <compilation name="Async">
                              <file name="a.vb">
@@ -9141,7 +9141,7 @@ False
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
 
-        <Fact, WorkItem(19831, "https://github.com/dotnet/roslyn/issues/19831")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19831")>
         Public Sub CaptureAssignedInOuterFinally()
             Dim source = <compilation name="Async">
                              <file name="a.vb">
@@ -9247,7 +9247,7 @@ End Module"
         End Sub
 
         <Fact>
-        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42755")>
         Public Sub KeepLtrSemantics_ClassFieldAccessOnProperty()
             Dim source =
 "Imports System
@@ -9415,7 +9415,7 @@ After Assignment a.B.x is: 42").VerifyIL("Program.VB$StateMachine_0_Assign.MoveN
         End Sub
 
         <Fact>
-        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42755")>
         Public Sub KeepLtrSemantics_ClassFieldAccessOnArray()
             Dim source =
 "Imports System
@@ -9638,7 +9638,7 @@ After Assignment a.x is: 42").VerifyIL("Program.VB$StateMachine_0_Assign.MoveNex
         End Sub
 
         <Fact>
-        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42755")>
         Public Sub KeepLtrSemantics_StructFieldAccessOnArray()
             Dim source = "
 Imports System
@@ -9844,7 +9844,7 @@ Before Assignment arr[0].y is: True").VerifyIL("Program.VB$StateMachine_0_Assign
         End Sub
 
         <Fact>
-        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42755")>
         Public Sub KeepLtrSemantics_AssignmentToArray()
             Dim source = "
 Imports System
@@ -10014,7 +10014,7 @@ After Assignment arrCopy[0] is: 42").VerifyIL("Program.VB$StateMachine_0_Assign.
         End Sub
 
         <Fact>
-        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42755")>
         Public Sub KeepLtrSemantics_StructFieldAccessOnStructFieldAccessOnClassField()
             Dim source = "
 Imports System
@@ -10197,7 +10197,7 @@ After Assignment aCopy.b.c.x is: 42").VerifyIL("Program.VB$StateMachine_0_Assign
         End Sub
 
         <Fact>
-        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42755")>
         Public Sub KeepLtrSemantics_ClassPropertyAssignmentOnClassProperty()
             Dim source = "
 Imports System
@@ -10400,7 +10400,7 @@ After Assignment aCopy._b._x is: 42").VerifyIL("Program.VB$StateMachine_0_Assign
 }")
         End Sub
 
-        <WorkItem(19609, "https://github.com/dotnet/roslyn/issues/19609")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/19609")>
         <Fact>
         Public Sub KeepLtrSemantics_FieldAccessOnClass()
             Dim source = "
@@ -10570,7 +10570,7 @@ After Assignment aCopy.x is: 42").VerifyIL("Program.VB$StateMachine_0_Assign.Mov
         End Sub
 
         <Fact>
-        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42755")>
         Public Sub KeepLtrSemantics_CompoundAssignment()
             Dim source = "
 Imports System
@@ -10775,7 +10775,7 @@ After Assignment a.x is: 43").VerifyIL("Program.VB$StateMachine_0_Assign.MoveNex
         End Sub
 
         <Fact>
-        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42755")>
         Public Sub KeepLtrSemantics_CompoundAssignmentProperties()
             Dim source = "
 Imports System
@@ -11004,7 +11004,7 @@ After Assignment a._x is: 43").VerifyIL("Program.VB$StateMachine_0_Assign.MoveNe
         End Sub
 
         <Fact>
-        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42755")>
         Public Sub AssignmentToFieldOfStaticFieldOfStruct()
             Dim source = "
 Imports System
@@ -11120,7 +11120,7 @@ After Assignment A.b.x is: 42").VerifyIL("Program.VB$StateMachine_0_Assign.MoveN
         End Sub
 
         <Fact>
-        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42755")>
         Public Sub KeepLtrSemantics_CallOnClassFieldOnClass()
             Dim source =
 "Imports System
@@ -11289,7 +11289,7 @@ After Invoke").VerifyIL("Program.VB$StateMachine_0_Invoke.MoveNext", "
         End Sub
 
         <Fact>
-        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42755")>
         Public Sub KeepLtrSemantics_CallOnStructFieldOnClass()
             Dim source =
 "Imports System
@@ -11443,7 +11443,7 @@ After Invoke").VerifyIL("Program.VB$StateMachine_0_Invoke.MoveNext", "
         End Sub
 
         <Fact>
-        <WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47191")>
         Public Sub AssignModuleStructureField()
             Dim source = "
 Imports System
@@ -11471,7 +11471,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47191")>
         Public Sub AssignInstanceStructureField()
             Dim source = "
 Imports System

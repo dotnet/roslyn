@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
         <Theory>
         <InlineData(DebugInformationFormat.PortablePdb)>
         <InlineData(DebugInformationFormat.Pdb)>
-        <WorkItem(28045, "https://github.com/dotnet/roslyn/issues/28045")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/28045")>
         Public Sub StandalonePdb(format As DebugInformationFormat)
             Dim source1 = WithWindowsLineBreaks("
 Imports System

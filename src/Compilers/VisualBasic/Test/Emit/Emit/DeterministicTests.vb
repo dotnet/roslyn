@@ -51,7 +51,7 @@ End Class"
         End Sub
 
         <Fact>
-        <WorkItem(5813, "https://github.com/dotnet/roslyn/issues/5813")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5813")>
         Public Sub CompareAllBytesEmitted_Release()
             Dim source =
 "Class Program
@@ -72,8 +72,8 @@ End Class"
         End Sub
 
         <Fact,
-         WorkItem(5813, "https://github.com/dotnet/roslyn/issues/5813"),
-         WorkItem(926, "https://github.com/dotnet/roslyn/issues/926")>
+         WorkItem("https://github.com/dotnet/roslyn/issues/5813"),
+         WorkItem("https://github.com/dotnet/roslyn/issues/926")>
         Public Sub CompareAllBytesEmitted_Debug()
             Dim source =
 "Class Program
@@ -139,7 +139,7 @@ Partial.c = 3
         End Sub
 
         <Fact>
-        <WorkItem(11990, "https://github.com/dotnet/roslyn/issues/11990")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11990")>
         Public Sub ForwardedTypesAreEmittedInADeterministicOrder()
             ' VBC doesn't recognize type forwards in VB source code. Because of that,
             ' this test generates types as a C# library (1), then generates a C# netmodule (2) that

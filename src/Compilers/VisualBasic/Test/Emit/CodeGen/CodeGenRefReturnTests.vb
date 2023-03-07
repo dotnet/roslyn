@@ -896,7 +896,7 @@ BC37263: An expression tree may not contain a call to a method or property that 
         End Sub
 
         <Fact()>
-        <WorkItem(49617, "https://github.com/dotnet/roslyn/issues/49617")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/49617")>
         Public Sub ExpressionLambdas_02()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -932,7 +932,7 @@ BC37263: An expression tree may not contain a call to a method or property that 
         End Sub
 
         <Fact()>
-        <WorkItem(49617, "https://github.com/dotnet/roslyn/issues/49617")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/49617")>
         Public Sub ExpressionLambdas_03()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -968,7 +968,7 @@ BC37263: An expression tree may not contain a call to a method or property that 
         End Sub
 
         <Fact()>
-        <WorkItem(49617, "https://github.com/dotnet/roslyn/issues/49617")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/49617")>
         Public Sub ExpressionLambdas_04()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -1361,7 +1361,7 @@ End Module",
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13206")>
         Public Sub LambdaToByRefDelegate()
             Dim comp1 = CreateCSharpCompilation(
 "public delegate ref T D<T>();
@@ -1409,7 +1409,7 @@ BC30311: Value of type 'Function <generated method>() As Integer' cannot be conv
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13206")>
         Public Sub LambdaCallingByRefFunction()
             Dim comp1 = CreateCSharpCompilation(
 "public delegate T D<T>();
@@ -1458,7 +1458,7 @@ End Module",
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13206")>
         Public Sub LambdaCallingByRefFunctionDifferentType()
             Dim comp1 = CreateCSharpCompilation(
 "public delegate string D();
@@ -1507,7 +1507,7 @@ End Module",
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13206")>
         Public Sub LambdaCallingByRefFunctionDropReturn()
             Dim comp1 = CreateCSharpCompilation(
 "public delegate void D();
@@ -1561,7 +1561,7 @@ A.F
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13206")>
         Public Sub LambdaCallingByRefFunctionKeepingVsDroppingByRef()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -1616,7 +1616,7 @@ D1")
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13206")>
         Public Sub DelegateToByRefFunction()
             Dim comp1 = CreateCSharpCompilation(
 "public delegate ref T D<T>();
@@ -1657,7 +1657,7 @@ End Module",
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13206")>
         Public Sub DelegateToByRefFunctionDropArguments()
             Dim comp1 = CreateCSharpCompilation(
 "public delegate ref T D<T>(int x);
@@ -1704,7 +1704,7 @@ BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13206")>
         Public Sub DelegateToByRefFunctionDropArgumentsAndByRef()
             Dim comp1 = CreateCSharpCompilation(
 "public delegate T D<T>(int x);
@@ -1751,7 +1751,7 @@ BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13206")>
         Public Sub DelegateToByRefFunctionDropByRef()
             Dim comp1 = CreateCSharpCompilation(
 "public delegate T D<T>();
@@ -1807,7 +1807,7 @@ BC31143: Method 'Public Overloads ByRef Function F() As String' does not have a 
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13206")>
         Public Sub DelegateToByRefFunctionDropReturn()
             Dim comp1 = CreateCSharpCompilation(
 "public delegate void D();
@@ -1860,7 +1860,7 @@ BC31143: Method 'Public Overloads ByRef Function F() As String' does not have a 
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13206")>
         Public Sub DelegateToByRefFunctionDropByRefDifferentType()
             Dim comp1 = CreateCSharpCompilation(
 "public delegate string D();
@@ -1913,7 +1913,7 @@ BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13206")>
         Public Sub DelegateAddByRef()
             Dim comp1 = CreateCSharpCompilation(
 "public delegate ref T D<T>();
@@ -1966,7 +1966,7 @@ BC31143: Method 'Public Overloads Function F() As String' does not have a signat
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13206")>
         Public Sub DelegateToByRefFunctionWithDifferentType()
             Dim comp1 = CreateCSharpCompilation(
 "public delegate ref string D();
@@ -2013,7 +2013,7 @@ BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a
         End Sub
 
         <Fact>
-        <WorkItem(17140, "https://github.com/dotnet/roslyn/issues/17140")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17140")>
         Public Sub DelegateToByRefFunctionWithDerivedType()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -2065,7 +2065,7 @@ BC31143: Method 'Public Overloads ByRef Function F() As String' does not have a 
         End Sub
 
         <Fact>
-        <WorkItem(17140, "https://github.com/dotnet/roslyn/issues/17140")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17140")>
         Public Sub RefMethodGroupConversionError_WithResolution()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -2111,7 +2111,7 @@ End Module",
         End Sub
 
         <Fact>
-        <WorkItem(17140, "https://github.com/dotnet/roslyn/issues/17140")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17140")>
         Public Sub RefMethodGroupConversionNoError_WithResolution()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -2153,7 +2153,7 @@ End Module",
         End Sub
 
         <Fact>
-        <WorkItem(17140, "https://github.com/dotnet/roslyn/issues/17140")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17140")>
         Public Sub RefMethodGroupConversionNoError_WithResolution1()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -2199,7 +2199,7 @@ RefFunc1`2[Derived2,Base]")
         End Sub
 
         <Fact>
-        <WorkItem(17140, "https://github.com/dotnet/roslyn/issues/17140")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17140")>
         Public Sub RefMethodGroupOverloadResolution()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -2243,7 +2243,7 @@ End Module",
         End Sub
 
         <Fact>
-        <WorkItem(17140, "https://github.com/dotnet/roslyn/issues/17140")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17140")>
         Public Sub RefLambdaOverloadResolution()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -2287,7 +2287,7 @@ End Module",
         End Sub
 
         <Fact>
-        <WorkItem(17140, "https://github.com/dotnet/roslyn/issues/17140")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17140")>
         Public Sub DelegateToByRefFunctionWithBaseType()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -2339,7 +2339,7 @@ BC31143: Method 'Public Overloads ByRef Function F() As Object' does not have a 
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13206")>
         Public Sub DelegateToByRefFunctionKeepingVsDroppingByRef()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -2393,7 +2393,7 @@ End Module",
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13206")>
         Public Sub DelegateToByRefFunctionDroppingByRefVsDroppingReturn()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -2448,7 +2448,7 @@ BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a
         End Sub
 
         <Fact>
-        <WorkItem(17706, "https://github.com/dotnet/roslyn/issues/17706")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17706")>
         Public Sub SpillingByRefCall_NoSpilling()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -2516,7 +2516,7 @@ End Module
         End Sub
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/24275")>
-        <WorkItem(24275, "https://github.com/dotnet/roslyn/issues/24275")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/24275")>
         Public Sub SpillingByRefCall_Spilling()
             Dim comp1 = CreateCSharpCompilation(
 "

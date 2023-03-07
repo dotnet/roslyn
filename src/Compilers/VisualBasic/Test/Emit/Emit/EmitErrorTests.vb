@@ -167,7 +167,7 @@ Interface I
 ]]></errors>)
         End Sub
 
-        <WorkItem(540610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540610")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540610")>
         <Fact>
         Public Sub OverrideProperty()
             CompileAndVerify(
@@ -202,7 +202,7 @@ End Module
     </compilation>)
         End Sub
 
-        <WorkItem(540577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540577")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540577")>
         <Fact>
         Public Sub AddErrorCompRef()
             Dim comp1 = CreateCompilationWithMscorlib40(
@@ -226,7 +226,7 @@ End Module
             comp2.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(540643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540643")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540643")>
         <Fact>
         Public Sub PEVerifyOverrides()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -283,7 +283,7 @@ End Module
 
         End Sub
 
-        <WorkItem(540536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540536")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540536")>
         <Fact>
         Public Sub SkipCodeGenIfErrorExist()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -331,7 +331,7 @@ True
 ]]>)
         End Sub
 
-        <WorkItem(540659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540659")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540659")>
         <Fact>
         Public Sub LambdaForSub()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -355,7 +355,7 @@ Hello Bug 7002
 ]]>)
         End Sub
 
-        <WorkItem(540658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540658")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540658")>
         <Fact>
         Public Sub LambdaTest1()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -398,7 +398,7 @@ BC31143: Method 'Public Sub Goo(Of T)(x As T, y As T)' does not have a signature
 </expected>)
         End Sub
 
-        <WorkItem(528232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528232")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528232")>
         <Fact()>
         Public Sub LambdaTest3()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -418,7 +418,7 @@ End Module
             CompileAndVerify(comp1)
         End Sub
 
-        <WorkItem(540660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540660")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540660")>
         <Fact>
         Public Sub LambdaTest4()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -444,7 +444,7 @@ BC36673: Multiline lambda expression is missing 'End Sub'.
 </expected>)
         End Sub
 
-        <WorkItem(528233, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528233")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528233")>
         <Fact()>
         Public Sub LambdaTest5()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -465,7 +465,7 @@ End Module
             CompileAndVerify(comp1)
         End Sub
 
-        <WorkItem(541360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541360")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541360")>
         <Fact>
         Public Sub ERR_30500_CircularEvaluation1()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -492,7 +492,7 @@ End Module
                 )
         End Sub
 
-        <Fact(), WorkItem(543653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543653")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543653")>
         Public Sub CompareToOnDecimalTypeChar()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
@@ -514,7 +514,7 @@ End Module
 
 #Region "Mixed Error Tests"
 
-        <Fact, WorkItem(530211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530211")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530211")>
         Public Sub ModuleNameMismatch()
             Dim netModule = CreateCompilationWithMscorlib40(
     <compilation name="ModuleNameMismatch">
@@ -547,7 +547,7 @@ BC37205: Module name 'ModuleNameMismatch.netmodule' stored in 'ModuleNameMismatc
 </expected>)
         End Sub
 
-        <Fact, WorkItem(2774, "https://github.com/dotnet/roslyn/issues/2774")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2774")>
         Public Sub DoNotCrashOrAssertBecauseOfAMissingHelper()
             Dim compilation = CreateCompilationWithMscorlib40AndReferences(
     <compilation>
@@ -574,7 +574,7 @@ BC35000: Requested operation is not available because the runtime library functi
 ]]></expected>)
         End Sub
 
-        <Fact, WorkItem(8287, "https://github.com/dotnet/roslyn/issues/8287")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8287")>
         Public Sub ToManyUserStrings()
 
             Dim source As New System.Text.StringBuilder()

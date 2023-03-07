@@ -306,8 +306,8 @@ Class2`2[T,U]
         End Sub
 
         <Fact,
-         WorkItem(9850, "https://github.com/dotnet/roslyn/issues/9850"),
-         WorkItem(542581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")>
+         WorkItem("https://github.com/dotnet/roslyn/issues/9850"),
+         WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")>
         Public Sub CodeGen_GetType_InheritedNestedTypeThroughUnboundGeneric()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>

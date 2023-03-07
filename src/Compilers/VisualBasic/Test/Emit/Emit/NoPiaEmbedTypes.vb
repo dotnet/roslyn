@@ -2143,7 +2143,7 @@ End Class
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
-        <WorkItem(837420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837420")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837420")>
         <Fact()>
         Public Sub BC31556ERR_SourceInterfaceMustBeInterface()
             Dim sources0 = <compilation>
@@ -4142,7 +4142,7 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
             CompileAndVerify(compilation4, verify:=Verification.FailsPEVerify)
         End Sub
 
-        <Fact(), WorkItem(673546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673546")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673546")>
         Public Sub MissingComAwareEventInfo()
             Dim sources0 = <compilation name="0">
                                <file name="a.vb"><![CDATA[
@@ -4343,7 +4343,7 @@ BC35000: Requested operation is not available because the runtime library functi
                                                 End Sub).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(8088, "https://github.com/dotnet/roslyn/issues/8088")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8088")>
         Public Sub ParametersWithoutNames()
             Dim sources =
 <compilation>

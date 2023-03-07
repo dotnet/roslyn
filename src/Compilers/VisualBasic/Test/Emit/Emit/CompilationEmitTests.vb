@@ -1075,7 +1075,7 @@ End Function",
 
 #If NET472 Then
         <ConditionalFact(GetType(WindowsDesktopOnly))>
-        <WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/31197")>
         Public Sub RefAssembly_InvariantToResourceChanges_RefOut()
             Dim arrayOfEmbeddedData1 = New Byte() {1, 2, 3, 4, 5}
             Dim arrayOfEmbeddedData2 = New Byte() {1, 2, 3, 4, 5, 6}
@@ -1118,7 +1118,7 @@ End Function",
         End Sub
 
         <ConditionalFact(GetType(WindowsDesktopOnly))>
-        <WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/31197")>
         Public Sub RefAssembly_SensitiveToResourceChanges_RefOnly()
             Dim arrayOfEmbeddedData1 = New Byte() {1, 2, 3, 4, 5}
             Dim arrayOfEmbeddedData2 = New Byte() {1, 2, 3, 4, 5, 6}
@@ -1148,7 +1148,7 @@ End Function",
             Return comp.EmitToArray(refonlyOptions, metadataPEStream:=Nothing, manifestResources:=manifestResources)
         End Function
 #End If
-        <Fact, WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31197")>
         Public Sub RefAssembly_CryptoHashFailedIsOnlyReportedOnce()
             Dim hash_resources =
                 {New ResourceDescription("hash_resource", "snKey.snk", Function() New MemoryStream(TestResources.General.snKey, writable:=False), True)}
@@ -1327,7 +1327,7 @@ End Class
 Sub(comp) comp.AssertTheseDiagnostics())
         End Sub
 
-        <Fact, WorkItem(49470, "https://github.com/dotnet/roslyn/issues/49470")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49470")>
         Public Sub RefAssemblyClient_EventBackingField()
             Dim lib_vb = "
 Imports System
@@ -1823,7 +1823,7 @@ End Module
             CompileAndVerify(compilation)
         End Sub
 
-        <WorkItem(540643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540643")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540643")>
         <Fact>
         Public Sub Bug6981()
             ' tests different casing of the method
@@ -2294,7 +2294,7 @@ End Module
             Assert.Equal(CType(&H8560, UShort), peHeaders.PEHeader.DllCharacteristics)  'DYNAMIC_BASE | NX_COMPAT | NO_SEH | TERMINAL_SERVER_AWARE | HIGH_ENTROPY_VA (0x20)
         End Sub
 
-        <WorkItem(764418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/764418")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/764418")>
         <Fact()>
         Public Sub CheckDllCharacteristicsWinRtApp()
             Dim source =
@@ -3560,7 +3560,7 @@ End Class
             Dim result = compilation.Emit(New MemoryStream(), options:=New EmitOptions(outputNameOverride:=" "))
         End Sub
 
-        <WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")>
         <Fact>
         Public Sub PermissionSetAttribute_Fixup()
             Dim tempDir = Temp.CreateDirectory()
@@ -3628,7 +3628,7 @@ End Class
                              End Sub)
         End Sub
 
-        <WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")>
         <Fact>
         Public Sub PermissionSetAttributeInvalidFile()
             Dim source =
@@ -3668,7 +3668,7 @@ end class
                 Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=""NonExistentFile.xml""").WithArguments("NonExistentFile.xml", "File").WithLocation(3, 46))
         End Sub
 
-        <WorkItem(546074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546074")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546074")>
         <Fact()>
         Public Sub ReDimPreserve()
             Dim source =
@@ -3687,7 +3687,7 @@ End Module
             CompileAndVerify(comp)
         End Sub
 
-        <WorkItem(546074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546074")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546074")>
         <Fact()>
         Public Sub ReDimPreserve2()
             Dim source =
@@ -3706,7 +3706,7 @@ End Module
             CompileAndVerify(comp)
         End Sub
 
-        <WorkItem(546074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546074")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546074")>
         <Fact()>
         Public Sub ReDimPreserve3()
             Dim source =
@@ -3727,7 +3727,7 @@ End Module
             CompileAndVerify(comp)
         End Sub
 
-        <WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")>
         <Fact>
         Public Sub PermissionSetAttributeFileReadError()
             Dim tempDir = Temp.CreateDirectory()
@@ -3780,7 +3780,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(654522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654522")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654522")>
         <Fact>
         Public Sub Bug654522()
             Dim refSource =
@@ -3821,7 +3821,7 @@ Public Interface I(Of W As Structure) : End Interface
             CompileAndVerify(comp, symbolValidator:=metadataValidator)
         End Sub
 
-        <WorkItem(546450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546450")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546450")>
         <Fact>
         Public Sub EmitNetModuleWithReferencedNetModule()
             Dim source1 =
@@ -4267,7 +4267,7 @@ End interface
 </expected>)
         End Sub
 
-        <Fact, WorkItem(769741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769741"), WorkItem(1001945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1001945")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769741"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1001945")>
         Public Sub Bug769741()
             Dim source =
 <compilation>
@@ -4353,7 +4353,7 @@ End interface
             Return -1
         End Function
 
-        <Fact, WorkItem(1669, "https://github.com/dotnet/roslyn/issues/1669")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1669")>
         Public Sub FoldMethods2()
             ' Verifies that IL folding eliminates duplicate copies of small method bodies by
             ' examining the emitted binary.
@@ -4467,7 +4467,7 @@ BC37256: An error occurred while writing the output file: <%= output.ThrownExcep
         End Sub
 
         <Fact>
-        <WorkItem(11691, "https://github.com/dotnet/roslyn/issues/11691")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11691")>
         Public Sub ObsoleteAttributeOverride()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(
                 <compilation>

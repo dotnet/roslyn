@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenNullable
         Inherits BasicTestBase
 
-        <Fact(), WorkItem(544947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544947")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544947")>
         Public Sub LiftedIntrinsicNegationLocal()
             CompileAndVerify(
                 <compilation>
@@ -1398,7 +1398,7 @@ Else: Ret2=True
 
         End Sub
 
-        <Fact(), WorkItem(544948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544948")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544948")>
         Public Sub NothingOrZeroInBinaryExpression()
             CompileAndVerify(
                 <compilation>
@@ -1952,7 +1952,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact(), WorkItem(544930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544930")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544930")>
         Public Sub LiftedBinaryIf1a()
             CompileAndVerify(
                 <compilation>
@@ -2128,7 +2128,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact, WorkItem(545064, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545064")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545064")>
         Public Sub LiftedBinaryIf5_Nested()
             Dim source =
                 <compilation>
@@ -2154,7 +2154,7 @@ End Module
 
         End Sub
 
-        <Fact(), WorkItem(544945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544945")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544945")>
         Public Sub LiftedBinaryRelationalWithNothingLiteral()
             Dim source =
                 <compilation>
@@ -2184,7 +2184,7 @@ End Class
 
         End Sub
 
-        <WorkItem(544946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544946")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544946")>
         <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub LiftedBinaryConcatLikeWithNothingLiteral()
             Dim source =
@@ -2210,7 +2210,7 @@ End Class
 
         End Sub
 
-        <Fact(), WorkItem(544947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544947")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544947")>
         Public Sub LiftedBinaryDivisionWithNothingLiteral()
             Dim source =
                 <compilation>
@@ -3093,7 +3093,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact(), WorkItem(544589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544589")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544589")>
         Public Sub LiftedShortCircuitOperations()
             CompileAndVerify(
                 <compilation>
@@ -3159,7 +3159,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact(), WorkItem(545124, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545124")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545124")>
         Public Sub LogicalOperationsWithNullableEnum()
             CompileAndVerify(
                 <compilation>
@@ -3259,7 +3259,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact(), WorkItem(545125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545125")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545125")>
         Public Sub ArithmeticOperationsWithNullableType()
             CompileAndVerify(
                 <compilation>
@@ -3325,7 +3325,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact(), WorkItem(545437, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545437")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545437")>
         Public Sub Regress13840()
             CompileAndVerify(
                 <compilation>
@@ -3353,7 +3353,7 @@ End Module
 
 #Region "Diagnostics"
 
-        <Fact(), WorkItem(544942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544942"), WorkItem(599013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599013")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544942"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599013")>
         Public Sub BC30424ERR_ConstAsNonConstant_Nullable()
             Dim source =
                 <compilation>
@@ -3427,7 +3427,7 @@ End Module
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_NameNotMember2, "ns.field").WithArguments("field", "S?"))
         End Sub
 
-        <Fact(), WorkItem(544945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544945")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544945")>
         Public Sub BC42037And42038WRN_EqualToLiteralNothing_Nullable()
             Dim source =
                 <compilation>
@@ -3457,7 +3457,7 @@ End Class
                                                                           )
         End Sub
 
-        <Fact(), WorkItem(545050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545050")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545050")>
         Public Sub DoNotGiveBC32126ERR_AddressOfNullableMethod()
             Dim source =
                 <compilation>
@@ -3529,7 +3529,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact(), WorkItem(545126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545126")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545126")>
         Public Sub BC36629ERR_NullableTypeInferenceNotSupported()
             Dim source =
                 <compilation>
@@ -3737,7 +3737,7 @@ BC33112: Nullable modifier cannot be used with a variable whose implicit type is
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(545126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545126")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545126")>
         Public Sub BC36629ERR_NullableTypeInferenceNotSupported_2()
             Dim source =
                 <compilation>
@@ -4551,7 +4551,7 @@ expectedOutput:=<![CDATA[:catenation right to integer?(null):
         '''    explicit: int? --> int
         ''' </summary>
         ''' <remarks></remarks>
-        <Fact, WorkItem(545166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")>
         Public Sub Op_ExplicitImplicitOnNullable()
             CompileAndVerify(
                 <compilation>
@@ -4788,7 +4788,7 @@ VerifyIL("Module1.Main",
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_01()
             CompileAndVerify(
                 <compilation>
@@ -4885,7 +4885,7 @@ GetBool2
         End Sub
 
         <ConditionalFact(GetType(DesktopClrOnly))>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_02()
             CompileAndVerify(
                 <compilation>
@@ -4931,7 +4931,7 @@ y => (((y.GetBool3() == Convert(True)) OrElse Convert(y.GetBool2())) ?? False)
         End Sub
 
         <ConditionalFact(GetType(DesktopClrOnly))>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_03()
             CompileAndVerify(
                 <compilation>
@@ -5024,7 +5024,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_04()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -5088,7 +5088,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_05()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -5145,7 +5145,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_06()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -5202,7 +5202,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_07()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -5259,7 +5259,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_08()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -5304,7 +5304,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_09()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -5351,7 +5351,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_10()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -5395,7 +5395,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_11()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -5446,7 +5446,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_12()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -5491,7 +5491,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_13()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -5542,7 +5542,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_14()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -5586,7 +5586,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_15()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -5633,7 +5633,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_16()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -5671,7 +5671,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_17()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -5709,7 +5709,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_18()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -5773,7 +5773,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_19()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -5829,7 +5829,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_20()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -5889,7 +5889,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_21()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -5951,7 +5951,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_22()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -6047,7 +6047,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_23()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -6148,7 +6148,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_24()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -6210,7 +6210,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_25()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -6272,7 +6272,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_26()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -6356,7 +6356,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_27()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -6440,7 +6440,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_28()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -6507,7 +6507,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_29()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -6574,7 +6574,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_30()
             Dim source =
                 <compilation>
@@ -7129,7 +7129,7 @@ End Class
         End Sub
 
         <Fact()>
-        <WorkItem(38306, "https://github.com/dotnet/roslyn/issues/38306")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38306")>
         Public Sub BooleanExpression_36()
             Dim verifier = CompileAndVerify(
                 <compilation>
@@ -7200,7 +7200,7 @@ End Class
         End Sub
 
         <Fact()>
-        <WorkItem(38306, "https://github.com/dotnet/roslyn/issues/38306")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38306")>
         Public Sub BooleanExpression_37()
             Dim verifier = CompileAndVerify(
                 <compilation>

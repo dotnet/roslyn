@@ -1386,7 +1386,7 @@ Sum: 10, Count: 4")
         End Sub
 
         <Fact>
-        <WorkItem(18762, "https://github.com/dotnet/roslyn/issues/18762")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/18762")>
         Public Sub UnnamedTempShouldNotCrashPdbEncoding()
 
             Dim verifier = CompileAndVerify(
@@ -3165,7 +3165,7 @@ Long")
         End Sub
 
         <Fact>
-        <WorkItem(14473, "https://github.com/dotnet/roslyn/issues/14473")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14473")>
         Public Sub NarrowingFromNumericConstant_06()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -3223,7 +3223,7 @@ Byte")
         End Sub
 
         <Fact>
-        <WorkItem(14473, "https://github.com/dotnet/roslyn/issues/14473")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14473")>
         Public Sub NarrowingFromNumericConstant_07()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -5713,7 +5713,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(13302, "https://github.com/dotnet/roslyn/issues/13302")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13302")>
         Public Sub GenericTupleWithoutTupleLibrary_01()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -5799,7 +5799,7 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
         End Sub
 
         <Fact>
-        <WorkItem(13300, "https://github.com/dotnet/roslyn/issues/13300")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13300")>
         Public Sub GenericTupleWithoutTupleLibrary_02()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -7536,7 +7536,7 @@ additionalRefs:=s_valueTupleRefs)
         End Sub
 
         <Fact>
-        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateTupleTypeSymbol_UnderlyingType_DefaultArgs()
             Dim comp = CreateCompilation(
 "Module Program
@@ -7568,7 +7568,7 @@ End Module")
         End Sub
 
         <Fact>
-        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateTupleTypeSymbol_ElementTypes_DefaultArgs()
             Dim comp = CreateCompilation(
 "Module Program
@@ -7600,7 +7600,7 @@ End Module")
         End Sub
 
         <Fact>
-        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateTupleTypeSymbol_UnderlyingType_WithNullableAnnotations_01()
             Dim comp = CreateCompilation(
 "Module Program
@@ -7635,7 +7635,7 @@ End Module")
         End Sub
 
         <Fact>
-        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateTupleTypeSymbol_UnderlyingType_WithNullableAnnotations_02()
             Dim comp = CreateCompilation(
 "Module Program
@@ -7661,7 +7661,7 @@ End Module")
         End Sub
 
         <Fact>
-        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateTupleTypeSymbol_ElementTypes_WithNullableAnnotations_01()
             Dim comp = CreateCompilation(
 "Module Program
@@ -7696,7 +7696,7 @@ End Module")
         End Sub
 
         <Fact>
-        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateTupleTypeSymbol_ElementTypes_WithNullableAnnotations_02()
             Dim comp = CreateCompilation(
 "Module Program
@@ -8926,8 +8926,8 @@ fourth]]>)
         End Sub
 
         <Fact()>
-        <WorkItem(13277, "https://github.com/dotnet/roslyn/issues/13277")>
-        <WorkItem(14365, "https://github.com/dotnet/roslyn/issues/14365")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13277")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14365")>
         Public Sub CreateTupleTypeSymbol_UnderlyingTypeIsError()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef, TestReferences.SymbolsTests.netModule.netModule1})
@@ -8988,7 +8988,7 @@ fourth]]>)
         End Sub
 
         <Fact>
-        <WorkItem(13042, "https://github.com/dotnet/roslyn/issues/13042")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13042")>
         Public Sub GetSymbolInfoOnTupleType()
             Dim verifier = CompileAndVerify(
  <compilation>
@@ -9015,7 +9015,7 @@ End Module
         End Sub
 
         <Fact(Skip:="See bug 16697")>
-        <WorkItem(16697, "https://github.com/dotnet/roslyn/issues/16697")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16697")>
         Public Sub GetSymbolInfo_01()
             Dim source = "
  Class C
@@ -9043,7 +9043,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(23651, "https://github.com/dotnet/roslyn/issues/23651")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/23651")>
         Public Sub GetSymbolInfo_WithDuplicateInferredNames()
             Dim source = "
  Class C
@@ -10123,7 +10123,7 @@ additionalReferences:=s_valueTupleRefs)
         End Sub
 
         <Fact>
-        <WorkItem(258853, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")>
         Public Sub BadOverloadWithTupleLiteralWithNaturalType()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -10153,7 +10153,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(258853, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")>
         Public Sub BadOverloadWithTupleLiteralWithNothing()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -10183,7 +10183,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(258853, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")>
         Public Sub BadOverloadWithTupleLiteralWithAddressOf()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -10232,7 +10232,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13705")>
         Public Sub TupleCoVariance()
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -10252,7 +10252,7 @@ BC36726: Type 'T' cannot be used for the 'T2' in 'System.ValueTuple(Of T1, T2)' 
         End Sub
 
         <Fact()>
-        <WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13705")>
         Public Sub TupleCoVariance2()
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -10272,7 +10272,7 @@ BC36726: Type 'T' cannot be used for the 'T2' in 'System.ValueTuple(Of T1, T2)' 
         End Sub
 
         <Fact()>
-        <WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13705")>
         Public Sub TupleContraVariance()
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -11122,7 +11122,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(13661, "https://github.com/dotnet/roslyn/issues/13661")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13661")>
         Public Sub LongTupleWithPartialNames_Bug13661()
 
             Dim verifier = CompileAndVerify(
@@ -11730,7 +11730,7 @@ BC41009: The tuple element name 'f' is ignored because a different name or no na
         End Sub
 
         <Fact>
-        <WorkItem(11288, "https://github.com/dotnet/roslyn/issues/11288")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11288")>
         Public Sub TupleConversion02()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -12604,7 +12604,7 @@ options:=TestOptions.DebugExe)
         End Sub
 
         <Fact>
-        <WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11289")>
         Public Sub TupleConvertedTypeUDC02()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -12745,7 +12745,7 @@ BC30512: Option Strict On disallows implicit conversions from '(String, String)'
         End Sub
 
         <Fact>
-        <WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11289")>
         Public Sub TupleConvertedTypeUDC04()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -12811,7 +12811,7 @@ options:=TestOptions.DebugExe)
         End Sub
 
         <Fact>
-        <WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11289")>
         Public Sub TupleConvertedTypeUDC05()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -12883,7 +12883,7 @@ options:=TestOptions.DebugExe)
         End Sub
 
         <Fact>
-        <WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11289")>
         Public Sub TupleConvertedTypeUDC06()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -13582,8 +13582,8 @@ second")
         End Sub
 
         <Fact>
-        <WorkItem(14529, "https://github.com/dotnet/roslyn/issues/14529")>
-        <WorkItem(14530, "https://github.com/dotnet/roslyn/issues/14530")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14529")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14530")>
         Public Sub AnonymousDelegate_02()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -13725,7 +13725,7 @@ False
         End Sub
 
         <Fact>
-        <WorkItem(14530, "https://github.com/dotnet/roslyn/issues/14530")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14530")>
         Public Sub UserDefinedConversions_03()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -14175,7 +14175,7 @@ System.ValueTuple`2[System.Int32,System.Int32]
         End Sub
 
         <Fact>
-        <WorkItem(14152, "https://github.com/dotnet/roslyn/issues/14152")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14152")>
         Public Sub Inference13()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -14213,8 +14213,8 @@ System.ValueTuple`2[System.Int32,System.Int32]
         End Sub
 
         <Fact>
-        <WorkItem(22329, "https://github.com/dotnet/roslyn/issues/22329")>
-        <WorkItem(14152, "https://github.com/dotnet/roslyn/issues/14152")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/22329")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14152")>
         Public Sub Inference13a()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -19050,7 +19050,7 @@ BC30402: 'evtTest3' cannot implement event 'evtTest2' on interface 'I1' because 
 </errors>)
         End Sub
 
-        <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11689")>
         <Fact>
         Public Sub ValueTupleNotStruct0()
 
@@ -19095,7 +19095,7 @@ BC37281: Predefined type 'ValueTuple`2' must be a structure.
 
         End Sub
 
-        <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11689")>
         <Fact>
         Public Sub ValueTupleNotStruct1()
 
@@ -19194,7 +19194,7 @@ BC33030: Conversion operators cannot convert from a base type.
 </errors>)
         End Sub
 
-        <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11689")>
         <Fact>
         Public Sub ValueTupleNotStruct2()
 
@@ -19233,7 +19233,7 @@ BC37281: Predefined type 'ValueTuple`2' must be a structure.
 
         End Sub
 
-        <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11689")>
         <Fact>
         Public Sub ValueTupleNotStruct2i()
 
@@ -19265,7 +19265,7 @@ BC37281: Predefined type 'ValueTuple`2' must be a structure.
 
         End Sub
 
-        <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11689")>
         <Fact>
         Public Sub ValueTupleNotStruct3()
 
@@ -19308,7 +19308,7 @@ BC37281: Predefined type 'ValueTuple`2' must be a structure.
 
         End Sub
 
-        <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11689")>
         <Fact>
         Public Sub ValueTupleNotStruct4()
 
@@ -19375,7 +19375,7 @@ BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Cultur
 </errors>)
         End Sub
 
-        <WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16879")>
         <Fact>
         Public Sub ValueTupleBaseError_MissingReference()
             Dim comp0 = CreateCompilationWithMscorlib40(
@@ -19530,7 +19530,7 @@ BC41009: The tuple element name 'c' is ignored because a different name or no na
         End Sub
 
         <Fact>
-        <WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16825")>
         Public Sub NullCoalescingOperatorWithTupleNames()
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -20053,7 +20053,7 @@ BC41009: The tuple element name 'd' is ignored because a different name or no na
         End Sub
 
         <Fact()>
-        <WorkItem(14267, "https://github.com/dotnet/roslyn/issues/14267")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14267")>
         Public Sub NoSystemRuntimeFacade()
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -20080,7 +20080,7 @@ BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Cultur
         End Sub
 
         <Fact>
-        <WorkItem(14888, "https://github.com/dotnet/roslyn/issues/14888")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14888")>
         Public Sub Iterator_01()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -20108,7 +20108,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         End Sub
 
         <Fact()>
-        <WorkItem(14888, "https://github.com/dotnet/roslyn/issues/14888")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14888")>
         Public Sub Iterator_02()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -20137,7 +20137,7 @@ BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Cultur
         End Sub
 
         <Fact>
-        <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
         Public Sub UserDefinedConversionsAndNameMismatch_01()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -20176,7 +20176,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         End Sub
 
         <Fact>
-        <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
         Public Sub UserDefinedConversionsAndNameMismatch_02()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -20215,7 +20215,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         End Sub
 
         <Fact>
-        <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
         Public Sub UserDefinedConversionsAndNameMismatch_03()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -20258,7 +20258,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         End Sub
 
         <Fact>
-        <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
         Public Sub UserDefinedConversionsAndNameMismatch_04()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -20287,7 +20287,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         End Sub
 
         <Fact>
-        <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
         Public Sub UserDefinedConversionsAndNameMismatch_05()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -20316,7 +20316,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         End Sub
 
         <Fact>
-        <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
         Public Sub UserDefinedConversionsAndNameMismatch_06()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -20630,7 +20630,7 @@ BC42024: Unused local variable: 'x6'.
         End Sub
 
         <Fact>
-        <WorkItem(15198, "https://github.com/dotnet/roslyn/issues/15198")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/15198")>
         Public Sub TuplePropertyArgs001()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -20660,7 +20660,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         End Sub
 
         <Fact>
-        <WorkItem(15198, "https://github.com/dotnet/roslyn/issues/15198")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/15198")>
         Public Sub TuplePropertyArgs002()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -20690,7 +20690,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         End Sub
 
         <Fact>
-        <WorkItem(15198, "https://github.com/dotnet/roslyn/issues/15198")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/15198")>
         Public Sub TuplePropertyArgs003()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -20720,7 +20720,7 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
         End Sub
 
         <Fact>
-        <WorkItem(14844, "https://github.com/dotnet/roslyn/issues/14844")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14844")>
         Public Sub InterfaceImplAttributesAreNotSharedAcrossTypeRefs()
             Dim src1 = <compilation>
                            <file name="a.vb">
@@ -20766,8 +20766,8 @@ End Class
         End Sub
 
         <Fact()>
-        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
-        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/15476")>
         Public Sub TupleElementVsLocal()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -20829,7 +20829,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub ImplementSameInterfaceViaBaseWithDifferentTupleNames()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -20866,7 +20866,7 @@ End Class
         End Sub
 
         <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub ImplementSameInterfaceViaBase()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -20901,7 +20901,7 @@ End Class
         End Sub
 
         <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub GenericImplementSameInterfaceViaBaseWithoutTuples()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -20959,7 +20959,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub GenericImplementSameInterfaceViaBase()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -21019,7 +21019,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub GenericExplicitIEnumerableImplementationUsedWithDifferentTypesAndTupleNames()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -21107,7 +21107,7 @@ BC32096: 'For Each' on type 'Derived(Of (notA As String, notB As String))' is am
         End Sub
 
         <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub GenericExplicitIEnumerableImplementationUsedWithDifferentTupleNames()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -21192,7 +21192,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(14843, "https://github.com/dotnet/roslyn/issues/14843")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14843")>
         Public Sub TupleNameDifferencesIgnoredInConstraintWhenNotIdentityConversion()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -21214,7 +21214,7 @@ End Class
         End Sub
 
         <Fact()>
-        <WorkItem(14843, "https://github.com/dotnet/roslyn/issues/14843")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14843")>
         Public Sub TupleNameDifferencesIgnoredInConstraintWhenNotIdentityConversion2()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -21240,7 +21240,7 @@ End Class
         End Sub
 
         <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub CanReImplementInterfaceWithDifferentTupleNames()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -21273,7 +21273,7 @@ End Class
         End Sub
 
         <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_01()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -21310,7 +21310,7 @@ BC30149: Class 'Derived1' must implement 'Function M() As (notA As Integer, notB
         End Sub
 
         <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_02()
 
             Dim csSource = "
@@ -21367,7 +21367,7 @@ BC30149: Class 'Derived1' must implement 'Function M() As (notA As Integer, notB
         End Sub
 
         <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_03()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -21403,7 +21403,7 @@ BC30149: Class 'Derived1' must implement 'Function M() As (notA As Integer, notB
         End Sub
 
         <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_04()
             Dim compilation1 = CreateCompilation(
 <compilation>
@@ -21447,7 +21447,7 @@ BC30149: Class 'Derived1' must implement 'Function M() As (notA As Integer, notB
         End Sub
 
         <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_05()
 
             Dim csSource = "
@@ -21502,7 +21502,7 @@ BC30149: Class 'Derived1' must implement 'Function M() As (notA As Integer, notB
         End Sub
 
         <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub ReImplementationAndInference()
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -21555,7 +21555,7 @@ End Class
         End Sub
 
         <Fact()>
-        <WorkItem(14091, "https://github.com/dotnet/roslyn/issues/14091")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14091")>
         Public Sub TupleTypeWithTooFewElements()
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -21595,7 +21595,7 @@ BC37259: Tuple must contain at least two elements.
         End Sub
 
         <Fact()>
-        <WorkItem(14091, "https://github.com/dotnet/roslyn/issues/14091")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14091")>
         Public Sub TupleExpressionWithTooFewElements()
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -21761,7 +21761,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/18738")>
         Public Sub TypelessTupleWithNoImplicitConversion()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -21797,7 +21797,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer?' to 'Int
         End Sub
 
         <Fact>
-        <WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/18738")>
         Public Sub TypelessTupleWithNoImplicitConversion2()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -21833,7 +21833,7 @@ BC30311: Value of type '(e As Integer?, Object)' cannot be converted to '(Intege
         End Sub
 
         <Fact>
-        <WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/18738")>
         Public Sub TypedTupleWithNoImplicitConversion()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -21869,7 +21869,7 @@ BC30311: Value of type '(e As Integer?, String)' cannot be converted to '(Intege
         End Sub
 
         <Fact>
-        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20494")>
         Public Sub MoreGenericTieBreaker_01()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -21910,7 +21910,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20494")>
         Public Sub MoreGenericTieBreaker_01b()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -21938,8 +21938,8 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
-        <WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20583")>
         Public Sub MoreGenericTieBreaker_02a1()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -21976,8 +21976,8 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
-        <WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20583")>
         Public Sub MoreGenericTieBreaker_02a2()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -22014,8 +22014,8 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
-        <WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20583")>
         Public Sub MoreGenericTieBreaker_02a3()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -22054,8 +22054,8 @@ End Interface
         End Sub
 
         <Fact>
-        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
-        <WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20583")>
         Public Sub MoreGenericTieBreaker_02a4()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -22094,8 +22094,8 @@ End Interface
         End Sub
 
         <Fact>
-        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
-        <WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20583")>
         Public Sub MoreGenericTieBreaker_02a5()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -22130,8 +22130,8 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
-        <WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20583")>
         Public Sub MoreGenericTieBreaker_02a6()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -22161,8 +22161,8 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
-        <WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20583")>
         Public Sub MoreGenericTieBreaker_02a7()
             Dim source =
 <compilation>
@@ -22195,8 +22195,8 @@ BC36645: Data type(s) of the type parameter(s) in method 'Public Sub M1(Of T1, T
         End Sub
 
         <Fact>
-        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
-        <WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20583")>
         Public Sub MoreGenericTieBreaker_02b()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -22232,7 +22232,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20494")>
         Public Sub MoreGenericTieBreaker_03()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -22260,7 +22260,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20494")>
         Public Sub MoreGenericTieBreaker_04()
             Dim source =
 <compilation>
@@ -22292,7 +22292,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(21785, "https://github.com/dotnet/roslyn/issues/21785")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/21785")>
         Public Sub TypelessTupleInArrayInitializer()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -22331,7 +22331,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(21785, "https://github.com/dotnet/roslyn/issues/21785")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/21785")>
         Public Sub TypelessTupleInArrayInitializerWithInferenceFailure()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -22370,7 +22370,7 @@ BC30491: Expression does not produce a value.
         End Sub
 
         <Fact>
-        <WorkItem(21785, "https://github.com/dotnet/roslyn/issues/21785")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/21785")>
         Public Sub TypelessTupleInArrayInitializerWithInferenceSuccess()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -22409,7 +22409,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(24781, "https://github.com/dotnet/roslyn/issues/24781")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/24781")>
         Public Sub InferenceWithTuple()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -22445,7 +22445,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/21727")>
         Public Sub FailedDecodingOfTupleNamesWhenMissingValueTupleType()
             Dim vtLib = CreateEmptyCompilation(s_trivial2uple, references:={MscorlibRef}, assemblyName:="vt")
 
@@ -22549,7 +22549,7 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'vt.dll' fail
         End Sub
 
         <Fact>
-        <WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/21727")>
         Public Sub FailedDecodingOfTupleNamesWhenMissingContainerType()
             Dim containerLib = CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation>
@@ -22635,7 +22635,7 @@ End Class
         <Theory>
         <InlineData(True)>
         <InlineData(False)>
-        <WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/40033")>
         Public Sub SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit_IndirectInterfaces(ByVal useImageReferences As Boolean)
 
             Dim getReference As Func(Of Compilation, MetadataReference) = Function(c) If(useImageReferences, c.EmitToImageReference(), c.ToMetadataReference())
@@ -22705,7 +22705,7 @@ End Class
 
         End Sub
 
-        <Fact, WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40033")>
         Public Sub SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit_BaseAndDirectInterface()
 
             Dim source = "
@@ -22763,7 +22763,7 @@ BC37268: Cannot define a class or member that utilizes tuples because the compil
         <Theory>
         <InlineData(True)>
         <InlineData(False)>
-        <WorkItem(40430, "https://github.com/dotnet/roslyn/issues/40430")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/40430")>
         Public Sub MissingTypeArgumentInBase_ValueTuple(useImageReference As Boolean)
             Dim lib_vb = "
 Public Class ClassWithTwoTypeParameters(Of T1, T2)
@@ -22806,7 +22806,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(41699, "https://github.com/dotnet/roslyn/issues/41699")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/41699")>
         Public Sub MissingBaseType_TupleTypeArgumentWithNames()
             Dim sourceA =
 "Public Class A(Of T)
@@ -22839,8 +22839,8 @@ BC30652: Reference required to assembly 'A, Version=0.0.0.0, Culture=neutral, Pu
         End Sub
 
         <Fact>
-        <WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")>
-        <WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/41207")>
+        <WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")>
         Public Sub CustomFields_01()
             Dim source0 = "
 Namespace System
@@ -22908,8 +22908,8 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")>
-        <WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/41207")>
+        <WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")>
         Public Sub CustomFields_02()
             Dim source0 = "
 Namespace System
@@ -22978,8 +22978,8 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(43524, "https://github.com/dotnet/roslyn/issues/43524")>
-        <WorkItem(1095184, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1095184")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/43524")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1095184")>
         Public Sub CustomFields_03()
             Dim source0 = "
 namespace System
@@ -23040,8 +23040,8 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(43524, "https://github.com/dotnet/roslyn/issues/43524")>
-        <WorkItem(1095184, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1095184")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/43524")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1095184")>
         Public Sub CustomFields_04()
             Dim source0 = "
 namespace System
@@ -23106,7 +23106,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(41702, "https://github.com/dotnet/roslyn/issues/41702")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/41702")>
         Public Sub TupleUnderlyingType_FromCSharp()
             Dim source =
 "#pragma warning disable 169
@@ -23129,7 +23129,7 @@ class Program
         End Sub
 
         <Fact>
-        <WorkItem(41702, "https://github.com/dotnet/roslyn/issues/41702")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/41702")>
         Public Sub TupleUnderlyingType_FromVisualBasic()
             Dim source =
 "Class Program
@@ -23222,7 +23222,7 @@ End Class"
         End Sub
 
         <Fact>
-        <WorkItem(27322, "https://github.com/dotnet/roslyn/issues/27322")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/27322")>
         Public Sub Issue27322()
             Dim source0 = "
 Imports System
@@ -23263,7 +23263,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(24517, "https://github.com/dotnet/roslyn/issues/24517")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/24517")>
         Public Sub Issue24517()
             Dim source0 = "
 Imports System
@@ -23290,7 +23290,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(64777, "https://github.com/dotnet/roslyn/issues/64777")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/64777")>
         Public Sub NameMismatchInUserDefinedConversion()
 
             Dim source =

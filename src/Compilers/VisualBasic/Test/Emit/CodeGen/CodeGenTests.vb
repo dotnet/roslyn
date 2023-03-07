@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenTests
         Inherits BasicTestBase
 
-        <WorkItem(776642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")>
         <Fact()>
         Public Sub Bug776642a()
             ' ILVerify: Unexpected type on the stack. { Offset = 16, Found = readonly address of '[...]OuterStruct', Expected = address of '[...]OuterStruct' }
@@ -74,7 +74,7 @@ End Structure
 ]]>)
         End Sub
 
-        <WorkItem(776642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")>
         <Fact()>
         Public Sub Bug776642b()
             CompileAndVerify(
@@ -194,7 +194,7 @@ End Structure
 ]]>)
         End Sub
 
-        <WorkItem(776642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")>
         <Fact()>
         Public Sub Bug776642_shared()
             CompileAndVerify(
@@ -241,7 +241,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(545724, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545724")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545724")>
         <Fact()>
         Public Sub Bug14352()
             CompileAndVerify(
@@ -281,8 +281,8 @@ End Module
 </compilation>, expectedOutput:="Passed - 1")
         End Sub
 
-        <WorkItem(578074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578074")>
-        <WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578074")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/32576")>
         <Fact>
         Public Sub PreserveZeroDigitsInDecimal()
             CompileAndVerify(
@@ -419,7 +419,7 @@ expectedOutput:=<![CDATA[False]]>).
 ]]>)
         End Sub
 
-        <WorkItem(546809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546809")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546809")>
         <Fact()>
         Public Sub Bug16872()
             CompileAndVerify(
@@ -497,7 +497,7 @@ expectedOutput:="").
 ]]>)
         End Sub
 
-        <WorkItem(529861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529861")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529861")>
         <Fact()>
         Public Sub Bug14632a()
 
@@ -551,7 +551,7 @@ expectedOutput:=<![CDATA[
 
         End Sub
 
-        <WorkItem(529861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529861")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529861")>
         <WorkItem(568475, "DevDiv")>
         <Fact()>
         Public Sub Bug14632b()
@@ -598,7 +598,7 @@ BC30036: Overflow.
 
         End Sub
 
-        <WorkItem(529861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529861")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529861")>
         <Fact()>
         Public Sub Bug14632c()
             CompileAndVerify(
@@ -628,10 +628,10 @@ expectedOutput:=<![CDATA[
         ''' Breaking change: native compiler considers
         ''' digits &lt; 1e-49 when rounding.
         ''' </summary>
-        <WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")>
-        <WorkItem(568520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568520")>
-        <WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")>
-        <WorkItem(375, "https://github.com/dotnet/roslyn/issues/375")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568520")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/32576")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/375")>
         <Fact>
         Public Sub DecimalLiteral_BreakingChange()
             Dim source =
@@ -871,7 +871,7 @@ expectedOutput:=<![CDATA[Done]]>).
 ]]>)
         End Sub
 
-        <WorkItem(545120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545120")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545120")>
         <Fact()>
         Public Sub Bug13399a()
             CompileAndVerify(
@@ -906,7 +906,7 @@ End Module
 expectedOutput:="S:1-S:2")
         End Sub
 
-        <WorkItem(545120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545120")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545120")>
         <Fact()>
         Public Sub Bug13399b()
             CompileAndVerify(
@@ -1050,7 +1050,7 @@ expectedOutput:=<![CDATA[False]]>).
 ]]>)
         End Sub
 
-        <WorkItem(545404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545404")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545404")>
         <Fact()>
         Public Sub Bug13798()
             CompileAndVerify(
@@ -1634,7 +1634,7 @@ End Module
                                                ]]>)
         End Sub
 
-        <WorkItem(546853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546853")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546853")>
         <Fact()>
         Public Sub CallingVirtualFinalMethod()
             Dim ilSource = <![CDATA[
@@ -1866,7 +1866,7 @@ IL_0063:  ret
 
         End Sub
 
-        <WorkItem(529442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529442")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529442")>
         <Fact>
         Public Sub ExplicitStandardModuleAttribute()
             CompileAndVerify(
@@ -2019,7 +2019,7 @@ S1:M
 ]]>)
         End Sub
 
-        <WorkItem(531085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531085")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531085")>
         <Fact()>
         Public Sub EmitMyBaseCall()
             CompileAndVerify(
@@ -2261,7 +2261,7 @@ expectedOutput:=<![CDATA[
 ]]>)
         End Sub
 
-        <WorkItem(546809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546809")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546809")>
         <Fact()>
         Public Sub TestBinaryConditionalOperator_16872a()
             CompileAndVerify(
@@ -2319,7 +2319,7 @@ expectedOutput:="C1").
 ]]>)
         End Sub
 
-        <WorkItem(634407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634407")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634407")>
         <Fact()>
         Public Sub TestTernary_Null()
             CompileAndVerify(
@@ -2376,7 +2376,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(546809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546809")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546809")>
         <Fact()>
         Public Sub TestBinaryConditionalOperator_16872b()
             CompileAndVerify(
@@ -4627,7 +4627,7 @@ End Class]]>,
             vbVerifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(544432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544432")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544432")>
         <Fact()>
         Public Sub PartialMethod_InNestedStructsAndModules()
             Dim vbCompilation = CreateVisualBasicCompilation("PartialMethod_InNestedStructsAndModules",
@@ -5162,7 +5162,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(538660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538660")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538660")>
         <Fact()>
         Public Sub LocalArray3()
             CompileAndVerify(
@@ -5281,8 +5281,8 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
-        <WorkItem(529849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529849")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529849")>
         Public Sub ArrayWithTypeCharsWithStaticLocals()
             CompileAndVerify(
 <compilation>
@@ -5318,7 +5318,7 @@ c c
 ]]>)
         End Sub
 
-        <WorkItem(538660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538660")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538660")>
         <Fact()>
         Public Sub ArrayOneDimension()
             CompileAndVerify(
@@ -5368,8 +5368,8 @@ XXX
 ]]>)
         End Sub
 
-        <WorkItem(538660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538660")>
-        <WorkItem(529849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529849")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538660")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529849")>
         <Fact>
         Public Sub ArrayOneDimensionWithStaticLocals()
             CompileAndVerify(
@@ -5863,7 +5863,7 @@ End Module
 
 #Region "Regressions"
 
-        <WorkItem(543277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543277")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543277")>
         <Fact()>
         Public Sub Bug10931_1()
             CompileAndVerify(
@@ -5889,7 +5889,7 @@ End Module
     expectedOutput:="")
         End Sub
 
-        <WorkItem(538751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538751")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538751")>
         <Fact()>
         Public Sub AssertCondBranchWithLogicOperator()
             CompileAndVerify(
@@ -5922,7 +5922,7 @@ End Module
     expectedOutput:="True")
         End Sub
 
-        <WorkItem(538752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538752")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538752")>
         <Fact()>
         Public Sub StructureDefaultAccessibilityPublic()
             CompileAndVerify(
@@ -5967,7 +5967,7 @@ End Namespace
     expectedOutput:="PublicSub400")
         End Sub
 
-        <WorkItem(538800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538800")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538800")>
         <Fact>
         Public Sub ObjectComparisonWithNoReferenceToVBRuntime()
             CompilationUtils.CreateCompilationWithMscorlib40(
@@ -6035,7 +6035,7 @@ End Class
             VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, "o = o").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.CompareObjectEqual"))
         End Sub
 
-        <WorkItem(538792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538792")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538792")>
         <Fact>
         Public Sub InvokeGenericSharedMethods()
             CompileAndVerify(
@@ -6057,7 +6057,7 @@ End Module
             expectedOutput:="Pass")
         End Sub
 
-        <WorkItem(538865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538865")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538865")>
         <Fact>
         Public Sub TestGetObjectValueCalls()
             ' ILVerify null ref
@@ -7002,7 +7002,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(540882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540882")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540882")>
         <Fact>
         Public Sub TestGetObjectValueCalls2()
             Dim verifier = CompileAndVerify(
@@ -7071,7 +7071,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(538853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538853")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538853")>
         <Fact>
         Public Sub Bug4597()
             CompileAndVerify(
@@ -7112,7 +7112,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(538852, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538852")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538852")>
         <Fact>
         Public Sub Bug4596()
             CompileAndVerify(
@@ -7284,7 +7284,7 @@ End Module
         ''' Won't fix :(
         ''' </summary>
         ''' <remarks></remarks>
-        <Fact, WorkItem(527773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527773")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527773")>
         Public Sub ConstantLiteralToDecimal()
             CompileAndVerify(
 <compilation>
@@ -7481,7 +7481,7 @@ IL_0046:  ret
 ]]>)
         End Sub
 
-        <WorkItem(539920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539920")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539920")>
         <Fact>
         Public Sub TestNestedFunctionLambdas()
             CompileAndVerify(
@@ -7503,7 +7503,7 @@ End Module
             expectedOutput:="abc")
         End Sub
 
-        <WorkItem(540121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540121")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540121")>
         <Fact>
         Public Sub TestEmitBinaryTrueAndFalseExpressionForDebug()
             CompileAndVerify(
@@ -7520,7 +7520,7 @@ End Module
                 expectedOutput:="")
         End Sub
 
-        <WorkItem(540121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540121")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540121")>
         <Fact>
         Public Sub BooleanAndOrInDebug()
             Dim c = CompileAndVerify(
@@ -7783,7 +7783,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(540443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540443")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540443")>
         <Fact>
         Public Sub LoadReadOnlyField()
             CompileAndVerify(
@@ -7891,7 +7891,7 @@ IL_000d:  ret
 
         ' Constructor initializers don't bind yet
         <WorkItem(7926, "DevDiv_Projects/Roslyn")>
-        <WorkItem(541123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541123")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541123")>
         <Fact>
         Public Sub StructDefaultConstructorInitializer()
             CompileAndVerify(
@@ -8007,7 +8007,7 @@ S1.New(x As C1)
 ]]>)
         End Sub
 
-        <WorkItem(543751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
         <Fact>
         Public Sub StructConstructorWithOptionalParametersCSVB()
 
@@ -8044,7 +8044,7 @@ End Class
             vbexeVerifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
         <Fact>
         Public Sub StructConstructorWithOptionalParametersVBVB()
 
@@ -8077,7 +8077,7 @@ End Class
             vbexeVerifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
         <Fact>
         Public Sub StructConstructorWithOptionalParametersVBVB2()
 
@@ -8221,7 +8221,7 @@ DERIVED: f(x As Integer, Optional y As Integer = 0)
 DERIVED: f(x As Integer, Optional y As String = "")
 ]]>)
         End Sub
-        <WorkItem(543751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
         <Fact>
         Public Sub OverloadsWithOnlyOptionalParameters()
 
@@ -8261,7 +8261,7 @@ End Class
             vbexeVerifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
         <Fact>
         Public Sub OverloadsWithOnlyOptionalParameters2()
 
@@ -8470,7 +8470,7 @@ End Structure
         End Sub
 
         <WorkItem(7926, "DevDiv_Projects/Roslyn")>
-        <WorkItem(541123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541123")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541123")>
         <Fact>
         Public Sub StructNonDefaultConstructorInitializer()
             CompileAndVerify(
@@ -9383,8 +9383,8 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(541123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541123")>
-        <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541123")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
         <Fact>
         Public Sub PublicParameterlessConstructorInMetadata_Public()
             Dim ilSource = <![CDATA[
@@ -9453,7 +9453,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
         <Fact>
         Public Sub PublicParameterlessConstructorInMetadata_Protected()
             Dim ilSource = <![CDATA[
@@ -9522,7 +9522,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
         <Fact>
         Public Sub PublicParameterlessConstructorInMetadata_Private()
             Dim ilSource = <![CDATA[
@@ -9667,7 +9667,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
         <Fact>
         Public Sub PublicParameterlessConstructorInMetadata_OptionalParameter()
             Dim ilSource = <![CDATA[
@@ -9737,7 +9737,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
         <Fact>
         Public Sub SimpleStructInstantiationAndAssigningNothing()
             Dim ilSource = <![CDATA[
@@ -9800,7 +9800,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
         <Fact>
         Public Sub TypeParameterInitializationWithNothing()
             CompileAndVerify(
@@ -9828,7 +9828,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
         <Fact()>
         Public Sub TypeParameterInitializationWithNothing_StructConstraint()
             CompileAndVerify(
@@ -9862,7 +9862,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
         <Fact()>
         Public Sub TypeParameterInitializationWithNothing_NewConstraint()
             CompileAndVerify(
@@ -9896,7 +9896,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
         <Fact>
         Public Sub StructInstantiationWithParameters()
             CompileAndVerify(
@@ -9941,8 +9941,8 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(541123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541123")>
-        <WorkItem(541309, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541309")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541123")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541309")>
         <Fact>
         Public Sub PrivateParameterlessConstructorInMetadata()
             Dim ilSource = <![CDATA[
@@ -10042,7 +10042,7 @@ expectedOutput:=<![CDATA[
 ]]>)
         End Sub
 
-        <WorkItem(540533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540533")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540533")>
         <Fact()>
         Public Sub Bug6817()
             CompileAndVerify(
@@ -10140,7 +10140,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(528679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528679")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528679")>
         <Fact()>
         Public Sub FunctionCallWhileOptionInferOn()
             CompileAndVerify(
@@ -10178,7 +10178,7 @@ End Class
         End Sub
 
         ' Verify that the metadata for an attribute with a serialized an enum type with generics and nested class is correctly written by compiler and read by reflection.
-        <WorkItem(541278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541278")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541278")>
         <Fact>
         Public Sub EmittingAttributesWithGenericsAndNestedClasses()
             CompileAndVerify(
@@ -10317,7 +10317,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(542593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542593")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542593")>
         <Fact>
         Public Sub InheritClassFromRetargetedAssemblyReference()
             Dim ref1 = New VisualBasicCompilationReference(CompilationUtils.CreateEmptyCompilationWithReferences(
@@ -10370,7 +10370,7 @@ End Class
                          c2GetEnumerator2.ExplicitInterfaceImplementations(0).OriginalDefinition)
         End Sub
 
-        <WorkItem(542593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542593")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542593")>
         <Fact>
         Public Sub InheritClassFromRetargetedAssemblyReferenceProperty()
             Dim ref1 = New VisualBasicCompilationReference(CompilationUtils.CreateEmptyCompilationWithReferences(
@@ -10535,7 +10535,7 @@ End Namespace
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(542974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542974")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542974")>
         Public Sub LogicalOrWithBinaryExpressionOperands()
             Dim comp = CompileAndVerify(
 <compilation>
@@ -10594,7 +10594,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(543243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543243")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543243")>
         <Fact()>
         Public Sub TestAutoProperty()
             Dim vbCompilation = CreateVisualBasicCompilation("TestAutoProperty",
@@ -10613,7 +10613,7 @@ End Module]]>,
             vbVerifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543243")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543243")>
         <Fact()>
         Public Sub TestOrInDebug()
             Dim c = CompileAndVerify(
@@ -10676,7 +10676,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(539392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539392")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539392")>
         <Fact()>
         Public Sub DecimalBinaryOp_01()
             CompileAndVerify(
@@ -10707,7 +10707,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(543611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543611")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543611")>
         <Fact()>
         Public Sub CompareToOnDecimalLiteral()
             CompileAndVerify(
@@ -10740,7 +10740,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(543611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543611")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543611")>
         <Fact()>
         Public Sub CallOnReadonlyValField()
             CompileAndVerify(
@@ -10871,7 +10871,7 @@ End Structure
 ]]>)
         End Sub
 
-        <WorkItem(543611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543611")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543611")>
         <Fact()>
         Public Sub MultipleconstsByRef()
             CompileAndVerify(
@@ -10938,7 +10938,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(638119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638119")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638119")>
         <Fact()>
         Public Sub ArrayInitZero()
             CompileAndVerify(
@@ -11140,7 +11140,7 @@ True
 ]]>)
         End Sub
 
-        <WorkItem(529162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529162")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529162")>
         <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestMSVBTypeNameAPI()
             Dim vbCompilation = CreateVisualBasicCompilation("TestMSVBTypeNameAPI",
@@ -11198,7 +11198,7 @@ End Class]]>
 ]]>)
         End Sub
 
-        <WorkItem(543757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543757")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543757")>
         <Fact()>
         Public Sub TestNotXor()
             CompileAndVerify(
@@ -11309,7 +11309,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(544128, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544128")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544128")>
         Public Sub CodeGenLambdaNarrowingRelaxation()
             CompileAndVerify(
 <compilation>
@@ -11323,7 +11323,7 @@ End Class
 </compilation>)
         End Sub
 
-        <Fact(), WorkItem(544182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544182")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544182")>
         Public Sub OverrideImplementMembersWithOptArguments()
             Dim optParameterSource = <![CDATA[
 .class interface public abstract auto ansi IAnimal
@@ -11451,7 +11451,7 @@ expectedOutput:="")
 
         End Sub
 
-        <WorkItem(545201, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545201")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545201")>
         <Fact()>
         Public Sub TestConversionMultiDimArrayToIList()
             Dim vbCompilation = CreateVisualBasicCompilation("TestConversionMultiDimArrayToIList",
@@ -11512,7 +11512,7 @@ PASS
             vbVerifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(545349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545349")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545349")>
         <Fact()>
         Public Sub CompoundPropGeneric()
             CompileAndVerify(
@@ -11859,7 +11859,7 @@ In get
 ]]>)
         End Sub
 
-        <WorkItem(545716, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545716")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545716")>
         <Fact()>
         Public Sub Regress14344()
             CompileAndVerify(
@@ -11892,7 +11892,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(546189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546189")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546189")>
         <Fact()>
         Public Sub Regress15299()
             CompileAndVerify(
@@ -11947,7 +11947,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(546422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546422")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546422")>
         <Fact()>
         Public Sub LateBindingToSystemArrayIndex01()
             CompileAndVerify(
@@ -12046,7 +12046,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(546422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546422")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546422")>
         <Fact()>
         Public Sub LateBindingToSystemArrayIndex01_D()
             CompileAndVerify(
@@ -12150,7 +12150,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(575547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575547")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575547")>
         <Fact()>
         Public Sub LateBindingToSystemArrayIndex02()
             ' Option Strict On
@@ -12207,7 +12207,7 @@ End Module
             compilation2.AssertNoErrors()
         End Sub
 
-        <Fact(), WorkItem(546860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546860")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546860")>
         Public Sub Bug17007()
             CompileAndVerify(
 <compilation>
@@ -12424,7 +12424,7 @@ BC40054: 'Public Sub New(c As Integer)' in designer-generated type 'FromDesigner
 ]]>)
         End Sub
 
-        <WorkItem(530067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530067")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530067")>
         <Fact>
         Public Sub NopAfterCall()
             ' For a nop to be inserted after a call, two conditions must be met:
@@ -12482,7 +12482,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(529162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529162")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529162")>
         <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug529162()
             Dim source =
@@ -12611,7 +12611,7 @@ Microsoft.VisualBasic.CompilerServices.Versioned - System.String VbTypeName(Syst
 ]]>)
         End Sub
 
-        <WorkItem(653588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/653588")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/653588")>
         <Fact()>
         Public Sub UnusedStructFieldLoad()
             CompileAndVerify(
@@ -12647,7 +12647,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(531166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531166")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531166")>
         <Fact()>
         Public Sub LoadingEnumValue__()
             CompileAndVerify(
@@ -12680,7 +12680,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(665317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665317")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665317")>
         <Fact()>
         Public Sub InitGenericElement()
             CompileAndVerify(
@@ -12763,7 +12763,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(718502, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718502")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718502")>
         <Fact()>
         Public Sub UnaryMinusInCondition()
             CompileAndVerify(
@@ -12826,7 +12826,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(745103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/745103")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/745103")>
         <Fact()>
         Public Sub TestCompoundOnAFieldOfGeneric()
             CompileAndVerify(
@@ -13016,7 +13016,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(770557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770557")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770557")>
         <Fact()>
         Public Sub BoolConditionDebug001()
             CompileAndVerify(
@@ -13086,7 +13086,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(770557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770557")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770557")>
         <Fact()>
         Public Sub BoolConditionDebug002()
             Dim c = CompileAndVerify(
@@ -13179,7 +13179,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact()>
         Public Sub MissingMember_Microsoft_VisualBasic_CompilerServices_Operators__CompareStringStringStringBoolean()
             Dim compilation = CreateEmptyCompilation(
@@ -13224,7 +13224,7 @@ BC35000: Requested operation is not available because the runtime library functi
         End Sub
 
         ' As above with Microsoft.VisualBasic.CompilerServices.EmbeddedOperators defined.
-        <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact()>
         Public Sub MissingMember_Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean()
             Dim compilation = CreateEmptyCompilation(
@@ -13271,7 +13271,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </errors>)
         End Sub
 
-        <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact()>
         Public Sub MissingMember_System_Type__GetTypeFromHandle()
             Dim compilation = CreateEmptyCompilation(
@@ -13304,7 +13304,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </errors>)
         End Sub
 
-        <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact()>
         Public Sub MissingMember_Microsoft_VisualBasic_CompilerServices_ProjectData__SetProjectError()
             Dim compilation = CreateEmptyCompilation(
@@ -13342,7 +13342,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </errors>)
         End Sub
 
-        <WorkItem(765569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/765569")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/765569")>
         <Fact()>
         Public Sub ConstMatchesType()
             CompileAndVerify(
@@ -13376,7 +13376,7 @@ End CLass
 ]]>)
         End Sub
 
-        <WorkItem(824308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824308")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824308")>
         <Fact()>
         Public Sub ConstCircular001()
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -13407,7 +13407,7 @@ BC30500: Constant 'blah' cannot depend on its own value.
 
         End Sub
 
-        <WorkItem(824308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824308")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824308")>
         <Fact()>
         Public Sub ConstCircular002()
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -13441,7 +13441,7 @@ BC42104: Variable 'blah' is used before it has been assigned a value. A null ref
 
         End Sub
 
-        <WorkItem(824308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824308")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824308")>
         <Fact()>
         Public Sub ConstCircular003()
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -13484,7 +13484,7 @@ BC42104: Variable 'blah1' is used before it has been assigned a value. A null re
         End Sub
 
         <Fact>
-        <WorkItem(4196, "https://github.com/dotnet/roslyn/issues/4196")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4196")>
         Public Sub BadDefaultParameterValue()
             Dim source =
 <compilation>
@@ -13513,7 +13513,7 @@ End Module
         End Sub
 
         <ConditionalFact(GetType(NoIOperationValidation))>
-        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_01()
             Dim source =
 $"
@@ -13565,7 +13565,7 @@ End Class
         End Function
 
         <ConditionalFact(GetType(NoIOperationValidation))>
-        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_02()
             Dim source =
 $"
@@ -13590,8 +13590,8 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(NoIOperationValidation))>
-        <WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")>
-        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/6077")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_03()
 
             Dim diagnostics = ImmutableArray(Of Diagnostic).Empty
@@ -13647,7 +13647,7 @@ End Class
         End Function
 
         <ConditionalFact(GetType(NoIOperationValidation))>
-        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_04()
             Dim size = 8192
             Dim source =
@@ -13675,7 +13675,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(NoIOperationValidation))>
-        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_05()
             Dim count As Integer = 50
             Dim source =
@@ -13726,7 +13726,7 @@ End Class
         ' Restricting to English as there are different tolerance limits on non-English cultures. The test
         ' is to prevent regressions and single language should be sufficient here
         <ConditionalFact(GetType(NoIOperationValidation), GetType(WindowsOnly), GetType(IsEnglishLocal))>
-        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_06()
             Dim source =
 $"
@@ -13838,8 +13838,8 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
-        <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_1()
             Dim c = CompileAndVerify(
 <compilation>
@@ -13884,8 +13884,8 @@ End Class
         End Sub
 
         <Fact()>
-        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
-        <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_2()
             Dim c = CompileAndVerify(
 <compilation>
@@ -13933,7 +13933,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact, WorkItem(9703, "https://github.com/dotnet/roslyn/issues/9703")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9703")>
         Public Sub IgnoredConversion()
             CompileAndVerify(
                 <compilation>
@@ -13973,7 +13973,7 @@ IL_000c:  ret
 ]]>)
         End Sub
 
-        <Fact, WorkItem(15672, "https://github.com/dotnet/roslyn/pull/15672")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/pull/15672")>
         Public Sub ConditionalAccessOffOfUnconstrainedDefault1()
             Dim c = CompileAndVerify(
                 <compilation>
@@ -14018,7 +14018,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(22533, "https://github.com/dotnet/roslyn/issues/22533")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22533")>
         Public Sub TestExplicitDoubleConversionEmitted()
             CompileAndVerify(
 <compilation>
@@ -14065,7 +14065,7 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem(22533, "https://github.com/dotnet/roslyn/issues/22533")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22533")>
         Public Sub TestImplicitDoubleConversionEmitted()
             CompileAndVerify(
 <compilation>
@@ -14106,7 +14106,7 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem(22533, "https://github.com/dotnet/roslyn/issues/22533")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22533")>
         Public Sub TestExplicitSingleConversionEmitted()
             CompileAndVerify(
 <compilation>
@@ -14153,7 +14153,7 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem(22533, "https://github.com/dotnet/roslyn/issues/22533")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22533")>
         Public Sub TestExplicitSingleConversionNotEmittedOnConstantValue()
             CompileAndVerify(
 <compilation>
@@ -14223,7 +14223,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
         Public Sub ArrayElementByReference_Covariant()
             Dim comp =
 <compilation>
@@ -14272,7 +14272,7 @@ End Module
 
         ' Generated code results in ArrayTypeMismatchException,
         ' matching native compiler.
-        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
         Public Sub ArrayElementByReferenceBase_Covariant()
             Dim comp =
 <compilation>
@@ -14315,7 +14315,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
         Public Sub ArrayElementByReference_TypeParameter()
             Dim comp =
 <compilation>
@@ -14372,7 +14372,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
         Public Sub ArrayElementByReference_StructConstraint()
             Dim comp =
 <compilation>
@@ -14510,7 +14510,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
         Public Sub ArrayElementCompoundAssignment_Covariant()
             Dim comp =
 <compilation>
@@ -14595,7 +14595,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")>
         Public Sub ArrayElementCompoundAssignment_Covariant_NonConstantIndex()
             Dim comp =
 <compilation>

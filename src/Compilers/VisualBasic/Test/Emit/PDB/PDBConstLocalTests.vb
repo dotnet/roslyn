@@ -145,8 +145,8 @@ class C
 #End If
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
-        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
-        <WorkItem(529101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529101")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529101")>
         Public Sub TestLocalConstantsTypes()
             Dim source = <compilation>
                              <file>

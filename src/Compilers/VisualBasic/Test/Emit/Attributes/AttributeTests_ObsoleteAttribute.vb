@@ -1011,7 +1011,7 @@ Public Delegate Sub MyDeleg()
         End Sub
 
         <Fact>
-        <WorkItem(546636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546636")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546636")>
         Public Sub TestObsoleteAttributeOnAttributes()
             Dim source =
 <compilation>
@@ -1166,7 +1166,7 @@ Namespace System
 End Namespace
 ]]></file>
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_01()
 
             Dim source =
@@ -1196,7 +1196,7 @@ End Class
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_02()
 
             Dim source =
@@ -1226,7 +1226,7 @@ End Class
             Assert.Equal("https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/compiler-messages/BC40008", diag.Descriptor.HelpLinkUri)
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_03()
 
             Dim source =
@@ -1256,7 +1256,7 @@ End Class
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_04()
 
             Dim source =
@@ -1286,7 +1286,7 @@ End Class
             Assert.Equal("https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/compiler-messages/elementname-is-obsolete-visual-basic-warning", diag.Descriptor.HelpLinkUri)
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_BadAttribute_01()
 
             Dim source =
@@ -1331,7 +1331,7 @@ End Namespace
                 Diagnostic(ERRID.ERR_MultiplyDefinedType3, "DiagnosticId").WithArguments("DiagnosticId", "Public DiagnosticId As String", "class").WithLocation(27, 25))
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_05()
 
             Dim source =
@@ -1363,7 +1363,7 @@ End Class
             Assert.Equal("https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/compiler-messages/TEST1", diag.Descriptor.HelpLinkUri)
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_BadAttribute_02()
             Dim source =
 <compilation>
@@ -1391,7 +1391,7 @@ End Class
             Assert.Equal("C", diag.Descriptor.HelpLinkUri)
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_Suppression_01()
             Dim source =
 <compilation>
@@ -1433,7 +1433,7 @@ End Class
                 Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()", "don't use").WithLocation(22, 9))
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_FromMetadata_01()
             Dim source1 =
 <compilation>
@@ -1493,7 +1493,7 @@ End Class
             comp2.VerifyDiagnostics(expected)
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_FromMetadata_02()
             Dim source1 =
 <compilation>
@@ -1548,7 +1548,7 @@ End Class
             comp2.VerifyDiagnostics(expected)
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_FromMetadata_03()
             Dim source1 =
 <compilation>
@@ -1595,7 +1595,7 @@ End Class
             Assert.Equal("https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/compiler-messages/TEST1", diag.Descriptor.HelpLinkUri)
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_FromMetadata_04()
             Dim source1 =
 <compilation>
@@ -1642,7 +1642,7 @@ End Class
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_BadMetadata_01()
             Dim source1 =
 <compilation>
@@ -1698,7 +1698,7 @@ End Class
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_BadMetadata_02()
             Dim source1 =
 <compilation>
@@ -1754,7 +1754,7 @@ End Class
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_BadMetadata_03()
             Dim source1 =
 <compilation>
@@ -1840,7 +1840,7 @@ End Class
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_BadMetadata_04()
             Dim source1 =
 <compilation>
@@ -1904,7 +1904,7 @@ End Class
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_BadMetadata_05()
             Dim source1 =
 <compilation>
@@ -1966,7 +1966,7 @@ End Class
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_BadMetadata_06()
             Dim source1 =
 <compilation>
@@ -2028,7 +2028,7 @@ End Class
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_BadMetadata_07()
 
             ' In this program C1.M1 has an ObsoleteAttribute with multiple values provided for DiagnosticId and UrlFormat
@@ -2170,7 +2170,7 @@ End Class
             Assert.Equal("C", diag.Descriptor.HelpLinkUri)
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_BadMetadata_08()
 
             ' In this program C1.M1 has an ObsoleteAttribute with multiple values provided for DiagnosticId and UrlFormat
@@ -2310,7 +2310,7 @@ End Class
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
         End Sub
 
-        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")>
         Public Sub Obsolete_CustomDiagnosticId_BadMetadata_09()
             Dim source1 =
 <compilation>
@@ -2372,7 +2372,7 @@ End Class
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
         End Sub
 
-        <WorkItem(578023, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578023")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578023")>
         <Fact>
         Public Sub TestObsoleteInAlias()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -2423,7 +2423,7 @@ Imports A(Of C()).B
      </errors>)
         End Sub
 
-        <WorkItem(580832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")>
         <Fact>
         Public Sub TestObsoleteOnVirtualMethod()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -2697,7 +2697,7 @@ BC40000: 'Public Sub Bar()' is obsolete: 'hi'.
         End Sub
 
         <Fact>
-        <WorkItem(22447, "https://github.com/dotnet/roslyn/issues/22447")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/22447")>
         Public Sub TestRefLikeType()
             Dim csSource = <![CDATA[
 public ref struct S { }
@@ -2729,7 +2729,7 @@ BC30668: 'S' is obsolete: 'Types with embedded references are not supported in t
                 )
         End Sub
 
-        <Fact(), WorkItem(858839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858839")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858839")>
         Public Sub Bug858839_1()
             Dim source1 =
 <compilation>
@@ -2821,7 +2821,7 @@ BC40000: 'Sub Goo()' is obsolete: 'IGoo1.Goo has been deprecated'.
             compilation1.AssertTheseDiagnostics(expected)
         End Sub
 
-        <Fact(), WorkItem(858839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858839")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858839")>
         Public Sub Bug858839_2()
             Dim source0 =
 <compilation>

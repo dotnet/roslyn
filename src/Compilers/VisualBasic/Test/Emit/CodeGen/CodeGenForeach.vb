@@ -335,7 +335,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(9151, "DevDiv_Projects/Roslyn"), WorkItem(546096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546096")>
+        <Fact(), WorkItem(9151, "DevDiv_Projects/Roslyn"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546096")>
         Public Sub IterationVarInConditionalExpression()
             CompileAndVerify(
 <compilation>
@@ -417,7 +417,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(9151, "DevDiv_Projects/Roslyn"), WorkItem(546096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546096")>
+        <Fact(), WorkItem(9151, "DevDiv_Projects/Roslyn"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546096")>
         Public Sub TraversingNothing()
             Dim TEMP = CompileAndVerify(
 <compilation>
@@ -1801,7 +1801,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(528679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528679")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528679")>
         <Fact>
         Public Sub TestForEachNested()
             Dim TEMP = CompileAndVerify(
@@ -1885,7 +1885,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(542075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542075")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542075")>
         <Fact>
         Public Sub TestGetEnumeratorWithParams()
             Dim TEMP = CompileAndVerify(
@@ -2027,7 +2027,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(542079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542079")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542079")>
         <Fact>
         Public Sub TestForEachStructEnumerable()
             Dim TEMP = CompileAndVerify(
@@ -2162,7 +2162,7 @@ End Structure
 ]]>)
         End Sub
 
-        <WorkItem(542079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542079")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542079")>
         <Fact>
         Public Sub TestForEachMutableStructEnumerableInterface()
             Dim TEMP = CompileAndVerify(
@@ -2475,7 +2475,7 @@ End Class
             ' there should be a check for null before calling Dispose
         End Sub
 
-        <WorkItem(542185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542185")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542185")>
         <Fact>
         Public Sub CustomDefinedType()
             Dim TEMP = CompileAndVerify(
@@ -2529,7 +2529,7 @@ End Module
 
         End Sub
 
-        <WorkItem(544311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544311")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544311")>
         <Fact()>
         Public Sub ForEachWithMultipleDimArray()
             CompileAndVerify(
@@ -2558,7 +2558,7 @@ End Module
 
         End Sub
 
-        <WorkItem(545519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545519")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545519")>
         <Fact()>
         Public Sub NewForEachScopeDev11()
             Dim source =
@@ -2668,7 +2668,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(545519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545519")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545519")>
         <Fact()>
         Public Sub NewForEachScopeDev11_2()
             Dim source =
@@ -2758,7 +2758,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(545519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545519")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545519")>
         <Fact()>
         Public Sub NewForEachScopeDev11_3()
             Dim source =
@@ -2884,7 +2884,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(545519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545519")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545519")>
         <Fact()>
         Public Sub NewForEachScopeDev11_4()
             Dim source =

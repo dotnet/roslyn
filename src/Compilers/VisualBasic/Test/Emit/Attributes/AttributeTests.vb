@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
 #Region "Function Tests"
 
-        <WorkItem(530310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530310")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530310")>
         <Fact>
         Public Sub PEParameterSymbolParamArrayAttribute()
             Dim source1 = <![CDATA[
@@ -66,7 +66,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20741")>
         Public Sub TestNamedArgumentOnStringParamsArgument()
             Dim source =
                 <compilation>
@@ -118,7 +118,7 @@ BC30587: Named argument cannot match a ParamArray parameter.
         ''' except that we check attributes first (to check for race
         ''' conditions).
         ''' </summary>
-        <WorkItem(530310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530310")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530310")>
         <Fact>
         Public Sub PEParameterSymbolParamArrayAttribute2()
             Dim source1 = <![CDATA[
@@ -334,7 +334,7 @@ Imports System.Runtime.CompilerServices
             Assert.Equal("A.XAttribute", attrs(0).AttributeClass.ToDisplayString)
         End Sub
 
-        <WorkItem(540506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540506")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540506")>
         <Fact>
         Public Sub TestAttributesOnClassWithConstantDefinedInClass()
 
@@ -357,7 +357,7 @@ Imports System.Runtime.CompilerServices
             attrs(0).VerifyValue(0, TypedConstantKind.Primitive, 4)
         End Sub
 
-        <WorkItem(540407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540407")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540407")>
         <Fact>
         Public Sub TestAttributesOnProperty()
 
@@ -455,7 +455,7 @@ End Class
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator(True), symbolValidator:=attributeValidator(False))
         End Sub
 
-        <WorkItem(540407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540407")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540407")>
         <Fact>
         Public Sub TestAttributesOnPropertyReturnType()
 
@@ -575,7 +575,7 @@ BC42364: Attributes applied on a return type of a WriteOnly Property have no eff
 ]]></errors>)
         End Sub
 
-        <WorkItem(546779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546779")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546779")>
         <Fact>
         Public Sub TestAttributesOnPropertyReturnType_MarshalAs()
 
@@ -608,7 +608,7 @@ End Interface
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator)
         End Sub
 
-        <WorkItem(540433, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540433")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540433")>
         <Fact>
         Public Sub TestAttributesOnPropertyAndGetSet()
 
@@ -870,7 +870,7 @@ End Namespace
             CompileAndVerify(compilation, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
 
-        <WorkItem(540600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540600")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540600")>
         <Fact>
         Public Sub TestAttributesUseBaseAttributeField()
 
@@ -910,7 +910,7 @@ End Namespace
             CompileAndVerify(compilation, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
 
-        <Fact(), WorkItem(529421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529421")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529421")>
         Public Sub TestAttributesWithParamArrayInCtor()
 
             Dim source =
@@ -956,7 +956,7 @@ End Namespace
             CompileAndVerify(compilation, sourceSymbolValidator:=sourceAttributeValidator, symbolValidator:=mdAttributeValidator)
         End Sub
 
-        <WorkItem(540605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540605")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540605")>
         <Fact>
         Public Sub TestAttributesOnReturnType()
 
@@ -1073,7 +1073,7 @@ End Namespace
             CompileAndVerify(compilation, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
 
-        <WorkItem(540940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540940")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540940")>
         <Fact>
         Public Sub TestAttributeWithParamArray()
 
@@ -1099,7 +1099,7 @@ End Module
             CompileAndVerify(source)
         End Sub
 
-        <WorkItem(528469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528469")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528469")>
         <Fact()>
         Public Sub TestAttributeWithAttributeTargets()
 
@@ -1127,7 +1127,7 @@ End Module
             CompileAndVerify(compilation)
         End Sub
 
-        <WorkItem(541277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541277")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541277")>
         <Fact>
         Public Sub TestAttributeEmitObjectValue()
 
@@ -1174,7 +1174,7 @@ End Class
             CompileAndVerify(compilation, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
 
-        <WorkItem(541278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541278")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541278")>
         <Fact>
         Public Sub TestAttributeEmitGenericEnumValue()
 
@@ -1224,7 +1224,7 @@ End Class
             CompileAndVerify(compilation, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
 
-        <WorkItem(546380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546380")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546380")>
         <Fact()>
         Public Sub TestAttributeEmitOpenGeneric()
 
@@ -1263,7 +1263,7 @@ End Class
             CompileAndVerify(compilation, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
 
-        <WorkItem(541278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541278")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541278")>
         <Fact>
         Public Sub TestAttributeToString()
 
@@ -1373,7 +1373,7 @@ End Class
             CompileAndVerify(compilation, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
 
-        <WorkItem(541687, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541687")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541687")>
         <Fact>
         Public Sub Bug_8524_NullAttributeArrayArgument()
 
@@ -1402,7 +1402,7 @@ End Class
             CompileAndVerify(source, expectedOutput:="True")
         End Sub
 
-        <WorkItem(541964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541964")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541964")>
         <Fact>
         Public Sub TestApplyNamedArgumentTwice()
             Dim source =
@@ -1461,7 +1461,7 @@ End Module
             CompileAndVerify(compilation, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
 
-        <WorkItem(542123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542123")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542123")>
         <Fact>
         Public Sub TestApplyNestedDerivedAttribute()
             Dim source =
@@ -1488,7 +1488,7 @@ End Module
             compilation.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(542269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542269")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542269")>
         <Fact>
         Public Sub TestApplyNestedDerivedAttributeOnTypeAndItsMember()
             Dim source =
@@ -1822,7 +1822,7 @@ End Class
             Assert.Equal(0, onClick.GetFieldAttributes().Length)  ' should be 1 
         End Sub
 
-        <Fact, WorkItem(546769, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546769"), WorkItem(546770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546770")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546769"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546770")>
         Public Sub DiagnosticsOnEventParameters()
             Dim source =
 <compilation>
@@ -1846,7 +1846,7 @@ BC30516: Overload resolution failed because no accessible 'New' accepts this num
 ]]>)
         End Sub
 
-        <Fact, WorkItem(528748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528748")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528748")>
         Public Sub TestNonPublicConstructor()
             Dim source =
 <compilation>
@@ -1870,7 +1870,7 @@ End Class
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_BadAttributeNonPublicConstructor, "Fred"))
         End Sub
 
-        <WorkItem(542223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542223")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542223")>
         <Fact>
         Public Sub AttributeArgumentAsEnumFromMetadata()
             Dim metadata1 = VisualBasicCompilation.Create("bar.dll",
@@ -2625,7 +2625,7 @@ BC30659: Property or field 'BadArrayType' does not have a valid attribute type.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
         End Sub
 
-        <WorkItem(540939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540939")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540939")>
         <Fact>
         Public Sub AttributeProtectedConstructorError()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -2695,7 +2695,7 @@ BC30517: Overload resolution failed because no 'New' is accessible.
             ' Error BC30390 'A.Protected Sub New()' is not accessible in this context because it is 'Protected'.
         End Sub
 
-        <WorkItem(540624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540624")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540624")>
         <Fact>
         Public Sub AttributeNoMultipleAndInvalidTarget()
             Dim source =
@@ -2801,7 +2801,7 @@ End Module
                 Diagnostic(ERRID.ERR_RequiredConstExpr, "a = 1"))
         End Sub
 
-        <WorkItem(541279, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541279")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541279")>
         <Fact>
         Public Sub AttributeArrayMissingInitializer()
             Dim source =
@@ -2987,7 +2987,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(542020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542020")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542020")>
         <Fact>
         Public Sub ErrorsAttributeNameResolutionWithNamespace()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -3023,7 +3023,7 @@ BC30182: Type expected.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
         End Sub
 
-        <WorkItem(542170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542170")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542170")>
         <Fact>
         Public Sub GenericTypeParameterUsedAsAttribute()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -3049,7 +3049,7 @@ End Module
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_AttrCannotBeGenerics, "T").WithArguments("T"))
         End Sub
 
-        <WorkItem(542273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542273")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542273")>
         <Fact()>
         Public Sub AnonymousTypeFieldAsAttributeNamedArgValue()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -3070,7 +3070,7 @@ End Class
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_RequiredConstExpr, "New With {.anonymousField = False}.anonymousField"))
         End Sub
 
-        <WorkItem(545073, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545073")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545073")>
         <Fact>
         Public Sub AttributeOnDelegateReturnTypeError()
             Dim source =
@@ -3111,7 +3111,7 @@ End Class
                 Diagnostic(ERRID.ERR_TooManyArgs1, "0").WithArguments("Public Sub New()"))
         End Sub
 
-        <WorkItem(545073, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545073")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545073")>
         <Fact>
         Public Sub AttributesOnDelegate()
             Dim source = <compilation>
@@ -3374,7 +3374,7 @@ End Module]]>
             comp.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543855")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543855")>
         <Fact()>
         Public Sub VariantArrayConversionInAttribute()
             Dim vbCompilation = CreateVisualBasicCompilation("VariantArrayConversion",
@@ -3397,7 +3397,7 @@ End Module]]>
             CompileAndVerify(vbCompilation).VerifyDiagnostics()
         End Sub
 
-        <Fact(), WorkItem(544199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544199")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544199")>
         Public Sub EnumsAllowedToViolateAttributeUsage()
             CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
@@ -3419,7 +3419,7 @@ End Enum
 </compilation>).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(544367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544367")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544367")>
         Public Sub AttributeOnPropertyParameter()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -3471,7 +3471,7 @@ param index in Void set_Item(Int32, System.String) has 1 attributes
 ]]>)
         End Sub
 
-        <Fact, WorkItem(544367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544367")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544367")>
         Public Sub AttributeOnPropertyParameterWithError()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -3506,7 +3506,7 @@ BC31504: 'MyAttr' cannot be used as an attribute because it does not inherit fro
                                                      </expected>)
         End Sub
 
-        <Fact, WorkItem(543810, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543810")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543810")>
         Public Sub AttributeNamedArgumentWithEvent()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -3551,7 +3551,7 @@ BC30369: Cannot refer to an instance member of a class from within a shared meth
 ]]></expected>)
         End Sub
 
-        <Fact, WorkItem(543955, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543955")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543955")>
         Public Sub StringParametersInDeclareMethods_1()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -3751,7 +3751,7 @@ buffer As System.Int32
 ]]>)
         End Sub
 
-        <Fact, WorkItem(543955, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543955")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543955")>
         Public Sub StringParametersInDeclareMethods_3()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -3805,7 +3805,7 @@ BC31143: Method 'Public Declare Ansi Function GetWindowsDirectory4 Lib "kernel32
 
         End Sub
 
-        <WorkItem(529620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529620")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529620")>
         <Fact()>
         Public Sub TestFriendEnumInAttribute()
             Dim source =
@@ -3841,7 +3841,7 @@ BC31143: Method 'Public Declare Ansi Function GetWindowsDirectory4 Lib "kernel32
 
         End Sub
 
-        <WorkItem(545558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545558")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545558")>
         <Fact()>
         Public Sub TestUndefinedEnumInAttribute()
             Dim source =
@@ -3864,7 +3864,7 @@ End Module
 
         End Sub
 
-        <WorkItem(545697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545697")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545697")>
         <Fact>
         Public Sub TestUnboundLambdaInNamedAttributeArgument()
             Dim source =
@@ -4006,7 +4006,7 @@ End Structure
             Assert.NotNull(attributesOnMain(0).ApplicationSyntaxReference)
         End Sub
 
-        <Fact(), WorkItem(546490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546490")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546490")>
         Public Sub Bug15984()
             Dim customIL = <![CDATA[
 .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
@@ -4045,7 +4045,7 @@ End Structure
         End Sub
 
         <Fact>
-        <WorkItem(569089, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569089")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569089")>
         Public Sub NullArrays()
             Dim source =
 <compilation>
@@ -4098,7 +4098,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(688268, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/688268")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/688268")>
         Public Sub Bug688268()
             Dim source =
 <compilation>
@@ -4189,7 +4189,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(728865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728865")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728865")>
         Public Sub Repro728865()
             Dim source =
 <compilation>
@@ -4275,7 +4275,7 @@ The type of the attribute is Microsoft.Yeti.CartesianRowDataAttribute]]>)
         End Sub
 
         <Fact>
-        <WorkItem(728865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728865")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728865")>
         Public Sub ParamArrayAttributeConstructor()
             Dim source =
 <compilation>
@@ -4338,7 +4338,7 @@ BC30934: Conversion from 'Object(*,*)' to 'Object' cannot occur in a constant ex
         End Sub
 
         <Fact>
-        <WorkItem(737021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737021")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737021")>
         Public Sub NothingVersusEmptyArray()
             Dim source =
 <compilation>
@@ -4412,7 +4412,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(530266, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530266")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530266")>
         Public Sub UnboundGenericTypeInTypedConstant()
             Dim source =
 <compilation>
@@ -4451,7 +4451,7 @@ End Class
             Assert.Equal("Target(Of )", typeInAttribute.ToTestDisplayString())
         End Sub
 
-        <Fact, WorkItem(879792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879792")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879792")>
         Public Sub Bug879792()
             Dim source2 =
                 <compilation>
@@ -4482,7 +4482,7 @@ End Class
             Assert.Equal("Z", program.GetAttributes()(0).AttributeClass.ToTestDisplayString())
         End Sub
 
-        <Fact, WorkItem(1020038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020038")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020038")>
         Public Sub Bug1020038()
             Dim source1 =
 <compilation name="Bug1020038">
@@ -4541,7 +4541,7 @@ End Class
             CompileAndVerify(compilation3, symbolValidator:=validator)
         End Sub
 
-        <Fact, WorkItem(1144603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1144603")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1144603")>
         Public Sub EmitMetadataOnlyInPresenceOfErrors()
             Dim source1 =
 <compilation>

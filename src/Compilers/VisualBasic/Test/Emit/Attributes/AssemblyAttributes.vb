@@ -41,7 +41,7 @@ End Class
         Assert.Equal(New Version(1, 2, 3, 4), other.Assembly.Identity.Version)
     End Sub
 
-    <Fact, WorkItem(543708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543708")>
+    <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543708")>
     Public Sub VersionAttribute_FourParts()
         Dim comp As VisualBasicCompilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -123,7 +123,7 @@ End Class
 
     End Sub
 
-    <Fact, WorkItem(545948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545948")>
+    <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545948")>
     Public Sub VersionAttributeErr()
         Dim comp As VisualBasicCompilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -162,7 +162,7 @@ BC36962: The specified version string does not conform to the required format - 
 
     End Sub
 
-    <Fact, WorkItem(545948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545948")>
+    <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545948")>
     Public Sub SatelliteContractVersionAttributeErr()
         Dim comp As VisualBasicCompilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -440,7 +440,7 @@ BC36982: Assembly culture strings may not contain embedded NUL characters.
 ]]></error>)
     End Sub
 
-    <Fact, WorkItem(545951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545951")>
+    <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545951")>
     Public Sub CultureAttributeErr()
 
         Dim src = <compilation>
@@ -465,7 +465,7 @@ BC36977: Executables cannot be satellite assemblies; culture should always be em
     End Sub
 
     <Fact>
-    <WorkItem(5866, "https://github.com/dotnet/roslyn/issues/5866")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/5866")>
     Public Sub CultureAttributeMismatch()
         Dim neutral As VisualBasicCompilation = CreateCompilationWithMscorlib40(
 <compilation name="neutral">
@@ -747,7 +747,7 @@ End Class
         Assert.Equal("1.2.3garbage", DirectCast(other.Assembly, SourceAssemblySymbol).InformationalVersion)
     End Sub
 
-    <Fact(), WorkItem(529922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529922")>
+    <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529922")>
     Public Sub AlgorithmIdAttribute()
 
         Dim hash_module = TestReferences.SymbolsTests.netModule.hash_module
@@ -1096,7 +1096,7 @@ Imports System.Reflection
 
     End Sub
 
-    <Fact, WorkItem(546635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546635")>
+    <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546635")>
     Public Sub AssemblyFlagsAttribute02()
         Dim comp = CreateVisualBasicCompilation("AssemblyFlagsAttribute02",
         <![CDATA[<Assembly: System.Reflection.AssemblyFlags(12345)>]]>,
@@ -1344,7 +1344,7 @@ End Class
     End Sub
 
     <Fact()>
-    <WorkItem(10550, "https://github.com/dotnet/roslyn/issues/10550")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/10550")>
     Public Sub AssemblyAttributesFromNetModule_WithoutAssemblyAttributesGoHereTypes()
 
         Dim netmoduleSource =
@@ -1605,7 +1605,7 @@ End Class
         Next
     End Sub
 
-    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
+    <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromNetModuleBadMulti()
         Dim source As String = <![CDATA[
 <Assembly: UserDefinedAssemblyAttrNoAllowMultiple("UserDefinedAssemblyAttrNoAllowMultiple (from source)")>
@@ -1639,7 +1639,7 @@ End Class
         Assert.Equal(5, attrs.Length)
     End Sub
 
-    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
+    <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub InternalsVisibleToAttributeDropIdentical()
         Dim source =
             <compilation>
@@ -1661,7 +1661,7 @@ Imports System.Runtime.CompilerServices
             attrTypeName:="InternalsVisibleToAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
+    <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromSourceDropIdentical()
         Dim source =
             <compilation>
@@ -1697,7 +1697,7 @@ Imports System.Runtime.CompilerServices
             attrTypeName:="UserDefinedAssemblyAttrAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
+    <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromSourceDropIdentical_02()
         Dim source1 As String = <![CDATA[
 <Assembly: UserDefinedAssemblyAttrNoAllowMultipleAttribute(0)> ' unique
@@ -1734,7 +1734,7 @@ Imports System
             attrTypeName:="UserDefinedAssemblyAttrNoAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
+    <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromNetModuleDropIdentical_01()
         ' Duplicate ignored attributes in netmodule
         Dim netmoduleAttributes As String = <![CDATA[
@@ -1765,7 +1765,7 @@ Imports System
             attrTypeName:="UserDefinedAssemblyAttrAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
+    <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromNetModuleDropIdentical_02()
         ' Duplicate ignored attributes in netmodules
         Dim netmodule1Attributes As String = <![CDATA[
@@ -1812,7 +1812,7 @@ Imports System
             attrTypeName:="UserDefinedAssemblyAttrAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
+    <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromSourceAndNetModuleDropIdentical_01()
         ' All duplicate ignored attributes in netmodule
         Dim netmoduleAttributes As String = <![CDATA[
@@ -1847,7 +1847,7 @@ Imports System
             attrTypeName:="UserDefinedAssemblyAttrAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
+    <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromSourceAndNetModuleDropIdentical_02()
         ' Duplicate ignored attributes in netmodule & source
         Dim netmoduleAttributes As String = <![CDATA[
@@ -1887,7 +1887,7 @@ Imports System
     End Sub
 #End Region
 
-    <Fact, WorkItem(545527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545527")>
+    <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545527")>
     Public Sub CompilationRelaxationsAndRuntimeCompatibility_MultiModule()
         Dim moduleSrc =
 <compilation>
@@ -1925,7 +1925,7 @@ End Class
             End Sub)
     End Sub
 
-    <Fact, WorkItem(546460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546460")>
+    <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546460")>
     Public Sub RuntimeCompatibilityAttribute_False()
         ' VB emits catch(Exception) even for an empty catch, so it can never catch non-Exception objects.
 
@@ -1956,7 +1956,7 @@ BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try 
 </errors>)
     End Sub
 
-    <Fact, WorkItem(530585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530585")>
+    <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530585")>
     Public Sub Bug16465()
         Dim modSource =
         <![CDATA[
@@ -2032,7 +2032,7 @@ System.Reflection.AssemblyTrademarkAttribute("Roslyn")
         Assert.True(expectedStr.Equals(actualStr), AssertEx.GetAssertMessage(expectedStr, actualStr))
     End Sub
 
-    <Fact, WorkItem(530579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")>
+    <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")>
     Public Sub Bug530579_1()
         Dim mod1Source =
 <compilation name="M1">
@@ -2083,7 +2083,7 @@ System.Reflection.AssemblyTrademarkAttribute("Roslyn")
         Next
     End Sub
 
-    <Fact, WorkItem(530579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")>
+    <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")>
     Public Sub Bug530579_2()
         Dim mod1Source =
 <compilation name="M1">
@@ -2130,7 +2130,7 @@ BC42370: Attribute 'AssemblyDescriptionAttribute' from module 'M1.netmodule' wil
 
     End Sub
 
-    <Fact, WorkItem(530579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")>
+    <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")>
     Public Sub Bug530579_3()
         Dim mod1Source =
 <compilation name="M1">
@@ -2179,7 +2179,7 @@ BC42370: Attribute 'AssemblyDescriptionAttribute' from module 'M2.netmodule' wil
 
     End Sub
 
-    <Fact, WorkItem(530579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")>
+    <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")>
     Public Sub Bug530579_4()
         Dim mod1Source =
 <compilation name="M1">

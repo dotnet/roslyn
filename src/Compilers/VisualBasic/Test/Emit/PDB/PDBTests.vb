@@ -2078,7 +2078,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(527647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527647")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527647")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ExtraSequencePointForEndIf()
             Dim source =
@@ -2138,7 +2138,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(538821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538821")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538821")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub MissingSequencePointForOptimizedIfThen()
             Dim source =
@@ -2315,7 +2315,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(538944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538944")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538944")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub MissingEndWhileSequencePoint()
             Dim source =
@@ -3349,7 +3349,7 @@ End Class
 </symbols>)
         End Sub
 
-        <WorkItem(727419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/727419")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/727419")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Bug727419()
             Dim source =
@@ -3442,7 +3442,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(722627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722627")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722627")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Bug722627()
             Dim source =
@@ -3493,7 +3493,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(543703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543703")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543703")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DontIncludeMethodAttributesInSeqPoint()
             Dim source =
@@ -3546,7 +3546,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(529300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529300")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529300")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DontShowOperatorNameCTypeInLocals()
             Dim source =
@@ -3633,7 +3633,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(760994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760994")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760994")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Bug760994()
             Dim source =
@@ -3780,7 +3780,7 @@ End Class
 </symbols>)
         End Sub
 
-        <WorkItem(797482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797482")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797482")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Bug797482()
             Dim source =
@@ -3842,7 +3842,7 @@ End Module
         ''' the method must have a sequence point at
         ''' offset 0 for correct stepping behavior.
         ''' </summary>
-        <WorkItem(804681, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/804681")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/804681")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DefaultConstructorWithInitializer()
             Dim source =
@@ -3992,8 +3992,8 @@ End Module
  </symbols>)
         End Sub
 
-        <WorkItem(846228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846228")>
-        <WorkItem(845078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/845078")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846228")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/845078")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub RaiseEvent001()
             Dim source =
@@ -4287,7 +4287,7 @@ End Class
 </symbols>, options:=PdbValidationOptions.SkipConversionValidation) ' TODO: https://github.com/dotnet/roslyn/issues/18004
         End Sub
 
-        <WorkItem(876518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876518")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876518")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub WinFormMain()
             Dim source =
@@ -4638,7 +4638,7 @@ End Class"
         End Sub
 
         <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
-        <WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/23525")>
         Public Sub InvalidCharacterInPdbPath()
             Using outStream = Temp.CreateFile().Open()
                 Dim Compilation = CreateEmptyCompilation("")
@@ -4651,7 +4651,7 @@ End Class"
         End Sub
 
         <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
-        <WorkItem(38954, "https://github.com/dotnet/roslyn/issues/38954")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38954")>
         Public Sub FilesOneWithNoMethodBody()
             Dim source1 =
 "Imports System
@@ -4695,7 +4695,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
-        <WorkItem(38954, "https://github.com/dotnet/roslyn/issues/38954")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38954")>
         Public Sub SingleFileWithNoMethodBody()
             Dim source =
 "

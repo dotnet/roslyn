@@ -630,7 +630,7 @@ expectedOutput:=<![CDATA[42]]>
 ]]>)
         End Sub
 
-        <WorkItem(4383, "https://github.com/dotnet/roslyn/issues/4383")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4383")>
         <Fact()>
         Public Sub DecimalConstInit001()
             CompileAndVerify(

@@ -693,7 +693,7 @@ Imports System.Diagnostics
             TestConditionalMethod_DifferentSource(conditionalDefsDummy, preprocessorSymbolsDummy, conditionalDefs, preprocessorSymbols)
         End Sub
 
-        <WorkItem(546089, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546089")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546089")>
         <Fact>
         Public Sub CaseInsensitivityTest()
             Dim source =
@@ -719,7 +719,7 @@ End Module
             CompileAndVerify(source, expectedOutput:=<![CDATA[Sub1 Called]]>)
         End Sub
 
-        <WorkItem(546089, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546089")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546089")>
         <Fact>
         Public Sub CaseInsensitivityTest_02()
             Dim source =
@@ -746,7 +746,7 @@ End Module
             CompileAndVerify(source, expectedOutput:=<![CDATA[Sub1 Called]]>)
         End Sub
 
-        <WorkItem(546094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546094")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546094")>
         <Fact>
         Public Sub ConditionalAttributeOnPropertySetter()
             Dim source =
@@ -777,7 +777,7 @@ End Module
         End Sub
 #End Region
 
-        <WorkItem(1003274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003274")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003274")>
         <Fact>
         Public Sub ConditionalAttributeInNetModule()
             Const source = "

@@ -79,7 +79,7 @@ End Module
             AssertEqual(expected, actual)
         End Sub
 
-        <WorkItem(693206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/693206")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/693206")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Bug693206()
             Dim source =

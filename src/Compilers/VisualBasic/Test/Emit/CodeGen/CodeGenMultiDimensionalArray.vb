@@ -349,7 +349,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(542259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542259")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542259")>
         <Fact>
         Public Sub MixMultiAndJaggedArray()
             CompileAndVerify(
@@ -782,7 +782,7 @@ End Module
         End Sub
 
         ' Accessing an array's 0th element should work fine
-        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub AccessZero()
             CompileAndVerify(
@@ -819,7 +819,7 @@ End Module
         End Sub
 
         ' Accessing an array's maxlength element should work fine
-        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub AccessMaxLength()
             CompileAndVerify(
@@ -856,7 +856,7 @@ End Module
         End Sub
 
         ' Accessing an array's -1 element should throw an exception
-        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub AccessLessThanMin()
             CompileAndVerify(
@@ -918,7 +918,7 @@ End Module
         End Sub
 
         ' Accessing an array's maxlength+1 element should throw an exception
-        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub AccessGreaterThanMax()
             CompileAndVerify(
@@ -977,7 +977,7 @@ End Module
         End Sub
 
         ' Accessing an array's index with a variable of type int, short, byte should work
-        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub AccessWithDifferentType()
             CompileAndVerify(
@@ -1057,7 +1057,7 @@ End Module
         End Sub
 
         ' Passing an element to a function as a byVal or byRef parameter should work
-        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub ArrayAsArgument()
             CompileAndVerify(
@@ -1126,7 +1126,7 @@ End Module
         End Sub
 
         ' Passing an element to a function as a byVal or byRef parameter should work
-        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub ArrayAsArgument_1()
             CompileAndVerify(
@@ -1178,7 +1178,7 @@ End Module
         End Sub
 
         ' Assigning nothing to an array variable
-        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub AssignNothingToArray()
             CompileAndVerify(
@@ -1266,7 +1266,7 @@ End Module
         End Sub
 
         ' Access index by enum
-        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub AccessIndexByEnum()
             CompileAndVerify(
@@ -1307,7 +1307,7 @@ End Enum
         End Sub
 
         ' Assigning a struct variable to an element should work
-        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub AssigningStructToElement()
             CompileAndVerify(
@@ -1352,7 +1352,7 @@ End Structure
         End Sub
 
         ' Using foreach on a multi-dimensional array
-        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub ForEachMultiDimensionalArray()
             CompileAndVerify(
