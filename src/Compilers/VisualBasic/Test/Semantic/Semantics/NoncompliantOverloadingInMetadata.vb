@@ -8587,7 +8587,7 @@ aAxxx
 ]]>)
         End Sub
 
-        <Fact, WorkItem(4704, "https://github.com/dotnet/roslyn/issues/4704")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4704")>
         Public Sub UnsupportedOverloadingOfExtensionMethods()
 
             Dim ilSource =

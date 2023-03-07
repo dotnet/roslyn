@@ -91,7 +91,7 @@ End Class
             Assert.Equal("s", GetSymbolNamesJoined(analysis.WrittenInside))
         End Sub
 
-        <WorkItem(768095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768095")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768095")>
         <Fact()>
         Public Sub Bug768095()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -115,7 +115,7 @@ End Class
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(531223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531223")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531223")>
         <Fact()>
         Public Sub Bug17780a()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -131,7 +131,7 @@ End Class
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(531223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531223")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531223")>
         <Fact()>
         Public Sub Bug17780b()
             ' TODO: Rewrite the test when Yield is supported
@@ -151,7 +151,7 @@ Friend Class SourceFileScope
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543362")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543362")>
         <Fact()>
         Public Sub Bug11067()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -167,7 +167,7 @@ End Class
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(529967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529967")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529967")>
         <Fact()>
         Public Sub Bug14894a()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -193,7 +193,7 @@ End Module
             Assert.Equal("args, o3, col1", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
-        <WorkItem(529967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529967")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529967")>
         <Fact()>
         Public Sub Bug14894b()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -214,7 +214,7 @@ End Module
             Assert.Equal("args, o3", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
-        <WorkItem(544602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544602")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544602")>
         <Fact()>
         Public Sub Bug13053a()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -231,7 +231,7 @@ End Class
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(545069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545069")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545069")>
         <Fact()>
         Public Sub ParameterNameAsAnInvalidRegion()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -247,7 +247,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(545443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545443")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545443")>
         <Fact()>
         Public Sub XmlNameInsideEndTag()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -263,7 +263,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(545077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545077")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545077")>
         <Fact()>
         Public Sub ExpressionsInAttributeValues()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -281,7 +281,7 @@ Imports System.Reflection
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(545077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545077")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545077")>
         <Fact()>
         Public Sub ExpressionsInAttributeValues2()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -323,7 +323,7 @@ End Class
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(545432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545432")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545432")>
         <Fact()>
         Public Sub LowerBoundOfArrayDefinitionSize()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -339,7 +339,7 @@ End Class
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(544602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544602")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544602")>
         <Fact()>
         Public Sub Bug13053b()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -356,7 +356,7 @@ End Class
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(679765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679765")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679765")>
         <Fact()>
         Public Sub Bug679765a()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -373,7 +373,7 @@ End Class
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(679765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679765")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679765")>
         <Fact()>
         Public Sub Bug679765b()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -390,7 +390,7 @@ End Class
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(679765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679765")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679765")>
         <Fact()>
         Public Sub Bug679765c()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -407,7 +407,7 @@ End Class
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543570")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543570")>
         <Fact()>
         Public Sub Bug11428()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -433,7 +433,7 @@ End Class
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543581")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543581")>
         <Fact()>
         Public Sub Bug11440a()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -469,7 +469,7 @@ End Module
             Assert.Equal("args, lambda, arg, arg1, arg2", GetSymbolNamesJoined(analysis.WrittenOutside))
         End Sub
 
-        <WorkItem(543581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543581")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543581")>
         <Fact()>
         Public Sub Bug11440b()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -501,7 +501,7 @@ End Module
             Assert.Equal("args, arg2, y", GetSymbolNamesJoined(analysis.WrittenOutside))
         End Sub
 
-        <WorkItem(544330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544330")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544330")>
         <Fact()>
         Public Sub Bug12609()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -516,7 +516,7 @@ End Class
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(542231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542231")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542231")>
         <Fact()>
         Public Sub TestUnreachableRegion()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -540,7 +540,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
-        <WorkItem(542231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542231")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542231")>
         <Fact()>
         Public Sub TestUnreachableRegion2()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -584,7 +584,7 @@ End Class
             Assert.Equal("Me, i, j, k, l", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
-        <WorkItem(542231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542231")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542231")>
         <Fact()>
         Public Sub TestUnreachableRegionInExpression()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -606,7 +606,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsOut))
         End Sub
 
-        <WorkItem(545445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545445")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545445")>
         <Fact()>
         Public Sub ExpressionInside()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -628,7 +628,7 @@ End Class
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(544201, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544201")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544201")>
         <Fact()>
         Public Sub Bug12423a()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -648,7 +648,7 @@ End Class
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(544201, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544201")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544201")>
         <Fact()>
         Public Sub Bug12423b()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -739,7 +739,7 @@ End Enum
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.WrittenOutside))
         End Sub
 
-        <WorkItem(768094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768094")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768094")>
         <Fact()>
         Public Sub Bug768094a()
             Dim program =
@@ -792,7 +792,7 @@ end class
             Assert.Equal(0, analysis.EntryPoints.Count())
         End Sub
 
-        <WorkItem(768094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768094")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768094")>
         <Fact()>
         Public Sub Bug768094b()
             Dim program =
@@ -947,7 +947,7 @@ End Namespace
             analysis = model.AnalyzeDataFlow(expr.Name) ' NO THROW
         End Sub
 
-        <WorkItem(768094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768094")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768094")>
         <Fact()>
         Public Sub Bug768094c()
             Dim program =
@@ -975,7 +975,7 @@ End Class
             Dim analysis = model.AnalyzeDataFlow(expr) ' NO THROW
         End Sub
 
-        <WorkItem(768094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768094")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768094")>
         <Fact()>
         Public Sub Bug768094d()
             Dim program =
@@ -1080,7 +1080,7 @@ end class
             Assert.True(analysis.EndPointIsReachable)
         End Sub
 
-        <WorkItem(543320, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543320")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543320")>
         <Fact()>
         Public Sub Bug10987()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -1168,7 +1168,7 @@ End Class
             Assert.Equal("args, s, t", GetSymbolNamesJoined(analysis.WrittenOutside))
         End Sub
 
-        <WorkItem(542789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542789")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542789")>
         <Fact()>
         Public Sub Bug10172()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
@@ -1195,7 +1195,7 @@ End Module
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.Item2.CapturedOutside))
         End Sub
 
-        <WorkItem(1312, "https://github.com/dotnet/roslyn/issues/1312")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1312")>
         <Fact()>
         Public Sub Bug1312()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -1226,7 +1226,7 @@ End Class</file>
             Assert.Equal("Me", GetSymbolNamesJoined(analysis.CapturedOutside))
         End Sub
 
-        <WorkItem(543645, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543645")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543645")>
         <Fact()>
         Public Sub Bug11526()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
@@ -1253,7 +1253,7 @@ End Module
             Assert.True(analysis.Item2.Succeeded)
         End Sub
 
-        <WorkItem(543111, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543111")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543111")>
         <Fact()>
         Public Sub Bug10683a()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -1422,7 +1422,7 @@ End Module
             Assert.True(controlFlowAnalysis.EndPointIsReachable)
         End Sub
 
-        <WorkItem(540454, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540454")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540454")>
         <Fact()>
         Public Sub TestDataFlowAnalysisWithErrorsInStaticContext()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
@@ -2341,7 +2341,7 @@ end class</file>
             Assert.Equal("Me, args, i, s", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
-        <WorkItem(543492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543492")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543492")>
         <Fact()>
         Public Sub MeAndMyBaseReference1()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -2365,7 +2365,7 @@ End Class
             Assert.Equal("Me", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit))
         End Sub
 
-        <WorkItem(543492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543492")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543492")>
         <Fact()>
         Public Sub MeAndMyBaseReference2()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -2673,7 +2673,7 @@ End Class
                 writtenOutside:={"x"})
         End Sub
 
-        <WorkItem(542156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542156")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542156")>
         <Fact()>
         Public Sub TestRedimImplicitDataFlow()
             VerifyReDimDataFlowAnalysis(
@@ -2694,7 +2694,7 @@ End Class
                 writtenOutside:={"y"})
         End Sub
 
-        <WorkItem(542156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542156")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542156")>
         <Fact()>
         Public Sub TestRedimMultipleImplicitDataFlow()
             VerifyReDimDataFlowAnalysis(
@@ -3258,7 +3258,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(541891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541891")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541891")>
         <Fact()>
         Public Sub TestRefArgumentSelection02()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -3290,7 +3290,7 @@ end class
             Assert.Equal("Me", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(541891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541891")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541891")>
         <Fact()>
         Public Sub TestRefArgumentSelection02a()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -3415,7 +3415,7 @@ End Module
             Assert.Equal("ary, local01, local02", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(541891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541891")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541891")>
         <Fact()>
         Public Sub TestRefArgumentSelection03()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -3561,7 +3561,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside))
         End Sub
 
-        <Fact, WorkItem(538979, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538979")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538979")>
         Public Sub AssertFromInvalidLocalDeclaration()
             Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
       <compilation name="AssertFromInvalidLocalDeclaration">
@@ -3598,7 +3598,7 @@ end class
             Assert.Equal("b", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <Fact(), WorkItem(538979, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538979")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538979")>
         Public Sub AssertFromInvalidKeywordAsExpr()
             Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
       <compilation name="AssertFromInvalidKeywordAsExpr">
@@ -3623,7 +3623,7 @@ end class
             Assert.False(controlFlowAnalysisResults.EndPointIsReachable)
         End Sub
 
-        <WorkItem(539286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")>
         <Fact()>
         Public Sub RegionAnalysisInFieldInitializers_Simple()
 
@@ -3657,7 +3657,7 @@ End Class
 
         End Sub
 
-        <WorkItem(539286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")>
         <Fact()>
         Public Sub RegionAnalysisInPropertyInitializers_Simple()
 
@@ -3691,7 +3691,7 @@ End Class
 
         End Sub
 
-        <WorkItem(539286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")>
         <Fact()>
         Public Sub RegionAnalysisInFieldInitializers_WithMyBase()
             Dim source =
@@ -3736,7 +3736,7 @@ End Class
 
         End Sub
 
-        <WorkItem(539286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")>
         <Fact()>
         Public Sub RegionAnalysisInFieldInitializers_Lambda()
 
@@ -3815,7 +3815,7 @@ End Class
 
         End Sub
 
-        <WorkItem(539286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")>
         <Fact()>
         Public Sub RegionAnalysisInFieldInitializers_NestedLambdaAndTwoConstructors()
 
@@ -3915,7 +3915,7 @@ End Class
 
         End Sub
 
-        <WorkItem(539197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539197")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539197")>
         <Fact()>
         Public Sub ByRefParameterNotInAppropriateCollections1()
             ' ByRef parameters are not considered assigned
@@ -3954,7 +3954,7 @@ End Class
             Assert.Equal("Me, t, t1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(539197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539197")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539197")>
         <Fact()>
         Public Sub ByRefParameterNotInAppropriateCollections2()
             ' ByRef parameters are not considered assigned
@@ -4534,7 +4534,7 @@ End Class
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
 
-        <WorkItem(541005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541005")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541005")>
         <Fact()>
         Public Sub TestMultipleLocalsInitializedByAsNew1()
             Dim dataFlowAnalysis = CompileAndAnalyzeDataFlow(
@@ -4559,7 +4559,7 @@ End Module
             Assert.Equal("args, a, x, y, z", GetSymbolNamesJoined(dataFlowAnalysis.WrittenOutside))
         End Sub
 
-        <WorkItem(541005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541005")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541005")>
         <Fact()>
         Public Sub TestMultipleLocalsInitializedByAsNew2()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
@@ -4590,7 +4590,7 @@ End Module
             Assert.True(controlFlowAnalysis.EndPointIsReachable)
         End Sub
 
-        <WorkItem(528623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528623")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528623")>
         <Fact()>
         Public Sub TestElementAccess01()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
@@ -4660,7 +4660,7 @@ End Enum
             Assert.Equal("Me, args, ex", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(542565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542565")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542565")>
         <Fact()>
         Public Sub IdentifierNameInForStatement()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -4678,7 +4678,7 @@ End Module
             Assert.True(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(528860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528860")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528860")>
         <Fact()>
         Public Sub IdentifierNameInMemberAccessExpr()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -4696,7 +4696,7 @@ End Class
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(528860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528860")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528860")>
         <Fact()>
         Public Sub IdentifierNameInMemberAccessExpr2()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -4714,7 +4714,7 @@ End Class
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(542860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542860")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542860")>
         <Fact()>
         Public Sub IdentifierNameSyntax()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -4732,7 +4732,7 @@ End Class
             Assert.True(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(542860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542860")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542860")>
         <Fact()>
         Public Sub IdentifierNameSyntax2()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -4753,7 +4753,7 @@ End Class
             Assert.True(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(542860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542860")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542860")>
         <Fact()>
         Public Sub IdentifierNameSyntax3()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -4776,7 +4776,7 @@ End Class
             Assert.True(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543369")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543369")>
         <Fact()>
         Public Sub PredefinedTypeIncompleteSub()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -4792,7 +4792,7 @@ End Class
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543369")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543369")>
         <Fact()>
         Public Sub PredefinedType2()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -4810,7 +4810,7 @@ End Class
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543461")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543461")>
         <Fact()>
         Public Sub CollectionInitSyntax()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -4832,7 +4832,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543461")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543461")>
         <Fact()>
         Public Sub CollectionInitSyntax2()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -4855,7 +4855,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543461")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543461")>
         <Fact()>
         Public Sub CollectionInitSyntax3()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -4878,7 +4878,7 @@ End Module
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543509")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543509")>
         <Fact()>
         Public Sub IfStatementSyntax()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -4951,7 +4951,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(757796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/757796")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/757796")>
         <Fact()>
         Public Sub Bug757796()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -5051,7 +5051,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543722")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543722")>
         <Fact()>
         Public Sub SyncLockStatementSyntax()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -5074,7 +5074,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543736")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543736")>
         <Fact()>
         Public Sub WhileStatementSyntax()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -5120,7 +5120,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(545449, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545449")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545449")>
         <Fact()>
         Public Sub LoopWhileStatementSyntax()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -5264,7 +5264,7 @@ End Class
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543548")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543548")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5288,7 +5288,7 @@ End Module
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543548")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543548")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess2()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5312,7 +5312,7 @@ End Module
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543548")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543548")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess3()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5339,7 +5339,7 @@ End Module
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543548")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543548")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess4()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5366,7 +5366,7 @@ End Module
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543695")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543695")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess5()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5385,7 +5385,7 @@ End Module
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543695")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543695")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess6()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5402,7 +5402,7 @@ End Module
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543695")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543695")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess7()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5425,7 +5425,7 @@ End Module
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543695")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543695")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess8()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5448,7 +5448,7 @@ End Module
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(545080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545080")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545080")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess9()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5478,7 +5478,7 @@ End Class
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(545080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545080")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545080")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess10()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5580,7 +5580,7 @@ End Class
 
         End Sub
 
-        <WorkItem(543701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543701")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543701")>
         <Fact()>
         Public Sub LiteralExprInVarDeclInsideSingleLineLambda()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5597,7 +5597,7 @@ End Module
             Assert.True(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543702, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543702")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543702")>
         <Fact()>
         Public Sub LiteralExprInsideEnumMemberDecl()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5666,7 +5666,7 @@ End Class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1_OnlyImplicitReceiverRegion1()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5692,7 +5692,7 @@ End Class
             Assert.False(dataFlowAnalysisResults.Succeeded)
         End Sub
 
-        <WorkItem(544298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1_OnlyImplicitReceiverRegion2()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5718,7 +5718,7 @@ End Class
             Assert.False(dataFlowAnalysisResults.Succeeded)
         End Sub
 
-        <WorkItem(544298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1_DeclAndImplicitReceiverRegion()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5755,7 +5755,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1_ValidRegion1()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5799,7 +5799,7 @@ End Class
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1_ValidRegion2()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5842,7 +5842,7 @@ End Class
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1_InvalidRegion3()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5874,7 +5874,7 @@ End Class
             Assert.False(dataFlowAnalysisResults.Succeeded)
         End Sub
 
-        <WorkItem(531226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531226")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531226")>
         <Fact()>
         Public Sub DisableConstantLiteralRegion()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5893,7 +5893,7 @@ End Class
             Assert.False(dataFlowAnalysisResults.Succeeded)
         End Sub
 
-        <WorkItem(531226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531226")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531226")>
         <Fact()>
         Public Sub WithStatement_LValueExpression()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5927,7 +5927,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
 
-        <WorkItem(531226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531226")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531226")>
         <Fact()>
         Public Sub WithStatement_LValueExpression2()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5953,7 +5953,7 @@ End Class
             Assert.False(dataFlowAnalysisResults.Succeeded)
         End Sub
 
-        <WorkItem(531226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531226")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531226")>
         <Fact()>
         Public Sub WithStatement_LValueExpression3()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5984,7 +5984,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
 
-        <WorkItem(531226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531226")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531226")>
         <Fact()>
         Public Sub WithStatement_LValueExpression4()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -6010,7 +6010,7 @@ End Class
             Assert.False(dataFlowAnalysisResults.Succeeded)
         End Sub
 
-        <WorkItem(544298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1a_ObjectInitializer()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -6049,7 +6049,7 @@ End Class
             Assert.Equal("o", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1a_ObjectInitializer2()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -6088,7 +6088,7 @@ End Class
             Assert.Equal("o", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1b()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -6128,7 +6128,7 @@ End Class
             Assert.Equal("o", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1bb()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -6166,7 +6166,7 @@ End Class
             Assert.Equal("o", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
         <Fact()>
         Public Sub ObjectInitializers_StructWithFieldAccessesInLambda1()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -6202,7 +6202,7 @@ End Structure
             Assert.False(dataFlowAnalysisResults.Succeeded)
         End Sub
 
-        <WorkItem(544298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
         <Fact()>
         Public Sub ObjectInitializers_StructWithFieldAccessesInLambda2()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -6251,7 +6251,7 @@ End Structure
             Assert.Equal("a, b", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
         <Fact()>
         Public Sub ObjectInitializers_StructWithFieldAccessesInLambda3()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -6302,7 +6302,7 @@ End Structure
             Assert.Equal("Me, i, l, a, b", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
         <Fact()>
         Public Sub ObjectInitializers_StructWithFieldAccessesInLambda4()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -6349,7 +6349,7 @@ End Structure
             Assert.Equal("Me, i, a, b", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
         <Fact()>
         Public Sub ObjectInitializers_StructWithFieldAccessesInLambda5()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -6395,7 +6395,7 @@ End Structure
             Assert.Equal("Me, i, a, b", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
         <Fact()>
         Public Sub ObjectInitializers_StructWithFieldAccessesInLambda6()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -6441,7 +6441,7 @@ End Structure
             Assert.Equal("Me, i, a, b", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544298")>
         <Fact()>
         Public Sub ObjectInitializers_PassingFieldByRef()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -6722,7 +6722,7 @@ End Class
             Assert.False(dataFlowAnalysisResults.Succeeded)
         End Sub
 
-        <WorkItem(530032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530032")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530032")>
         <Fact>
         Public Sub CollectionInitializersNestedInitializer()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -6813,7 +6813,7 @@ End Module
 
 #End Region
 
-        <Fact(), WorkItem(544079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544079")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544079")>
         Public Sub UserDefinedOperatorBody()
             Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
 <compilation>
@@ -6866,7 +6866,7 @@ End Module
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <Fact(), WorkItem(544079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544079")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544079")>
         Public Sub UserDefinedOperatorBody_1()
             Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
 <compilation>
@@ -6963,7 +6963,7 @@ End Module
             Assert.Equal("args, x, bb, ret", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <Fact(), WorkItem(545047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545047")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545047")>
         Public Sub UserDefinedLiftedOperatorInExpr()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
 <compilation>
@@ -7012,7 +7012,7 @@ End Module
             Assert.Equal("p, local, f", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <Fact(), WorkItem(545047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545047")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545047")>
         Public Sub DataFlowsInAndNullable()
             ' WARNING: if this test is edited, the test with the 
             '          test with the same name in C# must be modified too
@@ -7057,7 +7057,7 @@ End Module
             Assert.Equal("args, i, s", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(545249, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545249")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545249")>
         <Fact()>
         Public Sub TestWithEventsInitializer()
             Dim comp = CompileAndAnalyzeDataFlow(
@@ -7071,7 +7071,7 @@ End Class
             Debug.Assert(comp.Succeeded)
         End Sub
 
-        <WorkItem(545249, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545249")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545249")>
         <Fact()>
         Public Sub TestWithEventsInitializer2()
             Dim comp = CompileAndAnalyzeDataFlow(
@@ -7117,7 +7117,7 @@ End Class
             Debug.Assert(comp.Succeeded)
         End Sub
 
-        <WorkItem(545480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545480")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545480")>
         <Fact()>
         Public Sub ReturnStatementInElseInsideIncompleteFunction()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -7139,7 +7139,7 @@ Public Class vbPartialCls002
             Assert.True(controlFlowAnalysis.Succeeded)
         End Sub
 
-        <WorkItem(545900, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545900")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545900")>
         <Fact()>
         Public Sub AnonymousObjectCreationExprInsideOptionalParamDecl()
             Dim comp = CompileAndAnalyzeDataFlow(
@@ -7154,7 +7154,7 @@ End Module
             Assert.False(comp.Succeeded)
         End Sub
 
-        <WorkItem(545900, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545900")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545900")>
         <Fact()>
         Public Sub AnonymousObjectCreationExprInsideOptionalParamDecl2()
             Dim comp = CompileAndAnalyzeDataFlow(
@@ -7171,7 +7171,7 @@ End Class
             Assert.False(comp.Succeeded)
         End Sub
 
-        <WorkItem(545900, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545900")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545900")>
         <Fact()>
         Public Sub LambdaExprInsideOptionalParamDecl2()
             Dim comp = CompileAndAnalyzeDataFlow(
@@ -7237,7 +7237,7 @@ End Class
             model.AnalyzeDataFlow(expr)
         End Sub
 
-        <WorkItem(546639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546639")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546639")>
         <Fact()>
         Public Sub AddressOfUnevaluatedReceiver()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -7258,7 +7258,7 @@ End Class
             model.AnalyzeDataFlow(expr)
         End Sub
 
-        <WorkItem(546629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546629")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546629")>
         <Fact()>
         Public Sub TypeExpressionUnevaluatedReceiver()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -7280,7 +7280,7 @@ End Class
             model.AnalyzeDataFlow(expr)
         End Sub
 
-        <WorkItem(545266, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545266")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545266")>
         <Fact()>
         Public Sub DataFlowImplicitLoopVariableInBrokenCodeNotInDataFlowsOut()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -7314,7 +7314,7 @@ End Module
             Assert.Equal("args, i, j", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(545266, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545266")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545266")>
         <Fact()>
         Public Sub DataFlowImplicitLoopVariableInBrokenCodeNotInDataFlowsOut_2()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -7350,7 +7350,7 @@ End Module
             Assert.Equal("args, x, i, j", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(545266, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545266")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545266")>
         <Fact()>
         Public Sub DataFlowUnassignedVariablesWithoutAssignmentInsideDoNotFlowOut_1()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -7388,7 +7388,7 @@ End Module
             Assert.Equal("args, i, j", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(545266, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545266")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545266")>
         <Fact()>
         Public Sub DataFlowUnassignedVariablesWithoutAssignmentInsideDoNotFlowOut_2()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -7426,7 +7426,7 @@ End Module
             Assert.Equal("args, i, k, j", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(545266, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545266")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545266")>
         <Fact()>
         Public Sub DataFlowImplicitUsingVariableInBrokenCodeNotInDataFlowsOut()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -7460,7 +7460,7 @@ End Module
             Assert.Equal("args, i, j", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(546995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546995")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546995")>
         <Fact()>
         Public Sub DataFlowUnassignedVariablesWithoutAssignmentInsideDoNotFlowOut_3()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -7493,7 +7493,7 @@ End Module
             Assert.Empty(dataFlowResults.ReadOutside)
             Assert.Equal("args", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
-        <WorkItem(669341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/669341")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/669341")>
         <Fact()>
         Public Sub ReceiverRead()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -7528,7 +7528,7 @@ End Module
             Assert.Equal("X, Value", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(669341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/669341")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/669341")>
         <Fact()>
         Public Sub ReceiverWritten()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -7563,7 +7563,7 @@ End Module
             Assert.Equal("X", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(669341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/669341")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/669341")>
         <Fact()>
         Public Sub ReceiverReadAndWritten()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -7600,7 +7600,7 @@ End Module
 
 #Region "Anonymous Type, Lambda"
 
-        <WorkItem(543464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543464")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543464")>
         <Fact()>
         Public Sub TestCaptured()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -7663,7 +7663,7 @@ end class</file>
             Assert.Equal("Me, x, a, y, outside", GetSymbolNamesJoined(analysis.WrittenOutside))
         End Sub
 
-        <WorkItem(542629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542629")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542629")>
         <Fact()>
         Public Sub TestRegionControlFlowAnalysisInsideLambda()
             Dim controlFlowAnalysis = CompileAndAnalyzeControlFlow(
@@ -7685,7 +7685,7 @@ End Module
             Assert.False(controlFlowAnalysis.EndPointIsReachable)
         End Sub
 
-        <WorkItem(542629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542629")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542629")>
         <Fact()>
         Public Sub TestRegionControlFlowAnalysisInsideLambda2()
             Dim controlFlowAnalysis = CompileAndAnalyzeControlFlow(
@@ -7707,7 +7707,7 @@ End Module
             Assert.False(controlFlowAnalysis.EndPointIsReachable)
         End Sub
 
-        <WorkItem(542629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542629")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542629")>
         <Fact()>
         Public Sub TestRegionControlFlowAnalysisInsideLambda3()
             Dim controlFlowAnalysis = CompileAndAnalyzeControlFlow(
@@ -8136,7 +8136,7 @@ End Module
             Assert.Equal("Me, an", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(543046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543046")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543046")>
         <Fact()>
         Public Sub Lambda()
             ' The region is not correct and it is not clear if there is a way to fix the test
@@ -8170,7 +8170,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(543684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543684")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543684")>
         <Fact()>
         Public Sub AddressOfExpr()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -8187,7 +8187,7 @@ End Module
             Assert.True(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543741")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543741")>
         <Fact()>
         Public Sub AddressOfExpr2()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -8822,7 +8822,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40684: The test hook is blocked by this issue.
-        <WorkItem(40684, "https://github.com/dotnet/roslyn/issues/40684")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/40684")>
         Public Sub WithStatement_Expression_LValue_4d()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
 <compilation>
@@ -8879,7 +8879,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40684: The test hook is blocked by this issue.
-        <WorkItem(40684, "https://github.com/dotnet/roslyn/issues/40684")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/40684")>
         Public Sub WithStatement_Expression_LValue_4e()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
 <compilation>
@@ -9805,7 +9805,7 @@ End Module
             Assert.Equal("obj1, obj2, obj3, obj4, obj5", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(529089, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529089")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529089")>
         <Fact>
         Public Sub CaseClauseNotReachable()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
@@ -9844,7 +9844,7 @@ End Module
             Assert.Equal("args, x", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(543402, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543402")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543402")>
         <Fact()>
         Public Sub EndSelectStatement()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -9867,7 +9867,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543434")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543434")>
         <Fact()>
         Public Sub SelectCaseStatement()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -9890,7 +9890,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <Fact, WorkItem(543492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543492")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543492")>
         Public Sub MyBaseExpressionSyntax()
             Dim source =
 <compilation>

@@ -285,7 +285,7 @@ BC30201: Expression expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <WorkItem(529213, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529213")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529213")>
         <Fact()>
         Public Sub ObjectInitializerKeyKeywordInInitializer()
             Dim source = <![CDATA[
@@ -339,7 +339,7 @@ BC30451: 'Key' is not declared. It may be inaccessible due to its protection lev
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <WorkItem(544357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544357")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544357")>
         <Fact()>
         Public Sub ObjectInitializerMultipleInitializations()
             Dim source = <![CDATA[
@@ -1783,7 +1783,7 @@ IObjectCreationOperation (Constructor: Sub scen2..ctor()) (OperationKind.ObjectC
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <ConditionalFact(GetType(WindowsOrLinuxOnly)), WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880"), WorkItem(788522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/788522")>
+        <ConditionalFact(GetType(WindowsOrLinuxOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/34880"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/788522")>
         Public Sub ObjectInitializerNoStackOverflowFor150LevelsOfNesting()
             Dim source =
 <compilation>
@@ -1993,7 +1993,7 @@ BC42109: Variable 'uinst2' is used before it has been assigned a value. A null r
                                            </expected>)
         End Sub
 
-        <Fact(), WorkItem(567976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567976")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567976")>
         Public Sub Bug567976()
             Dim source =
 <compilation>
@@ -2020,7 +2020,7 @@ BC30429: 'End Sub' must be preceded by a matching 'Sub'.
                                                 </expected>)
         End Sub
 
-        <Fact(), WorkItem(599393, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599393")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599393")>
         Public Sub Bug599393()
             Dim source =
 <compilation>

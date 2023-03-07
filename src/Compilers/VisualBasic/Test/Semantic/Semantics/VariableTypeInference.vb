@@ -406,7 +406,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
             CheckVariableType(tree, model, "Test:v", "System.Int32()()()")
         End Sub
 
-        <WorkItem(542371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542371")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542371")>
         <Fact>
         Public Sub TestOptionInferWithOptionStrict()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
@@ -577,7 +577,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
 
         End Sub
 
-        <WorkItem(542402, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542402")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542402")>
         <Fact>
         Public Sub TestCircularDeclarationReference()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
@@ -610,7 +610,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
 
         End Sub
 
-        <WorkItem(545427, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545427")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545427")>
         <Fact()>
         Public Sub TestNothingConversionLocalConst1()
 
@@ -637,7 +637,7 @@ End Module
                 )
         End Sub
 
-        <WorkItem(545427, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545427")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545427")>
         <Fact()>
         Public Sub TestNothingConversionLocalConst2()
 
@@ -669,7 +669,7 @@ End Module
                     Diagnostic(ERRID.WRN_UnusedLocalConst, "bar5").WithArguments("bar5"))
         End Sub
 
-        <WorkItem(545763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545763")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545763")>
         <Fact()>
         Public Sub TestInferNullableType()
 

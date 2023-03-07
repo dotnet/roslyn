@@ -569,7 +569,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Integ
 </expected>)
         End Sub
 
-        <WorkItem(543114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543114")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543114")>
         <Fact()>
         Public Sub ArgumentIsNarrowing2()
 
@@ -653,7 +653,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem(543114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543114")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543114")>
         <Fact()>
         Public Sub ArgumentIsNarrowing3()
 
@@ -737,7 +737,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem(543114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543114")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543114")>
         <Fact()>
         Public Sub ArgumentIsNarrowing4()
 
@@ -2908,7 +2908,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="F1" & Environment.NewLine & "L1" & Environment.NewLine & "L2")
         End Sub
 
-        <WorkItem(543647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543647")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543647")>
         <Fact()>
         Public Sub BaseMethodParamIntegerDelegateParamShort()
 
@@ -2953,7 +2953,7 @@ End Module
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="Base Method")
         End Sub
 
-        <WorkItem(531532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531532")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531532")>
         <Fact()>
         Public Sub Bug18258()
 
@@ -2982,7 +2982,7 @@ End Module
             Dim verifier = CompileAndVerify(compilation)
         End Sub
 
-        <WorkItem(1096576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1096576")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1096576")>
         <Fact()>
         Public Sub Bug1096576()
 

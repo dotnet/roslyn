@@ -216,7 +216,7 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem(1102783, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102783")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102783")>
         Public Sub SmartQuotes()
 
             CompileAndVerify(
@@ -244,7 +244,7 @@ End Module    </file>
 
         End Sub
 
-        <Fact, WorkItem(1102800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102800")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102800")>
         Public Sub FullwidthDelimiters()
 
             ' Any combination of fullwidth and ASCII curly braces of the same direction is an escaping sequence for the corresponding ASCII curly brace.

@@ -116,7 +116,7 @@ Imports System.Reflection
             libCompilation.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(546110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546110")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546110")>
         <Fact()>
         Public Sub TestAssemblyImport1()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -134,7 +134,7 @@ End Class
             compilation.AssertTheseDiagnostics(<errors></errors>, suppressInfos:=False)
         End Sub
 
-        <WorkItem(546110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546110")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546110")>
         <Fact()>
         Public Sub TestAssemblyImport2()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -158,7 +158,7 @@ Imports System.Runtime.CompilerServices
             'Assert.Equal(1, unusedImports.Count)
         End Sub
 
-        <WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")>
         <Fact()>
         Public Sub SemanticModelCallDoesNotCountsAsUse()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -191,7 +191,7 @@ Imports System.Collections.Generic
                                                </errors>, suppressInfos:=False)
         End Sub
 
-        <WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")>
         <Fact()>
         Public Sub INF_UnusedImportStatement_Single()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -208,7 +208,7 @@ Imports System
                                                </errors>, suppressInfos:=False)
         End Sub
 
-        <WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")>
         <Fact()>
         Public Sub INF_UnusedImportStatement_Multiple()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -225,7 +225,7 @@ Imports System, System.Diagnostics
                                                </errors>, suppressInfos:=False)
         End Sub
 
-        <WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")>
         <Fact()>
         Public Sub INF_UnusedImportClause_Single()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -245,7 +245,7 @@ Imports System, System.Diagnostics
                                                </errors>, suppressInfos:=False)
         End Sub
 
-        <WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")>
         <Fact()>
         Public Sub INF_UnusedImportClause_Multiple()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -271,7 +271,7 @@ Imports System, System.Diagnostics, System.Collections
                                                </errors>, suppressInfos:=False)
         End Sub
 
-        <WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")>
         <Fact()>
         Public Sub CrefCountsAsUse()
             Dim source =
@@ -314,7 +314,7 @@ Imports System
                 </errors>, suppressInfos:=False)
         End Sub
 
-        <Fact, WorkItem(18348, "https://github.com/dotnet/roslyn/issues/18348")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18348")>
         Public Sub IncorrectUnusedUsingWhenAttributeOnParameter_01()
             Dim source =
 <compilation>
@@ -340,7 +340,7 @@ End Class
             AssertTheseDiagnostics(diagnostics, <errors></errors>)
         End Sub
 
-        <Fact, WorkItem(18348, "https://github.com/dotnet/roslyn/issues/18348")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18348")>
         Public Sub IncorrectUnusedUsingWhenAttributeOnParameter_02()
             Dim source =
 <compilation>
@@ -366,7 +366,7 @@ End Class
             AssertTheseDiagnostics(diagnostics, <errors></errors>)
         End Sub
 
-        <Fact, WorkItem(2773, "https://github.com/dotnet/roslyn/issues/2773")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2773")>
         Public Sub UsageInDocComment()
             Dim source =
 <compilation>

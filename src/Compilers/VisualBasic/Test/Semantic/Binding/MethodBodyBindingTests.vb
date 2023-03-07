@@ -170,7 +170,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(538834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538834")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538834")>
         <Fact>
         Public Sub AssertPassMultipleArgumentsWithByRef()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
@@ -215,7 +215,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem(538870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538870")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538870")>
         <Fact>
         Public Sub AssertInvalidArrayInitializer()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
@@ -255,7 +255,7 @@ BC30987: '{' expected.
 </expected>)
         End Sub
 
-        <WorkItem(538967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538967")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538967")>
         <Fact>
         Public Sub Bug4745()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
@@ -281,7 +281,7 @@ Shared x As Integer = 10
 </expected>)
         End Sub
 
-        <WorkItem(538491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538491")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538491")>
         <Fact>
         Public Sub Bug4118()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
@@ -302,7 +302,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub BindCatchStatementLocal()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -344,7 +344,7 @@ End Class
             Assert.Equal("ex", sym2.Name)
         End Sub
 
-        <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub BindCatchStatementNonLocal()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -398,8 +398,8 @@ End Module
             Assert.Null(sym3)
         End Sub
 
-        <WorkItem(529206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529206")>
-        <WorkItem(8238, "https://github.com/dotnet/roslyn/issues/8238")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529206")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/8238")>
         <Fact>
         Public Sub IntrinsicAliases_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -465,7 +465,7 @@ BC30110: 'Integer' is a structure type and cannot be used as an expression.
 </expected>)
         End Sub
 
-        <WorkItem(529206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529206")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529206")>
         <Fact>
         Public Sub IntrinsicAliases_2()
             Dim compilation = CompilationUtils.CreateEmptyCompilation(
@@ -497,7 +497,7 @@ BC30456: 'Integer' is not a member of 'System'.
 </expected>)
         End Sub
 
-        <WorkItem(529206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529206")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529206")>
         <Fact>
         Public Sub IntrinsicAliases_3()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -524,7 +524,7 @@ End Module
             Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
         End Sub
 
-        <WorkItem(8238, "https://github.com/dotnet/roslyn/issues/8238")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/8238")>
         <Fact>
         Public Sub IntrinsicAliases_4()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -563,7 +563,7 @@ end namespace
 ]]>)
         End Sub
 
-        <WorkItem(8238, "https://github.com/dotnet/roslyn/issues/8238")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/8238")>
         <Fact>
         Public Sub IntrinsicAliases_5()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -599,7 +599,7 @@ BC30561: 'Int32' is ambiguous, imported from the namespaces or types 'System, X'
 </expected>)
         End Sub
 
-        <WorkItem(8238, "https://github.com/dotnet/roslyn/issues/8238")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/8238")>
         <Fact>
         Public Sub IntrinsicAliases_6()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -640,7 +640,7 @@ BC30456: 'Parse' is not a member of '[Integer]'.
 </expected>)
         End Sub
 
-        <WorkItem(8238, "https://github.com/dotnet/roslyn/issues/8238")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/8238")>
         <Fact>
         Public Sub IntrinsicAliases_7()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
@@ -687,7 +687,7 @@ BC30560: 'Int32' is ambiguous in the namespace 'System'.
 </expected>)
         End Sub
 
-        <WorkItem(8238, "https://github.com/dotnet/roslyn/issues/8238")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/8238")>
         <Fact>
         Public Sub IntrinsicAliases_8()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(

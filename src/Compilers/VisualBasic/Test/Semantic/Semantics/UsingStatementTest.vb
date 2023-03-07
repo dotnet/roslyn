@@ -211,7 +211,7 @@ End Structure
         End Sub
 #End Region
 
-        <Fact(), WorkItem(545110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545110")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545110")>
         Public Sub UsingWithNothingOptionStrictOff()
             Dim verifier = CompileAndVerify(
     <compilation name="UsingWithNothing">

@@ -4459,7 +4459,7 @@ False
 
 #Region "Regressions"
 
-        <Fact(), WorkItem(544073, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544073")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544073")>
         Public Sub NoReturnInOperatorBody()
             Dim compilationDef =
 <compilation name="NoReturnInOperatorBody">
@@ -4540,7 +4540,7 @@ BC42106: Operator 'CType' doesn't return a value on all code paths. A null refer
 </expected>)
         End Sub
 
-        <WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/56376")>
         <Fact>
         Public Sub UserDefinedConversionOperatorInGenericExpressionTree_01()
             Dim compilationDef =
@@ -4579,7 +4579,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="Run")
         End Sub
 
-        <WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/56376")>
         <Fact>
         Public Sub UserDefinedConversionOperatorInGenericExpressionTree_02()
             Dim compilationDef =

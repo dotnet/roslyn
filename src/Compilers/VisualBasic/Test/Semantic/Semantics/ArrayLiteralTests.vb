@@ -596,7 +596,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(529377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529377")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529377")>
         Public Sub TestArrayLiteralInferredElementArgIterator_2()
             Dim source =
 <compilation name="TestArrayLiteralInferredElementTypeDiagnostics">
@@ -1370,7 +1370,7 @@ m+C[]
 
         End Sub
 
-        <WorkItem(544203, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544203")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544203")>
         <Fact()>
         Public Sub ArrayLiteralInferenceBug12426()
             Dim source =
@@ -1429,7 +1429,7 @@ ImmutableArray`1[BoundStatement]
 
         End Sub
 
-        <WorkItem(544381, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544381")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544381")>
         <Fact()>
         Public Sub ArrayLiteralInferenceBug12679()
             Dim source =
@@ -1510,7 +1510,7 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(544363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544363")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544363")>
         <Fact()>
         Public Sub TestArrayLiteralWithAmbiguousOverloadWithParamArray()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1544,7 +1544,7 @@ BC30311: Value of type 'Integer()' cannot be converted to 'String'.
             AssertTheseDiagnostics(compilation, expected)
         End Sub
 
-        <WorkItem(544352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544352")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544352")>
         <Fact()>
         Public Sub TestArrayLiteralErrorMsgArrayOfDelegate()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1568,7 +1568,7 @@ End Module
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ArrayInitNoType, "{AddressOf Goo}"))
         End Sub
 
-        <WorkItem(544566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544566")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544566")>
         <Fact()>
         Public Sub TestArrayLiteralInTernaryIf()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1607,7 +1607,7 @@ System.Int64[]
                         ]]>)
         End Sub
 
-        <WorkItem(529543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529543")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529543")>
         <Fact()>
         Public Sub TestArrayLiteralSemanticModelCTypeLongConversion()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -1734,7 +1734,7 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(545375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545375")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545375")>
         <Fact()>
         Public Sub TestArrayLiteralInferTypeInIf()
             Dim source =
@@ -1766,7 +1766,7 @@ End Module
                         ]]>)
         End Sub
 
-        <WorkItem(545517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545517")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545517")>
         <Fact()>
         Public Sub TestArrayLiteralInferTypeInWithinParens1()
             Dim source =
@@ -1801,7 +1801,7 @@ Sub Goo(Of T)(x As IList(Of T)())
                         ]]>)
         End Sub
 
-        <WorkItem(545517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545517")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545517")>
         <Fact()>
         Public Sub TestArrayLiteralInferTypeInWithinParens2()
             Dim source =
@@ -1824,7 +1824,7 @@ End Module
 
         End Sub
 
-        <WorkItem(530876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530876")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530876")>
         <Fact()>
         Public Sub Bug17124()
             Dim source =
@@ -1842,7 +1842,7 @@ End Module
             CompileAndVerify(comp)
         End Sub
 
-        <WorkItem(796610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/796610")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/796610")>
         <Fact()>
         Public Sub Bug796610_1()
             Dim source =
@@ -2005,7 +2005,7 @@ Static=System.Object[,], Runtime x=System.Object[,], Runtime y=Nothing
 ]]>)
         End Sub
 
-        <WorkItem(796610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/796610")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/796610")>
         <Fact()>
         Public Sub Bug796610_2()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -2030,7 +2030,7 @@ End Module
             CompileAndVerify(compilation, <![CDATA[System.String[]]]>)
         End Sub
 
-        <WorkItem(116, "https://github.com/dotnet/roslyn/issues/116")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/116")>
         <Fact()>
         Public Sub TestArrayLiteralSemanticModelImplicitConversion()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -2063,7 +2063,7 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(799045, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/799045")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/799045")>
         <Fact()>
         Public Sub TestArrayLiteralSemanticModelImplicitConversionParenthesized()
             Dim compilation = CreateCompilationWithMscorlib40(

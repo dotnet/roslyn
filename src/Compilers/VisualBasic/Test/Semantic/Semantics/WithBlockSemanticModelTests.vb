@@ -77,7 +77,7 @@ End Module
             Assert.Equal(0, semanticInfo.MemberGroup.Length)
         End Sub
 
-        <Fact(), WorkItem(544083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544083")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544083")>
         Public Sub WithSpeculativeSymbolInfo()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
@@ -219,7 +219,7 @@ End Module
 
 #End Region
 
-        <Fact, WorkItem(2662, "https://github.com/dotnet/roslyn/issues/2662")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2662")>
         Public Sub Issue2662()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
@@ -279,7 +279,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(187910, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=187910&_a=edit")>
+        <WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=187910&_a=edit")>
         Public Sub Bug187910()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
@@ -328,7 +328,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(10929, "https://github.com/dotnet/roslyn/issues/10929")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/10929")>
         Public Sub WithTargetAsArgument_01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -373,7 +373,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(10929, "https://github.com/dotnet/roslyn/issues/10929")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/10929")>
         Public Sub WithTargetAsArgument_02()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -419,7 +419,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(10929, "https://github.com/dotnet/roslyn/issues/10929")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/10929")>
         Public Sub WithTargetAsArgument_03()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -476,7 +476,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(10929, "https://github.com/dotnet/roslyn/issues/10929")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/10929")>
         Public Sub WithTargetAsArgument_04()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>

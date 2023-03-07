@@ -54,8 +54,8 @@ Hello, world
             compilation.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(547017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547017")>
-        <WorkItem(547018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547018")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547017")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547018")>
         <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub SimpleImplicitDeclaration2()
             Dim compilation = CompileAndVerify(
@@ -724,7 +724,7 @@ BC42104: Variable 'r' is used before it has been assigned a value. A null refere
 ]]></expected>)
         End Sub
 
-        <WorkItem(542455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542455")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542455")>
         <Fact>
         Public Sub VariableAcrossIfParts()
             CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -751,7 +751,7 @@ End Module]]>
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "x").WithArguments("x"))
         End Sub
 
-        <WorkItem(542455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542455")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542455")>
         <Fact>
         Public Sub VariableAcrossIfParts2()
             CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -779,7 +779,7 @@ End Module]]>
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "z").WithArguments("z"))
         End Sub
 
-        <WorkItem(542530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542530")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542530")>
         <Fact>
         Public Sub LambdaBindingOrder()
             Dim compilation = CompileAndVerify(
@@ -879,7 +879,7 @@ done
 
 #Region "BindExpression Tests"
 
-        <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
         Public Sub SpeculativeBindImplicitVariableAsLeftHandSideOfOfAssignment()
             VerifyImplicitDeclarationBindExpression(<![CDATA[
                 'BIND
@@ -889,7 +889,7 @@ done
             symbolKind:=SymbolKind.Local)
         End Sub
 
-        <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
         Public Sub SpeculativeBindImplicitVariableAsMethodArgument()
             VerifyImplicitDeclarationBindExpression(<![CDATA[
                 'BIND
@@ -989,7 +989,7 @@ done
             expected:={"x"})
         End Sub
 
-        <WorkItem(1036381, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036381")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036381")>
         <Fact>
         Public Sub Bug1036381_01()
             Dim source =
@@ -1031,7 +1031,7 @@ End Module
             Assert.NotEqual(l1, l2)
         End Sub
 
-        <WorkItem(1036381, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036381")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036381")>
         <Fact>
         Public Sub Bug1036381_02()
             Dim source =
@@ -1078,7 +1078,7 @@ End Module
 
 #Region "Tuples"
 
-        <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14292")>
         <Fact>
         Public Sub NotDeclaredTupleDeconstructionsAreConsideredObjects_ExplicitOff()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1119,7 +1119,7 @@ BC42104: Variable 'member2' is used before it has been assigned a value. A null 
             Assert.Equal("Object", tupleSymbol.Type.TupleElementTypes(1).Name)
         End Sub
 
-        <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14292")>
         <Fact>
         Public Sub NotDeclaredTupleDeconstructionsProduceErrors_ExplicitOn()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1147,7 +1147,7 @@ BC30451: 'member2' is not declared. It may be inaccessible due to its protection
 ]]></expected>)
         End Sub
 
-        <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14292")>
         <Fact>
         Public Sub DeclaringImplicitlyDeclaredTupleArgumentsAgainInSameScopeErrorsOut()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1172,7 +1172,7 @@ BC32000: Local variable 'notDeclaredYet' cannot be referred to before it is decl
 ]]></expected>)
         End Sub
 
-        <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14292")>
         <Fact>
         Public Sub DeclaringImplicitlyDeclaredTupleArgumentsAgainInAnotherScopeErrorsOut()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1203,7 +1203,7 @@ BC32000: Local variable 'notDefinedYet2' cannot be referred to before it is decl
 ]]></expected>)
         End Sub
 
-        <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14292")>
         <Fact>
         Public Sub TupleArgumentsAreNotConsideredAsImplicitVariables()
             VerifyImplicitDeclarationLookupSymbols(<![CDATA[

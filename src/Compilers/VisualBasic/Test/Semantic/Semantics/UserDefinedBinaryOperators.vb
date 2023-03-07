@@ -525,7 +525,7 @@ BC30452: Operator 'OrElse' is not defined for types 'Module1.B3' and 'Module1.B3
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
-        <WorkItem(23232, "https://github.com/dotnet/roslyn/issues/23232")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/23232")>
         Public Sub ShortCircuiting5()
             Dim compilationDef =
 <compilation name="SimpleTest1">
@@ -2553,7 +2553,7 @@ BC30487: Operator '-' is not defined for type 'M1.S1?'.
 </expected>)
         End Sub
 
-        <WorkItem(545765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545765")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545765")>
         <Fact>
         Public Sub Bug14415()
             Dim compilationDef =
@@ -2613,7 +2613,7 @@ h And a = nothing
 
         End Sub
 
-        <WorkItem(545765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545765")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545765")>
         <Fact>
         Public Sub Bug14415_2()
             Dim compilationDef =
@@ -2683,7 +2683,7 @@ a And h = 0
 
         End Sub
 
-        <WorkItem(546782, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546782")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546782")>
         <Fact>
         Public Sub Bug16815()
             Dim compilationDef =
@@ -2716,7 +2716,7 @@ End Module
 
         End Sub
 
-        <WorkItem(14688, "https://github.com/dotnet/roslyn/issues/14688")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14688")>
         <Fact>
         Public Sub OperatorsWithDefaultParameters_WithoutValue()
             Dim compilationDef =
@@ -2754,7 +2754,7 @@ BC30812: Optional parameters must specify a default value.
 </expected>)
         End Sub
 
-        <WorkItem(14688, "https://github.com/dotnet/roslyn/issues/14688")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14688")>
         <Fact>
         Public Sub OperatorsWithDefaultParameters_WithValue()
             Dim compilationDef =
@@ -2802,7 +2802,7 @@ BC33010: 'operator' parameters cannot be declared 'Optional'.
 </expected>)
         End Sub
 
-        <WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/56376")>
         <Fact>
         Public Sub UserDefinedBinaryOperatorInGenericExpressionTree_1()
             Dim compilationDef =
@@ -2852,7 +2852,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="23")
         End Sub
 
-        <WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/56376")>
         <Fact>
         Public Sub UserDefinedBinaryOperatorInGenericExpressionTree_2()
             Dim compilationDef =
@@ -2902,7 +2902,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="13")
         End Sub
 
-        <WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/56376")>
         <Fact>
         Public Sub UserDefinedBinaryOperatorInGenericExpressionTree_3()
             Dim compilationDef =

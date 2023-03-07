@@ -412,7 +412,7 @@ B3(B(4) <= B(3)).IsTrue
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(544375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544375")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544375")>
         Public Sub BasicTest4()
             Dim compilationDef =
 <compilation name="BasicTest4">

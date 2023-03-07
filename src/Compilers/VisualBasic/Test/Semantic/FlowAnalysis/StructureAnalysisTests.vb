@@ -275,7 +275,7 @@ End Class
 
         End Sub
 
-        <WorkItem(530076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530076")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530076")>
         <Fact>
         Public Sub Bug530076a()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
@@ -302,7 +302,7 @@ End class
 
         End Sub
 
-        <WorkItem(530076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530076")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530076")>
         <Fact>
         Public Sub Bug530076b()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
@@ -330,7 +330,7 @@ End class
 </errors>)
         End Sub
 
-        <WorkItem(807595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/807595")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/807595")>
         <Fact>
         Public Sub Bug807595()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
@@ -389,7 +389,7 @@ End class
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
         End Sub
 
-        <WorkItem(542579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542579")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542579")>
         <Fact>
         Public Sub AllPiecesAssigned2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -410,7 +410,7 @@ End class
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
         End Sub
 
-        <WorkItem(542579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542579")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542579")>
         <Fact>
         Public Sub AllPiecesAssigned3()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -870,7 +870,7 @@ End Structure
 
 #End Region
 
-        <WorkItem(874526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/874526")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/874526")>
         <Fact()>
         Public Sub GenericStructWithPropertyUsingStruct()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(

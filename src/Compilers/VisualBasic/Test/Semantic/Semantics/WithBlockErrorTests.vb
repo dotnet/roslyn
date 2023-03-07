@@ -989,7 +989,7 @@ BC30068: Expression is a value and therefore cannot be the target of an assignme
 </errors>)
         End Sub
 
-        <WorkItem(543921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543921")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543921")>
         <Fact()>
         Public Sub WithNewT()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1010,7 +1010,7 @@ End Module
             compilation.AssertNoErrors()
         End Sub
 
-        <Fact(), WorkItem(544195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544195")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544195")>
         Public Sub WithMeMyClassMyBase()
             CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
@@ -1036,7 +1036,7 @@ End Class
         End Sub
 
         <Fact()>
-        <WorkItem(49904, "https://github.com/dotnet/roslyn/issues/49904")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/49904")>
         Public Sub ArrayAccessWithOmittedIndexAsWithTarget_01()
             Dim compilation = CreateCompilation(
 <compilation>
@@ -1093,7 +1093,7 @@ BC30491: Expression does not produce a value.
         End Sub
 
         <Fact()>
-        <WorkItem(49904, "https://github.com/dotnet/roslyn/issues/49904")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/49904")>
         Public Sub ArrayAccessWithOmittedIndexAsWithTarget_02()
             Dim compilation = CreateCompilation(
 <compilation>

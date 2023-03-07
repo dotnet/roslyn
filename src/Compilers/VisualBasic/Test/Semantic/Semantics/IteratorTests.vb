@@ -848,7 +848,7 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
         End Sub
 
-        <Fact(), WorkItem(629565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629565")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629565")>
         Public Sub Bug629565()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
@@ -894,7 +894,7 @@ Object
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(1006315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006315")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006315")>
         Public Sub BadAsyncSingleLineLambda()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                     <compilation>
@@ -923,7 +923,7 @@ BC36947: Single-line lambdas cannot have the 'Iterator' modifier. Use a multilin
 </errors>)
         End Sub
 
-        <Fact(), WorkItem(1173145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1173145"), WorkItem(2862, "https://github.com/dotnet/roslyn/issues/2862")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1173145"), WorkItem("https://github.com/dotnet/roslyn/issues/2862")>
         Public Sub CompoundAssignmentToAField()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
@@ -979,8 +979,8 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(11531, "https://github.com/dotnet/roslyn/issues/11531")>
-        <WorkItem(220696, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=220696")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11531")>
+        <WorkItem("https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=220696")>
         Public Sub WritableIteratorProperty()
             Dim source =
 <compilation>

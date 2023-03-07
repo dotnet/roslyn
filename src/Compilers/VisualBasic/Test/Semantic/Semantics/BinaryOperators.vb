@@ -749,7 +749,7 @@ BC42019: Operands of type Object used for operator '&gt;'; runtime errors could 
 
         End Sub
 
-        <WorkItem(543387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543387")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543387")>
         <Fact()>
         Public Sub Test9()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -783,7 +783,7 @@ Succeeded
             Assert.Equal("Public Shared Overloads Operator =(d1 As System.MulticastDelegate, d2 As System.MulticastDelegate) As Boolean", symbolInfo.Symbol.ToDisplayString())
         End Sub
 
-        <WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")>
         <Fact()>
         Public Sub Bug13088()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -805,7 +805,7 @@ End Module
             Assert.False(DirectCast(symbol, FieldSymbol).HasConstantValue)
         End Sub
 
-        <Fact(), WorkItem(531531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531531")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531531")>
         <CompilerTrait(CompilerFeature.IOperation)>
         Public Sub Bug18257()
             Dim source =
@@ -1353,7 +1353,7 @@ End Class
             builder2.Free()
         End Sub
 
-        <Fact(), WorkItem(721565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/721565")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/721565")>
         Public Sub Bug721565()
 
             Dim source =
@@ -1442,7 +1442,7 @@ BC42038: This expression will always evaluate to Nothing (due to null propagatio
         End Sub
 
         <ConditionalFact(GetType(NoIOperationValidation))>
-        <WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019"), WorkItem(529600, "DevDiv"), WorkItem(37572, "https://github.com/dotnet/roslyn/issues/37572")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/43019"), WorkItem(529600, "DevDiv"), WorkItem("https://github.com/dotnet/roslyn/issues/37572")>
         Public Sub Bug529600()
 
             Dim compilationDef =
@@ -1523,7 +1523,7 @@ End Module
             Next
         End Sub
 
-        <ConditionalFact(GetType(NoIOperationValidation), AlwaysSkip:="https://github.com/dotnet/roslyn/issues/57806"), WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019"), WorkItem(37572, "https://github.com/dotnet/roslyn/issues/37572")>
+        <ConditionalFact(GetType(NoIOperationValidation), AlwaysSkip:="https://github.com/dotnet/roslyn/issues/57806"), WorkItem("https://github.com/dotnet/roslyn/issues/43019"), WorkItem("https://github.com/dotnet/roslyn/issues/37572")>
         Public Sub TestLargeStringConcatenation()
 
             Dim mid = New StringBuilder()

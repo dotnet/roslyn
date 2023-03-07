@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ''' <summary>
         ''' Ref field in ref struct.
         ''' </summary>
-        <Fact, WorkItem(65392, "https://github.com/dotnet/roslyn/issues/65392")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65392")>
         Public Sub RefField_01()
             Dim sourceA =
 "public ref struct S<T>
@@ -53,7 +53,7 @@ BC30656: Field 'F' is of an unsupported type.
             Assert.True(field.HasUnsupportedMetadata)
         End Sub
 
-        <Fact, WorkItem(65392, "https://github.com/dotnet/roslyn/issues/65392")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65392")>
         Public Sub CanUsePassThroughRefStructInstances()
             Dim source =
 "Imports System

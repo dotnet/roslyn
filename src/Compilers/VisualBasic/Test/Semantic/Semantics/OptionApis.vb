@@ -55,7 +55,7 @@ Option Compare Binary
         End Sub
 
         <Fact>
-        <WorkItem(50610, "https://github.com/dotnet/roslyn/issues/50610")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50610")>
         Public Sub MissingParts_01()
             Dim compilation = CreateCompilation(
 <compilation name="GetSemanticInfo">
@@ -297,7 +297,7 @@ Option
         End Sub
 
         <Fact>
-        <WorkItem(50610, "https://github.com/dotnet/roslyn/issues/50610")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50610")>
         Public Sub MissingParts_09()
             Dim compilation = CreateCompilation(
 <compilation name="GetSemanticInfo">

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class GotoTests
         Inherits BasicTestBase
 
-        <WorkItem(543106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543106")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543106")>
         <Fact()>
         Public Sub BranchOutOfFinallyInLambda()
 
@@ -52,7 +52,7 @@ BC30101: Branching out of a 'Finally' is not valid.
             </expected>)
         End Sub
 
-        <WorkItem(543392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543392")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543392")>
         <Fact()>
         Public Sub BranchOutOfFinallyInLambda_1()
 
@@ -185,7 +185,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543364")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543364")>
         <Fact()>
         Public Sub LabelAfterElse()
             CreateCompilationWithMscorlib40AndVBRuntime(
@@ -230,7 +230,7 @@ End Module
                                   Diagnostic(ERRID.ERR_LabelNotDefined1, "100").WithArguments("100"))
         End Sub
 
-        <WorkItem(543364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543364")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543364")>
         <Fact()>
         Public Sub LabelAfterElse_NotNumeric()
             CreateCompilationWithMscorlib40AndVBRuntime(

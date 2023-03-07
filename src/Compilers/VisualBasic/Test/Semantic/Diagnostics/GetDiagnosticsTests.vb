@@ -86,7 +86,7 @@ End Class
             DiagnosticsHelper.VerifyDiagnostics(model, sourceText, "bracadabra[\r\n]+", ErrorId)
         End Sub
 
-        <Fact, WorkItem(1066483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066483")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066483")>
         Public Sub TestDiagnosticWithSeverity()
             Dim source = <project><file>
 Class C
@@ -122,7 +122,7 @@ End Class
             Assert.Equal(1, info.WarningLevel)
         End Sub
 
-        <Fact, WorkItem(7446, "https://github.com/dotnet/roslyn/issues/7446")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7446")>
         Public Sub TestCompilationEventQueueWithSemanticModelGetDiagnostics()
             Dim source1 = <file>
 Namespace N1
@@ -168,7 +168,7 @@ End Namespace
             Assert.True(completedCompilationUnits.Contains(tree.FilePath))
         End Sub
 
-        <Fact, WorkItem(7477, "https://github.com/dotnet/roslyn/issues/7477")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7477")>
         Public Sub TestCompilationEventsForPartialMethod()
             Dim source1 = <file>
 Namespace N1
