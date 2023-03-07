@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             if (usingDirectiveNode.Alias != null)
             {
                 if (TryGetSimpleTypeName(usingDirectiveNode.Alias.Name, typeParameterNames: null, out var aliasName, out _) &&
-                    TryGetSimpleTypeName(usingDirectiveNode.Name, typeParameterNames: null, out var name, out _))
+                    TryGetSimpleTypeName(usingDirectiveNode.NamespaceOrType, typeParameterNames: null, out var name, out _))
                 {
                     aliases = ImmutableArray.Create<(string, string)>((aliasName, name));
                     return true;

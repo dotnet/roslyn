@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         #region Usings
 
         [Fact]
-        public void Using_Global_Insert()
+        public void Using_Global_Insert1()
         {
             var src1 = @"
 using System.Collections.Generic;
@@ -40,6 +40,26 @@ using System.Collections.Generic;
             edits.VerifyEdits(
                 "Insert [global using D = System.Diagnostics;]@2",
                 "Insert [global using System.Collections;]@40");
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Global_Insert2()
+        {
+            var src1 = @"
+using unsafe D3 = int*;
+";
+            var src2 = @"
+global using D1 = int;
+using D2 = (int, int);
+using unsafe D3 = int*;
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [global using D1 = int;]@2",
+                "Insert [using D2 = (int, int);]@26");
 
             edits.VerifySemanticDiagnostics();
         }
@@ -79,7 +99,27 @@ using System.Collections.Generic;
         }
 
         [Fact]
-        public void Using_Insert()
+        public void Using_Delete3()
+        {
+            var src1 = @"
+global using D1 = int;
+using D2 = (int, int);
+using unsafe D3 = int*;
+";
+            var src2 = @"
+using D2 = (int, int);
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Delete [global using D1 = int;]@2",
+                "Delete [using unsafe D3 = int*;]@50");
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Insert1()
         {
             var src1 = @"
 using System.Collections.Generic;
@@ -94,6 +134,28 @@ using System.Collections.Generic;
             edits.VerifyEdits(
                 "Insert [using D = System.Diagnostics;]@2",
                 "Insert [using System.Collections;]@33");
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Insert2()
+        {
+            var src1 = @"
+using System.Collections.Generic;
+";
+            var src2 = @"
+global using D1 = int;
+using D2 = (int, int);
+using unsafe D3 = int*;
+using System.Collections.Generic;
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [global using D1 = int;]@2",
+                "Insert [using D2 = (int, int);]@26",
+                "Insert [using unsafe D3 = int*;]@50");
 
             edits.VerifySemanticDiagnostics();
         }
@@ -162,6 +224,29 @@ using System.Collections.Generic;
         }
 
         [Fact]
+        public void Using_Update4()
+        {
+            var src1 = @"
+using X = int;
+using Y = int;
+using Z = int;
+";
+            var src2 = @"
+using X = string;
+using unsafe Y = int*;
+global using Z = int;
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [using X = int;]@2 -> [using X = string;]@2",
+                "Update [using Y = int;]@18 -> [using unsafe Y = int*;]@21",
+                "Update [using Z = int;]@34 -> [global using Z = int;]@45");
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
         public void Using_Reorder1()
         {
             var src1 = @"
@@ -178,6 +263,23 @@ using System.Diagnostics;
 
             edits.VerifyEdits(
                 "Reorder [using System.Diagnostics;]@2 -> @64");
+        }
+
+        [Fact]
+        public void Using_Reorder2()
+        {
+            var src1 = @"
+using X = int;
+using Y = string;
+";
+            var src2 = @"
+using Y = string;
+using X = int;
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Reorder [using Y = string;]@18 -> @2");
         }
 
         [Fact]
