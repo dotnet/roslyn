@@ -89,13 +89,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray<ParameterSymbol>.Empty);
         }
 
-        protected override bool HasPointerTypeSyntactically
-            // Since we already bound the type, don't bother looking at syntax
-            => TypeWithAnnotations.DefaultType.IsPointerOrFunctionPointer();
-
         public static bool HaveCorrespondingSynthesizedRecordPropertySymbol(SourceParameterSymbol parameter)
         {
-            return parameter.ContainingSymbol is SynthesizedRecordConstructor &&
+            return parameter.ContainingSymbol is SynthesizedPrimaryConstructor &&
                    parameter.ContainingType.GetMembersUnordered().Any((s, parameter) => (s as SynthesizedRecordPropertySymbol)?.BackingParameter == (object)parameter, parameter);
         }
     }

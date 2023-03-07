@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -242,11 +243,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var builder = SharedPools.Default<StringBuilder>().Allocate();
             try
             {
-                foreach (var symbol in symbols)
+                foreach (var group in symbols.GroupBy(s => s.Name))
                 {
-                    yield return CreateItem(semanticModel, symbol, token, position, builder, options);
-                    if (TryCreateSpecialTypeItem(semanticModel, symbol, token, position, builder, options, out var item))
-                        yield return item;
+                    var groupCount = group.Count();
+                    foreach (var symbol in group)
+                    {
+                        // For every symbol, we create an item that uses the regular CrefFormat,
+                        // which uses intrinsic type keywords
+                        yield return CreateItem(semanticModel, symbol, groupCount, token, position, builder, options, CrefFormat);
+                        if (TryCreateSpecialTypeItem(semanticModel, symbol, token, position, builder, options, out var item))
+                            yield return item;
+                    }
                 }
             }
             finally
@@ -264,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var typeSymbol = symbol as ITypeSymbol;
             if (typeSymbol.IsSpecialType())
             {
-                item = CreateItem(semanticModel, symbol, token, position, builder, options, QualifiedCrefFormat);
+                item = CreateItem(semanticModel, symbol, groupCount: 1, token, position, builder, options, QualifiedCrefFormat);
                 return true;
             }
 
@@ -273,15 +280,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static CompletionItem CreateItem(
-            SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, ImmutableDictionary<string, string> options)
-        {
-            // For every symbol, we create an item that uses the regular CrefFormat,
-            // which uses intrinsic type keywords
-            return CreateItem(semanticModel, symbol, token, position, builder, options, CrefFormat);
-        }
-
-        private static CompletionItem CreateItem(
-            SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, ImmutableDictionary<string, string> options,
+            SemanticModel semanticModel,
+            ISymbol symbol,
+            int groupCount,
+            SyntaxToken token,
+            int position,
+            StringBuilder builder,
+            ImmutableDictionary<string, string> options,
             SymbolDisplayFormat unqualifiedCrefFormat)
         {
             builder.Clear();
@@ -297,35 +302,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 builder.Append(symbol.ToMinimalDisplayString(semanticModel, token.SpanStart, unqualifiedCrefFormat));
 
                 var parameters = symbol.GetParameters();
-                if (!parameters.IsDefaultOrEmpty)
+
+                // if this has parameters, then add them here.  Otherwise, if this is a method without parameters, but
+                // there are overloads of it, then also add the parameters to disambiguate.
+                if (parameters.Length > 0 ||
+                    (symbol is IMethodSymbol && groupCount >= 2))
                 {
                     // Note: we intentionally don't add the "params" modifier for any parameters.
 
                     builder.Append(symbol.IsIndexer() ? '[' : '(');
-
-                    for (var i = 0; i < parameters.Length; i++)
-                    {
-                        if (i > 0)
-                            builder.Append(", ");
-
-                        var parameter = parameters[i];
-
-                        switch (parameter.RefKind)
+                    builder.AppendJoinedValues(", ", parameters,
+                        (p, builder) =>
                         {
-                            case RefKind.Ref:
-                                builder.Append("ref ");
-                                break;
-                            case RefKind.Out:
-                                builder.Append("out ");
-                                break;
-                            case RefKind.In:
-                                builder.Append("in ");
-                                break;
-                        }
-
-                        builder.Append(parameter.Type.ToMinimalDisplayString(semanticModel, position, MinimalParameterTypeFormat));
-                    }
-
+                            builder.Append(p.RefKind switch
+                            {
+                                RefKind.Ref => "ref ",
+                                RefKind.Out => "out ",
+                                RefKind.In => "in ",
+                                _ => "",
+                            });
+                            builder.Append(p.Type.ToMinimalDisplayString(semanticModel, position, MinimalParameterTypeFormat));
+                        });
                     builder.Append(symbol.IsIndexer() ? ']' : ')');
                 }
             }

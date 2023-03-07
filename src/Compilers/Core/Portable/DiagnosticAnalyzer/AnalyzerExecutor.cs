@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private readonly Compilation? _compilation;
         private readonly AnalyzerOptions? _analyzerOptions;
-        private readonly Action<Diagnostic>? _addNonCategorizedDiagnostic;
-        private readonly Action<Diagnostic, DiagnosticAnalyzer, bool>? _addCategorizedLocalDiagnostic;
-        private readonly Action<Diagnostic, DiagnosticAnalyzer>? _addCategorizedNonLocalDiagnostic;
+        private readonly Action<Diagnostic, CancellationToken>? _addNonCategorizedDiagnostic;
+        private readonly Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? _addCategorizedLocalDiagnostic;
+        private readonly Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? _addCategorizedNonLocalDiagnostic;
         private readonly Action<Suppression>? _addSuppression;
-        private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
+        private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> _onAnalyzerException;
         private readonly Func<Exception, bool>? _analyzerExceptionFilter;
         private readonly AnalyzerManager _analyzerManager;
         private readonly Func<DiagnosticAnalyzer, bool>? _isCompilerAnalyzer;
@@ -103,8 +103,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static AnalyzerExecutor Create(
             Compilation compilation,
             AnalyzerOptions analyzerOptions,
-            Action<Diagnostic>? addNonCategorizedDiagnostic,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            Action<Diagnostic, CancellationToken>? addNonCategorizedDiagnostic,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> onAnalyzerException,
             Func<Exception, bool>? analyzerExceptionFilter,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             AnalyzerManager analyzerManager,
@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, object?> getAnalyzerGate,
             Func<SyntaxTree, SemanticModel> getSemanticModel,
             bool logExecutionTime = false,
-            Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic = null,
-            Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic = null,
+            Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? addCategorizedLocalDiagnostic = null,
+            Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? addCategorizedNonLocalDiagnostic = null,
             Action<Suppression>? addSuppression = null,
             CancellationToken cancellationToken = default)
         {
@@ -142,11 +142,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzerManager">Analyzer manager to fetch supported diagnostics.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor CreateForSupportedDiagnostics(
-            Action<Exception, DiagnosticAnalyzer, Diagnostic>? onAnalyzerException,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken>? onAnalyzerException,
             AnalyzerManager analyzerManager,
             CancellationToken cancellationToken = default)
         {
-            onAnalyzerException ??= (ex, analyzer, diagnostic) => { };
+            onAnalyzerException ??= (ex, analyzer, diagnostic, cancellationToken) => { };
             return new AnalyzerExecutor(
                 compilation: null,
                 analyzerOptions: null,
@@ -171,8 +171,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private AnalyzerExecutor(
             Compilation? compilation,
             AnalyzerOptions? analyzerOptions,
-            Action<Diagnostic>? addNonCategorizedDiagnosticOpt,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            Action<Diagnostic, CancellationToken>? addNonCategorizedDiagnosticOpt,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> onAnalyzerException,
             Func<Exception, bool>? analyzerExceptionFilter,
             Func<DiagnosticAnalyzer, bool>? isCompilerAnalyzer,
             AnalyzerManager analyzerManager,
@@ -183,8 +183,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, object?>? getAnalyzerGate,
             Func<SyntaxTree, SemanticModel>? getSemanticModel,
             ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>>? analyzerExecutionTimeMap,
-            Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic,
-            Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic,
+            Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? addCategorizedLocalDiagnostic,
+            Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? addCategorizedNonLocalDiagnostic,
             Action<Suppression>? addSuppression,
             CancellationToken cancellationToken)
         {
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         internal CancellationToken CancellationToken => _cancellationToken;
-        internal Action<Exception, DiagnosticAnalyzer, Diagnostic> OnAnalyzerException => _onAnalyzerException;
+        internal Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> OnAnalyzerException => _onAnalyzerException;
         internal ImmutableDictionary<DiagnosticAnalyzer, TimeSpan> AnalyzerExecutionTimes
         {
             get
@@ -1175,7 +1175,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var diagnostic = CreateAnalyzerExceptionDiagnostic(analyzer, e, info);
                 try
                 {
-                    _onAnalyzerException(e, analyzer, diagnostic);
+                    _onAnalyzerException(e, analyzer, diagnostic, _cancellationToken);
                 }
                 catch (Exception)
                 {
@@ -1341,9 +1341,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<SyntaxReference> cachedDeclaringReferences,
             Compilation compilation,
             DiagnosticAnalyzer analyzer,
-            Action<Diagnostic>? addNonCategorizedDiagnostic,
-            Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic,
-            Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic,
+            Action<Diagnostic, CancellationToken>? addNonCategorizedDiagnostic,
+            Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? addCategorizedLocalDiagnostic,
+            Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? addCategorizedNonLocalDiagnostic,
             Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis,
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
             CancellationToken cancellationToken)
@@ -1358,7 +1358,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (addCategorizedLocalDiagnostic == null)
                 {
                     Debug.Assert(addNonCategorizedDiagnostic != null);
-                    addNonCategorizedDiagnostic(diagnostic);
+                    addNonCategorizedDiagnostic(diagnostic, cancellationToken);
                     return;
                 }
 
@@ -1374,14 +1374,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             var syntax = getTopMostNodeForAnalysis(contextSymbol, syntaxRef, compilation, cancellationToken);
                             if (diagnostic.Location.SourceSpan.IntersectsWith(syntax.FullSpan))
                             {
-                                addCategorizedLocalDiagnostic(diagnostic, analyzer, false);
+                                addCategorizedLocalDiagnostic(diagnostic, analyzer, false, cancellationToken);
                                 return;
                             }
                         }
                     }
                 }
 
-                addCategorizedNonLocalDiagnostic(diagnostic, analyzer);
+                addCategorizedNonLocalDiagnostic(diagnostic, analyzer, cancellationToken);
             };
         }
 
@@ -1397,11 +1397,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (_addCategorizedNonLocalDiagnostic == null)
                 {
                     Debug.Assert(_addNonCategorizedDiagnostic != null);
-                    _addNonCategorizedDiagnostic(diagnostic);
+                    _addNonCategorizedDiagnostic(diagnostic, _cancellationToken);
                     return;
                 }
 
-                _addCategorizedNonLocalDiagnostic(diagnostic, analyzer);
+                _addCategorizedNonLocalDiagnostic(diagnostic, analyzer, _cancellationToken);
             };
         }
 

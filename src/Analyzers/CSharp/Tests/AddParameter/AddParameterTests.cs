@@ -2925,6 +2925,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
+        [Fact]
+        public async Task Test_PrimaryConstructor_Class()
+        {
+            await TestInRegularAndScriptAsync(@"
+var b = ""B"";
+var r = [|new R(1, b)|];
+
+class R(int A);
+", @"
+var b = ""B"";
+var r = new R(1, b);
+
+class R(int A, string b);
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
         [Fact, WorkItem(54408, "https://github.com/dotnet/roslyn/issues/54408")]
         public async Task TestPositionalRecordStruct()
         {
@@ -2951,6 +2967,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
+        [Fact]
+        public async Task Test_PrimaryConstructor_Struct()
+        {
+            await TestInRegularAndScriptAsync(@"
+var b = ""B"";
+var r = [|new R(1, b)|];
+
+struct R(int A);
+", @"
+var b = ""B"";
+var r = new R(1, b);
+
+struct R(int A, string b);
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
         [Fact, WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
         public async Task TestRecordsNamingConventions()
         {
@@ -2967,6 +2999,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
+        [Fact]
+        public async Task TestNamingConventions_PrimaryConstructor_Class()
+        {
+            await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];
+
+class Test();
+", @"new Test(""repro"");
+
+class Test(string v);
+");
+        }
+
         [Fact, WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
         public async Task TestRecordsNamingConventions_RecordStruct()
         {
@@ -2981,6 +3025,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 record struct Test(string V);
 
                 """);
+        }
+
+        [Fact]
+        public async Task TestNamingConventions_PrimaryConstructor_Struct()
+        {
+            await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];
+
+struct Test();
+", @"new Test(""repro"");
+
+struct Test(string v);
+");
         }
 
         [Fact, WorkItem(61715, "https://github.com/dotnet/roslyn/issues/61715")]

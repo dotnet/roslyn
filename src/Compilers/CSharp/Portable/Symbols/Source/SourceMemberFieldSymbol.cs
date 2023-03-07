@@ -420,32 +420,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_lazyTypeAndRefKind?.Type.DefaultType is { } defaultType)
-                {
-                    bool isPointerType = defaultType.Kind switch
-                    {
-                        SymbolKind.PointerType => true,
-                        SymbolKind.FunctionPointerType => true,
-                        _ => false
-                    };
-                    Debug.Assert(isPointerType == IsPointerFieldSyntactically());
-                    return isPointerType;
-                }
-
-                return IsPointerFieldSyntactically();
+                return TypeWithAnnotations.DefaultType.IsPointerOrFunctionPointer();
             }
-        }
-
-        private bool IsPointerFieldSyntactically()
-        {
-            var declaration = GetFieldDeclaration(VariableDeclaratorNode).Declaration;
-            if (declaration.Type.Kind() switch { SyntaxKind.PointerType => true, SyntaxKind.FunctionPointerType => true, _ => false })
-            {
-                // public int * Blah;   // pointer
-                return true;
-            }
-
-            return IsFixedSizeBuffer;
         }
 
         internal sealed override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
@@ -604,8 +580,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
-
-            Debug.Assert(type.DefaultType.IsPointerOrFunctionPointer() == IsPointerFieldSyntactically());
 
             // update the lazyType only if it contains value last seen by the current thread:
             if (Interlocked.CompareExchange(ref _lazyTypeAndRefKind, new TypeAndRefKind(refKind, type.WithModifiers(this.RequiredCustomModifiers)), null) == null)

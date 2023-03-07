@@ -5400,24 +5400,22 @@ class C
             var source = @"
 using VT2 = (int, int);
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
-                // (2,13): error CS1001: Identifier expected
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (2,13): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 13),
-                // (2,13): error CS1002: ; expected
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 13),
-                // (2,14): error CS1525: Invalid expression term 'int'
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 14),
-                // (2,19): error CS1525: Invalid expression term 'int'
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 19),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int, int)").WithArguments("using type alias").WithLocation(2, 13),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using VT2 = (int, int);
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using VT2 = ").WithLocation(2, 1)
-                );
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using VT2 = (int, int);").WithLocation(2, 1));
+
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using VT2 = (int, int);
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using VT2 = (int, int);").WithLocation(2, 1));
         }
 
         [Fact]
@@ -13323,6 +13321,69 @@ namespace System
                 "readonly System.Boolean (T1, T2).Equals(System.Object obj)",
                 "readonly System.Boolean (T1, T2).Equals((T1, T2) other)",
                 "readonly void (T1, T2).Deconstruct(out T1 Item1, out T2 Item2)",
+                "(T1, T2)..ctor()",
+                "T1 (T1, T2).Item1",
+                "T2 (T1, T2).Item2"
+                );
+        }
+
+        [Fact]
+        [WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        public void CustomValueTuple_StructWithPrimaryConstructor()
+        {
+            var source = @"
+#pragma warning disable CS" + ((int)ErrorCode.WRN_UnreadPrimaryConstructorParameter).ToString() + @" // Parameter is unread.
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>(T1 Item1, T2 Item2)
+    {
+    }
+}
+" + tupleattributes_cs;
+
+            var comp = CreateCompilation(source, assemblyName: "test");
+            comp.VerifyEmitDiagnostics(
+                // error CS7038: Failed to emit module 'test': Unable to determine specific cause of the failure.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("test", "Unable to determine specific cause of the failure.").WithLocation(1, 1)
+                );
+
+            var valuetuple = comp.GetTypeByMetadataName("System.ValueTuple`2");
+
+            AssertTestDisplayString(valuetuple.GetMembers(),
+                "(T1, T2)..ctor(T1 Item1, T2 Item2)",
+                "(T1, T2)..ctor()",
+                "T1 (T1, T2).Item1",
+                "T2 (T1, T2).Item2"
+                );
+        }
+
+        [Fact]
+        [WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        public void CustomValueTuple_StructWithRegularConstructor()
+        {
+            var source = @"
+#pragma warning disable CS" + ((int)ErrorCode.WRN_UnreadPrimaryConstructorParameter).ToString() + @" // Parameter is unread.
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 Item1, T2 Item2){}
+    }
+}
+" + tupleattributes_cs;
+
+            var comp = CreateCompilation(source, assemblyName: "test");
+            comp.VerifyEmitDiagnostics(
+                // error CS7038: Failed to emit module 'test': Unable to determine specific cause of the failure.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("test", "Unable to determine specific cause of the failure.").WithLocation(1, 1)
+                );
+
+            var valuetuple = comp.GetTypeByMetadataName("System.ValueTuple`2");
+
+            AssertTestDisplayString(valuetuple.GetMembers(),
+                "(T1, T2)..ctor(T1 Item1, T2 Item2)",
                 "(T1, T2)..ctor()",
                 "T1 (T1, T2).Item1",
                 "T2 (T1, T2).Item2"

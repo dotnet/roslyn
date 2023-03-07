@@ -4,10 +4,8 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 
@@ -20,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Options
     internal sealed class LegacyGlobalOptionsWorkspaceService : ILegacyGlobalOptionsWorkspaceService
     {
         private readonly IGlobalOptionService _globalOptions;
-        private readonly CodeActionOptionsStorage.Provider _provider;
 
         private static readonly Option2<bool> s_generateOverridesOption = new(
             "dotnet_generate_overrides_for_all_members", defaultValue: true);
@@ -42,7 +39,6 @@ namespace Microsoft.CodeAnalysis.Options
         public LegacyGlobalOptionsWorkspaceService(IGlobalOptionService globalOptions)
         {
             _globalOptions = globalOptions;
-            _provider = _globalOptions.CreateProvider();
         }
 
         public bool GenerateOverrides
@@ -63,9 +59,6 @@ namespace Microsoft.CodeAnalysis.Options
             get => _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
             set => _globalOptions.SetGlobalOption(InlineHintsGlobalStateOption.DisplayAllOverride, value);
         }
-
-        public CleanCodeGenerationOptionsProvider CleanCodeGenerationOptionsProvider
-            => _provider;
 
         public bool GetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(string language)
             => _globalOptions.GetOption(s_implementIEquatable, language);

@@ -9988,6 +9988,30 @@ record  class  R(int X);
         }
 
         [Fact]
+        public async Task Class()
+        {
+            await AssertFormatAsync(
+                @"
+class R(int X);
+",
+                @"
+class  R(int X)  ;
+");
+        }
+
+        [Fact]
+        public async Task Interface()
+        {
+            await AssertFormatAsync(
+                @"
+interface R(int X);
+",
+                @"
+interface  R(int X)  ;
+");
+        }
+
+        [Fact]
         public async Task RecordStruct()
         {
             await AssertFormatAsync(
@@ -9996,6 +10020,18 @@ record struct R(int X);
 ",
                 @"
 record  struct  R(int X);
+");
+        }
+
+        [Fact]
+        public async Task Struct()
+        {
+            await AssertFormatAsync(
+                @"
+struct R(int X);
+",
+                @"
+struct  R(int X)  ;
 ");
         }
 
@@ -10707,6 +10743,34 @@ var s = $""""""{s,0: x }""""""
                 code: @"
 var s = $""""""{s, 0 : x }""""""
 ");
+        }
+
+        [Fact]
+        public async Task FormatUsingAliasToType1()
+        {
+            await AssertFormatAsync(
+                expected: @"
+f([Attribute] () => { });
+",
+                code: @"
+f( [Attribute] () => { });
+");
+        }
+
+        [Theory]
+        [InlineData("using X=int ;", "using X = int;")]
+        [InlineData("global   using X=int ;", "global using X = int;")]
+        [InlineData("using X=nint;", "using X = nint;")]
+        [InlineData("using X=dynamic;", "using X = dynamic;")]
+        [InlineData("using X=int [] ;", "using X = int[];")]
+        [InlineData("using X=(int,int) ;", "using X = (int, int);")]
+        [InlineData("using  unsafe  X=int * ;", "using unsafe X = int*;")]
+        [InlineData("global   using  unsafe  X=int * ;", "global using unsafe X = int*;")]
+        [InlineData("using X=int ?;", "using X = int?;")]
+        [InlineData("using X=delegate * <int,int> ;", "using X = delegate*<int, int>;")]
+        public async Task TestNormalizeUsingAlias(string text, string expected)
+        {
+            await AssertFormatAsync(expected, text);
         }
     }
 }

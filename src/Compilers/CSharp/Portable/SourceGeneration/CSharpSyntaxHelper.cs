@@ -92,8 +92,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (global != (usingDirective.GlobalKeyword != null))
                     continue;
 
+                // We only care about aliases from one name to another name.  e.g. `using X = A.B.C;`  That's because
+                // the caller is only interested in finding a fully-qualified-metadata-name to an attribute.
+                if (usingDirective.NamespaceOrType is not Syntax.InternalSyntax.NameSyntax name)
+                    continue;
+
                 var aliasName = usingDirective.Alias.Name.Identifier.ValueText;
-                var symbolName = GetUnqualifiedName(usingDirective.Name).Identifier.ValueText;
+                var symbolName = GetUnqualifiedName(name).Identifier.ValueText;
                 aliases.Add((aliasName, symbolName));
             }
         }

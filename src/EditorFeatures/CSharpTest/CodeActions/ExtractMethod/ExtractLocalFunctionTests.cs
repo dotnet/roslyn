@@ -1686,9 +1686,9 @@ class C
     public static void Main(string[] args)
     {
         bool Local() => args == null;
-        {|Rename:NewMethod|}(args);
+        {|Rename:NewMethod|}();
 
-        void NewMethod(string[] args)
+        void NewMethod()
         {
             Local();
         }

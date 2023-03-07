@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -328,6 +329,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
                 }
                 """;
             await VerifyCS.VerifyCodeFixAsync(text, text);
+        }
+
+        [Fact, WorkItem(47128, "https://github.com/dotnet/roslyn/issues/47128")]
+        public async Task TestNint()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+
+                    class C
+                    {
+                        void M()
+                        {
+                            Console.WriteLine([|typeof(nint).Name|]);
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    using System;
+
+                    class C
+                    {
+                        void M()
+                        {
+                            Console.WriteLine(nameof(IntPtr));
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
         }
     }
 }

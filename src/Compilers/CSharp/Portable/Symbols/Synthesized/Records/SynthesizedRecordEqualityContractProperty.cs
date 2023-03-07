@@ -77,8 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray<ParameterSymbol>.Empty);
         }
 
-        protected override bool HasPointerTypeSyntactically => false;
-
         protected override void ValidatePropertyType(BindingDiagnosticBag diagnostics)
         {
             base.ValidatePropertyType(diagnostics);
@@ -163,6 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
             internal override bool SynthesizesLoweredBoundBody => true;
+            internal override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
 
             internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
