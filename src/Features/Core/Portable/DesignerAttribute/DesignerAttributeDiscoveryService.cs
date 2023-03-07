@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             // The top level project version for this project.  We only care if anything top level changes here.
             // Downstream impact will already happen due to us keying off of the references a project has (which will
             // change if anything it depends on changes).
-            var lazyProjectVersion = AsyncLazy.Create(project.GetSemanticVersionAsync, cacheResult: true);
+            var lazyProjectVersion = AsyncLazy.Create(project.GetSemanticVersionAsync);
 
             // Switch to frozen semantics if requested.  We don't need to wait on generators to run here as we want to
             // be lightweight.  We'll also continue running in the future.  So if any changes to happen that are
