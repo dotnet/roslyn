@@ -1818,7 +1818,7 @@ $@"class MyClass
         }
 
         [Fact]
-        public async Task FieldAssignedToLocalreadonlyRef()
+        public async Task FieldAssignedToLocalReadOnlyRef()
         {
             await TestInRegularAndScript1Async(
                 """
