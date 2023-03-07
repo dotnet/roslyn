@@ -713,11 +713,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, Location);
                 }
-
-                if (ContainingType.IsExtension && !IsStatic)
-                {
-                    diagnostics.Add(ErrorCode.ERR_StateInExtension, Location, this);
-                }
             }
 
             if (!IsExpressionBodied)
@@ -912,6 +907,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ErrorCode errorCode = isIndexer ? ErrorCode.ERR_IndexerInStaticClass : ErrorCode.ERR_InstanceMemberInStaticClass;
                 diagnostics.Add(errorCode, location, this);
+            }
+            else if (ContainingType.IsExtension && !IsStatic && IsAutoPropertyWithGetAccessor)
+            {
+                diagnostics.Add(ErrorCode.ERR_StateInExtension, Location, this);
             }
         }
 

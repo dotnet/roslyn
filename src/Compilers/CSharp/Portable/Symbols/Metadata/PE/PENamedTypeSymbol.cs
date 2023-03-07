@@ -619,11 +619,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 #nullable enable
         internal sealed override bool IsExtension => false; // PROTOTYPE Extension symbols not yet supported in metadata
 
-        protected sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore
-            => throw ExceptionUtilities.Unreachable(); // PROTOTYPE
-
-        protected sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnosticsCore
-            => throw ExceptionUtilities.Unreachable(); // PROTOTYPE
+        internal sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics => null; // PROTOTYPE
+        internal sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
+            => ImmutableArray<NamedTypeSymbol>.Empty; // PROTOTYPE
 
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
             => throw ExceptionUtilities.Unreachable(); // PROTOTYPE

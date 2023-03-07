@@ -395,11 +395,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 #nullable enable
         internal sealed override bool IsExtension => false; // PROTOTYPE
 
-        protected sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore
-            => throw new System.Exception("PROTOTYPE");
-
-        protected sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnosticsCore
-            => throw new System.Exception("PROTOTYPE");
+        internal sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics => null;
+        internal sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
+            => ImmutableArray<NamedTypeSymbol>.Empty;
 
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
             => throw new System.Exception("PROTOTYPE");

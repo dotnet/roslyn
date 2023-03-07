@@ -442,16 +442,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
         internal sealed override bool IsExtension => _underlyingType.IsExtension;
 
-        protected sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore
+        internal sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics
             => _unbound ? null : Map.SubstituteType(OriginalDefinition.ExtensionUnderlyingTypeNoUseSiteDiagnostics).Type;
 
-        protected sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnosticsCore
+        internal sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
             => _unbound ? ImmutableArray<NamedTypeSymbol>.Empty : Map.SubstituteNamedTypes(OriginalDefinition.BaseExtensionsNoUseSiteDiagnostics);
 
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
-            => IsExtension ? throw new InvalidOperationException("PROTOTYPE") : throw ExceptionUtilities.Unreachable();
+            => throw new InvalidOperationException("PROTOTYPE"); // PROTOTYPE
 
         internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
-            => IsExtension ? throw new InvalidOperationException("PROTOTYPE") : throw ExceptionUtilities.Unreachable();
+            => throw new InvalidOperationException("PROTOTYPE"); // PROTOTYPE
     }
 }

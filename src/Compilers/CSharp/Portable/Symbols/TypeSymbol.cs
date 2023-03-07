@@ -2470,15 +2470,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
         internal abstract bool IsExtension { get; }
 
-        internal TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics
-            => IsExtension ? ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore : null;
+        internal abstract TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics { get; }
 
-        protected abstract TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore { get; }
-
-        internal ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
-            => IsExtension ? BaseExtensionsNoUseSiteDiagnosticsCore : ImmutableArray<NamedTypeSymbol>.Empty;
-
-        protected abstract ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnosticsCore { get; }
+        internal abstract ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics { get; }
 #nullable disable
     }
 }

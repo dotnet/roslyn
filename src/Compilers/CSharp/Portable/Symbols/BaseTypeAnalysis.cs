@@ -297,9 +297,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (type.TypeKind)
             {
                 case TypeKind.Enum:
+                case TypeKind.Extension:
                     return (ThreeState.False, hasGenerics);
                 case TypeKind.Struct:
-                case TypeKind.Extension:
                     return (ThreeState.Unknown, hasGenerics);
                 default:
                     return (ThreeState.True, hasGenerics);

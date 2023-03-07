@@ -285,9 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (inExtension)
             {
                 allowedModifiers |= DeclarationModifiers.New |
-                                    DeclarationModifiers.Private |
-                                    DeclarationModifiers.Internal |
-                                    DeclarationModifiers.Public;
+                                    DeclarationModifiers.AccessibilityMask;
 
                 if (!isIndexer)
                 {

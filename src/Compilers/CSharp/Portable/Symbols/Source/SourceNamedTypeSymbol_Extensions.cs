@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private class ExtensionInfo
         {
-            public TypeSymbol? UnderlyingType;
-            public ImmutableArray<NamedTypeSymbol> BaseExtensions;
-            public bool IsExplicit;
+            public readonly TypeSymbol? UnderlyingType;
+            public readonly ImmutableArray<NamedTypeSymbol> BaseExtensions;
+            public readonly bool IsExplicit;
 
             internal static readonly ExtensionInfo Sentinel =
                 new ExtensionInfo(underlyingType: null, baseExtensions: default, isExplicit: false);
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
             => GetDeclaredExtensionInfo().BaseExtensions;
 
-        protected sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore
+        internal sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics
         {
             get
             {
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return syntax.ForUnderlyingType?.UnderlyingType;
         }
 
-        protected override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnosticsCore
+        internal override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
         {
             get
             {
@@ -288,7 +288,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ExtensionInfo GetDeclaredExtensionInfo()
         {
-            Debug.Assert(this.IsExtension);
+            if (!this.IsExtension)
+            {
+                return new ExtensionInfo(underlyingType: null, ImmutableArray<NamedTypeSymbol>.Empty, false);
+            }
 
             if (ReferenceEquals(_lazyDeclaredExtensionInfo, ExtensionInfo.Sentinel))
             {
@@ -314,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsExtension);
 
-            bool? anyExplicit = null;
+            bool isExplicit = false;
 
             bool sawUnderlyingType = false;
             bool reportedUnderlyingTypeConflict = false;
@@ -326,19 +329,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var baseExtensionsBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             var baseExtensionLocations = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<NamedTypeSymbol, SourceLocation>();
 
-            foreach (var declaration in this.declaration.Declarations)
+            for (int i = 0; i < this.declaration.Declarations.Length; i++)
             {
+                var declaration = this.declaration.Declarations[i];
                 ExtensionInfo one = MakeOneDeclaredExtensionInfo(newBasesBeingResolved, declaration, diagnostics, out bool sawPartUnderlyingType);
                 sawUnderlyingType |= sawPartUnderlyingType;
 
-                if (anyExplicit == null)
+                if (i == 0)
                 {
-                    anyExplicit = one.IsExplicit;
+                    isExplicit = one.IsExplicit;
                 }
-                else if (anyExplicit != one.IsExplicit)
+                else if (isExplicit != one.IsExplicit)
                 {
                     diagnostics.Add(ErrorCode.ERR_PartialDifferentExtensionModifiers, Locations.FirstOrNone(), this);
-                    anyExplicit |= one.IsExplicit;
                 }
 
                 var partUnderlyingType = one.UnderlyingType;
@@ -407,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_BadVisUnderlyingType, underlyingTypeLocation, this, underlyingType);
                 }
 
-                if (underlyingType.HasFileLocalTypes() && !this.HasFileLocalTypes())
+                if (underlyingType.HasFileLocalTypes() && !this.IsFileLocal)
                 {
                     diagnostics.Add(ErrorCode.ERR_FileTypeUnderlying, underlyingTypeLocation, underlyingType, this);
                 }
@@ -421,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_BadVisBaseExtension, baseExtensionLocations[baseExtension], this, baseExtension);
                 }
 
-                if (baseExtension.HasFileLocalTypes() && !this.HasFileLocalTypes())
+                if (baseExtension.HasFileLocalTypes() && !this.IsFileLocal)
                 {
                     diagnostics.Add(ErrorCode.ERR_FileTypeBase, baseExtensionLocations[baseExtension], baseExtension, this);
                 }
@@ -431,8 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnostics.Add(Locations.FirstOrNone(), useSiteInfo);
 
-            Debug.Assert(anyExplicit is not null);
-            return new ExtensionInfo(underlyingType, baseExtensions, isExplicit: anyExplicit.Value);
+            return new ExtensionInfo(underlyingType, baseExtensions, isExplicit);
         }
 
         /// <summary> Bind the base extensions for one part of a partial extension.</summary>
@@ -450,12 +452,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 TypeSymbol underlyingType = underlyingTypeWithAnnotations.Type;
                 checkStatic(diagnostics, location, underlyingType);
-                if (IsRestrictedExtensionUnderlyingType(underlyingTypeWithAnnotations))
+
+                if (IsRestrictedExtensionUnderlyingType(underlyingType))
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadExtensionUnderlyingType, location, this, underlyingTypeWithAnnotations);
+                    diagnostics.Add(ErrorCode.ERR_BadExtensionUnderlyingType, location);
                 }
                 else
                 {
+                    if (underlyingTypeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadExtensionUnderlyingType, location);
+                    }
+
                     partUnderlyingType = underlyingType;
                 }
             }
@@ -482,7 +490,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     switch (baseType.TypeKind)
                     {
-                        case TypeKind.Extension when baseTypeWithAnnotations.NullableAnnotation != NullableAnnotation.Annotated:
+                        case TypeKind.Extension:
+                            if (baseTypeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_OnlyBaseExtensionAllowed, location);
+                            }
+
                             foreach (var baseExtension in partBaseExtensions)
                             {
                                 ReportDuplicateLocally(baseExtension, baseType, location, diagnostics, forBaseExtension: true);
@@ -495,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             break;
 
                         default:
-                            diagnostics.Add(ErrorCode.ERR_OnlyBaseExtensionAllowed, location, baseTypeWithAnnotations);
+                            diagnostics.Add(ErrorCode.ERR_OnlyBaseExtensionAllowed, location);
                             break;
                     }
                 }
@@ -524,11 +537,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool IsRestrictedExtensionUnderlyingType(TypeWithAnnotations underlyingType)
+        private static bool IsRestrictedExtensionUnderlyingType(TypeSymbol type)
         {
-            var type = underlyingType.Type;
-            if (type.IsDynamic() || type.IsPointerOrFunctionPointer() || type.IsRefLikeType || type.IsExtension
-                || underlyingType.NullableAnnotation == NullableAnnotation.Annotated)
+            if (type.IsDynamic() || type.IsPointerOrFunctionPointer() || type.IsRefLikeType || type.IsExtension)
             {
                 return true;
             }

@@ -7431,16 +7431,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Parameter has params modifier in lambda but not in target delegate type.</value>
   </data>
   <data name="ERR_BadExtensionUnderlyingType" xml:space="preserve">
-    <value>Extension '{0}' cannot augment underlying type '{1}'. The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</value>
+    <value>The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</value>
   </data>
   <data name="ERR_StaticBaseTypeOnInstanceExtension" xml:space="preserve">
-    <value>Instance extension '{0}' cannot augment underlying type '{1}' because it is static.</value>
+    <value>Instance extension '{0}' cannot extend type '{1}' because it is static.</value>
   </data>
   <data name="ERR_OnlyBaseExtensionAllowed" xml:space="preserve">
-    <value>'{0}' is not an un-annotated extension type.</value>
+    <value>A base extension must be an extension type.</value>
   </data>
   <data name="ERR_PartialMultipleUnderlyingTypes" xml:space="preserve">
-    <value>Partial declarations of '{0}' must not specify different underlying types.</value>
+    <value>Partial declarations of '{0}' must not extend different types.</value>
   </data>
   <data name="ERR_StateInExtension" xml:space="preserve">
     <value>'{0}': cannot declare instance members with state in extension types.</value>

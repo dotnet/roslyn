@@ -4,10 +4,8 @@
 
 #nullable disable
 
-using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -27,7 +25,7 @@ public class ExtensionTypeTests : CompilingTestBase
     }
 
     // Verify things that are common for all extension types
-    private static void VerifyExtension<T>(TypeSymbol type, bool isManaged = false) where T : TypeSymbol
+    private static void VerifyExtension<T>(TypeSymbol type) where T : TypeSymbol
     {
         Assert.True(type is T);
         Assert.True(type.IsExtension);
@@ -69,8 +67,8 @@ public class ExtensionTypeTests : CompilingTestBase
             VerifyExtension<TypeSymbol>(baseExtension);
         }
 
-        var managedKindUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(type.ContainingAssembly);
-        Assert.Equal(isManaged, type.IsManagedType(ref managedKindUseSiteInfo));
+        var managedKindUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+        Assert.False(type.IsManagedType(ref managedKindUseSiteInfo));
 
         Assert.False(type.IsRestrictedType());
         Assert.True(type.IsType);
@@ -240,28 +238,28 @@ explicit extension R for UnderlyingClass
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (5,16): error CS9113: 'R.field': cannot declare instance members with state in extension types.
+            // (5,16): error CS9213: 'R.field': cannot declare instance members with state in extension types.
             //     public int field = 0; // 1, 2
             Diagnostic(ErrorCode.ERR_StateInExtension, "field").WithArguments("R.field").WithLocation(5, 16),
             // (5,16): warning CS0649: Field 'R.field' is never assigned to, and will always have its default value 0
             //     public int field = 0; // 1, 2
             Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("R.field", "0").WithLocation(5, 16),
-            // (6,25): error CS9113: 'R.field2': cannot declare instance members with state in extension types.
+            // (6,25): error CS9213: 'R.field2': cannot declare instance members with state in extension types.
             //     public volatile int field2 = 0; // 3, 4
             Diagnostic(ErrorCode.ERR_StateInExtension, "field2").WithArguments("R.field2").WithLocation(6, 25),
             // (6,25): warning CS0649: Field 'R.field2' is never assigned to, and will always have its default value 0
             //     public volatile int field2 = 0; // 3, 4
             Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field2").WithArguments("R.field2", "0").WithLocation(6, 25),
-            // (7,9): error CS9113: 'R.AutoProperty': cannot declare instance members with state in extension types.
+            // (7,9): error CS9213: 'R.AutoProperty': cannot declare instance members with state in extension types.
             //     int AutoProperty { get; set; } // 5
             Diagnostic(ErrorCode.ERR_StateInExtension, "AutoProperty").WithArguments("R.AutoProperty").WithLocation(7, 9),
-            // (8,9): error CS9113: 'R.AutoPropertyWithGetAccessor': cannot declare instance members with state in extension types.
+            // (8,9): error CS9213: 'R.AutoPropertyWithGetAccessor': cannot declare instance members with state in extension types.
             //     int AutoPropertyWithGetAccessor { get; } // 6
             Diagnostic(ErrorCode.ERR_StateInExtension, "AutoPropertyWithGetAccessor").WithArguments("R.AutoPropertyWithGetAccessor").WithLocation(8, 9),
             // (9,42): error CS8051: Auto-implemented properties must have get accessors.
             //     int AutoPropertyWithoutGetAccessor { set; } // 7
             Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(9, 42),
-            // (10,32): error CS9113: 'R.Event': cannot declare instance members with state in extension types.
+            // (10,32): error CS9213: 'R.Event': cannot declare instance members with state in extension types.
             //     public event System.Action Event; // 8, 9
             Diagnostic(ErrorCode.ERR_StateInExtension, "Event").WithArguments("R.Event").WithLocation(10, 32),
             // (10,32): warning CS0067: The event 'R.Event' is never used
@@ -271,7 +269,7 @@ explicit extension R for UnderlyingClass
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r, isManaged: true);
+        VerifyExtension<SourceNamedTypeSymbol>(r);
         AssertEx.Equal(new[]
             {
                 "System.Int32 R.field",
@@ -536,9 +534,9 @@ explicit extension R2 for UnderlyingClass : I
             // (11,12): error CS0541: 'R1.M()': explicit interface declaration can only be declared in a class, record, struct or interface
             //     void I.M() { }
             Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("R1.M()").WithLocation(11, 12),
-            // (13,45): error CS9107: 'I' is not an un-annotated extension type.
+            // (13,45): error CS9207: A base extension must be an extension type.
             // explicit extension R2 for UnderlyingClass : I
-            Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "I").WithArguments("I").WithLocation(13, 45),
+            Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "I").WithLocation(13, 45),
             // (15,12): error CS0541: 'R2.M()': explicit interface declaration can only be declared in a class, record, struct or interface
             //     void I.M() { }
             Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("R2.M()").WithLocation(15, 12)
@@ -562,6 +560,10 @@ partial explicit extension R for UnderlyingClass
     public void MethodPublic() { }
     private void MethodPrivate() { }
     internal void MethodInternal() { }
+    protected void MethodProtected() { }
+    private protected void MethodPrivateProtected() { }
+    internal protected void MethodInternalProtected() { }
+
     unsafe int* MethodUnsafe(int* i) => i;
     int* MethodNotUnsafe(int* i) => i; // 1, 2, 3
     new string ToString() => "";
@@ -590,18 +592,18 @@ partial explicit extension R for UnderlyingClass
         // PROTOTYPE should warn that `new` isn't required
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net60);
         comp.VerifyDiagnostics(
-            // (9,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // (13,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     int* MethodNotUnsafe(int* i) => i; // 1, 2, 3
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(9, 5),
-            // (9,26): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 5),
+            // (13,26): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     int* MethodNotUnsafe(int* i) => i; // 1, 2, 3
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(9, 26),
-            // (9,37): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 26),
+            // (13,37): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     int* MethodNotUnsafe(int* i) => i; // 1, 2, 3
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "i").WithLocation(9, 37),
-            // (19,24): warning CS0626: Method, operator, or accessor 'R.MethodExtern()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "i").WithLocation(13, 37),
+            // (23,24): warning CS0626: Method, operator, or accessor 'R.MethodExtern()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
             //     static extern void MethodExtern(); // 4
-            Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "MethodExtern").WithArguments("R.MethodExtern()").WithLocation(19, 24)
+            Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "MethodExtern").WithArguments("R.MethodExtern()").WithLocation(23, 24)
             );
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
@@ -614,6 +616,9 @@ partial explicit extension R for UnderlyingClass
         Assert.Equal(Accessibility.Public, r.GetMethod("MethodPublic").DeclaredAccessibility);
         Assert.Equal(Accessibility.Private, r.GetMethod("MethodPrivate").DeclaredAccessibility);
         Assert.Equal(Accessibility.Internal, r.GetMethod("MethodInternal").DeclaredAccessibility);
+        Assert.Equal(Accessibility.Protected, r.GetMethod("MethodProtected").DeclaredAccessibility);
+        Assert.Equal(Accessibility.ProtectedAndInternal, r.GetMethod("MethodPrivateProtected").DeclaredAccessibility);
+        Assert.Equal(Accessibility.ProtectedOrInternal, r.GetMethod("MethodInternalProtected").DeclaredAccessibility);
         Assert.True(r.GetMethod("MethodAsync").IsAsync);
         Assert.True(r.GetMethod("MethodExtern").IsExtern);
         Assert.True(r.GetMethod("MethodExtern2").IsExtern);
@@ -651,15 +656,12 @@ explicit extension R for UnderlyingClass
 {
     public abstract void M1(); // 1, 2
     override string ToString() => ""; // 3
-    protected void M2() { } // 4
-    readonly void M3() { } // 5
-    sealed void M4() { } // 6
-    virtual void M5() { } // 7
-    required void M6() { } // 8
-    scoped System.Span<int> M7() => throw null; // 9
-    private protected void M8() { } // 10
-    internal protected void M9() { } // 11
-    file void M10() { } // 12
+    readonly void M3() { } // 4
+    sealed void M4() { } // 5
+    virtual void M5() { } // 6
+    required void M6() { } // 7
+    scoped System.Span<int> M7() => throw null; // 8
+    file void M10() { } // 9
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net60);
@@ -673,40 +675,30 @@ explicit extension R for UnderlyingClass
             // (6,21): error CS0106: The modifier 'override' is not valid for this item
             //     override string ToString() => ""; // 3
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "ToString").WithArguments("override").WithLocation(6, 21),
-            // (7,20): error CS0106: The modifier 'protected' is not valid for this item
-            //     protected void M2() { } // 4
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M2").WithArguments("protected").WithLocation(7, 20),
-            // (8,19): error CS0106: The modifier 'readonly' is not valid for this item
-            //     readonly void M3() { } // 5
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M3").WithArguments("readonly").WithLocation(8, 19),
-            // (9,17): error CS0106: The modifier 'sealed' is not valid for this item
-            //     sealed void M4() { } // 6
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M4").WithArguments("sealed").WithLocation(9, 17),
-            // (10,18): error CS0106: The modifier 'virtual' is not valid for this item
-            //     virtual void M5() { } // 7
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M5").WithArguments("virtual").WithLocation(10, 18),
-            // (11,19): error CS0106: The modifier 'required' is not valid for this item
-            //     required void M6() { } // 8
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M6").WithArguments("required").WithLocation(11, 19),
-            // (12,29): error CS0106: The modifier 'scoped' is not valid for this item
-            //     scoped System.Span<int> M7() => throw null; // 9
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M7").WithArguments("scoped").WithLocation(12, 29),
-            // (13,28): error CS0106: The modifier 'private protected' is not valid for this item
-            //     private protected void M8() { } // 10
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M8").WithArguments("private protected").WithLocation(13, 28),
-            // (14,29): error CS0106: The modifier 'protected internal' is not valid for this item
-            //     internal protected void M9() { } // 11
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M9").WithArguments("protected internal").WithLocation(14, 29),
-            // (15,15): error CS0106: The modifier 'file' is not valid for this item
-            //     file void M10() { } // 12
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("file").WithLocation(15, 15)
+            // (7,19): error CS0106: The modifier 'readonly' is not valid for this item
+            //     readonly void M3() { } // 4
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M3").WithArguments("readonly").WithLocation(7, 19),
+            // (8,17): error CS0106: The modifier 'sealed' is not valid for this item
+            //     sealed void M4() { } // 5
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M4").WithArguments("sealed").WithLocation(8, 17),
+            // (9,18): error CS0106: The modifier 'virtual' is not valid for this item
+            //     virtual void M5() { } // 6
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M5").WithArguments("virtual").WithLocation(9, 18),
+            // (10,19): error CS0106: The modifier 'required' is not valid for this item
+            //     required void M6() { } // 7
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M6").WithArguments("required").WithLocation(10, 19),
+            // (11,29): error CS0106: The modifier 'scoped' is not valid for this item
+            //     scoped System.Span<int> M7() => throw null; // 8
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M7").WithArguments("scoped").WithLocation(11, 29),
+            // (12,15): error CS0106: The modifier 'file' is not valid for this item
+            //     file void M10() { } // 9
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("file").WithLocation(12, 15)
             );
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         MethodSymbol m1 = r.GetMethod("M1");
         Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
         Assert.False(m1.IsAbstract);
-        Assert.Equal(Accessibility.Private, r.GetMethod("M2").DeclaredAccessibility);
         Assert.False(r.GetMethod("M4").IsSealed);
         Assert.Equal(Accessibility.Private, r.GetMethod("M5").DeclaredAccessibility);
         Assert.False(r.GetMethod("M6").IsRequired());
@@ -723,6 +715,9 @@ explicit extension R for UnderlyingClass
     public int Public => 0;
     private int Private => 0;
     internal int Internal => 0;
+    protected int Protected => 0;
+    private protected int PrivateProtected => 0;
+    internal protected int InternalProtected => 0;
     unsafe int* Unsafe => null;
     int* NotUnsafe => null; // 1
     new int NotNew => 0;
@@ -736,12 +731,12 @@ explicit extension R for UnderlyingClass
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         // PROTOTYPE should warn that `new` isn't required
         comp.VerifyDiagnostics(
-            // (9,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // (12,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     int* NotUnsafe => null; // 1
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(9, 5),
-            // (14,25): warning CS0626: Method, operator, or accessor 'R.Extern.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(12, 5),
+            // (17,25): warning CS0626: Method, operator, or accessor 'R.Extern.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
             //     extern int Extern { get; } // 2
-            Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("R.Extern.get").WithLocation(14, 25)
+            Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("R.Extern.get").WithLocation(17, 25)
             );
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
@@ -761,6 +756,9 @@ explicit extension R for UnderlyingClass
         Assert.Equal(Accessibility.Public, r.GetProperty("Public").DeclaredAccessibility);
         Assert.Equal(Accessibility.Private, r.GetProperty("Private").DeclaredAccessibility);
         Assert.Equal(Accessibility.Internal, r.GetProperty("Internal").DeclaredAccessibility);
+        Assert.Equal(Accessibility.Protected, r.GetProperty("Protected").DeclaredAccessibility);
+        Assert.Equal(Accessibility.ProtectedAndInternal, r.GetProperty("PrivateProtected").DeclaredAccessibility);
+        Assert.Equal(Accessibility.ProtectedOrInternal, r.GetProperty("InternalProtected").DeclaredAccessibility);
         Assert.True(r.GetProperty("Static").IsStatic);
 
         var externProperty = r.GetProperty("Extern");
@@ -803,17 +801,14 @@ partial explicit extension R for UnderlyingClass
     scoped System.Span<int> Scoped => throw null; // 4
     abstract int Abstract { get; } // 5, 6
     override int Override => 0; // 7
-    protected int Protected => 0; // 8
-    readonly int Readonly => 0; // 9
-    sealed int Sealed => 0; // 10
-    public virtual int Virtual => 0; // 11
+    readonly int Readonly => 0; // 8
+    sealed int Sealed => 0; // 9
+    public virtual int Virtual => 0; // 10
 
-    public required int Required { get => throw null; set => throw null; } // 12
-    public static required int StaticRequired { get => throw null; set => throw null; } // 13
+    public required int Required { get => throw null; set => throw null; } // 11
+    public static required int StaticRequired { get => throw null; set => throw null; } // 12
 
-    private protected int PrivateProtected => 0; // 14
-    internal protected int InternalProtected => 0; // 15
-    file int File => 0; // 16
+    file int File => 0; // 13
 }
 """;
         // PROTOTYPE confirm spec on `required`
@@ -822,10 +817,10 @@ partial explicit extension R for UnderlyingClass
             // (4,15): error CS0106: The modifier 'async' is not valid for this item
             //     async int Async => 0; // 1
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "Async").WithArguments("async").WithLocation(4, 15),
-            // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+            // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'implicit/explicit extension', or a method return type.
             //     partial int Partial { get; } // 2, 3
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
-            // (5,17): error CS9113: 'R.Partial': cannot declare instance members with state in extension types.
+            // (5,17): error CS9213: 'R.Partial': cannot declare instance members with state in extension types.
             //     partial int Partial { get; } // 2, 3
             Diagnostic(ErrorCode.ERR_StateInExtension, "Partial").WithArguments("R.Partial").WithLocation(5, 17),
             // (6,29): error CS0106: The modifier 'scoped' is not valid for this item
@@ -834,45 +829,35 @@ partial explicit extension R for UnderlyingClass
             // (7,18): error CS0106: The modifier 'abstract' is not valid for this item
             //     abstract int Abstract { get; } // 5, 6
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "Abstract").WithArguments("abstract").WithLocation(7, 18),
-            // (7,18): error CS9113: 'R.Abstract': cannot declare instance members with state in extension types.
+            // (7,18): error CS9213: 'R.Abstract': cannot declare instance members with state in extension types.
             //     abstract int Abstract { get; } // 5, 6
             Diagnostic(ErrorCode.ERR_StateInExtension, "Abstract").WithArguments("R.Abstract").WithLocation(7, 18),
             // (8,18): error CS0106: The modifier 'override' is not valid for this item
             //     override int Override => 0; // 7
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "Override").WithArguments("override").WithLocation(8, 18),
-            // (9,19): error CS0106: The modifier 'protected' is not valid for this item
-            //     protected int Protected => 0; // 8
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Protected").WithArguments("protected").WithLocation(9, 19),
-            // (10,18): error CS0106: The modifier 'readonly' is not valid for this item
-            //     readonly int Readonly => 0; // 9
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Readonly").WithArguments("readonly").WithLocation(10, 18),
-            // (11,16): error CS0106: The modifier 'sealed' is not valid for this item
-            //     sealed int Sealed => 0; // 10
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Sealed").WithArguments("sealed").WithLocation(11, 16),
-            // (12,24): error CS0106: The modifier 'virtual' is not valid for this item
-            //     public virtual int Virtual => 0; // 11
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Virtual").WithArguments("virtual").WithLocation(12, 24),
-            // (14,25): error CS0106: The modifier 'required' is not valid for this item
-            //     public required int Required { get => throw null; set => throw null; } // 12
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Required").WithArguments("required").WithLocation(14, 25),
-            // (15,32): error CS0106: The modifier 'required' is not valid for this item
-            //     public static required int StaticRequired { get => throw null; set => throw null; } // 13
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "StaticRequired").WithArguments("required").WithLocation(15, 32),
-            // (17,27): error CS0106: The modifier 'private protected' is not valid for this item
-            //     private protected int PrivateProtected => 0; // 14
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "PrivateProtected").WithArguments("private protected").WithLocation(17, 27),
-            // (18,28): error CS0106: The modifier 'protected internal' is not valid for this item
-            //     internal protected int InternalProtected => 0; // 15
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "InternalProtected").WithArguments("protected internal").WithLocation(18, 28),
-            // (19,14): error CS0106: The modifier 'file' is not valid for this item
-            //     file int File => 0; // 16
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "File").WithArguments("file").WithLocation(19, 14)
+            // (9,18): error CS0106: The modifier 'readonly' is not valid for this item
+            //     readonly int Readonly => 0; // 8
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Readonly").WithArguments("readonly").WithLocation(9, 18),
+            // (10,16): error CS0106: The modifier 'sealed' is not valid for this item
+            //     sealed int Sealed => 0; // 9
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Sealed").WithArguments("sealed").WithLocation(10, 16),
+            // (11,24): error CS0106: The modifier 'virtual' is not valid for this item
+            //     public virtual int Virtual => 0; // 10
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Virtual").WithArguments("virtual").WithLocation(11, 24),
+            // (13,25): error CS0106: The modifier 'required' is not valid for this item
+            //     public required int Required { get => throw null; set => throw null; } // 11
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Required").WithArguments("required").WithLocation(13, 25),
+            // (14,32): error CS0106: The modifier 'required' is not valid for this item
+            //     public static required int StaticRequired { get => throw null; set => throw null; } // 12
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "StaticRequired").WithArguments("required").WithLocation(14, 32),
+            // (16,14): error CS0106: The modifier 'file' is not valid for this item
+            //     file int File => 0; // 13
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "File").WithArguments("file").WithLocation(16, 14)
             );
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.False(r.GetProperty("Abstract").IsAbstract);
         Assert.False(r.GetProperty("Override").IsOverride);
-        Assert.Equal(Accessibility.Private, r.GetProperty("Protected").DeclaredAccessibility);
         Assert.False(r.GetProperty("Sealed").IsSealed);
         Assert.False(r.GetProperty("Virtual").IsVirtual);
         Assert.False(r.GetProperty("Required").IsRequired);
@@ -917,6 +902,10 @@ explicit extension R for UnderlyingClass
     public event System.Action Public { add => throw null; remove => throw null; }
     private event System.Action Private { add => throw null; remove => throw null; }
     internal event System.Action Internal { add => throw null; remove => throw null; }
+    protected event System.Action Protected { add => throw null; remove => throw null; }
+    private protected event System.Action PrivateProtected { add => throw null; remove => throw null; }
+    internal protected event System.Action InternalProtected { add => throw null; remove => throw null; }
+
     unsafe event System.Action Unsafe { add { int* i = null; } remove => throw null; }
     event System.Action NotUnsafe { add { int* i = null; } remove => throw null; } // 1
     new event System.Action NotNew { add => throw null; remove => throw null; }
@@ -934,21 +923,21 @@ explicit extension R for UnderlyingClass
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         // PROTOTYPE should warn that `new` isn't required
         comp.VerifyDiagnostics(
-            // (9,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // (13,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     event System.Action NotUnsafe { add { int* i = null; } remove => throw null; } // 1
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(9, 43),
-            // (13,41): error CS0179: 'R.Extern.add' cannot be extern and declare a body
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 43),
+            // (17,41): error CS0179: 'R.Extern.add' cannot be extern and declare a body
             //     extern event System.Action Extern { add => throw null; remove => throw null; } // 2, 3
-            Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("R.Extern.add").WithLocation(13, 41),
-            // (13,60): error CS0179: 'R.Extern.remove' cannot be extern and declare a body
+            Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("R.Extern.add").WithLocation(17, 41),
+            // (17,60): error CS0179: 'R.Extern.remove' cannot be extern and declare a body
             //     extern event System.Action Extern { add => throw null; remove => throw null; } // 2, 3
-            Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("R.Extern.remove").WithLocation(13, 60),
-            // (17,63): error CS0073: An add or remove accessor must have a body
+            Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("R.Extern.remove").WithLocation(17, 60),
+            // (21,63): error CS0073: An add or remove accessor must have a body
             //         [System.Runtime.InteropServices.DllImport("test")] add; // 4
-            Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(17, 63),
-            // (18,66): error CS0073: An add or remove accessor must have a body
+            Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(21, 63),
+            // (22,66): error CS0073: An add or remove accessor must have a body
             //         [System.Runtime.InteropServices.DllImport("test")] remove; // 5
-            Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(18, 66)
+            Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(22, 66)
             );
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
@@ -967,6 +956,9 @@ explicit extension R for UnderlyingClass
         Assert.Equal(Accessibility.Public, r.GetEvent("Public").DeclaredAccessibility);
         Assert.Equal(Accessibility.Private, r.GetEvent("Private").DeclaredAccessibility);
         Assert.Equal(Accessibility.Internal, r.GetEvent("Internal").DeclaredAccessibility);
+        Assert.Equal(Accessibility.Protected, r.GetEvent("Protected").DeclaredAccessibility);
+        Assert.Equal(Accessibility.ProtectedAndInternal, r.GetEvent("PrivateProtected").DeclaredAccessibility);
+        Assert.Equal(Accessibility.ProtectedOrInternal, r.GetEvent("InternalProtected").DeclaredAccessibility);
         Assert.True(r.GetEvent("Static").IsStatic);
 
         var externEvent = r.GetEvent("Extern");
@@ -1010,15 +1002,12 @@ partial explicit extension R for UnderlyingClass
     partial event System.Action Partial { add => throw null; remove => throw null; } // 2
     abstract event System.Action Abstract { add => throw null; remove => throw null; } // 3
     override event System.Action Override { add => throw null; remove => throw null; } // 4
-    protected event System.Action Protected { add => throw null; remove => throw null; } // 5
-    readonly event System.Action Readonly { add => throw null; remove => throw null; } // 6
-    sealed event System.Action Sealed { add => throw null; remove => throw null; } // 7
-    public virtual event System.Action Virtual { add => throw null; remove => throw null; } // 8
-    public required event System.Action Required { add => throw null; remove => throw null; } // 9
-    public static required event System.Action StaticRequired { add => throw null; remove => throw null; } // 10
-    private protected event System.Action PrivateProtected { add => throw null; remove => throw null; } // 11
-    internal protected event System.Action InternalProtected { add => throw null; remove => throw null; } // 12
-    file event System.Action File { add => throw null; remove => throw null; } // 13
+    readonly event System.Action Readonly { add => throw null; remove => throw null; } // 5
+    sealed event System.Action Sealed { add => throw null; remove => throw null; } // 6
+    public virtual event System.Action Virtual { add => throw null; remove => throw null; } // 7
+    public required event System.Action Required { add => throw null; remove => throw null; } // 8
+    public static required event System.Action StaticRequired { add => throw null; remove => throw null; } // 9
+    file event System.Action File { add => throw null; remove => throw null; } // 10
 }
 """;
         var comp = CreateCompilation(src);
@@ -1036,39 +1025,29 @@ partial explicit extension R for UnderlyingClass
             // (7,34): error CS0106: The modifier 'override' is not valid for this item
             //     override event System.Action Override { add => throw null; remove => throw null; } // 4
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "Override").WithArguments("override").WithLocation(7, 34),
-            // (8,35): error CS0106: The modifier 'protected' is not valid for this item
-            //     protected event System.Action Protected { add => throw null; remove => throw null; } // 5
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Protected").WithArguments("protected").WithLocation(8, 35),
-            // (9,34): error CS0106: The modifier 'readonly' is not valid for this item
-            //     readonly event System.Action Readonly { add => throw null; remove => throw null; } // 6
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Readonly").WithArguments("readonly").WithLocation(9, 34),
-            // (10,32): error CS0106: The modifier 'sealed' is not valid for this item
-            //     sealed event System.Action Sealed { add => throw null; remove => throw null; } // 7
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Sealed").WithArguments("sealed").WithLocation(10, 32),
-            // (11,40): error CS0106: The modifier 'virtual' is not valid for this item
-            //     public virtual event System.Action Virtual { add => throw null; remove => throw null; } // 8
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Virtual").WithArguments("virtual").WithLocation(11, 40),
-            // (12,41): error CS0106: The modifier 'required' is not valid for this item
-            //     public required event System.Action Required { add => throw null; remove => throw null; } // 9
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Required").WithArguments("required").WithLocation(12, 41),
-            // (13,48): error CS0106: The modifier 'required' is not valid for this item
-            //     public static required event System.Action StaticRequired { add => throw null; remove => throw null; } // 10
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "StaticRequired").WithArguments("required").WithLocation(13, 48),
-            // (14,43): error CS0106: The modifier 'private protected' is not valid for this item
-            //     private protected event System.Action PrivateProtected { add => throw null; remove => throw null; } // 11
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "PrivateProtected").WithArguments("private protected").WithLocation(14, 43),
-            // (15,44): error CS0106: The modifier 'protected internal' is not valid for this item
-            //     internal protected event System.Action InternalProtected { add => throw null; remove => throw null; } // 12
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "InternalProtected").WithArguments("protected internal").WithLocation(15, 44),
-            // (16,30): error CS0106: The modifier 'file' is not valid for this item
-            //     file event System.Action File { add => throw null; remove => throw null; } // 13
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "File").WithArguments("file").WithLocation(16, 30)
+            // (8,34): error CS0106: The modifier 'readonly' is not valid for this item
+            //     readonly event System.Action Readonly { add => throw null; remove => throw null; } // 5
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Readonly").WithArguments("readonly").WithLocation(8, 34),
+            // (9,32): error CS0106: The modifier 'sealed' is not valid for this item
+            //     sealed event System.Action Sealed { add => throw null; remove => throw null; } // 6
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Sealed").WithArguments("sealed").WithLocation(9, 32),
+            // (10,40): error CS0106: The modifier 'virtual' is not valid for this item
+            //     public virtual event System.Action Virtual { add => throw null; remove => throw null; } // 7
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Virtual").WithArguments("virtual").WithLocation(10, 40),
+            // (11,41): error CS0106: The modifier 'required' is not valid for this item
+            //     public required event System.Action Required { add => throw null; remove => throw null; } // 8
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Required").WithArguments("required").WithLocation(11, 41),
+            // (12,48): error CS0106: The modifier 'required' is not valid for this item
+            //     public static required event System.Action StaticRequired { add => throw null; remove => throw null; } // 9
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "StaticRequired").WithArguments("required").WithLocation(12, 48),
+            // (13,30): error CS0106: The modifier 'file' is not valid for this item
+            //     file event System.Action File { add => throw null; remove => throw null; } // 10
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "File").WithArguments("file").WithLocation(13, 30)
             );
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.False(r.GetEvent("Abstract").IsAbstract);
         Assert.False(r.GetEvent("Override").IsOverride);
-        Assert.Equal(Accessibility.Private, r.GetEvent("Protected").DeclaredAccessibility);
         Assert.False(r.GetEvent("Sealed").IsSealed);
         Assert.False(r.GetEvent("Virtual").IsVirtual);
     }
@@ -1136,6 +1115,9 @@ explicit extension R for int
     public struct Public { }
     private struct Private { }
     internal struct Internal { }
+    protected struct Protected { }
+    private protected struct PrivateProtected { }
+    internal protected struct InternalProtected { }
     unsafe struct Unsafe { void M(int* i) => throw null; }
     struct NotUnsafe { void M(int* i) => throw null; } // 1
     new struct NotNew { }
@@ -1155,9 +1137,9 @@ partial explicit extension R2 for int
         // PROTOTYPE should warn that `new` isn't required
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
-            // (8,31): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // (11,31): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     struct NotUnsafe { void M(int* i) => throw null; } // 1
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(8, 31)
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(11, 31)
             );
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
@@ -1174,6 +1156,9 @@ partial explicit extension R2 for int
         Assert.Equal(Accessibility.Public, r.GetTypeMember("Public").DeclaredAccessibility);
         Assert.Equal(Accessibility.Private, r.GetTypeMember("Private").DeclaredAccessibility);
         Assert.Equal(Accessibility.Internal, r.GetTypeMember("Internal").DeclaredAccessibility);
+        Assert.Equal(Accessibility.Protected, r.GetTypeMember("Protected").DeclaredAccessibility);
+        Assert.Equal(Accessibility.ProtectedAndInternal, r.GetTypeMember("PrivateProtected").DeclaredAccessibility);
+        Assert.Equal(Accessibility.ProtectedOrInternal, r.GetTypeMember("InternalProtected").DeclaredAccessibility);
         Assert.True(r.GetTypeMember("Readonly").IsReadOnly);
     }
 
@@ -1186,15 +1171,12 @@ explicit extension R for int
     async struct Async { } // 1
     abstract struct Abstract { } // 2
     override struct Override { } // 3
-    protected struct Protected { } // 4
-    private protected struct PrivateProtected { } // 5
-    internal protected struct InternalProtected { } // 6
-    sealed struct Sealed { } // 7
-    virtual struct Virtual { } // 8
-    required struct Required { } // 9
-    file struct File { } // 10
-    static struct Static { } // 11
-    ref record struct RefRecordStruct { } // 12
+    sealed struct Sealed { } // 4
+    virtual struct Virtual { } // 5
+    required struct Required { } // 6
+    file struct File { } // 7
+    static struct Static { } // 8
+    ref record struct RefRecordStruct { } // 9
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
@@ -1208,41 +1190,29 @@ explicit extension R for int
             // (5,21): error CS0106: The modifier 'override' is not valid for this item
             //     override struct Override { } // 3
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "Override").WithArguments("override").WithLocation(5, 21),
-            // (6,22): error CS0106: The modifier 'protected' is not valid for this item
-            //     protected struct Protected { } // 4
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Protected").WithArguments("protected").WithLocation(6, 22),
-            // (7,30): error CS0106: The modifier 'private protected' is not valid for this item
-            //     private protected struct PrivateProtected { } // 5
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "PrivateProtected").WithArguments("private protected").WithLocation(7, 30),
-            // (8,31): error CS0106: The modifier 'protected internal' is not valid for this item
-            //     internal protected struct InternalProtected { } // 6
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "InternalProtected").WithArguments("protected internal").WithLocation(8, 31),
-            // (9,19): error CS0106: The modifier 'sealed' is not valid for this item
-            //     sealed struct Sealed { } // 7
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Sealed").WithArguments("sealed").WithLocation(9, 19),
-            // (10,20): error CS0106: The modifier 'virtual' is not valid for this item
-            //     virtual struct Virtual { } // 8
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Virtual").WithArguments("virtual").WithLocation(10, 20),
-            // (11,21): error CS0106: The modifier 'required' is not valid for this item
-            //     required struct Required { } // 9
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Required").WithArguments("required").WithLocation(11, 21),
-            // (12,17): error CS9054: File-local type 'R.File' must be defined in a top level type; 'R.File' is a nested type.
-            //     file struct File { } // 10
-            Diagnostic(ErrorCode.ERR_FileTypeNested, "File").WithArguments("R.File").WithLocation(12, 17),
-            // (13,19): error CS0106: The modifier 'static' is not valid for this item
-            //     static struct Static { } // 11
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Static").WithArguments("static").WithLocation(13, 19),
-            // (14,23): error CS0106: The modifier 'ref' is not valid for this item
-            //     ref record struct RefRecordStruct { } // 12
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "RefRecordStruct").WithArguments("ref").WithLocation(14, 23)
+            // (6,19): error CS0106: The modifier 'sealed' is not valid for this item
+            //     sealed struct Sealed { } // 4
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Sealed").WithArguments("sealed").WithLocation(6, 19),
+            // (7,20): error CS0106: The modifier 'virtual' is not valid for this item
+            //     virtual struct Virtual { } // 5
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Virtual").WithArguments("virtual").WithLocation(7, 20),
+            // (8,21): error CS0106: The modifier 'required' is not valid for this item
+            //     required struct Required { } // 6
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Required").WithArguments("required").WithLocation(8, 21),
+            // (9,17): error CS9054: File-local type 'R.File' must be defined in a top level type; 'R.File' is a nested type.
+            //     file struct File { } // 7
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "File").WithArguments("R.File").WithLocation(9, 17),
+            // (10,19): error CS0106: The modifier 'static' is not valid for this item
+            //     static struct Static { } // 8
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Static").WithArguments("static").WithLocation(10, 19),
+            // (11,23): error CS0106: The modifier 'ref' is not valid for this item
+            //     ref record struct RefRecordStruct { } // 9
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "RefRecordStruct").WithArguments("ref").WithLocation(11, 23)
             );
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.False(r.GetTypeMember("Abstract").IsAbstract);
         Assert.False(r.GetTypeMember("Override").IsOverride);
-        Assert.Equal(Accessibility.Private, r.GetTypeMember("Protected").DeclaredAccessibility);
-        Assert.Equal(Accessibility.Private, r.GetTypeMember("PrivateProtected").DeclaredAccessibility);
-        Assert.Equal(Accessibility.Private, r.GetTypeMember("InternalProtected").DeclaredAccessibility);
         Assert.True(r.GetTypeMember("Sealed").IsSealed);
         Assert.False(r.GetTypeMember("Virtual").IsVirtual);
     }
@@ -1257,6 +1227,9 @@ explicit extension R for int
     public class Public { }
     private class Private { }
     internal class Internal { }
+    protected class Protected { }
+    private protected class PrivateProtected { }
+    internal protected class InternalProtected { }
     unsafe class Unsafe { void M(int* i) => throw null; }
     class NotUnsafe { void M(int* i) => throw null; } // 1
     new class NotNew { }
@@ -1268,9 +1241,9 @@ explicit extension R for int
         // PROTOTYPE should warn that `new` isn't required
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
-            // (8,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // (11,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     class NotUnsafe { void M(int* i) => throw null; } // 1
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(8, 30)
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(11, 30)
             );
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
@@ -1287,6 +1260,9 @@ explicit extension R for int
         Assert.Equal(Accessibility.Public, r.GetTypeMember("Public").DeclaredAccessibility);
         Assert.Equal(Accessibility.Private, r.GetTypeMember("Private").DeclaredAccessibility);
         Assert.Equal(Accessibility.Internal, r.GetTypeMember("Internal").DeclaredAccessibility);
+        Assert.Equal(Accessibility.Protected, r.GetTypeMember("Protected").DeclaredAccessibility);
+        Assert.Equal(Accessibility.ProtectedAndInternal, r.GetTypeMember("PrivateProtected").DeclaredAccessibility);
+        Assert.Equal(Accessibility.ProtectedOrInternal, r.GetTypeMember("InternalProtected").DeclaredAccessibility);
         Assert.True(r.GetTypeMember("Sealed").IsSealed);
     }
 
@@ -1299,14 +1275,11 @@ explicit extension R for int
     async class Async { } // 1
     abstract class Abstract { } // 2
     override class Override { } // 3
-    protected class Protected { } // 4
-    private protected class PrivateProtected { } // 5
-    internal protected class InternalProtected { } // 6
-    virtual class Virtual { } // 8
-    required class Required { } // 9
-    file class File { } // 10
-    readonly class Readonly { } // 11
-    static record StaticRecord { } // 12
+    virtual class Virtual { } // 4
+    required class Required { } // 5
+    file class File { } // 6
+    readonly class Readonly { } // 7
+    static record StaticRecord { } // 8
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
@@ -1320,38 +1293,26 @@ explicit extension R for int
             // (5,20): error CS0106: The modifier 'override' is not valid for this item
             //     override class Override { } // 3
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "Override").WithArguments("override").WithLocation(5, 20),
-            // (6,21): error CS0106: The modifier 'protected' is not valid for this item
-            //     protected class Protected { } // 4
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Protected").WithArguments("protected").WithLocation(6, 21),
-            // (7,29): error CS0106: The modifier 'private protected' is not valid for this item
-            //     private protected class PrivateProtected { } // 5
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "PrivateProtected").WithArguments("private protected").WithLocation(7, 29),
-            // (8,30): error CS0106: The modifier 'protected internal' is not valid for this item
-            //     internal protected class InternalProtected { } // 6
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "InternalProtected").WithArguments("protected internal").WithLocation(8, 30),
-            // (9,19): error CS0106: The modifier 'virtual' is not valid for this item
-            //     virtual class Virtual { } // 8
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Virtual").WithArguments("virtual").WithLocation(9, 19),
-            // (10,20): error CS0106: The modifier 'required' is not valid for this item
-            //     required class Required { } // 9
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Required").WithArguments("required").WithLocation(10, 20),
-            // (11,16): error CS9054: File-local type 'R.File' must be defined in a top level type; 'R.File' is a nested type.
-            //     file class File { } // 10
-            Diagnostic(ErrorCode.ERR_FileTypeNested, "File").WithArguments("R.File").WithLocation(11, 16),
-            // (12,20): error CS0106: The modifier 'readonly' is not valid for this item
-            //     readonly class Readonly { } // 11
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Readonly").WithArguments("readonly").WithLocation(12, 20),
-            // (13,19): error CS0106: The modifier 'static' is not valid for this item
-            //     static record StaticRecord { } // 12
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "StaticRecord").WithArguments("static").WithLocation(13, 19)
+            // (6,19): error CS0106: The modifier 'virtual' is not valid for this item
+            //     virtual class Virtual { } // 4
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Virtual").WithArguments("virtual").WithLocation(6, 19),
+            // (7,20): error CS0106: The modifier 'required' is not valid for this item
+            //     required class Required { } // 5
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Required").WithArguments("required").WithLocation(7, 20),
+            // (8,16): error CS9054: File-local type 'R.File' must be defined in a top level type; 'R.File' is a nested type.
+            //     file class File { } // 6
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "File").WithArguments("R.File").WithLocation(8, 16),
+            // (9,20): error CS0106: The modifier 'readonly' is not valid for this item
+            //     readonly class Readonly { } // 7
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Readonly").WithArguments("readonly").WithLocation(9, 20),
+            // (10,19): error CS0106: The modifier 'static' is not valid for this item
+            //     static record StaticRecord { } // 8
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "StaticRecord").WithArguments("static").WithLocation(10, 19)
             );
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.False(r.GetTypeMember("Abstract").IsAbstract);
         Assert.False(r.GetTypeMember("Override").IsOverride);
-        Assert.Equal(Accessibility.Private, r.GetTypeMember("Protected").DeclaredAccessibility);
-        Assert.Equal(Accessibility.Private, r.GetTypeMember("PrivateProtected").DeclaredAccessibility);
-        Assert.Equal(Accessibility.Private, r.GetTypeMember("InternalProtected").DeclaredAccessibility);
         Assert.False(r.GetTypeMember("Virtual").IsVirtual);
         Assert.False(r.GetTypeMember("Readonly").IsReadOnly);
     }
@@ -1366,6 +1327,9 @@ explicit extension R for int
     public interface Public { }
     private interface Private { }
     internal interface Internal { }
+    protected interface Protected { }
+    private protected interface PrivateProtected { }
+    internal protected interface InternalProtected { }
     unsafe interface Unsafe { void M(int* i) => throw null; }
     interface NotUnsafe { void M(int* i) => throw null; } // 1
     new interface NotNew { }
@@ -1375,9 +1339,9 @@ explicit extension R for int
         // PROTOTYPE should warn that `new` isn't required
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (8,34): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // (11,34): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     interface NotUnsafe { void M(int* i) => throw null; } // 1
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(8, 34)
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(11, 34)
             );
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
@@ -1394,6 +1358,9 @@ explicit extension R for int
         Assert.Equal(Accessibility.Public, r.GetTypeMember("Public").DeclaredAccessibility);
         Assert.Equal(Accessibility.Private, r.GetTypeMember("Private").DeclaredAccessibility);
         Assert.Equal(Accessibility.Internal, r.GetTypeMember("Internal").DeclaredAccessibility);
+        Assert.Equal(Accessibility.Protected, r.GetTypeMember("Protected").DeclaredAccessibility);
+        Assert.Equal(Accessibility.ProtectedAndInternal, r.GetTypeMember("PrivateProtected").DeclaredAccessibility);
+        Assert.Equal(Accessibility.ProtectedOrInternal, r.GetTypeMember("InternalProtected").DeclaredAccessibility);
     }
 
     [Fact]
@@ -1405,15 +1372,12 @@ explicit extension R for int
     async interface Async { } // 1
     abstract interface Abstract { } // 2
     override interface Override { } // 3
-    protected interface Protected { } // 4
-    private protected interface PrivateProtected { } // 5
-    internal protected interface InternalProtected { } // 6
-    virtual interface Virtual { } // 7
-    required interface Required { } // 8
-    file interface File { } // 9
-    readonly interface Readonly { } // 10
-    sealed interface Sealed { } // 11
-    static interface Static { } // 12
+    virtual interface Virtual { } // 4
+    required interface Required { } // 5
+    file interface File { } // 6
+    readonly interface Readonly { } // 7
+    sealed interface Sealed { } // 8
+    static interface Static { } // 9
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
@@ -1427,41 +1391,29 @@ explicit extension R for int
             // (5,24): error CS0106: The modifier 'override' is not valid for this item
             //     override interface Override { } // 3
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "Override").WithArguments("override").WithLocation(5, 24),
-            // (6,25): error CS0106: The modifier 'protected' is not valid for this item
-            //     protected interface Protected { } // 4
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Protected").WithArguments("protected").WithLocation(6, 25),
-            // (7,33): error CS0106: The modifier 'private protected' is not valid for this item
-            //     private protected interface PrivateProtected { } // 5
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "PrivateProtected").WithArguments("private protected").WithLocation(7, 33),
-            // (8,34): error CS0106: The modifier 'protected internal' is not valid for this item
-            //     internal protected interface InternalProtected { } // 6
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "InternalProtected").WithArguments("protected internal").WithLocation(8, 34),
-            // (9,23): error CS0106: The modifier 'virtual' is not valid for this item
-            //     virtual interface Virtual { } // 7
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Virtual").WithArguments("virtual").WithLocation(9, 23),
-            // (10,24): error CS0106: The modifier 'required' is not valid for this item
-            //     required interface Required { } // 8
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Required").WithArguments("required").WithLocation(10, 24),
-            // (11,20): error CS9054: File-local type 'R.File' must be defined in a top level type; 'R.File' is a nested type.
-            //     file interface File { } // 9
-            Diagnostic(ErrorCode.ERR_FileTypeNested, "File").WithArguments("R.File").WithLocation(11, 20),
-            // (12,24): error CS0106: The modifier 'readonly' is not valid for this item
-            //     readonly interface Readonly { } // 10
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Readonly").WithArguments("readonly").WithLocation(12, 24),
-            // (13,22): error CS0106: The modifier 'sealed' is not valid for this item
-            //     sealed interface Sealed { } // 11
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Sealed").WithArguments("sealed").WithLocation(13, 22),
-            // (14,22): error CS0106: The modifier 'static' is not valid for this item
-            //     static interface Static { } // 12
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Static").WithArguments("static").WithLocation(14, 22)
+            // (6,23): error CS0106: The modifier 'virtual' is not valid for this item
+            //     virtual interface Virtual { } // 4
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Virtual").WithArguments("virtual").WithLocation(6, 23),
+            // (7,24): error CS0106: The modifier 'required' is not valid for this item
+            //     required interface Required { } // 5
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Required").WithArguments("required").WithLocation(7, 24),
+            // (8,20): error CS9054: File-local type 'R.File' must be defined in a top level type; 'R.File' is a nested type.
+            //     file interface File { } // 6
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "File").WithArguments("R.File").WithLocation(8, 20),
+            // (9,24): error CS0106: The modifier 'readonly' is not valid for this item
+            //     readonly interface Readonly { } // 7
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Readonly").WithArguments("readonly").WithLocation(9, 24),
+            // (10,22): error CS0106: The modifier 'sealed' is not valid for this item
+            //     sealed interface Sealed { } // 8
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Sealed").WithArguments("sealed").WithLocation(10, 22),
+            // (11,22): error CS0106: The modifier 'static' is not valid for this item
+            //     static interface Static { } // 9
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Static").WithArguments("static").WithLocation(11, 22)
             );
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.True(r.GetTypeMember("Abstract").IsAbstract);
         Assert.False(r.GetTypeMember("Override").IsOverride);
-        Assert.Equal(Accessibility.Private, r.GetTypeMember("Protected").DeclaredAccessibility);
-        Assert.Equal(Accessibility.Private, r.GetTypeMember("PrivateProtected").DeclaredAccessibility);
-        Assert.Equal(Accessibility.Private, r.GetTypeMember("InternalProtected").DeclaredAccessibility);
         Assert.False(r.GetTypeMember("Virtual").IsVirtual);
         Assert.False(r.GetTypeMember("Readonly").IsReadOnly);
         Assert.False(r.GetTypeMember("Sealed").IsSealed);
@@ -1784,7 +1736,7 @@ explicit extension R(int i) for UnderlyingClass { }
         // PROTOTYPE should parse but remain error
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (3,20): error CS9114: No part of a partial extension 'R' includes an underlying type specification.
+            // (3,20): error CS9214: No part of a partial extension 'R' includes an underlying type specification.
             // explicit extension R(int i) for UnderlyingClass { }
             Diagnostic(ErrorCode.ERR_ExtensionMissingUnderlyingType, "R").WithArguments("R").WithLocation(3, 20),
             // (3,21): error CS1514: { expected
@@ -1893,7 +1845,7 @@ explicit extension R for UnderlyingClass
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.False(r.IsStatic);
         comp.VerifyDiagnostics(
-            // (2,26): error CS9106: Instance extension 'R' cannot augment underlying type 'UnderlyingClass' because it is static.
+            // (2,26): error CS9206: Instance extension 'R' cannot extend type 'UnderlyingClass' because it is static.
             // explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_StaticBaseTypeOnInstanceExtension, "UnderlyingClass").WithArguments("R", "UnderlyingClass").WithLocation(2, 26)
             );
@@ -1943,7 +1895,7 @@ explicit extension R for UnderlyingClass
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (2,20): error CS9112: File-local type 'UnderlyingClass' cannot be used as a underlying type of non-file-local extension 'R'.
+            // (2,20): error CS9212: File-local type 'UnderlyingClass' cannot be used as a underlying type of non-file-local extension 'R'.
             // explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_FileTypeUnderlying, "R").WithArguments("UnderlyingClass", "R").WithLocation(2, 20)
             );
@@ -1965,7 +1917,7 @@ explicit extension R for Outer.UnderlyingClass
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (5,20): error CS9112: File-local type 'Outer.UnderlyingClass' cannot be used as a underlying type of non-file-local extension 'R'.
+            // (5,20): error CS9212: File-local type 'Outer.UnderlyingClass' cannot be used as a underlying type of non-file-local extension 'R'.
             // explicit extension R for Outer.UnderlyingClass
             Diagnostic(ErrorCode.ERR_FileTypeUnderlying, "R").WithArguments("Outer.UnderlyingClass", "R").WithLocation(5, 20)
             );
@@ -1989,16 +1941,16 @@ implicit extension R2 for UnderlyingClass2 { } // 5
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (4,20): error CS9108: Partial declarations of 'R1' must not specify different underlying types.
+            // (4,20): error CS9208: Partial declarations of 'R1' must not extend different types.
             // explicit extension R1 for UnderlyingClass1 { } // 1
             Diagnostic(ErrorCode.ERR_PartialMultipleUnderlyingTypes, "R1").WithArguments("R1").WithLocation(4, 20),
             // (5,20): error CS0101: The namespace '<global namespace>' already contains a definition for 'R1'
             // explicit extension R1 for UnderlyingClass2 { } // 2
             Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "R1").WithArguments("R1", "<global namespace>").WithLocation(5, 20),
-            // (7,20): error CS9115: Partial declarations of 'R2' must specify the same extension modifier ('implicit' or 'explicit').
+            // (7,20): error CS9215: Partial declarations of 'R2' must specify the same extension modifier ('implicit' or 'explicit').
             // explicit extension R2 for UnderlyingClass1 { } // 3, 4
             Diagnostic(ErrorCode.ERR_PartialDifferentExtensionModifiers, "R2").WithArguments("R2").WithLocation(7, 20),
-            // (7,20): error CS9108: Partial declarations of 'R2' must not specify different underlying types.
+            // (7,20): error CS9208: Partial declarations of 'R2' must not extend different types.
             // explicit extension R2 for UnderlyingClass1 { } // 3, 4
             Diagnostic(ErrorCode.ERR_PartialMultipleUnderlyingTypes, "R2").WithArguments("R2").WithLocation(7, 20),
             // (8,20): error CS0101: The namespace '<global namespace>' already contains a definition for 'R2'
@@ -2057,7 +2009,7 @@ partial explicit extension RNotNull2 for CNotNull<string?> { } // 9
             // (9,28): error CS0264: Partial declarations of 'RDefault1<T>' must have the same type parameter names in the same order
             // partial explicit extension RDefault1<T> for CDefault<T> { } // 1, 2
             Diagnostic(ErrorCode.ERR_PartialWrongTypeParams, "RDefault1").WithArguments("RDefault1<T>").WithLocation(9, 28),
-            // (9,28): error CS9108: Partial declarations of 'RDefault1<T>' must not specify different underlying types.
+            // (9,28): error CS9208: Partial declarations of 'RDefault1<T>' must not extend different types.
             // partial explicit extension RDefault1<T> for CDefault<T> { } // 1, 2
             Diagnostic(ErrorCode.ERR_PartialMultipleUnderlyingTypes, "RDefault1").WithArguments("RDefault1<T>").WithLocation(9, 28),
             // (10,54): error CS0246: The type or namespace name 'U' could not be found (are you missing a using directive or an assembly reference?)
@@ -2167,9 +2119,9 @@ unsafe explicit extension R for int*
             // (1,27): error CS0227: Unsafe code may only appear if compiling with /unsafe
             // unsafe explicit extension R for int*
             Diagnostic(ErrorCode.ERR_IllegalUnsafe, "R").WithLocation(1, 27),
-            // (1,33): error CS9105: Extension 'R' cannot augment underlying type 'int*'. The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (1,33): error CS9205: The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
             // unsafe explicit extension R for int*
-            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "int*").WithArguments("R", "int*").WithLocation(1, 33)
+            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "int*").WithLocation(1, 33)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceNamedTypeSymbol>(r);
@@ -2211,15 +2163,15 @@ explicit extension R2 for int* // 2, 3
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
-            // (1,33): error CS9105: Extension 'R' cannot augment underlying type 'int*'. The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (1,33): error CS9205: The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
             // unsafe explicit extension R for int* // 1
-            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "int*").WithArguments("R", "int*").WithLocation(1, 33),
+            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "int*").WithLocation(1, 33),
             // (6,27): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // explicit extension R2 for int* // 2, 3
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 27),
-            // (6,27): error CS9105: Extension 'R2' cannot augment underlying type 'int*'. The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (6,27): error CS9205: The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
             // explicit extension R2 for int* // 2, 3
-            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "int*").WithArguments("R2", "int*").WithLocation(6, 27),
+            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "int*").WithLocation(6, 27),
             // (8,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     int* M(int* i) => i; // 4, 5, 6
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(8, 5),
@@ -2245,9 +2197,9 @@ unsafe explicit extension R for delegate*<void>
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
-            // (1,33): error CS9105: Extension 'R' cannot augment underlying type 'delegate*<void>'. The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (1,33): error CS9205: The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
             // unsafe explicit extension R for delegate*<void>
-            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "delegate*<void>").WithArguments("R", "delegate*<void>").WithLocation(1, 33)
+            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "delegate*<void>").WithLocation(1, 33)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
@@ -2265,9 +2217,9 @@ explicit extension R for dynamic
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (1,26): error CS9105: Extension 'R' cannot augment underlying type 'dynamic'. The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (1,26): error CS9205: The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
             // explicit extension R for dynamic
-            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "dynamic").WithArguments("R", "dynamic").WithLocation(1, 26)
+            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "dynamic").WithLocation(1, 26)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceNamedTypeSymbol>(r);
@@ -2293,14 +2245,14 @@ explicit extension R6 for C<string> { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (5,27): error CS9105: Extension 'R2' cannot augment underlying type 'string?'. The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (5,27): error CS9205: The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
             // explicit extension R2 for string? { } // 1
-            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "string?").WithArguments("R2", "string?").WithLocation(5, 27)
+            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "string?").WithLocation(5, 27)
             );
         NamedTypeSymbol r2 = comp.GlobalNamespace.GetTypeMember("R2");
         Assert.Equal("R2", r2.ToTestDisplayString());
         Assert.True(r2.IsExtension);
-        Assert.Null(r2.ExtensionUnderlyingTypeNoUseSiteDiagnostics);
+        Assert.Equal("System.String", r2.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
     }
 
     [Fact]
@@ -2314,7 +2266,7 @@ public explicit extension R for UnderlyingStruct
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (2,27): error CS9109: Inconsistent accessibility: underlying type 'UnderlyingStruct' is less accessible than extension 'R'
+            // (2,27): error CS9209: Inconsistent accessibility: underlying type 'UnderlyingStruct' is less accessible than extension 'R'
             // public explicit extension R for UnderlyingStruct
             Diagnostic(ErrorCode.ERR_BadVisUnderlyingType, "R").WithArguments("R", "UnderlyingStruct").WithLocation(2, 27)
             );
@@ -2332,9 +2284,9 @@ explicit extension R for RS { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (2,26): error CS9105: Extension 'R' cannot augment underlying type 'RS'. The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (2,26): error CS9205: The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
             // explicit extension R for RS { }
-            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "RS").WithArguments("R", "RS").WithLocation(2, 26)
+            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "RS").WithLocation(2, 26)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
@@ -2384,7 +2336,7 @@ partial explicit extension R for UnderlyingClass2 { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (3,28): error CS9108: Partial declarations of 'R' must not specify different underlying types.
+            // (3,28): error CS9208: Partial declarations of 'R' must not extend different types.
             // partial explicit extension R for UnderlyingClass { }
             Diagnostic(ErrorCode.ERR_PartialMultipleUnderlyingTypes, "R").WithArguments("R").WithLocation(3, 28)
             );
@@ -2405,7 +2357,7 @@ partial explicit extension R for UnderlyingClass3 { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (4,28): error CS9108: Partial declarations of 'R' must not specify different underlying types.
+            // (4,28): error CS9208: Partial declarations of 'R' must not extend different types.
             // partial explicit extension R for UnderlyingClass { }
             Diagnostic(ErrorCode.ERR_PartialMultipleUnderlyingTypes, "R").WithArguments("R").WithLocation(4, 28)
             );
@@ -2425,7 +2377,7 @@ partial explicit extension R for UnderlyingClass3 { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (3,28): error CS9108: Partial declarations of 'R' must not specify different underlying types.
+            // (3,28): error CS9208: Partial declarations of 'R' must not extend different types.
             // partial explicit extension R for UnderlyingClass { }
             Diagnostic(ErrorCode.ERR_PartialMultipleUnderlyingTypes, "R").WithArguments("R").WithLocation(3, 28),
             // (4,34): error CS0246: The type or namespace name 'ErrorType' could not be found (are you missing a using directive or an assembly reference?)
@@ -2448,7 +2400,7 @@ partial explicit extension R for UnderlyingClass3 { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (3,28): error CS9108: Partial declarations of 'R' must not specify different underlying types.
+            // (3,28): error CS9208: Partial declarations of 'R' must not extend different types.
             // partial explicit extension R for ErrorType { }
             Diagnostic(ErrorCode.ERR_PartialMultipleUnderlyingTypes, "R").WithArguments("R").WithLocation(3, 28),
             // (3,34): error CS0246: The type or namespace name 'ErrorType' could not be found (are you missing a using directive or an assembly reference?)
@@ -2487,7 +2439,7 @@ partial explicit extension R for C<dynamic> { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (2,28): error CS9108: Partial declarations of 'R' must not specify different underlying types.
+            // (2,28): error CS9208: Partial declarations of 'R' must not extend different types.
             // partial explicit extension R for C<object> { }
             Diagnostic(ErrorCode.ERR_PartialMultipleUnderlyingTypes, "R").WithArguments("R").WithLocation(2, 28)
             );
@@ -2508,7 +2460,7 @@ partial explicit extension R for C<(int y, int b)> { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (2,28): error CS9108: Partial declarations of 'R' must not specify different underlying types.
+            // (2,28): error CS9208: Partial declarations of 'R' must not extend different types.
             // partial explicit extension R for C<(int x, int b)> { }
             Diagnostic(ErrorCode.ERR_PartialMultipleUnderlyingTypes, "R").WithArguments("R").WithLocation(2, 28)
             );
@@ -2531,7 +2483,7 @@ partial explicit extension R for C<object?> { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (4,28): error CS9108: Partial declarations of 'R' must not specify different underlying types.
+            // (4,28): error CS9208: Partial declarations of 'R' must not extend different types.
             // partial explicit extension R for C<object> { }
             Diagnostic(ErrorCode.ERR_PartialMultipleUnderlyingTypes, "R").WithArguments("R").WithLocation(4, 28)
             );
@@ -2605,7 +2557,7 @@ partial explicit extension R for C<
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (5,28): error CS9108: Partial declarations of 'R' must not specify different underlying types.
+            // (5,28): error CS9208: Partial declarations of 'R' must not extend different types.
             // partial explicit extension R for C<
             Diagnostic(ErrorCode.ERR_PartialMultipleUnderlyingTypes, "R").WithArguments("R").WithLocation(5, 28)
             );
@@ -2626,7 +2578,7 @@ partial explicit extension R for UnderlyingClass { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (2,28): error CS9108: Partial declarations of 'R' must not specify different underlying types.
+            // (2,28): error CS9208: Partial declarations of 'R' must not extend different types.
             // partial explicit extension R for Error { }
             Diagnostic(ErrorCode.ERR_PartialMultipleUnderlyingTypes, "R").WithArguments("R").WithLocation(2, 28),
             // (2,34): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
@@ -2669,7 +2621,7 @@ partial {{keyword}} extension R { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (1,28): error CS9114: No part of a partial extension 'R' includes an underlying type specification.
+            // (1,28): error CS9214: No part of a partial extension 'R' includes an underlying type specification.
             // partial explicit extension R { }
             Diagnostic(ErrorCode.ERR_ExtensionMissingUnderlyingType, "R").WithArguments("R").WithLocation(1, 28)
             );
@@ -2751,7 +2703,7 @@ internal partial explicit extension R1 for C { }
             // (2,35): error CS0262: Partial declarations of 'R1' have conflicting accessibility modifiers
             // public partial explicit extension R1 for C { }
             Diagnostic(ErrorCode.ERR_PartialModifierConflict, "R1").WithArguments("R1").WithLocation(2, 35),
-            // (2,35): error CS9109: Inconsistent accessibility: underlying type 'C' is less accessible than extension 'R1'
+            // (2,35): error CS9209: Inconsistent accessibility: underlying type 'C' is less accessible than extension 'R1'
             // public partial explicit extension R1 for C { }
             Diagnostic(ErrorCode.ERR_BadVisUnderlyingType, "R1").WithArguments("R1", "C").WithLocation(2, 35)
             );
@@ -2900,9 +2852,9 @@ explicit extension R for R { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (1,26): error CS9105: Extension 'R' cannot augment underlying type 'R'. The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (1,26): error CS9205: The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
             // explicit extension R for R { }
-            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "R").WithArguments("R", "R").WithLocation(1, 26)
+            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "R").WithLocation(1, 26)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
@@ -2961,13 +2913,13 @@ explicit extension Z for S : X { }
 
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (2,20): error CS9111: Base extension 'Y' causes a cycle in the extension hierarchy of 'X'.
+            // (2,20): error CS9211: Base extension 'Y' causes a cycle in the extension hierarchy of 'X'.
             // explicit extension X for S : Y { }
             Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "X").WithArguments("X", "Y").WithLocation(2, 20),
-            // (3,20): error CS9111: Base extension 'Z' causes a cycle in the extension hierarchy of 'Y'.
+            // (3,20): error CS9211: Base extension 'Z' causes a cycle in the extension hierarchy of 'Y'.
             // explicit extension Y for S : Z { }
             Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "Y").WithArguments("Y", "Z").WithLocation(3, 20),
-            // (4,20): error CS9111: Base extension 'X' causes a cycle in the extension hierarchy of 'Z'.
+            // (4,20): error CS9211: Base extension 'X' causes a cycle in the extension hierarchy of 'Z'.
             // explicit extension Z for S : X { }
             Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "Z").WithArguments("Z", "X").WithLocation(4, 20)
             );
@@ -3005,7 +2957,7 @@ explicit extension R2 for object : R
             // (1,20): error CS0146: Circular base type dependency involving 'R2.Nested' and 'R'
             // explicit extension R for R2.Nested { }
             Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("R2.Nested", "R").WithLocation(1, 20),
-            // (2,20): error CS9111: Base extension 'R' causes a cycle in the extension hierarchy of 'R2'.
+            // (2,20): error CS9211: Base extension 'R' causes a cycle in the extension hierarchy of 'R2'.
             // explicit extension R2 for object : R
             Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "R2").WithArguments("R2", "R").WithLocation(2, 20)
             );
@@ -3076,7 +3028,7 @@ implicit extension X for S { }
 
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (2,20): error CS9115: Partial declarations of 'X' must specify the same extension modifier ('implicit' or 'explicit').
+            // (2,20): error CS9215: Partial declarations of 'X' must specify the same extension modifier ('implicit' or 'explicit').
             // explicit extension X for S { }
             Diagnostic(ErrorCode.ERR_PartialDifferentExtensionModifiers, "X").WithArguments("X").WithLocation(2, 20),
             // (3,20): error CS0101: The namespace '<global namespace>' already contains a definition for 'X'
@@ -3095,10 +3047,11 @@ partial implicit extension X for S { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (2,28): error CS9115: Partial declarations of 'X' must specify the same extension modifier ('implicit' or 'explicit').
+            // (2,28): error CS9215: Partial declarations of 'X' must specify the same extension modifier ('implicit' or 'explicit').
             // partial explicit extension X for S { }
             Diagnostic(ErrorCode.ERR_PartialDifferentExtensionModifiers, "X").WithArguments("X").WithLocation(2, 28)
             );
+        // PROTOTYPE add and verify an IsExplicit API on the symbol
     }
 
     [Fact]
@@ -3111,10 +3064,32 @@ partial explicit extension X for S { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (2,28): error CS9115: Partial declarations of 'X' must specify the same extension modifier ('implicit' or 'explicit').
+            // (2,28): error CS9215: Partial declarations of 'X' must specify the same extension modifier ('implicit' or 'explicit').
             // partial implicit extension X for S { }
             Diagnostic(ErrorCode.ERR_PartialDifferentExtensionModifiers, "X").WithArguments("X").WithLocation(2, 28)
             );
+        // PROTOTYPE add and verify an IsExplicit API on the symbol
+    }
+
+    [Fact]
+    public void ImplicitVsExplicit_PartialImplicitAndExplicitAndExplicit()
+    {
+        var src = """
+struct S { }
+partial implicit extension X for S { }
+partial explicit extension X for S { }
+partial explicit extension X for S { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (2,28): error CS9215: Partial declarations of 'X' must specify the same extension modifier ('implicit' or 'explicit').
+            // partial implicit extension X for S { }
+            Diagnostic(ErrorCode.ERR_PartialDifferentExtensionModifiers, "X").WithArguments("X").WithLocation(2, 28),
+            // (2,28): error CS9215: Partial declarations of 'X' must specify the same extension modifier ('implicit' or 'explicit').
+            // partial implicit extension X for S { }
+            Diagnostic(ErrorCode.ERR_PartialDifferentExtensionModifiers, "X").WithArguments("X").WithLocation(2, 28)
+            );
+        // PROTOTYPE add and verify an IsExplicit API on the symbol
     }
 
     [Theory, CombinatorialData, WorkItem(67050, "https://github.com/dotnet/roslyn/issues/67050")]
@@ -3341,7 +3316,7 @@ public class C
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (5,43): error CS9110: Inconsistent accessibility: base extension 'C.R1' is less accessible than extension 'C.R2'
+            // (5,43): error CS9210: Inconsistent accessibility: base extension 'C.R1' is less accessible than extension 'C.R2'
             //     internal protected explicit extension R2 for UnderlyingStruct : R1 { }
             Diagnostic(ErrorCode.ERR_BadVisBaseExtension, "R2").WithArguments("C.R2", "C.R1")
             );
@@ -3468,28 +3443,35 @@ explicit extension R4 for C : E { } // 4
 explicit extension R5 for C { }
 explicit extension R6 for C : R5? { } // 5
 
-unsafe explicit extension R7 for C : C* { } // 6
+explicit extension R7 for S { }
+explicit extension R8 for S : R7? { } // PROTOTYPE
+
+unsafe explicit extension R9 for C : C* { } // 6
 """;
+        // PROTOTYPE need to revisit binding of annotated types to account for extension types
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
-            // (5,31): error CS9107: 'I' is not an un-annotated extension type.
+            // (5,31): error CS9207: A base extension must be an extension type.
             // explicit extension R1 for C : I { } // 1
-            Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "I").WithArguments("I").WithLocation(5, 31),
-            // (6,31): error CS9107: 'C' is not an un-annotated extension type.
+            Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "I").WithLocation(5, 31),
+            // (6,31): error CS9207: A base extension must be an extension type.
             // explicit extension R2 for C : C { } // 2
-            Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "C").WithArguments("C").WithLocation(6, 31),
-            // (7,31): error CS9107: 'S' is not an un-annotated extension type.
+            Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "C").WithLocation(6, 31),
+            // (7,31): error CS9207: A base extension must be an extension type.
             // explicit extension R3 for C : S { } // 3
-            Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "S").WithArguments("S").WithLocation(7, 31),
-            // (8,31): error CS9107: 'E' is not an un-annotated extension type.
+            Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "S").WithLocation(7, 31),
+            // (8,31): error CS9207: A base extension must be an extension type.
             // explicit extension R4 for C : E { } // 4
-            Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "E").WithArguments("E").WithLocation(8, 31),
-            // (12,31): error CS9107: 'R5?' is not an un-annotated extension type.
+            Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "E").WithLocation(8, 31),
+            // (12,31): error CS9207: A base extension must be an extension type.
             // explicit extension R6 for C : R5? { } // 5
-            Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "R5?").WithArguments("R5?").WithLocation(12, 31),
-            // (14,38): error CS9107: 'C*' is not an un-annotated extension type.
-            // unsafe explicit extension R7 for C : C* { } // 6
-            Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "C*").WithArguments("C*").WithLocation(14, 38)
+            Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "R5?").WithLocation(12, 31),
+            // (15,31): error CS9207: A base extension must be an extension type.
+            // explicit extension R8 for S : R7? { } // PROTOTYPE
+            Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "R7?").WithLocation(15, 31),
+            // (17,38): error CS9207: A base extension must be an extension type.
+            // unsafe explicit extension R9 for C : C* { } // 6
+            Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "C*").WithLocation(17, 38)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -3506,6 +3488,12 @@ unsafe explicit extension R7 for C : C* { } // 6
 
         var r5 = comp.GlobalNamespace.GetTypeMember("R5");
         Assert.Empty(r5.BaseExtensionsNoUseSiteDiagnostics);
+
+        var r6 = comp.GlobalNamespace.GetTypeMember("R6");
+        Assert.Equal("R5", r6.BaseExtensionsNoUseSiteDiagnostics.Single().ToTestDisplayString());
+
+        var r8 = comp.GlobalNamespace.GetTypeMember("R8");
+        Assert.Equal("R7", r8.BaseExtensionsNoUseSiteDiagnostics.Single().ToTestDisplayString());
     }
 
     [Fact]
@@ -3636,22 +3624,22 @@ explicit extension R8 for C : R3<(int i, int j)>, R3<(int, int)> { } // 6
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (4,35): error CS9120: 'R0' is already listed in the base extension list
+            // (4,35): error CS9220: 'R0' is already listed in the base extension list
             // explicit extension R1 for C : R0, R0 { } // 1
             Diagnostic(ErrorCode.ERR_DuplicateExtensionInBaseList, "R0").WithArguments("R0").WithLocation(4, 35),
-            // (7,43): error CS9120: 'R0' is already listed in the base extension list
+            // (7,43): error CS9220: 'R0' is already listed in the base extension list
             // partial explicit extension R2 for C : R0, R0 { } // 2
             Diagnostic(ErrorCode.ERR_DuplicateExtensionInBaseList, "R0").WithArguments("R0").WithLocation(7, 43),
-            // (34,5): warning CS9117: 'R3<object?>' is already listed in the base extension list on type 'R5' with different nullability of reference types.
+            // (34,5): warning CS9217: 'R3<object?>' is already listed in the base extension list on type 'R5' with different nullability of reference types.
             //     R3<object?> // 3
             Diagnostic(ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList, "R3<object?>").WithArguments("R3<object?>", "R5").WithLocation(34, 5),
-            // (38,20): warning CS9117: 'R3<object?>' is already listed in the base extension list on type 'R6' with different nullability of reference types.
+            // (38,20): warning CS9217: 'R3<object?>' is already listed in the base extension list on type 'R6' with different nullability of reference types.
             // explicit extension R6 for C : R3<object>, R3<object?> { } // 4
             Diagnostic(ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList, "R6").WithArguments("R3<object?>", "R6").WithLocation(38, 20),
-            // (40,20): error CS9119: 'R3<dynamic>' is already listed in the base extension list on type 'R7' as 'R3<object>'.
+            // (40,20): error CS9219: 'R3<dynamic>' is already listed in the base extension list on type 'R7' as 'R3<object>'.
             // explicit extension R7 for C : R3<object>, R3<dynamic> { } // 5
             Diagnostic(ErrorCode.ERR_DuplicateExtensionWithDifferencesInBaseList, "R7").WithArguments("R3<dynamic>", "R3<object>", "R7").WithLocation(40, 20),
-            // (42,20): error CS9118: 'R3<(int, int)>' is already listed in the base extension list on type 'R8' with different tuple element names, as 'R3<(int i, int j)>'.
+            // (42,20): error CS9218: 'R3<(int, int)>' is already listed in the base extension list on type 'R8' with different tuple element names, as 'R3<(int i, int j)>'.
             // explicit extension R8 for C : R3<(int i, int j)>, R3<(int, int)> { } // 6
             Diagnostic(ErrorCode.ERR_DuplicateExtensionWithTupleNamesInBaseList, "R8").WithArguments("R3<(int, int)>", "R3<(int i, int j)>", "R8").WithLocation(42, 20)
             );
@@ -3741,19 +3729,19 @@ explicit extension R11 for C<string> { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (2,20): error CS9116: Extension 'R2' has underlying type 'long' but a base extension has underlying type 'int'.
+            // (2,20): error CS9216: Extension 'R2' has underlying type 'long' but a base extension has underlying type 'int'.
             // explicit extension R2 for long : R1 { } // 1
             Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "long", "int").WithLocation(2, 20),
-            // (6,20): error CS9116: Extension 'R4' has underlying type 'C<dynamic>' but a base extension has underlying type 'C<object>'.
+            // (6,20): error CS9216: Extension 'R4' has underlying type 'C<dynamic>' but a base extension has underlying type 'C<object>'.
             // explicit extension R4 for C<dynamic> : R3 { } // 2
             Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R4").WithArguments("R4", "C<dynamic>", "C<object>").WithLocation(6, 20),
-            // (9,20): error CS9116: Extension 'R6' has underlying type '(int, int)' but a base extension has underlying type '(int i, int j)'.
+            // (9,20): error CS9216: Extension 'R6' has underlying type '(int, int)' but a base extension has underlying type '(int i, int j)'.
             // explicit extension R6 for (int, int) : R5 { } // 3
             Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R6").WithArguments("R6", "(int, int)", "(int i, int j)").WithLocation(9, 20),
-            // (19,20): error CS9116: Extension 'R10' has underlying type 'C<string>' but a base extension has underlying type 'C<string>'.
+            // (19,20): error CS9216: Extension 'R10' has underlying type 'C<string>' but a base extension has underlying type 'C<string>'.
             // explicit extension R10 for C<string> : R9 { } // 4
             Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R10").WithArguments("R10", "C<string>", "C<string>").WithLocation(19, 20),
-            // (21,20): error CS9116: Extension 'R12' has underlying type 'C<string>' but a base extension has underlying type 'C<string>'.
+            // (21,20): error CS9216: Extension 'R12' has underlying type 'C<string>' but a base extension has underlying type 'C<string>'.
             // explicit extension R12 for C<string> : R11 { } // 5
             Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R12").WithArguments("R12", "C<string>", "C<string>").WithLocation(21, 20)
             );
@@ -3792,7 +3780,7 @@ explicit extension R for UnderlyingClass : StaticExtension { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (3,44): error CS9106: Instance extension 'R' cannot augment underlying type 'StaticExtension' because it is static.
+            // (3,44): error CS9206: Instance extension 'R' cannot extend type 'StaticExtension' because it is static.
             // explicit extension R for UnderlyingClass : StaticExtension { }
             Diagnostic(ErrorCode.ERR_StaticBaseTypeOnInstanceExtension, "StaticExtension").WithArguments("R", "StaticExtension").WithLocation(3, 44)
             );
@@ -3941,7 +3929,7 @@ protected explicit extension R for UnderlyingStruct
             // (2,30): error CS1527: Elements defined in a namespace cannot be explicitly declared as private, protected, protected internal, or private protected
             // protected explicit extension R for UnderlyingStruct
             Diagnostic(ErrorCode.ERR_NoNamespacePrivate, "R").WithLocation(2, 30),
-            // (2,30): error CS9109: Inconsistent accessibility: underlying type 'UnderlyingStruct' is less accessible than extension 'R'
+            // (2,30): error CS9209: Inconsistent accessibility: underlying type 'UnderlyingStruct' is less accessible than extension 'R'
             // protected explicit extension R for UnderlyingStruct
             Diagnostic(ErrorCode.ERR_BadVisUnderlyingType, "R").WithArguments("R", "UnderlyingStruct").WithLocation(2, 30)
             );
@@ -4021,7 +4009,7 @@ protected internal explicit extension R for UnderlyingStruct
             // (2,39): error CS1527: Elements defined in a namespace cannot be explicitly declared as private, protected, protected internal, or private protected
             // protected internal explicit extension R for UnderlyingStruct
             Diagnostic(ErrorCode.ERR_NoNamespacePrivate, "R").WithLocation(2, 39),
-            // (2,39): error CS9109: Inconsistent accessibility: underlying type 'UnderlyingStruct' is less accessible than extension 'R'
+            // (2,39): error CS9209: Inconsistent accessibility: underlying type 'UnderlyingStruct' is less accessible than extension 'R'
             // protected internal explicit extension R for UnderlyingStruct
             Diagnostic(ErrorCode.ERR_BadVisUnderlyingType, "R").WithArguments("R", "UnderlyingStruct").WithLocation(2, 39)
             );
@@ -4189,7 +4177,7 @@ public internal explicit extension R for UnderlyingClass
             // (2,36): error CS0107: More than one protection modifier
             // public internal explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadMemberProtection, "R").WithLocation(2, 36),
-            // (2,36): error CS9109: Inconsistent accessibility: underlying type 'UnderlyingClass' is less accessible than extension 'R'
+            // (2,36): error CS9209: Inconsistent accessibility: underlying type 'UnderlyingClass' is less accessible than extension 'R'
             // public internal explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadVisUnderlyingType, "R").WithArguments("R", "UnderlyingClass").WithLocation(2, 36)
             );
@@ -4213,7 +4201,7 @@ internal public explicit extension R for UnderlyingClass
             // (2,36): error CS0107: More than one protection modifier
             // internal public explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadMemberProtection, "R").WithLocation(2, 36),
-            // (2,36): error CS9109: Inconsistent accessibility: underlying type 'UnderlyingClass' is less accessible than extension 'R'
+            // (2,36): error CS9209: Inconsistent accessibility: underlying type 'UnderlyingClass' is less accessible than extension 'R'
             // internal public explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadVisUnderlyingType, "R").WithArguments("R", "UnderlyingClass").WithLocation(2, 36)
             );
@@ -4709,6 +4697,72 @@ class C<T> where T : R
             );
         var m = comp.GetMember<MethodSymbol>("C.M");
         VerifyNotExtension<TypeParameterSymbol>(m.ReturnType);
+    }
+
+    [Fact]
+    public void NotExtension_TypeParameterSymbol_ViaSubstitution()
+    {
+        var src = $$"""
+public explicit extension R for string { }
+public explicit extension R2 for string : R { }
+
+public class Container<T>
+{
+    public class C<U> where U : T
+    {
+        T M() => throw null;
+    }
+}
+class C2
+{
+    Container<R> M2() => throw null;
+    void M3(Container<R>.C<R> cr, Container<R>.C<R2> cr2) { }
+}
+""";
+        // PROTOTYPE the diagnostic will disappear once we have an identity between R and R2
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (14,54): error CS0315: The type 'R2' cannot be used as type parameter 'U' in the generic type or method 'Container<R>.C<U>'. There is no boxing conversion from 'R2' to 'R'.
+            //     void M3(Container<R>.C<R> cr, Container<R>.C<R2> cr2) { }
+            Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "cr2").WithArguments("Container<R>.C<U>", "R", "U", "R2").WithLocation(14, 54)
+            );
+        var containerR = comp.GetMember<MethodSymbol>("C2.M2").ReturnType;
+        var c = containerR.GetTypeMembers().Single();
+        Assert.Equal("Container<R>.C<U>", c.ToTestDisplayString());
+        VerifyNotExtension<SubstitutedTypeParameterSymbol>(c.TypeParameters.Single());
+    }
+
+    [Fact]
+    public void ArrayTypeConstraintViaSubstitution()
+    {
+        var src = $$"""
+public class Container<T>
+{
+    public class C<U> where U : T
+    {
+        T M() => throw null;
+    }
+}
+class C2
+{
+    Container<int[]> M2() => throw null;
+    void M3(Container<int[]>.C<int[]> c, Container<int[]>.C<byte[]> c2, Container<int[]>.C<long[]> c3) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (11,69): error CS0311: The type 'byte[]' cannot be used as type parameter 'U' in the generic type or method 'Container<int[]>.C<U>'. There is no implicit reference conversion from 'byte[]' to 'int[]'.
+            //     void M3(Container<int[]>.C<int[]> c, Container<int[]>.C<byte[]> c2, Container<int[]>.C<long[]> c3) { }
+            Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "c2").WithArguments("Container<int[]>.C<U>", "int[]", "U", "byte[]").WithLocation(11, 69),
+            // (11,100): error CS0311: The type 'long[]' cannot be used as type parameter 'U' in the generic type or method 'Container<int[]>.C<U>'. There is no implicit reference conversion from 'long[]' to 'int[]'.
+            //     void M3(Container<int[]>.C<int[]> c, Container<int[]>.C<byte[]> c2, Container<int[]>.C<long[]> c3) { }
+            Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "c3").WithArguments("Container<int[]>.C<U>", "int[]", "U", "long[]").WithLocation(11, 100)
+            );
+        var containerR = comp.GetMember<MethodSymbol>("C2.M2").ReturnType;
+        var c = containerR.GetTypeMembers().Single();
+        Assert.Equal("Container<System.Int32[]>.C<U>", c.ToTestDisplayString());
+        var substitutedTypeParameter = c.TypeParameters.Single();
+        Assert.False(substitutedTypeParameter.IsArray());
     }
 
     [Fact]

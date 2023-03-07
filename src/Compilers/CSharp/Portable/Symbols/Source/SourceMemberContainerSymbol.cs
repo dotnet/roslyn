@@ -278,9 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool inExtension = containingSymbol is NamedTypeSymbol { IsExtension: true };
 
             // note: we give a specific diagnostic when a file-local type is nested
-            var allowedModifiers = inExtension
-                ? DeclarationModifiers.Private | DeclarationModifiers.Internal | DeclarationModifiers.Public | DeclarationModifiers.File
-                : DeclarationModifiers.AccessibilityMask | DeclarationModifiers.File;
+            var allowedModifiers = DeclarationModifiers.AccessibilityMask | DeclarationModifiers.File;
 
             if (containingSymbol.Kind == SymbolKind.Namespace)
             {

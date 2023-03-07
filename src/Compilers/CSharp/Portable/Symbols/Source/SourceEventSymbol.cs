@@ -447,9 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 allowedModifiers |= DeclarationModifiers.New |
                                     DeclarationModifiers.Static |
-                                    DeclarationModifiers.Private |
-                                    DeclarationModifiers.Internal |
-                                    DeclarationModifiers.Public;
+                                    DeclarationModifiers.AccessibilityMask;
             }
             else if (!explicitInterfaceImplementation)
             {

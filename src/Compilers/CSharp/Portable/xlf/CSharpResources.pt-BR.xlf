@@ -168,8 +168,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionUnderlyingType">
-        <source>Extension '{0}' cannot augment underlying type '{1}'. The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</source>
-        <target state="new">Extension '{0}' cannot augment underlying type '{1}'. The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</target>
+        <source>The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</source>
+        <target state="new">The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
@@ -1193,8 +1193,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_OnlyBaseExtensionAllowed">
-        <source>'{0}' is not an un-annotated extension type.</source>
-        <target state="new">'{0}' is not an un-annotated extension type.</target>
+        <source>A base extension must be an extension type.</source>
+        <target state="new">A base extension must be an extension type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorCantBeChecked">
@@ -1283,8 +1283,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleUnderlyingTypes">
-        <source>Partial declarations of '{0}' must not specify different underlying types.</source>
-        <target state="new">Partial declarations of '{0}' must not specify different underlying types.</target>
+        <source>Partial declarations of '{0}' must not extend different types.</source>
+        <target state="new">Partial declarations of '{0}' must not extend different types.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
@@ -1588,8 +1588,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseTypeOnInstanceExtension">
-        <source>Instance extension '{0}' cannot augment underlying type '{1}' because it is static.</source>
-        <target state="new">Instance extension '{0}' cannot augment underlying type '{1}' because it is static.</target>
+        <source>Instance extension '{0}' cannot extend type '{1}' because it is static.</source>
+        <target state="new">Instance extension '{0}' cannot extend type '{1}' because it is static.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticLocalFunctionCannotCaptureThis">
