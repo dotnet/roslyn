@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"$$");
         }
 
-        [Fact, WorkItem(57121, "https://github.com/dotnet/roslyn/issues/57121")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57121")]
         public async Task TestAtRoot_Regular()
         {
             await VerifyKeywordAsync(SourceCodeKind.Regular,
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 $$");
         }
 
-        [Fact, WorkItem(57121, "https://github.com/dotnet/roslyn/issues/57121")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57121")]
         public async Task TestAfterClass_Regular()
         {
             await VerifyKeywordAsync(SourceCodeKind.Regular,
@@ -50,7 +50,7 @@ $$");
 $$");
         }
 
-        [Fact, WorkItem(57121, "https://github.com/dotnet/roslyn/issues/57121")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57121")]
         public async Task TestAfterGlobalStatement_Regular()
         {
             await VerifyKeywordAsync(SourceCodeKind.Regular,
@@ -66,7 +66,7 @@ $$");
 $$");
         }
 
-        [Fact, WorkItem(57121, "https://github.com/dotnet/roslyn/issues/57121")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57121")]
         public async Task TestAfterGlobalVariableDeclaration_Regular()
         {
             await VerifyKeywordAsync(SourceCodeKind.Regular,

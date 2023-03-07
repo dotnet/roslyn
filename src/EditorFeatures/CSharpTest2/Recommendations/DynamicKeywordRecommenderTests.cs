@@ -600,28 +600,28 @@ $$");
 @"new $$"));
         }
 
-        [Fact, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestNotInTypeOf()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"typeof($$"));
         }
 
-        [Fact, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestInDefault()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"default($$"));
         }
 
-        [Fact, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestNotInSizeOf()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"sizeof($$"));
         }
 
-        [Fact, WorkItem(545303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545303")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545303")]
         public async Task TestNotInPreProcessor()
         {
             await VerifyAbsenceAsync(
@@ -631,11 +631,11 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
         public async Task TestNotAfterAsync()
             => await VerifyAbsenceAsync(@"class c { async $$ }");
 
-        [Fact, WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
         public async Task TestNotAfterAsyncAsType()
             => await VerifyAbsenceAsync(@"class c { async async $$ }");
 

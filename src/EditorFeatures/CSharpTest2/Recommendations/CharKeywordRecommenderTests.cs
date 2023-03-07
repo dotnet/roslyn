@@ -604,7 +604,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestInTypeOf()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -612,7 +612,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestInDefault()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -620,7 +620,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestInSizeOf()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -628,7 +628,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         public async Task TestNotInObjectInitializerMemberContext()
         {
             await VerifyAbsenceAsync(@"
@@ -641,7 +641,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(546938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546938")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546938")]
         public async Task TestInCrefContext()
         {
             await VerifyKeywordAsync(@"
@@ -656,7 +656,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(546955, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546955")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546955")]
         public async Task TestInCrefContextNotAfterDot()
         {
             await VerifyAbsenceAsync(@"
@@ -666,17 +666,17 @@ class C { }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
         public async Task TestNotAfterAsync()
             => await VerifyAbsenceAsync(@"class c { async $$ }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
         public async Task TestNotAfterAsyncAsType()
             => await VerifyAbsenceAsync(@"class c { async async $$ }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(988025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
         public async Task TestInGenericMethodTypeParameterList1()
         {
             var markup = @"
@@ -702,7 +702,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(988025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
         public async Task TestInGenericMethodTypeParameterList2()
         {
             var markup = @"
@@ -728,7 +728,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(1468, "https://github.com/dotnet/roslyn/issues/1468")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1468")]
         public async Task TestNotInCrefTypeParameter()
         {
             await VerifyAbsenceAsync(@"
@@ -754,7 +754,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14127")]
         public async Task TestInTupleWithinType()
         {
             await VerifyKeywordAsync(@"
@@ -765,7 +765,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14127")]
         public async Task TestInTupleWithinMember()
         {
             await VerifyKeywordAsync(@"
@@ -814,7 +814,7 @@ class C
     delegate*$$");
         }
 
-        [Theory, WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/53585"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithoutAsync))]
         public async Task TestAfterKeywordIndicatingLocalFunctionWithoutAsync(string keyword)
         {
@@ -822,7 +822,7 @@ class C
 {keyword} $$"));
         }
 
-        [Theory, WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60341"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithAsync))]
         public async Task TestNotAfterKeywordIndicatingLocalFunctionWithAsync(string keyword)
         {
@@ -830,7 +830,7 @@ class C
 {keyword} $$"));
         }
 
-        [Fact, WorkItem(64585, "https://github.com/dotnet/roslyn/issues/64585")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64585")]
         public async Task TestAfterRequired()
         {
             await VerifyKeywordAsync(@"
@@ -840,7 +840,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67061")]
         public async Task TestAfterRefAtTopLevel1()
         {
             // Could be defining a ref-local in top-level-code
@@ -848,7 +848,7 @@ class C
 @"ref $$");
         }
 
-        [Theory, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67061")]
         [CombinatorialData]
         public async Task TestAfterReadonlyAtTopLevel1(bool script)
         {
@@ -866,7 +866,7 @@ class C
             }
         }
 
-        [Fact, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67061")]
         public async Task TestAfterRefReadonlyAtTopLevel1()
         {
             // Could be defining a ref-local in top-level-code
@@ -874,7 +874,7 @@ class C
 @"ref readonly $$");
         }
 
-        [Fact, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67061")]
         public async Task TestNotAfterRefInNamespace()
         {
             // This is only legal for a struct declaration
@@ -885,7 +885,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67061")]
         public async Task TestNotAfterReadonlyInNamespace()
         {
             // This is only legal for a struct declaration
@@ -896,7 +896,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67061")]
         public async Task TestNotAfterRefReadonlyInNamespace()
         {
             // This is only legal for a struct declaration
@@ -907,7 +907,7 @@ class C
 }");
         }
 
-        [Theory, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67061")]
         [InlineData("class")]
         [InlineData("interface")]
         [InlineData("struct")]
@@ -921,7 +921,7 @@ $@"{type} N
 }}");
         }
 
-        [Theory, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67061")]
         [InlineData("class")]
         [InlineData("interface")]
         [InlineData("struct")]
@@ -935,7 +935,7 @@ $@"{type} N
 }}");
         }
 
-        [Theory, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67061")]
         [InlineData("class")]
         [InlineData("interface")]
         [InlineData("struct")]

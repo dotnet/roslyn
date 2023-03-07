@@ -301,7 +301,7 @@ $$");
             await VerifyKeywordAsync(SourceCodeKind.Script, @"static $$");
         }
 
-        [Theory, WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/53585")]
         [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunction))]
         public async Task TestAfterKeywordIndicatingLocalFunction(string keyword)
         {
@@ -327,7 +327,7 @@ $$");
 @"Assert.Throws<InvalidOperationException>($$"));
         }
 
-        [Fact, WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         public async Task TestNotInConstMemberInitializer1()
         {
             await VerifyAbsenceAsync(
@@ -336,7 +336,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         public async Task TestNotInEnumMemberInitializer1()
         {
             await VerifyAbsenceAsync(
@@ -345,7 +345,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         public async Task TestNotInConstLocalInitializer1()
         {
             await VerifyAbsenceAsync(
@@ -356,7 +356,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         public async Task TestInMemberInitializer1()
         {
             await VerifyKeywordAsync(
@@ -365,28 +365,28 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestInTypeOf()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"typeof($$"));
         }
 
-        [Fact, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestInDefault()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"default($$"));
         }
 
-        [Fact, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestInSizeOf()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"sizeof($$"));
         }
 
-        [Fact, WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         public async Task TestNotInObjectInitializerMemberContext()
         {
             await VerifyAbsenceAsync(@"
@@ -398,7 +398,7 @@ class C
         var c = new C { x = 2, y = 3, $$");
         }
 
-        [Fact, WorkItem(607197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607197")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607197")]
         public async Task TestAfterAsyncInMethodBody()
         {
             await VerifyKeywordAsync(@"

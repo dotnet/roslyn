@@ -156,7 +156,7 @@ $@"if (true)
     else"));
         }
 
-        [Theory, WorkItem(25336, "https://github.com/dotnet/roslyn/issues/25336")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/25336")]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
@@ -171,7 +171,7 @@ $@"if (true)
 $$"));
         }
 
-        [Theory, WorkItem(25336, "https://github.com/dotnet/roslyn/issues/25336")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/25336")]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
