@@ -182,7 +182,7 @@ class C
                 ("i2", ""));
         }
 
-        [WpfFact, WorkItem(42484, "https://github.com/dotnet/roslyn/issues/42484")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/42484")]
         public void ExplicitSignatureHelpDismissesCompletion()
         {
             SetUpEditor(@"

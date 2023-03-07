@@ -71,8 +71,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WorkItem(27805, "https://github.com/dotnet/roslyn/issues/27805")>
-        <WorkItem(233666, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/233666")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/27805")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/233666")>
         <WpfFact>
         Public Async Function ContainsChildrenForFileWithIllegalPath() As Task
             Using testState = ProgressionTestState.Create(<Workspace/>)
@@ -87,8 +87,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WorkItem(789685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789685")>
-        <WorkItem(794846, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/794846")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789685")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/794846")>
         <WpfFact>
         Public Async Function ContainsChildrenForNotYetLoadedSolution() As Task
             Using testState = ProgressionTestState.Create(
@@ -127,7 +127,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WorkItem(165369, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/165369")>
+        <WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/165369")>
         <WpfFact>
         Public Async Function ContainsChildrenForNodeWithRelativeUriPath() As Task
             Using testState = ProgressionTestState.Create(
