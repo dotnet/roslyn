@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or SyntaxKind.SimpleLambdaExpression
                 or SyntaxKind.ParenthesizedLambdaExpression;
 
-        [PerformanceSensitive("", Constraint = "Use Green nodes for walking to avoid heavy allocations.")]
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/pull/66970", Constraint = "Use Green nodes for walking to avoid heavy allocations.")]
         internal static bool HasYieldOperations(SyntaxNode? node)
         {
             if (node is null)
