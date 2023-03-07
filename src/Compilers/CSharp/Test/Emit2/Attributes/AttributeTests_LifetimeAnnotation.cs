@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "scoped ref int i").WithArguments("System.Runtime.CompilerServices.ScopedRefAttribute", ".ctor").WithLocation(3, 26));
         }
 
-        [WorkItem(62124, "https://github.com/dotnet/roslyn/issues/62124")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/62124")]
         [Fact]
         public void ExplicitAttribute_ReferencedInSource_01()
         {
@@ -123,7 +123,7 @@ class Program
                 );
         }
 
-        [WorkItem(62124, "https://github.com/dotnet/roslyn/issues/62124")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/62124")]
         [Fact]
         public void ExplicitAttribute_ReferencedInSource_02()
         {
@@ -158,7 +158,7 @@ namespace System.Runtime.CompilerServices
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Program.E").WithLocation(7, 36));
         }
 
-        [WorkItem(62124, "https://github.com/dotnet/roslyn/issues/62124")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/62124")]
         [Fact]
         public void ExplicitAttribute_ReferencedInSource_03()
         {

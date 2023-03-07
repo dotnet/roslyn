@@ -1325,7 +1325,7 @@ class Program1
                 );
         }
 
-        [Fact, WorkItem(9154, "https://github.com/dotnet/roslyn/issues/9154")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9154")]
         public void ErroneousIsPatternDefiniteAssignment()
         {
             var source =
@@ -1507,7 +1507,7 @@ class Program1
                 );
         }
 
-        [Fact, WorkItem(25591, "https://github.com/dotnet/roslyn/issues/25591")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25591")]
         public void TupleSubsumptionError()
         {
             var source =
@@ -1541,7 +1541,7 @@ class Cat {}
             var comp = CompileAndVerify(compilation, expectedOutput: @"Fox Cat");
         }
 
-        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25934")]
         public void NamesInPositionalPatterns01()
         {
             var source =
@@ -1568,7 +1568,7 @@ class Cat {}
                 );
         }
 
-        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25934")]
         public void NamesInPositionalPatterns02()
         {
             var source =
@@ -1592,7 +1592,7 @@ class Cat {}
                 );
         }
 
-        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25934")]
         public void NamesInPositionalPatterns03()
         {
             var source =
@@ -1618,7 +1618,7 @@ class Cat {}
             var comp = CompileAndVerify(compilation, expectedOutput: @"111");
         }
 
-        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25934")]
         public void NamesInPositionalPatterns04()
         {
             var source =
@@ -1652,7 +1652,7 @@ class T
                 );
         }
 
-        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25934")]
         public void NamesInPositionalPatterns05()
         {
             var source =
@@ -1689,7 +1689,7 @@ static class Extensions
                 );
         }
 
-        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25934")]
         public void NamesInPositionalPatterns06()
         {
             var source =
@@ -1720,7 +1720,7 @@ class T
                 );
         }
 
-        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25934")]
         public void NamesInPositionalPatterns07()
         {
             var source =
@@ -1754,7 +1754,7 @@ static class Extensions
                 );
         }
 
-        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25934")]
         public void NamesInPositionalPatterns08()
         {
             var source =
@@ -1787,7 +1787,7 @@ class T
             var comp = CompileAndVerify(compilation, expectedOutput: @"111");
         }
 
-        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25934")]
         public void NamesInPositionalPatterns09()
         {
             var source =
@@ -1823,7 +1823,7 @@ static class Extensions
             var comp = CompileAndVerify(compilation, expectedOutput: @"111");
         }
 
-        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25934")]
         public void NamesInPositionalPatterns10()
         {
             var source =
@@ -1958,8 +1958,8 @@ class Blah
         }
 
         [Fact]
-        [WorkItem(24550, "https://github.com/dotnet/roslyn/issues/24550")]
-        [WorkItem(1284, "https://github.com/dotnet/csharplang/issues/1284")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24550")]
+        [WorkItem("https://github.com/dotnet/csharplang/issues/1284")]
         public void ConstantPatternVsUnconstrainedTypeParameter03()
         {
             var source =
@@ -1980,8 +1980,8 @@ class Blah
         }
 
         [Fact]
-        [WorkItem(24550, "https://github.com/dotnet/roslyn/issues/24550")]
-        [WorkItem(1284, "https://github.com/dotnet/csharplang/issues/1284")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24550")]
+        [WorkItem("https://github.com/dotnet/csharplang/issues/1284")]
         public void ConstantPatternVsUnconstrainedTypeParameter04()
         {
             var source =
@@ -2001,7 +2001,7 @@ class Blah
         }
 
         [Fact]
-        [WorkItem(20724, "https://github.com/dotnet/roslyn/issues/20724")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20724")]
         public void SpeculateWithNameConflict01()
         {
             var source =
@@ -2044,7 +2044,7 @@ class Blah
         }
 
         [Fact]
-        [WorkItem(20724, "https://github.com/dotnet/roslyn/issues/20724")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20724")]
         public void SpeculateWithNameConflict02()
         {
             var source =
@@ -2172,7 +2172,7 @@ class Point
             Assert.Equal(expected.Length, i);
         }
 
-        [Fact, WorkItem(26613, "https://github.com/dotnet/roslyn/issues/26613")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26613")]
         public void MissingDeconstruct_01()
         {
             var source =
@@ -2194,7 +2194,7 @@ public class C {
                 );
         }
 
-        [Fact, WorkItem(26613, "https://github.com/dotnet/roslyn/issues/26613")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26613")]
         public void MissingDeconstruct_02()
         {
             var source =
@@ -2377,7 +2377,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(34678, "https://github.com/dotnet/roslyn/issues/34678")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34678")]
         public void ConstantPatternVsUnconstrainedTypeParameter05()
         {
             var source =
@@ -2414,7 +2414,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(34905, "https://github.com/dotnet/roslyn/issues/34905")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34905")]
         public void ConstantPatternVsUnconstrainedTypeParameter06()
         {
             var source =
@@ -2988,7 +2988,7 @@ class F
             }
         }
 
-        [Fact, WorkItem(45946, "https://github.com/dotnet/roslyn/issues/45946")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45946")]
         public void VoidPattern_01()
         {
             var source = @"
@@ -3006,7 +3006,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(45946, "https://github.com/dotnet/roslyn/issues/45946")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45946")]
         public void VoidPattern_02()
         {
             var source = @"
@@ -3027,7 +3027,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48112")]
         public void NullableTypePattern()
         {
             var source = @"
@@ -3049,7 +3049,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55668")]
         public void SharedWhenExpression_SwitchExpression()
         {
             var source = @"
@@ -3107,7 +3107,7 @@ class Wrap
             CompileAndVerify(source, expectedOutput: "8");
         }
 
-        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55668")]
         public void SharedWhenExpression_SwitchStatement()
         {
             var source = @"
@@ -3155,7 +3155,7 @@ class Wrap
 (Last, System.Object, Other)");
         }
 
-        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55668")]
         public void SharedWhenExpression_SequencePoints()
         {
             var source = @"
@@ -3262,7 +3262,7 @@ public class C
 ", source: source, sequencePoints: "C.M");
         }
 
-        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55668")]
         public void SharedWhenExpression_MissingInt32Type()
         {
             var source = @"
@@ -3321,7 +3321,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55668")]
         public void SharedWhenExpression_WithBindings()
         {
             var source = @"
@@ -3428,7 +3428,7 @@ public class C
 ", source: source, sequencePoints: "C.M");
         }
 
-        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55668")]
         public void SharedWhenExpression_Multiples()
         {
             // The `b3` condition ends up in the `when` clause on four leaves in the DAG
@@ -3501,7 +3501,7 @@ static bool f(int i1, int i2, int i3) => false;
             CompileAndVerify(source, expectedOutput: "128");
         }
 
-        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55668")]
         public void SharedWhenExpression_Multiples_LabelInSharedWhenExpression()
         {
             var source = @"
@@ -3571,7 +3571,7 @@ public class Wrap
             CompileAndVerify(source, expectedOutput: "128");
         }
 
-        [Theory, WorkItem(57148, "https://github.com/dotnet/roslyn/issues/57148")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/57148")]
         [InlineData("(short)0", "True")]
         [InlineData("short.MinValue", "True")]
         [InlineData("short.MaxValue", "True")]
@@ -3597,7 +3597,7 @@ static class Extenders
             CompileAndVerify(source, expectedOutput: expected).VerifyDiagnostics();
         }
 
-        [Theory, WorkItem(57148, "https://github.com/dotnet/roslyn/issues/57148")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/57148")]
         [InlineData("(int)0", "1")]
         [InlineData("(int)255", "1")]
         [InlineData("int.MinValue", "1")]
@@ -3632,7 +3632,7 @@ public static class Extenders
             CompileAndVerify(comp, expectedOutput: expected);
         }
 
-        [Theory, WorkItem(57148, "https://github.com/dotnet/roslyn/issues/57148")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/57148")]
         [InlineData("(uint)0", "0")]
         [InlineData("uint.MaxValue", "0")]
         [InlineData("-1", "1")]
@@ -3654,7 +3654,7 @@ int M<T>(T o)
             CompileAndVerify(source, expectedOutput: expected).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(57148, "https://github.com/dotnet/roslyn/issues/57148")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57148")]
         public void ObviousTestAfterTypeTest_UnsignedIntegerNegative()
         {
             var source = @"

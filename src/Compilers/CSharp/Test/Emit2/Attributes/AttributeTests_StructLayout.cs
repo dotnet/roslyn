@@ -340,7 +340,7 @@ public class C : B
         }
 
         [Fact]
-        [WorkItem(22512, "https://github.com/dotnet/roslyn/issues/22512")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22512")]
         public void ExplicitFieldLayout()
         {
             string source = @"
@@ -388,7 +388,7 @@ public class A
         }
 
         [Fact]
-        [WorkItem(22512, "https://github.com/dotnet/roslyn/issues/22512")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22512")]
         public void ExplicitFieldLayout_OnBackingField()
         {
             string source = @"
@@ -532,7 +532,7 @@ enum En
                 Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "FieldOffset").WithLocation(48, 6));
         }
 
-        [Fact, WorkItem(546660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546660"), WorkItem(546662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546662")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546660"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546662")]
         public void SequentialLayout_Partials()
         {
             string source = @"
@@ -586,7 +586,7 @@ partial struct S
                 Diagnostic(ErrorCode.WRN_SequentialOnPartialClass, "C").WithArguments("C"));
         }
 
-        [Fact, WorkItem(631467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631467")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631467")]
         public void SequentialLayout_Partials_02()
         {
             string source = @"

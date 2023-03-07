@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class PatternMatchingTests_Scope : PatternMatchingTestBase
     {
         [Fact]
-        [WorkItem(13029, "https://github.com/dotnet/roslyn/issues/13029")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13029")]
         public void ScopeOfLocalFunction()
         {
             var source =
@@ -418,7 +418,7 @@ Dummy(11 is var x1, x1);
             Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(9258, "https://github.com/dotnet/roslyn/issues/9258")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9258")]
         public void PatternVariableOrder()
         {
             var source =
@@ -992,7 +992,7 @@ throw Dummy(11 is var x1, x1);
             Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(9121, "https://github.com/dotnet/roslyn/issues/9121")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9121")]
         public void ScopeOfPatternVariables_If_01()
         {
             var source =
@@ -2123,7 +2123,7 @@ public class X
         }
 
         [Fact]
-        [WorkItem(10466, "https://github.com/dotnet/roslyn/issues/10466")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10466")]
         public void ScopeOfPatternVariables_Query_05()
         {
             var source =
@@ -2251,7 +2251,7 @@ public class X
         }
 
         [Fact]
-        [WorkItem(10466, "https://github.com/dotnet/roslyn/issues/10466")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10466")]
         public void ScopeOfPatternVariables_Query_06()
         {
             var source =
@@ -2490,7 +2490,7 @@ public class X
         }
 
         [Fact]
-        [WorkItem(10466, "https://github.com/dotnet/roslyn/issues/10466")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10466")]
         public void ScopeOfPatternVariables_Query_09()
         {
             var source =
@@ -2574,8 +2574,8 @@ public class X
         }
 
         [Fact]
-        [WorkItem(10466, "https://github.com/dotnet/roslyn/issues/10466")]
-        [WorkItem(12052, "https://github.com/dotnet/roslyn/issues/12052")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10466")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12052")]
         public void ScopeOfPatternVariables_Query_10()
         {
             var source =
@@ -12215,7 +12215,7 @@ public class X
         }
 
         [Fact]
-        [WorkItem(13460, "https://github.com/dotnet/roslyn/issues/13460")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13460")]
         public void Scope_DeclaratorArguments_07()
         {
             var source =
@@ -12257,7 +12257,7 @@ public class X
         }
 
         [Fact]
-        [WorkItem(13459, "https://github.com/dotnet/roslyn/issues/13459")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13459")]
         public void Scope_DeclaratorArguments_08()
         {
             var source =

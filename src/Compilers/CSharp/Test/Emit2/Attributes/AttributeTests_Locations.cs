@@ -749,7 +749,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "e").WithArguments("C.e"));
         }
 
-        [Fact, WorkItem(543977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543977")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543977")]
         public void OnInterfaceFieldEvent()
         {
             var source = @"
@@ -1191,7 +1191,7 @@ class C
                 Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "set").WithArguments("set", "type"));
         }
 
-        [Fact, WorkItem(545555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545555")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545555")]
         public void AttributesWithInvalidLocationNotEmitted()
         {
             var source = @"
@@ -1222,7 +1222,7 @@ public class A : Attribute { }
                 Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "goo").WithArguments("goo", "method, return"));
         }
 
-        [WorkItem(537613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537613"), WorkItem(537738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537738")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537613"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537738")]
         [Fact]
         public void CS0246ERR_SingleTypeNameNotFound_VerbatimIdentifierAttributeTarget()
         {
@@ -1235,7 +1235,7 @@ public class A : Attribute { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(1, 20));
         }
 
-        [WorkItem(537613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537613"), WorkItem(537738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537738")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537613"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537738")]
         [Fact]
         public void CS0246ERR_SingleTypeNameNotFound_VerbatimIdentifierAttributeTargetAndAttribute()
         {

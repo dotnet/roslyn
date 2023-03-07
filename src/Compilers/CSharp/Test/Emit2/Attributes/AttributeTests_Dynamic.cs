@@ -911,7 +911,7 @@ Gen<dynamic> x = null;";
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(20, 1));
         }
 
-        [Fact, WorkItem(531108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531108")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531108")]
         public void DynamicAttributeCtorCS1980BreakingChange()
         {
             var customDynamicAttrSource = @"
@@ -1034,7 +1034,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(552843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552843")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552843")]
         public void IteratorYieldingDynamic()
         {
             string source = @"
@@ -1102,7 +1102,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(4160, "https://github.com/dotnet/roslyn/issues/4160")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4160")]
         public void DynamicLambdaParametersEmitAsDynamic()
         {
             var source =
@@ -1127,7 +1127,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(6126, "https://github.com/dotnet/roslyn/issues/6126")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/6126")]
         public void DynamicLambdaParametersMissingBoolean()
         {
             var source0 =
@@ -1162,7 +1162,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(7840, "https://github.com/dotnet/roslyn/issues/7840")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7840")]
         public void DynamicDisplayClassFieldMissingBoolean()
         {
             var source0 =
@@ -1216,7 +1216,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(1095613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095613")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095613")]
         public void DisplayClassField()
         {
             var source =

@@ -96,7 +96,7 @@ public class DATest : DATestBase {
 }";
 
         [Fact]
-        [WorkItem(35011, "https://github.com/dotnet/roslyn/issues/35011")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35011")]
         public void SwitchConstantUnreachable()
         {
             var src = @"
@@ -746,7 +746,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"));
         }
 
-        [WorkItem(529602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529602")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529602")]
         [Fact]
         public void DoWhileStatement()
         {
@@ -842,7 +842,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"));
         }
 
-        [WorkItem(529602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529602")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529602")]
         [Fact]
         public void UnreachableDoWhileCondition()
         {
@@ -1612,7 +1612,7 @@ class C
                 );
         }
 
-        [WorkItem(648107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648107")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648107")]
         [Fact]
         public void WhidbeyBug479106()
         {
@@ -1644,7 +1644,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31370")]
         public void WhidbeyBug467493_WithSuppression()
         {
             var source = prefix + @"
@@ -1688,7 +1688,7 @@ class C
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
-        [WorkItem(529603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529603")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529603")]
         [Fact]
         public void TernaryOperator()
         {
@@ -2009,7 +2009,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(529603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529603")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529603")]
         public void IfConditionalAnd()
         {
             var source = @"
@@ -2813,7 +2813,7 @@ public static class Extensions
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(529603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529603")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529603")]
         [Theory]
         [InlineData("true", "false")]
         [InlineData("FIELD_TRUE", "FIELD_FALSE")]
@@ -3212,7 +3212,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(56298, "https://github.com/dotnet/roslyn/issues/56298")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56298")]
         public void Equals_IsPatternVariables_01()
         {
             var source = @"
@@ -3229,7 +3229,7 @@ if ((c is int ci) != (d is int di))
                 );
         }
 
-        [Fact, WorkItem(56298, "https://github.com/dotnet/roslyn/issues/56298")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56298")]
         public void Equals_IsPatternVariables_02()
         {
             var source = @"
@@ -5104,7 +5104,7 @@ class C
                 );
         }
 
-        [WorkItem(545352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545352")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545352")]
         [Fact]
         public void UseDefViolationInDelegateInSwitchWithGoto()
         {
@@ -5430,7 +5430,7 @@ class C
     );
         }
 
-        [Fact, WorkItem(14651, "https://github.com/dotnet/roslyn/issues/14651")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14651")]
         public void IrrefutablePattern_1()
         {
             var source =
@@ -5514,7 +5514,7 @@ class C
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7.0", "7.1").WithLocation(5, 21));
         }
 
-        [Fact, WorkItem(19831, "https://github.com/dotnet/roslyn/issues/19831")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19831")]
         public void AssignedInFinallyUsedInTry()
         {
             var source =
@@ -5561,7 +5561,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(63911, "https://github.com/dotnet/roslyn/issues/63911")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63911")]
         public void LocalMethod_ParameterAttribute()
         {
             var source = """
@@ -5584,7 +5584,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Unused").WithArguments("Unused").WithLocation(8, 19));
         }
 
-        [Fact, WorkItem(63911, "https://github.com/dotnet/roslyn/issues/63911")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63911")]
         public void Lambda_ParameterAttribute()
         {
             var source = """
@@ -5607,7 +5607,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Unused").WithArguments("Unused").WithLocation(8, 19));
         }
 
-        [Fact, WorkItem(63911, "https://github.com/dotnet/roslyn/issues/63911")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63911")]
         public void LocalMethod_ParameterAttribute_NamedArguments()
         {
             var source = """
@@ -5634,7 +5634,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Unused").WithArguments("Unused").WithLocation(12, 19));
         }
 
-        [Fact, WorkItem(63911, "https://github.com/dotnet/roslyn/issues/63911")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63911")]
         public void Lambda_ParameterAttribute_NamedArguments()
         {
             var source = """
@@ -5661,7 +5661,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Unused").WithArguments("Unused").WithLocation(12, 19));
         }
 
-        [Fact, WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60645")]
         public void LocalMethod_AttributeArguments()
         {
             var source = """
@@ -5692,7 +5692,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "N6").WithArguments("N6").WithLocation(16, 19));
         }
 
-        [Fact, WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60645")]
         public void LocalMethod_AttributeArguments_GenericParameter()
         {
             var source = """
@@ -5716,7 +5716,7 @@ class C
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(10, 20));
         }
 
-        [Fact, WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60645")]
         public void LocalMethod_AttributeArguments_StringInterpolation()
         {
             var source = """
@@ -5746,7 +5746,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Z").WithArguments("Z").WithLocation(9, 26));
         }
 
-        [Fact, WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60645")]
         public void LambdaMethod_AttributeArguments()
         {
             var source = """
@@ -5777,7 +5777,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "N6").WithArguments("N6").WithLocation(16, 19));
         }
 
-        [Fact, WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60645")]
         public void LambdaMethod_AttributeArguments_StringInterpolation()
         {
             var source = """

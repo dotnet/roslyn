@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        [WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40033")]
         public void SynthesizeNullableAttributeBasedOnInterfacesToEmit(bool useImageReferences)
         {
             Func<CSharpCompilation, MetadataReference> getReference = c => useImageReferences ? c.EmitToImageReference() : c.ToMetadataReference();
@@ -102,7 +102,7 @@ public class C
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        [WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40033")]
         public void SynthesizeNullableAttributeBasedOnInterfacesToEmit_NotOnAllInterfaces(bool useImageReferences)
         {
             Func<CSharpCompilation, MetadataReference> getReference = c => useImageReferences ? c.EmitToImageReference() : c.ToMetadataReference();
@@ -200,7 +200,7 @@ public class C1 : C0
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        [WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40033")]
         public void SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit_IndirectInterfaces(bool useImageReferences)
         {
             Func<CSharpCompilation, MetadataReference> getReference = c => useImageReferences ? c.EmitToImageReference() : c.ToMetadataReference();
@@ -282,7 +282,7 @@ public interface I0 : I1<string>
                 imc1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString(includeNonNullable: true)));
         }
 
-        [Fact, WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40033")]
         public void SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit_BaseAndDirectInterface()
         {
             var source = @"
@@ -1438,7 +1438,7 @@ class Program
             Assert.Equal("A<System.Object>", type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
         }
 
-        [WorkItem(27742, "https://github.com/dotnet/roslyn/issues/27742")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27742")]
         [Fact]
         public void EmitAttribute_Constraint_Nested()
         {
@@ -2303,7 +2303,7 @@ class B
                 });
         }
 
-        [WorkItem(36736, "https://github.com/dotnet/roslyn/issues/36736")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36736")]
         [Fact]
         public void EmitAttribute_Lambda_NetModule()
         {
@@ -2330,7 +2330,7 @@ class B
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "=>").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(8, 31));
         }
 
-        [WorkItem(36736, "https://github.com/dotnet/roslyn/issues/36736")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36736")]
         [Fact]
         public void EmitAttribute_LocalFunction_NetModule()
         {
@@ -2423,7 +2423,7 @@ class B
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "string[]?").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(8, 9));
         }
 
-        [WorkItem(36736, "https://github.com/dotnet/roslyn/issues/36736")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36736")]
         [Fact]
         public void EmitAttribute_Lambda_MissingNullableContextAttributeConstructor()
         {
@@ -2452,7 +2452,7 @@ class B
             comp.VerifyEmitDiagnostics();
         }
 
-        [WorkItem(36736, "https://github.com/dotnet/roslyn/issues/36736")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36736")]
         [Fact]
         public void EmitAttribute_LocalFunction_MissingNullableContextAttributeConstructor()
         {
@@ -2513,7 +2513,7 @@ class B : A, I
         }
 
         [Fact]
-        [WorkItem(30010, "https://github.com/dotnet/roslyn/issues/30010")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30010")]
         public void EmitAttribute_Iterator_01()
         {
             var source =
@@ -3273,7 +3273,7 @@ Program
         }
 
         [Fact]
-        [WorkItem(37161, "https://github.com/dotnet/roslyn/issues/37161")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37161")]
         public void EmitPrivateMetadata_ExplicitImplementation()
         {
             var source =
@@ -4958,7 +4958,7 @@ public class B<T> :
         }
 
         [Fact]
-        [WorkItem(36934, "https://github.com/dotnet/roslyn/issues/36934")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36934")]
         public void AttributeUsage()
         {
             var source =
@@ -5073,7 +5073,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(47221, "https://github.com/dotnet/roslyn/issues/47221")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/47221")]
         public void PropertyAccessorWithNullableContextAttribute_01()
         {
             var source =
@@ -5104,7 +5104,7 @@ public class A
         }
 
         [Fact]
-        [WorkItem(47221, "https://github.com/dotnet/roslyn/issues/47221")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/47221")]
         public void PropertyAccessorWithNullableContextAttribute_02()
         {
             var source =
@@ -5136,7 +5136,7 @@ public class A
         }
 
         [Fact]
-        [WorkItem(47221, "https://github.com/dotnet/roslyn/issues/47221")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/47221")]
         public void PropertyAccessorWithNullableContextAttribute_03()
         {
             var source =
@@ -5170,7 +5170,7 @@ public class A
         }
 
         [Fact]
-        [WorkItem(47221, "https://github.com/dotnet/roslyn/issues/47221")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/47221")]
         public void PropertyAccessorWithNullableContextAttribute_04()
         {
             var source =
@@ -5285,7 +5285,7 @@ public static class Utils
         }
 
         [Fact]
-        [WorkItem(55254, "https://github.com/dotnet/roslyn/issues/55254")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55254")]
         public void LambdaAttributes_01()
         {
             var source =
@@ -5303,7 +5303,7 @@ System.Void Program+<>c.<<Main>$>b__0_2(System.String? name)
         }
 
         [Fact]
-        [WorkItem(55254, "https://github.com/dotnet/roslyn/issues/55254")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55254")]
         public void LambdaAttributes_02()
         {
             var source =
@@ -5321,7 +5321,7 @@ System.Void Program+<>c.<<Main>$>b__0_2(System.String! name)
         }
 
         [Fact]
-        [WorkItem(55254, "https://github.com/dotnet/roslyn/issues/55254")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55254")]
         public void LambdaAttributes_03()
         {
             var source =
@@ -5347,7 +5347,7 @@ System.Void Program+<>c.<<Main>$>b__0_2(System.String name)
         }
 
         [Fact]
-        [WorkItem(55254, "https://github.com/dotnet/roslyn/issues/55254")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55254")]
         public void LambdaAttributes_04()
         {
             var source =

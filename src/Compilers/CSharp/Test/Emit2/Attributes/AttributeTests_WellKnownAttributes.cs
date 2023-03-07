@@ -488,7 +488,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
         public void DateTimeConstantAttribute()
         {
             #region "Source"
@@ -536,7 +536,7 @@ public class Bar
         }
 
         [Fact]
-        [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
         public void DateTimeConstantAttributeReferencedViaRef()
         {
             #region "Source"
@@ -582,7 +582,7 @@ public class Consumer
         }
 
         [Fact]
-        [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
         public void DateTimeConstantAttributeWithBadDefaultValue()
         {
             #region "Source"
@@ -616,7 +616,7 @@ public class Bar
         }
 
         [Fact]
-        [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
         public void DateTimeConstantAttributeWithValidDefaultValue()
         {
             #region "Source"
@@ -648,7 +648,7 @@ public class Bar
         }
 
         [Fact]
-        [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
         public void DateTimeConstantAttributeWithBadDefaultValueOnField()
         {
             #region "Source"
@@ -679,7 +679,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
         public void DateTimeConstantAttributeWithValidDefaultValueOnField()
         {
             #region "Source"
@@ -709,7 +709,7 @@ public class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
         public void LoadingDateTimeConstantWithBadValue()
         {
             var ilsource = @"
@@ -1252,7 +1252,7 @@ public interface ISomeInterface
             CompileAndVerify(text);
         }
 
-        [Fact, WorkItem(544934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544934")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544934")]
         public void Bug13129()
         {
             string source = @"
@@ -1339,7 +1339,7 @@ public class C
             CompileAndVerify(compilation);
         }
 
-        [Fact, WorkItem(546785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546785")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546785")]
         public void OptionalAttributeOnPartialMethodParameters()
         {
             var source = @"
@@ -1394,7 +1394,7 @@ partial class C
             CompileAndVerify(source, sourceSymbolValidator: sourceValidator);
         }
 
-        [WorkItem(544303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544303")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544303")]
         [Fact]
         public void OptionalAttributeBindingCycle()
         {
@@ -1507,7 +1507,7 @@ public class Goo: Attribute
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("y", "Goo.Goo(int)").WithLocation(16, 38));
         }
 
-        [Fact, WorkItem(546624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546624")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546624")]
         public void DPV_Optional_Valid()
         {
             string source = @"
@@ -1612,7 +1612,7 @@ class C
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
         }
 
-        [Fact, WorkItem(546624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546624")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546624")]
         public void CS7067ERR_BadAttributeParamDefaultArgument()
         {
             string source = @"
@@ -1842,7 +1842,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(1036356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036356")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036356")]
         public void EnumAsDefaultParameterValue()
         {
             const string source = @"
@@ -1871,7 +1871,7 @@ class Program
 
         #region DecimalConstantAttribute
 
-        [Fact, WorkItem(544438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544438"), WorkItem(538206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538206")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544438"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538206")]
         public void DefaultParameterValueIntToObj()
         {
             // The native compiler's behavior:
@@ -1926,7 +1926,7 @@ class Test
             CompileAndVerify(source, expectedOutput: @"100200300400");
         }
 
-        [WorkItem(544516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544516")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544516")]
         [Fact]
         public void DecimalConstantAttributesAsMetadata()
         {
@@ -2416,7 +2416,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(544180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544180"), WorkItem(545030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545030")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544180"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545030")]
         public void DllImport_AttributeRedefinition()
         {
             var source = @"
@@ -2584,7 +2584,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(544176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544176")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544176")]
         public void TestPseudoAttributes_DllImport_AllTrue()
         {
             var source = @"
@@ -2662,7 +2662,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(544601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544601")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544601")]
         public void GetDllImportData_UnspecifiedProperties()
         {
             var source = @"
@@ -2911,8 +2911,8 @@ public class C
             return sb.ToString();
         }
 
-        [WorkItem(544238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544238")]
-        [WorkItem(544163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544163")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544238")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544163")]
         [Fact]
         public void DllImport_InvalidCharsetValue_Null()
         {
@@ -3325,7 +3325,7 @@ class Program1
                 Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "MethodCodeType = (MethodCodeType)9").WithArguments("MethodCodeType"));
         }
 
-        [Fact, WorkItem(544518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544518")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544518")]
         public void DllImport_DefaultCharSet1()
         {
             var source = @"
@@ -3620,7 +3620,7 @@ public class MainClass
             CompileAndVerify(source, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
         }
 
-        [Fact, WorkItem(544507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544507")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544507")]
         public void TestCoClassAttribute_NewOnInterface_FromSource()
         {
             string source = @"
@@ -4448,7 +4448,7 @@ public class MainClass
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new InterfaceType()").WithArguments("InterfaceType").WithLocation(16, 13));
         }
 
-        [Fact, WorkItem(544237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544237")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544237")]
         public void TestCoClassAttribute_NewOnInterface_NoConversion()
         {
             string source = @"
@@ -4516,7 +4516,7 @@ class E {}
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "null").WithArguments("Guid").WithLocation(18, 7));
         }
 
-        [WorkItem(545490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545490")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545490")]
         [Fact]
         public void TestInvalidGuidAttribute_02()
         {
@@ -4572,7 +4572,7 @@ using System.Runtime.InteropServices;
 
         #region SpecialNameAttribute
 
-        [Fact, WorkItem(544392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544392")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544392")]
         public void SpecialName()
         {
             string source = @"
@@ -4697,7 +4697,7 @@ struct S { }
 
         #region SerializableAttribute
 
-        [Fact, WorkItem(544392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544392")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544392")]
         public void Serializable()
         {
             string source = @"
@@ -4782,7 +4782,7 @@ delegate void D();
         }
 
         [Fact]
-        [WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3898")]
         public void SerializableFromPE()
         {
             string lib_cs = @"
@@ -4818,7 +4818,7 @@ public class BobAttribute : Attribute
         }
 
         [Fact]
-        [WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3898")]
         public void TestIsSerializableProperty()
         {
             string missing = @"
@@ -4995,7 +4995,7 @@ namespace AttributeTest
 
         #region AttributeUsageAttribute
 
-        [WorkItem(541733, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541733")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541733")]
         [Fact]
         public void TestSourceOverrideWellKnownAttribute_01()
         {
@@ -5026,8 +5026,8 @@ namespace System
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "AttributeUsage").WithArguments("AttributeUsage").WithLocation(5, 6));
         }
 
-        [WorkItem(541733, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541733")]
-        [WorkItem(546102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546102")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541733")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546102")]
         [Fact]
         public void TestSourceOverrideWellKnownAttribute_02()
         {
@@ -5085,7 +5085,7 @@ namespace System
             CompileAndVerify(source, parseOptions: parseOptions, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
         }
 
-        [WorkItem(546102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546102")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546102")]
         [Fact]
         public void TestAttributeUsageAllowMultiple()
         {
@@ -5115,7 +5115,7 @@ class A: Attribute {}
             CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
         }
 
-        [WorkItem(546056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546056")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546056")]
         [Fact]
         public void TestBadAttributeUsageArgument()
         {
@@ -5141,7 +5141,7 @@ public class MyAttribute : Attribute
 
         #region InternalsVisibleToAttribute
 
-        [WorkItem(542173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542173")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542173")]
         [Fact]
         public void MergeMemberImplWithImportedInternals()
         {
@@ -5195,7 +5195,7 @@ public class Child2: Child
 
         #region CustomConstantAttribute
 
-        [Fact, WorkItem(544440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544440"), WorkItem(538206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538206")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544440"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538206")]
         public void CustomConstantAttributeIntToObj()
         {
             #region "Source"
@@ -5685,7 +5685,7 @@ class A
 
         #region ObsoleteAttribute
 
-        [Fact, WorkItem(546062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546062")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546062")]
         public void TestObsoleteAttributeOnTypes()
         {
             var source = @"
@@ -6101,7 +6101,7 @@ public class Test
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "c1 += c").WithArguments("Test.operator +(Test, Test)"));
         }
 
-        [Fact, WorkItem(546062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546062")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546062")]
         public void TestObsoleteAttributeInMetadata()
         {
             var peSource = @"
@@ -6519,7 +6519,7 @@ public class SomeAttr1: Attribute
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "F7").WithArguments("Test.F7", "F7 is obsolete").WithLocation(40, 15));
         }
 
-        [WorkItem(546064, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546064")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546064")]
         [Fact]
         public void TestObsoleteAttributeCycles_02()
         {
@@ -6680,7 +6680,7 @@ public class A
         }
 
         [Fact]
-        [WorkItem(546455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546455"), WorkItem(546456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546456"), WorkItem(546457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546457")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546455"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546456"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546457")]
         public void TestObsoleteAttributeOnCollectionInitializer()
         {
             var source = @"
@@ -6735,7 +6735,7 @@ public class B : IEnumerable
         }
 
         [Fact]
-        [WorkItem(546636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546636")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546636")]
         public void TestObsoleteAttributeOnAttributes()
         {
             var source = @"
@@ -7059,7 +7059,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(546766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546766")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546766")]
         public void TestObsoleteAttributeOnMembers3()
         {
             var source = @"
@@ -7127,7 +7127,7 @@ class Event1
         }
 
         [Fact]
-        [WorkItem(547024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547024")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547024")]
         public void TestObsoleteForeachMembers()
         {
             var source =
@@ -7306,7 +7306,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(531071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531071")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531071")]
         public void TestObsoleteTypeParameterInAlias()
         {
             var source =
@@ -7358,7 +7358,7 @@ namespace N
         }
 
         [ConditionalFact(typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/28328")]
-        [WorkItem(580832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
         public void ObsoleteOnVirtual_OnBase()
         {
             var source = @"
@@ -7457,7 +7457,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(580832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
         public void ObsoleteOnVirtual_OnDerived()
         {
             var source = @"
@@ -7519,7 +7519,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(580832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
         public void ObsoleteOnVirtual_GenericType()
         {
             var source = @"
@@ -7571,7 +7571,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(580832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
         public void ObsoleteOnVirtual_GenericMethod()
         {
             var source = @"
@@ -7607,7 +7607,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(580832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
         public void ObsoleteOnVirtual_OnBase_BaseCall()
         {
             var source = @"
@@ -7693,7 +7693,7 @@ public class C : B
         }
 
         [Fact]
-        [WorkItem(580832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
         public void ObsoleteOnVirtual_OnBaseAndDerived_BaseCall()
         {
             var source = @"
@@ -7774,7 +7774,7 @@ public class C : B
         }
 
         [Fact]
-        [WorkItem(580832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
         public void ObsoleteOnVirtual_OnDerived_BaseCall()
         {
             var source = @"
@@ -7841,7 +7841,7 @@ public class C : B
         }
 
         [Fact]
-        [WorkItem(580832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
         public void ObsoleteOnVirtual_OnDerived_BaseCall2()
         {
             var source = @"
@@ -7890,7 +7890,7 @@ public class C : B
         }
 
         [Fact]
-        [WorkItem(531148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531148")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531148")]
         public void ObsoleteUserDefinedConversion1()
         {
             var source = @"
@@ -7947,7 +7947,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(531148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531148")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531148")]
         public void ObsoleteUserDefinedConversion2()
         {
             var source = @"
@@ -7995,7 +7995,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(531148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531148")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531148")]
         public void ObsoleteUserDefinedConversion3()
         {
             var source = @"
@@ -8052,7 +8052,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(531148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531148")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531148")]
         public void ObsoleteUserDefinedConversion4()
         {
             var source = @"
@@ -8085,7 +8085,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(531148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531148")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531148")]
         public void ObsoleteUserDefinedConversion5()
         {
             var source = @"
@@ -8139,7 +8139,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(531148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531148")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531148")]
         public void ObsoleteUserDefinedConversion6()
         {
             var source = @"
@@ -8186,7 +8186,7 @@ namespace System
 }
 ";
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_01()
         {
             var source = @"
@@ -8219,7 +8219,7 @@ class C
                 Diagnostic("TEST1", "M1()").WithArguments("C.M1()").WithLocation(12, 9));
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_02()
         {
             var source = @"
@@ -8250,7 +8250,7 @@ class C
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C.M1()").WithLocation(12, 9));
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_03()
         {
             var source = @"
@@ -8281,7 +8281,7 @@ class C
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C.M1()").WithLocation(12, 9));
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_04()
         {
             var source = @"
@@ -8312,7 +8312,7 @@ class C
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C.M1()").WithLocation(12, 9));
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_BadAttribute_01()
         {
             var source = @"
@@ -8352,7 +8352,7 @@ class C
                 Diagnostic(ErrorCode.ERR_AmbigMember, "DiagnosticId").WithArguments("System.ObsoleteAttribute.DiagnosticId", "System.ObsoleteAttribute.DiagnosticId").WithLocation(16, 15));
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_05()
         {
             var source = @"
@@ -8385,7 +8385,7 @@ class C
                 Diagnostic("TEST1", "M1()").WithArguments("C.M1()", "don't use").WithLocation(12, 9));
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_BadAttribute_02()
         {
             var source = @"
@@ -8426,7 +8426,7 @@ class C
             Assert.Equal("C", diag.Descriptor.HelpLinkUri);
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_Suppression_01()
         {
             var source = @"
@@ -8474,7 +8474,7 @@ class C
                 Diagnostic("TEST1", "M1()").WithArguments("C.M1()", "don't use").WithLocation(24, 9));
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_FromMetadata_01()
         {
             var source1 = @"
@@ -8534,7 +8534,7 @@ class C2 : C1
             }
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_FromMetadata_02()
         {
             var source1 = @"
@@ -8586,7 +8586,7 @@ class C2 : C1
             }
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_FromMetadata_03()
         {
             var source1 = @"
@@ -8629,7 +8629,7 @@ class C2 : C1
             }
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_FromMetadata_04()
         {
             var source1 = @"
@@ -8672,7 +8672,7 @@ class C2 : C1
             }
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_FromMetadata_05()
         {
             var source1 = @"
@@ -8772,7 +8772,7 @@ class C2 : C1
             }
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_BadMetadata_01()
         {
             var source1 = @"
@@ -8820,7 +8820,7 @@ class C2 : C1
             }
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_BadMetadata_02()
         {
             var source1 = @"
@@ -8871,7 +8871,7 @@ class C2 : C1
             }
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_BadMetadata_03()
         {
             var source1 = @"
@@ -8947,7 +8947,7 @@ class C2 : C1
             }
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_BadMetadata_04()
         {
             var source1 = @"
@@ -9002,7 +9002,7 @@ class C2 : C1
             }
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_BadMetadata_05()
         {
             var source1 = @"
@@ -9054,7 +9054,7 @@ class C2 : C1
             }
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_BadMetadata_06()
         {
             var source1 = @"
@@ -9105,7 +9105,7 @@ class C2 : C1
             }
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_BadMetadata_07()
         {
             // In this program C1.M1 has an ObsoleteAttribute with multiple values provided for DiagnosticId and UrlFormat
@@ -9245,7 +9245,7 @@ class C2 : C1
             Assert.Equal("C", diag.Descriptor.HelpLinkUri);
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_BadMetadata_08()
         {
             // In this program C1.M1 has an ObsoleteAttribute with a malformed value provided for a named argument
@@ -9383,7 +9383,7 @@ class C2 : C1
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
         }
 
-        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_BadMetadata_09()
         {
             var source1 = @"
@@ -9435,7 +9435,7 @@ class C2 : C1
         }
 
         [Fact]
-        [WorkItem(656345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656345")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656345")]
         public void ConditionalLazyObsoleteDiagnostic()
         {
             var source = @"
@@ -9471,7 +9471,7 @@ public class C : B
         }
 
         [Fact]
-        [WorkItem(656345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656345")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656345")]
         public void ConditionalLazyObsoleteDiagnosticInAttribute()
         {
             var source = @"
@@ -9523,7 +9523,7 @@ public class NumAttribute : Attribute
         }
 
         [Fact]
-        [WorkItem(665595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665595")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665595")]
         public void ConditionalLazyObsoleteDiagnosticInLazyObsoleteContext()
         {
             var source1 = @"
@@ -9582,7 +9582,7 @@ class C : ReadWriteControlDesigner
         }
 
         [Fact]
-        [WorkItem(668365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/668365")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/668365")]
         public void ObsoleteOverrideChain()
         {
             var source = @"
@@ -9788,7 +9788,7 @@ class Class6
         /// <summary>
         /// Report warning or error based on last attribute.
         /// </summary>
-        [WorkItem(18755, "https://github.com/dotnet/roslyn/issues/18755")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18755")]
         [Fact]
         public void TestMultipleDeprecatedAttributes()
         {
@@ -9984,7 +9984,7 @@ namespace ConsoleApplication74
 );
         }
 
-        [Fact, WorkItem(858839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858839")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858839")]
         public void Bug858839_1()
         {
             var source1 = @"
@@ -10090,7 +10090,7 @@ public sealed class ConcreteGoo5 : IGoo1
             compilation1.VerifyDiagnostics(expected);
         }
 
-        [Fact, WorkItem(858839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858839")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858839")]
         public void Bug858839_2()
         {
             var source1 = @"
@@ -10137,7 +10137,7 @@ class Test
             compilation2.VerifyDiagnostics(expected);
         }
 
-        [Fact, WorkItem(530801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530801")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530801")]
         public void Bug530801DisallowRequiredAttributeCS0648()
         {
             var ilsource = @"
@@ -10199,7 +10199,7 @@ public class C
             cscomp.VerifyDiagnostics(expected);
         }
 
-        [Fact, WorkItem(530801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530801")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530801")]
         public void Bug530801DisallowRequiredAttributeCS0570()
         {
             var ilsource = @"
@@ -11321,7 +11321,7 @@ using System.Runtime.CompilerServices;
 
         private static string GetSkipLocalsInit(bool skipLocalsInit) => skipLocalsInit ? "[SkipLocalsInit]" : "";
 
-        [Fact, WorkItem(49434, "https://github.com/dotnet/roslyn/issues/49434")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49434")]
         public void SkipLocalsInit_Module_TopLevelStatements()
         {
             var source = @"
@@ -11344,7 +11344,7 @@ void local()
             Assert.False(verifier.HasLocalsInit("Program.<<Main>$>g__local|0_0"));
         }
 
-        [Fact, WorkItem(49434, "https://github.com/dotnet/roslyn/issues/49434")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49434")]
         public void SkipLocalsInit_Module_TopLevelStatements_WithoutAttribute()
         {
             var source = @"
@@ -12980,7 +12980,7 @@ namespace System.Runtime.CompilerServices
 
         #endregion
 
-        [Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/807")]
         public void TestAttributePropagationForAsyncAndIterators_01()
         {
             var source = CreateCompilationWithMscorlib45(@"
@@ -13096,7 +13096,7 @@ class MyAttribute : System.Attribute
             return result;
         }
 
-        [Fact, WorkItem(4521, "https://github.com/dotnet/roslyn/issues/4521")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4521")]
         public void TestAttributePropagationForAsyncAndIterators_02()
         {
             var source = CreateCompilationWithMscorlib45(@"
@@ -13186,7 +13186,7 @@ class MyAttribute : System.Attribute
             CompileAndVerify(source, symbolValidator: attributeValidator);
         }
 
-        [Fact, WorkItem(10639, "https://github.com/dotnet/roslyn/issues/10639")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10639")]
         public void UsingStaticDirectiveDoesNotIgnoreObsoleteAttribute_DifferentSeverity()
         {
             var source = @"
@@ -13230,7 +13230,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "TestWarning").WithArguments("TestWarning", "Broken Warning Class").WithLocation(4, 14));
         }
 
-        [Fact, WorkItem(10639, "https://github.com/dotnet/roslyn/issues/10639")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10639")]
         public void UsingStaticDirectiveDoesNotIgnoreObsoleteAttribute_NestedClasses()
         {
             var source = @"
@@ -13301,7 +13301,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "BothObsoleteParent.BothObsoleteChild").WithArguments("BothObsoleteParent.BothObsoleteChild").WithLocation(5, 14));
         }
 
-        [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19394")]
         public void WellKnownTypeAsStruct_DefaultConstructor_DynamicAttribute()
         {
             var code = @"
@@ -13324,7 +13324,7 @@ class T
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(1, 1));
         }
 
-        [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19394")]
         public void WellKnownTypeAsStruct_NonDefaultConstructor_DynamicAttribute_Array()
         {
             var compilation = CreateCompilationWithCSharp(@"
@@ -13371,7 +13371,7 @@ second",
                 });
         }
 
-        [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19394")]
         public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute_01()
         {
             var code = @"
@@ -13597,7 +13597,7 @@ class C
                 Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(7, 10));
         }
 
-        [Fact, WorkItem(53418, "https://github.com/dotnet/roslyn/issues/53418")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53418")]
         public void TestObsoleteIndexerSlice()
         {
             var code = @"
@@ -13638,7 +13638,7 @@ public class C
                 );
         }
 
-        [Fact, WorkItem(53418, "https://github.com/dotnet/roslyn/issues/53418")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53418")]
         public void TestObsoleteIndexerSlice_ObsoleteCountAccessor()
         {
             var code = @"
@@ -13685,7 +13685,7 @@ public class C
                 );
         }
 
-        [Fact, WorkItem(53418, "https://github.com/dotnet/roslyn/issues/53418")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53418")]
         public void TestObsoleteIndexerSlice_ObsoleteIndexAndRangeAccessors()
         {
             var code = @"
@@ -13730,7 +13730,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(59003, "https://github.com/dotnet/roslyn/issues/59003")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/59003")]
         public void ErrorInPropertyValue_01()
         {
             var source = @"
@@ -13756,7 +13756,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(59003, "https://github.com/dotnet/roslyn/issues/59003")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/59003")]
         public void ErrorInPropertyValue_02()
         {
             var source = @"
@@ -13801,7 +13801,7 @@ public struct S2 { }
                 );
         }
 
-        [Fact, WorkItem(64605, "https://github.com/dotnet/roslyn/issues/64605")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64605")]
         public void ObsoleteWithInterpolation()
         {
             var source = """
@@ -13837,7 +13837,7 @@ public class LegacyObject2
                 );
         }
 
-        [Fact, WorkItem(64605, "https://github.com/dotnet/roslyn/issues/64605")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64605")]
         public void ObsoleteWithInterpolationWithNonConstant()
         {
             var source = """
@@ -13863,7 +13863,7 @@ public class LegacyObject
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"$""Do not use {nameof(LegacyObject)}{string.Empty}""").WithLocation(11, 11));
         }
 
-        [Fact, WorkItem(64713, "https://github.com/dotnet/roslyn/issues/64713")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64713")]
         public void ObsoleteVarType()
         {
             var source = """
@@ -13887,7 +13887,7 @@ public class var
             );
         }
 
-        [Fact, WorkItem(64713, "https://github.com/dotnet/roslyn/issues/64713")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64713")]
         public void ObsoleteVarAlias()
         {
             var source = """
@@ -13915,7 +13915,7 @@ public class Legacy
             );
         }
 
-        [Fact, WorkItem(64713, "https://github.com/dotnet/roslyn/issues/64713")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64713")]
         public void ObsoleteUnmanagedAndNotNullTypes()
         {
             var source = """
@@ -13956,7 +13956,7 @@ public class notnull
             );
         }
 
-        [Fact, WorkItem(64713, "https://github.com/dotnet/roslyn/issues/64713")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64713")]
         public void ObsoleteUnmanagedAndNotNullAliases()
         {
             var source = """

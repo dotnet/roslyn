@@ -580,7 +580,7 @@ class C {
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem(540183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540183")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540183")]
         [Fact]
         public void ControlledStatement01()
         {
@@ -597,7 +597,7 @@ class C
             Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
         }
 
-        [WorkItem(540183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540183")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540183")]
         [Fact]
         public void ControlledStatement02()
         {
@@ -637,7 +637,7 @@ class C {
             Assert.Equal("i", GetSymbolNamesJoined(analysis.ReadInside));
         }
 
-        [WorkItem(539603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539603")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539603")]
         [Fact]
         public void TestForIncrement()
         {
@@ -698,7 +698,7 @@ class C
             Assert.Equal("i, j", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem(539701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539701")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539701")]
         [Fact]
         public void ContinueInForStatement()
         {
@@ -725,7 +725,7 @@ class Program
             Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
         }
 
-        [WorkItem(528498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528498")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528498")]
         [Fact]
         public void TestVariablesDeclaredInForeachLoop01()
         {
@@ -745,7 +745,7 @@ class C {
             Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
         }
 
-        [WorkItem(528498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528498")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528498")]
         [Fact]
         public void TestVariablesDeclaredInForeachLoop02()
         {
@@ -765,8 +765,8 @@ class C {
             Assert.Equal("x", GetSymbolNamesJoined(analysis.ReadInside));
         }
 
-        [WorkItem(528498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528498")]
-        [WorkItem(541438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541438")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528498")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541438")]
         [Fact]
         public void TestLocalsInForeachLoop()
         {
@@ -863,7 +863,7 @@ class Test
             Assert.Equal("this, ary, a, v", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
-        [WorkItem(541711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541711")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541711")]
         [Fact]
         public void ForEachVariableShouldNotInVariableDeclaredTest()
         {
@@ -1068,7 +1068,7 @@ class C {
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem(528583, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528583")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528583")]
         [Fact]
         public void InaccessibleVariables()
         {
@@ -1116,7 +1116,7 @@ class C {
 
         #region "Yield Return, Break"
 
-        [WorkItem(543070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543070")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543070")]
         [Fact]
         public void TestYieldStatements01()
         {
@@ -1171,7 +1171,7 @@ class Test
             }
         }
 
-        [WorkItem(543070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543070")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543070")]
         [Fact]
         public void TestYieldStatements02()
         {
@@ -1241,7 +1241,7 @@ class Test
             Assert.Equal(1, ctrlFlow.ExitPoints.Count());
         }
 
-        [WorkItem(543070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543070")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543070")]
         [Fact]
         public void TestYieldStatements03()
         {
@@ -1335,7 +1335,7 @@ class Test
             Assert.Equal(1, ctrlFlow.ExitPoints.Count());
         }
 
-        [WorkItem(543564, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543564")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543564")]
         [Fact]
         public void YieldReturnStatement()
         {

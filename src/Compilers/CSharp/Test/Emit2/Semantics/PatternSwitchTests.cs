@@ -404,7 +404,7 @@ null";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(10601, "https://github.com/dotnet/roslyn/issues/10601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10601")]
         public void NullMismatch01()
         {
             var source =
@@ -430,7 +430,7 @@ null";
                 );
         }
 
-        [Fact, WorkItem(10632, "https://github.com/dotnet/roslyn/issues/10632")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10632")]
         public void TypeMismatch01()
         {
             var source =
@@ -456,7 +456,7 @@ null";
                 );
         }
 
-        [Fact, WorkItem(10601, "https://github.com/dotnet/roslyn/issues/10601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10601")]
         public void ValueMismatch01()
         {
             var source =
@@ -699,7 +699,7 @@ null";
         }
 
         [Fact]
-        [WorkItem(51192, "https://github.com/dotnet/roslyn/issues/51192")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/51192")]
         public void Subsumption09()
         {
             var source =
@@ -879,7 +879,7 @@ class Derived : Base, I2
         }
 
         [Fact]
-        [WorkItem(51192, "https://github.com/dotnet/roslyn/issues/51192")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/51192")]
         public void Subsumption10()
         {
             var source =
@@ -905,7 +905,7 @@ public class C {
         }
 
         [Fact]
-        [WorkItem(51192, "https://github.com/dotnet/roslyn/issues/51192")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/51192")]
         public void Subsumption11()
         {
             var source =
@@ -1236,7 +1236,7 @@ null";
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        [WorkItem(25846, "https://github.com/dotnet/roslyn/issues/25846")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25846")]
         public void DuplicateDouble()
         {
             var source =
@@ -1426,7 +1426,7 @@ float.NaN";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(12573, "https://github.com/dotnet/roslyn/issues/12573")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12573")]
         public void EnumAndUnderlyingType()
         {
             var source =
@@ -1484,7 +1484,7 @@ Default";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(10446, "https://github.com/dotnet/roslyn/issues/10446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10446")]
         public void InferenceInSwitch()
         {
             var source =
@@ -1520,7 +1520,7 @@ public class X
             Assert.Equal("System.Object", model.GetTypeInfo(i2Ref).Type.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(13395, "https://github.com/dotnet/roslyn/issues/13395")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13395")]
         public void CodeGenSwitchInLoop()
         {
             var source =
@@ -1560,7 +1560,7 @@ class Program
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(13520, "https://github.com/dotnet/roslyn/issues/13520")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13520")]
         public void ConditionalPatternsCannotSubsume()
         {
             var source =
@@ -1591,7 +1591,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(273713, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=273713")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=273713")]
         public void ExplicitTupleConversion_Crash()
         {
             var source =
@@ -1623,7 +1623,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: "13");
         }
 
-        [Fact, WorkItem(273713, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=273713")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=273713")]
         public void TupleInPattern()
         {
             var source =
@@ -1831,7 +1831,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32 a, System.Int32 b)").WithArguments("object", "2").WithLocation(52, 22));
         }
 
-        [Fact, WorkItem(273713, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=273713")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=273713")]
         public void PointerConversion_Crash()
         {
             var source =
@@ -1862,7 +1862,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: "12");
         }
 
-        [Fact, WorkItem(14717, "https://github.com/dotnet/roslyn/issues/14717")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14717")]
         public void ExpressionVariableInCase_1()
         {
             string source =
@@ -1898,7 +1898,7 @@ class Program
             VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
         }
 
-        [Fact, WorkItem(14717, "https://github.com/dotnet/roslyn/issues/14717")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14717")]
         public void ExpressionVariableInCase_2()
         {
             string source =
@@ -1933,7 +1933,7 @@ class Program
             VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
         }
 
-        [Fact, WorkItem(14296, "https://github.com/dotnet/roslyn/issues/14296")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14296")]
         public void PatternSwitchInLocalFunctionInGenericMethod()
         {
             var source =
@@ -2012,7 +2012,7 @@ Correct
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(14707, "https://github.com/dotnet/roslyn/issues/14707")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14707")]
         public void ParenthesizedGuardClause()
         {
             var source =
@@ -2051,7 +2051,7 @@ S 1
 R 1 2");
         }
 
-        [Fact, WorkItem(14721, "https://github.com/dotnet/roslyn/issues/14721")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14721")]
         public void NullTest_Crash()
         {
             var source =
@@ -2083,7 +2083,7 @@ null");
         }
 
         [Fact]
-        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16066")]
         public void SwitchSectionWithLambda_01()
         {
             var source =
@@ -2111,7 +2111,7 @@ class A{}
         }
 
         [Fact]
-        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16066")]
         public void SwitchSectionWithLambda_02()
         {
             var source =
@@ -2165,7 +2165,7 @@ case 2: 4
         }
 
         [Fact]
-        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16066")]
         public void SwitchSectionWithYield_01()
         {
             var source =
@@ -2227,7 +2227,7 @@ case 2: 4
         }
 
         [Fact]
-        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16066")]
         public void SwitchSectionWithYield_02()
         {
             var source =
@@ -2283,7 +2283,7 @@ case 2: 4
         }
 
         [Fact]
-        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16066")]
         public void SwitchSectionWithYield_03()
         {
             var source =
@@ -2342,7 +2342,7 @@ case 2: 4
         }
 
         [Fact]
-        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16066")]
         public void SwitchSectionWithYield_04()
         {
             var source =
@@ -2384,7 +2384,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16066")]
         public void SwitchSectionWithAwait_01()
         {
             var source =
@@ -2455,7 +2455,7 @@ case 2: 4
         }
 
         [Fact]
-        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16066")]
         public void SwitchSectionWithAwait_02()
         {
             var source =
@@ -2520,7 +2520,7 @@ case 2: 4
         }
 
         [Fact]
-        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16066")]
         public void SwitchSectionWithAwait_03()
         {
             var source =
@@ -2580,7 +2580,7 @@ case 2: 4
         }
 
         [Fact]
-        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16066")]
         public void SwitchSectionWithAwait_04()
         {
             var source =
@@ -2629,8 +2629,8 @@ class Program
         }
 
         [Fact]
-        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
-        [WorkItem(401335, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
         public void SwitchAwaitGenericsAndOptimization()
         {
             var source =
@@ -2670,8 +2670,8 @@ default");
         }
 
         [Fact]
-        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
-        [WorkItem(401335, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
         public void SwitchLambdaGenericsAndOptimization()
         {
             var source =
@@ -2709,8 +2709,8 @@ default");
         }
 
         [Fact]
-        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
-        [WorkItem(401335, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
         public void SwitchIteratorGenericsAndOptimization()
         {
             var source =
@@ -2751,7 +2751,7 @@ default");
         }
 
         [Fact]
-        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17088")]
         public void TupleNameDifferences_01()
         {
             var source =
@@ -2782,7 +2782,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17088")]
         public void TupleNameDifferences_02()
         {
             var source =
@@ -2811,7 +2811,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17088")]
         public void TupleNameDifferences_03()
         {
             var source =
@@ -2839,7 +2839,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17088")]
         public void TupleNameDifferences_04()
         {
             var source =
@@ -2867,7 +2867,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17088")]
         public void TupleNameDifferences_05()
         {
             var source =
@@ -2898,7 +2898,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17088")]
         public void DynamicDifferences_01()
         {
             var source =
@@ -2929,7 +2929,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17088")]
         public void DynamicDifferences_02()
         {
             var source =
@@ -2958,7 +2958,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(17089, "https://github.com/dotnet/roslyn/issues/17089")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17089")]
         public void Dynamic_01()
         {
             var source =
@@ -2994,7 +2994,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(17089, "https://github.com/dotnet/roslyn/issues/17089")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17089")]
         public void Dynamic_02()
         {
             var source =
@@ -3176,7 +3176,7 @@ class Program
             var comp = CompileAndVerify(compilation, expectedOutput: "Main");
         }
 
-        [Fact, WorkItem(18948, "https://github.com/dotnet/roslyn/issues/18948")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18948")]
         public void AsyncGenericPatternCrash()
         {
             var source =
@@ -3206,7 +3206,7 @@ static class Ex
             var comp = CompileAndVerify(compilation);
         }
 
-        [Fact, WorkItem(388743, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=388743")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=388743")]
         public void SemanticModelForBrokenSwitch_01()
         {
             // a syntax error that happens to look like a pattern switch if you squint
@@ -3254,7 +3254,7 @@ static class Ex
             var type = model.GetTypeInfo(node);
         }
 
-        [Fact, WorkItem(388743, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=388743")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=388743")]
         public void SemanticModelForBrokenSwitch_02()
         {
             // a simple legal pattern switch but run in language version 6
@@ -3288,7 +3288,7 @@ static class Ex
         }
 
         [Fact]
-        [WorkItem(46593, "https://github.com/dotnet/roslyn/issues/46593")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46593")]
         public void NameofInWhenClause()
         {
             var source =
@@ -3318,7 +3318,7 @@ static class Ex
                 );
         }
 
-        [Fact, WorkItem(20210, "https://github.com/dotnet/roslyn/issues/20210")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20210")]
         public void SwitchOnNull_20210()
         {
             var source =
@@ -3416,7 +3416,7 @@ static class Ex
                 );
         }
 
-        [Fact, WorkItem(47164, "https://github.com/dotnet/roslyn/issues/47164")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47164")]
         public void MultipleWhenClausesToFailure_01()
         {
             var source =
@@ -3442,7 +3442,7 @@ static class Ex
                 );
         }
 
-        [Fact, WorkItem(47164, "https://github.com/dotnet/roslyn/issues/47164")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47164")]
         public void MultipleWhenClausesToFailure_02()
         {
             var source =
@@ -3467,7 +3467,7 @@ static class Ex
                 );
         }
 
-        [Fact, WorkItem(47164, "https://github.com/dotnet/roslyn/issues/47164")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47164")]
         public void MultipleWhenClausesToFailure_03()
         {
             var source =
@@ -3521,7 +3521,7 @@ static class Ex
                 );
         }
 
-        [Fact, WorkItem(51930, "https://github.com/dotnet/roslyn/issues/51930")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51930")]
         public void AssignSwitchToRefReturningMethod()
         {
             var source = @"

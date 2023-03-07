@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [WorkItem(892467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
         [Fact]
         public void SimplestDiagnosticAnalyzerTest()
         {
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 );
         }
 
-        [WorkItem(892467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
         [Fact]
         public void SimplestDiagnosticAnalyzerTestInInitializer()
         {
@@ -126,7 +126,7 @@ public class C : NotFound
                 );
         }
 
-        [WorkItem(892467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
         [Fact]
         public void DiagnosticAnalyzerSuppressDiagnostic()
         {
@@ -149,7 +149,7 @@ public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound"));
         }
 
-        [WorkItem(892467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
         [Fact]
         public void DiagnosticAnalyzerWarnAsError()
         {
@@ -183,7 +183,7 @@ public class C : NotFound
                 );
         }
 
-        [WorkItem(892467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
         [Fact]
         public void DiagnosticAnalyzerWarnAsErrorGlobal()
         {
@@ -215,7 +215,7 @@ public class C : NotFound
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x3").WithArguments("x3").WithWarningAsError(true));
         }
 
-        [Fact, WorkItem(1038025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038025")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038025")]
         public void TestImplicitlyDeclaredSymbolsNotAnalyzed()
         {
             string source = @"
@@ -273,7 +273,7 @@ public class C
             }
         }
 
-        [WorkItem(914236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/914236")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/914236")]
         [Fact]
         public void DiagnosticAnalyzerSyntaxNodeAndSymbolAnalysis()
         {
@@ -541,7 +541,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             Assert.True(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
         }
 
-        [Fact, WorkItem(1008059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1008059")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1008059")]
         public void TestCodeBlockAnalyzersForNoExecutableCode()
         {
             string noExecutableCodeSource = @"
@@ -558,7 +558,7 @@ public abstract class C
                 .VerifyAnalyzerDiagnostics(analyzers);
         }
 
-        [Fact, WorkItem(1008059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1008059")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1008059")]
         public void TestCodeBlockAnalyzersForBaseConstructorInitializer()
         {
             string baseCtorSource = @"
@@ -581,7 +581,7 @@ public class C : B
                     Diagnostic("CodeBlockDiagnostic"));
         }
 
-        [Fact, WorkItem(1067286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067286")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067286")]
         public void TestCodeBlockAnalyzersForExpressionBody()
         {
             string source = @"
@@ -604,7 +604,7 @@ public class B
                     Diagnostic("MethodExpressionBodyDiagnostic"));
         }
 
-        [Fact, WorkItem(592, "https://github.com/dotnet/roslyn/issues/592")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/592")]
         public void TestSyntaxNodeAnalyzersForExpressionBody()
         {
             string source = @"
@@ -624,7 +624,7 @@ public class B
                     Diagnostic("MethodExpressionBodyDiagnostic"));
         }
 
-        [Fact, WorkItem(592, "https://github.com/dotnet/roslyn/issues/592")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/592")]
         public void TestMethodSymbolAnalyzersForExpressionBody()
         {
             string source = @"
@@ -685,7 +685,7 @@ public class B
                      Diagnostic("MyFieldDiagnostic", @"public string field = ""field"";").WithLocation(4, 5));
         }
 
-        [Fact, WorkItem(565, "https://github.com/dotnet/roslyn/issues/565")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/565")]
         public void TestCallbacksForFieldDeclarationWithMultipleVariables()
         {
             string source = @"
@@ -705,7 +705,7 @@ public class B
                      Diagnostic("MyFieldDiagnostic", @"public int field5, field6 = 1;").WithLocation(6, 5));
         }
 
-        [Fact, WorkItem(1096600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1096600")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1096600")]
         public void TestDescriptorForConfigurableCompilerDiagnostics()
         {
             // Verify that all configurable compiler diagnostics, i.e. all non-error diagnostics,
@@ -842,7 +842,7 @@ public class B
             }
         }
 
-        [Fact, WorkItem(252, "https://github.com/dotnet/roslyn/issues/252"), WorkItem(1392, "https://github.com/dotnet/roslyn/issues/1392")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/252"), WorkItem("https://github.com/dotnet/roslyn/issues/1392")]
         public void TestReportingUnsupportedDiagnostic()
         {
             string source = @"";
@@ -902,7 +902,7 @@ public class B
             }
         }
 
-        [Fact, WorkItem(4376, "https://github.com/dotnet/roslyn/issues/4376")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4376")]
         public void TestReportingDiagnosticWithInvalidId()
         {
             string source = @"";
@@ -942,7 +942,7 @@ public class B
             }
         }
 
-        [Fact, WorkItem(30453, "https://github.com/dotnet/roslyn/issues/30453")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30453")]
         public void TestAnalyzerWithNullDescriptor()
         {
             string source = @"";
@@ -978,7 +978,7 @@ public class B
             }
         }
 
-        [Fact, WorkItem(25748, "https://github.com/dotnet/roslyn/issues/25748")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25748")]
         public void TestReportingDiagnosticWithCSharpCompilerId()
         {
             string source = @"";
@@ -989,7 +989,7 @@ public class B
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, Diagnostic("CS101").WithLocation(1, 1));
         }
 
-        [Fact, WorkItem(25748, "https://github.com/dotnet/roslyn/issues/25748")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25748")]
         public void TestReportingDiagnosticWithBasicCompilerId()
         {
             string source = @"";
@@ -1000,7 +1000,7 @@ public class B
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, Diagnostic("BC101").WithLocation(1, 1));
         }
 
-        [Theory, WorkItem(7173, "https://github.com/dotnet/roslyn/issues/7173")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/7173")]
         [CombinatorialData]
         public void TestReportingDiagnosticWithInvalidLocation(AnalyzerWithInvalidDiagnosticLocation.ActionKind actionKind, bool testInvalidAdditionalLocation)
         {
@@ -1124,7 +1124,7 @@ SyntaxTree: ")}
                 );
         }
 
-        [Fact, WorkItem(1473, "https://github.com/dotnet/roslyn/issues/1473")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1473")]
         public void TestReportingNotConfigurableDiagnostic()
         {
             string source = @"";
@@ -1154,7 +1154,7 @@ SyntaxTree: ")}
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id));
         }
 
-        [Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1709")]
         public void TestCodeBlockAction()
         {
             string source = @"
@@ -1173,7 +1173,7 @@ class C
                     });
         }
 
-        [Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1709")]
         public void TestCodeBlockAction_OnlyStatelessAction()
         {
             string source = @"
@@ -1189,7 +1189,7 @@ class C
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, "M").WithArguments("M").WithLocation(4, 17));
         }
 
-        [Fact, WorkItem(2614, "https://github.com/dotnet/roslyn/issues/2614")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2614")]
         public void TestGenericName()
         {
             var source = @"
@@ -1219,7 +1219,7 @@ namespace ConsoleApplication1
                 Diagnostic(CSharpGenericNameAnalyzer.DiagnosticId, @"Nullable<int>").WithLocation(9, 17));
         }
 
-        [Fact, WorkItem(4745, "https://github.com/dotnet/roslyn/issues/4745")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4745")]
         public void TestNamespaceDeclarationAnalyzer()
         {
             var source = @"
@@ -1233,7 +1233,7 @@ namespace Goo.Bar.GooBar { }
                 Diagnostic(CSharpNamespaceDeclarationAnalyzer.DiagnosticId, @"namespace Goo.Bar.GooBar { }").WithLocation(2, 1));
         }
 
-        [Fact, WorkItem(2980, "https://github.com/dotnet/roslyn/issues/2980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2980")]
         public void TestAnalyzerWithNoActions()
         {
             var source = @"
@@ -1257,7 +1257,7 @@ namespace ConsoleApplication1
             TestGenericNameCore(source, new AnalyzerWithNoActions(), new CSharpGenericNameAnalyzer());
         }
 
-        [Fact, WorkItem(4055, "https://github.com/dotnet/roslyn/issues/4055")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4055")]
         public void TestAnalyzerWithNoSupportedDiagnostics()
         {
             var source = @"
@@ -1286,16 +1286,16 @@ class MyClass
         }
 
         [Fact]
-        [WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
-        [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/2598")]
         public void EffectiveSeverity_DiagnosticDefault1()
         {
             TestEffectiveSeverity(DiagnosticSeverity.Warning, ReportDiagnostic.Warn);
         }
 
         [Fact]
-        [WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
-        [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/2598")]
         public void EffectiveSeverity_DiagnosticDefault2()
         {
             var specificOptions = new Dictionary<string, ReportDiagnostic>() { { "Test0001", ReportDiagnostic.Default } };
@@ -1305,8 +1305,8 @@ class MyClass
         }
 
         [Fact]
-        [WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
-        [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/2598")]
         public void EffectiveSeverity_GeneralOption()
         {
             var generalOption = ReportDiagnostic.Error;
@@ -1314,8 +1314,8 @@ class MyClass
         }
 
         [Fact]
-        [WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
-        [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/2598")]
         public void EffectiveSeverity_SpecificOption()
         {
             var specificOption = ReportDiagnostic.Suppress;
@@ -1326,8 +1326,8 @@ class MyClass
         }
 
         [Fact]
-        [WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
-        [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/2598")]
         public void EffectiveSeverity_GeneralOptionDoesNotEnableDisabledDiagnostic()
         {
             var generalOption = ReportDiagnostic.Error;
@@ -1337,8 +1337,8 @@ class MyClass
         }
 
         [Fact()]
-        [WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
-        [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/2598")]
         public void EffectiveSeverity_SpecificOptionEnablesDisabledDiagnostic()
         {
             var specificOption = ReportDiagnostic.Warn;
@@ -1349,7 +1349,7 @@ class MyClass
             TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity: specificOption, specificOptions: specificOptions, generalOption: generalOption, isEnabledByDefault: enabledByDefault);
         }
 
-        [Fact, WorkItem(5463, "https://github.com/dotnet/roslyn/issues/5463")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5463")]
         public void TestObjectCreationInCodeBlockAnalyzer()
         {
             string source = @"
@@ -1379,7 +1379,7 @@ class D
             return compilation.WithOptions(options);
         }
 
-        [Fact, WorkItem(6737, "https://github.com/dotnet/roslyn/issues/6737")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6737")]
         public void TestNonConcurrentAnalyzer()
         {
             var builder = new StringBuilder();
@@ -1399,7 +1399,7 @@ class D
             compilation.VerifyAnalyzerDiagnostics(analyzers);
         }
 
-        [Fact, WorkItem(6737, "https://github.com/dotnet/roslyn/issues/6737")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6737")]
         public void TestConcurrentAnalyzer()
         {
             if (Environment.ProcessorCount <= 1)
@@ -1440,7 +1440,7 @@ class D
             compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
         }
 
-        [Fact, WorkItem(6998, "https://github.com/dotnet/roslyn/issues/6998")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6998")]
         public void TestGeneratedCodeAnalyzer()
         {
             string source = @"
@@ -1553,7 +1553,7 @@ class NonGeneratedCode{0}
             VerifyGeneratedCodeAnalyzerDiagnostics(warnAsErrorCompilation, analyzerOptions, isGeneratedFile, generatedCodeAnalysisFlagsOpt: null);
         }
 
-        [Fact, WorkItem(6998, "https://github.com/dotnet/roslyn/issues/6998")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6998")]
         public void TestGeneratedCodeAnalyzerPartialType()
         {
             string source = @"
@@ -1599,7 +1599,7 @@ partial class PartialType
             VerifyGeneratedCodeAnalyzerDiagnostics(compilation, expected, GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
         }
 
-        [Fact, WorkItem(11217, "https://github.com/dotnet/roslyn/issues/11217")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11217")]
         public void TestGeneratedCodeAnalyzerNoReportDiagnostics()
         {
             string source1 = @"
@@ -1889,7 +1889,7 @@ class C
             compilation.VerifyAnalyzerDiagnostics(analyzers);
         }
 
-        [Fact, WorkItem(6324, "https://github.com/dotnet/roslyn/issues/6324")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6324")]
         public void TestSharedStateAnalyzer()
         {
             string source1 = @"
@@ -1928,7 +1928,7 @@ public partial class C33 { }
                 Diagnostic("NumberOfUniqueTextFileDescriptor").WithArguments("3").WithLocation(1, 1));
         }
 
-        [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8753")]
         public void TestParametersAnalyzer_InConstructor()
         {
             string source = @"
@@ -1949,7 +1949,7 @@ public class C
                     Diagnostic("Parameter_ID", "b").WithLocation(4, 25));
         }
 
-        [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8753")]
         public void TestParametersAnalyzer_InRegularMethod()
         {
             string source = @"
@@ -1970,7 +1970,7 @@ public class C
                     Diagnostic("Parameter_ID", "b").WithLocation(4, 30));
         }
 
-        [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8753")]
         public void TestParametersAnalyzer_InIndexers()
         {
             string source = @"
@@ -1992,7 +1992,7 @@ public class C
                     Diagnostic("Parameter_ID", "index").WithLocation(4, 25));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14061"), WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14061"), WorkItem("https://github.com/dotnet/roslyn/issues/8753")]
         public void TestParametersAnalyzer_Lambdas()
         {
             string source = @"
@@ -2015,7 +2015,7 @@ public class C
                     Diagnostic("Parameter_ID", "b").WithLocation(6, 52));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14061"), WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14061"), WorkItem("https://github.com/dotnet/roslyn/issues/8753")]
         public void TestParametersAnalyzer_InAnonymousMethods()
         {
             string source = @"
@@ -2040,7 +2040,7 @@ public class C
                         Diagnostic("Parameter_ID", "y").WithLocation(6, 33));
         }
 
-        [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8753")]
         public void TestParametersAnalyzer_InDelegateTypes()
         {
             string source = @"
@@ -2059,7 +2059,7 @@ public class C
                     Diagnostic("Parameter_ID", "y").WithLocation(4, 35));
         }
 
-        [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8753")]
         public void TestParametersAnalyzer_InOperators()
         {
             string source = @"
@@ -2077,7 +2077,7 @@ public class C
                     Diagnostic("Parameter_ID", "c").WithLocation(4, 44));
         }
 
-        [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8753")]
         public void TestParametersAnalyzer_InExplicitInterfaceImplementations()
         {
             string source = @"
@@ -2103,7 +2103,7 @@ public class C : I
                     Diagnostic("Parameter_ID", "b").WithLocation(4, 23));
         }
 
-        [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8753")]
         public void TestParametersAnalyzer_InExtensionMethods()
         {
             string source = @"
@@ -2122,7 +2122,7 @@ public static class C
                     Diagnostic("Parameter_ID", "y").WithLocation(4, 35));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14061"), WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14061"), WorkItem("https://github.com/dotnet/roslyn/issues/8753")]
         public void TestParametersAnalyzer_InLocalFunctions()
         {
             string source = @"
@@ -2156,7 +2156,7 @@ public class C
                     Diagnostic("Parameter_ID", "index").WithLocation(28, 25)); // indexer
         }
 
-        [Fact, WorkItem(15903, "https://github.com/dotnet/roslyn/issues/15903")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15903")]
         public void TestSymbolAnalyzer_HiddenRegions()
         {
             string source = @"
@@ -2202,7 +2202,7 @@ public class RegularClass
                 Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("HiddenClass(IsGeneratedCode:True),RegularClass(IsGeneratedCode:False)", "Source.cs(IsGeneratedCode:False)").WithLocation(1, 1));
         }
 
-        [Fact, WorkItem(15903, "https://github.com/dotnet/roslyn/issues/15903")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15903")]
         public void TestSyntaxAndOperationAnalyzer_HiddenRegions()
         {
             string source = @"
@@ -2355,7 +2355,7 @@ public class Class
             }
         }
 
-        [Fact, WorkItem(23309, "https://github.com/dotnet/roslyn/issues/23309")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23309")]
         public void TestFieldReferenceAnalyzer_InAttributes()
         {
             string source = @"
@@ -2510,7 +2510,7 @@ internal class C : MyInterface
             }
         }
 
-        [Fact, WorkItem(23309, "https://github.com/dotnet/roslyn/issues/23309")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23309")]
         public void TestFieldReferenceAnalyzer_InConstructorInitializer()
         {
             string source = @"
@@ -2546,7 +2546,7 @@ internal class Derived : Base
                 Diagnostic("ID", "Field").WithArguments("Field", "0").WithLocation(11, 29));
         }
 
-        [Fact, WorkItem(26520, "https://github.com/dotnet/roslyn/issues/26520")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26520")]
         public void TestFieldReferenceAnalyzer_InConstructorDestructorExpressionBody()
         {
             string source = @"
@@ -2576,7 +2576,7 @@ internal class C
                 Diagnostic("ID", "Flag").WithArguments("Flag", "").WithLocation(6, 13));
         }
 
-        [Fact, WorkItem(25167, "https://github.com/dotnet/roslyn/issues/25167")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25167")]
         public void TestMethodBodyOperationAnalyzer()
         {
             string source = @"
@@ -2594,7 +2594,7 @@ internal class A
                 expected: Diagnostic("ID", squiggledText: "public void M() { }").WithArguments("M").WithLocation(4, 5));
         }
 
-        [Fact, WorkItem(25167, "https://github.com/dotnet/roslyn/issues/25167")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25167")]
         public void TestMethodBodyOperationAnalyzer_WithParameterInitializers()
         {
             string source = @"
@@ -2612,7 +2612,7 @@ internal class A
                 expected: Diagnostic("ID", squiggledText: "public void M(int p = 0) { }").WithArguments("M").WithLocation(4, 5));
         }
 
-        [Fact, WorkItem(25167, "https://github.com/dotnet/roslyn/issues/25167")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25167")]
         public void TestMethodBodyOperationAnalyzer_WithExpressionAndMethodBody()
         {
             string source = @"
@@ -2633,7 +2633,7 @@ internal class A
                 expected: Diagnostic("ID", squiggledText: "public int M() { return 0; } => 0;").WithArguments("M").WithLocation(4, 5));
         }
 
-        [Fact, WorkItem(25167, "https://github.com/dotnet/roslyn/issues/25167")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25167")]
         public void TestConstructorBodyOperationAnalyzer()
         {
             string source = @"
@@ -3165,7 +3165,7 @@ class C
             compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
         }
 
-        [Fact, WorkItem(32702, "https://github.com/dotnet/roslyn/issues/32702")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32702")]
         public void TestInvocationInPartialMethod()
         {
             string source1 = @"
@@ -3197,7 +3197,7 @@ static partial class B
             compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
         }
 
-        [Fact, WorkItem(32702, "https://github.com/dotnet/roslyn/issues/32702")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32702")]
         public void TestFieldReferenceInPartialMethod()
         {
             string source1 = @"
@@ -3229,7 +3229,7 @@ static partial class B
             compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
         }
 
-        [Fact, WorkItem(922802, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/922802")]
+        [Fact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/922802")]
         public async Task TestAnalysisScopeForGetAnalyzerSemanticDiagnosticsAsync()
         {
             string source1 = @"
@@ -3486,7 +3486,7 @@ class C
             Assert.True(second.Append(first).Concurrent);
         }
 
-        [Fact, WorkItem(41402, "https://github.com/dotnet/roslyn/issues/41402")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41402")]
         public async Task TestRegisterOperationBlockAndOperationActionOnSameContext()
         {
             string source = @"
@@ -3517,7 +3517,7 @@ internal class A
             diagnostics.Verify(Diagnostic("ID0001", "M").WithLocation(4, 17));
         }
 
-        [Fact, WorkItem(26217, "https://github.com/dotnet/roslyn/issues/26217")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26217")]
         public void TestConstructorInitializerWithExpressionBody()
         {
             string source = @"
@@ -3535,7 +3535,7 @@ class C
                 expected: Diagnostic("ID0001", "C").WithLocation(4, 5));
         }
 
-        [Fact, WorkItem(43106, "https://github.com/dotnet/roslyn/issues/43106")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43106")]
         public void TestConstructorInitializerWithoutBody()
         {
             string source = @"
@@ -3634,7 +3634,7 @@ class C
             }
         }
 
-        [Theory, WorkItem(63205, "https://github.com/dotnet/roslyn/issues/63205")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/63205")]
         [CombinatorialData]
         public async Task TestGetAnalysisResultWithFilterSpanAsync(bool testSyntaxNodeAction)
         {
@@ -3700,7 +3700,7 @@ class B
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(63466, "https://github.com/dotnet/roslyn/issues/63466")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63466")]
         public async Task TestAnalyzerWithActionsRegisteredAtDifferentScopesAsync(bool testSyntaxNodeAction)
         {
             string source = @"
@@ -3997,7 +3997,7 @@ public class C
             }
         }
 
-        [Fact, WorkItem(53136, "https://github.com/dotnet/roslyn/issues/53136")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53136")]
         public void TestNoDuplicateCallbacksForRecordDeclaration()
         {
             string source = @"
@@ -4011,8 +4011,8 @@ public record A(int X, int Y);";
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(64771, "https://github.com/dotnet/roslyn/issues/64771")]
-        [WorkItem(66085, "https://github.com/dotnet/roslyn/issues/66085")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64771")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66085")]
         public void TestDisabledByDefaultAnalyzerEnabledForSingleFile(bool treeBasedOptions)
         {
             var source1 = "class C1 { }";
@@ -4057,7 +4057,7 @@ public record A(int X, int Y);";
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(67084, "https://github.com/dotnet/roslyn/issues/67084")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67084")]
         internal async Task TestCancellationDuringDiagnosticComputation(AnalyzerRegisterActionKind actionKind)
         {
             var compilation = CreateCompilation(@"

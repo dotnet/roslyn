@@ -190,7 +190,7 @@ public class Program
         }
 
         [Fact]
-        [WorkItem(36934, "https://github.com/dotnet/roslyn/issues/36934")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36934")]
         public void AttributeUsage()
         {
             var source =

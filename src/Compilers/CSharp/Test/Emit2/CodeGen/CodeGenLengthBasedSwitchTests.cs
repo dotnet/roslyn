@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
 
 public class CodeGenLengthBasedSwitchTests : CSharpTestBase
 {
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void MixOfBucketSizes()
     {
         var source = """
@@ -504,7 +504,7 @@ public class C
 
     [InlineData(true)]
     [InlineData(false)]
-    [Theory, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void MixOfBucketSizes_Span(bool useReadonly)
     {
         var keyType = useReadonly ? "System.ReadOnlySpan<char>" : "System.Span<char>";
@@ -1026,7 +1026,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void TwoNullCases()
     {
         var source = """
@@ -1061,7 +1061,7 @@ public class C
             );
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void BucketSizeOne()
     {
         var source = """
@@ -1339,7 +1339,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void BucketSizeOne_WithIntValues()
     {
         var source = """
@@ -1503,7 +1503,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     internal void BucketSizeOne_MissingStringLength()
     {
         var source = """
@@ -1543,7 +1543,7 @@ public class C
             );
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     internal void BucketSizeOne_MissingStringIndexer()
     {
         var source = """
@@ -1642,7 +1642,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     internal void BucketSizeOne_MissingSpanLength()
     {
         var source = """
@@ -1695,7 +1695,7 @@ public class C
             );
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     internal void BucketSizeOne_MissingSpanIndexer()
     {
         var source = """
@@ -1801,7 +1801,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     internal void BucketSizeOne_MissingReadOnlySpanIndexer()
     {
         var source = """
@@ -1907,7 +1907,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     internal void BucketSizeOne_MissingAsSpan()
     {
         var source = """
@@ -1960,7 +1960,7 @@ public class C
             );
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     internal void BucketSizeOne_MissingSequenceEquals()
     {
         var source = """
@@ -2013,7 +2013,7 @@ public class C
             );
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void BucketSizeOne_WithNull()
     {
         var source = """
@@ -2303,7 +2303,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void ContentType()
     {
         var source = """
@@ -2810,7 +2810,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void BucketSizeTen()
     {
         var source = """
@@ -3621,7 +3621,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void GetDriveType()
     {
         // Based on https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Unix/System.Native/Interop.MountPoints.FormatInfo.cs#L78-L327A
@@ -6359,7 +6359,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void GetContents()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/libraries/System.Formats.Asn1/src/System/Formats/Asn1/WellKnownOids.cs#L317-L419
@@ -8746,7 +8746,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void TryParseStatusFile()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/libraries/Common/src/Interop/Linux/procfs/Interop.ProcFsStat.TryReadStatusFile.cs#L66-L102
@@ -9044,7 +9044,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void GetHashForChannelBinding()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/libraries/System.Net.Security/src/System/Net/Security/Pal.Managed/EndpointChannelBindingToken.cs#L31-L57
@@ -9529,7 +9529,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void WriteEntityRef()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/libraries/System.Private.Xml.Linq/src/System/Xml/Linq/XNodeBuilder.cs#L115-L134
@@ -9616,7 +9616,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void FunctionAvailable()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/libraries/System.Private.Xml/src/System/Xml/Xsl/XsltOld/XsltCompileContext.cs#L451-L485
@@ -10439,7 +10439,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void NormalizeTimeZone()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/libraries/System.ServiceModel.Syndication/src/System/ServiceModel/Syndication/DateTimeHelper.cs#L146-L212
@@ -10779,7 +10779,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void EmitMatchCharacterClass()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/libraries/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCompiler.cs#L5810-L5879
@@ -10829,7 +10829,7 @@ public class C
         CompileAndVerify(comp, expectedOutput: "RAN");
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void EmitMatchCharacterClass_2()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/libraries/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCompiler.cs#L5810-L5879
@@ -10968,7 +10968,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void AcceptCommand()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/mono/wasm/debugger/BrowserDebugProxy/MonoProxy.cs#L274-L572
@@ -11668,7 +11668,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void IsOperator()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/tools/illink/src/linker/Linker.Steps/DiscoverCustomOperatorsHandler.cs#L156-L221
@@ -11998,7 +11998,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void EmitIL()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/coreclr/tools/Common/TypeSystem/IL/Stubs/UnsafeIntrinsics.cs#L21-L94
@@ -12677,7 +12677,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void GetWellKnownType()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/coreclr/tools/aot/ILLink.Shared/TypeSystemProxy/WellKnownType.cs#L48-L58
@@ -12968,7 +12968,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void GetLocalizedString()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/libraries/System.ComponentModel.Primitives/src/System/ComponentModel/CategoryAttribute.cs#L202-L226
@@ -13604,7 +13604,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56374")]
     public void ParseGraphicsUnits()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/libraries/System.Drawing.Common/src/System/Drawing/FontConverter.cs#L255-L265
