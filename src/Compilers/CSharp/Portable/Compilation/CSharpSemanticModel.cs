@@ -2195,7 +2195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        Debug.Assert(false); // PROTOTYPE: Are we hitting this path?
+                        Debug.Assert(false); // PROTOTYPE: Add test.
                         // There was an explicit cast on top of this
                         type = convertedCollection.NaturalTypeOpt;
                         (convertedType, convertedNullability) = (type, nullability);

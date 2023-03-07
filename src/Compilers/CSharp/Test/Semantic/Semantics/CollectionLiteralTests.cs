@@ -1341,30 +1341,82 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = """
                 using System.Collections;
                 using System.Collections.Generic;
-                class C1<T> : IEnumerable
+                class C<T> : IEnumerable
                 {
                     List<T> _list = new List<T>();
                     public void Add(T t, params T[] args) { _list.Add(t); }
-                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
-                }
-                class C2<T> : IEnumerable
-                {
-                    List<T> _list = new List<T>();
-                    public void Add(params T[] args) { _list.Add(args[0]); }
                     IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
                 }
                 class Program
                 {
                     static void Main()
                     {
-                        C1<int> x = [1, 2];
-                        C2<int> y = [3, 4];
-                        x.Report();
-                        y.Report();
+                        C<int> c = [1, 2];
+                        c.Report();
                     }
                 }
                 """;
-            CompileAndVerify(new[] { source, GetCollectionExtensions() }, expectedOutput: "[1, 2], [3, 4], ");
+            CompileAndVerify(new[] { source, GetCollectionExtensions() }, expectedOutput: "[1, 2], ");
+        }
+
+        [Fact]
+        public void CollectionInitializerType_17()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class C<T> : IEnumerable
+                {
+                    List<T> _list = new List<T>();
+                    public void Add(params T[] args) { _list.AddRange(args); }
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        C<int> c = [[], [1, 2], 3];
+                        c.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(new[] { source, GetCollectionExtensions() }, expectedOutput: "[1, 2, 3], ");
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       61 (0x3d)
+                  .maxstack  5
+                  .locals init (C<int> V_0)
+                  IL_0000:  newobj     "C<int>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldloc.0
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  newarr     "int"
+                  IL_000d:  callvirt   "void C<int>.Add(params int[])"
+                  IL_0012:  ldloc.0
+                  IL_0013:  ldc.i4.2
+                  IL_0014:  newarr     "int"
+                  IL_0019:  dup
+                  IL_001a:  ldc.i4.0
+                  IL_001b:  ldc.i4.1
+                  IL_001c:  stelem.i4
+                  IL_001d:  dup
+                  IL_001e:  ldc.i4.1
+                  IL_001f:  ldc.i4.2
+                  IL_0020:  stelem.i4
+                  IL_0021:  callvirt   "void C<int>.Add(params int[])"
+                  IL_0026:  ldloc.0
+                  IL_0027:  ldc.i4.1
+                  IL_0028:  newarr     "int"
+                  IL_002d:  dup
+                  IL_002e:  ldc.i4.0
+                  IL_002f:  ldc.i4.3
+                  IL_0030:  stelem.i4
+                  IL_0031:  callvirt   "void C<int>.Add(params int[])"
+                  IL_0036:  ldloc.0
+                  IL_0037:  call       "void CollectionExtensions.Report(object)"
+                  IL_003c:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -1670,7 +1722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Should // 2 be reported as an error? Do we report this for the array initializer case?
+            // PROTOTYPE: // 2 should be reported as an error (compare with array initializer: new object[] { null }).
             comp.VerifyEmitDiagnostics(
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
                 //         x[0].ToString(); // 1
