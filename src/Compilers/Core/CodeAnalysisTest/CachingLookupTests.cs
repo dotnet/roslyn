@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem(60259, "https://github.com/dotnet/roslyn/issues/60259")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/60259")]
         public void FullyPopulateRace_01()
         {
             CachingDictionary<int, FullyPopulateRaceHelper> lookup = null;
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private class FullyPopulateRaceHelper { }
 
         [Fact]
-        [WorkItem(60259, "https://github.com/dotnet/roslyn/issues/60259")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/60259")]
         public void FullyPopulateRace_02()
         {
             CachingDictionary<int, FullyPopulateRaceHelper> lookup = null;

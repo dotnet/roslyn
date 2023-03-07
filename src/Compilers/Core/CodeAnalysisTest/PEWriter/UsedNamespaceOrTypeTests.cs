@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
             RunAll(unit);
         }
 
-        [WorkItem(7015, "https://github.com/dotnet/roslyn/issues/7015")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7015")]
         [Fact]
         public void EqualsTargetTypeSameValue()
         {

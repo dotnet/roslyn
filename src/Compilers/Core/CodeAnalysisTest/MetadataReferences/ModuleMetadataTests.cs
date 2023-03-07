@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ObjectDisposedException>(() => copy2.Module);
         }
 
-        [Fact, WorkItem(2988, "https://github.com/dotnet/roslyn/issues/2988")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2988")]
         public void EmptyStream()
         {
             ModuleMetadata.CreateFromStream(new MemoryStream(), PEStreamOptions.Default);

@@ -370,7 +370,7 @@ End Class
                 "C.s");
         }
 
-        [Fact, WorkItem(1141257, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1141257")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1141257")]
         public void TestResolveEnumFieldWithoutName()
         {
             var source = @"
@@ -1237,7 +1237,7 @@ End Class
                 "C`1+D`1.#[blah]M`2(!0,!1,!!0)"); // Invalid calling convention
         }
 
-        [Fact, WorkItem(65396, "https://github.com/dotnet/roslyn/issues/65396")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65396")]
         public void TestNoResolutionForMalformedNames3()
         {
             var names = new[]

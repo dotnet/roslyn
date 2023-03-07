@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     public partial class DiagnosticCreationTests
     {
-        [Fact, WorkItem(547049, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547049")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=547049")]
         public void TestDiagnosticCreationWithOverriddenSeverity()
         {
             var defaultSeverity = DiagnosticSeverity.Info;

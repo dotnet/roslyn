@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        [WorkItem(21371, "https://github.com/dotnet/roslyn/issues/21371")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21371")]
         public void GenerateDocumentationFalse()
         {
             var vbc = new Vbc();
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        [WorkItem(21371, "https://github.com/dotnet/roslyn/issues/21371")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21371")]
         public void GenerateDocumentationTrue()
         {
             var vbc = new Vbc();
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        [WorkItem(21371, "https://github.com/dotnet/roslyn/issues/21371")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21371")]
         public void GenerateDocumentationTrueWithoutFile()
         {
             var vbc = new Vbc();
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        [WorkItem(21371, "https://github.com/dotnet/roslyn/issues/21371")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21371")]
         public void GenerateDocumentationUnspecified()
         {
             var vbc = new Vbc();
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        [WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29252")]
         public void SdkPath()
         {
             var vbc = new Vbc();
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        [WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29252")]
         public void DisableSdkPath()
         {
             var vbc = new Vbc();
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40926")]
         public void SkipAnalyzersFlag()
         {
             var vbc = new Vbc();
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        [WorkItem(47790, "https://github.com/dotnet/roslyn/issues/47790")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/47790")]
         public void CheckErrorAndWarningParsing()
         {
             var vbc = new Vbc();
@@ -496,7 +496,7 @@ C:\Test Path (123)\hellovb.vb(7) : error BC30451: 'asdf' is not declared. It may
         }
 
         [Fact]
-        [WorkItem(52467, "https://github.com/dotnet/roslyn/issues/52467")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/52467")]
         public void UnexpectedExceptionLogsMessage()
         {
             var engine = new MockEngine();
