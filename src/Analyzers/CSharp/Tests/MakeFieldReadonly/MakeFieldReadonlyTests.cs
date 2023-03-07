@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MakeFieldReadonly;
 using Microsoft.CodeAnalysis.CSharp.MakeFieldReadonly;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -18,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
     public class MakeFieldReadonlyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        private static readonly ParseOptions s_strictFeatureFlag = CSharpParseOptions.Default.WithFeatures(new[] { new KeyValuePair<string, string>("strict", "true") });
+
         public MakeFieldReadonlyTests(ITestOutputHelper logger)
           : base(logger)
         {
@@ -1814,7 +1818,7 @@ $@"class MyClass
         }
 
         [Fact]
-        public async Task FieldAssignedToLocalReadOnlyRef()
+        public async Task FieldAssignedToLocalreadonlyRef()
         {
             await TestInRegularAndScript1Async(
                 """
@@ -2035,7 +2039,7 @@ $@"class MyClass
                 public class MyClass
                 {
                     [System.Runtime.Serialization.DataMember]
-                    private bool [|isReadOnly|];
+                    private bool [|isreadonly|];
                 }
                         </Document>
                     </Project>
@@ -2054,7 +2058,7 @@ $@"class MyClass
                 public class MyClass
                 {
                     [System.Runtime.Serialization.DataMember]
-                    private bool [|isReadOnly|];
+                    private bool [|isreadonly|];
                 }
                         </Document>
                     </Project>
@@ -2067,7 +2071,7 @@ $@"class MyClass
                 public class MyClass
                 {
                     [System.Runtime.Serialization.DataMember]
-                    private readonly bool isReadOnly;
+                    private readonly bool isreadonly;
                 }
                         </Document>
                     </Project>
@@ -2087,9 +2091,9 @@ $@"class MyClass
                 public class MyClass
                 {
                     [System.Runtime.Serialization.DataMember]
-                    private bool isReadOnly;
+                    private bool isreadonly;
 
-                    private bool [|isReadOnly2|];
+                    private bool [|isreadonly2|];
                 }
                         </Document>
                     </Project>
@@ -2103,9 +2107,9 @@ $@"class MyClass
                 public class MyClass
                 {
                     [System.Runtime.Serialization.DataMember]
-                    private bool isReadOnly;
+                    private bool isreadonly;
 
-                    private readonly bool isReadOnly2;
+                    private readonly bool isreadonly2;
                 }
                         </Document>
                     </Project>
@@ -2124,7 +2128,7 @@ $@"class MyClass
                 [System.Runtime.Serialization.DataContractAttribute]
                 public class MyClass
                 {
-                    public bool [|isReadOnly|];
+                    public bool [|isreadonly|];
                 }
                         </Document>
                     </Project>
@@ -2185,6 +2189,94 @@ $@"class MyClass
                     int x;
 
                     readonly int y;
+                }
+                """);
+        }
+
+        [Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")]
+        public async Task StrictFeatureFlagAssignment1()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C<T>
+                {
+                    private static IEqualityComparer<T> [|s_value|];
+
+                    static C()
+                    {
+                        C<T>.s_value = null;
+                    }
+                }
+                """,
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C<T>
+                {
+                    private static readonly IEqualityComparer<T> s_value;
+
+                    static C()
+                    {
+                        C<T>.s_value = null;
+                    }
+                }
+                """, parseOptions: s_strictFeatureFlag);
+        }
+
+        [Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")]
+        public async Task StrictFeatureFlagAssignment2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C<T>
+                {
+                    private static IEqualityComparer<T> [|s_value|];
+
+                    static C()
+                    {
+                        C<string>.s_value = null;
+                    }
+                }
+                """, new TestParameters(parseOptions: s_strictFeatureFlag));
+        }
+
+        [Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")]
+        public async Task StrictFeatureFlagAssignment3()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C<T>
+                {
+                    private static IEqualityComparer<T> [|s_value|];
+
+                    static C()
+                    {
+                        C<string>.s_value = null;
+                    }
+                }
+                """,
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C<T>
+                {
+                    private static readonly IEqualityComparer<T> s_value;
+                
+                    static C()
+                    {
+                        C<string>.s_value = null;
+                    }
                 }
                 """);
         }

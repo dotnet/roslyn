@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.MakeFieldReadonly;
-using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MakeFieldReadonly
 {
@@ -21,9 +20,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MakeFieldReadonly
 
         protected override bool IsWrittenTo(SemanticModel semanticModel, ThisExpressionSyntax expression, CancellationToken cancellationToken)
             => expression.IsWrittenTo(semanticModel, cancellationToken);
-
-        // No special logic in C#.
-        protected override bool IsLanguageSpecificFieldWriteInConstructor(IFieldReferenceOperation fieldReference, ISymbol owningSymbol)
-            => false;
     }
 }

@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
         protected abstract ISyntaxKinds SyntaxKinds { get; }
         protected abstract bool IsWrittenTo(SemanticModel semanticModel, TThisExpression expression, CancellationToken cancellationToken);
-        protected abstract bool IsLanguageSpecificFieldWriteInConstructor(IFieldReferenceOperation fieldReference, ISymbol owningSymbol);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
@@ -97,15 +96,13 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
                     // Ignore fields that are not candidates or have already been written outside the constructor/field initializer.
                     if (!isCandidate || written)
-                    {
                         return;
-                    }
 
                     // Check if this is a field write outside constructor and field initializer, and update field state accordingly.
-                    if (IsFieldWrite(fieldReference, operationContext.ContainingSymbol))
-                    {
-                        UpdateFieldStateOnWrite(fieldReference.Field);
-                    }
+                    if (!IsFieldWrite(fieldReference, operationContext.ContainingSymbol))
+                        return;
+
+                    UpdateFieldStateOnWrite(fieldReference.Field);
                 }
 
                 void OnSymbolEnd(SymbolAnalysisContext symbolEndContext)
@@ -205,14 +202,12 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             });
         }
 
-        private bool IsFieldWrite(IFieldReferenceOperation fieldReference, ISymbol owningSymbol)
+        private static bool IsFieldWrite(IFieldReferenceOperation fieldReference, ISymbol owningSymbol)
         {
             // Check if the underlying member is being written or a writable reference to the member is taken.
             var valueUsageInfo = fieldReference.GetValueUsageInfo(owningSymbol);
             if (!valueUsageInfo.IsWrittenTo())
-            {
                 return false;
-            }
 
             // Writes to fields inside constructor are ignored, except for the below cases:
             //  1. Instance reference of an instance field being written is not the instance being initialized by the constructor.
@@ -222,6 +217,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             var isInConstructor = owningSymbol.IsConstructor();
             var isInStaticConstructor = owningSymbol.IsStaticConstructor();
             var field = fieldReference.Field;
+
             if ((isInConstructor || isInStaticConstructor) &&
                 field.ContainingType.OriginalDefinition.Equals(owningSymbol.ContainingType.OriginalDefinition))
             {
@@ -239,8 +235,17 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     if (fieldReference.TryGetContainingAnonymousFunctionOrLocalFunction() is not null)
                         return true;
 
-                    if (IsLanguageSpecificFieldWriteInConstructor(fieldReference, owningSymbol))
+                    // Legacy 'strict' C#/VB behavior.  If a special "feature:strict" (different from "option strict") flag Is on,
+                    // then this write Is only ok if the containing types are the same.  *Not* simply the original
+                    // definitions being the same (which the caller has already checked):
+                    //
+                    // https://github.com/dotnet/roslyn/blob/8770fb62a36157ed4ca38a16a0283d27321a01a7/src/Compilers/CSharp/Portable/Binder/Binder.ValueChecks.cs#L1201-L1203
+                    // https//github.com/dotnet/roslyn/blob/93d3aa1a2cf1790b1a0fe2d120f00987d50445c0/src/Compilers/VisualBasic/Portable/Binding/Binder_Expressions.vb#L1868-L1871
+                    if (fieldReference.SemanticModel?.SyntaxTree.Options.Features.ContainsKey("strict") is true &&
+                        !field.ContainingType.Equals(owningSymbol.ContainingType))
+                    {
                         return true;
+                    }
 
                     // It is safe to ignore this write.
                     return false;
