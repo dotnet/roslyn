@@ -819,7 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (valueKind == BindValueKind.AddressOf && this.IsInAsyncMethod())
             {
-                diagnostics.Add(ErrorCode.WRN_AddressOfInAsync, local.Syntax.Location);
+                Error(diagnostics, ErrorCode.WRN_AddressOfInAsync, node);
             }
 
             // Local constants are never variables. Local variables are sometimes
@@ -917,14 +917,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ParameterSymbol parameterSymbol = parameter.ParameterSymbol;
-            if (this.LockedOrDisposedVariables.Contains(parameterSymbol))
-            {
-                // Consider: It would be more conventional to pass "symbol" rather than "symbol.Name".
-                // The issue is that the error SymbolDisplayFormat doesn't display parameter
-                // names - only their types - which works great in signatures, but not at all
-                // at the top level.
-                diagnostics.Add(ErrorCode.WRN_AssignmentToLockOrDispose, parameter.Syntax.Location, parameterSymbol.Name);
-            }
 
             // all parameters can be passed by ref/out or assigned to
             // except "in" parameters, which are readonly
@@ -967,6 +959,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportThisLvalueError(node, valueKind, isValueType: true, isPrimaryConstructorParameter: true, diagnostics);
                     return false;
                 }
+            }
+
+            if (this.LockedOrDisposedVariables.Contains(parameterSymbol))
+            {
+                // Consider: It would be more conventional to pass "symbol" rather than "symbol.Name".
+                // The issue is that the error SymbolDisplayFormat doesn't display parameter
+                // names - only their types - which works great in signatures, but not at all
+                // at the top level.
+                diagnostics.Add(ErrorCode.WRN_AssignmentToLockOrDispose, parameter.Syntax.Location, parameterSymbol.Name);
             }
 
             return true;
