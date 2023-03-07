@@ -207,7 +207,8 @@ stages:
           include:
           - src/Compilers/*
           - src/Dependencies/*
-          - eng/*
+          - src/NuGet/Microsoft.Net.Compilers.Toolset/*
+          - eng/*`
           - src/Tools/Source/CompilerGeneratorTools/*
 
   - job: Correctness_Build_Artifacts
