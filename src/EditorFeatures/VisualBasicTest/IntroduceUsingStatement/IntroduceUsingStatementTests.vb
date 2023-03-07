@@ -364,7 +364,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35237")>
         Public Async Function ExpandsToIncludeSurroundedVariableDeclarations() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.IO
@@ -391,7 +391,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35237")>
         Public Async Function ExpandsToIncludeSurroundedMultiVariableDeclarations() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.IO
@@ -420,7 +420,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(43373, "https://github.com/dotnet/roslyn/issues/43373")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43373")>
         Public Async Function HandleTrailingComma() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -464,7 +464,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")>
         Public Async Function ConsumeFollowingTryStatement1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -496,7 +496,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")>
         Public Async Function ConsumeFollowingTryStatement2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -534,7 +534,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")>
         Public Async Function ConsumeFollowingTryStatement3() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -568,7 +568,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")>
         Public Async Function ConsumeFollowingTryStatement4() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -604,7 +604,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")>
         Public Async Function ConsumeFollowingTryStatement5() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -640,7 +640,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")>
         Public Async Function ConsumeFollowingTryStatement6() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -676,7 +676,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")>
         Public Async Function ConsumeFollowingTryStatement7() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -712,7 +712,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")>
         Public Async Function ConsumeFollowingTryStatement8() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System

@@ -103,7 +103,7 @@ End Structure
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(45451, "https://github.com/dotnet/roslyn/issues/45451")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/45451")>
         Public Async Function ConvertSingleTupleType_ChangeArgumentNameCase(host As TestHost) As Task
             Dim text = "
 class Test

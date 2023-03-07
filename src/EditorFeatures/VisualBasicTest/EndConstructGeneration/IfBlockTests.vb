@@ -159,7 +159,7 @@ End Class",
 
         End Sub
 
-        <WpfFact, WorkItem(536441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536441")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536441")>
         Public Sub TestVerifyNestedSingleLineIf()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -249,7 +249,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, WorkItem(539576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539576")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539576")>
         Public Sub TestVerifyWithSkippedTokens()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -308,7 +308,7 @@ End Class",
                 afterCaret:={3, 12})
         End Sub
 
-        <WorkItem(540204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540204")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540204")>
         <WpfFact(Skip:="528838")>
         Public Sub TestBugFix6380()
             VerifyStatementEndConstructApplied(
@@ -339,7 +339,7 @@ End Module",
                 afterCaret:={8, 12})
         End Sub
 
-        <WpfFact(Skip:="890307"), WorkItem(544523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544523")>
+        <WpfFact(Skip:="890307"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544523")>
         Public Sub TestVerifyRewriteOfIfWithColons()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -358,7 +358,7 @@ End Class",
                 afterCaret:={3, 12})
         End Sub
 
-        <WpfFact, WorkItem(530648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530648")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530648")>
         Public Sub TestVerifyRewriteOfIfWithEmptyStatement()
             ' Verify the caret is at the beginning of line 3 here.  In VS, it will be moved to the
             ' correct virtual offset as part of the edit.  This is an edge case that we really just

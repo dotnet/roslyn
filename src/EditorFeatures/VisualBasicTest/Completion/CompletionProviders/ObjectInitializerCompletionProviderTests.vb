@@ -48,7 +48,7 @@ End Class</a>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, WorkItem(530075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530075")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530075")>
         Public Async Function TestNotInArgumentList() As Task
             Dim text = <a>Public Class C
     Property A As Integer
@@ -138,7 +138,7 @@ End Program</a>.Value
             Await VerifyItemExistsAsync(text, "goo")
         End Function
 
-        <Fact, WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24612")>
         Public Async Function TestObjectInitializerOfGenericTypeСonstraint1() As Task
             Dim text = <a>Class C
     Public Function testSub(Of T As {IExample, New})()
@@ -155,7 +155,7 @@ End Interface</a>.Value
             Await VerifyItemExistsAsync(text, "B")
         End Function
 
-        <Fact, WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24612")>
         Public Async Function TestObjectInitializerOfGenericTypeСonstraint2() As Task
             Dim text = <a>Class C
     Public Function testSub(Of T As {New})()
@@ -167,7 +167,7 @@ End Class
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24612")>
         Public Async Function TestObjectInitializerOfGenericTypeСonstraint3() As Task
             Dim text = <a>Class C
     Public Function testSub(Of T As {Structure})()
@@ -245,7 +245,7 @@ End Program</a>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, WorkItem(544326, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544326")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544326")>
         Public Async Function TestInactiveInRValue() As Task
             Dim text = <a>Class C
     Public X As Long = 1
@@ -293,7 +293,7 @@ End Class</a>.Value
             Await VerifyItemIsAbsentAsync(text, "Bar")
         End Function
 
-        <Fact, WorkItem(545881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545881")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545881")>
         Public Async Function TestNoReadonlyFieldsOrProperties() As Task
             Dim text = <a>Module M
     Sub Main()
@@ -304,7 +304,7 @@ End Module
             Await VerifyItemIsAbsentAsync(text, "Data")
         End Function
 
-        <Fact, WorkItem(545844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545844")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545844")>
         Public Async Function TestNoParameterizedProperties() As Task
             Dim text = <a>Module M
     Module M
@@ -316,7 +316,7 @@ End Module
             Await VerifyItemIsAbsentAsync(text, "Item")
         End Function
 
-        <Fact, WorkItem(545844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545844")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545844")>
         Public Async Function TestShowParameterizedPropertiesWithAllOptionalArguments() As Task
             Dim text = <a>Imports System
 Public Class AImpl
@@ -338,7 +338,7 @@ End Class</a>.Value
             Await VerifyItemExistsAsync(text, "P")
         End Function
 
-        <Fact, WorkItem(545844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545844")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545844")>
         Public Async Function TestDoNotShowParameterizedPropertiesWithSomeMandatoryArguments() As Task
             Dim text = <a>Imports System
 Public Class AImpl
@@ -360,7 +360,7 @@ End Class</a>.Value
             Await VerifyItemIsAbsentAsync(text, "P")
         End Function
 
-        <Fact, WorkItem(545844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545844")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545844")>
         Public Async Function TestParameterizedPropertiesWithParamArrays() As Task
             Dim text = <a>Option Strict On
 Class C
@@ -388,7 +388,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "Q")
         End Function
 
-        <Fact, WorkItem(530491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530491")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530491")>
         Public Async Function TestObjectInitializerOnInterface() As Task
             Dim text = <a><![CDATA[Option Strict On
 Imports System.Runtime.InteropServices
@@ -472,7 +472,7 @@ End Program"
             Await VerifySendEnterThroughToEditorAsync(code, "bar", expected:=False)
         End Function
 
-        <Fact, WorkItem(26560, "https://github.com/dotnet/roslyn/issues/26560")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26560")>
         Public Async Function TestKeywordsEscaped() As Task
             Dim text = <a>Class C
     Public Property [Wend] As Integer

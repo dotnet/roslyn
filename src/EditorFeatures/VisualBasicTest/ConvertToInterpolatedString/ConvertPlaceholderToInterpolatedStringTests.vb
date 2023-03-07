@@ -424,7 +424,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestMissingInRegularAndScriptAsync(text)
         End Function
 
-        <Fact, WorkItem(13605, "https://github.com/dotnet/roslyn/issues/13605")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13605")>
         Public Async Function TestInvocationWithNullArguments() As Task
             Dim text =
 "Module Module1
@@ -435,7 +435,7 @@ End Module"
             Await TestMissingInRegularAndScriptAsync(text)
         End Function
 
-        <Fact, WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19162")>
         Public Async Function TestFormatWithNamedArguments1() As Task
             Dim text = <File>
 Imports System
@@ -456,7 +456,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19162")>
         Public Async Function TestFormatWithNamedArguments2() As Task
             Dim text = <File>
 Imports System
@@ -477,7 +477,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19162")>
         Public Async Function TestFormatWithNamedArguments3() As Task
             Dim text = <File>
 Imports System
@@ -498,7 +498,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19162")>
         Public Async Function TestFormatWithNamedArguments4() As Task
             Dim text = <File>
 Imports System
@@ -519,7 +519,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19162")>
         Public Async Function TestFormatWithNamedArguments5() As Task
             Dim text = <File>
 Imports System
@@ -540,7 +540,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19162")>
         Public Async Function TestFormatWithNamedArguments_CaseInsensitive() As Task
             Dim text = <File>
 Imports System

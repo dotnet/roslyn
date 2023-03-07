@@ -75,7 +75,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, WorkItem(530132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530132")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530132")>
         Public Async Function TestInvocationForTryCast() As Task
             Dim markup = <a><![CDATA[
 Class C

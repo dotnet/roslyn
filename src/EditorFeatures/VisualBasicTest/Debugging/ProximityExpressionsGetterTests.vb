@@ -179,8 +179,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
                                                       End Function)
         End Function
 
-        <Fact, WorkItem(538819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538819")>
-        <WorkItem(527754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538819")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
         Public Async Function TestIsValid1() As Task
             Await TestIsValidAsync(<text>Module M
     Sub S
@@ -190,28 +190,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
 End Module</text>.Value, "local", True)
         End Function
 
-        <Fact, WorkItem(527754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
         Public Async Function TestIsValidWithDiagnostics() As Task
             ' local doesn't exist in this context
             Await TestIsValidAsync("class Class { void Method() { string local; } $$}", "local", False)
         End Function
 
-        <Fact, WorkItem(527754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
         Public Async Function TestIsValidReferencingLocalBeforeDeclaration() As Task
             Await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "j", False)
         End Function
 
-        <Fact, WorkItem(527754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
         Public Async Function TestIsValidReferencingUndefinedVariable() As Task
             Await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "k", False)
         End Function
 
-        <Fact, WorkItem(527754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
         Public Async Function TestIsValidNoTypeSymbol() As Task
             Await TestIsValidAsync("namespace Namespace$$ { }", "goo", False)
         End Function
 
-        <Fact, WorkItem(527754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
         Public Async Function TestIsValidLocalAfterPosition() As Task
             Await TestIsValidAsync("class Class { void Method() { $$ int i; string local; } }", "local", False)
         End Function
@@ -232,7 +232,7 @@ End Module</text>.Value, "local", True)
             End Using
         End Function
 
-        <Fact, WorkItem(538819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538819")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538819")>
         Public Async Function TestDebugInfo1() As Task
             Await TestLanguageDebugInfoTryGetProximityExpressionsAsync("$$Module M : End Module")
         End Function
@@ -274,7 +274,7 @@ End Module
                       </text>.NormalizedValue, "x", "e")
         End Function
 
-        <Fact, WorkItem(538847, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538847")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538847")>
         Public Async Function TestMultipleStatementsOnSameLine() As Task
             Await TestTryDoAsync(<text>
 Imports System

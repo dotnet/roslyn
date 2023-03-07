@@ -784,7 +784,7 @@ end class",
 end class")
         End Function
 
-        <Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")>
         Public Async Function TestMissingStartToken1() As Task
             Await TestMissingAsync(
 "class C
@@ -794,7 +794,7 @@ end class")
 end class")
         End Function
 
-        <Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")>
         Public Async Function TestMissingStartToken2() As Task
             Await TestMissingAsync(
 "class C
@@ -804,7 +804,7 @@ end class")
 end class")
         End Function
 
-        <Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")>
         Public Async Function TestMissingEndToken1() As Task
             Await TestMissingAsync(
 "class C
@@ -814,7 +814,7 @@ end class")
 end class")
         End Function
 
-        <Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")>
         Public Async Function TestMissingEndToken2() As Task
             Await TestMissingAsync(
 "class C

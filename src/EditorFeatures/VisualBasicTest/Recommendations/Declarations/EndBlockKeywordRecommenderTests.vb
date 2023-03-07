@@ -177,7 +177,7 @@ Enum Goo
 End |</File>, "Enum")
         End Sub
 
-        <Fact, WorkItem(539311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539311")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539311")>
         Public Sub EndBlockMissingInPreprocessorTest()
             VerifyRecommendationsMissing(
 <ClassDeclaration>
@@ -189,44 +189,44 @@ End Module
 </ClassDeclaration>, {"End Module", "End Sub"})
         End Sub
 
-        <Fact, WorkItem(540069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
         Public Sub EndSubSuggestFunctionTest()
             VerifyRecommendationsContain(<ClassDeclaration>Sub Goo()
 End |</ClassDeclaration>, "Function", "Sub")
         End Sub
 
-        <WorkItem(540069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
-        <Fact, WorkItem(530599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530599")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530599")>
         Public Sub EndFunctionDoesNotSuggestEndSubTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Function Goo()
 |</ClassDeclaration>, "End Sub")
         End Sub
 
-        <Fact, WorkItem(540069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
         Public Sub EndFunctionSuggestSubTest()
             VerifyRecommendationsContain(<ClassDeclaration>Function Goo()
 End |</ClassDeclaration>, "Function", "Sub")
         End Sub
 
-        <Fact, WorkItem(540069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
         Public Sub EndSubNotClassSuggestedTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Sub Goo()
 |</ClassDeclaration>, "End Class", "End Module", "End Structure", "End Interface")
         End Sub
 
-        <Fact, WorkItem(969097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969097")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969097")>
         Public Sub EndClassPairingsTest()
             VerifyRecommendationsMissing(<File>Class Goo()
 End |</File>, "Module", "Interface", "Structure")
         End Sub
 
-        <Fact, WorkItem(969097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969097")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969097")>
         Public Sub EndModulePairingsTest()
             VerifyRecommendationsMissing(<File>Module Goo()
 End |</File>, "Class", "Interface", "Structure")
         End Sub
 
-        <Fact, WorkItem(540069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
         Public Sub EndModuleNotSubSuggestedTest()
             VerifyRecommendationsMissing(<File>Module Goo()
 |</File>, "End Sub", "End Function")
