@@ -97,7 +97,7 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return')
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7299")>
         Public Sub Return_ConstantConversions_01()
             Dim source = <![CDATA[
 Option Strict On

@@ -254,7 +254,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
-        <WorkItem(8909, "https://github.com/dotnet/roslyn/issues/8909")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/8909")>
         Public Sub AddEventHandler_AssignToNonSharedEventOnType()
             Dim source = <![CDATA[
 Imports System

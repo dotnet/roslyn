@@ -73,7 +73,7 @@ IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: System.Nulla
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        <WorkItem(23009, "https://github.com/dotnet/roslyn/issues/23009")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/23009")>
         Public Sub IConditionalAccessExpression_ErrorReceiver()
             Dim source = <![CDATA[
 Option Strict On

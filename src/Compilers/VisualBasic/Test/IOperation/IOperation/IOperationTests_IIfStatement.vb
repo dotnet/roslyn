@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits SemanticModelTestBase
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementSingleLineIf()
             Dim source = <![CDATA[
 Module Program
@@ -50,7 +50,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If count
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementMultiLineIf()
             Dim source = <![CDATA[
 Module Program
@@ -91,7 +91,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If count
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementSingleLineIfAndElse()
             Dim source = <![CDATA[
 Module Program
@@ -144,7 +144,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If count
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementSingleLineIfAndElseNested()
             Dim source = <![CDATA[
 Module Program
@@ -194,7 +194,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If m > 1
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementSimpleIfWithConditionEvaluationTrue()
             Dim source = <![CDATA[
 Class P
@@ -233,7 +233,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If 1 = 1
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementSimpleIfWithConditionConstantFalse()
             Dim source = <![CDATA[
 Class P
@@ -268,7 +268,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If False
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementSingleLineWithOperator()
             Dim source = <![CDATA[
 Module Program
@@ -317,7 +317,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (m > 
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementMultiLineIfWithElse()
             Dim source = <![CDATA[
 Module Program
@@ -368,7 +368,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If count
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementSimpleIfNested1()
             Dim source = <![CDATA[
 Imports System
@@ -442,7 +442,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (m > 
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementIfNested2()
             Dim source = <![CDATA[
 Imports System
@@ -516,7 +516,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (m > 
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementWithMultipleCondition()
             Dim source = <![CDATA[
 Imports System
@@ -572,7 +572,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (m >=
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementWithElseIfCondition()
             Dim source = <![CDATA[
 Imports System
@@ -654,7 +654,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (m > 
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementWithElseIfSingleLine()
             Dim source = <![CDATA[
 Module Program
@@ -734,7 +734,7 @@ BC30205: End of statement expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementWithElseMissing()
             Dim source = <![CDATA[
 Imports System
@@ -783,7 +783,7 @@ BC30081: 'If' must end with a matching 'End If'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementWithConditionMissing()
             Dim source = <![CDATA[
 Imports System
@@ -832,7 +832,7 @@ BC30201: Expression expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementWithStatementMissing()
             Dim source = <![CDATA[
 Imports System
@@ -868,7 +868,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (m = 
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementWithFuncCall()
             Dim source = <![CDATA[
 Module Module1

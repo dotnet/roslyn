@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits SemanticModelTestBase
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub NoInitializers()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -40,7 +40,7 @@ End Class
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub ConstantInitializers_StaticField()
             Dim source = <![CDATA[
 Class C
@@ -58,7 +58,7 @@ IFieldInitializerOperation (Field: C.s1 As System.Int32) (OperationKind.FieldIni
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub ConstantInitializers_InstanceField()
             Dim source = <![CDATA[
 Class C
@@ -76,7 +76,7 @@ IFieldInitializerOperation (Field: C.i2 As System.Int32) (OperationKind.FieldIni
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub ConstantInitializers_Property()
             Dim source = <![CDATA[
 Class C
@@ -94,7 +94,7 @@ IPropertyInitializerOperation (Property: Property C.P1 As System.Int32) (Operati
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub ConstantInitializers_DefaultValueParameter()
             Dim source = <![CDATA[
 Class C
@@ -120,7 +120,7 @@ BC30046: Method cannot have both a ParamArray and Optional parameters.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub ConstantInitializers_DefaultValueParamsArray()
             Dim source = <![CDATA[
 Class C
@@ -149,7 +149,7 @@ BC30046: Method cannot have both a ParamArray and Optional parameters.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17813")>
         Public Sub AsNewFieldInitializer()
             Dim source = <![CDATA[
 Class C
@@ -170,7 +170,7 @@ IFieldInitializerOperation (Field: C.x As System.Object) (OperationKind.FieldIni
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17813")>
         Public Sub MultipleFieldInitializers()
             Dim source = <![CDATA[
 Class C
@@ -193,7 +193,7 @@ IFieldInitializerOperation (2 initialized fields) (OperationKind.FieldInitialize
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17813")>
         Public Sub SingleFieldInitializerErrorCase()
             Dim source = <![CDATA[
 Class C1
@@ -221,7 +221,7 @@ BC30671: Explicit initialization is not permitted with multiple variables declar
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17813")>
         Public Sub MultipleWithEventsInitializers()
             Dim source = <![CDATA[
 Class C1
@@ -252,7 +252,7 @@ IPropertyInitializerOperation (2 initialized properties) (OperationKind.Property
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17813")>
         Public Sub SingleWithEventsInitializersErrorCase()
             Dim source = <![CDATA[
 Class C1
@@ -279,7 +279,7 @@ BC30671: Explicit initialization is not permitted with multiple variables declar
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub ExpressionInitializers_StaticField()
             Dim source = <![CDATA[
 Class C
@@ -308,7 +308,7 @@ IFieldInitializerOperation (Field: C.s1 As System.Int32) (OperationKind.FieldIni
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub ExpressionInitializers_InstanceField()
             Dim source = <![CDATA[
 Class C
@@ -337,7 +337,7 @@ IFieldInitializerOperation (Field: C.i1 As System.Int32) (OperationKind.FieldIni
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub ExpressionInitializers_Property()
             Dim source = <![CDATA[
 Class C
@@ -366,7 +366,7 @@ IPropertyInitializerOperation (Property: Property C.P1 As System.Int32) (Operati
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub PartialClasses_StaticField()
             Dim source = <![CDATA[
 Partial Class C
@@ -389,7 +389,7 @@ IFieldInitializerOperation (Field: C.s1 As System.Int32) (OperationKind.FieldIni
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub PartialClasses_InstanceField()
             Dim source = <![CDATA[
 Partial Class C
@@ -412,7 +412,7 @@ IFieldInitializerOperation (Field: C.i2 As System.Int32) (OperationKind.FieldIni
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7299")>
         Public Sub FieldInitializer_ConstantConversions_01()
             Dim source = <![CDATA[
 Option Strict On
@@ -439,7 +439,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Byte'
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7299")>
         Public Sub FieldInitializer_ConstantConversions_02()
             Dim source = <![CDATA[
 Option Strict On

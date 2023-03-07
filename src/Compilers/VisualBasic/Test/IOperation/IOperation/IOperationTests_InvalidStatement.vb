@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits SemanticModelTestBase
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidVariableDeclarationStatement()
             Dim source = <![CDATA[
 Class Program
@@ -49,7 +49,7 @@ BC30203: Identifier expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidSwitchStatementExpression()
             Dim source = <![CDATA[
 Class Program
@@ -84,7 +84,7 @@ BC30109: 'Program' is a class type and cannot be used as an expression.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidSwitchStatementCaseLabel()
             Dim source = <![CDATA[
 Class Program
@@ -125,7 +125,7 @@ BC30311: Value of type 'Program' cannot be converted to 'String'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidIfStatement()
             Dim source = <![CDATA[
 Class Program
@@ -166,7 +166,7 @@ BC30452: Operator '=' is not defined for types 'Program' and 'Program'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidIfElseIfStatement()
             Dim source = <![CDATA[
 Class Program
@@ -223,7 +223,7 @@ BC30454: Expression is not a method.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidForStatement_MissingConditionAndStep()
             Dim source = <![CDATA[
 Module Program
@@ -267,7 +267,7 @@ BC30035: Syntax error.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidForStatement_MissingConditionAndInitialization()
             Dim source = <![CDATA[
 Module Program
@@ -323,7 +323,7 @@ BC30249: '=' expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidForStatement_InvalidConditionAndStep()
             Dim source = <![CDATA[
 Module Program
@@ -372,7 +372,7 @@ BC30451: 'x' is not declared. It may be inaccessible due to its protection level
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidGotoStatement_MissingLabel()
             Dim source = <![CDATA[
 Module Program
@@ -401,7 +401,7 @@ BC30132: Label 'Label1' is not defined.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidExitStatement_OutsideLoopOrSwitch()
             Dim source = <![CDATA[
 Module Program
@@ -425,7 +425,7 @@ BC30096: 'Exit For' can only appear inside a 'For' statement.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidContinueStatement_OutsideLoopOrSwitch()
             Dim source = <![CDATA[
 Module Program
@@ -452,7 +452,7 @@ BC30781: 'Continue' must be followed by 'Do', 'For' or 'While'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidCaseStatement_OutsideSwitchBlock()
             Dim source = <![CDATA[
 Module Program
@@ -477,7 +477,7 @@ BC30072: 'Case' can only appear inside a 'Select Case' statement.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidElseIfStatement_NoPrecedingIfStatement()
             Dim source = <![CDATA[
 Imports System

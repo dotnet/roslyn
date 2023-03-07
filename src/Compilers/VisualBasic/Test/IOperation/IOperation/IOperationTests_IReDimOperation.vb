@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits SemanticModelTestBase
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimStatement_SingleClause_SimpleArray()
             Dim source = <![CDATA[
 Imports System
@@ -43,7 +43,7 @@ IReDimOperation (OperationKind.ReDim, Type: null) (Syntax: 'ReDim intArray(2)')
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimClause_SimpleArray()
             Dim source = <![CDATA[
 Imports System
@@ -73,7 +73,7 @@ IReDimClauseOperation (OperationKind.ReDimClause, Type: null) (Syntax: 'intArray
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimOperand_SimpleArray()
             Dim source = <![CDATA[
 Imports System
@@ -95,7 +95,7 @@ ILocalReferenceOperation: intArray (OperationKind.LocalReference, Type: System.I
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimSize_SimpleArray()
             Dim source = <![CDATA[
 Imports System
@@ -117,7 +117,7 @@ ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Synt
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimStatement_SingleClause_MultiDimensionalArray()
             Dim source = <![CDATA[
 Imports System
@@ -154,7 +154,7 @@ IReDimOperation (OperationKind.ReDim, Type: null) (Syntax: 'ReDim intArray(2, 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimStatement_MultipleClause_DifferentDimensionalArrays()
             Dim source = <![CDATA[
 Imports System
@@ -200,7 +200,7 @@ IReDimOperation (OperationKind.ReDim, Type: null) (Syntax: 'ReDim intAr ... 2), 
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimClause_FirstClauseFromMultipleClauses()
             Dim source = <![CDATA[
 Imports System
@@ -230,7 +230,7 @@ IReDimClauseOperation (OperationKind.ReDimClause, Type: null) (Syntax: 'intArray
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimClause_SecondClauseFromMultipleClauses()
             Dim source = <![CDATA[
 Imports System
@@ -265,7 +265,7 @@ IReDimClauseOperation (OperationKind.ReDimClause, Type: null) (Syntax: 'x(1, 1)'
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimStatement_Preserve_SingleClause()
             Dim source = <![CDATA[
 Imports System
@@ -297,7 +297,7 @@ IReDimOperation (Preserve) (OperationKind.ReDim, Type: null) (Syntax: 'ReDim Pre
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimStatement_Preserve_MultipleClause()
             Dim source = <![CDATA[
 Imports System
@@ -343,7 +343,7 @@ IReDimOperation (Preserve) (OperationKind.ReDim, Type: null) (Syntax: 'ReDim Pre
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimStatement_ErrorCase_NoOperandOrIndex()
             Dim source = <![CDATA[
 Imports System
@@ -376,7 +376,7 @@ BC30201: Expression expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimStatement_ErrorCase_Preserve_NoOperandOrIndex()
             Dim source = <![CDATA[
 Imports System
@@ -409,7 +409,7 @@ BC30201: Expression expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimStatement_ErrorCase_NoIndex()
             Dim source = <![CDATA[
 Imports System
@@ -439,7 +439,7 @@ BC30670: 'ReDim' statements require a parenthesized list of the new bounds of ea
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimStatement_ErrorCase_NoOperand()
             Dim source = <![CDATA[
 Imports System
@@ -473,7 +473,7 @@ BC30074: Constant cannot be the target of an assignment.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimStatement_ErrorCase_NonArrayOperandWithoutIndex()
             Dim source = <![CDATA[
 Imports System
@@ -503,7 +503,7 @@ BC30049: 'Redim' statement requires an array.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimStatement_ErrorCase_NonArrayOperandWithIndex()
             Dim source = <![CDATA[
 Imports System
@@ -538,7 +538,7 @@ BC30049: 'Redim' statement requires an array.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimStatement_ErrorCase_ChangeArrayDimensions()
             Dim source = <![CDATA[
 Imports System
@@ -573,7 +573,7 @@ BC30415: 'ReDim' cannot change the number of dimensions of an array.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimStatement_ErrorCase_MissingIndexArgument()
             Dim source = <![CDATA[
 Imports System
@@ -614,7 +614,7 @@ BC30306: Array subscript expression missing.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(30175, "https://github.com/dotnet/roslyn/issues/30175")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30175")>
         Public Sub ReDimStatement_ErrorCase_MissingClause()
             Dim source = <![CDATA[
 Imports System

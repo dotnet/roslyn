@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits SemanticModelTestBase
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_TupleExpression()
             Dim source = <![CDATA[
 Class Class1
@@ -40,7 +40,7 @@ ITupleOperation (OperationKind.Tuple, Type: (x As System.Int32, System.Int32)) (
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_AnonymousObjectCreation()
             Dim source = <![CDATA[
 Class Class1
@@ -81,7 +81,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_QueryExpression()
             Dim source = <![CDATA[
 Imports System.Linq
@@ -131,7 +131,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_QueryExpressionAggregateClause()
             Dim source = <![CDATA[
 Option Strict Off
@@ -172,7 +172,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Int32) (S
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_QueryExpressionOrderByClause()
             Dim source = <![CDATA[
 Option Strict Off
@@ -219,7 +219,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Linq.IOrd
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_QueryExpressionGroupByClause()
             Dim source = <![CDATA[
 Option Strict Off
@@ -318,7 +318,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_ObjectAndCollectionInitializer()
             Dim source = <![CDATA[
 Imports System.Collections.Generic
@@ -416,7 +416,7 @@ IObjectCreationOperation (Constructor: Sub [Class]..ctor()) (OperationKind.Objec
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_DelegateCreationExpressionWithLambdaArgument()
             Dim source = <![CDATA[
 Option Strict Off
@@ -452,7 +452,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.EventHa
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_DelegateCreationExpressionWithMethodArgument()
             Dim source = <![CDATA[
 Imports System
@@ -477,7 +477,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.EventHa
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_DelegateCreationExpressionWithInvalidArgument()
             Dim source = <![CDATA[
 Option Strict Off
@@ -506,7 +506,7 @@ BC32008: Delegate 'EventHandler' requires an 'AddressOf' expression or lambda ex
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_NameOfExpression()
             Dim source = <![CDATA[
 Class Class1
@@ -526,7 +526,7 @@ INameOfOperation (OperationKind.NameOf, Type: System.String, Constant: "x") (Syn
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_NameOfExpression_ErrorCase()
             Dim source = <![CDATA[
 Class Class1
@@ -554,7 +554,7 @@ BC37244: This expression does not have a name.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_LateBoundIndexerAccess()
             Dim source = <![CDATA[
 Option Strict Off
@@ -585,7 +585,7 @@ IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Objec
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_LateBoundMemberAccess()
             Dim source = <![CDATA[
 Option Strict Off
@@ -616,7 +616,7 @@ IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Objec
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_LateBoundInvocation()
             Dim source = <![CDATA[
 Option Strict Off
@@ -647,7 +647,7 @@ IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Objec
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_InterpolatedStringExpression()
             Dim source = <![CDATA[
 Imports System
@@ -699,7 +699,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_MidAssignmentStatement()
             Dim source = <![CDATA[
 Imports System
@@ -732,7 +732,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_MisplacedCaseStatement()
             Dim source = <![CDATA[
 Imports System
@@ -759,7 +759,7 @@ BC30072: 'Case' can only appear inside a 'Select Case' statement.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_RedimStatement()
             Dim source = <![CDATA[
 Imports System
@@ -801,7 +801,7 @@ IReDimOperation (OperationKind.ReDim, Type: null) (Syntax: 'ReDim intArray(x, x,
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_EraseStatement()
             Dim source = <![CDATA[
 Imports System
@@ -831,7 +831,7 @@ IOperation:  (OperationKind.None, Type: null) (Syntax: 'Erase x')
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/19024"), WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/19024"), WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_UnstructuredExceptionHandlingStatement()
             Dim source = <![CDATA[
 Imports System
@@ -855,8 +855,8 @@ IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Public S
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40679: The test hook is blocked by this issue.
-        <WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
-        <WorkItem(40679, "https://github.com/dotnet/roslyn/issues/40679")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/40679")>
         Public Sub ParameterReference_LateAddressOfOperator()
             Dim source = <![CDATA[
 Option Strict Off
@@ -885,7 +885,7 @@ IOperation:  (OperationKind.None, Type: System.Object) (Syntax: 'AddressOf x.Met
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_NullableIsTrueOperator()
             Dim source = <![CDATA[
 Option Strict Off
@@ -916,7 +916,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If x The
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_NoPiaObjectCreation()
             Dim sources0 = <compilation>
                                <file name="a.vb"><![CDATA[

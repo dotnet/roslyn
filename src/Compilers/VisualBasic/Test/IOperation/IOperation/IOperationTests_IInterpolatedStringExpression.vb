@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits SemanticModelTestBase
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_Empty()
             Dim source = <![CDATA[
 Imports System
@@ -34,7 +34,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_OnlyTextPart()
             Dim source = <![CDATA[
 Imports System
@@ -59,7 +59,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_OnlyInterpolationPart()
             Dim source = <![CDATA[
 Imports System
@@ -88,7 +88,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_EmptyInterpolationPart()
             Dim source = <![CDATA[
 Imports System
@@ -122,7 +122,7 @@ BC30201: Expression expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_TextAndInterpolationParts()
             Dim source = <![CDATA[
 Imports System
@@ -164,7 +164,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_FormatAndAlignment()
             Dim source = <![CDATA[
 Imports System
@@ -223,7 +223,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_InterpolationAndFormatAndAlignment()
             Dim source = <![CDATA[
 Imports System
@@ -259,7 +259,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_InvocationInInterpolation()
             Dim source = <![CDATA[
 Imports System
@@ -324,7 +324,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_NestedInterpolation()
             Dim source = <![CDATA[
 Imports System
@@ -377,7 +377,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_InvalidExpressionInInterpolation()
             Dim source = <![CDATA[
 Imports System

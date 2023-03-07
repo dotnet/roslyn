@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits SemanticModelTestBase
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReference_SingleDimensionArray_ConstantIndex()
             Dim source = <![CDATA[
 Class C
@@ -35,7 +35,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReference_SingleDimensionArray_NonConstantIndex()
             Dim source = <![CDATA[
 Class C
@@ -58,7 +58,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReference_SingleDimensionArray_FunctionCallArrayReference()
             Dim source = <![CDATA[
 Class C
@@ -88,7 +88,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReference_MultiDimensionArray_ConstantIndices()
             Dim source = <![CDATA[
 Class C
@@ -112,7 +112,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReference_MultiDimensionArray_NonConstantIndices()
             Dim source = <![CDATA[
 Class C
@@ -136,7 +136,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReference_MultiDimensionArray_InvocationInIndex()
             Dim source = <![CDATA[
 Class C
@@ -167,7 +167,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReference_JaggedArray_ConstantIndices()
             Dim source = <![CDATA[
 Class C
@@ -194,7 +194,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReference_JaggedArray_NonConstantIndices()
             Dim source = <![CDATA[
 Class C
@@ -229,7 +229,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReference_JaggedArrayOfMultidimensionalArrays()
             Dim source = <![CDATA[
 Class C
@@ -265,7 +265,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReference_ImplicitConversionInIndexExpression()
             Dim source = <![CDATA[
 Class C
@@ -291,7 +291,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReference_ExplicitConversionInIndexExpression()
             Dim source = <![CDATA[
 Option Strict On
@@ -319,7 +319,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReference_ImplicitUserDefinedConversionInIndexExpression()
             Dim source = <![CDATA[
 Option Strict On
@@ -351,7 +351,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReference_ExplicitUserDefinedConversionInIndexExpression()
             Dim source = <![CDATA[
 Option Strict On
@@ -383,7 +383,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReference_ExplicitConversionInArrayReference()
             Dim source = <![CDATA[
 Class C
@@ -409,7 +409,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReferenceError_NoConversionInIndexExpression()
             Dim source = <![CDATA[
 Option Strict On
@@ -441,7 +441,7 @@ BC30311: Value of type 'C' cannot be converted to 'Integer'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReferenceError_MissingExplicitCastInIndexExpression()
             Dim source = <![CDATA[
 Option Strict On
@@ -477,7 +477,7 @@ BC30512: Option Strict On disallows implicit conversions from 'C' to 'Integer'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReferenceError_NoIndices()
             Dim source = <![CDATA[
 Option Strict On
@@ -505,7 +505,7 @@ BC30105: Number of indices is less than the number of dimensions of the indexed 
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReferenceError_BadIndexing()
             Dim source = <![CDATA[
 Option Strict On
@@ -533,7 +533,7 @@ BC30367: Class 'C' cannot be indexed because it has no default property.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReferenceError_BadIndexCount()
             Dim source = <![CDATA[
 Option Strict On
@@ -563,7 +563,7 @@ BC30106: Number of indices exceeds the number of dimensions of the indexed array
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReferenceError_ExtraElementAccessOperator()
             Dim source = <![CDATA[
 Option Strict On
@@ -594,7 +594,7 @@ BC30367: Class 'C' cannot be indexed because it has no default property.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReferenceError_IndexErrorExpression()
             Dim source = <![CDATA[
 Option Strict On
@@ -623,7 +623,7 @@ BC30451: 'ErrorExpression' is not declared. It may be inaccessible due to its pr
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReferenceError_SyntaxErrorInIndexer_MissingValue()
             Dim source = <![CDATA[
 Option Strict On
@@ -661,7 +661,7 @@ BC30491: Expression does not produce a value.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReferenceError_SyntaxErrorInIndexer_MissingParens()
             Dim source = <![CDATA[
 Option Strict On
@@ -694,7 +694,7 @@ BC30201: Expression expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReferenceError_SyntaxErrorInIndexer_MissingParensAfterIndex()
             Dim source = <![CDATA[
 Option Strict On
@@ -723,7 +723,7 @@ BC30198: ')' expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReferenceError_SyntaxErrorInIndexer_DeeplyNestedParameterReference()
             Dim source = <![CDATA[
 Option Strict On
@@ -763,7 +763,7 @@ BC30455: Argument not specified for parameter 'index' of 'Public Overloads ReadO
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReferenceError_NamedArgumentForArray()
             Dim source = <![CDATA[
 Option Strict On
@@ -792,7 +792,7 @@ BC30075: Named arguments are not valid as array subscripts.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")>
         Public Sub ArrayElementReference_NegativeIndexExpression()
             Dim source = <![CDATA[
 Class C

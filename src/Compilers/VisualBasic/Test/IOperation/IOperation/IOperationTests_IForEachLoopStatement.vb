@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits SemanticModelTestBase
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_SimpleForLoopsTest()
             Dim source = <![CDATA[
 Imports System
@@ -57,7 +57,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_WithList()
             Dim source = <![CDATA[
 Class Program
@@ -102,7 +102,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_WithBreak()
             Dim source = <![CDATA[
 Class C
@@ -162,7 +162,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_WithContinue()
             Dim source = <![CDATA[
 Class C
@@ -233,7 +233,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Nested()
             Dim source = <![CDATA[
 Class C
@@ -281,7 +281,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Nested1()
             Dim source = <![CDATA[
 Class C
@@ -336,7 +336,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Interface()
             Dim source = <![CDATA[
 Option Infer On
@@ -395,7 +395,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_String()
             Dim source = <![CDATA[
 Option Infer On
@@ -437,7 +437,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_IterateStruct()
             Dim source = <![CDATA[
 Option Infer On
@@ -491,7 +491,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_QueryExpression()
             Dim source = <![CDATA[
 Imports System
@@ -624,7 +624,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Multidimensional()
             Dim source = <![CDATA[
 Option Strict On
@@ -711,7 +711,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_LateBinding()
             Dim source = <![CDATA[
 Option Strict Off
@@ -758,7 +758,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Pattern()
             Dim source = <![CDATA[
 Option Infer On
@@ -820,7 +820,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Lambda()
             Dim source = <![CDATA[
 Option Strict On
@@ -882,7 +882,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_InvalidConversion()
             Dim source = <![CDATA[
 Imports System
@@ -924,7 +924,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Throw()
             Dim source = <![CDATA[
 Imports System
@@ -989,7 +989,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_WithReturn()
             Dim source = <![CDATA[
 Class C
@@ -1038,7 +1038,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_FieldAsIterationVariable()
             Dim source = <![CDATA[
 Imports System
@@ -1075,7 +1075,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_FieldWithExplicitReceiverAsIterationVariable()
             Dim source = <![CDATA[
 Imports System
@@ -1112,7 +1112,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_CastArrayToIEnumerable()
             Dim source = <![CDATA[
 Option Infer On
@@ -1157,7 +1157,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_CastCollectionToIEnumerable()
             Dim source = <![CDATA[
 Option Infer On
@@ -1202,7 +1202,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_InvalidLoopControlVariableDeclaration()
             Dim source = <![CDATA[
 Imports System

@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 #Region "Dim Declarations"
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub VariableDeclarator()
             Dim source = <![CDATA[
 Module Program
@@ -42,7 +42,7 @@ BC42024: Unused local variable: 'i1'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub MultipleVariableDeclarations()
             Dim source = <![CDATA[
 Module Program
@@ -92,7 +92,7 @@ BC42024: Unused local variable: 'b1'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub VariableDeclaratorNoType()
             Dim source = <![CDATA[
 Imports System
@@ -126,7 +126,7 @@ BC42024: Unused local variable: 'i1'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub MultipleVariableDeclarationNoTypes()
             Dim source = <![CDATA[
 Imports System
@@ -166,7 +166,7 @@ BC42024: Unused local variable: 'i2'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub InvalidMultipleVariableDeclaration()
             Dim source = <![CDATA[
 Imports System
@@ -210,7 +210,7 @@ BC30203: Identifier expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub InvalidMultipleVariableDeclarationsNoType()
             Dim source = <![CDATA[
 Imports System
@@ -250,7 +250,7 @@ BC30203: Identifier expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub VariableDeclaratorLocalReferenceInitializer()
             Dim source = <![CDATA[
 Module Program
@@ -278,7 +278,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub MultipleVariableDeclarationLocalReferenceInitializer()
             Dim source = <![CDATA[
 Module Program
@@ -314,7 +314,7 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub VariableDeclaratorExpressionInitializer()
             Dim source = <![CDATA[
 Module Program
@@ -348,7 +348,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub MultipleVariableDeclarationExpressionInitializers()
             Dim source = <![CDATA[
 Module Program
@@ -393,7 +393,7 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub DimAsNew()
             Dim source = <![CDATA[
 Module Program
@@ -425,7 +425,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub MultipleDimAsNew()
             Dim source = <![CDATA[
 Module Program
@@ -458,7 +458,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub DimAsNewNoObject()
             Dim source = <![CDATA[
 Module Program
@@ -490,7 +490,7 @@ BC30182: Type expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub MultipleDimAsNewNoObject()
             Dim source = <![CDATA[
 Module Program
@@ -525,7 +525,7 @@ BC30182: Type expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub MixedDimAsNewAndEqualsDeclarations()
             Dim source = <![CDATA[
 Module Program
@@ -566,7 +566,7 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub MixedDimAsNewAndEqualsDeclarationsReversedOrder()
             Dim source = <![CDATA[
 Module Program
@@ -610,7 +610,7 @@ BC42024: Unused local variable: 'b1'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub ArrayDeclarationWithLength()
             Dim source = <![CDATA[
 Module Program
@@ -645,7 +645,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub ArrayDeclarationMultipleVariables()
             Dim source = <![CDATA[
 Module Program
@@ -681,7 +681,7 @@ BC42024: Unused local variable: 'i2'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub ArrayDeclarationInvalidAsNew()
             Dim source = <![CDATA[
 Module Program
@@ -726,7 +726,7 @@ BC30053: Arrays cannot be declared with 'New'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(22362, "https://github.com/dotnet/roslyn/issues/22362")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/22362")>
         Public Sub ArrayRangeDeclaration()
             Dim source = <![CDATA[
 Option Strict On
@@ -763,7 +763,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(22362, "https://github.com/dotnet/roslyn/issues/22362")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/22362")>
         Public Sub ArrayDeclarationCollectionInitializer()
             Dim source = <![CDATA[
 Option Strict On
@@ -799,7 +799,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(22362, "https://github.com/dotnet/roslyn/issues/22362")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/22362")>
         Public Sub PercentTypeSpecifierWithNullableAndInitializer()
             Dim source = <![CDATA[
 Option Strict On
@@ -831,7 +831,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(22362, "https://github.com/dotnet/roslyn/issues/22362")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/22362")>
         Public Sub MultipleIdentifiersWithSingleInitializer_Invalid()
             Dim source = <![CDATA[
 Option Strict On
@@ -1334,7 +1334,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 #Region "Using Statements"
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub UsingStatementDeclarationAsNew()
             Dim source = <![CDATA[
 Imports System
@@ -1391,7 +1391,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End 
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/17917"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/17917"), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub UsingStatementDeclaration()
             Dim source = <![CDATA[
 Module Program
@@ -1425,7 +1425,7 @@ IVariableDeclarationStatement (1 declarators) (OperationKind.VariableDeclaration
 #Region "Const Declarations"
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub ConstDeclaration()
             Dim source = <![CDATA[
 Module Program
@@ -1456,7 +1456,7 @@ BC42099: Unused local constant: 'i1'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub ConstMultipleDeclaration()
             Dim source = <![CDATA[
 Imports System
@@ -1502,7 +1502,7 @@ BC42099: Unused local constant: 'i2'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub ConstAsNew()
             Dim source = <![CDATA[
 Module Program
@@ -1537,7 +1537,7 @@ BC30246: 'New' is not valid on a local constant declaration.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub ConstAsNewMultipleDeclarations()
             Dim source = <![CDATA[
 Module Program
@@ -1584,7 +1584,7 @@ BC30246: 'New' is not valid on a local constant declaration.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub ConstSingleDeclarationNoType()
             Dim source = <![CDATA[
 Module Program
@@ -1615,7 +1615,7 @@ BC42099: Unused local constant: 'i1'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub ConstMultipleDeclarationsNoTypes()
             Dim source = <![CDATA[
 Module Program
@@ -1658,7 +1658,7 @@ BC30201: Expression expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub ConstSingleDeclarationLocalReferenceInitializer()
             Dim source = <![CDATA[
 Module Program
@@ -1690,7 +1690,7 @@ BC42099: Unused local constant: 'i2'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub ConstMultipleDeclarationsLocalReferenceInitializer()
             Dim source = <![CDATA[
 Module Program
@@ -1733,7 +1733,7 @@ BC42099: Unused local constant: 'i3'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub ConstSingleDeclarationExpressionInitializer()
             Dim source = <![CDATA[
 Module Program
@@ -1773,7 +1773,7 @@ BC30059: Constant expression is required.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub ConstMultipleDeclarationsExpressionInitializers()
             Dim source = <![CDATA[
 Module Program
@@ -1829,7 +1829,7 @@ BC30059: Constant expression is required.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub ConstDimAsNewNoInitializer()
             Dim source = <![CDATA[
 Module Program
@@ -1864,7 +1864,7 @@ BC30182: Type expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub ConstDimAsNewMultipleDeclarationsNoInitializer()
             Dim source = <![CDATA[
 Module Program
@@ -1908,7 +1908,7 @@ BC30182: Type expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub ConstInvalidMultipleDeclaration()
             Dim source = <![CDATA[
 Module Program
@@ -1958,7 +1958,7 @@ BC30438: Constants must have a value.
 #Region "Static Declarations"
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub StaticDeclaration()
             Dim source = <![CDATA[
 Imports System
@@ -1992,7 +1992,7 @@ BC42024: Unused local variable: 'i1'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub StaticMultipleDeclarations()
             Dim source = <![CDATA[
 Imports System
@@ -2032,7 +2032,7 @@ BC42024: Unused local variable: 'i2'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub StaticAsNewDeclaration()
             Dim source = <![CDATA[
 Imports System
@@ -2066,7 +2066,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub StaticMultipleDeclarationAsNew()
             Dim source = <![CDATA[
 Imports System
@@ -2103,7 +2103,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub StaticMixedAsNewAndEqualsDeclaration()
             Dim source = <![CDATA[
 Imports System
@@ -2148,7 +2148,7 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub StaticSingleDeclarationNoType()
             Dim source = <![CDATA[
 Module Program
@@ -2178,7 +2178,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub StaticMultipleDeclarationsNoTypes()
             Dim source = <![CDATA[
 Module Program
@@ -2219,7 +2219,7 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub StaticSingleDeclarationLocalReferenceInitializer()
             Dim source = <![CDATA[
 Module Program
@@ -2247,7 +2247,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub StaticMultipleDeclarationsLocalReferenceInitializers()
             Dim source = <![CDATA[
 Module Program
@@ -2283,7 +2283,7 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub StaticSingleDeclarationExpressionInitializer()
             Dim source = <![CDATA[
 Module Program
@@ -2320,7 +2320,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub StaticMultipleDeclarationsExpressionInitializers()
             Dim source = <![CDATA[
 Module Program
@@ -2371,7 +2371,7 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub StaticAsNewSingleDeclarationInvalidInitializer()
             Dim source = <![CDATA[
 Module Program
@@ -2404,7 +2404,7 @@ BC30182: Type expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub StaticAsNewMultipleDeclarationInvalidInitializer()
             Dim source = <![CDATA[
 Module Program
@@ -2447,7 +2447,7 @@ BC30182: Type expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub StaticSingleDeclarationInvalidInitializer()
             Dim source = <![CDATA[
 Module Program
@@ -2483,7 +2483,7 @@ BC30201: Expression expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub StaticMultipleDeclarationsInvalidInitializers()
             Dim source = <![CDATA[
 Module Program
@@ -2531,7 +2531,7 @@ BC30201: Expression expected.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub StaticInvalidMultipleDeclaration()
             Dim source = <![CDATA[
 Module Program
