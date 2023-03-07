@@ -578,7 +578,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (current is Syntax.InternalSyntax.YieldStatementSyntax)
+                {
+                    stack.Free();
                     return true;
+                }
 
                 foreach (var child in current.ChildNodesAndTokens())
                 {
