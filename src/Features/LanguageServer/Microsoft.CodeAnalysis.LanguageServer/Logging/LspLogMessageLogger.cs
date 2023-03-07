@@ -46,6 +46,18 @@ internal sealed class LspLogMessageLogger : ILogger
         }
 
         var message = formatter(state, exception);
+
+        // HACK: work around https://github.com/dotnet/runtime/issues/67597: the formatter function we passed the exception to completely ignores the exception,
+        // we'll add an exception message back in. If we didn't have a message, we'll just replace it with the exception text.
+        if (exception != null)
+        {
+            var exceptionString = exception.ToString();
+            if (message == "[null]") // https://github.com/dotnet/runtime/blob/013ca673f6316dbbe71c7b327d7b8fa41cf8c992/src/libraries/Microsoft.Extensions.Logging.Abstractions/src/FormattedLogValues.cs#L19
+                message = exceptionString;
+            else
+                message += " " + exceptionString;
+        }
+
         if (message != null && logLevel != LogLevel.None)
         {
             message = $"[{_categoryName}]{message}";
