@@ -85,6 +85,15 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     return;
             }
 
+            // if the user is explicitly passing in a CultureInfo, don't offer as it's likely they want specialized
+            // formatting for the values.
+            foreach (var argument in arguments)
+            {
+                var type = semanticModel.GetTypeInfo(syntaxFacts.GetExpressionOfArgument(argument)).Type;
+                if (type is { Name: nameof(CultureInfo), ContainingNamespace.Name: nameof(System.Globalization), ContainingNamespace.ContainingNamespace.Name: nameof(System) })
+                    return;
+            }
+
             if (ParseExpression("$" + stringToken.Text) is not TInterpolatedStringExpressionSyntax interpolatedString)
                 return;
 

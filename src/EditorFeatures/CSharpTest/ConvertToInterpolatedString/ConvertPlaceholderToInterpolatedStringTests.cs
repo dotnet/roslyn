@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -1034,6 +1032,22 @@ class T
     void M(ILogger logger)
     {
         logger.Log($""{5}"");
+    }
+}");
+        }
+
+        [Fact, WorkItem(61346, "https://github.com/dotnet/roslyn/issues/61346")]
+        public async Task TestNotWithExplicitCultureInfo()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Globalization;
+
+class T
+{
+    void M()
+    {
+        var a = string.Format(CultureInfo.InvariantCulture, [|""{0}"", 1|]);
     }
 }");
         }
