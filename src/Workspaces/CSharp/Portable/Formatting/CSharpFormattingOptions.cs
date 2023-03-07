@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => new(
                 feature: PublicFeatureName,
                 name: publicName,
-                group: FormattingOptionGroups.NewLine,
+                group: CSharpFormattingOptionGroups.NewLine,
                 defaultValue: CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.HasFlag(flag),
                 storageLocations: ImmutableArray<OptionStorageLocation>.Empty,
                 storageMapping: new NewLineForBracesInternalStorageMapping(CSharpFormattingOptions2.NewLineBeforeOpenBrace, flag),

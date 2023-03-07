@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             .WithPublicOption(PublicFeatureName, "WrappingKeepStatementsOnSingleLine");
 
         public static Option2<NewLineBeforeOpenBracePlacement> NewLineBeforeOpenBrace { get; } = CreateOption(
-            FormattingOptionGroups.NewLine,
+            CSharpFormattingOptionGroups.NewLine,
             name: "csharp_new_line_before_open_brace",
             CSharpSyntaxFormattingOptions.NewLinesDefault.ToNewLineBeforeOpenBracePlacement(),
             new EditorConfigValueSerializer<NewLineBeforeOpenBracePlacement>(
@@ -245,32 +245,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 serializeValue: ToEditorConfigValue));
 
         public static Option2<bool> NewLineForElse { get; } = CreateOption(
-            FormattingOptionGroups.NewLine, "csharp_new_line_before_else",
+            CSharpFormattingOptionGroups.NewLine, "csharp_new_line_before_else",
             CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeElse))
             .WithPublicOption(PublicFeatureName, "NewLineForElse");
 
         public static Option2<bool> NewLineForCatch { get; } = CreateOption(
-            FormattingOptionGroups.NewLine, "csharp_new_line_before_catch",
+            CSharpFormattingOptionGroups.NewLine, "csharp_new_line_before_catch",
             CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeCatch))
             .WithPublicOption(PublicFeatureName, "NewLineForCatch");
 
         public static Option2<bool> NewLineForFinally { get; } = CreateOption(
-            FormattingOptionGroups.NewLine, "csharp_new_line_before_finally",
+            CSharpFormattingOptionGroups.NewLine, "csharp_new_line_before_finally",
             CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeFinally))
             .WithPublicOption(PublicFeatureName, "NewLineForFinally");
 
         public static Option2<bool> NewLineForMembersInObjectInit { get; } = CreateOption(
-            FormattingOptionGroups.NewLine, "csharp_new_line_before_members_in_object_initializers",
+            CSharpFormattingOptionGroups.NewLine, "csharp_new_line_before_members_in_object_initializers",
             CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeMembersInObjectInitializers))
             .WithPublicOption(PublicFeatureName, "NewLineForMembersInObjectInit");
 
         public static Option2<bool> NewLineForMembersInAnonymousTypes { get; } = CreateOption(
-            FormattingOptionGroups.NewLine, "csharp_new_line_before_members_in_anonymous_types",
+            CSharpFormattingOptionGroups.NewLine, "csharp_new_line_before_members_in_anonymous_types",
             CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeMembersInAnonymousTypes))
             .WithPublicOption(PublicFeatureName, "NewLineForMembersInAnonymousTypes");
 
         public static Option2<bool> NewLineForClausesInQuery { get; } = CreateOption(
-            FormattingOptionGroups.NewLine, "csharp_new_line_between_query_expression_clauses",
+            CSharpFormattingOptionGroups.NewLine, "csharp_new_line_between_query_expression_clauses",
             CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BetweenQueryExpressionClauses))
             .WithPublicOption(PublicFeatureName, "NewLineForClausesInQuery");
 
@@ -317,6 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
     internal static class CSharpFormattingOptionGroups
     {
+        public static readonly OptionGroup NewLine = new("csharp_new_line", WorkspacesResources.New_line_preferences, priority: 1);
         public static readonly OptionGroup Indentation = new("csharp_indentation", CSharpWorkspaceResources.Indentation_preferences, priority: 2, parent: FormattingOptionGroups.FormattingOptionGroup);
         public static readonly OptionGroup Spacing = new("csharp_spacing", CSharpWorkspaceResources.Space_preferences, priority: 3, parent: FormattingOptionGroups.FormattingOptionGroup);
         public static readonly OptionGroup Wrapping = new("csharp_wrapping", CSharpWorkspaceResources.Wrapping_preferences, priority: 4, parent: FormattingOptionGroups.FormattingOptionGroup);
