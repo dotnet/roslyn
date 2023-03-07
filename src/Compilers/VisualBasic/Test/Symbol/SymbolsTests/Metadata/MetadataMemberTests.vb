@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 } // end of class Interface
 ]]>.Value
 
-        <WorkItem(527152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527152")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527152")>
         <Fact>
         Public Sub MetadataMethodSymbolCtor01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -183,7 +183,7 @@ End Class
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(537334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537334")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537334")>
         <Fact>
         Public Sub MetadataMethodSymbol01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -238,8 +238,8 @@ End Class
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(527150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527150")>
-        <WorkItem(537337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537337")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527150")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537337")>
         <Fact>
         Public Sub MetadataParameterSymbol01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -355,7 +355,7 @@ End Class
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(537335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537335")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537335")>
         <Fact>
         Public Sub MetadataParameterSymbolGen02()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -740,7 +740,7 @@ End Class
         End Sub
 
         ' TODO: Update this test if we decide to include gaps in the symbol table for NoPIA (DevDiv #17472).
-        <Fact, WorkItem(546951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546951")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546951")>
         Public Sub VTableGapsNotInSymbolTable()
             Dim vb = <compilation name="MT">
                          <file name="a.vb">
@@ -769,7 +769,7 @@ End Class
             Assert.Null(propWithoutSetter.SetMethod)
         End Sub
 
-        <Fact, WorkItem(546951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546951")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546951")>
         Public Sub CallVTableGap()
             Dim vb = <compilation name="MT">
                          <file name="a.vb">
@@ -804,7 +804,7 @@ End Module
                 Diagnostic(ERRID.ERR_NoSetProperty1, "c.SetterIsGap = x").WithArguments("SetterIsGap"))
         End Sub
 
-        <Fact, WorkItem(546951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546951")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546951")>
         Public Sub ImplementVTableGap()
             Dim vb = <compilation name="MT">
                          <file name="a.vb">
@@ -856,7 +856,7 @@ End Class
                 Diagnostic(ERRID.ERR_IdentNotMemberOfInterface4, "[Interface].BothAccessorsAreGaps").WithArguments("BothAccessorsAreGaps", "BothAccessorsAreGaps", "property", "[Interface]"))
         End Sub
 
-        <Fact, WorkItem(1094411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094411")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094411")>
         Public Sub Bug1094411_01()
             Dim source1 =
 <compilation>
@@ -892,7 +892,7 @@ End Class
             Next
         End Sub
 
-        <Fact, WorkItem(1094411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094411")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094411")>
         Public Sub Bug1094411_02()
             Dim source1 =
 <compilation>

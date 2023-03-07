@@ -4732,7 +4732,7 @@ End Class
         <Theory>
         <InlineData(True)>
         <InlineData(False)>
-        <WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/40033")>
         Public Sub SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit_IndirectInterfaces(ByVal useImageReferences As Boolean)
 
             Dim getReference As Func(Of Compilation, MetadataReference) = Function(c) If(useImageReferences, c.EmitToImageReference(), c.ToMetadataReference())

@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CustomModifiersTests
         Inherits BasicTestBase
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub ModifiedTypeArgument_01()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit Test1
@@ -84,7 +84,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="Test")
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub ModifiedTypeArgument_02()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit Test1
@@ -156,7 +156,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="Test")
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub ConcatModifiers_01()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<T1>
@@ -214,7 +214,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="Test")
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub ConcatModifiers_02()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<T1>
@@ -292,7 +292,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="Overridden")
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub ConcatModifiersAndByRef_01()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<T1>
@@ -363,7 +363,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="Overridden")
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub ConcatModifiersAndByRef_02()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<T1>
@@ -434,7 +434,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="Overridden")
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub ConcatModifiersAndByRef_03()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<T1>
@@ -505,7 +505,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="Overridden")
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub ConcatModifiersAndByRef_04()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<T1>
@@ -576,7 +576,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="Overridden")
         End Sub
 
-        <Fact(), WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/8948")>
         Public Sub ConcatModifiersAndByRefReturn_01()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<T1>
@@ -671,7 +671,7 @@ End Class
 get_P")
         End Sub
 
-        <Fact(), WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/8948")>
         Public Sub ConcatModifiersAndByRefReturn_02()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<T1>
@@ -766,7 +766,7 @@ End Class
 get_P")
         End Sub
 
-        <Fact(), WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/8948")>
         Public Sub ConcatModifiersAndByRefReturn_03()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<T1>
@@ -861,7 +861,7 @@ End Class
 get_P")
         End Sub
 
-        <Fact(), WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/8948")>
         Public Sub ConcatModifiersAndByRefReturn_04()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<T1>
@@ -956,7 +956,7 @@ End Class
 get_P")
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub ConcatModifiers_03()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<T1>
@@ -1055,7 +1055,7 @@ End Class
 Get Overridden")
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub ConcatModifiers_04()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<T1>
@@ -1126,7 +1126,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="Overridden")
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub ConcatModifiers_05()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<T1>
@@ -1192,7 +1192,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="123")
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub ConstructedTypesEquality_02()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<T1>
@@ -1287,7 +1287,7 @@ End Class
             Assert.NotSame(base1, base3)
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub RetargetingModifiedTypeArgument_01()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit Test1
@@ -1349,7 +1349,7 @@ End Class
             Assert.NotSame(compilation1.SourceModule.CorLibrary(), compilation2.SourceModule.CorLibrary())
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub TypeUnification_01()
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi ITest0`1<T>
@@ -1392,7 +1392,7 @@ BC32122: Cannot inherit interface 'ITest1(Of U)' because the interface 'ITest0(O
                                                </expected>)
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub TypeUnification_02()
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi ITest0`1<T>
@@ -1435,7 +1435,7 @@ BC32122: Cannot inherit interface 'ITest1(Of U)' because the interface 'ITest0(O
                                                </expected>)
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub TypeUnification_03()
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi ITest0`1<T>
@@ -1472,7 +1472,7 @@ End Interface
                                                </expected>)
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub TypeUnification_04()
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi ITest0`1<T>
@@ -1515,7 +1515,7 @@ BC32122: Cannot inherit interface 'ITest1(Of U)' because the interface 'ITest0(O
                                                </expected>)
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub TypeUnification_05()
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi ITest0`1<T>
@@ -1561,7 +1561,7 @@ BC32122: Cannot inherit interface 'ITest1(Of U)' because the interface 'ITest0(O
                                                </expected>)
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub TypeUnification_06()
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi ITest0`1<T>
@@ -1601,7 +1601,7 @@ End Interface
                                                </expected>)
         End Sub
 
-        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4163")>
         Public Sub Delegates_01()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<T1>
@@ -1739,7 +1739,7 @@ MyDelegate
 Test 6")
         End Sub
 
-        <Fact, WorkItem(4623, "https://github.com/dotnet/roslyn/issues/4623")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4623")>
         Public Sub MultiDimensionalArray_01()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit Test1
@@ -1795,7 +1795,7 @@ End Class
 Overridden")
         End Sub
 
-        <Fact, WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5725")>
         Public Sub ModifiersWithConstructedType_01()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<valuetype .ctor ([mscorlib]System.ValueType) T1>
@@ -1866,7 +1866,7 @@ End Class
 Overridden")
         End Sub
 
-        <Fact, WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5725")>
         Public Sub ModifiersWithConstructedType_02()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<valuetype .ctor ([mscorlib]System.ValueType) T1>
@@ -1937,7 +1937,7 @@ End Class
 Overridden")
         End Sub
 
-        <Fact, WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5725")>
         Public Sub ModifiersWithConstructedType_03()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<valuetype .ctor ([mscorlib]System.ValueType) T1>
@@ -2010,7 +2010,7 @@ End Class
 Overridden")
         End Sub
 
-        <Fact, WorkItem(14453, "https://github.com/dotnet/roslyn/issues/14453")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14453")>
         Public Sub ModifiersWithConstructedType_04()
             Dim vbSource =
                 <compilation>
@@ -2046,7 +2046,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="Overridden")
         End Sub
 
-        <Fact, WorkItem(14453, "https://github.com/dotnet/roslyn/issues/14453")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14453")>
         Public Sub ModifiersWithConstructedType_05()
             Dim vbSource =
                 <compilation>
@@ -2096,7 +2096,7 @@ End Class
 CL3.Test")
         End Sub
 
-        <Fact, WorkItem(5993, "https://github.com/dotnet/roslyn/issues/5993")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5993")>
         Public Sub ConcatModifiersAndByRef_05()
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi beforefieldinit X.I
@@ -2148,7 +2148,7 @@ End Class
 Implemented B")
         End Sub
 
-        <Fact, WorkItem(6372, "https://github.com/dotnet/roslyn/issues/6372")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6372")>
         Public Sub ModifiedTypeParameterAsTypeArgument_01()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit CL1`1<T1>

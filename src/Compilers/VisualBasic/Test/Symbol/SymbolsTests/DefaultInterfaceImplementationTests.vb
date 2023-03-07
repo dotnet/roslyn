@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Property
 
         <Fact>
-        <WorkItem(35820, "https://github.com/dotnet/roslyn/issues/35820")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35820")>
         Public Sub MethodImplementation_01()
 
             Dim csSource =
@@ -81,7 +81,7 @@ BC30149: Class 'C' must implement 'Sub M1()' for interface 'I1'.
         End Sub
 
         <Fact>
-        <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub MethodImplementation_02()
 
             Dim csSource =
@@ -203,7 +203,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35823, "https://github.com/dotnet/roslyn/issues/35823")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35823")>
         Public Sub MethodImplementation_05()
 
             Dim csSource =
@@ -240,7 +240,7 @@ BC30149: Class 'C' must implement 'Sub M1()' for interface 'I1'.
         End Sub
 
         <Fact>
-        <WorkItem(35823, "https://github.com/dotnet/roslyn/issues/35823")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35823")>
         Public Sub MethodImplementation_06()
 
             Dim csSource =
@@ -280,7 +280,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35824, "https://github.com/dotnet/roslyn/issues/35824")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35824")>
         Public Sub MethodImplementation_07()
 
             Dim csSource =
@@ -316,7 +316,7 @@ BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Friend'.
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub MethodImplementation_08()
 
             Dim csSource =
@@ -358,7 +358,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub MethodImplementation_09()
 
             Dim csSource =
@@ -399,7 +399,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35824, "https://github.com/dotnet/roslyn/issues/35824")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35824")>
         Public Sub MethodImplementation_10()
 
             Dim csSource =
@@ -507,7 +507,7 @@ BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Friend'.
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub MethodImplementation_13()
 
             Dim csSource =
@@ -539,7 +539,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub MethodImplementation_14()
 
             Dim csSource =
@@ -804,7 +804,7 @@ BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Friend'.
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub MethodImplementation_21()
 
             Dim csSource =
@@ -843,7 +843,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub MethodImplementation_22()
 
             Dim csSource =
@@ -1125,7 +1125,7 @@ BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Private'
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub MethodImplementation_29()
 
             Dim csSource =
@@ -1167,7 +1167,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub MethodImplementation_30()
 
             Dim csSource =
@@ -1212,7 +1212,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35885, "https://github.com/dotnet/roslyn/issues/35885")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35885")>
         Public Sub MethodImplementation_31()
 
             Dim csSource =
@@ -1260,7 +1260,7 @@ BC37309: Target runtime doesn't support default interface implementation.
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub MethodImplementation_32()
 
             Dim csSource =
@@ -1313,7 +1313,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub MethodImplementation_33()
 
             Dim csSource =
@@ -1434,7 +1434,7 @@ BC30389: 'I1.M1' is not accessible in this context because it is 'Friend'.
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub Field_03()
 
             Dim csSource =
@@ -1463,7 +1463,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub Field_04()
 
             Dim csSource =
@@ -1635,7 +1635,7 @@ BC30389: 'I1.M1' is not accessible in this context because it is 'Private'.
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub Field_09()
 
             Dim csSource =
@@ -1669,7 +1669,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub Field_10()
 
             Dim csSource =
@@ -1703,7 +1703,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38711")>
         Public Sub Field_11()
 
             Dim csSource =
@@ -1751,7 +1751,7 @@ BC40004: class 'M2' conflicts with variable 'M2' in the base class 'C1' and shou
         End Sub
 
         <Fact>
-        <WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38711")>
         Public Sub Field_12()
 
             Dim csSource =
@@ -1791,7 +1791,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38711")>
         Public Sub Field_13()
 
             Dim csSource =
@@ -1840,7 +1840,7 @@ BC40004: sub 'M2' conflicts with variable 'M2' in the base class 'C1' and should
         End Sub
 
         <Fact>
-        <WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38711")>
         Public Sub Field_14()
 
             Dim csSource =
@@ -1955,7 +1955,7 @@ BC31558: Nested type 'ITest33.I1' cannot be embedded.
         End Sub
 
         <Fact>
-        <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35852")>
         Public Sub NoPia_07()
             Dim csSource =
 "
@@ -1998,7 +1998,7 @@ BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member.
         End Sub
 
         <Fact>
-        <WorkItem(35911, "https://github.com/dotnet/roslyn/issues/35911")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35911")>
         Public Sub NoPia_10()
             Dim csSource =
 "
@@ -2108,7 +2108,7 @@ I1+T5")
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub NestedTypes_02()
 
             Dim csSource =
@@ -2250,7 +2250,7 @@ BC30389: 'I1.T1' is not accessible in this context because it is 'Protected'.
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub NestedTypes_04()
 
             Dim csSource =
@@ -2332,7 +2332,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub NestedTypes_05()
 
             Dim csSource =
@@ -2475,7 +2475,7 @@ BC30389: 'I1.T1' is not accessible in this context because it is 'Protected Frie
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub NestedTypes_07()
 
             Dim csSource =
@@ -2800,7 +2800,7 @@ BC30389: 'I1.T1' is not accessible in this context because it is 'Private Protec
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub NestedTypes_11()
 
             Dim csSource =
@@ -2865,7 +2865,7 @@ I1+T5", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub NestedTypes_12()
 
             Dim csSource =
@@ -3070,7 +3070,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38398")>
         Public Sub InconsistentAccessibility_01()
 
             Dim csSource =
@@ -3154,7 +3154,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38398")>
         Public Sub InconsistentAccessibility_02()
 
             Dim csSource =
@@ -3224,7 +3224,7 @@ BC30389: 'C1.I2' is not accessible in this context because it is 'Protected'.
         End Sub
 
         <Fact>
-        <WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38398")>
         Public Sub InconsistentAccessibility_03()
 
             Dim csSource =
@@ -3308,7 +3308,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38398")>
         Public Sub InconsistentAccessibility_04()
 
             Dim csSource =
@@ -3378,7 +3378,7 @@ BC30389: 'C1(Of String).I2' is not accessible in this context because it is 'Pro
         End Sub
 
         <Fact>
-        <WorkItem(35820, "https://github.com/dotnet/roslyn/issues/35820")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35820")>
         Public Sub PropertyImplementation_001()
 
             Dim csSource =
@@ -3410,7 +3410,7 @@ BC30149: Class 'C' must implement 'Property P1 As Integer' for interface 'I1'.
         End Sub
 
         <Fact>
-        <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_002()
 
             Dim csSource =
@@ -3536,7 +3536,7 @@ C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35823, "https://github.com/dotnet/roslyn/issues/35823")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35823")>
         Public Sub PropertyImplementation_005()
 
             Dim csSource =
@@ -3573,7 +3573,7 @@ BC30149: Class 'C' must implement 'Property P1 As Integer' for interface 'I1'.
         End Sub
 
         <Fact>
-        <WorkItem(35823, "https://github.com/dotnet/roslyn/issues/35823")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35823")>
         Public Sub PropertyImplementation_006()
 
             Dim csSource =
@@ -3621,7 +3621,7 @@ C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35824, "https://github.com/dotnet/roslyn/issues/35824")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35824")>
         Public Sub PropertyImplementation_007()
 
             Dim csSource =
@@ -3669,7 +3669,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
         End Sub
 
         <Fact>
-        <WorkItem(35824, "https://github.com/dotnet/roslyn/issues/35824")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35824")>
         Public Sub PropertyImplementation_008()
 
             Dim csSource =
@@ -3717,7 +3717,7 @@ BC30390: 'I1.Property Set P1(value As Integer)' is not accessible in this contex
         End Sub
 
         <Fact>
-        <WorkItem(35824, "https://github.com/dotnet/roslyn/issues/35824")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35824")>
         Public Sub PropertyImplementation_009()
 
             Dim csSource =
@@ -3765,7 +3765,7 @@ BC30390: 'I1.Property Get P1() As Integer' is not accessible in this context bec
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_010()
 
             Dim csSource =
@@ -3814,7 +3814,7 @@ C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_011()
 
             Dim csSource =
@@ -3863,7 +3863,7 @@ C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_012()
 
             Dim csSource =
@@ -3912,7 +3912,7 @@ C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_013()
 
             Dim csSource =
@@ -3961,7 +3961,7 @@ C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_014()
 
             Dim csSource =
@@ -4010,7 +4010,7 @@ C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_015()
 
             Dim csSource =
@@ -4059,7 +4059,7 @@ C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35824, "https://github.com/dotnet/roslyn/issues/35824")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35824")>
         Public Sub PropertyImplementation_016()
 
             Dim csSource =
@@ -4107,7 +4107,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
         End Sub
 
         <Fact>
-        <WorkItem(35824, "https://github.com/dotnet/roslyn/issues/35824")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35824")>
         Public Sub PropertyImplementation_017()
 
             Dim csSource =
@@ -4155,7 +4155,7 @@ BC30390: 'I1.Property Set P1(value As Integer)' is not accessible in this contex
         End Sub
 
         <Fact>
-        <WorkItem(35824, "https://github.com/dotnet/roslyn/issues/35824")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35824")>
         Public Sub PropertyImplementation_018()
 
             Dim csSource =
@@ -4203,7 +4203,7 @@ BC30390: 'I1.Property Get P1() As Integer' is not accessible in this context bec
         End Sub
 
         <Fact>
-        <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_019()
 
             Dim csSource =
@@ -4270,7 +4270,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_020()
 
             Dim csSource =
@@ -4331,7 +4331,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_021()
 
             Dim csSource =
@@ -4398,7 +4398,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_022()
 
             Dim csSource =
@@ -4461,7 +4461,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_023()
 
             Dim csSource =
@@ -4501,7 +4501,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_024()
 
             Dim csSource =
@@ -4542,7 +4542,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_025()
 
             Dim csSource =
@@ -4739,7 +4739,7 @@ BC31103: 'Get' accessor of property 'P1' is not accessible.
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_030()
 
             Dim csSource =
@@ -4769,7 +4769,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_031()
 
             Dim csSource =
@@ -4799,7 +4799,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_032()
 
             Dim csSource =
@@ -4829,7 +4829,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_033()
 
             Dim csSource =
@@ -4859,7 +4859,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_034()
 
             Dim csSource =
@@ -4889,7 +4889,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_035()
 
             Dim csSource =
@@ -5557,7 +5557,7 @@ BC31103: 'Get' accessor of property 'P1' is not accessible.
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_052()
 
             Dim csSource =
@@ -5599,7 +5599,7 @@ I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_053()
 
             Dim csSource =
@@ -5641,7 +5641,7 @@ I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_054()
 
             Dim csSource =
@@ -5683,7 +5683,7 @@ I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_055()
 
             Dim csSource =
@@ -5725,7 +5725,7 @@ I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_056()
 
             Dim csSource =
@@ -5767,7 +5767,7 @@ I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_057()
 
             Dim csSource =
@@ -6505,7 +6505,7 @@ BC31103: 'Get' accessor of property 'P1' is not accessible.
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_076()
 
             Dim csSource =
@@ -6543,7 +6543,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_077()
 
             Dim csSource =
@@ -6578,7 +6578,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_078()
 
             Dim csSource =
@@ -6613,7 +6613,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_079()
 
             Dim csSource =
@@ -6651,7 +6651,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_080()
 
             Dim csSource =
@@ -6686,7 +6686,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_081()
 
             Dim csSource =
@@ -6721,7 +6721,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35885, "https://github.com/dotnet/roslyn/issues/35885")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35885")>
         Public Sub PropertyImplementation_082()
 
             Dim csSource =
@@ -6762,7 +6762,7 @@ BC37309: Target runtime doesn't support default interface implementation.
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_083()
 
             Dim csSource =
@@ -6809,7 +6809,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_084()
 
             Dim csSource =
@@ -6853,7 +6853,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_085()
 
             Dim csSource =
@@ -6897,7 +6897,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_086()
 
             Dim csSource =
@@ -6944,7 +6944,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_087()
 
             Dim csSource =
@@ -6988,7 +6988,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_088()
 
             Dim csSource =
@@ -7032,7 +7032,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35820, "https://github.com/dotnet/roslyn/issues/35820")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35820")>
         Public Sub PropertyImplementation_089()
 
             Dim csSource =
@@ -7064,7 +7064,7 @@ BC30149: Class 'C' must implement 'ReadOnly Property P1 As Integer' for interfac
         End Sub
 
         <Fact>
-        <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_090()
 
             Dim csSource =
@@ -7180,7 +7180,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35823, "https://github.com/dotnet/roslyn/issues/35823")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35823")>
         Public Sub PropertyImplementation_093()
 
             Dim csSource =
@@ -7217,7 +7217,7 @@ BC30149: Class 'C' must implement 'ReadOnly Property P1 As Integer' for interfac
         End Sub
 
         <Fact>
-        <WorkItem(35823, "https://github.com/dotnet/roslyn/issues/35823")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35823")>
         Public Sub PropertyImplementation_094()
 
             Dim csSource =
@@ -7260,7 +7260,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35824, "https://github.com/dotnet/roslyn/issues/35824")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35824")>
         Public Sub PropertyImplementation_095()
 
             Dim csSource =
@@ -7306,7 +7306,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_096()
 
             Dim csSource =
@@ -7350,7 +7350,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_097()
 
             Dim csSource =
@@ -7394,7 +7394,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35824, "https://github.com/dotnet/roslyn/issues/35824")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35824")>
         Public Sub PropertyImplementation_098()
 
             Dim csSource =
@@ -7507,7 +7507,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_101()
 
             Dim csSource =
@@ -7536,7 +7536,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_102()
 
             Dim csSource =
@@ -7790,7 +7790,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_109()
 
             Dim csSource =
@@ -7829,7 +7829,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_110()
 
             Dim csSource =
@@ -8100,7 +8100,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_117()
 
             Dim csSource =
@@ -8134,7 +8134,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_118()
 
             Dim csSource =
@@ -8168,7 +8168,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35885, "https://github.com/dotnet/roslyn/issues/35885")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35885")>
         Public Sub PropertyImplementation_119()
 
             Dim csSource =
@@ -8206,7 +8206,7 @@ BC37309: Target runtime doesn't support default interface implementation.
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_120()
 
             Dim csSource =
@@ -8250,7 +8250,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_121()
 
             Dim csSource =
@@ -8294,7 +8294,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35820, "https://github.com/dotnet/roslyn/issues/35820")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35820")>
         Public Sub PropertyImplementation_122()
 
             Dim csSource =
@@ -8326,7 +8326,7 @@ BC30149: Class 'C' must implement 'WriteOnly Property P1 As Integer' for interfa
         End Sub
 
         <Fact>
-        <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub PropertyImplementation_123()
 
             Dim csSource =
@@ -8440,7 +8440,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35823, "https://github.com/dotnet/roslyn/issues/35823")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35823")>
         Public Sub PropertyImplementation_126()
 
             Dim csSource =
@@ -8477,7 +8477,7 @@ BC30149: Class 'C' must implement 'WriteOnly Property P1 As Integer' for interfa
         End Sub
 
         <Fact>
-        <WorkItem(35823, "https://github.com/dotnet/roslyn/issues/35823")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35823")>
         Public Sub PropertyImplementation_127()
 
             Dim csSource =
@@ -8519,7 +8519,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35824, "https://github.com/dotnet/roslyn/issues/35824")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35824")>
         Public Sub PropertyImplementation_128()
 
             Dim csSource =
@@ -8565,7 +8565,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_129()
 
             Dim csSource =
@@ -8608,7 +8608,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_130()
 
             Dim csSource =
@@ -8651,7 +8651,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35824, "https://github.com/dotnet/roslyn/issues/35824")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35824")>
         Public Sub PropertyImplementation_131()
 
             Dim csSource =
@@ -8766,7 +8766,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_134()
 
             Dim csSource =
@@ -8798,7 +8798,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_135()
 
             Dim csSource =
@@ -9055,7 +9055,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_142()
 
             Dim csSource =
@@ -9094,7 +9094,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub PropertyImplementation_143()
 
             Dim csSource =
@@ -9365,7 +9365,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_150()
 
             Dim csSource =
@@ -9399,7 +9399,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_151()
 
             Dim csSource =
@@ -9433,7 +9433,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35885, "https://github.com/dotnet/roslyn/issues/35885")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35885")>
         Public Sub PropertyImplementation_152()
 
             Dim csSource =
@@ -9471,7 +9471,7 @@ BC37309: Target runtime doesn't support default interface implementation.
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_153()
 
             Dim csSource =
@@ -9515,7 +9515,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub PropertyImplementation_154()
 
             Dim csSource =
@@ -9559,7 +9559,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35820, "https://github.com/dotnet/roslyn/issues/35820")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35820")>
         Public Sub EventImplementation_01()
 
             Dim csSource =
@@ -9591,7 +9591,7 @@ BC30149: Class 'C' must implement 'Event P1 As Action' for interface 'I1'.
         End Sub
 
         <Fact>
-        <WorkItem(35821, "https://github.com/dotnet/roslyn/issues/35821")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35821")>
         Public Sub EventImplementation_02()
 
             Dim csSource =
@@ -9721,7 +9721,7 @@ C.P1.Remove", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35823, "https://github.com/dotnet/roslyn/issues/35823")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35823")>
         Public Sub EventImplementation_05()
 
             Dim csSource =
@@ -9758,7 +9758,7 @@ BC30149: Class 'C' must implement 'Event P1 As Action' for interface 'I1'.
         End Sub
 
         <Fact>
-        <WorkItem(35823, "https://github.com/dotnet/roslyn/issues/35823")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35823")>
         Public Sub EventImplementation_06()
 
             Dim csSource =
@@ -9808,7 +9808,7 @@ C.P1.Remove", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35824, "https://github.com/dotnet/roslyn/issues/35824")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35824")>
         Public Sub EventImplementation_07()
 
             Dim csSource =
@@ -9857,7 +9857,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub EventImplementation_08()
 
             Dim csSource =
@@ -9908,7 +9908,7 @@ C.P1.Remove", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub EventImplementation_09()
 
             Dim csSource =
@@ -9959,7 +9959,7 @@ C.P1.Remove", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35824, "https://github.com/dotnet/roslyn/issues/35824")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35824")>
         Public Sub EventImplementation_10()
 
             Dim csSource =
@@ -10050,7 +10050,7 @@ M2", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35948, "https://github.com/dotnet/roslyn/issues/35948")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35948")>
         Public Sub EventImplementation_12()
 
             Dim csSource =
@@ -10098,7 +10098,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub EventImplementation_13()
 
             Dim csSource =
@@ -10141,7 +10141,7 @@ M2", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub EventImplementation_14()
 
             Dim csSource =
@@ -10184,7 +10184,7 @@ M2", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35948, "https://github.com/dotnet/roslyn/issues/35948")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35948")>
         Public Sub EventImplementation_15()
 
             Dim csSource =
@@ -10443,7 +10443,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub EventImplementation_21()
 
             Dim csSource =
@@ -10486,7 +10486,7 @@ I1.P1.Remove", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub EventImplementation_22()
 
             Dim csSource =
@@ -10791,7 +10791,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub EventImplementation_29()
 
             Dim csSource =
@@ -10829,7 +10829,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub EventImplementation_30()
 
             Dim csSource =
@@ -10867,7 +10867,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35885, "https://github.com/dotnet/roslyn/issues/35885")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35885")>
         Public Sub EventImplementation_31()
 
             Dim csSource =
@@ -10909,7 +10909,7 @@ BC37309: Target runtime doesn't support default interface implementation.
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub EventImplementation_32()
 
             Dim csSource =
@@ -10957,7 +10957,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35834, "https://github.com/dotnet/roslyn/issues/35834")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35834")>
         Public Sub EventImplementation_33()
 
             Dim csSource =
@@ -11005,7 +11005,7 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub ProtectedAccess_01()
 
             Dim csSource =
@@ -11049,7 +11049,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub ProtectedAccess_02()
 
             Dim source1 =
@@ -11087,7 +11087,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub ProtectedAccess_03()
 
             Dim csSource =
@@ -11131,7 +11131,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(35998, "https://github.com/dotnet/roslyn/issues/35998")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35998")>
         Public Sub Operators_01()
             Dim csSource =
 "
@@ -11370,7 +11370,7 @@ BC30452: Operator 'OrElse' is not defined for types 'I1' and 'I1'.
         End Sub
 
         <Fact>
-        <WorkItem(35998, "https://github.com/dotnet/roslyn/issues/35998")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35998")>
         Public Sub Operators_02()
             Dim csSource =
 "
@@ -11430,7 +11430,7 @@ BC30452: Operator '-' is not defined for types 'C1' and 'I1'.
         End Sub
 
         <Fact>
-        <WorkItem(36532, "https://github.com/dotnet/roslyn/issues/36532")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/36532")>
         Public Sub WindowsRuntimeEvent_01()
 
             Dim csSource =

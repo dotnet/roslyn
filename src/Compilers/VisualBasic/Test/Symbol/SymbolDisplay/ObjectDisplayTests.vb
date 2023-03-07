@@ -222,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             }
         End Function
 
-        <Fact(), WorkItem(529850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529850")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529850")>
         Public Sub CultureInvariance()
             Dim originalCulture = CurrentThread.CurrentCulture
             Try

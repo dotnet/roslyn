@@ -243,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         End Sub
 
         <Fact>
-        <WorkItem(193333, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=193333")>
+        <WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=193333")>
         Public Sub EnumWithPrivateValueField()
 
             Dim ilSource = "

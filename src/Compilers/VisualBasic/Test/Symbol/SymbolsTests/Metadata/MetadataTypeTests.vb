@@ -60,7 +60,7 @@ End Class
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(530123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530123")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530123")>
         <Fact>
         Public Sub MetadataTypeSymbolModule01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -87,7 +87,7 @@ End Module
                                              End Sub)
         End Sub
 
-        <WorkItem(537324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537324")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537324")>
         <Fact>
         Public Sub MetadataTypeSymbolClass01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -373,7 +373,7 @@ End Class
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(542755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542755")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542755")>
         <Fact>
         Public Sub SpellingOfGenericClassNameIsPreserved()
             Dim ilSource = <![CDATA[
@@ -981,7 +981,7 @@ End Class
             CompileAndVerify(compilation)
         End Sub
 
-        <WorkItem(1066489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066489")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066489")>
         <Fact>
         Public Sub InstanceIterator_ExplicitInterfaceImplementation_OldCSharpName()
             Dim ilSource = "
@@ -1113,7 +1113,7 @@ End Class
             Assert.Equal(stateMachineClass, comp.GetTypeByMetadataName("C+<I<System.Int32>.F>d__0")) ' GetTypeByMetadataName works.
         End Sub
 
-        <WorkItem(233668, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=233668")>
+        <WorkItem("https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=233668")>
         <Fact>
         Public Sub EmptyNamespaceNames()
             Dim ilSource = <![CDATA[

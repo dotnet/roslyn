@@ -319,7 +319,7 @@ BC40004: enum 'bar' conflicts with sub 'bar' in the base class 'A' and should be
 </expected>)
         End Sub
 
-        <WorkItem(540791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540791")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540791")>
         <Fact>
         Public Sub HidingMembersInClass_01()
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1108,7 +1108,7 @@ BC30362: 'Public Overrides Property r As Integer' cannot override 'Public Overri
     </expected>)
         End Sub
 
-        <WorkItem(540791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540791")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540791")>
         <Fact>
         Public Sub PropertyAccessibilityMismatch()
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1182,7 +1182,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(546836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")>
         Public Sub PropertyOverrideAccessibility()
             Dim csharpComp = CreateCSharpCompilation("Lib", <![CDATA[
 public class A
@@ -1371,7 +1371,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(546836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")>
         Public Sub PropertyOverrideAccessibilityInternalsVisibleTo()
             Dim csharpComp = CreateCSharpCompilation("Lib", <![CDATA[
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("PropertyOverrideAccessibilityInternalsVisibleTo")]
@@ -1663,7 +1663,7 @@ BC30906: 'Public Overrides Sub f(x As String())' cannot override 'Public Overrid
     </expected>)
         End Sub
 
-        <WorkItem(529018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529018")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529018")>
         <Fact()>
         Public Sub OptionalTypeMismatch()
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1964,7 +1964,7 @@ BC40004: sub 'Quux' conflicts with variable 'Quux' in the base class 'B' and sho
     </expected>)
         End Sub
 
-        <WorkItem(541752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541752")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541752")>
         <Fact>
         Public Sub Bug8634()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -2201,7 +2201,7 @@ End Module
             CompileAndVerify(code).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(543948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543948")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543948")>
         Public Sub OverrideMemberOfConstructedProtectedInnerClass()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
@@ -2236,7 +2236,7 @@ End Class
             CompilationUtils.AssertNoErrors(compilation2)
         End Sub
 
-        <Fact, WorkItem(545484, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545484")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545484")>
         Public Sub MetadataOverridesOfAccessors()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
@@ -2340,7 +2340,7 @@ End Class
 
         End Sub
 
-        <Fact, WorkItem(545484, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545484")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545484")>
         Public Sub OverridesOfConstructedMethods()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
@@ -2399,7 +2399,7 @@ End Class
             Assert.Null(overriddenConstructedMethX2Goo)
         End Sub
 
-        <Fact, WorkItem(539893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539893")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539893")>
         Public Sub AccessorMetadataCasing()
             Dim compilation1 = CreateCSharpCompilation("assem2",
             <![CDATA[
@@ -2533,7 +2533,7 @@ End Class
 
         End Sub
 
-        <Fact(), WorkItem(546816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546816")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546816")>
         Public Sub Bug16887()
             Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
  <compilation name="E">
@@ -2555,7 +2555,7 @@ End Class     ]]></file>
             CompileAndVerify(compilation)
         End Sub
 
-        <WorkItem(608228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608228")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608228")>
         <Fact>
         Public Sub OverridePropertyWithByRefParameter()
             Dim il = <![CDATA[
@@ -2632,7 +2632,7 @@ End Class
             Assert.Equal(baseProperty, derivedProperty.OverriddenProperty)
         End Sub
 
-        <Fact(), WorkItem(528549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528549")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528549")>
         Public Sub Bug528549()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
  <compilation>
@@ -2660,7 +2660,7 @@ BC30433: Methods in a Module cannot be declared 'Overrides'.
 </expected>)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_01()
             Dim ilSource = <![CDATA[
@@ -2762,7 +2762,7 @@ BC30935: Member 'Public Overridable Function M1(x As Integer) As Integer' that m
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_02()
             Dim ilSource = <![CDATA[
@@ -2875,7 +2875,7 @@ End Class
             compilation.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_03()
             Dim ilSource = <![CDATA[
@@ -2988,7 +2988,7 @@ End Class
             compilation.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_04()
             Dim ilSource = <![CDATA[
@@ -3090,7 +3090,7 @@ BC30935: Member 'Public Overridable Function M1(x As Integer) As Integer' that m
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_05()
             Dim ilSource = <![CDATA[
@@ -3192,7 +3192,7 @@ BC30935: Member 'Public Overridable Function M1(x As Integer) As Integer' that m
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_06()
             Dim ilSource = <![CDATA[
@@ -3321,7 +3321,7 @@ End Class
             compilation.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_07()
             Dim ilSource = <![CDATA[
@@ -3453,7 +3453,7 @@ BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_08()
             Dim ilSource = <![CDATA[
@@ -3567,7 +3567,7 @@ BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_09()
             Dim ilSource = <![CDATA[
@@ -3677,7 +3677,7 @@ BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_10()
             Dim ilSource = <![CDATA[
@@ -3786,7 +3786,7 @@ BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_11()
             Dim ilSource = <![CDATA[
@@ -3900,7 +3900,7 @@ BC30935: Member 'Public Overridable Function M1(x As Integer) As Integer' that m
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_12()
             Dim ilSource = <![CDATA[
@@ -4008,7 +4008,7 @@ BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_13()
             Dim ilSource = <![CDATA[
@@ -4116,7 +4116,7 @@ BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_14()
             Dim ilSource = <![CDATA[
@@ -4248,7 +4248,7 @@ End Class
             Assert.IsAssignableFrom(Of SourceComplexParameterSymbol)(derived.GetMember(Of MethodSymbol)("M13").Parameters(0))
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_15()
             Dim ilSource = <![CDATA[
@@ -4437,7 +4437,7 @@ End Class
             AssertOverridingProperty(compilation.Compilation)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_16()
             Dim ilSource = <![CDATA[
@@ -4626,7 +4626,7 @@ End Class
             AssertOverridingProperty(compilation.Compilation)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_17()
             Dim ilSource = <![CDATA[
@@ -4848,7 +4848,7 @@ End Class
             AssertOverridingProperty(verifier.Compilation)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_18()
             Dim ilSource = <![CDATA[
@@ -5009,7 +5009,7 @@ BC30643: Property 'Base.P2(x As Integer())' is of an unsupported type.
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_19()
             Dim ilSource = <![CDATA[
@@ -5170,7 +5170,7 @@ BC30643: Property 'Base.P2(x As Integer())' is of an unsupported type.
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_20()
             Dim ilSource = <![CDATA[
@@ -5438,7 +5438,7 @@ BC30643: Property 'Base2.P2(x As Integer())' is of an unsupported type.
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_21()
             Dim ilSource = <![CDATA[
@@ -5707,7 +5707,7 @@ End Class
             AssertOverridingProperty(compilation.Compilation)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_22()
             Dim ilSource = <![CDATA[
@@ -5975,7 +5975,7 @@ BC30643: Property 'Base1.P2(x As Integer())' is of an unsupported type.
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_23()
             Dim ilSource = <![CDATA[
@@ -6098,7 +6098,7 @@ End Class
             AssertOverridingProperty(compilation.Compilation)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_24()
             Dim ilSource = <![CDATA[
@@ -6221,7 +6221,7 @@ End Class
             AssertOverridingProperty(compilation.Compilation)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_25()
             Dim ilSource = <![CDATA[
@@ -6344,7 +6344,7 @@ End Class
             AssertOverridingProperty(compilation.Compilation)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_26()
             Dim ilSource = <![CDATA[
@@ -6533,7 +6533,7 @@ End Class
             AssertOverridingProperty(compilation.Compilation)
         End Sub
 
-        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_27()
             Dim ilSource = <![CDATA[
@@ -6744,7 +6744,7 @@ End Class
             Next
         End Sub
 
-        <Fact(), WorkItem(830352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830352")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830352")>
         Public Sub Bug830352()
             Dim code =
 <compilation>
@@ -6769,7 +6769,7 @@ End Class
             CompileAndVerify(comp).VerifyDiagnostics()
         End Sub
 
-        <Fact(), WorkItem(837884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837884")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837884")>
         Public Sub Bug837884()
             Dim code1 =
 <compilation>
@@ -6821,7 +6821,7 @@ BC31417: 'Friend Overrides Property Set r(Value As Object)' cannot override 'Fri
 
         End Sub
 
-        <WorkItem(1067044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067044")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067044")>
         <Fact>
         Public Sub Bug1067044()
             Dim il = <![CDATA[
@@ -6901,7 +6901,7 @@ End Class
             CompileAndVerify(compilation)
         End Sub
 
-        <Fact(), WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/6148")>
         Public Sub AbstractGenericBase_01()
             Dim code =
 <compilation>
@@ -6969,7 +6969,7 @@ End Class
 void ValidatorBase<T>.DoValidate(T objectToValidate)")
         End Sub
 
-        <Fact(), WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/6148")>
         Public Sub AbstractGenericBase_02()
             Dim code =
 <compilation>
@@ -7031,7 +7031,7 @@ Public Class Required
                 </expected>)
         End Sub
 
-        <Fact(), WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/6148")>
         Public Sub AbstractGenericBase_03()
             Dim code =
 <compilation>
@@ -7086,7 +7086,7 @@ End Class
 void ValidatorBase<T>.DoValidate(T objectToValidate)")
         End Sub
 
-        <Fact(), WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/6148")>
         Public Sub AbstractGenericBase_04()
             Dim code =
 <compilation>
@@ -7140,7 +7140,7 @@ End Class
 void Validator<T>.DoValidate(T objectToValidate)")
         End Sub
 
-        <Fact(), WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/6148")>
         Public Sub AbstractGenericBase_05()
             Dim code =
 <compilation>

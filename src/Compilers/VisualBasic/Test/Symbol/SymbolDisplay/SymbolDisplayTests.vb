@@ -3565,7 +3565,7 @@ End Class
                 "Public P As Object")
         End Sub
 
-        <WorkItem(540253, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540253")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540253")>
         <Fact()>
         Public Sub TestOverloads()
             Dim text =
@@ -3992,7 +3992,7 @@ End Class
                 SymbolDisplayPartKind.ClassName)
         End Sub
 
-        <WorkItem(537447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537447")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537447")>
         <Fact>
         Public Sub TestBug2239()
             Dim text =
@@ -4027,7 +4027,7 @@ End class
                 SymbolDisplayPartKind.Punctuation})
         End Sub
 
-        <WorkItem(538954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538954")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538954")>
         <Fact>
         Public Sub ParameterOptionsIncludeName()
             Dim text =
@@ -4056,7 +4056,7 @@ End Class
                 {SymbolDisplayPartKind.ParameterName})
         End Sub
 
-        <WorkItem(539076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539076")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539076")>
         <Fact>
         Public Sub Bug4878()
             Dim text =
@@ -4082,7 +4082,7 @@ End Namespace
             Assert.Equal("Global.Global.c1", comp.SourceModule.GlobalNamespace.LookupNestedNamespace({"Global"}).GetTypeMembers.Single().ToDisplayString(format))
         End Sub
 
-        <WorkItem(541005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541005")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541005")>
         <Fact>
         Public Sub Bug7515()
             Dim text =
@@ -4110,7 +4110,7 @@ End Namespace
                                                                 GetMembers("MyDel").Single().ToDisplayString(m_DelegateSignatureFormat))
         End Sub
 
-        <WorkItem(542619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542619")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542619")>
         <Fact>
         Public Sub Bug9913()
             Dim text =
@@ -4162,7 +4162,7 @@ End Class
                 minimal:=True)
         End Sub
 
-        <WorkItem(542619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542619")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542619")>
         <Fact>
         Public Sub Bug9913_2()
             Dim text =
@@ -4212,7 +4212,7 @@ End Class
                 minimal:=True)
         End Sub
 
-        <WorkItem(542619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542619")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542619")>
         <Fact>
         Public Sub Bug9913_3()
             Dim text =
@@ -4381,7 +4381,7 @@ End Class
                 SymbolDisplayPartKind.ClassName}, minimal:=True)
         End Sub
 
-        <WorkItem(543938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543938")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543938")>
         <Fact>
         Public Sub Bug12025()
             Dim text =
@@ -4432,7 +4432,7 @@ End Class
                 minimal:=True)
         End Sub
 
-        <Fact, WorkItem(544414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544414")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544414")>
         Public Sub Bug12724()
             Dim text =
         <compilation>
@@ -4578,7 +4578,7 @@ End Class
                 minimal:=False)
         End Sub
 
-        <Fact, WorkItem(543806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543806")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543806")>
         Public Sub Bug11752()
             Dim text =
         <compilation>
@@ -4625,7 +4625,7 @@ End Module
                 SymbolDisplayPartKind.Punctuation}, minimal:=True)
         End Sub
 
-        <Fact(), WorkItem(529764, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529764")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529764")>
         Public Sub TypeParameterFromMetadata()
             Dim src1 =
         <compilation>
@@ -4679,7 +4679,7 @@ End Class
 
         End Sub
 
-        <Fact, WorkItem(545625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545625")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545625")>
         Public Sub ReverseArrayRankSpecifiers()
             Dim text =
 <compilation>
@@ -4812,7 +4812,7 @@ End Module
                 minimal:=True)
         End Sub
 
-        <WorkItem(765287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/765287")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/765287")>
         <Fact>
         Public Sub TestCSharpSymbols()
             Dim csComp = CreateCSharpCompilation("CSharp", <![CDATA[
@@ -4992,7 +4992,7 @@ End Class
             Assert.True(DirectCast(description(4).Symbol, ITypeSymbol).IsTupleType)
         End Sub
 
-        <WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/18311")>
         <Fact()>
         Public Sub TupleWith1Arity()
             TestSymbolDescription(
@@ -5240,7 +5240,7 @@ End Class"
         End Sub
 
         <Fact>
-        <WorkItem(23970, "https://github.com/dotnet/roslyn/pull/23970")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23970")>
         Public Sub MeDisplayParts()
             Dim Text =
 <compilation>
@@ -5286,7 +5286,7 @@ End Class
         End Sub
 
         ' SymbolDisplayMemberOptions.IncludeRef is ignored in VB.
-        <WorkItem(11356, "https://github.com/dotnet/roslyn/issues/11356")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11356")>
         <Fact()>
         Public Sub RefReturn()
             Dim sourceA =
@@ -5684,7 +5684,7 @@ class Program
                 SymbolDisplayPartKind.StructName)
         End Sub
 
-        <Fact, WorkItem(38783, "https://github.com/dotnet/roslyn/issues/38783")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38783")>
         Public Sub Operator1()
             Dim source = "
                 class Program

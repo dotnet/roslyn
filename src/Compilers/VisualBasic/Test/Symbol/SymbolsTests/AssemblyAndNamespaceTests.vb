@@ -54,7 +54,7 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
             Assert.Null(sym.ContainingSymbol)
         End Sub
 
-        <WorkItem(537302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537302")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537302")>
         <Fact>
         Public Sub SourceModule()
 
@@ -82,7 +82,7 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
             Assert.Equal("Banana", sym.ContainingSymbol.Name)
         End Sub
 
-        <WorkItem(537421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537421")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537421")>
         <Fact>
         Public Sub StandardModule()
 
@@ -400,7 +400,7 @@ End Namespace
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <Fact, WorkItem(544009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544009")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544009")>
         Public Sub MultiModulesNamespace()
 
             Dim text3 = <![CDATA[
@@ -454,7 +454,7 @@ End Namespace
             Next
         End Sub
 
-        <WorkItem(537310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537310")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537310")>
         <Fact>
         Public Sub MultiModulesNamespaceCorLibraries()
 
@@ -504,7 +504,7 @@ End Namespace
             Next
         End Sub
 
-        <WorkItem(690871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690871")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690871")>
         <Fact>
         Public Sub SpecialTypesAndAliases()
             Dim source =
@@ -531,7 +531,7 @@ End Class
             Assert.Equal(objectType, comp.Assembly.CorLibrary.GetSpecialType(SpecialType.System_Object))
         End Sub
 
-        <WorkItem(690871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690871")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690871")>
         <Fact>
         Public Sub WellKnownTypesAndAliases()
             Dim [lib] =
@@ -571,7 +571,7 @@ BC30560: 'Task' is ambiguous in the namespace 'System.Threading.Tasks'.
                 </expected>)
         End Sub
 
-        <Fact, WorkItem(54836, "https://github.com/dotnet/roslyn/issues/54836")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54836")>
         Public Sub RetargetableAttributeIsRespectedInSource()
             Dim code = <![CDATA[
 Imports System.Reflection

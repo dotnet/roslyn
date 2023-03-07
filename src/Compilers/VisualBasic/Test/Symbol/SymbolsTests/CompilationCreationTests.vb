@@ -136,7 +136,7 @@ End Namespace
         End Sub
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/16885")>
-        <WorkItem(16885, "https://github.com/dotnet/roslyn/issues/16885")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16885")>
         Public Sub RootNamespace_NoTrees_SuppressEmbeddedDeclarations()
 
             Dim c1 = VisualBasicCompilation.Create("Test", {}, options:=TestOptions.ReleaseDll.WithRootNamespace("A.B.C").WithSuppressEmbeddedDeclarations(True))
@@ -220,7 +220,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem(753078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/753078")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/753078")>
         <Fact()>
         Public Sub RootNamespaceUpdateViaChangeInCompilationOptions()
             Dim sourceTree = ParserTestUtilities.Parse(
@@ -2149,7 +2149,7 @@ End Class
             CheckCompilationSyntaxTrees(compilation4, tree2, tree3)
         End Sub
 
-        <WorkItem(578706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578706")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578706")>
         <Fact>
         Public Sub DeclaringCompilationOfAddedModule()
             Dim source1 =

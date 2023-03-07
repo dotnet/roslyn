@@ -720,7 +720,7 @@ BC36923: Type 'ValueTuple(Of T1, T2)' cannot be embedded because it has generic 
         End Sub
 
         <ClrOnlyFact>
-        <WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13200")>
         Public Sub CannotEmbedValueTupleImplicitlyReferenced_ByMethod()
             Dim piaSource = "
 Imports System.Runtime.InteropServices
@@ -768,7 +768,7 @@ BC36923: Type 'ValueTuple(Of T1, T2)' cannot be embedded because it has generic 
         End Sub
 
         <ClrOnlyFact>
-        <WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13200")>
         Public Sub CannotEmbedValueTupleImplicitlyReferenced_ByProperty()
             Dim piaSource = "
 Imports System.Runtime.InteropServices
@@ -815,7 +815,7 @@ BC36923: Type 'ValueTuple(Of T1, T2)' cannot be embedded because it has generic 
         End Sub
 
         <ClrOnlyFact>
-        <WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13200")>
         Public Sub CannotEmbedGenericDelegateReferred_ByEvent()
             Dim piaSource = "
 Imports System.Runtime.InteropServices
@@ -852,7 +852,7 @@ BC36923: Type 'S(Of T)' cannot be embedded because it has generic argument. Cons
         End Sub
 
         <ClrOnlyFact>
-        <WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13200")>
         Public Sub CannotEmbedValueTupleImplicitlyReferenced_ByField()
             Dim piaSource = "
 Imports System.Runtime.InteropServices
@@ -897,7 +897,7 @@ BC36923: Type 'ValueTuple(Of T1, T2)' cannot be embedded because it has generic 
         End Sub
 
         <ClrOnlyFact>
-        <WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13200")>
         Public Sub CannotEmbedValueTupleImplicitlyReferredFromMetadata()
             Dim piaSource = "
 Imports System.Runtime.InteropServices
@@ -1570,7 +1570,7 @@ class C3 {}
             Assert.IsType(Of NoPiaMissingCanonicalTypeSymbol)(argType)
         End Sub
 
-        <Fact, WorkItem(685240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685240")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685240")>
         Public Sub Bug685240()
 
             Dim piaSource =
@@ -1636,7 +1636,7 @@ End Class
             CompileAndVerify(consumer, verify:=Verification.FailsILVerify)
         End Sub
 
-        <Fact, WorkItem(528047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528047")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528047")>
         Public Sub OverloadResolutionWithEmbeddedInteropType()
             Dim source1 =
 <compilation>
@@ -1689,7 +1689,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(24964, "https://github.com/dotnet/roslyn/issues/24964")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/24964")>
         Public Sub UnificationAcrossDistinctCoreLibs()
             Dim pia = "
 Imports System.Runtime.CompilerServices

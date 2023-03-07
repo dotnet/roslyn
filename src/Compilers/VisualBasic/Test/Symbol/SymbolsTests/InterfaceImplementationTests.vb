@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Theory>
         <CombinatorialData>
-        <WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/46494")>
         Public Sub ExplicitImplementationInBaseType_01(useCompilationReference As Boolean)
             Dim source0 =
 "Public Structure S(Of T)
@@ -49,7 +49,7 @@ End Class"
 
         <Theory>
         <CombinatorialData>
-        <WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/46494")>
         Public Sub ExplicitImplementationInBaseType_02(useCompilationReference As Boolean)
             Dim source0 =
 "Public Structure S(Of T)
@@ -108,7 +108,7 @@ End Class"
         End Sub
 
         <Fact()>
-        <WorkItem(50713, "https://github.com/dotnet/roslyn/issues/50713")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50713")>
         Public Sub Issue50713_1()
             Dim vbSource1 =
                 <compilation>
@@ -134,7 +134,7 @@ End Interface
         End Sub
 
         <Fact()>
-        <WorkItem(50713, "https://github.com/dotnet/roslyn/issues/50713")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50713")>
         Public Sub Issue50713_2()
             Dim vbSource0 =
                 <compilation>
@@ -168,7 +168,7 @@ End Interface
         End Sub
 
         <Fact()>
-        <WorkItem(50713, "https://github.com/dotnet/roslyn/issues/50713")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50713")>
         Public Sub Issue50713_3()
             Dim vbSource1 =
                 <compilation>
@@ -194,7 +194,7 @@ End Interface
         End Sub
 
         <Fact()>
-        <WorkItem(50713, "https://github.com/dotnet/roslyn/issues/50713")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50713")>
         Public Sub Issue50713_4()
             Dim vbSource0 =
                 <compilation>

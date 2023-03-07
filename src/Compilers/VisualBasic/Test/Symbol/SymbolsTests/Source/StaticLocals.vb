@@ -893,7 +893,7 @@ End Class
             compilation.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(530442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530442")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530442")>
         <Fact()>
         Public Sub Bug16169()
             Dim compilationDef =
@@ -925,7 +925,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(264417, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=264417")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=264417")>
         Public Sub InitializeWithAsNew_01()
             Dim compilationDef =
 <compilation>
@@ -964,7 +964,7 @@ F1
         End Sub
 
         <Fact>
-        <WorkItem(264417, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=264417")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=264417")>
         Public Sub InitializeWithAsNew_02()
             Dim compilationDef =
 <compilation>
@@ -1007,7 +1007,7 @@ F1
         End Sub
 
         <Fact>
-        <WorkItem(264417, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=264417")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=264417")>
         Public Sub InitializeWithAsNew_03()
             Dim compilationDef =
 <compilation>
@@ -1046,7 +1046,7 @@ F1
         End Sub
 
         <Fact>
-        <WorkItem(264417, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=264417")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=264417")>
         Public Sub InitializeWithAsNew_04()
             Dim compilationDef =
 <compilation>

@@ -1126,7 +1126,7 @@ BC30452: Operator '/' is not defined for types 'A14' and 'A14'.
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(34872, "https://github.com/dotnet/roslyn/issues/34872")>
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/34872")>
         Public Sub GenericOperatorVoidConversion()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">

@@ -2821,7 +2821,7 @@ BC36658: Data type(s) of the type parameter(s) in extension method 'Public Sub t
 </expected>)
         End Sub
 
-        <WorkItem(542538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")>
         <Fact>
         Public Sub Bug8945()
             Dim compilationDef =
@@ -2873,7 +2873,7 @@ BC30491: Expression does not produce a value.
 </expected>)
         End Sub
 
-        <WorkItem(542011, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542011")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542011")>
         <Fact>
         Public Sub Bug8968()
             Dim compilationDef =
@@ -2994,7 +2994,7 @@ Ext1
 ]]>)
         End Sub
 
-        <WorkItem(542169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542169")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542169")>
         <Fact>
         Public Sub Bug9301()
             Dim compilationDef =
@@ -3054,7 +3054,7 @@ End Module
 
         End Sub
 
-        <WorkItem(542160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542160")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542160")>
         <Fact>
         Public Sub Bug9290()
             Dim compilationDef =
@@ -3096,7 +3096,7 @@ Goo
 ]]>)
         End Sub
 
-        <WorkItem(528882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528882")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528882")>
         <Fact()>
         Public Sub Bug10184()
             Dim compilationDef1 =
@@ -3156,7 +3156,7 @@ BC30456: 'Test' is not a member of 'Integer'.
 </expected>)
         End Sub
 
-        <WorkItem(543743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543743")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543743")>
         <Fact()>
         Public Sub PassPropertyByRefToExtension()
             Dim compilationDef =
@@ -3217,7 +3217,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543743")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543743")>
         <Fact()>
         Public Sub PassPropertyByRefToExtension_2()
             Dim compilationDef =
@@ -3262,7 +3262,7 @@ End Module
             CompileAndVerify(compilationDef, expectedOutput:="Before")
         End Sub
 
-        <WorkItem(543743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543743")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543743")>
         <Fact()>
         Public Sub PassPropertyByRefToExtension_3()
             Dim compilationDef =

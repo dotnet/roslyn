@@ -924,7 +924,7 @@ BC30657: 'VT' has a return type that is not supported or parameter types that ar
 ]]>)
         End Sub
 
-        <Fact, WorkItem(217681, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217681")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217681")>
         Public Sub LoadingMethodWithPublicAndPrivateAccessibility()
             Dim source =
          <compilation>
@@ -963,7 +963,7 @@ BC30390: 'C2.Private Overloads Sub M2()' is not accessible in this context becau
         End Sub
 
         <Fact>
-        <WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/53802")>
         Public Sub TestAmbiguousImplementationMethod()
 
             Dim ilSource =

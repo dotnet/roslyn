@@ -142,7 +142,7 @@ BC31422: 'System.Void' can only be used in a GetType expression.
 
         End Sub
 
-        <WorkItem(538814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538814")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538814")>
         <Fact>
         Public Sub DuplicateInterfaceInheritance()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -165,7 +165,7 @@ BC30584: 'IA(Of String)' cannot be inherited more than once.
 </expected>)
         End Sub
 
-        <WorkItem(543788, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543788")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543788")>
         <Fact()>
         Public Sub BC30294_GenericStructureContainingInstanceOfItself()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -197,7 +197,7 @@ BC42024: Unused local variable: 's'.
 </expected>)
         End Sub
 
-        <WorkItem(543909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543909")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543909")>
         <Fact()>
         Public Sub BC30294_GenericStructureContainingInstanceOfItself_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -224,7 +224,7 @@ BC30294: Structure 's2' cannot contain an instance of itself:
 </expected>)
         End Sub
 
-        <Fact, WorkItem(607394, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607394")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607394")>
         Public Sub Bug607394()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>

@@ -508,7 +508,7 @@ BC30149: Class 'C2' must implement 'Function two() As String' for interface 'Ide
         End Sub
 
         ' Spec changed in Roslyn
-        <WorkItem(528701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528701")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528701")>
         <Fact>
         Public Sub BC30154ERR_UnimplementedProperty3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -685,7 +685,7 @@ BC30179: delegate Class 'Unicode' and enum 'Unicode' conflict in namespace '<Def
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(528149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528149")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528149")>
         <Fact>
         Public Sub BC30179ERR_TypeConflict6_2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -753,7 +753,7 @@ BC30179: delegate Class 'D' and delegate Class 'D' conflict in namespace 'N'.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(528149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528149")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528149")>
         <Fact>
         Public Sub BC30179ERR_TypeConflict6_3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -1264,7 +1264,7 @@ BC30233: 'ReadOnly' is not valid on a constant declaration.
 ]]></expected>)
         End Sub
 
-        <WorkItem(528365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528365")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528365")>
         <Fact>
         Public Sub BC30233ERR_BadConstFlags1_02()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1476,7 +1476,7 @@ BC30242: 'Default' is not valid on a method declaration.
         ' BC30244ERR_BadDeclareFlags1
         ' see AttributeTests
 
-        <WorkItem(527697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527697")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527697")>
         <Fact>
         Public Sub BC30246ERR_BadLocalConstFlags1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1494,7 +1494,7 @@ BC30242: 'Default' is not valid on a method declaration.
             Diagnostic(ERRID.WRN_UnusedLocalConst, "x").WithArguments("x"))
         End Sub
 
-        <WorkItem(538967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538967")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538967")>
         <Fact>
         Public Sub BC30247ERR_BadLocalDimFlags1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1999,7 +1999,7 @@ BC30583: 'ii.abc' cannot be implemented more than once.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(543162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543162")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543162")>
         <Fact()>
         Public Sub BC30269ERR_DuplicateProcDef1_Shared()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -2170,7 +2170,7 @@ BC30273: 'Iterator' is not valid on an interface property declaration.
 
         End Sub
 
-        <WorkItem(539943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539943")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539943")>
         <Fact>
         Public Sub BC30280ERR_BadEmptyEnum1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -3895,7 +3895,7 @@ BC30385: 'Narrowing' is not valid on a Delegate declaration.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(538884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538884")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538884")>
         <Fact>
         Public Sub BC30385ERR_BadDelegateFlags1_1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -4550,7 +4550,7 @@ BC30435: Members in a Structure cannot be declared 'Protected Friend'.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(531467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531467")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531467")>
         <Fact>
         Public Sub BC30435ERR_StructCantUseVarSpecifier1_4()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -4686,7 +4686,7 @@ BC30438: Constants must have a value.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(542127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542127")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542127")>
         <Fact>
         Public Sub BC30438ERR_ConstantWithNoValue02()
             Dim source =
@@ -5079,7 +5079,7 @@ BC30501: 'Shared' cannot be combined with 'MustOverride' on a method declaration
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(528324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528324")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528324")>
         <Fact>
         Public Sub BC30501ERR_BadFlagsOnSharedMeth2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -5783,7 +5783,7 @@ BC30508: 'R' cannot expose type 'A.S' in namespace 'N' through class 'B'.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(528153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528153")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528153")>
         <Fact()>
         Public Sub BC30508ERR_AccessMismatch6_3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -5951,7 +5951,7 @@ BC30530: Parameter cannot have the same name as its defining function.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(540629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540629")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540629")>
         <Fact>
         Public Sub BC30548ERR_InvalidAssemblyAttribute1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -5975,7 +5975,7 @@ End Class
 
         End Sub
 
-        <WorkItem(540629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540629")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540629")>
         <Fact>
         Public Sub BC30549ERR_InvalidModuleAttribute1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -6490,7 +6490,7 @@ BC30607: 'NotInheritable' classes cannot have members declared 'NotOverridable'.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
         End Sub
 
-        <WorkItem(540594, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540594")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540594")>
         <Fact>
         Public Sub BC30610ERR_BaseOnlyClassesMustBeExplicit2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -6516,7 +6516,7 @@ BC30610: Class 'cls2' must either be declared 'MustInherit' or override the foll
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(541026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541026")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541026")>
         <Fact()>
         Public Sub BC30610ERR_BaseOnlyClassesMustBeExplicit2WithBC31411()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -6903,7 +6903,7 @@ BC30002: Type 'C1' is not defined.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(538153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538153")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538153")>
         <Fact>
         Public Sub BC30656ERR_UnsupportedField1()
             Dim csharpComp = CSharp.CSharpCompilation.Create("Test", options:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
@@ -6994,7 +6994,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem(538370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538370")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538370")>
         <Fact>
         Public Sub BC30663ERR_InvalidMultipleAttributeUsage1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -7370,7 +7370,7 @@ BC31075: 'Public ReadOnly Default Property scenario9(i As Long) As Long' is obso
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(538173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538173")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538173")>
         <Fact>
         Public Sub BC30683ERR_InheritsStmtWrongOrder()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -7550,7 +7550,7 @@ BC31086: 'Public Overrides Sub Method(x As Integer)' cannot override 'Public Sub
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, <errors><![CDATA[]]></errors>)
         End Sub
 
-        <WorkItem(529018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529018")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529018")>
         <Fact()>
         Public Sub BC30697ERR_OverrideWithOptionalTypes2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -7750,7 +7750,7 @@ BC30662: Attribute 'DefaultEventAttribute' cannot be applied to 'EventSource8' b
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
         End Sub
 
-        <Fact, WorkItem(545966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545966")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545966")>
         Public Sub BC30772ERR_InvalidNonSerializedUsage()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="InvalidNonSerializedUsage">
@@ -7879,7 +7879,7 @@ Imports bb = ns1.Intfc2.intfc2goo    'BC40056
         End Sub
 
         <Fact>
-        <WorkItem(13926, "https://github.com/dotnet/roslyn/issues/13926")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13926")>
         Public Sub BadAliasTarget()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
@@ -8157,7 +8157,7 @@ BC30909: 'P' cannot expose type 'FriendEnum' outside the project through interfa
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(528153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528153")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528153")>
         <Fact()>
         Public Sub BC30909ERR_AccessMismatchOutsideAssembly4_2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -8210,7 +8210,7 @@ BC30909: 'F' cannot expose type 'FriendClass' outside the project through interf
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(528153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528153")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528153")>
         <Fact()>
         Public Sub BC30909ERR_AccessMismatchOutsideAssembly4_3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -8361,7 +8361,7 @@ BC30912: 'Get' accessor of 'Public ReadOnly Property p As String' is obsolete.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(543640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543640")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543640")>
         Public Sub BC30914ERR_AccessMismatchImplementedEvent6()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="AccessMismatchImplementedEvent6">
@@ -8385,7 +8385,7 @@ BC30914: 'goo' cannot expose the underlying delegate type 'C.i1.gooEventHandler'
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(543641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543641")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543641")>
         Public Sub BC30915ERR_AccessMismatchImplementedEvent4()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="AccessMismatchImplementedEvent4">
@@ -9099,7 +9099,7 @@ BC31029: Method 'subTest' cannot handle event 'ev1' because they do not have a c
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(542143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542143")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542143")>
         <Fact>
         Public Sub BC31033ERR_InterfaceImplementedTwice1_1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -10547,7 +10547,7 @@ BC31086: 'Public Overrides Sub F1()' cannot override 'Public Sub F1()' because i
 }
 ]]>.Value.Replace(vbLf, vbCrLf)
 
-        <WorkItem(528982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528982")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528982")>
         <Fact()>
         Public Sub BC31086ERR_CantOverride5a()
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
@@ -10607,7 +10607,7 @@ VBDerived.Set
 Base_Get_VirtSet.Set", sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
-        <WorkItem(528982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528982")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528982")>
         <Fact()>
         Public Sub BC31086ERR_CantOverride5b()
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
@@ -10712,7 +10712,7 @@ BC30332: Value of type 'Integer()' cannot be converted to 'Integer()()' because 
 ]]></expected>)
         End Sub
 
-        <WorkItem(540876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540876")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540876")>
         <Fact>
         Public Sub BC31088ERR_NotOverridableRequiresOverrides()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -11852,7 +11852,7 @@ BC31408: 'MustInherit' and 'NotInheritable' cannot be combined.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(538931, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538931")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538931")>
         <Fact>
         Public Sub BC31408ERR_BadSpecifierCombo2_1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -11870,7 +11870,7 @@ MustInherit NotInheritable Class C1
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(538931, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538931")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538931")>
         <Fact>
         Public Sub BC31408ERR_BadSpecifierCombo2_2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -11948,7 +11948,7 @@ BC31408: 'Private' and 'Overridable' cannot be combined.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(541025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541025")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541025")>
         <Fact>
         Public Sub BC31408ERR_BadSpecifierCombo2_4()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -11967,7 +11967,7 @@ BC31408: 'Private' and 'MustOverride' cannot be combined.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(542159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542159")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542159")>
         <Fact>
         Public Sub BC31408ERR_BadSpecifierCombo2_5()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -11998,7 +11998,7 @@ BC31408: 'Overrides' and 'Shadows' cannot be combined.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(837983, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837983")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837983")>
         <Fact>
         Public Sub BC31408ERR_BadSpecifierCombo2_6()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -12032,7 +12032,7 @@ BC31408: 'Iterator' and 'WriteOnly' cannot be combined.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(837993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837993")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837993")>
         <Fact>
         Public Sub BC36938ERR_BadIteratorReturn_Property()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -12182,7 +12182,7 @@ BC31409: sub 'Method' must be declared 'Overloads' because another 'Method' is d
         End Sub
 
         ' spec changed in Roslyn
-        <WorkItem(527642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527642")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527642")>
         <Fact>
         Public Sub BC31410ERR_CantOverloadOnMultipleInheritance()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -12265,7 +12265,7 @@ BC31413: 'Public AddHandler Event e(obj As clsTest2.eEventHandler)', implicitly 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(540613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540613")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540613")>
         <Fact>
         Public Sub BC31417ERR_CannotOverrideInAccessibleMember()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -12338,7 +12338,7 @@ BC31420: 'value__' conflicts with the reserved member by this name that is impli
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(539947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539947")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539947")>
         <Fact>
         Public Sub BC31420ERR_ClashWithReservedEnumMember2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -12425,7 +12425,7 @@ BC31423: Event 'Public Event E As Action' cannot implement event 'Event E()' on 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(539760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539760")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539760")>
         <Fact>
         Public Sub BC31429ERR_MetadataMembersAmbiguous3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -13248,7 +13248,7 @@ BC31503: 's1' cannot be used as an attribute because it is not a class.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(540625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540625")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540625")>
         <Fact>
         Public Sub BC31504ERR_AttributeMustInheritSysAttr()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -13269,7 +13269,7 @@ End Class
     </compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_AttributeMustInheritSysAttr, "MyAttribute").WithArguments("MyAttribute"))
         End Sub
 
-        <WorkItem(540628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540628")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540628")>
         <Fact>
         Public Sub BC31506ERR_AttributeCannotBeAbstract()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -13291,7 +13291,7 @@ End Class
     </compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_AttributeCannotBeAbstract, "My").WithArguments("MyAttribute"))
         End Sub
 
-        <WorkItem(540628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540628")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540628")>
         <Fact>
         Public Sub BC31507ERR_AttributeCannotHaveMustOverride()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -13372,7 +13372,7 @@ BC31527: 'Microsoft.VisualBasic.ComClassAttribute' cannot be applied to a class 
         ' BC31531ERR_DllImportNotLegalOnEventMethod
         ' see AttributeTests
 
-        <Fact, WorkItem(1116455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116455")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116455")>
         Public Sub BC31534ERR_FriendAssemblyBadArguments()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
     <compilation name="FriendAssemblyBadArguments">
@@ -13940,7 +13940,7 @@ Class C(Of T As {Object, A}, U As {A, Object})
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(540653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540653")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540653")>
         <Fact>
         Public Sub BC32067ERR_AttrCannotBeGenerics()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -14109,7 +14109,7 @@ BC32072: Cannot implement interface 'intf1(Of u)' because its implementation cou
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(540652, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540652")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540652")>
         <Fact()>
         Public Sub BC32074ERR_GenericClassCannotInheritAttr()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -14145,7 +14145,7 @@ BC32074: Classes that are generic or contained in a generic type cannot inherit 
                                           ]]></errors>)
         End Sub
 
-        <WorkItem(543672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543672")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543672")>
         <Fact()>
         Public Sub BC32074ERR_GenericClassCannotInheritAttr_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -14910,7 +14910,7 @@ BC32089: 't2' is already declared as a type parameter of this method.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact, WorkItem(543642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543642")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543642")>
         Public Sub BC32090ERR_TypeParamNameFunctionNameCollision()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="TypeParamNameFunctionNameCollision">
@@ -16006,7 +16006,7 @@ BC32119: Constraint 'E()' conflicts with the constraint 'Integer()' already spec
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(543643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543643")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543643")>
         Public Sub BC32120ERR_InterfaceUnifiesWithInterface2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="InterfaceUnifiesWithInterface2">
@@ -16026,7 +16026,7 @@ BC32120: Cannot inherit interface 'interfaceA(Of t2)' because it could be identi
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(1042692, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042692")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042692")>
         <Fact()>
         Public Sub BC32120ERR_InterfaceUnifiesWithInterface2_SubstituteWithOtherTypeParameter()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -16047,7 +16047,7 @@ BC32120: Cannot inherit interface 'IA(Of T, U)' because it could be identical to
      ]]></errors>)
         End Sub
 
-        <Fact(), WorkItem(543726, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543726")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543726")>
         Public Sub BC32121ERR_BaseUnifiesWithInterfaces3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="BaseUnifiesWithInterfaces3">
@@ -16071,7 +16071,7 @@ BC32121: Cannot inherit interface 'I2(Of G)' because the interface 'I1(Of G)' fr
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(543727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543727")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543727")>
         Public Sub BC32122ERR_InterfaceBaseUnifiesWithBase4()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="InterfaceBaseUnifiesWithBase4">
@@ -16097,7 +16097,7 @@ BC32122: Cannot inherit interface 'interfaceY(Of t2)' because the interface 'int
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(543729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543729")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543729")>
         Public Sub BC32123ERR_InterfaceUnifiesWithBase3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="InterfaceUnifiesWithBase3">
@@ -16120,7 +16120,7 @@ BC32123: Cannot inherit interface 'interfaceX(Of t2)' because it could be identi
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(543643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543643")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543643")>
         Public Sub BC32072ERR_InterfacePossiblyImplTwice2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="InterfacePossiblyImplTwice2">
@@ -16140,7 +16140,7 @@ BC32072: Cannot implement interface 'interfaceA(Of t2)' because its implementati
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(543726, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543726")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543726")>
         Public Sub BC32131ERR_ClassInheritsBaseUnifiesWithInterfaces3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ClassInheritsBaseUnifiesWithInterfaces3">
@@ -16163,7 +16163,7 @@ BC32131: Cannot implement interface 'I2(Of G)' because the interface 'I1(Of G)' 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(543727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543727")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543727")>
         Public Sub BC32132ERR_ClassInheritsInterfaceBaseUnifiesWithBase4()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ClassInheritsInterfaceBaseUnifiesWithBase4">
@@ -16189,7 +16189,7 @@ BC32132: Cannot implement interface 'interfaceY(Of t2)' because the interface 'i
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(543729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543729")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543729")>
         Public Sub BC32133ERR_ClassInheritsInterfaceUnifiesWithBase3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ClassInheritsInterfaceUnifiesWithBase3">
@@ -17230,7 +17230,7 @@ BC36629: Nullable type inference is not supported in this context.
             Next
         End Sub
 
-        <Fact(), WorkItem(651624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651624")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651624")>
         Public Sub NestedNullableWithAttemptedConversion()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation>
@@ -17470,7 +17470,7 @@ BC36632: Nullable parameters must specify a type.
 
         End Sub
 
-        <WorkItem(528712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528712")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528712")>
         <Fact()>
         Public Sub BC36643ERR_CantSpecifyParamsOnLambdaParamNoType()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -17500,7 +17500,7 @@ BC36632: Nullable parameters must specify a type.
     Diagnostic(ERRID.ERR_NewIfNullOnGenericParam, "T"))
         End Sub
 
-        <WorkItem(542471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542471")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542471")>
         <Fact>
         Public Sub BC36713ERR_AutoPropertyInitializedInStructure_2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -17529,7 +17529,7 @@ BC36713: Auto-implemented Properties contained in Structures cannot have initial
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(540702, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540702")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540702")>
         <Fact>
         Public Sub BC36759ERR_AutoPropertyCantHaveParams()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -17549,7 +17549,7 @@ BC36759: Auto-implemented properties cannot have parameters.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(540702, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540702")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540702")>
         <Fact>
         Public Sub BC36759ERR_AutoPropertyCantHaveParams_MustOverride()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -17572,7 +17572,7 @@ BC30002: Type 'T' is not defined.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(540702, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540702")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540702")>
         <Fact>
         Public Sub BC36759ERR_AutoPropertyCantHaveParams_Default()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -18244,8 +18244,8 @@ BC40005: property 'Goo' shadows an overridable method in the base class 'C1'. To
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(543734, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543734")>
-        <WorkItem(561748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/561748")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543734")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/561748")>
         <Fact>
         Public Sub BC40007WRN_DefaultnessShadowed4()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -18293,7 +18293,7 @@ BC40007: Default property 'Item3' conflicts with the default property 'Item' in 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact, WorkItem(546773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546773")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546773")>
         Public Sub BC40007WRN_DefaultnessShadowed4_NoErrors()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
@@ -18319,7 +18319,7 @@ End Class
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, <errors><![CDATA[]]></errors>)
         End Sub
 
-        <Fact, WorkItem(546773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546773")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546773")>
         Public Sub BC40007WRN_DefaultnessShadowed4_TwoErrors()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
@@ -18355,7 +18355,7 @@ BC40007: Default property 'TeamProject' conflicts with the default property 'Tea
 ]]></errors>)
         End Sub
 
-        <Fact, WorkItem(546773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546773")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546773")>
         Public Sub BC40007WRN_DefaultnessShadowed4_MixedErrors()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
@@ -18391,7 +18391,7 @@ BC30695: property 'TeamProject' must be declared 'Shadows' because another membe
 ]]></errors>)
         End Sub
 
-        <WorkItem(543734, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543734")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543734")>
         <Fact>
         Public Sub BC40007WRN_DefaultnessShadowed4_DifferentCasing()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -18424,8 +18424,8 @@ BC30695: property 'TeamProject' must be declared 'Shadows' because another membe
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(543734, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543734")>
-        <WorkItem(561748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/561748")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543734")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/561748")>
         <Fact>
         Public Sub BC40007WRN_DefaultnessShadowed4_Interface()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -18595,7 +18595,7 @@ BC40012: property 'U' implicitly declares 'set_U', which conflicts with a member
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(541355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541355")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541355")>
         <Fact>
         Public Sub BC40012WRN_SynthMemberShadowsMember5_2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -18716,7 +18716,7 @@ BC40012: property 'R4' implicitly declares '_R4', which conflicts with a member 
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(539827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539827")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539827")>
         <Fact>
         Public Sub BC40012WRN_SynthMemberShadowsMember5_3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -19333,7 +19333,7 @@ BC40048: Type parameter 'V' has the same name as a type parameter of an enclosin
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(543528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543528")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543528")>
         Public Sub BC40048WRN_ShadowingGenericParamWithParam1_1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="ShadowingGenericParamWithParam1">
@@ -19405,7 +19405,7 @@ BC40053: 'RemoveHandler' method for event 'e1' cannot be marked CLS compliant be
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(539496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539496")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539496")>
         <Fact>
         Public Sub BC40055WRN_NamespaceCaseMismatch3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -19474,7 +19474,7 @@ Namespace NS.Ab
 ]]></errors>)
         End Sub
 
-        <WorkItem(545727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545727")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545727")>
         <Fact()>
         Public Sub BC40055_WRN_NamespaceCaseMismatch3_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -19640,7 +19640,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem(528713, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528713")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528713")>
         <Fact>
         Public Sub BC40056WRN_UndefinedOrEmptyNamespaceOrClass1()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("BC40056WRN_UndefinedOrEmptyNamespaceOrClass1")
@@ -19716,7 +19716,7 @@ BC40057: Namespace or type specified in the project-level Imports 'N12 = Alias2'
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(545385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545385")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545385")>
         <Fact>
         Public Sub BC41005WRN_MissingAsClauseinOperator()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -19739,7 +19739,7 @@ BC42021: Operator without an 'As' clause; type of Object assumed.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(528714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528714"), WorkItem(1070286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070286")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528714"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070286")>
         <Fact()>
         Public Sub BC42000WRN_MustShadowOnMultipleInheritance2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -19823,7 +19823,7 @@ BC40003: sub 'Dispose1' shadows an overloadable member declared in the base clas
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(539499, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539499")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539499")>
         <Fact>
         Public Sub BC42020WRN_ObjectAssumedVar1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -19861,8 +19861,8 @@ BC42020: Variable declaration without an 'As' clause; type of Object assumed.
             CompilationUtils.AssertNoErrors(compilation1)
         End Sub
 
-        <WorkItem(539499, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539499")>
-        <WorkItem(529849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529849")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539499")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529849")>
         <Fact()>
         Public Sub BC42020WRN_ObjectAssumedVar1WithStaticLocal()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -19969,7 +19969,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
 ]]></errors>)
         End Sub
 
-        <WorkItem(529849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529849")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529849")>
         <Fact>
         Public Sub BC30209ERR_StrictDisallowImplicitObjectWithStaticLocals()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -19991,7 +19991,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
 ]]></errors>)
         End Sub
 
-        <WorkItem(539501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539501")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539501")>
         <Fact>
         Public Sub BC42021WRN_ObjectAssumed1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -20486,7 +20486,7 @@ BC42319: XML comment exception must have a 'cref' attribute.
             CompilationUtils.AssertTheseDiagnostics(compilation2, expectedErrors)
         End Sub
 
-        <WorkItem(541661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541661")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541661")>
         <Fact()>
         Public Sub BC42333WRN_VarianceDeclarationAmbiguous3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
@@ -21018,7 +21018,7 @@ End Class
             Assert.Equal(0, sym.GetTypeMembers(String.Empty, 0).Length())
         End Sub
 
-        <WorkItem(539568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539568")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539568")>
         <Fact>
         Public Sub AccessBaseClassThroughNestedClass()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -21045,7 +21045,7 @@ BC31447: Class 'B' cannot reference itself in Inherits clause.
 ]]></errors>)
         End Sub
 
-        <WorkItem(539568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539568")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539568")>
         <Fact>
         Public Sub AccessBaseClassThroughNestedClass2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -21411,7 +21411,7 @@ BC30257: Class 'Zeta(Of T)' cannot inherit from itself:
 
         End Sub
 
-        <WorkItem(539568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539568")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539568")>
         <Fact>
         Public Sub AccessInterfaceThroughNestedClass()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -21433,7 +21433,7 @@ BC30257: Class 'Zeta(Of T)' cannot inherit from itself:
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(539568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539568")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539568")>
         <Fact>
         Public Sub AccessBaseClassThroughNestedClassSemantic_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -21459,7 +21459,7 @@ BC30257: Class 'Zeta(Of T)' cannot inherit from itself:
             model.GetSemanticInfoSummary(CType(tree.FindNodeOrTokenByKind(SyntaxKind.IdentifierToken, 8).Parent, ExpressionSyntax))
         End Sub
 
-        <WorkItem(539568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539568")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539568")>
         <Fact>
         Public Sub AccessBaseClassThroughNestedClassSemantic_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -21485,7 +21485,7 @@ BC30257: Class 'Zeta(Of T)' cannot inherit from itself:
             model.GetSemanticInfoSummary(CType(tree.FindNodeOrTokenByKind(SyntaxKind.IdentifierToken, 6).Parent, ExpressionSyntax))
         End Sub
 
-        <WorkItem(539568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539568")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539568")>
         <Fact>
         Public Sub AccessInterfaceThroughNestedClassSemantic_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -21511,7 +21511,7 @@ BC30257: Class 'Zeta(Of T)' cannot inherit from itself:
             model.GetSemanticInfoSummary(CType(tree.FindNodeOrTokenByKind(SyntaxKind.IdentifierToken, 8).Parent, ExpressionSyntax))
         End Sub
 
-        <WorkItem(539568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539568")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539568")>
         <Fact>
         Public Sub AccessInterfaceThroughNestedClassSemantic_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -22329,8 +22329,8 @@ BC30270: 'Iterator' is not valid on an interface method declaration.
         End Sub
 
         <Fact>
-        <WorkItem(50472, "https://github.com/dotnet/roslyn/issues/50472")>
-        <WorkItem(1263908, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1263908")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50472")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1263908")>
         Public Sub UnsupportedHandles_01()
             Dim compilation = CompilationUtils.CreateCompilation(
 <compilation>
@@ -22363,8 +22363,8 @@ BC36611: Events of shared WithEvents variables cannot be handled by methods in a
         End Sub
 
         <Fact>
-        <WorkItem(50472, "https://github.com/dotnet/roslyn/issues/50472")>
-        <WorkItem(1263908, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1263908")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50472")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1263908")>
         Public Sub UnsupportedHandles_02()
             Dim compilation = CompilationUtils.CreateCompilation(
 <compilation>
@@ -22400,8 +22400,8 @@ BC36611: Events of shared WithEvents variables cannot be handled by methods in a
         End Sub
 
         <Fact>
-        <WorkItem(50472, "https://github.com/dotnet/roslyn/issues/50472")>
-        <WorkItem(1263908, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1263908")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50472")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1263908")>
         Public Sub UnsupportedHandles_03()
             Dim compilation = CompilationUtils.CreateCompilation(
 <compilation>
@@ -22436,8 +22436,8 @@ BC36611: Events of shared WithEvents variables cannot be handled by methods in a
         End Sub
 
         <Fact>
-        <WorkItem(50472, "https://github.com/dotnet/roslyn/issues/50472")>
-        <WorkItem(1263908, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1263908")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50472")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1263908")>
         Public Sub UnsupportedHandles_04()
             Dim compilation = CompilationUtils.CreateCompilation(
 <compilation>
@@ -22969,7 +22969,7 @@ BC40048: Type parameter 'T' has the same name as a type parameter of an enclosin
 
         End Sub
 
-        <Fact, WorkItem(527182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527182")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527182")>
         Public Sub DuplicatedNameWithDifferentCases()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AAA">
@@ -23049,7 +23049,7 @@ End Namespace
             Assert.True(errs.Length > 6, "Contain Decl Errors")
         End Sub
 
-        <WorkItem(537443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537443")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537443")>
         <Fact>
         Public Sub DuplicatedTypes()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -23096,7 +23096,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem(537443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537443")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537443")>
         <Fact>
         Public Sub InvalidPartialTypes()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -23176,7 +23176,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem(537680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537680")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537680")>
         <Fact>
         Public Sub ModuleWithTypeParameters()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -23269,7 +23269,7 @@ BC30179: class 'D' and class 'D' conflict in class 'C'.
 
         End Sub
 
-        <WorkItem(537507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537507")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537507")>
         <Fact>
         Public Sub ReportErrorTypeCharacterInTypeNameDeclaration()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -23319,7 +23319,7 @@ Module Program#
  ]]></errors>)
         End Sub
 
-        <WorkItem(537507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537507")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537507")>
         <Fact>
         Public Sub ReportErrorTypeCharacterInTypeName()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -23369,7 +23369,7 @@ BC30468: Type declaration characters are not valid in this context.
  ]]></errors>)
         End Sub
 
-        <WorkItem(540895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540895")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540895")>
         <Fact>
         Public Sub BC31538ERR_FriendAssemblyBadAccessOverride2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -23536,7 +23536,7 @@ End Class
             Assert.Empty(compilation2.GetDiagnostics())
         End Sub
 
-        <Fact, WorkItem(544071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544071")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544071")>
         Public Sub ProtectedTypeExposureGeneric()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
  <compilation name="E">
@@ -23562,7 +23562,7 @@ End Class
 
         End Sub
 
-        <Fact, WorkItem(574771, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574771")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574771")>
         Public Sub Bug574771()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
@@ -23610,7 +23610,7 @@ BC31035: Interface 'vbGI6504Int2(Of X, X)' is not implemented by this class.
 
         End Sub
 
-        <Fact, WorkItem(578723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578723")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578723")>
         Public Sub Bug578723()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
@@ -23641,7 +23641,7 @@ BC30203: Identifier expected.
 
         End Sub
 
-        <WorkItem(783920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/783920")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/783920")>
         <Fact()>
         Public Sub Bug783920()
             Dim comp1 = CreateCompilationWithMscorlib40(
@@ -23710,7 +23710,7 @@ End Module]]></file>
 
         End Sub
 
-        <Fact, WorkItem(528709, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528709")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528709")>
         Public Sub Bug528709()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
@@ -23732,7 +23732,7 @@ BC31421: 'One' is already declared in this enum.
 
         End Sub
 
-        <Fact, WorkItem(529327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529327")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529327")>
         Public Sub Bug529327()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
@@ -23762,7 +23762,7 @@ BC40003: sub 'Goo' shadows an overloadable member declared in the base interface
 
         End Sub
 
-        <Fact, WorkItem(531353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531353")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531353")>
         Public Sub Bug531353()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
@@ -23792,7 +23792,7 @@ BC40003: operator 'op_Addition' shadows an overloadable member declared in the b
 
         End Sub
 
-        <Fact, WorkItem(1068209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068209")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068209")>
         Public Sub Bug1068209_01()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
@@ -23832,7 +23832,7 @@ BC40012: event 'E2' implicitly declares 'remove_E2', which conflicts with a memb
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact, WorkItem(1068209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068209")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068209")>
         Public Sub Bug1068209_02()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
@@ -23984,7 +23984,7 @@ Friend MustOverride ReadOnly Property P
         End Sub
 
         <Fact>
-        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub MultipleForwardsOfATypeToDifferentAssembliesWithoutUsingItShouldNotReportAnError()
             Dim forwardingIL = "
 .assembly extern mscorlib
@@ -24053,7 +24053,7 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub MultipleForwardsOfFullyQualifiedTypeToDifferentAssembliesWhileReferencingItShouldErrorOut()
             Dim userCode =
     <compilation>
@@ -24103,7 +24103,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=1.0.0.0, C
         End Sub
 
         <Fact>
-        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub MultipleForwardsToManyAssembliesShouldJustReportTheFirstTwo()
 
             Dim userCode =
@@ -24171,7 +24171,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
         End Sub
 
         <Fact>
-        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub RequiredExternalTypesForAMethodSignatureWillReportErrorsIfForwardedToMultipleAssemblies()
             ' The scenario Is that assembly A Is calling a method from assembly B. This method has a parameter of a type that lives
             ' in assembly C. If A Is compiled against B And C, it should compile successfully.
@@ -24256,7 +24256,7 @@ BC37208: Module 'CModule.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, 
         End Sub
 
         <Fact>
-        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub MultipleTypeForwardersToTheSameAssemblyShouldNotResultInMultipleForwardError()
             Dim codeC = "
 Namespace C
@@ -24351,7 +24351,7 @@ End Namespace"
         End Sub
 
         <Fact>
-        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub CompilingModuleWithMultipleForwardersToDifferentAssembliesShouldErrorOut()
             Dim ilSource = "
 .module ForwarderModule.dll
@@ -24379,7 +24379,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
         End Sub
 
         <Fact>
-        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub CompilingModuleWithMultipleForwardersToTheSameAssemblyShouldNotProduceMultipleForwardingErrors()
             Dim ilSource = "
 .assembly extern D { }
@@ -24417,7 +24417,7 @@ End Namespace"
         End Sub
 
         <Fact>
-        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub LookingUpATypeForwardedTwiceInASourceCompilationReferenceShouldFail()
             ' This test specifically tests that SourceAssembly symbols also produce this error (by using a CompilationReference instead of the usual PEAssembly symbol)
 
@@ -24466,7 +24466,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
         End Sub
 
         <Fact>
-        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub ForwardingErrorsInLaterModulesAlwaysOverwriteOnesInEarlierModules()
             Dim module1IL = "
 .module module1IL.dll
@@ -24529,7 +24529,7 @@ BC37208: Module 'module12L.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture
         End Sub
 
         <Fact>
-        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub MultipleForwardsThatChainResultInTheSameAssemblyShouldStillProduceAnError()
             ' The scenario Is that assembly A Is calling a method from assembly B. This method has a parameter of a type that lives
             ' in assembly C. Now if assembly C Is replaced with assembly C2, that forwards the type to both D And E, And D fowards it to E,
@@ -24617,7 +24617,7 @@ BC37208: Module 'C.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, Public
         End Sub
 
         <Fact>
-        <WorkItem(52516, "https://github.com/dotnet/roslyn/issues/52516")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/52516")>
         Public Sub ErrorInfo_01()
             Dim [error] = New MissingMetadataTypeSymbol.Nested(New UnsupportedMetadataTypeSymbol(), "Test", 0, False)
             Dim info = [error].ErrorInfo

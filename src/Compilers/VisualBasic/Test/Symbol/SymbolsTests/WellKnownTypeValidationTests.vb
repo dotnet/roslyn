@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact>
-        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub NonPublicSpecialType()
             Dim source = <![CDATA[
 Namespace System
@@ -49,7 +49,7 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub NonPublicSpecialTypeMember()
             Dim sourceTemplate = <![CDATA[
 Namespace System
@@ -96,7 +96,7 @@ End Namespace
 
         ' Document the fact that we don't reject type parameters with constraints (yet?).
         <Fact>
-        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub GenericConstraintsOnSpecialType()
             Dim source = <![CDATA[
 Namespace System
@@ -133,7 +133,7 @@ End Namespace
         ' No special type members have type parameters that could (incorrectly) be constrained.
 
         <Fact>
-        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub NonPublicWellKnownType()
             Dim source = <![CDATA[
 Namespace System
@@ -173,7 +173,7 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub NonPublicWellKnownType_Nested()
             Dim sourceTemplate = <![CDATA[
 Namespace System.Diagnostics
@@ -218,7 +218,7 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub NonPublicWellKnownTypeMember()
             Dim sourceTemplate = <![CDATA[
 Namespace System
@@ -272,7 +272,7 @@ End Namespace
 
         ' Document the fact that we don't reject type parameters with constraints (yet?).
         <Fact>
-        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub GenericConstraintsOnWellKnownType()
             Dim source = <![CDATA[
 Namespace System
@@ -308,7 +308,7 @@ End Namespace
 
         ' Document the fact that we don't reject type parameters with constraints (yet?).
         <Fact>
-        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub GenericConstraintsOnWellKnownTypeMember()
             Dim sourceTemplate = <![CDATA[
 Namespace System
@@ -364,7 +364,7 @@ End Namespace
         End Function
 
         <Fact>
-        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub PublicVersusInternalWellKnownType()
             Dim corlibSource =
                 <compilation>
@@ -446,7 +446,7 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllSpecialTypes()
             Dim comp = CreateEmptyCompilationWithReferences((<compilation/>), {MscorlibRef_v4_0_30316_17626})
 
@@ -464,7 +464,7 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllSpecialTypeMembers()
             Dim comp = CreateEmptyCompilationWithReferences((<compilation/>), {MscorlibRef_v4_0_30316_17626})
 
@@ -498,7 +498,7 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllWellKnownTypes()
             Dim refs As MetadataReference() =
             {
@@ -653,7 +653,7 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllWellKnownTypeMembers()
             Dim refs As MetadataReference() =
             {

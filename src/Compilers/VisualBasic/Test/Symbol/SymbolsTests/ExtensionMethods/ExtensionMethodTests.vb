@@ -2164,7 +2164,7 @@ BC42030: Variable 'x' is passed by reference before it has been assigned a value
         End Sub
 
         <Fact()>
-        <WorkItem(528983, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528983")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528983")>
         Public Sub ExtensionMethodsDeclaredInTypesWithConflictingNamesAreNotVisible()
 
             'namespace Extensions
@@ -2362,7 +2362,7 @@ BC30662: Attribute 'ExtensionAttribute' cannot be applied to 'C' because the att
 ]]></expected>)
         End Sub
 
-        <Fact(), WorkItem(545799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545799")>
+        <Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545799")>
         Public Sub SameExtensionMethodSymbol()
 
             Dim comp = CreateCompilationWithMscorlib40AndReferences(
@@ -2423,7 +2423,7 @@ End Module
         End Sub
 
         <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40680: The test hook is blocked by this issue.
-        <WorkItem(40680, "https://github.com/dotnet/roslyn/issues/40680")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/40680")>
         Public Sub ScriptExtensionMethods()
             Dim source = <![CDATA[
 Imports System.Runtime.CompilerServices
@@ -2536,7 +2536,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(65020, "https://github.com/dotnet/roslyn/issues/65020")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/65020")>
         Public Sub ReduceExtensionMethodOnReceiverTypeSystemVoid()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>

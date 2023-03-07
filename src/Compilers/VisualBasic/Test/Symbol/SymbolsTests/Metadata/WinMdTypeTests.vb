@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
             Assert.Equal(value.DeclaredAccessibility, Accessibility.Public)
         End Sub
 
-        <Fact, WorkItem(1169511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1169511")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1169511")>
         Public Sub WinMdAssemblyQualifiedType()
             Dim source =
            <compilation>

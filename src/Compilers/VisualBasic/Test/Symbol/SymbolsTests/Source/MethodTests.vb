@@ -893,7 +893,7 @@ End Namespace
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(537444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537444")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537444")>
         <Fact>
         Public Sub DeclareFunction01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -995,7 +995,7 @@ End Structure
             Assert.Equal(TypeKind.Structure, mem4.Type.TypeKind)
         End Sub
 
-        <WorkItem(537466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537466")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537466")>
         <Fact>
         Public Sub DefaultAccessibility01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -1679,7 +1679,7 @@ BC36552: Extension methods must declare at least one parameter. The first parame
                                                </expected>)
         End Sub
 
-        <WorkItem(779441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/779441")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/779441")>
         <Fact>
         Public Sub UserDefinedOperatorLocation()
             Dim source = <![CDATA[
@@ -1700,7 +1700,7 @@ End Class
             Assert.Equal(parenPos, span.End)
         End Sub
 
-        <WorkItem(901815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/901815")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/901815")>
         <Fact>
         Public Sub UserDefinedConversionLocation()
             Dim source = <![CDATA[
@@ -1729,7 +1729,7 @@ BC32065: Type parameters cannot be specified on this declaration.
 ]]></errors>)
         End Sub
 
-        <Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51082")>
         Public Sub IsPartialDefinitionOnNonPartial()
             Dim source = <![CDATA[
 Public Class C
@@ -1744,7 +1744,7 @@ End Class
             Assert.False(m.IsPartialDefinition)
         End Sub
 
-        <Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51082")>
         Public Sub IsPartialDefinitionOnPartialDefinitionOnly()
             Dim source = <![CDATA[
 Public Class C
@@ -1761,7 +1761,7 @@ End Class
             Assert.Null(m.PartialImplementationPart)
         End Sub
 
-        <Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51082")>
         Public Sub IsPartialDefinitionWithPartialImplementation()
             Dim source = <![CDATA[
 Public Class C

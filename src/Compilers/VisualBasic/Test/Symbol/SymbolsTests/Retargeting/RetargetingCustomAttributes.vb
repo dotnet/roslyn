@@ -238,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
         End Sub
 
         <Fact>
-        <WorkItem(569089, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569089")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569089")>
         Public Sub NullArrays()
             Dim source1 =
 <compilation>
@@ -295,7 +295,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(65048, "https://github.com/dotnet/roslyn/issues/65048")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/65048")>
         Public Sub MissingAttributeType()
             Dim source1 = "
 Imports System
@@ -324,7 +324,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(65048, "https://github.com/dotnet/roslyn/issues/65048")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/65048")>
         Public Sub MissingAttributeConstructor()
             Dim source1_1 = "
 Imports System
