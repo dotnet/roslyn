@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
-        [WorkItem(34101, "https://github.com/dotnet/roslyn/issues/34101")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34101")]
         public void SuppressedWarnAsErrorsStillEmit()
         {
             var dir = Temp.CreateDirectory();
@@ -375,7 +375,7 @@ dotnet_diagnostic.cs0169.severity = suppress";
             Assert.Equal("星野 八郎太", File.ReadAllText(Path.Combine(dir.Path, "output.txt"), Encoding.GetEncoding(932)));
         }
 
-        [WorkItem(946954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946954")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946954")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void CompilerBinariesAreAnyCPU()
         {
@@ -502,7 +502,7 @@ d.cs
         }
 #nullable disable
 
-        [Fact, WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29252")]
         public void NoSdkPath()
         {
             var parentDir = Temp.CreateDirectory();
@@ -510,7 +510,7 @@ d.cs
             AssertEx.Equal(ImmutableArray<string>.Empty, parser.ReferencePaths);
         }
 
-        [Fact, WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29252")]
         public void NoSdkPathReferenceSystemDll()
         {
             string source = @"
@@ -594,7 +594,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(21508, "https://github.com/dotnet/roslyn/issues/21508")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21508")]
         public void ArgumentStartWithDashAndContainingSlash()
         {
             CSharpCommandLineArguments args;
@@ -611,8 +611,8 @@ class C
                 );
         }
 
-        [WorkItem(546009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546009")]
-        [WorkItem(545991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545991")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546009")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545991")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void SourceFiles_Patterns2()
         {
@@ -686,7 +686,7 @@ class C
             f.WriteAllText("");
         }
 
-        [Fact, WorkItem(546023, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546023")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546023")]
         public void Win32ResourceArguments()
         {
             string[] args = new string[]
@@ -1831,7 +1831,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(546961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546961")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546961")]
         public void Define()
         {
             var parsedArgs = DefaultParse(new[] { "a.cs" }, WorkingDirectory);
@@ -2789,7 +2789,7 @@ class C
             }
         }
 
-        [WorkItem(892467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
         [Fact]
         public void Analyzers_Found()
         {
@@ -2851,7 +2851,7 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(912906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912906")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912906")]
         [Fact]
         public void Analyzers_CommandLineOverridesRuleset1()
         {
@@ -2900,7 +2900,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_GeneralCommandLineOptionOverridesGeneralRuleSetOption()
         {
             var dir = Temp.CreateDirectory();
@@ -2930,7 +2930,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_GeneralWarnAsErrorPromotesWarningFromRuleSet()
         {
             var dir = Temp.CreateDirectory();
@@ -2963,7 +2963,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_GeneralWarnAsErrorDoesNotPromoteInfoFromRuleSet()
         {
             var dir = Temp.CreateDirectory();
@@ -2996,7 +2996,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_SpecificWarnAsErrorPromotesInfoFromRuleSet()
         {
             var dir = Temp.CreateDirectory();
@@ -3029,7 +3029,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_GeneralWarnAsErrorMinusResetsRules()
         {
             var dir = Temp.CreateDirectory();
@@ -3063,7 +3063,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_SpecificWarnAsErrorMinusResetsRules()
         {
             var dir = Temp.CreateDirectory();
@@ -3097,7 +3097,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_SpecificWarnAsErrorMinusDefaultsRuleNotInRuleSet()
         {
             var dir = Temp.CreateDirectory();
@@ -3132,7 +3132,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/468")]
         public void NoWarn_SpecificNoWarnOverridesRuleSet()
         {
             var dir = Temp.CreateDirectory();
@@ -3166,7 +3166,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/468")]
         public void NoWarn_SpecificNoWarnOverridesGeneralWarnAsError()
         {
             var dir = Temp.CreateDirectory();
@@ -3201,7 +3201,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/468")]
         public void NoWarn_SpecificNoWarnOverridesSpecificWarnAsError()
         {
             var dir = Temp.CreateDirectory();
@@ -3236,7 +3236,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(35748, "https://github.com/dotnet/roslyn/issues/35748")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35748")]
         public void NoWarn_Nullable()
         {
             var dir = Temp.CreateDirectory();
@@ -3269,7 +3269,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(35748, "https://github.com/dotnet/roslyn/issues/35748")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35748")]
         public void NoWarn_Nullable_Capitalization()
         {
             var dir = Temp.CreateDirectory();
@@ -3302,7 +3302,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(35748, "https://github.com/dotnet/roslyn/issues/35748")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35748")]
         public void NoWarn_Nullable_MultipleArguments()
         {
             var dir = Temp.CreateDirectory();
@@ -3336,7 +3336,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(35748, "https://github.com/dotnet/roslyn/issues/35748")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35748")]
         public void WarnAsError_Nullable()
         {
             var dir = Temp.CreateDirectory();
@@ -3368,7 +3368,7 @@ class C
                 actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode)]);
         }
 
-        [WorkItem(912906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912906")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912906")]
         [Fact]
         public void Analyzers_CommandLineOverridesRuleset2()
         {
@@ -3516,7 +3516,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
                 itemSeparator: "\r\n");
         }
 
-        [WorkItem(540891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void ParseOut()
         {
@@ -3777,8 +3777,8 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.Equal(".netmodule", parsedArgs.CompilationOptions.ModuleName);
         }
 
-        [WorkItem(546012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546012")]
-        [WorkItem(546007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546007")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546012")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546007")]
         [Fact]
         public void ParseOut2()
         {
@@ -4369,10 +4369,10 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.Equal(Platform.AnyCpu, parsedArgs.CompilationOptions.Platform);  //anycpu is default
         }
 
-        [WorkItem(546016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546016")]
-        [WorkItem(545997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545997")]
-        [WorkItem(546019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546019")]
-        [WorkItem(546029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546029")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546016")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545997")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546019")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546029")]
         [Fact]
         public void ParseBaseAddress()
         {
@@ -4543,7 +4543,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<path list>", "lib"));
         }
 
-        [Fact, WorkItem(546005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546005")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546005")]
         public void SdkPathAndLibEnvVariable_Relative_csc()
         {
             var tempFolder = Temp.CreateDirectory();
@@ -5427,7 +5427,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.False(parsedArgs.CompilationOptions.PublicSign);
         }
 
-        [WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8360")]
         [Fact]
         public void PublicSign_KeyFileRelativePath()
         {
@@ -5437,7 +5437,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
         }
 
         [Fact]
-        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11497")]
         public void PublicSignWithEmptyKeyPath()
         {
             DefaultParse(new[] { "/publicsign", "/keyfile:", "a.cs" }, WorkingDirectory).Errors.Verify(
@@ -5446,7 +5446,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
         }
 
         [Fact]
-        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11497")]
         public void PublicSignWithEmptyKeyPath2()
         {
             DefaultParse(new[] { "/publicsign", "/keyfile:\"\"", "a.cs" }, WorkingDirectory).Errors.Verify(
@@ -5454,7 +5454,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
                 Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("keyfile").WithLocation(1, 1));
         }
 
-        [WorkItem(546301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546301")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546301")]
         [Fact]
         public void SubsystemVersionTests()
         {
@@ -5593,7 +5593,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/codepage+"));
         }
 
-        [Fact, WorkItem(24735, "https://github.com/dotnet/roslyn/issues/24735")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24735")]
         public void ChecksumAlgorithm()
         {
             CSharpCommandLineArguments parsedArgs = DefaultParse(new[] { "/checksumAlgorithm:sHa1", "a.cs" }, WorkingDirectory);
@@ -5665,7 +5665,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("/ADDMODULE:"));
         }
 
-        [Fact, WorkItem(530751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530751")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530751")]
         public void CS7061fromCS0647_ModuleWithCompilationRelaxations()
         {
             string source1 = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -5715,7 +5715,7 @@ class Test { static void Main() {} }").Path;
             CleanupAllGeneratedFiles(source);
         }
 
-        [Fact, WorkItem(530780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530780")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530780")]
         public void AddModuleWithExtensionMethod()
         {
             string source1 = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"public static class Extensions { public static bool EB(this bool b) { return b; } }").Path;
@@ -5735,7 +5735,7 @@ class Test { static void Main() {} }").Path;
             CleanupAllGeneratedFiles(source2);
         }
 
-        [Fact, WorkItem(546297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546297")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546297")]
         public void OLDCS0013FTL_MetadataEmitFailureSameModAndRes()
         {
             string source1 = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"class Mod { }").Path;
@@ -5945,7 +5945,7 @@ class A                                                               \
             CleanupAllGeneratedFiles(tempOut.Path);
         }
 
-        [WorkItem(546653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546653")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546653")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void NoSourcesWithModule()
         {
@@ -5965,7 +5965,7 @@ class A                                                               \
             CleanupAllGeneratedFiles(aCs.Path);
         }
 
-        [WorkItem(546653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546653")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546653")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void NoSourcesWithResource()
         {
@@ -5979,7 +5979,7 @@ class A                                                               \
             CleanupAllGeneratedFiles(aCs.Path);
         }
 
-        [WorkItem(546653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546653")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546653")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void NoSourcesWithLinkResource()
         {
@@ -6063,7 +6063,7 @@ class A                                                               \
             Assert.Equal("b", parsedArgs.CompilationOptions.CryptoKeyContainer);
         }
 
-        [Fact, WorkItem(554551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554551")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554551")]
         public void CS1698WRN_AssumedMatchThis()
         {
             // compile with: /target:library /keyfile:mykey.snk
@@ -6130,8 +6130,8 @@ public class CS1698_a {}
         }
 
 #if !NETCOREAPP
-        [WorkItem(530221, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530221")]
-        [WorkItem(5660, "https://github.com/dotnet/roslyn/issues/5660")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530221")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/5660")]
         [ConditionalFact(typeof(WindowsOnly), typeof(IsEnglishLocal))]
         public void Bug15538()
         {
@@ -6178,7 +6178,7 @@ public class CS1698_a {}
         }
 #endif
 
-        [WorkItem(545832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545832")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545832")]
         [Fact]
         public void ResponseFilesWithEmptyAliasReference()
         {
@@ -6277,7 +6277,7 @@ class myClass
             }
         }
 
-        [WorkItem(545832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545832")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545832")]
         [Fact]
         public void ResponseFilesWithEmptyAliasReference2()
         {
@@ -6319,7 +6319,7 @@ class myClass
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [WorkItem(1784, "https://github.com/dotnet/roslyn/issues/1784")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1784")]
         [Fact]
         public void QuotedDefineInRespFile()
         {
@@ -6360,7 +6360,7 @@ class myClass
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [WorkItem(1784, "https://github.com/dotnet/roslyn/issues/1784")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1784")]
         [Fact]
         public void QuotedDefineInRespFileErr()
         {
@@ -6460,7 +6460,7 @@ class myClass
             AssertEx.Equal(new[] { @"d:\abc def\baz.cs", @"c:\abc de.cs" }, args.SourceFiles.Select(file => file.Path));
         }
 
-        [WorkItem(544441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
         [Fact]
         public void OutputFileName1()
         {
@@ -6483,7 +6483,7 @@ class B
                 expectedOutputName: "p.dll");
         }
 
-        [WorkItem(544441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
         [Fact]
         public void OutputFileName2()
         {
@@ -6506,7 +6506,7 @@ class B
                 expectedOutputName: "r.dll");
         }
 
-        [WorkItem(544441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
         [Fact]
         public void OutputFileName3()
         {
@@ -6529,7 +6529,7 @@ class B
                 expectedOutputName: "q.exe");
         }
 
-        [WorkItem(544441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
         [Fact]
         public void OutputFileName4()
         {
@@ -6552,7 +6552,7 @@ class B
                 expectedOutputName: "r.exe");
         }
 
-        [WorkItem(544441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
         [Fact]
         public void OutputFileName5()
         {
@@ -6576,7 +6576,7 @@ class B
                 expectedOutputName: "p.exe");
         }
 
-        [WorkItem(544441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
         [Fact]
         public void OutputFileName6()
         {
@@ -6600,7 +6600,7 @@ class B
                 expectedOutputName: "q.exe");
         }
 
-        [WorkItem(544441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
         [Fact]
         public void OutputFileName7()
         {
@@ -6624,7 +6624,7 @@ partial class A
                 expectedOutputName: "p.exe");
         }
 
-        [WorkItem(544441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
         [Fact]
         public void OutputFileName8()
         {
@@ -6736,7 +6736,7 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [Fact, WorkItem(1093063, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1093063")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1093063")]
         public void VerifyDiagnosticSeverityNotLocalized()
         {
             string source = @"
@@ -6907,7 +6907,7 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(545025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545025")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545025")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void CompilationWithWarnAsError_01()
         {
@@ -6934,7 +6934,7 @@ public class C
             Assert.Equal(0, exitCode);
         }
 
-        [WorkItem(545025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545025")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545025")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void CompilationWithWarnAsError_02()
         {
@@ -6981,7 +6981,7 @@ public class C
             return exitCode;
         }
 
-        [WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void CompilationWithNonExistingOutPath()
         {
@@ -7007,7 +7007,7 @@ public class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")]
         [Fact]
         public void CompilationWithWrongOutPath_01()
         {
@@ -7035,7 +7035,7 @@ public class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")]
         [Fact]
         public void CompilationWithWrongOutPath_02()
         {
@@ -7063,7 +7063,7 @@ public class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")]
         [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void CompilationWithWrongOutPath_03()
         {
@@ -7089,7 +7089,7 @@ public class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")]
         [Fact]
         public void CompilationWithWrongOutPath_04()
         {
@@ -7626,7 +7626,7 @@ class C
             FreeLibrary(lib);
         }
 
-        [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void ResponseFilesWithNoconfig_01()
         {
@@ -7674,7 +7674,7 @@ public class C
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void ResponseFilesWithNoconfig_02()
         {
@@ -7708,7 +7708,7 @@ public class C
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void ResponseFilesWithNoconfig_03()
         {
@@ -7742,7 +7742,7 @@ public class C
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void ResponseFilesWithNoconfig_04()
         {
@@ -7776,7 +7776,7 @@ public class C
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [Fact, WorkItem(530024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530024")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530024")]
         public void NoStdLib()
         {
             var src = Temp.CreateFile("a.cs");
@@ -7810,7 +7810,7 @@ public class C
             return Temp.CreateFile().WriteAllBytes(cscRsp).Path;
         }
 
-        [Fact, WorkItem(530359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530359")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530359")]
         public void NoStdLib02()
         {
             #region "source"
@@ -7959,7 +7959,7 @@ namespace System
             CleanupAllGeneratedFiles(src.Path);
         }
 
-        [Fact, WorkItem(546018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546018"), WorkItem(546020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546020"), WorkItem(546024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546024"), WorkItem(546049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546049")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546018"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546020"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546024"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546049")]
         public void InvalidDefineSwitch()
         {
             var src = Temp.CreateFile("a.cs");
@@ -8019,7 +8019,7 @@ namespace System
             CleanupAllGeneratedFiles(src.Path);
         }
 
-        [WorkItem(733242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/733242")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/733242")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void Bug733242()
         {
@@ -8063,7 +8063,7 @@ class C {} ");
             CleanupAllGeneratedFiles(xml.Path);
         }
 
-        [WorkItem(768605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768605")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768605")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void Bug768605()
         {
@@ -8296,7 +8296,7 @@ public class C
             }, StringComparer.OrdinalIgnoreCase);
         }
 
-        [Fact, WorkItem(545954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545954")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545954")]
         public void TestFilterParseDiagnostics()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -8330,7 +8330,7 @@ static void Main() {
             CleanupAllGeneratedFiles(source);
         }
 
-        [Fact, WorkItem(546058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546058")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546058")]
         public void TestNoWarnParseDiagnostics()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -8359,7 +8359,7 @@ class Test
             CleanupAllGeneratedFiles(source);
         }
 
-        [Fact, WorkItem(41610, "https://github.com/dotnet/roslyn/issues/41610")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41610")]
         public void TestWarnAsError_CS8632()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -8384,7 +8384,7 @@ $@"{fileName}(4,18): error CS8632: The annotation for nullable reference types s
             CleanupAllGeneratedFiles(source);
         }
 
-        [Fact, WorkItem(546076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546076")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546076")]
         public void TestWarnAsError_CS1522()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -8420,7 +8420,7 @@ $@"{fileName}(12,20): error CS1522: Empty switch block
             CleanupAllGeneratedFiles(source);
         }
 
-        [Fact(), WorkItem(546025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546025")]
+        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546025")]
         public void TestWin32ResWithBadResFile_CS1583ERR_BadWin32Res_01()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"class Test { static void Main() {} }").Path;
@@ -8445,7 +8445,7 @@ $@"{fileName}(12,20): error CS1522: Empty switch block
             CleanupAllGeneratedFiles(badres);
         }
 
-        [Fact(), WorkItem(217718, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=217718")]
+        [Fact(), WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=217718")]
         public void TestWin32ResWithBadResFile_CS1583ERR_BadWin32Res_02()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"class Test { static void Main() {} }").Path;
@@ -8470,7 +8470,7 @@ $@"{fileName}(12,20): error CS1522: Empty switch block
             CleanupAllGeneratedFiles(badres);
         }
 
-        [Fact, WorkItem(546114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546114")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546114")]
         public void TestFilterCommandLineDiagnostics()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -8490,7 +8490,7 @@ static void Main() { }
             CleanupAllGeneratedFiles(source);
         }
 
-        [Fact, WorkItem(546452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546452")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546452")]
         public void CS1691WRN_BadWarningNumber_Bug15905()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -8642,7 +8642,7 @@ class Program3
         /// On Linux/Mac <see cref="FileShare.Delete"/> on its own doesn't do anything.
         /// We need to create the actual memory map. This works on Windows as well.
         /// </summary>
-        [WorkItem(8896, "https://github.com/dotnet/roslyn/issues/8896")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8896")]
         [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void FileShareDeleteCompatibility_Xplat()
         {
@@ -8713,7 +8713,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
         }
 
         // Seems like File.SetAttributes(libDll.Path, FileAttributes.ReadOnly) doesn't restrict access to the file on Mac (Linux passes).
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem(8939, "https://github.com/dotnet/roslyn/issues/8939")]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/8939")]
         public void FileShareDeleteCompatibility_ReadOnlyFiles()
         {
             var dir = Temp.CreateDirectory();
@@ -8951,7 +8951,7 @@ class Program
 } ").Path;
         }
 
-        [Fact, WorkItem(546452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546452")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546452")]
         public void CS1691WRN_BadWarningNumber_AllErrorCodes()
         {
             const int jump = 200;
@@ -9055,7 +9055,7 @@ public class C { }
             CleanupAllGeneratedFiles(xmlPath);
         }
 
-        [WorkItem(546468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546468")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546468")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void CS2002WRN_FileAlreadyIncluded()
         {
@@ -9234,7 +9234,7 @@ public class C { }
         }
 
         [Fact]
-        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40926")]
         public void SkipAnalyzersParse()
         {
             var parsedArgs = DefaultParse(new[] { "a.cs" }, WorkingDirectory);
@@ -9267,7 +9267,7 @@ public class C { }
         }
 
         [Fact]
-        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40926")]
         public void SkipAnalyzersFlagFiltersAnalyzers()
         {
             var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
@@ -9300,7 +9300,7 @@ public class C { }
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40926")]
         public void NoAnalyzersReportSemantics(bool skipAnalyzers)
         {
             var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
@@ -9333,7 +9333,7 @@ public class C { }
         }
 
         [Fact]
-        [WorkItem(24835, "https://github.com/dotnet/roslyn/issues/24835")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24835")]
         public void TestCompilationSuccessIfOnlySuppressedDiagnostics()
         {
             var srcFile = Temp.CreateFile().WriteAllText(@"
@@ -9360,7 +9360,7 @@ class C { }
         }
 
         [Fact]
-        [WorkItem(1759, "https://github.com/dotnet/roslyn/issues/1759")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1759")]
         public void AnalyzerDiagnosticThrowsInGetMessage()
         {
             var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
@@ -9385,7 +9385,7 @@ class C { }
         }
 
         [Fact]
-        [WorkItem(3707, "https://github.com/dotnet/roslyn/issues/3707")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3707")]
         public void AnalyzerExceptionDiagnosticCanBeConfigured()
         {
             var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
@@ -9407,7 +9407,7 @@ class C { }
         }
 
         [Fact]
-        [WorkItem(4589, "https://github.com/dotnet/roslyn/issues/4589")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4589")]
         public void AnalyzerReportsMisformattedDiagnostic()
         {
             var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
@@ -9460,7 +9460,7 @@ using System*
             Assert.True(text.StartsWith("http://goo.bar/baz.aspx", StringComparison.Ordinal));
         }
 
-        [WorkItem(1119609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119609")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119609")]
         [Fact]
         public void PreferredUILang()
         {
@@ -9500,7 +9500,7 @@ using System*
             Assert.DoesNotContain("CS2038", outWriter.ToString(), StringComparison.Ordinal);
         }
 
-        [WorkItem(531263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531263")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531263")]
         [Fact]
         public void EmptyFileName()
         {
@@ -9512,7 +9512,7 @@ using System*
             Assert.Contains("CS2021", outWriter.ToString(), StringComparison.Ordinal);
         }
 
-        [WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
         [Fact]
         public void NoInfoDiagnostics()
         {
@@ -9558,7 +9558,7 @@ using System.Diagnostics; // Unused.
             Assert.Equal("_+@%#*^", ModuleMetadata.CreateFromImage(comp.EmitToArray(new EmitOptions(runtimeMetadataVersion: "_+@%#*^"))).Module.MetadataVersion);
         }
 
-        [WorkItem(715339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715339")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715339")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void WRN_InvalidSearchPathDir()
         {
@@ -9587,7 +9587,7 @@ using System.Diagnostics; // Unused.
             CleanupAllGeneratedFiles(sourceFile.Path);
         }
 
-        [WorkItem(650083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650083")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650083")]
         [InlineData("a.cs /t:library /appconfig:.\\aux.config")]
         [InlineData("a.cs /out:com1.dll")]
         [InlineData("a.cs /doc:..\\lpt2.xml")]
@@ -10363,7 +10363,7 @@ class C
             return output;
         }
 
-        [WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
         [Fact]
         public void NoWarnAndWarnAsError_AnalyzerDriverWarnings()
         {
@@ -10396,9 +10396,9 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
-        [WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")]
-        [WorkItem(1021115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021115")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021115")]
         [Fact]
         public void NoWarnAndWarnAsError_HiddenDiagnostic()
         {
@@ -10508,10 +10508,10 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
-        [WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")]
-        [WorkItem(1021115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021115")]
-        [WorkItem(42166, "https://github.com/dotnet/roslyn/issues/42166")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42166")]
         [CombinatorialData, Theory]
         public void NoWarnAndWarnAsError_InfoDiagnostic(bool errorlog)
         {
@@ -10652,12 +10652,12 @@ class C
             return output;
         }
 
-        [WorkItem(11368, "https://github.com/dotnet/roslyn/issues/11368")]
-        [WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
-        [WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")]
-        [WorkItem(998069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998069")]
-        [WorkItem(998724, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998724")]
-        [WorkItem(1021115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11368")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998069")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998724")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021115")]
         [Fact]
         public void NoWarnAndWarnAsError_WarningDiagnostic()
         {
@@ -10849,8 +10849,8 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
-        [WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")]
         [Fact]
         public void NoWarnAndWarnAsError_ErrorDiagnostic()
         {
@@ -10934,7 +10934,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11497")]
         public void ConsistentErrorMessageWhenProvidingNoKeyFile()
         {
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -10946,7 +10946,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11497")]
         public void ConsistentErrorMessageWhenProvidingEmptyKeyFile()
         {
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -10958,7 +10958,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11497")]
         public void ConsistentErrorMessageWhenProvidingNoKeyFile_PublicSign()
         {
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -10970,7 +10970,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11497")]
         public void ConsistentErrorMessageWhenProvidingEmptyKeyFile_PublicSign()
         {
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -10981,7 +10981,7 @@ class C
             Assert.Equal("error CS2005: Missing file specification for 'keyfile' option", outWriter.ToString().Trim());
         }
 
-        [WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")]
         [Fact]
         public void NoWarnAndWarnAsError_CompilerErrorDiagnostic()
         {
@@ -11037,7 +11037,7 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(1021115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021115")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021115")]
         [Fact]
         public void WarnAsError_LastOneWins1()
         {
@@ -11062,7 +11062,7 @@ public class C
                     .WithWarningAsError(true));
         }
 
-        [WorkItem(1021115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021115")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021115")]
         [Fact]
         public void WarnAsError_LastOneWins2()
         {
@@ -11087,7 +11087,7 @@ public class C
                     .WithWarningAsError(false));
         }
 
-        [WorkItem(1091972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091972")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091972")]
         [WorkItem(444, "CodePlex")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void Bug1091972()
@@ -11228,7 +11228,7 @@ class C {
             //AssertEx.Equal(new[] { "--" }, args.ScriptArguments);
         }
 
-        [WorkItem(127403, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/127403")]
+        [WorkItem("https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/127403")]
         [Fact]
         public void ParseSeparatedPaths_QuotedComma()
         {
@@ -11491,7 +11491,7 @@ class Runner
             AssertEx.Equal(programPdb32.ReadAllBytes(), programPdb64.ReadAllBytes());
         }
 
-        [WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7588")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void Version()
         {
@@ -11737,7 +11737,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("1000").WithLocation(1, 1));
         }
 
-        [Fact, WorkItem(16913, "https://github.com/dotnet/roslyn/issues/16913")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16913")]
         public void CompilingCodeWithMultipleInvalidPreProcessorSymbolsShouldErrorOut()
         {
             var parsedArgs = DefaultParse(new[] { "/define:valid1,2invalid,valid3", "/define:4,5,valid6", "a.cs" }, WorkingDirectory);
@@ -11750,7 +11750,7 @@ class C
                 Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("5"));
         }
 
-        [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")]
         [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void MissingCompilerAssembly()
         {
@@ -12017,7 +12017,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
-        [WorkItem(21935, "https://github.com/dotnet/roslyn/issues/21935")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21935")]
         public void PdbPathNotEmittedWithoutPdb()
         {
             var dir = Temp.CreateDirectory();
@@ -12082,7 +12082,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 Assert.True(args.Errors.Length > 0);
             }
 
-            [WorkItem(12427, "https://github.com/dotnet/roslyn/issues/12427")]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/12427")]
             [Fact]
             public void DebugFlag()
             {
@@ -12102,14 +12102,14 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 }
             }
 
-            [WorkItem(12427, "https://github.com/dotnet/roslyn/issues/12427")]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/12427")]
             [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30328")]
             public void CodePage()
             {
                 VerifyQuotedValid("codepage", "1252", 1252, x => x.Encoding.CodePage);
             }
 
-            [WorkItem(12427, "https://github.com/dotnet/roslyn/issues/12427")]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/12427")]
             [Fact]
             public void Target()
             {
@@ -12129,7 +12129,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 }
             }
 
-            [WorkItem(12427, "https://github.com/dotnet/roslyn/issues/12427")]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/12427")]
             [Fact]
             public void PlatformFlag()
             {
@@ -12149,14 +12149,14 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 }
             }
 
-            [WorkItem(12427, "https://github.com/dotnet/roslyn/issues/12427")]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/12427")]
             [Fact]
             public void WarnFlag()
             {
                 VerifyQuotedValid("warn", "1", 1, x => x.CompilationOptions.WarningLevel);
             }
 
-            [WorkItem(12427, "https://github.com/dotnet/roslyn/issues/12427")]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/12427")]
             [Fact]
             public void LangVersionFlag()
             {
@@ -12165,7 +12165,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        [WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23525")]
         public void InvalidPathCharacterInPathMap()
         {
             string filePath = Temp.CreateFile().WriteAllText("").Path;
@@ -12184,7 +12184,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             Assert.Contains("error CS8101: The pathmap option was incorrectly formatted.", outWriter.ToString(), StringComparison.Ordinal);
         }
 
-        [WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23525")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void InvalidPathCharacterInPdbPath()
         {
@@ -12204,7 +12204,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             Assert.Contains("error CS2021: File name 'test\\?.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long", outWriter.ToString(), StringComparison.Ordinal);
         }
 
-        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
         [ConditionalFact(typeof(IsEnglishLocal))]
         public void TestSuppression_CompilerParserWarningAsError()
         {
@@ -12254,7 +12254,7 @@ class C
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 
-        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
         [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
         public void TestSuppression_CompilerSyntaxWarning(bool skipAnalyzers)
         {
@@ -12316,7 +12316,7 @@ class C
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 
-        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
         [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
         public void TestSuppression_CompilerSemanticWarning(bool skipAnalyzers)
         {
@@ -12372,7 +12372,7 @@ class C
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 
-        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
         [Fact]
         public void TestNoSuppression_CompilerSyntaxError()
         {
@@ -12395,7 +12395,7 @@ class { }";
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 
-        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
         [Fact]
         public void TestNoSuppression_CompilerSemanticError()
         {
@@ -12421,7 +12421,7 @@ class C
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 
-        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
         [ConditionalFact(typeof(IsEnglishLocal))]
         public void TestSuppression_AnalyzerWarning()
         {
@@ -12488,7 +12488,7 @@ class C { }";
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 
-        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20242")]
         [Fact]
         public void TestNoSuppression_AnalyzerError()
         {
@@ -12516,7 +12516,7 @@ class C { }";
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 
-        [WorkItem(38674, "https://github.com/dotnet/roslyn/issues/38674")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38674")]
         [InlineData(DiagnosticSeverity.Warning, false)]
         [InlineData(DiagnosticSeverity.Info, true)]
         [InlineData(DiagnosticSeverity.Info, false)]
@@ -12616,7 +12616,7 @@ dotnet_analyzer_diagnostic.category-{category}.severity = none";
             }
         }
 
-        [WorkItem(38674, "https://github.com/dotnet/roslyn/issues/38674")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38674")]
         [InlineData(DiagnosticSeverity.Warning, false)]
         [InlineData(DiagnosticSeverity.Info, true)]
         [InlineData(DiagnosticSeverity.Info, false)]
@@ -12688,7 +12688,7 @@ dotnet_analyzer_diagnostic.severity = none";
             }
         }
 
-        [WorkItem(38674, "https://github.com/dotnet/roslyn/issues/38674")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38674")]
         [InlineData(DiagnosticSeverity.Warning, false)]
         [InlineData(DiagnosticSeverity.Info, true)]
         [InlineData(DiagnosticSeverity.Info, false)]
@@ -12812,7 +12812,7 @@ dotnet_analyzer_diagnostic.severity = suggestion";
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37779")]
         public void CompilerWarnAsErrorDoesNotEmit(bool warnAsError)
         {
             var dir = Temp.CreateDirectory();
@@ -12853,7 +12853,7 @@ class C
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37779")]
         public void AnalyzerConfigSeverityEscalationToErrorDoesNotEmit(bool analyzerConfigSetToError)
         {
             var dir = Temp.CreateDirectory();
@@ -12899,7 +12899,7 @@ dotnet_diagnostic.cs0169.severity = error");
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37779")]
         public void RulesetSeverityEscalationToErrorDoesNotEmit(bool rulesetSetToError)
         {
             var dir = Temp.CreateDirectory();
@@ -12949,7 +12949,7 @@ class C
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37779")]
         public void AnalyzerWarnAsErrorDoesNotEmit(bool warnAsError)
         {
             var dir = Temp.CreateDirectory();
@@ -12980,7 +12980,7 @@ class C
             TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, reportDiagnostic, noWarn, errorlog);
         }
 
-        [WorkItem(37876, "https://github.com/dotnet/roslyn/issues/37876")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37876")]
         [Theory]
         [CombinatorialData]
         public void AnalyzerConfigRespectedForDisabledByDefaultDiagnostic(ReportDiagnostic analyzerConfigSeverity, bool isEnabledByDefault, bool noWarn, bool errorlog)
@@ -13046,7 +13046,7 @@ dotnet_diagnostic.{descriptor.Id}.severity = {analyzerConfigSeverity.ToAnalyzerC
         }
 
         [Fact]
-        [WorkItem(3705, "https://github.com/dotnet/roslyn/issues/3705")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3705")]
         public void IsUserConfiguredGeneratedCodeInAnalyzerConfig()
         {
             var dir = Temp.CreateDirectory();
@@ -13089,7 +13089,7 @@ generated_code = auto");
             Assert.Contains("warning CS8602", output, StringComparison.Ordinal);
         }
 
-        [WorkItem(42166, "https://github.com/dotnet/roslyn/issues/42166")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42166")]
         [CombinatorialData, Theory]
         public void TestAnalyzerFilteringBasedOnSeverity(DiagnosticSeverity defaultSeverity, bool errorlog)
         {
@@ -13125,7 +13125,7 @@ generated_code = auto");
             }
         }
 
-        [WorkItem(47017, "https://github.com/dotnet/roslyn/issues/47017")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/47017")]
         [CombinatorialData, Theory]
         public void TestWarnAsErrorMinusDoesNotEnableDisabledByDefaultAnalyzers(DiagnosticSeverity defaultSeverity, bool isEnabledByDefault)
         {
@@ -13163,7 +13163,7 @@ generated_code = auto");
             }
         }
 
-        [WorkItem(49446, "https://github.com/dotnet/roslyn/issues/49446")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49446")]
         [Theory]
         // Verify '/warnaserror-:ID' prevents escalation to 'Error' when config file bumps severity to 'Warning'
         [InlineData(false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
@@ -13250,7 +13250,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40926")]
         public void TestSourceGeneratorsWithAnalyzers(bool includeCurrentAssemblyAsAnalyzerReference, bool skipAnalyzers)
         {
             var dir = Temp.CreateDirectory();
@@ -13521,7 +13521,7 @@ class C
         }
 
         [ConditionalFact(typeof(DesktopClrOnly))]  //CoreCLR doesn't support SxS loading
-        [WorkItem(47990, "https://github.com/dotnet/roslyn/issues/47990")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/47990")]
         public void SourceGenerators_SxS_AssemblyLoading()
         {
             // compile the generators
@@ -13732,7 +13732,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44087")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44087")]
         public void SourceGeneratorsAndAnalyzerConfig()
         {
             var dir = Temp.CreateDirectory();
@@ -13866,7 +13866,7 @@ key7 = value7");
             public void Execute(GeneratorExecutionContext context) => throw new System.Exception("THROW");
         }
 
-        [Fact, WorkItem(65313, "https://github.com/dotnet/roslyn/issues/65313")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65313")]
         public void FailedGeneratorExecuteWarning_AsError()
         {
             var dir = Temp.CreateDirectory();
@@ -13886,7 +13886,7 @@ class C
                 outWriter.ToString());
         }
 
-        [Fact, WorkItem(65313, "https://github.com/dotnet/roslyn/issues/65313")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65313")]
         public void FailedGeneratorExecuteWarning_Suppressed()
         {
             var dir = Temp.CreateDirectory();
@@ -13911,7 +13911,7 @@ class C
             public void Execute(GeneratorExecutionContext context) { }
         }
 
-        [Fact, WorkItem(65313, "https://github.com/dotnet/roslyn/issues/65313")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65313")]
         public void FailedGeneratorInitializeWarning_AsError()
         {
             var dir = Temp.CreateDirectory();
@@ -13931,7 +13931,7 @@ class C
                 outWriter.ToString());
         }
 
-        [Fact, WorkItem(65313, "https://github.com/dotnet/roslyn/issues/65313")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65313")]
         public void FailedGeneratorInitializeWarning_Suppressed()
         {
             var dir = Temp.CreateDirectory();
@@ -13963,7 +13963,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(59209, "https://github.com/dotnet/roslyn/issues/59209")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/59209")]
         public void SourceGenerators_Binary_Additional_File()
         {
             var dir = Temp.CreateDirectory();
@@ -14002,7 +14002,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(44000, "https://github.com/dotnet/roslyn/issues/44000")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44000")]
         public void TupleField_ForceComplete()
         {
             var source =
@@ -14242,7 +14242,7 @@ dotnet_diagnostic.CS0164.severity = none;
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43051")]
         public void WarnAsErrorIsRespectedForForWarningsConfiguredInRulesetOrGlobalConfig(bool useGlobalConfig)
         {
             var dir = Temp.CreateDirectory();
@@ -14362,7 +14362,7 @@ dotnet_diagnostic.Warning01.severity = error;
         [InlineData(/*analyzerConfigSeverity*/"warning", /*additionalArg*/null, /*expectError*/false, /*expectWarning*/true)]
         [InlineData(/*analyzerConfigSeverity*/"error", /*additionalArg*/null, /*expectError*/true, /*expectWarning*/false)]
         [InlineData(/*analyzerConfigSeverity*/null, /*additionalArg*/null, /*expectError*/false, /*expectWarning*/true)]
-        [WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43051")]
         public void TestCompilationOptionsOverrideAnalyzerConfig_CompilerWarning(string analyzerConfigSeverity, string additionalArg, bool expectError, bool expectWarning)
         {
             var src = @"
@@ -14390,7 +14390,7 @@ class C
         [InlineData(/*analyzerConfigSeverity*/"warning", /*additionalArg*/null, /*expectError*/false, /*expectWarning*/true)]
         [InlineData(/*analyzerConfigSeverity*/"error", /*additionalArg*/null, /*expectError*/true, /*expectWarning*/false)]
         [InlineData(/*analyzerConfigSeverity*/null, /*additionalArg*/null, /*expectError*/false, /*expectWarning*/true)]
-        [WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43051")]
         public void TestCompilationOptionsOverrideAnalyzerConfig_AnalyzerWarning(string analyzerConfigSeverity, string additionalArg, bool expectError, bool expectWarning)
         {
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
