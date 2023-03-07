@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.True(wasServerMutexOpen);
         }
 
-        [WorkItem(13995, "https://github.com/dotnet/roslyn/issues/13995")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13995")]
         [Fact]
         public async Task RejectEmptyTempPath()
         {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
-        [WorkItem(33452, "https://github.com/dotnet/roslyn/issues/33452")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33452")]
         public void QuotePipeName_Desktop()
         {
             var serverInfo = BuildServerConnection.GetServerProcessInfo(@"q:\tools", "name with space");
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem(33452, "https://github.com/dotnet/roslyn/issues/33452")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33452")]
         public void QuotePipeName_CoreClr()
         {
             var toolDir = ExecutionConditionUtil.IsWindows

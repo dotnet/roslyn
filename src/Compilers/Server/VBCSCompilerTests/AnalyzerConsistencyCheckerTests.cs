@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// it will always load the copy the compiler used and that is not a consistency issue.
         /// </summary>
         [Fact]
-        [WorkItem(64826, "https://github.com/dotnet/roslyn/issues/64826")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64826")]
         public void LoadingLibraryFromCompiler()
         {
             var directory = Temp.CreateDirectory();
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// falling back to csc would change the load result.
         /// </summary>
         [Fact]
-        [WorkItem(64826, "https://github.com/dotnet/roslyn/issues/64826")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64826")]
         public void LoadingLibraryFromGAC()
         {
             var directory = Temp.CreateDirectory();

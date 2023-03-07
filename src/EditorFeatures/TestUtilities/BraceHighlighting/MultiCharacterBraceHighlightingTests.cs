@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
             }
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestNotOnBrace()
         {
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "$$ <@    @>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestOnLeftOfStartBrace()
         {
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "$$[|<@|]    [|@>|]");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestInsideStartBrace()
         {
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "[|<$$@|]    [|@>|]");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestNotOnRightOfStartBrace()
         {
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "<@$$    @>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestNotOnLeftOfCloseBrace()
         {
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "<@    $$@>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestInsideCloseBrace()
         {
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "[|<@|]    [|@$$>|]");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestOnRightOfCloseBrace()
         {
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "[|<@|]    [|@>$$|]");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestNotAfterBrace()
         {
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "<@    @> $$");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestNotOnBrace2()
         {
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "$$ <@    @><@    @>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestOnLeftOfStartBrace2()
         {
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "$$[|<@|]    [|@>|]<@    @>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestInsideStartBrace2()
         {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "[|<$$@|]    [|@>|]<@    @>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestNotOnRightOfStartBrace2()
         {
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "<@$$    @><@    @>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestNotOnLeftOfCloseBrace2()
         {
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "<@    $$@><@    @>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestInsideCloseBrace3()
         {
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "[|<@|]    [|@$$>|]<@    @>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestOnRightOfCloseBrace2()
         {
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "[|<@|]    [|@>|]$$[|<@|]    [|@>|]");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestInSecondBracePair()
         {
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "<@    @>[|<$$@|]    [|@>|]");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestNotAfterSecondBracePairStart()
         {
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "<@    @><@$$    @>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestNotBeforeSecondBracePairEnd()
         {
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "<@    @><@    $$@>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestInSecondBracePairEnd()
         {
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "<@    @>[|<@|]    [|@$$>|]");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestAtSecondBracePairEnd()
         {
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "<@    @>[|<@|]    [|@>|]$$");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact]
         public async Task TestNotAfterSecondBracePairEnd()
         {

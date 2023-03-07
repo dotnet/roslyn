@@ -444,7 +444,7 @@ End Module")
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(946954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946954")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946954")]
         public void CompilerBinariesAreNotX86()
         {
             var basePath = Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location);
@@ -627,7 +627,7 @@ End Class"}};
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
-        [WorkItem(546067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546067")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546067")]
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task InvalidMetadataFileErrorCS()
@@ -670,7 +670,7 @@ End Class"}};
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
-        [Fact, WorkItem(761131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761131")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761131")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MissingReferenceErrorVB()
         {
@@ -699,7 +699,7 @@ End Module"}};
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
-        [WorkItem(546067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546067")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546067")]
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task InvalidMetadataFileErrorVB()
@@ -729,7 +729,7 @@ End Module"}};
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20345")]
-        [WorkItem(723280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/723280")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/723280")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task ReferenceCachingVB()
         {
@@ -846,7 +846,7 @@ End Module
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/19763")]
-        [WorkItem(723280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/723280")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/723280")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task ReferenceCachingCS()
         {
@@ -1015,8 +1015,8 @@ End Module";
             });
         }
 
-        [WorkItem(997372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997372")]
-        [WorkItem(761326, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761326")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997372")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761326")]
         [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MultipleSimultaneousCompiles()
@@ -1140,7 +1140,7 @@ End Module
             Assert.Equal(2, listener.CompletionDataList.Count);
         }
 
-        [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_Off_Shared()
@@ -1162,7 +1162,7 @@ End Module
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
-        [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_Off_Share()
@@ -1189,7 +1189,7 @@ End Module
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
-        [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_On_Shared_CS()
@@ -1211,7 +1211,7 @@ End Module
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
-        [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_On_Shared_VB()
@@ -1238,7 +1238,7 @@ End Module
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
-        [WorkItem(871477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/871477")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/871477")]
         [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task AssemblyIdentityComparer1()
@@ -1295,7 +1295,7 @@ static void Main(string[] args)
             Assert.Equal(2, listener.CompletionDataList.Count);
         }
 
-        [WorkItem(979588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/979588")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/979588")]
         [Fact]
         public async Task Utf8OutputInRspFileCsc()
         {
@@ -1319,7 +1319,7 @@ static void Main(string[] args)
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
-        [WorkItem(979588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/979588")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/979588")]
         [Fact]
         public async Task Utf8OutputInRspFileVbc()
         {
@@ -1345,7 +1345,7 @@ static void Main(string[] args)
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
-        [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25777")]
         [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
         public void BadKeepAlive1()
         {
@@ -1355,7 +1355,7 @@ static void Main(string[] args)
             Assert.Equal("Missing argument for '/keepalive' option.", result.Output.Trim());
         }
 
-        [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25777")]
         [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
         public void BadKeepAlive2()
         {
@@ -1365,7 +1365,7 @@ static void Main(string[] args)
             Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
         }
 
-        [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25777")]
         [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
         public void BadKeepAlive3()
         {
@@ -1375,7 +1375,7 @@ static void Main(string[] args)
             Assert.Equal("Arguments to '/keepalive' option below -1 are invalid.", result.Output.Trim());
         }
 
-        [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25777")]
         [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
         public void BadKeepAlive4()
         {
@@ -1386,7 +1386,7 @@ static void Main(string[] args)
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(1024619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024619")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024619")]
         public async Task Bug1024619_01()
         {
             using var serverData = await ServerUtil.CreateServer(_logger);
@@ -1420,7 +1420,7 @@ static void Main(string[] args)
         }
 
         [Fact]
-        [WorkItem(1024619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024619")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024619")]
         public async Task Bug1024619_02()
         {
             using var serverData = await ServerUtil.CreateServer(_logger);
@@ -1453,7 +1453,7 @@ static void Main(string[] args)
             Assert.Equal(2, listener.CompletionDataList.Count);
         }
 
-        [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")]
         [ConditionalFact(typeof(DesktopOnly))]
         public void MissingCompilerAssembly_CompilerServer()
         {
@@ -1471,8 +1471,8 @@ static void Main(string[] args)
             Assert.Equal("", result.Output.Trim());
         }
 
-        [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")]
-        [WorkItem(19213, "https://github.com/dotnet/roslyn/issues/19213")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19213")]
         [Fact(Skip = "19213")]
         public async Task MissingCompilerAssembly_CompilerServerHost()
         {

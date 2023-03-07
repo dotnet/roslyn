@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public class StartupTests : VBCSCompilerServerTests
         {
             [Fact]
-            [WorkItem(217709, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/217709")]
+            [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/217709")]
             public async Task ShadowCopyAnalyzerAssemblyLoaderMissingDirectory()
             {
                 var baseDirectory = Path.Combine(Path.GetTempPath(), TestBase.GetUniqueName());
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
 
             [Fact]
-            [WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/34880")]
             public async Task NoServerConnection()
             {
                 using (var readyMre = new ManualResetEvent(initialState: false))
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             /// </summary>
             /// <returns></returns>
             [Fact]
-            [WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/34880")]
             public async Task ServerShutdownsDuringProcessing()
             {
                 using (var readyMre = new ManualResetEvent(initialState: false))
