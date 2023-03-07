@@ -135,7 +135,7 @@ class AsyncExample
 }");
         }
 
-        [Fact, WorkItem(573625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/573625")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/573625")]
         public async Task TestNestedAwaits1()
         {
             await TestAsync(
@@ -169,7 +169,7 @@ class AsyncExample
 }");
         }
 
-        [Fact, WorkItem(573625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/573625")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/573625")]
         public async Task TestNestedAwaits2()
         {
             await TestAsync(
@@ -323,7 +323,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(60400, "https://github.com/dotnet/roslyn/issues/60400")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60400")]
         public async Task TestTopLevelStatements()
         {
             await TestAsync(

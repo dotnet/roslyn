@@ -142,7 +142,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39916")]
         public async Task TestEqualsSingleField_PreferExplicitType()
         {
             var code =
@@ -1961,7 +1961,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17643")]
         public async Task TestWithDialogNoBackingField()
         {
             var code =
@@ -1994,7 +1994,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25690")]
         public async Task TestWithDialogNoIndexer()
         {
             var code =
@@ -2026,7 +2026,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, WorkItem(25707, "https://github.com/dotnet/roslyn/issues/25707")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25707")]
         public async Task TestWithDialogNoSetterOnlyProperty()
         {
             var code =
@@ -2058,7 +2058,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, WorkItem(41958, "https://github.com/dotnet/roslyn/issues/41958")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41958")]
         public async Task TestWithDialogInheritedMembers()
         {
             var code =
@@ -2471,7 +2471,7 @@ struct Program : IEquatable<Program>
             }.RunAsync();
         }
 
-        [Fact, WorkItem(25708, "https://github.com/dotnet/roslyn/issues/25708")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25708")]
         public async Task TestOverrideEqualsOnRefStructReturnsFalse()
         {
             var code =
@@ -2500,7 +2500,7 @@ ref struct Program
             }.RunAsync();
         }
 
-        [Fact, WorkItem(25708, "https://github.com/dotnet/roslyn/issues/25708")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25708")]
         public async Task TestImplementIEquatableOnRefStructSkipsIEquatable()
         {
             var code =
@@ -3211,7 +3211,7 @@ struct S : IEquatable<S>
             }.RunAsync();
         }
 
-        [Fact, WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37297")]
         public async Task TestPublicSystemHashCodeOtherProject()
         {
             var publicHashCode =
@@ -3284,7 +3284,7 @@ struct S : IEquatable<S>
             }.RunAsync();
         }
 
-        [Fact, WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37297")]
         public async Task TestInternalSystemHashCode()
         {
             var internalHashCode =
@@ -3494,7 +3494,7 @@ struct S : IEquatable<S>
             }.RunAsync();
         }
 
-        [Fact, WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39916")]
         public async Task TestGetHashCodeSystemHashCodeNineMembers_Explicit()
         {
             var code =
@@ -3685,7 +3685,7 @@ class Program : Base
             }.RunAsync();
         }
 
-        [Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialSelection()
         {
             var code =
@@ -3703,7 +3703,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40053")]
         public async Task TestEqualityOperatorsNullableAnnotationWithReferenceType()
         {
             var code =
@@ -3769,7 +3769,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40053")]
         public async Task TestEqualityOperatorsNullableAnnotationWithValueType()
         {
             var code =
@@ -3824,7 +3824,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42574")]
         public async Task TestPartialTypes1()
         {
             await new TestWithDialog
@@ -3876,7 +3876,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42574")]
         public async Task TestPartialTypes2()
         {
             await new TestWithDialog
@@ -3926,7 +3926,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42574")]
         public async Task TestPartialTypes3()
         {
             await new TestWithDialog
@@ -3976,7 +3976,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42574")]
         public async Task TestPartialTypes4()
         {
             await new TestWithDialog
@@ -4028,7 +4028,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, WorkItem(43290, "https://github.com/dotnet/roslyn/issues/43290")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43290")]
         public async Task TestAbstractBase()
         {
             var code =

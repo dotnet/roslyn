@@ -196,7 +196,7 @@ class C
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46985")]
         public async Task DynamicAsRecordName(TestHost testHost)
         {
             await TestAsync(
@@ -2099,7 +2099,7 @@ namespace Roslyn.Compilers.Internal
  EnumMember("E"));
         }
 
-        [Theory, WorkItem(541150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
         [CombinatorialData]
         public async Task TestGenericVarClassification(TestHost testHost)
         {
@@ -2122,7 +2122,7 @@ class var<T>
     Keyword("var"));
         }
 
-        [Theory, WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
         [CombinatorialData]
         public async Task TestInaccessibleVarClassification(TestHost testHost)
         {
@@ -2149,7 +2149,7 @@ class B : A
                 Keyword("var"));
         }
 
-        [Theory, WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
         [CombinatorialData]
         public async Task TestVarNamedTypeClassification(TestHost testHost)
         {
@@ -2203,7 +2203,7 @@ class C
                 EnumMember("A"));
         }
 
-        [Theory, WorkItem(542368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542368")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542368")]
         [CombinatorialData]
         public async Task RegressionFor9572(TestHost testHost)
         {
@@ -2226,7 +2226,7 @@ class C
                 Interface("I"));
         }
 
-        [Theory, WorkItem(542368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542368")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542368")]
         [CombinatorialData]
         public async Task RegressionFor9831(TestHost testHost)
         {
@@ -2248,7 +2248,7 @@ public class X : B<X>
                 Class("A"));
         }
 
-        [Theory, WorkItem(542432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542432")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542432")]
         [CombinatorialData]
         public async Task TestVar(TestHost testHost)
         {
@@ -2279,7 +2279,7 @@ public class X : B<X>
                 Class("var"));
         }
 
-        [Theory, WorkItem(543123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
         [CombinatorialData]
         public async Task TestVar2(TestHost testHost)
         {
@@ -2298,7 +2298,7 @@ public class X : B<X>
                 Parameter("args"));
         }
 
-        [Theory, WorkItem(542778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542778")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542778")]
         [CombinatorialData]
         public async Task TestDuplicateTypeParamWithConstraint(TestHost testHost)
         {
@@ -2318,7 +2318,7 @@ class C<T>
                 Interface("IEnumerable"));
         }
 
-        [Theory, WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [CombinatorialData]
         public async Task OptimisticallyColorFromInDeclaration(TestHost testHost)
         {
@@ -2327,7 +2327,7 @@ class C<T>
                 Keyword("from"));
         }
 
-        [Theory, WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [CombinatorialData]
         public async Task OptimisticallyColorFromInAssignment(TestHost testHost)
         {
@@ -2341,12 +2341,12 @@ q = from",
                 Keyword("from"));
         }
 
-        [Theory, WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [CombinatorialData]
         public async Task DontColorThingsOtherThanFromInDeclaration(TestHost testHost)
             => await TestInExpressionAsync("fro ", testHost);
 
-        [Theory, WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [CombinatorialData]
         public async Task DontColorThingsOtherThanFromInAssignment(TestHost testHost)
         {
@@ -2359,7 +2359,7 @@ q = fro",
                 Local("q"));
         }
 
-        [Theory, WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [CombinatorialData]
         public async Task DontColorFromWhenBoundInDeclaration(TestHost testHost)
         {
@@ -2372,7 +2372,7 @@ var q = from",
                 Local("from"));
         }
 
-        [Theory, WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [CombinatorialData]
         public async Task DontColorFromWhenBoundInAssignment(TestHost testHost)
         {
@@ -2388,7 +2388,7 @@ q = from",
                 Local("from"));
         }
 
-        [Theory, WorkItem(543404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543404")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543404")]
         [CombinatorialData]
         public async Task NewOfClassWithOnlyPrivateConstructor(TestHost testHost)
         {
@@ -2411,7 +2411,7 @@ class Program
                 Class("X"));
         }
 
-        [Theory, WorkItem(544179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544179")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544179")]
         [CombinatorialData]
         public async Task TestNullableVersusConditionalAmbiguity1(TestHost testHost)
         {
@@ -2431,7 +2431,7 @@ public class C1
                 Class("C1"));
         }
 
-        [Theory, WorkItem(544179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544179")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544179")]
         [CombinatorialData]
         public async Task TestPointerVersusMultiplyAmbiguity1(TestHost testHost)
         {
@@ -2451,7 +2451,7 @@ public class C1
                 Class("C1"));
         }
 
-        [Theory, WorkItem(544302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544302")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544302")]
         [CombinatorialData]
         public async Task EnumTypeAssignedToNamedPropertyOfSameNameInAttributeCtor(TestHost testHost)
         {
@@ -2474,7 +2474,7 @@ class C
                 Enum("CallingConvention"));
         }
 
-        [Theory, WorkItem(531119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531119")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531119")]
         [CombinatorialData]
         public async Task OnlyClassifyGenericNameOnce(TestHost testHost)
         {
@@ -2578,7 +2578,7 @@ struct Type<T>
                 Method("nameof"));
         }
 
-        [WpfFact, WorkItem(744813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/744813")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/744813")]
         public async Task TestCreateWithBufferNotInWorkspace()
         {
             // don't crash
@@ -2627,7 +2627,7 @@ struct Type<T>
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(261049, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/261049")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/261049")]
         public async Task DevDiv261049RegressionTest(TestHost testHost)
         {
             var source = @"
@@ -2642,7 +2642,7 @@ struct Type<T>
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/633")]
         public async Task InXmlDocCref_WhenTypeOnlyIsSpecified_ItIsClassified(TestHost testHost)
         {
             await TestAsync(
@@ -2661,7 +2661,7 @@ class MyClass
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/633")]
         public async Task InXmlDocCref_WhenConstructorOnlyIsSpecified_NothingIsClassified(TestHost testHost)
         {
             await TestAsync(
@@ -2679,7 +2679,7 @@ class MyClass
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/633")]
         public async Task InXmlDocCref_WhenTypeAndConstructorSpecified_OnlyTypeIsClassified(TestHost testHost)
         {
             await TestAsync(
@@ -2699,7 +2699,7 @@ class MyClass
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(13174, "https://github.com/dotnet/roslyn/issues/13174")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13174")]
         public async Task TestMemberBindingThatLooksGeneric(TestHost testHost)
         {
             await TestAsync(
@@ -2733,7 +2733,7 @@ namespace ConsoleApplication1
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(23940, "https://github.com/dotnet/roslyn/issues/23940")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23940")]
         public async Task TestAliasQualifiedClass(TestHost testHost)
         {
             await TestAsync(
@@ -3544,7 +3544,7 @@ Regex.OtherEscape("a"),
 Regex.Comment("(?#comment)"));
         }
 
-        [Theory, WorkItem(47079, "https://github.com/dotnet/roslyn/issues/47079")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47079")]
         [CombinatorialData]
         public async Task TestRegexWithSpecialCSharpCharLiterals(TestHost testHost)
         {
@@ -3568,7 +3568,7 @@ Regex.Text(@" """" "),
 Regex.Anchor("$"));
         }
 
-        [Theory, WorkItem(47079, "https://github.com/dotnet/roslyn/issues/47079")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47079")]
         [CombinatorialData]
         public async Task TestRegexWithSpecialCSharpCharLiterals_utf8(TestHost testHost)
         {
@@ -3742,7 +3742,7 @@ Regex.OtherEscape("a"),
 Regex.Comment("(?#comment)"));
         }
 
-        [Theory, WorkItem(64549, "https://github.com/dotnet/roslyn/issues/64549")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/64549")]
         [CombinatorialData]
         public async Task TestRegexOnApiWithStringSyntaxAttribute_ParamsArgument2(TestHost testHost)
         {
@@ -3950,7 +3950,7 @@ Regex.Comment("(?#comment)"));
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(61947, "https://github.com/dotnet/roslyn/issues/61947")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/61947")]
         public async Task TestRegexOnApiWithStringSyntaxAttribute_AttributeField(TestHost testHost)
         {
             await TestAsync(
@@ -3983,7 +3983,7 @@ Regex.Comment("(?#comment)"));
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(61947, "https://github.com/dotnet/roslyn/issues/61947")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/61947")]
         public async Task TestRegexOnApiWithStringSyntaxAttribute_AttributeProperty(TestHost testHost)
         {
             await TestAsync(
@@ -4133,7 +4133,7 @@ Class("Regex"));
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(61982, "https://github.com/dotnet/roslyn/issues/61982")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/61982")]
         public async Task TestRegexAmbiguity1(TestHost testHost)
         {
             await TestAsync(
@@ -4154,7 +4154,7 @@ Regex.Comment("(?#comment)"));
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(61982, "https://github.com/dotnet/roslyn/issues/61982")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/61982")]
         public async Task TestRegexAmbiguity2(TestHost testHost)
         {
             await TestAsync(
@@ -4809,7 +4809,7 @@ class X
                 Keyword("var"));
         }
 
-        [Theory, WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31200")]
         [CombinatorialData]
         public async Task TestCharEscape1(TestHost testHost)
         {
@@ -4819,7 +4819,7 @@ class X
                 Escape(@"\n"));
         }
 
-        [Theory, WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31200")]
         [CombinatorialData]
         public async Task TestCharEscape2(TestHost testHost)
         {
@@ -4829,7 +4829,7 @@ class X
                 Escape(@"\\"));
         }
 
-        [Theory, WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31200")]
         [CombinatorialData]
         public async Task TestCharEscape3(TestHost testHost)
         {
@@ -4839,7 +4839,7 @@ class X
                 Escape(@"\'"));
         }
 
-        [Theory, WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31200")]
         [CombinatorialData]
         public async Task TestCharEscape5(TestHost testHost)
         {
@@ -4848,7 +4848,7 @@ class X
                 Keyword("var"));
         }
 
-        [Theory, WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31200")]
         [CombinatorialData]
         public async Task TestCharEscape4(TestHost testHost)
         {
@@ -4858,12 +4858,12 @@ class X
                 Escape(@"\u000a"));
         }
 
-        [Theory, WorkItem(29451, "https://github.com/dotnet/roslyn/issues/29451")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/29451")]
         [CombinatorialData]
         public async Task TestDirectiveStringLiteral(TestHost testHost)
             => await TestInMethodAsync(@"#line 1 ""a\b""", testHost);
 
-        [Theory, WorkItem(30378, "https://github.com/dotnet/roslyn/issues/30378")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/30378")]
         [CombinatorialData]
         public async Task TestFormatSpecifierInInterpolation(TestHost testHost)
         {
@@ -4874,7 +4874,7 @@ class X
                 Escape(@"}}"));
         }
 
-        [Theory, WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/29492")]
         [CombinatorialData]
         public async Task TestOverloadedOperator_BinaryExpression(TestHost testHost)
         {
@@ -4906,7 +4906,7 @@ class True
                 Class("True"));
         }
 
-        [Theory, WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/29492")]
         [CombinatorialData]
         public async Task TestOverloadedOperator_PrefixUnaryExpression(TestHost testHost)
         {
@@ -4934,7 +4934,7 @@ class True
                 Class("True"));
         }
 
-        [Theory, WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/29492")]
         [CombinatorialData]
         public async Task TestOverloadedOperator_PostfixUnaryExpression(TestHost testHost)
         {
@@ -4968,7 +4968,7 @@ class True
                 Class("True"));
         }
 
-        [Theory, WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/29492")]
         [CombinatorialData]
         public async Task TestOverloadedOperator_ConditionalExpression(TestHost testHost)
         {
@@ -5565,7 +5565,7 @@ class X
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46985")]
         public async Task BasicRecordClassification(TestHost testHost)
         {
             await TestAsync(
@@ -5581,7 +5581,7 @@ class X
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46985")]
         public async Task ParameterizedRecordClassification(TestHost testHost)
         {
             await TestAsync(
@@ -5650,7 +5650,7 @@ class C
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(57184, "https://github.com/dotnet/roslyn/issues/57184")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57184")]
         public async Task MethodGroupClassifications(TestHost testHost)
         {
             await TestAsync(

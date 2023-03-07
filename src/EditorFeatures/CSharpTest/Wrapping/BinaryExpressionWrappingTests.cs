@@ -659,7 +659,7 @@ EndOfLine,
 }");
         }
 
-        [Fact, WorkItem(34127, "https://github.com/dotnet/roslyn/issues/34127")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34127")]
         public async Task TestWrapLowerPrecedenceInLargeBinary()
         {
             await TestAllWrappingCasesAsync(

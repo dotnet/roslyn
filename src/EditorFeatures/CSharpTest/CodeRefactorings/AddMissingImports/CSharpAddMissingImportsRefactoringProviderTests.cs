@@ -188,7 +188,7 @@ namespace B
             await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
         }
 
-        [WpfFact, WorkItem(42221, "https://github.com/dotnet/roslyn/pull/42221")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/pull/42221")]
         public async Task AddMissingImports_AddImportsUngrouped_SeparateImportGroupsPasteContainsMultipleMissingImports()
         {
             var code = @"
@@ -342,7 +342,7 @@ namespace B
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WorkItem(31768, "https://github.com/dotnet/roslyn/issues/31768")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/31768")]
         [WpfFact]
         public async Task AddMissingImports_AddMultipleImports_NoPreviousImports()
         {

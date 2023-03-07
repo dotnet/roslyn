@@ -354,7 +354,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestBeforeKeyword()
         {
             await TestInRegularAndScript1Async(
@@ -402,7 +402,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestInParentheses()
         {
             await TestInRegularAndScript1Async(
@@ -450,7 +450,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestInParentheses2()
         {
             await TestInRegularAndScript1Async(
@@ -1610,7 +1610,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(36305, "https://github.com/dotnet/roslyn/issues/36305")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36305")]
         public async Task TestOnElementAt1()
         {
             await TestInRegularAndScript1Async(

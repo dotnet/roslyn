@@ -701,7 +701,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, WorkItem(57674, "https://github.com/dotnet/roslyn/issues/57674")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57674")]
         public async Task TestTuplePattern()
         {
             var testCode = @"
@@ -723,7 +723,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, WorkItem(57674, "https://github.com/dotnet/roslyn/issues/57674")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57674")]
         public async Task TestPositionalPattern()
         {
             var testCode = @"

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         public async Task TestClass()
             => await TestAsync("class G$$oo { }", "Goo", 0);
 
-        [Fact, WorkItem(527668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668"), WorkItem(538415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538415")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538415")]
         public async Task TestMethod()
         {
             await TestAsync(
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 ", "Class.Method()", 0);
         }
 
-        [Fact, WorkItem(527668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668")]
         public async Task TestNamespace()
         {
             await TestAsync(
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }", "Namespace.Class.Method()", 2);
         }
 
-        [Fact, WorkItem(49000, "https://github.com/dotnet/roslyn/issues/49000")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49000")]
         public async Task TestFileScopedNamespace()
         {
             // This test behavior is incorrect. This should be Namespace.Class.Method.
@@ -84,7 +84,7 @@ class Class
 ", "Namespace.Class.Method()", 2);
         }
 
-        [Fact, WorkItem(527668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668")]
         public async Task TestDottedNamespace()
         {
             await TestAsync(
@@ -117,7 +117,7 @@ class Class
 }", "Namespace.Another.Class.Method()", 2);
         }
 
-        [Fact, WorkItem(527668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668")]
         public async Task TestNestedType()
         {
             await TestAsync(
@@ -132,7 +132,7 @@ class Class
 }", "Outer.Inner.Quux()", 1);
         }
 
-        [Fact, WorkItem(527668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668")]
         public async Task TestPropertyGetter()
         {
             await TestAsync(
@@ -148,7 +148,7 @@ class Class
 }", "Class.Property", 4);
         }
 
-        [Fact, WorkItem(527668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668")]
         public async Task TestPropertySetter()
         {
             await TestAsync(
@@ -169,7 +169,7 @@ class Class
 }", "Class.Property", 9);
         }
 
-        [Fact, WorkItem(538415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538415")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538415")]
         public async Task TestField()
         {
             await TestAsync(
@@ -179,7 +179,7 @@ class Class
 }", "Class.field", 0);
         }
 
-        [Fact, WorkItem(543494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543494")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543494")]
         public async Task TestLambdaInFieldInitializer()
         {
             await TestAsync(
@@ -189,7 +189,7 @@ class Class
 }", "Class.a", 0);
         }
 
-        [Fact, WorkItem(543494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543494")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543494")]
         public async Task TestMultipleFields()
         {
             await TestAsync(

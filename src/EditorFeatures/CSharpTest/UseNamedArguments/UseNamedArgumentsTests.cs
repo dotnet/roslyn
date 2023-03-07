@@ -274,7 +274,7 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }");
         }
 
-        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestAvailableOnSelectionOfArgument1()
         {
             await TestWithCSharp7(
@@ -290,7 +290,7 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 }");
         }
 
-        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestAvailableOnFirstTokenOfArgument1()
         {
             await TestWithCSharp7(
@@ -306,7 +306,7 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 }");
         }
 
-        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestAvailableOnFirstTokenOfArgument2()
         {
             await TestWithCSharp7(
@@ -322,7 +322,7 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 }");
         }
 
-        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument1()
         {
             await TestWithCSharp7(
@@ -344,7 +344,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument2_CSharp7()
         {
             await TestWithCSharp7(
@@ -360,7 +360,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument2()
         {
             await TestWithCSharp7_3(
@@ -376,7 +376,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument3()
         {
             await TestWithCSharp7(
@@ -398,7 +398,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument4()
         {
             await TestWithCSharp7(
@@ -414,7 +414,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestMissingNotOnStartingLineOfArgument1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -430,7 +430,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestMissingWithSelection()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -444,7 +444,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19175")]
         public async Task TestCaretPositionAtTheEnd1()
         {
             await TestWithCSharp7(
@@ -458,7 +458,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19175")]
         public async Task TestCaretPositionAtTheEnd2()
         {
             await TestWithCSharp7(
@@ -472,7 +472,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(19758, "https://github.com/dotnet/roslyn/issues/19758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19758")]
         public async Task TestOnTuple()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -490,7 +490,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(23269, "https://github.com/dotnet/roslyn/issues/23269")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23269")]
         public async Task TestCharacterEscape1()
         {
             await TestWithCSharp7(
@@ -504,7 +504,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(23269, "https://github.com/dotnet/roslyn/issues/23269")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23269")]
         public async Task TestCharacterEscape2()
         {
             await TestWithCSharp7(
@@ -520,21 +520,21 @@ class C : System.Attribute
 }");
         }
 
-        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39852")]
         public async Task TestMissingForImplicitRangeIndexer()
         {
             await TestMissingInRegularAndScriptAsync(
                 @"class C { string M(string arg1) => arg1[[||]1..^1]; }" + TestSources.Range + TestSources.Index);
         }
 
-        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39852")]
         public async Task TestMissingForImplicitIndexIndexer()
         {
             await TestMissingInRegularAndScriptAsync(
                 @"class C { string M(string arg1) => {|CS0029:arg1[[||]^1]|}; }" + TestSources.Index);
         }
 
-        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39852")]
         public async Task TestForRealRangeIndexer()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -550,7 +550,7 @@ class C {
 }" + TestSources.Range + TestSources.Index);
         }
 
-        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39852")]
         public async Task TestForRealIndexIndexer()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -579,7 +579,7 @@ class C {
             }.RunAsync();
         }
 
-        [Fact, WorkItem(63362, "https://github.com/dotnet/roslyn/issues/63362")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63362")]
         public async Task TestTrivia()
         {
             await VerifyCS.VerifyRefactoringAsync(@"
@@ -611,7 +611,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(63362, "https://github.com/dotnet/roslyn/issues/63362")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63362")]
         public async Task TestTrivia_Attribute()
         {
             await VerifyCS.VerifyRefactoringAsync(@"

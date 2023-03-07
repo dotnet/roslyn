@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(6034, "https://github.com/dotnet/roslyn/issues/6034")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/6034")]
         public async Task TestMethodWithArrowBody()
         {
             await TestWithAllCodeStyleOff(
@@ -290,7 +290,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
         public async Task TestIfDefMethod1()
         {
             await TestWithAllCodeStyleOff(
@@ -316,7 +316,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
         public async Task TestIfDefMethod2()
         {
             await TestWithAllCodeStyleOff(
@@ -350,7 +350,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
         public async Task TestIfDefMethod3()
         {
             await TestWithAllCodeStyleOff(
@@ -384,7 +384,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
         public async Task TestIfDefMethod4()
         {
             await TestWithAllCodeStyleOff(
@@ -418,7 +418,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
         public async Task TestIfDefMethod5()
         {
             await TestWithAllCodeStyleOff(
@@ -1674,7 +1674,7 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(14327, "https://github.com/dotnet/roslyn/issues/14327")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14327")]
         public async Task TestUpdateChainedGet1()
         {
             await TestWithAllCodeStyleOff(
@@ -1708,7 +1708,7 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle1()
         {
             await TestInRegularAndScriptAsync(
@@ -1726,7 +1726,7 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle2()
         {
             await TestInRegularAndScriptAsync(
@@ -1744,7 +1744,7 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle3()
         {
             await TestInRegularAndScriptAsync(
@@ -1762,7 +1762,7 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle4()
         {
             await TestInRegularAndScriptAsync(
@@ -1787,7 +1787,7 @@ options: PreferExpressionBodiedAccessors);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle5()
         {
             await TestInRegularAndScriptAsync(
@@ -1823,7 +1823,7 @@ options: PreferExpressionBodiedProperties);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle6()
         {
             await TestInRegularAndScriptAsync(
@@ -1848,7 +1848,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle7()
         {
             await TestInRegularAndScriptAsync(
@@ -1863,7 +1863,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle8()
         {
             await TestInRegularAndScriptAsync(
@@ -1878,7 +1878,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle9()
         {
             await TestInRegularAndScriptAsync(
@@ -1893,7 +1893,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle10()
         {
             await TestInRegularAndScriptAsync(
@@ -1981,7 +1981,7 @@ class C : IGoo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
         public async Task TestSystemObjectMetadataOverride()
         {
             await TestMissingAsync(
@@ -1994,7 +1994,7 @@ class C : IGoo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
         public async Task TestMetadataOverride()
         {
             await TestWithAllCodeStyleOff(
@@ -2195,7 +2195,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
         public async Task TestUnsafeGetter()
         {
             await TestInRegularAndScriptAsync(
@@ -2221,7 +2221,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
         public async Task TestUnsafeSetter()
         {
             await TestInRegularAndScriptAsync(
@@ -2375,7 +2375,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(42699, "https://github.com/dotnet/roslyn/issues/42699")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42699")]
         public async Task TestSameNameMemberAsProperty()
         {
             await TestInRegularAndScript1Async(
@@ -2399,7 +2399,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(42698, "https://github.com/dotnet/roslyn/issues/42698")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42698")]
         public async Task TestMethodWithTrivia_3()
         {
             await TestInRegularAndScript1Async(
@@ -2418,7 +2418,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(42698, "https://github.com/dotnet/roslyn/issues/42698")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42698")]
         public async Task TestMethodWithTrivia_4()
         {
             await TestWithAllCodeStyleOff(
@@ -2450,7 +2450,7 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
-        [WorkItem(57769, "https://github.com/dotnet/roslyn/issues/57769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57769")]
         public async Task TestInLinkedFile()
         {
             await TestInRegularAndScriptAsync(
@@ -2492,7 +2492,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(37991, "https://github.com/dotnet/roslyn/issues/37991")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37991")]
         public async Task AllowIfNestedNullableIsSame()
         {
             await TestInRegularAndScriptAsync(
@@ -2529,7 +2529,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(37991, "https://github.com/dotnet/roslyn/issues/37991")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37991")]
         public async Task TestGetSetWithGeneric()
         {
             await TestInRegularAndScriptAsync(
@@ -2562,7 +2562,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(40758, "https://github.com/dotnet/roslyn/issues/40758")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
         public async Task TestReferenceTrivia1()
         {
             await TestInRegularAndScriptAsync(
@@ -2591,7 +2591,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(40758, "https://github.com/dotnet/roslyn/issues/40758")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
         public async Task TestReferenceTrivia2()
         {
             await TestInRegularAndScriptAsync(
@@ -2620,7 +2620,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(40758, "https://github.com/dotnet/roslyn/issues/40758")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
         public async Task TestReferenceTrivia3()
         {
             await TestInRegularAndScriptAsync(
@@ -2645,7 +2645,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(40758, "https://github.com/dotnet/roslyn/issues/40758")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
         public async Task TestReferenceTrivia4()
         {
             await TestInRegularAndScriptAsync(

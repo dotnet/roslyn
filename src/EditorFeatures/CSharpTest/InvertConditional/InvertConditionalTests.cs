@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertConditional
 }");
         }
 
-        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestAfterCondition()
         {
             await TestInRegularAndScriptAsync(

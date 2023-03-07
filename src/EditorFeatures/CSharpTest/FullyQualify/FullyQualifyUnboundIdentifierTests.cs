@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        [Fact, WorkItem(26887, "https://github.com/dotnet/roslyn/issues/26887")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26887")]
         public async Task TestFullyQualifyUnboundIdentifier1()
         {
             await TestInRegularAndScriptAsync(
@@ -60,7 +60,7 @@ class Test
 }");
         }
 
-        [Fact, WorkItem(26887, "https://github.com/dotnet/roslyn/issues/26887")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26887")]
         public async Task TestFullyQualifyUnboundIdentifier2()
         {
             await TestInRegularAndScriptAsync(

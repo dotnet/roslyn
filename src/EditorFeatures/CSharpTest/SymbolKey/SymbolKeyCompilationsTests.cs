@@ -78,7 +78,7 @@ namespace N1.N2
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
-        [Fact, WorkItem(530171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530171")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530171")]
         public void C2CErrorSymbolUnchanged01()
         {
             var src1 = @"public void Method() { }";
@@ -108,7 +108,7 @@ public void Method()
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
-        [Fact, WorkItem(820263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820263")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820263")]
         public void PartialDefinitionAndImplementationResolveCorrectly()
         {
             var src = @"using System;
@@ -160,7 +160,7 @@ namespace NS
             Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
         }
 
-        [Fact, WorkItem(916341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916341")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916341")]
         public void ExplicitIndexerImplementationResolvesCorrectly()
         {
             var src = @"
@@ -476,7 +476,7 @@ public class Test
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
-        [Fact, WorkItem(542700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
         public void C2CIndexerSymbolChanged01()
         {
             var src1 = @"using System;
@@ -537,7 +537,7 @@ namespace NS
             Assert.Null(ResolveSymbol(typeSym02, comp1, SymbolKeyComparison.None));
         }
 
-        [WpfFact(Skip = "530169"), WorkItem(530169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530169")]
+        [WpfFact(Skip = "530169"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530169")]
         public void C2CAssemblyChanged02()
         {
             var src = @"[assembly: System.Reflection.AssemblyVersion(""1.2.3.4"")] public class C {}";
@@ -565,7 +565,7 @@ namespace NS
             Assert.NotNull(ResolveSymbol(sym2, comp1, SymbolKeyComparison.IgnoreAssemblyIds));
         }
 
-        [Fact, WorkItem(530170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530170")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530170")]
         public void C2CAssemblyChanged03()
         {
             var src = @"[assembly: System.Reflection.AssemblyVersion(""1.2.3.4"")] public class C {}";
@@ -600,7 +600,7 @@ namespace NS
             Assert.Null(ResolveSymbol(module2, compilation1, SymbolKeyComparison.IgnoreAssemblyIds));
         }
 
-        [Fact, WorkItem(546254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546254")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546254")]
         public void C2CAssemblyChanged04()
         {
             var src = @"

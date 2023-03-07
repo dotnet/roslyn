@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMultiline_IfElseIfElseSelection1()
         {
             await TestInRegularAndScriptAsync(
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMultiline_IfElseIfElseSelection2()
         {
             await TestInRegularAndScriptAsync(
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMultilineMissing_IfElseIfElseSubSelection()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -947,7 +947,7 @@ class C
 @"string x; if (0 == x.Length) { b(); } else { a(); } } } ");
         }
 
-        [Fact, WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         public async Task TestSingleLine_SimplifyToEqualsZero1()
         {
             await TestFixOneAsync(
@@ -955,7 +955,7 @@ class C
 @"byte x = 1; if (0 == x) { b(); } else { a(); } } } ");
         }
 
-        [Fact, WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         public async Task TestSingleLine_SimplifyToEqualsZero2()
         {
             await TestFixOneAsync(
@@ -963,7 +963,7 @@ class C
 @"ushort x = 1; if (0 == x) { b(); } else { a(); } } } ");
         }
 
-        [Fact, WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         public async Task TestSingleLine_SimplifyToEqualsZero3()
         {
             await TestFixOneAsync(
@@ -971,7 +971,7 @@ class C
 @"uint x = 1; if (0 == x) { b(); } else { a(); } } } ");
         }
 
-        [Fact, WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         public async Task TestSingleLine_SimplifyToEqualsZero4()
         {
             await TestFixOneAsync(
@@ -979,7 +979,7 @@ class C
 @"ulong x = 1; if (x == 0) { b(); } else { a(); } } } ");
         }
 
-        [Fact, WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         public async Task TestSingleLine_SimplifyToNotEqualsZero1()
         {
             await TestFixOneAsync(
@@ -987,7 +987,7 @@ class C
 @"ulong x = 1; if (0 != x) { b(); } else { a(); } } } ");
         }
 
-        [Fact, WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         public async Task TestSingleLine_SimplifyToNotEqualsZero2()
         {
             await TestFixOneAsync(
@@ -995,7 +995,7 @@ class C
 @"ulong x = 1; if (x != 0) { b(); } else { a(); } } } ");
         }
 
-        [Fact, WorkItem(530505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530505")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530505")]
         public async Task TestSingleLine_SimplifyLongLengthEqualsZero()
         {
             await TestFixOneAsync(
@@ -1019,7 +1019,7 @@ class C
 @"string x; if (x.Length <= 0.0f) { EqualsZero(); } else { GreaterThanZero(); } } } ");
         }
 
-        [Fact, WorkItem(29434, "https://github.com/dotnet/roslyn/issues/29434")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29434")]
         public async Task TestIsExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -1027,7 +1027,7 @@ class C
 @"class C { void M(object o) { if (o is not C) { } else { a(); } } }");
         }
 
-        [Fact, WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43224")]
         public async Task TestEmptyIf()
         {
             await TestInRegularAndScriptAsync(
@@ -1035,7 +1035,7 @@ class C
                 @"class C { void M(string s){ if (s != ""a""){ s = ""b""}}}");
         }
 
-        [Fact, WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43224")]
         public async Task TestOnlySingleLineCommentIf()
         {
             await TestInRegularAndScriptAsync(
@@ -1071,7 +1071,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43224")]
         public async Task TestOnlyMultilineLineCommentIf()
         {
             await TestInRegularAndScriptAsync(
@@ -1119,7 +1119,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51359")]
         public async Task TestIsCheck_CSharp6()
         {
             await TestInRegularAndScriptAsync(
@@ -1153,7 +1153,7 @@ class C
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
 
-        [Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51359")]
         public async Task TestIsCheck_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -1187,7 +1187,7 @@ class C
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
-        [Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51359")]
         public async Task TestIsCheck_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -1221,7 +1221,7 @@ class C
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
-        [Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51359")]
         public async Task TestIsNotObjectCheck_CSharp8()
         {
             // Not terrific.  But the starting code is not legal C#8 either.  In this case because we don't even support
@@ -1258,7 +1258,7 @@ class C
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
-        [Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51359")]
         public async Task TestIsNotObjectCheck_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -1292,7 +1292,7 @@ class C
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
-        [Fact, WorkItem(63311, "https://github.com/dotnet/roslyn/issues/63311")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63311")]
         public async Task TestLiftedNullable_GreaterThan()
         {
             await TestInRegularAndScriptAsync(
@@ -1323,7 +1323,7 @@ class C
                 """);
         }
 
-        [Fact, WorkItem(63311, "https://github.com/dotnet/roslyn/issues/63311")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63311")]
         public async Task TestLiftedNullable_GreaterThanOrEqual()
         {
             await TestInRegularAndScriptAsync(
@@ -1354,7 +1354,7 @@ class C
                 """);
         }
 
-        [Fact, WorkItem(63311, "https://github.com/dotnet/roslyn/issues/63311")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63311")]
         public async Task TestLiftedNullable_LessThan()
         {
             await TestInRegularAndScriptAsync(
@@ -1385,7 +1385,7 @@ class C
                 """);
         }
 
-        [Fact, WorkItem(63311, "https://github.com/dotnet/roslyn/issues/63311")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63311")]
         public async Task TestLiftedNullable_LessThanOrEqual()
         {
             await TestInRegularAndScriptAsync(
@@ -1416,7 +1416,7 @@ class C
                 """);
         }
 
-        [Fact, WorkItem(63311, "https://github.com/dotnet/roslyn/issues/63311")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63311")]
         public async Task TestNullableReference_GreaterThan()
         {
             await TestInRegularAndScriptAsync(
@@ -1461,7 +1461,7 @@ class C
                 """);
         }
 
-        [Fact, WorkItem(40585, "https://github.com/dotnet/roslyn/issues/40585")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40585")]
         public async Task TestYieldBreak()
         {
             await TestInRegularAndScriptAsync(
@@ -1492,7 +1492,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(42715, "https://github.com/dotnet/roslyn/issues/42715")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42715")]
         public async Task PreserveSpacing()
         {
             await TestInRegularAndScriptAsync(
@@ -1532,7 +1532,7 @@ class Program
                 """);
         }
 
-        [Fact, WorkItem(42715, "https://github.com/dotnet/roslyn/issues/42715")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42715")]
         public async Task PreserveSpacing_WithComments()
         {
             await TestInRegularAndScriptAsync(
@@ -1580,7 +1580,7 @@ class Program
                 """);
         }
 
-        [Fact, WorkItem(42715, "https://github.com/dotnet/roslyn/issues/42715")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42715")]
         public async Task PreserveSpacing_NoTrivia()
         {
             await TestInRegularAndScriptAsync(

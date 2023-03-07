@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 }", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [Fact, WorkItem(38734, "https://github.com/dotnet/roslyn/issues/38734")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38734")]
         public async Task ShouldTriggerIfCapturesThisParameter1()
         {
             await TestInRegularAndScriptAsync(
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 }", parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, WorkItem(38734, "https://github.com/dotnet/roslyn/issues/38734")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38734")]
         public async Task ShouldTriggerIfCapturesThisParameter2()
         {
             await TestInRegularAndScriptAsync(
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 }", parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, WorkItem(38734, "https://github.com/dotnet/roslyn/issues/38734")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38734")]
         public async Task ShouldTriggerIfCapturesThisParameter3()
         {
             await TestInRegularAndScriptAsync(
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 }", parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, WorkItem(38734, "https://github.com/dotnet/roslyn/issues/38734")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38734")]
         public async Task ShouldTriggerIfCapturesThisParameter4()
         {
             await TestInRegularAndScriptAsync(
@@ -597,7 +597,7 @@ parseOptions: CSharp8ParseOptions);
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, WorkItem(46858, "https://github.com/dotnet/roslyn/issues/46858")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46858")]
         public async Task ShouldNotTriggerIfCallsOtherLocalFunction()
         {
             await TestMissingAsync(
@@ -661,7 +661,7 @@ parseOptions: CSharp8ParseOptions);
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, WorkItem(53179, "https://github.com/dotnet/roslyn/issues/53179")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53179")]
         public async Task TestLocalFunctionAsTopLevelStatement()
         {
             await TestAsync(@"

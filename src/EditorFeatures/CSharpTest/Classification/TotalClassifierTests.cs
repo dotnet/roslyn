@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(547068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547068")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547068")]
         public async Task Bug17819(TestHost testHost)
         {
             await TestAsync(
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(543123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
         public async Task VarInForeach(TestHost testHost)
         {
             await TestInMethodAsync(@"foreach (var v in args) { }",
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory, WorkItem(545611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545611")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545611")]
         [CombinatorialData]
         public async Task TestVarConstructor(TestHost testHost)
         {
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(545609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545609")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545609")]
         [CombinatorialData]
         public async Task TestVarTypeParameter(TestHost testHost)
         {
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(545610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545610")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545610")]
         [CombinatorialData]
         public async Task TestVarAttribute1(TestHost testHost)
         {
@@ -572,7 +572,7 @@ class var : Attribute
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(545610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545610")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545610")]
         [CombinatorialData]
         public async Task TestVarAttribute2(TestHost testHost)
         {
@@ -598,7 +598,7 @@ class varAttribute : Attribute
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(546170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546170")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546170")]
         [CombinatorialData]
         public async Task TestStandaloneTypeName(TestHost testHost)
         {
@@ -635,7 +635,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(546403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546403")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546403")]
         [CombinatorialData]
         public async Task TestNamespaceClassAmbiguities(TestHost testHost)
         {
@@ -809,7 +809,7 @@ namespace N
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/633")]
         public async Task XmlDocCref(TestHost testHost)
         {
             await TestAsync(
@@ -1463,7 +1463,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/29492")]
         [CombinatorialData]
         public async Task TestOperatorOverloading(TestHost testHost)
         {
@@ -1953,7 +1953,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(10174, "https://github.com/dotnet/roslyn/issues/10174")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/10174")]
         [CombinatorialData]
         public async Task VarInPropertyPattern(TestHost testHost)
         {
@@ -2022,7 +2022,7 @@ class Program
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         [CombinatorialData]
         public async Task NotPattern(TestHost testHost)
         {
@@ -2062,7 +2062,7 @@ class Person
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         [CombinatorialData]
         public async Task OrPattern(TestHost testHost)
         {
@@ -2102,7 +2102,7 @@ class Person
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(59484, "https://github.com/dotnet/roslyn/issues/59484")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/59484")]
         [CombinatorialData]
         public async Task TestPatternVariables(TestHost testHost)
         {
@@ -2141,7 +2141,7 @@ void M(object o) {
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         [CombinatorialData]
         public async Task RelationalPattern(TestHost testHost)
         {
@@ -2221,7 +2221,7 @@ class C { }",
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(55313, "https://github.com/dotnet/roslyn/issues/55313")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55313")]
         public async Task TestStaticConstructorClass(TestHost testHost)
         {
             await TestAsync(
@@ -2246,7 +2246,7 @@ Punctuation.CloseCurly);
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(55313, "https://github.com/dotnet/roslyn/issues/55313")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55313")]
         public async Task TestStaticConstructorInterface(TestHost testHost)
         {
             await TestAsync(
@@ -2271,7 +2271,7 @@ Punctuation.CloseCurly);
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(59569, "https://github.com/dotnet/roslyn/issues/59569")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/59569")]
         public async Task TestArgsInTopLevel(TestHost testHost)
         {
             await TestAsync(
@@ -2294,7 +2294,7 @@ Punctuation.CloseCurly);
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(59569, "https://github.com/dotnet/roslyn/issues/59569")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/59569")]
         public async Task TestArgsInNormalProgram(TestHost testHost)
         {
             await TestAsync(

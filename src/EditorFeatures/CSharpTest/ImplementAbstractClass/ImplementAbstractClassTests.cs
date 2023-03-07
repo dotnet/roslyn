@@ -122,7 +122,7 @@ class Program : Goo
 }");
         }
 
-        [Fact, WorkItem(16434, "https://github.com/dotnet/roslyn/issues/16434")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16434")]
         public async Task TestMethodWithTupleNames()
         {
             await TestAllOptionsOffAsync(
@@ -148,7 +148,7 @@ class Program : Base
 }");
         }
 
-        [Fact, WorkItem(543234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543234")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543234")]
         public async Task TestNotAvailableForStruct()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -517,7 +517,7 @@ class c : d
 }");
         }
 
-        [Fact, WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")]
         public async Task TestOptionalNullableStructParameter()
         {
             await TestAllOptionsOffAsync(
@@ -551,7 +551,7 @@ class c : d
 }");
         }
 
-        [Fact, WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")]
         public async Task TestOptionalNullableIntParameter()
         {
             await TestAllOptionsOffAsync(
@@ -611,7 +611,7 @@ class c : d
 }");
         }
 
-        [Fact, WorkItem(543883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543883")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543883")]
         public async Task TestDifferentAccessorAccessibility()
         {
             await TestAllOptionsOffAsync(
@@ -785,7 +785,7 @@ partial class Program : Goo
 #line default");
         }
 
-        [Fact, WorkItem(545585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545585")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545585")]
         public async Task TestOnlyGenerateUnimplementedAccessors()
         {
             await TestAllOptionsOffAsync(
@@ -840,7 +840,7 @@ class C : B
 }");
         }
 
-        [Fact, WorkItem(545615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545615")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545615")]
         public async Task TestParamsArray()
         {
             await TestAllOptionsOffAsync(
@@ -880,7 +880,7 @@ class C : B
 }");
         }
 
-        [Fact, WorkItem(545636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545636")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545636")]
         public async Task TestNullPointerType()
         {
             await TestAllOptionsOffAsync(
@@ -906,7 +906,7 @@ class D : C
 }");
         }
 
-        [Fact, WorkItem(545637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545637")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545637")]
         public async Task TestErrorTypeCalledVar()
         {
             await TestAllOptionsOffAsync(
@@ -936,7 +936,7 @@ class D : C
 }");
         }
 
-        [Fact, WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         public async Task Bugfix_581500()
         {
             await TestAllOptionsOffAsync(
@@ -968,7 +968,7 @@ class D : C
 }");
         }
 
-        [Fact, WorkItem(625442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/625442")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/625442")]
         public async Task Bugfix_625442()
         {
             await TestAllOptionsOffAsync(
@@ -998,7 +998,7 @@ class D : C
 ");
         }
 
-        [Fact, WorkItem(2407, "https://github.com/dotnet/roslyn/issues/2407")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2407")]
         public async Task ImplementClassWithInaccessibleMembers()
         {
             await TestAllOptionsOffAsync(
@@ -1083,7 +1083,7 @@ public class x : EastAsianLunisolarCalendar
 }");
         }
 
-        [Fact, WorkItem(13149, "https://github.com/dotnet/roslyn/issues/13149")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13149")]
         public async Task TestPartialClass1()
         {
             await TestAllOptionsOffAsync(
@@ -1121,7 +1121,7 @@ partial class A
 }");
         }
 
-        [Fact, WorkItem(13149, "https://github.com/dotnet/roslyn/issues/13149")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13149")]
         public async Task TestPartialClass2()
         {
             await TestAllOptionsOffAsync(
@@ -1159,7 +1159,7 @@ partial class A : Base
 }");
         }
 
-        [Fact, WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         public async Task TestCodeStyle_Method1()
         {
             await TestInRegularAndScriptAsync(
@@ -1182,7 +1182,7 @@ class T : A
 }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
-        [Fact, WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         public async Task TestCodeStyle_Property1()
         {
             await TestInRegularAndScriptAsync(
@@ -1205,7 +1205,7 @@ class T : A
 }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
-        [Fact, WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         public async Task TestCodeStyle_Property3()
         {
             await TestInRegularAndScriptAsync(
@@ -1238,7 +1238,7 @@ class T : A
     });
         }
 
-        [Fact, WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         public async Task TestCodeStyle_Property4()
         {
             await TestInRegularAndScriptAsync(
@@ -1276,7 +1276,7 @@ class T : A
     });
         }
 
-        [Fact, WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         public async Task TestCodeStyle_Indexers1()
         {
             await TestInRegularAndScriptAsync(
@@ -1299,7 +1299,7 @@ class T : A
 }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
-        [Fact, WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         public async Task TestCodeStyle_Indexer3()
         {
             await TestInRegularAndScriptAsync(
@@ -1332,7 +1332,7 @@ class T : A
     });
         }
 
-        [Fact, WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         public async Task TestCodeStyle_Indexer4()
         {
             await TestInRegularAndScriptAsync(
@@ -1370,7 +1370,7 @@ class T : A
     });
         }
 
-        [Fact, WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         public async Task TestCodeStyle_Accessor1()
         {
             await TestInRegularAndScriptAsync(
@@ -1397,7 +1397,7 @@ class T : A
     });
         }
 
-        [Fact, WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         public async Task TestCodeStyle_Accessor3()
         {
             await TestInRegularAndScriptAsync(
@@ -1420,7 +1420,7 @@ class T : A
 }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
-        [Fact, WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         public async Task TestCodeStyle_Accessor4()
         {
             await TestInRegularAndScriptAsync(
@@ -1443,7 +1443,7 @@ class T : A
 }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
-        [Fact, WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15387")]
         public async Task TestWithGroupingOff1()
         {
             var options = Option(ImplementTypeOptionsStorage.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd);
@@ -1471,7 +1471,7 @@ class Derived : Base
 }", globalOptions: options);
         }
 
-        [Fact, WorkItem(17274, "https://github.com/dotnet/roslyn/issues/17274")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17274")]
         public async Task TestAddedUsingWithBanner1()
         {
             await TestInRegularAndScriptAsync(
@@ -1512,7 +1512,7 @@ namespace My
 }");
         }
 
-        [Fact, WorkItem(17562, "https://github.com/dotnet/roslyn/issues/17562")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17562")]
         public async Task TestNullableOptionalParameters_CSharp7()
         {
             await TestInRegularAndScriptAsync(
@@ -1546,7 +1546,7 @@ sealed class D : B
                 parseOptions: TestOptions.Regular7);
         }
 
-        [Fact, WorkItem(17562, "https://github.com/dotnet/roslyn/issues/17562")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17562")]
         public async Task TestNullableOptionalParametersCSharp7()
         {
             await TestAsync(
@@ -1579,7 +1579,7 @@ sealed class D : B
 }", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
         }
 
-        [Fact, WorkItem(17562, "https://github.com/dotnet/roslyn/issues/17562")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17562")]
         public async Task TestNullableOptionalParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -1612,8 +1612,8 @@ sealed class D : B
 }");
         }
 
-        [Fact, WorkItem(5898, "https://github.com/dotnet/roslyn/issues/5898")]
-        [WorkItem(13932, "https://github.com/dotnet/roslyn/issues/13932")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5898")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13932")]
         public async Task TestAutoProperties()
         {
             var options = new OptionsCollection(GetLanguage())
@@ -1807,7 +1807,7 @@ class [|Derived|] : Base
 </Workspace>");
         }
 
-        [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30102")]
         public async Task TestWithIncompleteGenericInBaseList()
         {
             await TestAllOptionsOffAsync(
@@ -1834,7 +1834,7 @@ class B : A<int
 }");
         }
 
-        [Fact, WorkItem(44907, "https://github.com/dotnet/roslyn/issues/44907")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44907")]
         public async Task TestWithRecords()
         {
             await TestAllOptionsOffAsync(
@@ -1861,7 +1861,7 @@ record B : A
 }", parseOptions: TestOptions.RegularPreview);
         }
 
-        [Fact, WorkItem(44907, "https://github.com/dotnet/roslyn/issues/44907")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44907")]
         public async Task TestWithRecordsWithPositionalMembers()
         {
             await TestAllOptionsOffAsync(
@@ -1941,7 +1941,7 @@ class B : A
 ", parseOptions: TestOptions.RegularPreview);
         }
 
-        [Fact, WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48742")]
         public async Task TestUnconstrainedGenericNullable()
         {
             await TestAllOptionsOffAsync(
@@ -1971,7 +1971,7 @@ class D : B<int>
 }");
         }
 
-        [Fact, WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48742")]
         public async Task TestUnconstrainedGenericNullable2()
         {
             await TestAllOptionsOffAsync(
@@ -2001,7 +2001,7 @@ class D<T> : B<T> where T : struct
 }");
         }
 
-        [Fact, WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48742")]
         public async Task TestUnconstrainedGenericNullable_Tuple()
         {
             await TestAllOptionsOffAsync(
@@ -2031,7 +2031,7 @@ class D<T> : B<(T, T)>
 }");
         }
 
-        [Theory, WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/48742")]
         [InlineData("", "T")]
         [InlineData(" where T : class", "T")]
         [InlineData("", "T?")]
@@ -2066,7 +2066,7 @@ class D<T> : B<{passToBase}>{constraint}
 }}");
         }
 
-        [Fact, WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53012")]
         public async Task TestNullableGenericType()
         {
             await TestAllOptionsOffAsync(
@@ -2092,7 +2092,7 @@ class D : C
 }");
         }
 
-        [Fact, WorkItem(62092, "https://github.com/dotnet/roslyn/issues/62092")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62092")]
         public async Task TestNullableGenericType2()
         {
             await TestAllOptionsOffAsync(

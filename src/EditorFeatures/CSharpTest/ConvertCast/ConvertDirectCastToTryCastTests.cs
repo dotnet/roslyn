@@ -372,7 +372,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, WorkItem(64052, "https://github.com/dotnet/roslyn/issues/64052")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64052")]
         public async Task ConvertFromExplicitToAs_NullableReferenceType_NullableEnable()
         {
             var initialMarkup = @"
@@ -403,7 +403,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, WorkItem(64052, "https://github.com/dotnet/roslyn/issues/64052")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64052")]
         public async Task ConvertFromExplicitToAs_NullableReferenceType_NullableDisable()
         {
             var initialMarkup = @"
@@ -436,7 +436,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(64466, "https://github.com/dotnet/roslyn/issues/64466")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64466")]
         public async Task ConvertFromExplicitToAs_NullableValueType()
         {
             const string InitialMarkup = @"

@@ -209,7 +209,7 @@ class C : IGoo
 }", index: SingleMember);
         }
 
-        [Fact, WorkItem(48027, "https://github.com/dotnet/roslyn/issues/48027")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48027")]
         public async Task TestSingleMemberAndContainingTypeHasNoInterface()
         {
             await TestMissingAsync(

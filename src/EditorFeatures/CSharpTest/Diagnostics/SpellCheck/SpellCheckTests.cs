@@ -461,7 +461,7 @@ class C
 @"[assembly: Microsoft.CodeAnalysis.[||]]");
         }
 
-        [Fact, WorkItem(12990, "https://github.com/dotnet/roslyn/issues/12990")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12990")]
         public async Task TestTrivia1()
         {
             var text = @"
@@ -487,7 +487,7 @@ class C
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13345")]
         public async Task TestNotMissingOnKeywordWhichIsAlsoASnippet()
         {
             await TestInRegularAndScriptAsync(
@@ -509,7 +509,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(18626, "https://github.com/dotnet/roslyn/issues/18626")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18626")]
         public async Task TestForExplicitInterfaceTypeName()
         {
             await TestInRegularAndScriptAsync(
@@ -539,7 +539,7 @@ class Program : IProjectConfigurationsService
 }");
         }
 
-        [Fact, WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13345")]
         public async Task TestMissingOnKeywordWhichIsOnlyASnippet()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -553,7 +553,7 @@ class Program : IProjectConfigurationsService
 }");
         }
 
-        [Fact, WorkItem(15733, "https://github.com/dotnet/roslyn/issues/15733")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15733")]
         public async Task TestMissingOnVar()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -582,7 +582,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(28244, "https://github.com/dotnet/roslyn/issues/28244")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28244")]
         public async Task TestMisspelledConstructor()
         {
             await TestInRegularAndScriptAsync(
@@ -682,7 +682,7 @@ class Program : IInterface
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, WorkItem(1640728, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1640728")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1640728")]
         public async Task TestMisspelledWordThatIsAlsoSnippetName()
         {
             await TestInRegularAndScriptAsync(

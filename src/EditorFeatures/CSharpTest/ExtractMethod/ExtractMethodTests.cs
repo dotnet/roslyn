@@ -701,7 +701,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538932")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538932")]
         public async Task ExtractMethod17()
         {
             var code = @"using System;
@@ -858,7 +858,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(542677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542677")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542677")]
         public async Task ExtractMethod21()
         {
             var code = @"using System;
@@ -1421,7 +1421,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538239, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538239")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538239")]
         public async Task ExtractMethod35()
         {
             var code = @"using System;
@@ -1511,7 +1511,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538231")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538231")]
         public async Task ExtractMethod38()
         {
             var code = @"using System;
@@ -1574,7 +1574,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538231")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538231")]
         public async Task ExtractMethod39()
         {
             var code = @"using System;
@@ -1640,7 +1640,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538303")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538303")]
         public async Task ExtractMethod40()
         {
             var code = @"class Program
@@ -1653,7 +1653,7 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [Fact, WorkItem(868414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868414")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868414")]
         public async Task ExtractMethodWithLeadingTrivia()
         {
             // ensure that the extraction doesn't result in trivia moving up a line:
@@ -1685,7 +1685,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(632351, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632351")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632351")]
         public async Task ExtractMethodFailForTypeInFromClause()
         {
             var code = @"class Program
@@ -1698,7 +1698,7 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [Fact, WorkItem(632351, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632351")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632351")]
         public async Task ExtractMethodFailForTypeInFromClause_1()
         {
             var code = @"class Program
@@ -1711,7 +1711,7 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [Fact, WorkItem(538314, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538314")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538314")]
         public async Task ExtractMethod41()
         {
             var code = @"class Program
@@ -1745,7 +1745,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538327")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538327")]
         public async Task ExtractMethod42()
         {
             var code = @"using System;
@@ -1781,7 +1781,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538327")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538327")]
         public async Task ExtractMethod43()
         {
             var code = @"using System;
@@ -1831,7 +1831,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538328")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538328")]
         public async Task ExtractMethod44()
         {
             var code = @"using System;
@@ -1869,7 +1869,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538393, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538393")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538393")]
         public async Task ExtractMethod45()
         {
             var code = @"using System;
@@ -1902,7 +1902,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538393, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538393")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538393")]
         public async Task ExtractMethod46()
         {
             var code = @"using System;
@@ -1950,7 +1950,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538399, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538399")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538399")]
         public async Task ExtractMethod47()
         {
             var code = @"using System;
@@ -1986,7 +1986,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538401")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538401")]
         public async Task ExtractMethod48()
         {
             var code = @"using System;
@@ -2020,7 +2020,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538405")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538405")]
         public async Task ExtractMethod49()
         {
             var code = @"using System;
@@ -2092,7 +2092,7 @@ class Class
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538932")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538932")]
         public async Task ExtractMethodAutoProperty()
         {
             var code = @"
@@ -2126,7 +2126,7 @@ class Class
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538402, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538402")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538402")]
         public async Task BugFix3994()
         {
             var code = @"using System;
@@ -2160,7 +2160,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538404")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538404")]
         public async Task BugFix3996()
         {
             var code = @"class A<T>
@@ -2244,7 +2244,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538980")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538980")]
         public async Task BugFix4757()
         {
             var code = @"class GenericMethod
@@ -2273,7 +2273,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538980")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538980")]
         public async Task BugFix4757_2()
         {
             var code = @"class GenericMethod<T1>
@@ -2306,7 +2306,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538980")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538980")]
         public async Task BugFix4757_3()
         {
             var code = @"class GenericMethod
@@ -2339,7 +2339,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538422")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538422")]
         public async Task BugFix4758()
         {
             var code = @"using System;
@@ -2370,7 +2370,7 @@ class TestOutParameter
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538422")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538422")]
         public async Task BugFix4758_2()
         {
             var code = @"class TestOutParameter
@@ -2399,7 +2399,7 @@ class TestOutParameter
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538984")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538984")]
         public async Task BugFix4761()
         {
             var code = @"using System;
@@ -2430,7 +2430,7 @@ class A
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538997")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538997")]
         public async Task BugFix4779()
         {
             var code = @"using System;
@@ -2465,7 +2465,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538997")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538997")]
         public async Task BugFix4779_2()
         {
             var code = @"using System;
@@ -2655,7 +2655,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539019")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539019")]
         public async Task BugFix4809()
         {
             var code = @"class Program
@@ -2682,7 +2682,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539029")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539029")]
         public async Task BugFix4813()
         {
             var code = @"using System;
@@ -2713,7 +2713,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538425")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538425")]
         public async Task BugFix4031()
         {
             var code = @"using System;
@@ -2754,7 +2754,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(527499, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527499")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527499")]
         public async Task BugFix3992()
         {
             var code = @"using System;
@@ -2788,7 +2788,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539029")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539029")]
         public async Task BugFix4823()
         {
             var code = @"class Program
@@ -2831,7 +2831,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538985")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538985")]
         public async Task BugFix4762()
         {
             var code = @"class Program
@@ -2862,7 +2862,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(538966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538966")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538966")]
         public async Task BugFix4744()
         {
             var code = @"class Program
@@ -5771,7 +5771,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539049")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539049")]
         public async Task ExtractMethodInProperty1()
         {
             var code = @"class C2
@@ -5822,7 +5822,7 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539049")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539049")]
         public async Task ExtractMethodInProperty2()
         {
             var code = @"class C3
@@ -5858,7 +5858,7 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539049")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539049")]
         public async Task ExtractMethodInProperty3()
         {
             var code = @"class C3
@@ -5893,7 +5893,7 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539029")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539029")]
         public async Task ExtractMethodProperty()
         {
             var code = @"class Program
@@ -5939,7 +5939,7 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539196")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539196")]
         public async Task ExtractMethodWithDeclareOneMoreVariablesInSameLineBeUsedAfter()
         {
             var code = @"class C
@@ -5969,7 +5969,7 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539196")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539196")]
         public async Task ExtractMethodWithDeclareOneMoreVariablesInSameLineNotBeUsedAfter()
         {
             var code = @"class C
@@ -5994,7 +5994,7 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539214")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539214")]
         public async Task ExtractMethodForSplitOutStatementWithComments()
         {
             var code = @"class C
@@ -6029,7 +6029,7 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539225")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539225")]
         public async Task Bug5098()
         {
             var code = @"class Program
@@ -6044,7 +6044,7 @@ class C3
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [Fact, WorkItem(539229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539229")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539229")]
         public async Task Bug5107()
         {
             var code = @"class Program
@@ -6077,7 +6077,7 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539500")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539500")]
         public async Task LambdaLiftedVariable1()
         {
             var code = @"class Program
@@ -6118,7 +6118,7 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539488")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539488")]
         public async Task LambdaLiftedVariable2()
         {
             var code = @"class Program
@@ -6167,7 +6167,7 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539531")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539531")]
         public async Task Bug5533()
         {
             var code = @"using System;
@@ -6204,7 +6204,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539531")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539531")]
         public async Task Bug5533_1()
         {
             var code = @"using System;
@@ -6241,7 +6241,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539531")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539531")]
         public async Task Bug5533_2()
         {
             var code = @"using System;
@@ -6279,7 +6279,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539531")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539531")]
         public async Task Bug5533_3()
         {
             var code = @"using System;
@@ -6316,7 +6316,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539859")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539859")]
         public async Task LambdaLiftedVariable3()
         {
             var code = @"using System;
@@ -6365,7 +6365,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539882")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539882")]
         public async Task Bug5982()
         {
             var code = @"using System;
@@ -6400,7 +6400,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539932")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539932")]
         public async Task Bug6041()
         {
             var code = @"using System;
@@ -6433,7 +6433,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540183")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540183")]
         public async Task ExtractMethod50()
         {
             var code = @"class C
@@ -6558,7 +6558,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539963")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539963")]
         public async Task ExtractMethod53()
         {
             var code = @"class Class
@@ -6573,7 +6573,7 @@ enum Enum { }";
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [Fact, WorkItem(539964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539964")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539964")]
         public async Task ExtractMethod54()
         {
             var code = @"class Class
@@ -6586,7 +6586,7 @@ enum Enum { }";
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [Fact, WorkItem(540072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540072")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540072")]
         public async Task Bug6220()
         {
             var code = @"class C
@@ -6614,7 +6614,7 @@ enum Enum { }";
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540072")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540072")]
         public async Task Bug6220_1()
         {
             var code = @"class C
@@ -6642,7 +6642,7 @@ enum Enum { }";
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540071")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540071")]
         public async Task Bug6219()
         {
             var code = @"class C
@@ -6670,7 +6670,7 @@ enum Enum { }";
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540080")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540080")]
         public async Task Bug6230()
         {
             var code = @"class C
@@ -6698,7 +6698,7 @@ enum Enum { }";
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540080")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540080")]
         public async Task Bug6230_1()
         {
             var code = @"class C
@@ -6726,7 +6726,7 @@ enum Enum { }";
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540052")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540052")]
         public async Task Bug6197()
         {
             var code = @"using System;
@@ -6803,7 +6803,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540151")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540151")]
         public async Task ArgumentlessReturnWithConstIfExpression()
         {
             var code = @"using System;
@@ -6838,7 +6838,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540151")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540151")]
         public async Task ArgumentlessReturnWithConstIfExpression_1()
         {
             var code = @"using System;
@@ -6877,7 +6877,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540151")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540151")]
         public async Task ArgumentlessReturnWithConstIfExpression_2()
         {
             var code = @"using System;
@@ -6909,7 +6909,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540151")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540151")]
         public async Task ArgumentlessReturnWithConstIfExpression_3()
         {
             var code = @"using System;
@@ -6946,7 +6946,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
         public async Task Bug6313()
         {
             var code = @"using System;
@@ -6984,7 +6984,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
         public async Task Bug6313_1()
         {
             var code = @"using System;
@@ -7004,7 +7004,7 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [Fact, WorkItem(540154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
         public async Task Bug6313_2()
         {
             var code = @"using System;
@@ -7024,7 +7024,7 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [Fact, WorkItem(540154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
         public async Task Bug6313_3()
         {
             var code = @"using System;
@@ -7079,7 +7079,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
         public async Task Bug6313_4()
         {
             var code = @"using System;
@@ -7148,7 +7148,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
         public async Task Bug6313_5()
         {
             var code = @"using System;
@@ -7193,7 +7193,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
         public async Task Bug6313_6()
         {
             var code = @"using System;
@@ -7216,7 +7216,7 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [Fact, WorkItem(540170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540170")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540170")]
         public async Task Bug6333()
         {
             var code = @"using System;
@@ -7248,7 +7248,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540216")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540216")]
         public async Task Bug6393()
         {
             var code = @"using System;
@@ -7280,7 +7280,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540184, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540184")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540184")]
         public async Task Bug6351()
         {
             var code = @"class Test
@@ -7324,7 +7324,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540184, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540184")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540184")]
         public async Task Bug6351_1()
         {
             var code = @"class Test
@@ -7368,7 +7368,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540184, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540184")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540184")]
         public async Task Bug6351_2()
         {
             var code = @"class Test
@@ -7410,7 +7410,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540333")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540333")]
         public async Task Bug6560()
         {
             var code = @"using System;
@@ -7440,7 +7440,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540335")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540335")]
         public async Task Bug6562()
         {
             var code = @"using System;
@@ -7462,7 +7462,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540335")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540335")]
         public async Task Bug6562_1()
         {
             var code = @"using System;
@@ -7473,7 +7473,7 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [Fact, WorkItem(540335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540335")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540335")]
         public async Task Bug6562_2()
         {
             var code = @"using System;
@@ -7495,7 +7495,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540335")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540335")]
         public async Task Bug6562_3()
         {
             var code = @"using System;
@@ -7517,7 +7517,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540361")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540361")]
         public async Task Bug6598()
         {
             var code = @"using System;
@@ -7534,7 +7534,7 @@ class
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [Fact, WorkItem(540372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540372")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540372")]
         public async Task Bug6613()
         {
             var code = @"#define A
@@ -7570,7 +7570,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(540396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540396")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540396")]
         public async Task InvalidSelection_MethodBody()
         {
             var code = @"using System;
@@ -7594,7 +7594,7 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [Fact, WorkItem(541586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541586")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541586")]
         public async Task StructThis()
         {
             var code = @"struct S
@@ -7619,7 +7619,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(541627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541627")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541627")]
         public async Task DontUseConvertedTypeForImplicitNumericConversion()
         {
             var code = @"class T
@@ -7646,7 +7646,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(541668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541668")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541668")]
         public async Task BreakInSelection()
         {
             var code = @"using System;
@@ -7685,7 +7685,7 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [Fact, WorkItem(541671, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541671")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541671")]
         public async Task UnreachableCodeWithReturnStatement()
         {
             var code = @"class Program
@@ -7720,7 +7720,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539862")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539862")]
         public async Task DontBlindlyPutCapturedVariable1()
         {
             var code = @"using System;
@@ -7777,7 +7777,7 @@ namespace Ros
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(539862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539862")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539862")]
         public async Task DontBlindlyPutCapturedVariable2()
         {
             var code = @"using System;
@@ -7814,7 +7814,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(541889, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541889")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541889")]
         public async Task DontCrashOnRangeVariableSymbol()
         {
             var code = @"class Test
@@ -7858,7 +7858,7 @@ class Test
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(542155, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542155")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542155")]
         public async Task GenericWithErrorType()
         {
             var code = @"using Goo.Utilities;
@@ -7918,7 +7918,7 @@ namespace Goo.Utilities
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(542105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542105")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542105")]
         public async Task NamedArgument()
         {
             var code = @"using System;
@@ -7952,7 +7952,7 @@ class C
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(542213, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542213")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542213")]
         public async Task QueryExpressionVariable()
         {
             var code = @"using System;
@@ -7994,7 +7994,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(542465, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542465")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542465")]
         public async Task IsExpression()
         {
             var code = @"using System;
@@ -8035,7 +8035,7 @@ class IsTest
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(542526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542526")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542526")]
         public async Task TypeParametersInConstraint()
         {
             var code = @"using System;
@@ -8067,7 +8067,7 @@ class A
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(542619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542619")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542619")]
         public async Task GlobalNamespaceInReturnType()
         {
             var code = @"class Program
@@ -8095,7 +8095,7 @@ class A
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(542582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542582")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542582")]
         public async Task ExtractMethodExpandSelectionOnFor()
         {
             var code = @"using System;
@@ -8558,7 +8558,7 @@ struct Goo
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(542619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542619")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542619")]
         public async Task ExtractMethodIncludeGlobal()
         {
             var code = @"class Program
@@ -8594,7 +8594,7 @@ struct Goo
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(542582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542582")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542582")]
         public async Task ExtractMethodExpandSelection()
         {
             var code = @"class Program
@@ -8625,7 +8625,7 @@ struct Goo
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(542594, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542594")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542594")]
         public async Task ExtractMethodRename1()
         {
             var code = @"class Program
@@ -8659,7 +8659,7 @@ struct Goo
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(542594, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542594")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542594")]
         public async Task ExtractMethodRename2()
         {
             var code = @"class Program
@@ -8704,7 +8704,7 @@ struct Goo
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(542632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542632")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542632")]
         public async Task ExtractMethodInInteractive1()
         {
             var code = @"int i; [|i = 2|]; i = 3;";
@@ -8719,7 +8719,7 @@ i = 3;";
             await TestExtractMethodAsync(code, expected, parseOptions: Options.Script);
         }
 
-        [Fact, WorkItem(542670, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542670")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542670")]
         public async Task TypeParametersInConstraint1()
         {
             var code = @"using System;
@@ -8751,8 +8751,8 @@ class A
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(706894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/706894")]
-        [WorkItem(543012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543012")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/706894")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543012")]
         public async Task TypeParametersInConstraint2()
         {
             var code = @"
@@ -8798,8 +8798,8 @@ class A
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(706894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/706894")]
-        [WorkItem(543012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543012")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/706894")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543012")]
         public async Task TypeParametersInConstraint3()
         {
             var code = @"
@@ -8845,7 +8845,7 @@ class A
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(543012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543012")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543012")]
         public async Task TypeParametersInConstraint4()
         {
             var code = @"
@@ -8951,7 +8951,7 @@ public class Test
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(543012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543012")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543012")]
         public async Task TypeParametersInConstraintBestEffort()
         {
             var code = @"
@@ -9003,7 +9003,7 @@ class B : A<string>
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(542672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542672")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542672")]
         public async Task ConstructedTypes()
         {
             var code = @"using System;
@@ -9037,7 +9037,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(542792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542792")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542792")]
         public async Task TypeInDefault()
         {
             var code = @"using System;
@@ -9099,7 +9099,7 @@ class Node<K, T> where T : new()
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(542708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542708")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542708")]
         public async Task Script_ArgumentException()
         {
             var code = @"using System;
@@ -9123,7 +9123,7 @@ static Type GetDelegateType(Type delegateType)
             await TestExtractMethodAsync(code, expected, parseOptions: Options.Script);
         }
 
-        [Fact, WorkItem(529008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529008")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529008")]
         public async Task ReadOutSideIsUnReachable()
         {
             var code = @"class Test
@@ -9164,7 +9164,7 @@ static Type GetDelegateType(Type delegateType)
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(543186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
         public async Task AnonymousTypePropertyName()
         {
             var code = @"class C
@@ -9189,7 +9189,7 @@ static Type GetDelegateType(Type delegateType)
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(543662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543662")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543662")]
         public async Task ArgumentOfBaseConstrInit()
         {
             var code = @"class O
@@ -9241,7 +9241,7 @@ unsafe class O
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(544144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544144")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544144")]
         public async Task CastExpressionWithImplicitUserDefinedConversion()
         {
             var code = @"
@@ -9281,7 +9281,7 @@ class C
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(544387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544387")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544387")]
         public async Task FixedPointerVariable()
         {
             var code = @"
@@ -9317,7 +9317,7 @@ class Test
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(544444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544444")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544444")]
         public async Task PointerDeclarationStatement()
         {
             var code = @"
@@ -9347,7 +9347,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(544446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544446")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544446")]
         public async Task PrecededByCastExpr()
         {
             var code = @"
@@ -9375,7 +9375,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(542944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542944")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542944")]
         public async Task ExpressionWithLocalConst()
         {
             var code = @"class Program
@@ -9404,7 +9404,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(542944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542944")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542944")]
         public async Task ExpressionWithLocalConst2()
         {
             var code = @"class Program
@@ -9433,7 +9433,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(544675, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544675")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544675")]
         public async Task HiddenPosition()
         {
             var code = @"class Program
@@ -9450,7 +9450,7 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [Fact, WorkItem(530609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530609")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530609")]
         public async Task NoCrashInteractive()
         {
             var code = @"[|if (true)
@@ -9468,7 +9468,7 @@ static void NewMethod()
             await TestExtractMethodAsync(code, expected, parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Script));
         }
 
-        [Fact, WorkItem(530322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530322")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530322")]
         public async Task ExtractMethodShouldNotBreakFormatting()
         {
             var code =
@@ -9499,7 +9499,7 @@ static void NewMethod()
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(604389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604389")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604389")]
         public async Task TestExtractLiteralExpression()
         {
             var code =
@@ -9536,7 +9536,7 @@ class C
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(604389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604389")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604389")]
         public async Task TestExtractCollectionInitializer()
         {
             var code =
@@ -9573,7 +9573,7 @@ class C
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(854662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854662")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854662")]
         public async Task TestExtractCollectionInitializer2()
         {
             var code =
@@ -9608,7 +9608,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(530267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530267")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530267")]
         public async Task TestCoClassImplicitConversion()
         {
             var code =
@@ -9651,7 +9651,7 @@ class C : I
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(530710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530710")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530710")]
         public async Task TestOverloadResolution()
         {
             var code =
@@ -9710,7 +9710,7 @@ static class E
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(530710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530710")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530710")]
         public async Task TestOverloadResolution1()
         {
             var code =
@@ -9769,7 +9769,7 @@ static class E
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(530710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530710")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530710")]
         public async Task TestOverloadResolution2()
         {
             var code =
@@ -9828,7 +9828,7 @@ static class E
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(731924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/731924")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/731924")]
         public async Task TestTreatEnumSpecial()
         {
             var code =
@@ -9875,7 +9875,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(756222, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756222")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756222")]
         public async Task TestReturnStatementInAsyncMethod()
         {
             var code =
@@ -9908,7 +9908,7 @@ class C
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(574576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574576")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574576")]
         public async Task TestAsyncMethodWithRefOrOutParameters()
         {
             var code =
@@ -9929,7 +9929,7 @@ class C
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [Fact, WorkItem(1025272, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1025272")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1025272")]
         public async Task TestAsyncMethodWithWellKnownValueType()
         {
             var code =
@@ -10116,7 +10116,7 @@ namespace ClassLibrary9
         [Theory]
         [InlineData("add", "remove")]
         [InlineData("remove", "add")]
-        [WorkItem(17474, "https://github.com/dotnet/roslyn/issues/17474")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17474")]
         public async Task TestExtractMethodEventAccessorUnresolvedName(string testedAccessor, string untestedAccessor)
         {
             // This code intentionally omits a 'using System;'
@@ -10153,7 +10153,7 @@ $@"namespace ClassLibrary9
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(19958, "https://github.com/dotnet/roslyn/issues/19958")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19958")]
         public async Task TestExtractMethodRefPassThrough()
         {
             var code =
@@ -10191,7 +10191,7 @@ namespace ClassLibrary9
             await TestExtractMethodAsync(code, expected, temporaryFailing: true);
         }
 
-        [Fact, WorkItem(19958, "https://github.com/dotnet/roslyn/issues/19958")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19958")]
         public async Task TestExtractMethodRefPassThroughDuplicateVariable()
         {
             var code =
@@ -10307,7 +10307,7 @@ namespace ClassLibrary9
             Assert.True(state.IsUnspecified);
         }
 
-        [Fact, WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18347")]
         public async Task ExtractMethodUnreferencedLocalFunction1()
         {
             var code = @"namespace ExtractMethodCrashRepro
@@ -10343,7 +10343,7 @@ namespace ClassLibrary9
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18347")]
         public async Task ExtractMethodUnreferencedLocalFunction2()
         {
             var code = @"namespace ExtractMethodCrashRepro
@@ -10379,7 +10379,7 @@ namespace ClassLibrary9
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18347")]
         public async Task ExtractMethodUnreferencedLocalFunction3()
         {
             var code = @"namespace ExtractMethodCrashRepro
@@ -10416,7 +10416,7 @@ namespace ClassLibrary9
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18347")]
         public async Task ExtractMethodUnreferencedLocalFunction4()
         {
             var code = @"namespace ExtractMethodCrashRepro
@@ -10453,7 +10453,7 @@ namespace ClassLibrary9
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18347")]
         public async Task ExtractMethodUnreferencedLocalFunction5()
         {
             var code = @"namespace ExtractMethodCrashRepro
@@ -10498,7 +10498,7 @@ namespace ClassLibrary9
         [InlineData("LocalCapture();")]
         [InlineData("System.Func<int> function = LocalCapture;")]
         [InlineData("System.Func<int> function = () => LocalCapture();")]
-        [WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18347")]
         public async Task ExtractMethodFlowsToLocalFunction1(string usageSyntax)
         {
             var code = $@"namespace ExtractMethodCrashRepro
@@ -10543,7 +10543,7 @@ namespace ClassLibrary9
         [InlineData("LocalCapture();")]
         [InlineData("System.Func<int> function = LocalCapture;")]
         [InlineData("System.Func<int> function = () => LocalCapture();")]
-        [WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18347")]
         public async Task ExtractMethodFlowsToLocalFunction2(string usageSyntax)
         {
             var code = $@"namespace ExtractMethodCrashRepro
@@ -10592,7 +10592,7 @@ namespace ClassLibrary9
         [InlineData("LocalCapture();")]
         [InlineData("System.Func<int> function = LocalCapture;")]
         [InlineData("System.Func<int> function = () => LocalCapture();")]
-        [WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18347")]
         public async Task ExtractMethodFlowsToLocalFunctionWithUnassignedLocal(string usageSyntax)
         {
             var code = $@"namespace ExtractMethodCrashRepro
@@ -10635,7 +10635,7 @@ namespace ClassLibrary9
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18347")]
         public async Task ExtractMethodDoesNotFlowToLocalFunction1()
         {
             var code = @"namespace ExtractMethodCrashRepro
@@ -10974,7 +10974,7 @@ class Program
             await TestExtractMethodAsync(code, expected, allowBestEffort: true);
         }
 
-        [Fact, WorkItem(30750, "https://github.com/dotnet/roslyn/issues/30750")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30750")]
         public async Task ExtractMethodInInterface()
         {
             var code = @"
@@ -11005,7 +11005,7 @@ interface Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(33242, "https://github.com/dotnet/roslyn/issues/33242")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33242")]
         public async Task ExtractMethodInExpressionBodiedConstructors()
         {
             var code = @"
@@ -11030,7 +11030,7 @@ class Goo
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(33242, "https://github.com/dotnet/roslyn/issues/33242")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33242")]
         public async Task ExtractMethodInExpressionBodiedFinalizers()
         {
             var code = @"
@@ -11114,7 +11114,7 @@ class C
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44260")]
         public async Task TopLevelStatement_ValueInAssignment()
         {
             var code = @"
@@ -11134,7 +11134,7 @@ local = NewMethod();
             await TestExtractMethodAsync(code, expected);
         }
 
-        [Fact, WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44260")]
         public async Task TopLevelStatement_ArgumentInInvocation()
         {
             // Note: the cast should be simplified 
@@ -11157,7 +11157,7 @@ static string NewMethod()
         [InlineData("unsafe")]
         [InlineData("checked")]
         [InlineData("unchecked")]
-        [WorkItem(4950, "https://github.com/dotnet/roslyn/issues/4950")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4950")]
         public async Task ExtractMethodInvolvingUnsafeBlock(string keyword)
         {
             var code = $@"

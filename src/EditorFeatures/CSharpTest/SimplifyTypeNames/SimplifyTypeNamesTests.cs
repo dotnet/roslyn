@@ -436,7 +436,7 @@ namespace Root
 }");
         }
 
-        [Fact, WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21449")]
         public async Task DoNotChangeToAliasInNameOfIfItChangesNameOfName()
         {
             await TestInRegularAndScript1Async(
@@ -469,8 +469,8 @@ namespace SimplifyInsideNameof
         }
 
         [Fact]
-        [WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
-        [WorkItem(40972, "https://github.com/dotnet/roslyn/issues/40972")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21449")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40972")]
         public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName1()
         {
             await TestInRegularAndScriptAsync(
@@ -506,7 +506,7 @@ namespace SimplifyInsideNameof
                 """);
         }
 
-        [Fact, WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21449")]
         public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName2()
         {
             await TestInRegularAndScriptAsync(
@@ -941,7 +941,7 @@ namespace Root
 ");
         }
 
-        [Fact, WorkItem(40972, "https://github.com/dotnet/roslyn/issues/40972")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40972")]
         public async Task TwoMissingInNameofMemberGroup()
         {
             await TestInRegularAndScript1Async(
@@ -1618,7 +1618,7 @@ namespace N1
 }");
         }
 
-        [Fact, WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
         public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1633,7 +1633,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
         public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1646,7 +1646,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
         public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1661,7 +1661,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
         public async Task SimplifyToPredefinedTypeNameShouldBeOfferedInsideFunctionCalledNameOf()
         {
             await TestInRegularAndScriptAsync(
@@ -1719,7 +1719,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
         public async Task SimplifyCrefAliasPredefinedType()
         {
             await TestInRegularAndScriptAsync(
@@ -1745,7 +1745,7 @@ class Program
 }", options: PreferIntrinsicTypeEverywhere);
         }
 
-        [Fact, WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
         public async Task SimplifyAlias1()
         {
             var content =
@@ -1761,7 +1761,7 @@ namespace N1
             await TestMissingInRegularAndScriptAsync(content);
         }
 
-        [Fact, WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
         public async Task SimplifyAlias2()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -1785,7 +1785,7 @@ namespace N1
 }");
         }
 
-        [Fact, WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
         public async Task SimplifyAlias3()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -1815,7 +1815,7 @@ namespace N1
 }");
         }
 
-        [Fact, WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
         public async Task SimplifyAlias4()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -1847,7 +1847,7 @@ namespace Outer
 }");
         }
 
-        [Fact, WorkItem(544631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544631")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544631")]
         public async Task SimplifyAlias5()
         {
             var content =
@@ -1868,7 +1868,7 @@ namespace N
             await TestInRegularAndScriptAsync(content, result);
         }
 
-        [Fact, WorkItem(919815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/919815")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/919815")]
         public async Task SimplifyReturnTypeOnMethodCallToAlias()
         {
             await TestInRegularAndScriptAsync(
@@ -1892,7 +1892,7 @@ class A
 }");
         }
 
-        [Fact, WorkItem(538949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538949")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538949")]
         public async Task SimplifyComplexGeneric1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1912,7 +1912,7 @@ interface I<T>
 }");
         }
 
-        [Fact, WorkItem(538949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538949")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538949")]
         public async Task SimplifyComplexGeneric2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1932,7 +1932,7 @@ interface I<T>
 }");
         }
 
-        [Fact, WorkItem(538991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538991")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538991")]
         public async Task SimplifyMissingOnGeneric()
         {
             var content =
@@ -1944,7 +1944,7 @@ interface I<T>
             await TestMissingInRegularAndScriptAsync(content);
         }
 
-        [Fact, WorkItem(539000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
         public async Task SimplifyMissingOnUnmentionableTypeParameter1()
         {
             var content =
@@ -1974,8 +1974,8 @@ class C
 }");
         }
 
-        [Fact, WorkItem(539000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
-        [WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")]
         public async Task SimplifyUnmentionableTypeParameter2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1996,7 +1996,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(539000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
         public async Task SimplifyUnmentionableTypeParameter2_1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2045,7 +2045,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(541748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541748")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541748")]
         public async Task TestOnErrorInScript()
         {
             await TestMissingAsync(
@@ -2211,8 +2211,8 @@ new TestParameters(Options.Script));
 index: 1);
         }
 
-        [Fact, WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
-        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         public async Task TestPreventSimplificationToNameInCurrentScope()
         {
             await TestInRegularAndScript1Async(
@@ -2255,8 +2255,8 @@ index: 1);
 }");
         }
 
-        [Fact, WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
-        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         public async Task TestPreventSimplificationToNameInCurrentScope2()
         {
             await TestInRegularAndScript1Async(
@@ -2297,8 +2297,8 @@ index: 1);
 }");
         }
 
-        [Fact, WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
-        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         public async Task TestAllowSimplificationToNameInNestedScope()
         {
             await TestInRegularAndScriptAsync(
@@ -2344,8 +2344,8 @@ index: 1);
 }");
         }
 
-        [Fact, WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
-        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         public async Task TestAllowSimplificationToNameInNestedScope1()
         {
             await TestInRegularAndScriptAsync(
@@ -2391,7 +2391,7 @@ namespace N
 }");
         }
 
-        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnOpenType1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2407,7 +2407,7 @@ namespace N
 }");
         }
 
-        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnOpenType2()
         {
             await TestInRegularAndScriptAsync(
@@ -2433,7 +2433,7 @@ namespace N
 }");
         }
 
-        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnOpenType3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2449,7 +2449,7 @@ namespace N
 }");
         }
 
-        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnOpenType4()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2465,7 +2465,7 @@ namespace N
 }");
         }
 
-        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnOpenType5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2481,7 +2481,7 @@ namespace N
 }");
         }
 
-        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnOpenType6()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2497,7 +2497,7 @@ namespace N
 }");
         }
 
-        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnNonOpenType1()
         {
             await TestInRegularAndScriptAsync(
@@ -2523,7 +2523,7 @@ namespace N
 }");
         }
 
-        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnNonOpenType2()
         {
             await TestInRegularAndScriptAsync(
@@ -2549,7 +2549,7 @@ namespace N
 }");
         }
 
-        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnNonOpenType3()
         {
             await TestInRegularAndScriptAsync(
@@ -2575,7 +2575,7 @@ namespace N
 }");
         }
 
-        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnNonOpenType4()
         {
             await TestInRegularAndScriptAsync(
@@ -2601,7 +2601,7 @@ namespace N
 }");
         }
 
-        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnNonOpenType5()
         {
             await TestInRegularAndScriptAsync(
@@ -2627,7 +2627,7 @@ namespace N
 }");
         }
 
-        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnNonOpenType6()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2643,7 +2643,7 @@ namespace N
 }");
         }
 
-        [Fact, WorkItem(542650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542650")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542650")]
         public async Task TestWithInterleavedDirective1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2669,7 +2669,7 @@ class B
 }");
         }
 
-        [Fact, WorkItem(542719, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542719")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542719")]
         public async Task TestGlobalMissing1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2689,7 +2689,7 @@ class B
 }");
         }
 
-        [Fact, WorkItem(544615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544615")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544615")]
         public async Task TestMissingOnAmbiguousCast()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2706,7 +2706,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(544616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544616")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544616")]
         public async Task ParenthesizeIfParseChanges()
         {
             await TestInRegularAndScriptAsync(
@@ -2730,7 +2730,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(544974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
         public async Task TestNullableSimplification1()
         {
             await TestInRegularAndScriptAsync(
@@ -2750,7 +2750,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(544974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
         public async Task TestNullableSimplification3()
         {
             await TestInRegularAndScriptAsync(
@@ -2768,7 +2768,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(544974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
         public async Task TestNullableSimplification4()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -2786,7 +2786,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(544977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544977")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544977")]
         public async Task TestNullableSimplification5()
         {
             await TestInRegularAndScriptAsync(
@@ -2810,7 +2810,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestMissingNullableSimplificationInsideCref()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2823,7 +2823,7 @@ class A
 }");
         }
 
-        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestMissingNullableSimplificationInsideCref2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2835,7 +2835,7 @@ class A
 }");
         }
 
-        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestMissingNullableSimplificationInsideCref3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2847,7 +2847,7 @@ class A
 }");
         }
 
-        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestNullableInsideCref_AllowedIfReferencingActualTypeParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -2867,7 +2867,7 @@ class C<T>
 }");
         }
 
-        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestMissingNullableSimplificationInsideCref5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2882,8 +2882,8 @@ class A
 }");
         }
 
-        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [WorkItem(40664, "https://github.com/dotnet/roslyn/issues/40664")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40664")]
         public async Task TestNullableInsideCref_NotAllowedAtTopLevel()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2896,8 +2896,8 @@ class A
 }");
         }
 
-        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [WorkItem(40664, "https://github.com/dotnet/roslyn/issues/40664")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40664")]
         public async Task TestNullableInsideCref_TopLevel2()
         {
             await TestInRegularAndScript1Async(
@@ -2917,7 +2917,7 @@ class A
 }");
         }
 
-        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestNullableInsideCref_AllowedIfReferencingActualType_AsTypeArgument()
         {
             // Both the 'original' and 'fixed' code here are incorrect as doc comments do not allow
@@ -2939,7 +2939,7 @@ class C<T>
 }");
         }
 
-        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestNullableInsideCref_AllowedIfReferencingActualType_InParameterList()
         {
             await TestInRegularAndScriptAsync(
@@ -2961,7 +2961,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestMissingNullableSimplificationInsideCref8()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2976,7 +2976,7 @@ class A
 }");
         }
 
-        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestNullableSimplificationInsideCref_Indirect()
         {
             await TestInRegularAndScriptAsync(
@@ -3000,7 +3000,7 @@ struct A
 }");
         }
 
-        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestNullableSimplificationInsideCref_Direct()
         {
             await TestInRegularAndScriptAsync(
@@ -3024,7 +3024,7 @@ struct A
 }");
         }
 
-        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestNullableSimplificationInsideCref2()
         {
             await TestInRegularAndScriptAsync(
@@ -3052,7 +3052,7 @@ class A
 }");
         }
 
-        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestNullableSimplificationInsideCref3()
         {
             await TestInRegularAndScriptAsync(
@@ -3080,7 +3080,7 @@ class A
 }");
         }
 
-        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestNullableSimplificationInsideCref4()
         {
             await TestInRegularAndScriptAsync(
@@ -3195,7 +3195,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(40632, "https://github.com/dotnet/roslyn/issues/40632")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40632")]
         public async Task TestColorColorCase3()
         {
             await TestInRegularAndScriptAsync(
@@ -3235,7 +3235,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(40632, "https://github.com/dotnet/roslyn/issues/40632")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40632")]
         public async Task TestColorColorCase4()
         {
             await TestInRegularAndScriptAsync(
@@ -3277,7 +3277,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(40632, "https://github.com/dotnet/roslyn/issues/40632")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40632")]
         public async Task TestColorColorCase5()
         {
             await TestMissingAsync(
@@ -3385,7 +3385,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
         public async Task TestSimplifyStaticMemberAccess()
         {
             var source =
@@ -3424,7 +3424,7 @@ static class M
 }");
         }
 
-        [Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
         public async Task TestSimplifyNestedType()
         {
             var source =
@@ -3469,7 +3469,7 @@ class M
 }");
         }
 
-        [Fact, WorkItem(568043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568043")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568043")]
         public async Task DoNotSimplifyNamesWhenThereAreParseErrors()
         {
             var markup =
@@ -3490,7 +3490,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(markup);
         }
 
-        [Fact, WorkItem(566749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566749")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566749")]
         public async Task TestMethodGroups1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3505,7 +3505,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(566749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566749")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566749")]
         public async Task TestMethodGroups2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3520,7 +3520,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(554010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554010")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554010")]
         public async Task TestMethodGroups3()
         {
             await TestInRegularAndScriptAsync(
@@ -3544,7 +3544,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")]
         public async Task FixAllOccurrences1()
         {
             await TestInRegularAndScriptAsync(
@@ -3600,7 +3600,7 @@ namespace C
 }");
         }
 
-        [Fact, WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")]
         public async Task DoNotUseAlias1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3646,7 +3646,7 @@ namespace NoAlias
 }");
         }
 
-        [Fact, WorkItem(577169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577169")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577169")]
         public async Task SuitablyReplaceNullables1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3661,7 +3661,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(577169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577169")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577169")]
         public async Task SuitablyReplaceNullables2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3676,7 +3676,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(608190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608190")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608190")]
         public async Task Bugfix_608190()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3701,7 +3701,7 @@ struct S
 }");
         }
 
-        [Fact, WorkItem(608190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608190")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608190")]
         public async Task Bugfix_608190_1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3726,7 +3726,7 @@ struct S
 }");
         }
 
-        [Fact, WorkItem(608932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608932")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608932")]
         public async Task Bugfix_608932()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3754,7 +3754,7 @@ namespace X
 }");
         }
 
-        [Fact, WorkItem(635933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635933")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635933")]
         public async Task Bugfix_635933()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3790,7 +3790,7 @@ class C<T> : B
 }");
         }
 
-        [Fact, WorkItem(547246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547246")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547246")]
         public async Task CodeIssueAtRightSpan()
         {
             await TestSpansAsync(@"
@@ -3805,7 +3805,7 @@ class Program
 ");
         }
 
-        [Fact, WorkItem(579172, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579172")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579172")]
         public async Task Bugfix_579172()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3817,7 +3817,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(633182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633182")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633182")]
         public async Task Bugfix_633182()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3830,7 +3830,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(627102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627102")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627102")]
         public async Task Bugfix_627102()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3862,7 +3862,7 @@ class C<T> : B
 }");
         }
 
-        [Fact, WorkItem(629572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629572")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629572")]
         public async Task DoNotIncludeAliasNameIfLastTargetNameIsTheSame_1()
         {
             await TestSpansAsync(@"
@@ -3899,7 +3899,7 @@ class Program
 ");
         }
 
-        [Fact, WorkItem(629572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629572")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629572")]
         public async Task DoNotIncludeAliasNameIfLastTargetNameIsTheSame_2()
         {
             await TestSpansAsync(@"
@@ -3936,7 +3936,7 @@ class Program
 ");
         }
 
-        [Fact, WorkItem(736377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736377")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736377")]
         public async Task DoNotSimplifyTypeNameBrokenCode()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3955,7 +3955,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(813385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813385")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813385")]
         public async Task DoNotSimplifyAliases()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3967,7 +3967,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(825541, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825541")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825541")]
         public async Task ShowOnlyRelevantSpanForReductionOfGenericName()
         {
             await TestSpansAsync(@"
@@ -3991,7 +3991,7 @@ namespace A
 }");
         }
 
-        [Fact, WorkItem(878773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/878773")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/878773")]
         public async Task DoNotSimplifyAttributeNameWithJustAttribute()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4016,7 +4016,7 @@ class Attribute : System.Attribute
 }", new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error)));
         }
 
-        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInLocalDeclarationDefaultValue1()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -4038,7 +4038,7 @@ class Attribute : System.Attribute
 }");
         }
 
-        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInLocalDeclarationDefaultValue2()
         {
             await TestInRegularAndScriptAsync(
@@ -4059,7 +4059,7 @@ class C
 }", options: PreferIntrinsicTypeEverywhere);
         }
 
-        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInsideCref_Default_1()
         {
             await TestInRegularAndScriptAsync(
@@ -4082,7 +4082,7 @@ class C
 }", options: PreferIntrinsicTypeInMemberAccess);
         }
 
-        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInsideCref_Default_2()
         {
             await TestInRegularAndScriptAsync(
@@ -4103,7 +4103,7 @@ class C
 }", options: PreferIntrinsicTypeEverywhere);
         }
 
-        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInsideCref_Default_3()
         {
             await TestInRegularAndScriptAsync(
@@ -4126,8 +4126,8 @@ class C
 }", options: PreferIntrinsicTypeEverywhere);
         }
 
-        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-        [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4142,8 +4142,8 @@ class C
 }", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
-        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-        [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_2()
         {
             await TestInRegularAndScriptAsync(
@@ -4167,8 +4167,8 @@ class C
 }", options: PreferIntrinsicTypeInMemberAccess);
         }
 
-        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-        [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4183,7 +4183,7 @@ class C
 }", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
-        [Fact, WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_4()
         {
             await TestInRegularAndScriptAsync(
@@ -4208,7 +4208,7 @@ class C
 options: PreferIntrinsicTypeInMemberAccess);
         }
 
-        [Fact, WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4221,7 +4221,7 @@ options: PreferIntrinsicTypeInMemberAccess);
 }", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
-        [Fact, WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_6_PreferMemberAccess()
         {
             await TestInRegularAndScriptAsync(
@@ -4242,7 +4242,7 @@ options: PreferIntrinsicTypeInMemberAccess);
 options: PreferIntrinsicTypeInMemberAccess);
         }
 
-        [Fact, WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_6_PreferDeclaration()
         {
             await TestMissingAsync(
@@ -4255,7 +4255,7 @@ options: PreferIntrinsicTypeInMemberAccess);
 }", new TestParameters(options: PreferIntrinsicTypeInDeclaration));
         }
 
-        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4270,7 +4270,7 @@ options: PreferIntrinsicTypeInMemberAccess);
 }", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error)));
         }
 
-        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4285,7 +4285,7 @@ options: PreferIntrinsicTypeInMemberAccess);
 }", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error)));
         }
 
-        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4300,7 +4300,7 @@ options: PreferIntrinsicTypeInMemberAccess);
 }", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error)));
         }
 
-        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInMemberAccess_Default_1()
         {
             await TestInRegularAndScriptAsync(
@@ -4320,7 +4320,7 @@ options: PreferIntrinsicTypeInMemberAccess);
 }", options: PreferIntrinsicTypeInMemberAccess);
         }
 
-        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInMemberAccess_Default_2()
         {
             await TestInRegularAndScriptAsync(
@@ -4344,7 +4344,7 @@ class C
 }", options: PreferIntrinsicTypeInMemberAccess);
         }
 
-        [Fact, WorkItem(956667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956667")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956667")]
         public async Task TestIntrinsicTypesInMemberAccess_Default_3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4364,7 +4364,7 @@ class C2
 }");
         }
 
-        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInMemberAccess_NonDefault_1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4379,7 +4379,7 @@ class C
 }", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
-        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInMemberAccess_NonDefault_2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4392,7 +4392,7 @@ class C
 }", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
-        [Fact, WorkItem(965208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")]
         public async Task TestSimplifyDiagnosticId()
         {
             await TestInRegularAndScriptAsync(
@@ -4440,7 +4440,7 @@ class C
 }", parameters: new TestParameters(options: PreferIntrinsicTypeEverywhere));
         }
 
-        [Fact, WorkItem(1019276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019276")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019276")]
         public async Task TestSimplifyTypeNameDoesNotAddUnnecessaryParens()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -4470,7 +4470,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(1068445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068445")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068445")]
         public async Task TestSimplifyTypeNameInPropertyLambda()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -4490,7 +4490,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(1068445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068445")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068445")]
         public async Task TestSimplifyTypeNameInMethodLambda()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -4504,7 +4504,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(1068445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068445")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068445")]
         public async Task TestSimplifyTypeNameInIndexerLambda()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -4518,7 +4518,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(388744, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=388744")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=388744")]
         public async Task SimplifyTypeNameWithOutDiscard()
         {
             await TestAsync(
@@ -4547,7 +4547,7 @@ class Program
                 parseOptions: CSharpParseOptions.Default);
         }
 
-        [Fact, WorkItem(388744, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=388744")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=388744")]
         public async Task SimplifyTypeNameWithOutDiscard_FeatureDisabled()
         {
             await TestAsync(
@@ -4576,7 +4576,7 @@ class Program
                 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
 
-        [Fact, WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15996")]
         public async Task TestMemberOfBuiltInType1()
         {
             await TestAsync(
@@ -4600,7 +4600,7 @@ class C
                 options: PreferIntrinsicTypeInDeclaration);
         }
 
-        [Fact, WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15996")]
         public async Task TestMemberOfBuiltInType2()
         {
             await TestAsync(
@@ -4624,7 +4624,7 @@ class C
                 options: PreferIntrinsicTypeInMemberAccess);
         }
 
-        [Fact, WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15996")]
         public async Task TestMemberOfBuiltInType3()
         {
             await TestAsync(
@@ -4648,7 +4648,7 @@ class C
                 options: PreferIntrinsicTypeInMemberAccess);
         }
 
-        [Fact, WorkItem(26923, "https://github.com/dotnet/roslyn/issues/26923")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26923")]
         public async Task NoSuggestionOnForeachCollectionExpression()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4667,7 +4667,7 @@ class C
 }", new TestParameters(options: PreferImplicitTypeEverywhere));
         }
 
-        [Fact, WorkItem(26923, "https://github.com/dotnet/roslyn/issues/26923")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26923")]
         public async Task NoSuggestionOnForeachType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4686,7 +4686,7 @@ class C
 }", new TestParameters(options: PreferImplicitTypeEverywhere));
         }
 
-        [Fact, WorkItem(31849, "https://github.com/dotnet/roslyn/issues/31849")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31849")]
         public async Task NoSuggestionOnNestedNullabilityRequired()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4709,7 +4709,7 @@ class C
         [InlineData(3)]
         [InlineData(4)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        [WorkItem(20377, "https://github.com/dotnet/roslyn/issues/20377")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20377")]
         public async Task TestWarningLevel(int warningLevel)
         {
             await TestInRegularAndScriptAsync(
@@ -4786,7 +4786,7 @@ namespace N
 }");
         }
 
-        [Fact, WorkItem(40639, "https://github.com/dotnet/roslyn/issues/40639")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40639")]
         public async Task TestCrefIdAtTopLevel()
         {
             await TestDiagnosticInfoAsync(
@@ -4798,7 +4798,7 @@ class Base
 }", IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
-        [Fact, WorkItem(40639, "https://github.com/dotnet/roslyn/issues/40639")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40639")]
         public async Task TestCrefIdAtNestedLevel()
         {
             await TestDiagnosticInfoAsync(
@@ -4872,7 +4872,7 @@ namespace N
 }");
         }
 
-        [Fact, WorkItem(27819, "https://github.com/dotnet/roslyn/issues/27819")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27819")]
         public async Task DoNotSimplifyToVar_EvenIfVarIsPreferred()
         {
             await TestInRegularAndScriptAsync(
@@ -4894,7 +4894,7 @@ class C
 }", options: PreferImplicitTypeEverywhere);
         }
 
-        [Fact, WorkItem(27819, "https://github.com/dotnet/roslyn/issues/27819")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27819")]
         public async Task DoNotSimplifyToVar_EvenIfVarIsPreferred_2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4908,7 +4908,7 @@ class C
 }", new TestParameters(options: PreferImplicitTypeEverywhere));
         }
 
-        [Fact, WorkItem(40647, "https://github.com/dotnet/roslyn/issues/40647")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40647")]
         public async Task SimplifyMemberAccessOverPredefinedType()
         {
             await TestInRegularAndScript1Async(
@@ -4928,7 +4928,7 @@ class Base
 ");
         }
 
-        [Fact, WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40649")]
         public async Task SimplifyAliasToGeneric1()
         {
             await TestInRegularAndScript1Async(
@@ -4950,7 +4950,7 @@ class Base
 ");
         }
 
-        [Fact, WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40649")]
         public async Task SimplifyAliasToGeneric2()
         {
             await TestInRegularAndScript1Async(
@@ -4972,7 +4972,7 @@ class Base
 ");
         }
 
-        [Fact, WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40649")]
         public async Task SimplifyAliasToGeneric3()
         {
             await TestInRegularAndScript1Async(
@@ -4994,7 +4994,7 @@ class Base
 ");
         }
 
-        [Fact, WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40649")]
         public async Task DoNotSimplifyIncorrectInstantiation()
         {
             await TestMissingAsync(
@@ -5008,7 +5008,7 @@ class Base
 ");
         }
 
-        [Fact, WorkItem(40663, "https://github.com/dotnet/roslyn/issues/40663")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40663")]
         public async Task SimplifyInTypeOf()
         {
             await TestInRegularAndScriptAsync(
@@ -5034,7 +5034,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(40876, "https://github.com/dotnet/roslyn/issues/40876")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40876")]
         public async Task SimplifyPredefinedTypeInUsingDirective1()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -5655,8 +5655,8 @@ namespace Microsoft
 }");
         }
 
-        [Fact, WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
-        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         public async Task TestAllowSimplificationThatWouldNotCauseConflict1()
         {
             await TestInRegularAndScriptAsync(
@@ -5702,7 +5702,7 @@ namespace Microsoft
 }");
         }
 
-        [Fact, WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         public async Task TestAllowSimplificationThatWouldNotCauseConflict2()
         {
             await TestInRegularAndScriptAsync(
@@ -5748,7 +5748,7 @@ namespace Microsoft
 }");
         }
 
-        [Fact, WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         public async Task TestPreventSimplificationThatWouldCauseConflict1()
         {
             await TestInRegularAndScript1Async(
@@ -5790,7 +5790,7 @@ namespace Microsoft
 }");
         }
 
-        [Fact, WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         public async Task TestPreventSimplificationThatWouldCauseConflict2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -5973,7 +5973,7 @@ namespace N
 }");
         }
 
-        [Fact, WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
         public async Task SimplifyCrefAliasPredefinedType_OnClass()
         {
             await TestInRegularAndScriptAsync(
@@ -6065,7 +6065,7 @@ static class M
 }");
         }
 
-        [Fact, WorkItem(22493, "https://github.com/dotnet/roslyn/issues/22493")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22493")]
         public async Task TestSimplifyCallWithDynamicArg()
         {
             await TestInRegularAndScriptAsync(
@@ -6093,7 +6093,7 @@ class P
 }");
         }
 
-        [Fact, WorkItem(22493, "https://github.com/dotnet/roslyn/issues/22493")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22493")]
         public async Task TestDoSimplifyCallWithDynamicArgWhenCallingThroughDerivedClass()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -6134,7 +6134,7 @@ class Base
 }", IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
-        [Fact, WorkItem(40972, "https://github.com/dotnet/roslyn/issues/40972")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40972")]
         public async Task TestNameofReportsSimplifyMemberAccessForMemberGroup1()
         {
             await TestInRegularAndScript1Async(
@@ -6162,7 +6162,7 @@ class Base
                 """);
         }
 
-        [Fact, WorkItem(40972, "https://github.com/dotnet/roslyn/issues/40972")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40972")]
         public async Task TestNameofReportsSimplifyMemberAccessForMemberGroup2()
         {
             await TestInRegularAndScript1Async(
@@ -6190,7 +6190,7 @@ class Base
                 """);
         }
 
-        [Fact, WorkItem(40972, "https://github.com/dotnet/roslyn/issues/40972")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40972")]
         public async Task TestNameofReportsSimplifyMemberAccessForMemberGroup3()
         {
             await TestInRegularAndScript1Async(
@@ -6222,7 +6222,7 @@ class Base
                 """);
         }
 
-        [Fact, WorkItem(40972, "https://github.com/dotnet/roslyn/issues/40972")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40972")]
         public async Task TestNameofReportsSimplifyMemberAccessForMemberGroup4()
         {
             await TestInRegularAndScript1Async(
@@ -6254,7 +6254,7 @@ class Base
                 """);
         }
 
-        [Fact, WorkItem(11380, "https://github.com/dotnet/roslyn/issues/11380")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11380")]
         public async Task TestNotOnIllegalInstanceCall()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -6268,7 +6268,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(57767, "https://github.com/dotnet/roslyn/issues/57767")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57767")]
         public async Task TestInvocationOffOfFunctionPointerInvocationResult1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -6292,7 +6292,7 @@ public ref struct A
 }");
         }
 
-        [Fact, WorkItem(57767, "https://github.com/dotnet/roslyn/issues/57767")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57767")]
         public async Task TestInvocationOffOfFunctionPointerInvocationResult2()
         {
             await TestMissingInRegularAndScriptAsync(

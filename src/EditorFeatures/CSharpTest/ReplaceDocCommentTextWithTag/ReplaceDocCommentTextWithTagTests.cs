@@ -413,8 +413,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
-        [WorkItem(31208, "https://github.com/dotnet/roslyn/issues/31208")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22278")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/31208")]
         public async Task TestApplicableKeyword()
         {
             await TestInRegularAndScript1Async(
@@ -430,7 +430,7 @@ class C<TKey>
 }");
         }
 
-        [Fact, WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22278")]
         public async Task TestInXMLAttribute()
         {
             await TestMissingAsync(
@@ -442,7 +442,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22278")]
         public async Task TestInXMLAttribute2()
         {
             await TestMissingAsync(
@@ -454,7 +454,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38370")]
         public async Task TestBaseKeyword()
         {
             await TestInRegularAndScriptAsync(
@@ -471,7 +471,7 @@ class C<TKey>
 }");
         }
 
-        [Fact, WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38370")]
         public async Task TestThisKeyword()
         {
             await TestInRegularAndScriptAsync(
@@ -488,7 +488,7 @@ class C<TKey>
 }");
         }
 
-        [Fact, WorkItem(31208, "https://github.com/dotnet/roslyn/issues/31208")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31208")]
         public async Task TestArbitraryKeyword()
         {
             await TestInRegularAndScriptAsync(
@@ -505,7 +505,7 @@ class C<TKey>
 }");
         }
 
-        [Fact, WorkItem(31208, "https://github.com/dotnet/roslyn/issues/31208")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31208")]
         public async Task TestContextualKeyword()
         {
             await TestInRegularAndScriptAsync(

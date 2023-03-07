@@ -421,7 +421,7 @@ aeu";
                 Identifier("aeu"));
         }
 
-        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task PP_If8(bool script, TestHost testHost)
         {
@@ -453,7 +453,7 @@ aeu";
                 script ? Field("aeu") : Identifier("aeu"));
         }
 
-        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task PP_If9(bool script, TestHost testHost)
         {
@@ -1141,7 +1141,7 @@ aeu";
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(30783, "https://github.com/dotnet/roslyn/issues/30783")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30783")]
         public async Task PP_PragmaWarningDisableAllWithComment(TestHost testHost)
         {
             var code = @"#pragma warning disable //Goo";
@@ -1188,7 +1188,7 @@ aeu";
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(30783, "https://github.com/dotnet/roslyn/issues/30783")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30783")]
         public async Task PP_PragmaWarningRestoreAllWithComment(TestHost testHost)
         {
             var code = @"#pragma warning restore //Goo";

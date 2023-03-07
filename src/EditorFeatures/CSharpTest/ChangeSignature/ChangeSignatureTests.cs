@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
     [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [Fact, WorkItem(8333, "https://github.com/dotnet/roslyn/issues/8333")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8333")]
         public async Task TestNotInExpressionBody()
         {
             var markup = @"
@@ -27,7 +27,7 @@ class Ext
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
         }
 
-        [Fact, WorkItem(1905, "https://github.com/dotnet/roslyn/issues/1905")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1905")]
         public async Task TestAfterSemicolonForInvocationInExpressionStatement_ViaCommand()
         {
             var markup = @"
@@ -139,7 +139,7 @@ class Program
             await TestMissingAsync(markup);
         }
 
-        [Fact, WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")]
         public async Task TestNotInLeadingWhitespace()
         {
             var markup = @"
@@ -154,7 +154,7 @@ class Ext
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
         }
 
-        [Fact, WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")]
         public async Task TestNotInLeadingTrivia()
         {
             var markup = @"
@@ -169,7 +169,7 @@ class Ext
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
         }
 
-        [Fact, WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")]
         public async Task TestNotInLeadingTrivia2()
         {
             var markup = @"
@@ -184,7 +184,7 @@ class Ext
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
         }
 
-        [Fact, WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")]
         public async Task TestNotInLeadingDocComment()
         {
             var markup = @"
@@ -199,7 +199,7 @@ class Ext
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
         }
 
-        [Fact, WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")]
         public async Task TestNotInLeadingDocComment2()
         {
             var markup = @"
@@ -214,7 +214,7 @@ class Ext
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
         }
 
-        [Fact, WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")]
         public async Task TestNotInLeadingAttributes1()
         {
             var markup = @"
@@ -229,7 +229,7 @@ class Ext
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
         }
 
-        [Fact, WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")]
         public async Task TestNotInLeadingAttributes2()
         {
             var markup = @"
@@ -244,7 +244,7 @@ class Ext
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
         }
 
-        [Fact, WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")]
         public async Task TestNotInLeadingAttributes3()
         {
             var markup = @"
@@ -259,7 +259,7 @@ class Ext
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
         }
 
-        [Fact, WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")]
         public async Task TestNotInConstraints()
         {
             var markup = @"

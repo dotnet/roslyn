@@ -841,7 +841,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, WorkItem(50104, "https://github.com/dotnet/roslyn/issues/50104")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50104")]
         public async Task TestInImplicitObjectCreation()
         {
             await TestInRegularAndScript1Async(
@@ -900,7 +900,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")]
         public async Task TestMissingStartToken1()
         {
             await TestMissingAsync(
@@ -911,7 +911,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")]
         public async Task TestMissingStartToken2()
         {
             await TestMissingAsync(
@@ -922,7 +922,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")]
         public async Task TestMissingEndToken1()
         {
             await TestMissingAsync(
@@ -933,7 +933,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")]
         public async Task TestMissingEndToken2()
         {
             await TestMissingAsync(

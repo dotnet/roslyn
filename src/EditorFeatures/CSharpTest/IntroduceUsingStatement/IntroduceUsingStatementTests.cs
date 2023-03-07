@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
 }");
         }
 
-        [Fact, WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35237")]
         public async Task ExpandsToIncludeSurroundedVariableDeclarations()
         {
             await TestAsync(
@@ -586,7 +586,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35237")]
         public async Task ExpandsToIncludeSurroundedOutVariableDeclarations()
         {
             await TestAsync(
@@ -629,7 +629,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35237")]
         public async Task ExpandsToIncludeSurroundedPatternVariableDeclarations()
         {
             await TestAsync(
@@ -672,7 +672,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35237")]
         public async Task ExpandsToIncludeSurroundedMultiVariableDeclarations()
         {
             await TestAsync(
@@ -707,7 +707,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
         public async Task ConsumeFollowingTryStatement1()
         {
             await TestAsync(
@@ -748,7 +748,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
         public async Task ConsumeFollowingTryStatement2()
         {
             await TestAsync(
@@ -804,7 +804,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
         public async Task ConsumeFollowingTryStatement3()
         {
             await TestAsync(
@@ -852,7 +852,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
         public async Task ConsumeFollowingTryStatement4()
         {
             await TestAsync(
@@ -902,7 +902,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
         public async Task ConsumeFollowingTryStatement5()
         {
             await TestAsync(
@@ -952,7 +952,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
         public async Task ConsumeFollowingTryStatement6()
         {
             await TestAsync(
@@ -1002,7 +1002,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
         public async Task ConsumeFollowingTryStatement7()
         {
             await TestAsync(
@@ -1052,7 +1052,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
         public async Task ConsumeFollowingTryStatement8()
         {
             await TestAsync(
@@ -1102,7 +1102,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(33699, "https://github.com/dotnet/roslyn/issues/33699")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
         public async Task StatementsAreSurroundedByMinimalScope1_CSharp8()
         {
             await TestAsync(
@@ -1133,7 +1133,7 @@ class C
 }", LanguageVersion.CSharp8);
         }
 
-        [Fact, WorkItem(33699, "https://github.com/dotnet/roslyn/issues/33699")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
         public async Task StatementsAreSurroundedByMinimalScope2_CSharp8()
         {
             await TestAsync(
@@ -1159,7 +1159,7 @@ class C
 }", LanguageVersion.CSharp8);
         }
 
-        [Fact, WorkItem(33699, "https://github.com/dotnet/roslyn/issues/33699")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
         public async Task StatementsAreSurroundedByMinimalScope3_CSharp8()
         {
             await TestAsync(
@@ -1187,7 +1187,7 @@ class C
 }", LanguageVersion.CSharp8);
         }
 
-        [Fact, WorkItem(33699, "https://github.com/dotnet/roslyn/issues/33699")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
         public async Task StatementsAreSurroundedByMinimalScope4_CSharp8()
         {
             await TestAsync(
@@ -1227,7 +1227,7 @@ class C
 }", LanguageVersion.CSharp8);
         }
 
-        [Fact, WorkItem(33699, "https://github.com/dotnet/roslyn/issues/33699")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
         public async Task StatementsAreSurroundedByMinimalScope5_CSharp8()
         {
             await TestAsync(

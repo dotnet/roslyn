@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 parseOptions: parseOptions);
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task FieldInBaseClassIsNotSuggested()
         {
             await TestExactActionSetOfferedAsync(
@@ -73,7 +73,7 @@ class [|Derived|] : Base
 }", new[] { FeaturesResources.Implement_abstract_class });
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task FieldInMiddleClassIsNotSuggested()
         {
             await TestExactActionSetOfferedAsync(
@@ -92,7 +92,7 @@ class [|Derived|] : Base
 }", new[] { FeaturesResources.Implement_abstract_class });
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task FieldOfSameDerivedTypeIsSuggested()
         {
             await TestInRegularAndScriptAsync(
@@ -121,7 +121,7 @@ class Derived : Base
 }", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task SkipInaccessibleMember()
         {
             await TestInRegularAndScriptAsync(
@@ -152,7 +152,7 @@ class {|Conflict:Derived|} : Base
 }", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task TestNotOfferedWhenOnlyUnimplementedMemberIsInaccessible()
         {
             await TestExactActionSetOfferedAsync(
@@ -173,7 +173,7 @@ class [|Derived|] : Base
 }", new string[] { FeaturesResources.Implement_abstract_class });
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task FieldOfMoreSpecificTypeIsSuggested()
         {
             await TestInRegularAndScriptAsync(
@@ -210,7 +210,7 @@ class DerivedAgain : Derived
 }", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task FieldOfConstrainedGenericTypeIsSuggested()
         {
             await TestInRegularAndScriptAsync(
@@ -239,7 +239,7 @@ class Derived<T> : Base where T : Base
 }", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task DistinguishableOptionsAreShownForExplicitPropertyWithSameName()
         {
             await TestExactActionSetOfferedAsync(
@@ -266,7 +266,7 @@ class [|Derived|] : Base, IInterface
 });
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task NotOfferedForDynamicFields()
         {
             await TestExactActionSetOfferedAsync(
@@ -281,7 +281,7 @@ class [|Derived|] : Base
 }", new[] { FeaturesResources.Implement_abstract_class });
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task OfferedForStaticFields()
         {
             await TestInRegularAndScriptAsync(
@@ -310,7 +310,7 @@ class Derived : Base
 }", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task PropertyIsDelegated()
         {
             await TestInRegularAndScriptAsync(
@@ -336,7 +336,7 @@ class Derived : Base
 }", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task PropertyIsDelegated_AllOptionsOff()
         {
             await TestAllOptionsOffAsync(
@@ -373,7 +373,7 @@ class Derived : Base
 }");
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task PropertyWithSingleAccessorIsDelegated()
         {
             await TestInRegularAndScriptAsync(
@@ -403,7 +403,7 @@ class Derived : Base
 }", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task PropertyWithSingleAccessorIsDelegated_AllOptionsOff()
         {
             await TestAllOptionsOffAsync(
@@ -445,7 +445,7 @@ class Derived : Base
 }");
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task EventIsDelegated()
         {
             await TestInRegularAndScriptAsync(
@@ -486,7 +486,7 @@ class Derived : Base
 }", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task OnlyOverridableMethodsAreOverridden()
         {
             await TestInRegularAndScriptAsync(
@@ -519,7 +519,7 @@ class Derived : Base
 }", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task ProtectedMethodsCannotBeDelegatedThroughBaseType()
         {
             await TestExactActionSetOfferedAsync(
@@ -534,7 +534,7 @@ class [|Derived|] : Base
 }", new[] { FeaturesResources.Implement_abstract_class });
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task ProtectedMethodsCanBeDelegatedThroughSameType()
         {
             await TestInRegularAndScriptAsync(
@@ -563,7 +563,7 @@ class Derived : Base
 }", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task ProtectedInternalMethodsAreOverridden()
         {
             await TestInRegularAndScriptAsync(
@@ -592,7 +592,7 @@ class Derived : Base
 }", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task InternalMethodsAreOverridden()
         {
             await TestInRegularAndScriptAsync(
@@ -621,7 +621,7 @@ class Derived : Base
 }", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task PrivateProtectedMethodsCannotBeDelegatedThroughBaseType()
         {
             await TestExactActionSetOfferedAsync(
@@ -636,7 +636,7 @@ class [|Derived|] : Base
 }", new[] { FeaturesResources.Implement_abstract_class });
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task PrivateProtectedMethodsCanBeDelegatedThroughSameType()
         {
             await TestInRegularAndScriptAsync(
@@ -665,7 +665,7 @@ class Derived : Base
 }", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
-        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task AccessorsWithDifferingVisibilityAreGeneratedCorrectly()
         {
             await TestInRegularAndScriptAsync(

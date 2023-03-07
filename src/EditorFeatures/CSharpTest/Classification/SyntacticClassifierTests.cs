@@ -275,7 +275,7 @@ class yield
         /// </summary>
         [Theory]
         [CombinatorialData]
-        [WorkItem(536313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536313")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536313")]
         public async Task PartialAsLocalVariableType(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -472,7 +472,7 @@ on a new line """),
                 Local("stuff"));
         }
 
-        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task VerbatimStringLiterals6(bool script, TestHost testHost)
         {
@@ -691,7 +691,7 @@ on a new line """),
                 String(@"""bar"""));
         }
 
-        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task VarContextualKeywordAtNamespaceLevel(bool script, TestHost testHost)
         {
@@ -710,7 +710,7 @@ on a new line """),
                 Punctuation.Semicolon);
         }
 
-        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task LinqKeywordsAtNamespaceLevel(bool script, TestHost testHost)
         {
@@ -1581,7 +1581,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(531155, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531155")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531155")]
         [CombinatorialData]
         public async Task XmlDocComment_ExteriorTriviaInsideCRef(TestHost testHost)
         {
@@ -1836,7 +1836,7 @@ class Bar { }";
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(31410, "https://github.com/dotnet/roslyn/pull/31410")]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/31410")]
         public async Task XmlDocComment_MalformedXmlDocComment(TestHost testHost)
         {
             var code = @"
@@ -1963,7 +1963,7 @@ public class Program
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(536321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536321")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536321")]
         public async Task KeywordTypeParameters(TestHost testHost)
         {
             var code = @"class C<int> { }";
@@ -1980,7 +1980,7 @@ public class Program
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(536853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536853")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536853")]
         public async Task TypeParametersWithAttribute(TestHost testHost)
         {
             var code = @"class C<[Attr] T> { }";
@@ -3900,7 +3900,7 @@ public class Goo<T>
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(538680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538680")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538680")]
         [CombinatorialData]
         public async Task TestValueInLabel(TestHost testHost)
         {
@@ -3933,7 +3933,7 @@ public class Goo<T>
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(541150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
         [CombinatorialData]
         public async Task TestGenericVar(TestHost testHost)
         {
@@ -3983,7 +3983,7 @@ class var<T>
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
         [CombinatorialData]
         public async Task TestInaccessibleVar(TestHost testHost)
         {
@@ -4038,7 +4038,7 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(541613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541613")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541613")]
         [CombinatorialData]
         public async Task TestEscapedVar(TestHost testHost)
         {
@@ -4074,7 +4074,7 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(542432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542432")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542432")]
         [CombinatorialData]
         public async Task TestVar(TestHost testHost)
         {
@@ -4150,7 +4150,7 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(543123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
         [CombinatorialData]
         public async Task TestVar2(TestHost testHost)
         {
@@ -5073,7 +5073,7 @@ int (foo, bar) = (1, 2);",
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18956")]
         public async Task TestListPattern(TestHost testHost)
         {
             await TestInMethodAsync(@"
@@ -5119,7 +5119,7 @@ switch (new int[0])
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18956")]
         public async Task TestListPattern2(TestHost testHost)
         {
             await TestInMethodAsync(@"
@@ -5148,7 +5148,7 @@ _ = x switch
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18956")]
         public async Task TestVarPattern(TestHost testHost)
         {
             await TestInMethodAsync(@"
@@ -5309,7 +5309,7 @@ int F = int.TryParse(""1"", out int x) ? x : -1;
                 Punctuation.Semicolon);
         }
 
-        [Theory, WorkItem(33039, "https://github.com/dotnet/roslyn/issues/33039")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33039")]
         [CombinatorialData]
         public async Task ForEachVariableStatement(TestHost testHost)
         {
@@ -5775,7 +5775,7 @@ class X
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(45807, "https://github.com/dotnet/roslyn/issues/45807")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45807")]
         public async Task FunctionPointer(TestHost testHost)
         {
             var code = @"
@@ -5807,7 +5807,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Fact, WorkItem(48094, "https://github.com/dotnet/roslyn/issues/48094")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48094")]
         public async Task TestXmlAttributeNameSpan1()
         {
             var source = @"/// <param name=""value""></param>";
@@ -5833,7 +5833,7 @@ class C
             }, classifications);
         }
 
-        [Fact, WorkItem(48094, "https://github.com/dotnet/roslyn/issues/48094")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48094")]
         public async Task TestXmlAttributeNameSpan2()
         {
             var source = @"
@@ -5862,7 +5862,7 @@ class C
             }, classifications);
         }
 
-        [Theory, WorkItem(52290, "https://github.com/dotnet/roslyn/issues/52290")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/52290")]
         [CombinatorialData]
         public async Task TestStaticLocalFunction(TestHost testHost)
         {
@@ -5900,7 +5900,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Theory, WorkItem(52290, "https://github.com/dotnet/roslyn/issues/52290")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/52290")]
         [CombinatorialData]
         public async Task TestConstantLocalVariable(TestHost testHost)
         {

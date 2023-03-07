@@ -136,7 +136,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task IntroduceLocal_Inside_Expression()
         {
             await TestInRegularAndScriptAsync(
@@ -427,7 +427,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction1_A()
         {
             await TestInRegularAndScriptAsync(
@@ -457,7 +457,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction1_B()
         {
             await TestInRegularAndScriptAsync(
@@ -487,7 +487,7 @@ class C
 }", index: 1);
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction1_C()
         {
             await TestInRegularAndScriptAsync(
@@ -517,7 +517,7 @@ class C
 }", options: ImplicitTypeEverywhere());
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction2_A()
         {
             await TestInRegularAndScriptAsync(
@@ -547,7 +547,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction2_B()
         {
             await TestInRegularAndScriptAsync(
@@ -577,7 +577,7 @@ class C
 }", index: 1);
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction2_C()
         {
             await TestInRegularAndScriptAsync(
@@ -607,7 +607,7 @@ class C
 }", options: ImplicitTypeEverywhere());
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction3_A()
         {
             await TestInRegularAndScriptAsync(
@@ -641,7 +641,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction3_B()
         {
             await TestInRegularAndScriptAsync(
@@ -675,7 +675,7 @@ class C
 }", index: 1);
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction3_C()
         {
             await TestInRegularAndScriptAsync(
@@ -709,7 +709,7 @@ class C
 }", options: ImplicitTypeEverywhere());
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction4_A()
         {
             await TestInRegularAndScriptAsync(
@@ -739,7 +739,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction4_B()
         {
             await TestInRegularAndScriptAsync(
@@ -769,7 +769,7 @@ class C
 }", index: 1);
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction4_C()
         {
             await TestInRegularAndScriptAsync(
@@ -799,7 +799,7 @@ class C
 }", options: ImplicitTypeEverywhere());
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction5_A()
         {
             await TestInRegularAndScriptAsync(
@@ -829,7 +829,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction5_B()
         {
             await TestInRegularAndScriptAsync(
@@ -859,7 +859,7 @@ class C
 }", index: 1);
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction5_C()
         {
             await TestInRegularAndScriptAsync(
@@ -889,7 +889,7 @@ class C
 }", options: ImplicitTypeEverywhere());
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction_ImplicitTypeForIntrinsics1()
         {
             await TestInRegularAndScriptAsync(
@@ -919,7 +919,7 @@ class C
 }", options: ImplicitTypeForIntrinsics());
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction_ImplicitTypeForIntrinsics2()
         {
             await TestInRegularAndScriptAsync(
@@ -951,7 +951,7 @@ class C
 }", options: ImplicitTypeForIntrinsics());
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction_ImplicitTypeWhenApparent1()
         {
             await TestInRegularAndScriptAsync(
@@ -981,7 +981,7 @@ class C
 }", options: ImplicitTypeForApparent());
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction_ImplicitTypeWhenApparent2()
         {
             await TestInRegularAndScriptAsync(
@@ -1009,7 +1009,7 @@ class C
 }", options: ImplicitTypeForApparent());
         }
 
-        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction_ImplicitTypeWhenApparentAndBuiltIn1()
         {
             await TestInRegularAndScriptAsync(

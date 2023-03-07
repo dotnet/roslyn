@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }", parameters: new TestParameters(options: UseExpressionBody));
         }
 
-        [Fact, WorkItem(25501, "https://github.com/dotnet/roslyn/issues/25501")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25501")]
         public async Task TestOfferedAtStartOfMethod()
         {
             await TestInRegularAndScript1Async(
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
-        [Fact, WorkItem(25501, "https://github.com/dotnet/roslyn/issues/25501")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25501")]
         public async Task TestOfferedBeforeMethodOnSameLine()
         {
             await TestInRegularAndScript1Async(
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
-        [Fact, WorkItem(25501, "https://github.com/dotnet/roslyn/issues/25501")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25501")]
         public async Task TestOfferedBeforeAttributes()
         {
             await TestInRegularAndScript1Async(
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
-        [Fact, WorkItem(25501, "https://github.com/dotnet/roslyn/issues/25501")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25501")]
         public async Task TestNotOfferedBeforeComments()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
-        [Fact, WorkItem(25501, "https://github.com/dotnet/roslyn/issues/25501")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25501")]
         public async Task TestNotOfferedInComments()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
-        [Fact, WorkItem(53532, "https://github.com/dotnet/roslyn/issues/53532")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53532")]
         public async Task TestTriviaOnArrow1()
         {
             await TestInRegularAndScript1Async(

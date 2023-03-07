@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
             => FlattenActions(codeActions);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        [WorkItem(13211, "https://github.com/dotnet/roslyn/issues/13211")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13211")]
         public async Task TestGenerateOffOfIncompleteMember()
         {
             await TestInRegularAndScriptAsync(

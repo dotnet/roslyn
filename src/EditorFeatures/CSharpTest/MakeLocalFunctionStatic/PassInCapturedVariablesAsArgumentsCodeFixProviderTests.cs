@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 }", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [Fact, WorkItem(38734, "https://github.com/dotnet/roslyn/issues/38734")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38734")]
         public async Task TestAvailableIfCapturesThisParameter1()
         {
             await TestInRegularAndScriptAsync(

@@ -533,7 +533,7 @@ class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
         public async Task TestDefaultConstructorGeneration_1()
         {
             await TestRefactoringAsync(
@@ -570,7 +570,7 @@ class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
         public async Task TestDefaultConstructorGeneration_2()
         {
             await TestRefactoringAsync(
@@ -607,7 +607,7 @@ class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(544070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544070")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544070")]
         public async Task TestException1()
         {
             await TestRefactoringAsync(
@@ -851,7 +851,7 @@ class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        [WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")]
+        [WorkItem("https://github.com/dotnet/Roslyn/issues/6541")]
         public async Task TestGenerateFromDerivedClass()
         {
             await TestCodeFixAsync(
@@ -881,7 +881,7 @@ class Derived : Base
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        [WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")]
+        [WorkItem("https://github.com/dotnet/Roslyn/issues/6541")]
         public async Task TestGenerateFromDerivedClass2()
         {
             await TestCodeFixAsync(
@@ -911,7 +911,7 @@ class Derived : Base
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(19953, "https://github.com/dotnet/roslyn/issues/19953")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19953")]
         public async Task TestNotOnEnum()
         {
             await TestRefactoringMissingAsync(
@@ -921,7 +921,7 @@ class Derived : Base
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorFromProtectedConstructor()
         {
             await TestCodeFixAsync(
@@ -951,7 +951,7 @@ abstract class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorFromProtectedConstructor2()
         {
             await TestCodeFixAsync(
@@ -981,7 +981,7 @@ abstract class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(48318, "https://github.com/dotnet/roslyn/issues/48318")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48318")]
         public async Task TestGenerateConstructorFromProtectedConstructorCursorAtTypeOpening()
         {
             await TestRefactoringOnlyAsync(
@@ -1014,7 +1014,7 @@ abstract class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(48318, "https://github.com/dotnet/roslyn/issues/48318")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48318")]
         public async Task TestGenerateConstructorFromProtectedConstructorCursorBetweenTypeMembers()
         {
             await TestRefactoringOnlyAsync(
@@ -1051,8 +1051,8 @@ abstract class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(35208, "https://github.com/dotnet/roslyn/issues/35208")]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35208")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorInAbstractClassFromPublicConstructor()
         {
             await TestCodeFixAsync(
@@ -1082,7 +1082,7 @@ abstract class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorFromPublicConstructor2()
         {
             await TestCodeFixAsync(
@@ -1112,7 +1112,7 @@ abstract class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorFromInternalConstructor()
         {
             await TestCodeFixAsync(
@@ -1142,7 +1142,7 @@ abstract class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorFromInternalConstructor2()
         {
             await TestCodeFixAsync(
@@ -1172,7 +1172,7 @@ abstract class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorFromProtectedInternalConstructor()
         {
             await TestCodeFixAsync(
@@ -1202,7 +1202,7 @@ abstract class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorFromProtectedInternalConstructor2()
         {
             await TestCodeFixAsync(
@@ -1232,7 +1232,7 @@ abstract class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorFromPrivateProtectedConstructor()
         {
             await TestCodeFixAsync(
@@ -1262,7 +1262,7 @@ abstract class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorFromPrivateProtectedConstructor2()
         {
             await TestCodeFixAsync(
@@ -1292,7 +1292,7 @@ abstract class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(40586, "https://github.com/dotnet/roslyn/issues/40586")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40586")]
         public async Task TestGeneratePublicConstructorInSealedClassForProtectedBase()
         {
             await TestRefactoringAsync(
@@ -1322,7 +1322,7 @@ sealed class Program : Base
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(40586, "https://github.com/dotnet/roslyn/issues/40586")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40586")]
         public async Task TestGenerateInternalConstructorInSealedClassForProtectedOrInternalBase()
         {
             await TestRefactoringAsync(
@@ -1352,7 +1352,7 @@ sealed class Program : Base
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(40586, "https://github.com/dotnet/roslyn/issues/40586")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40586")]
         public async Task TestGenerateInternalConstructorInSealedClassForProtectedAndInternalBase()
         {
             await TestRefactoringAsync(
@@ -1411,7 +1411,7 @@ record B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        [WorkItem(58593, "https://github.com/dotnet/roslyn/issues/58593")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58593")]
         public async Task TestStructWithFieldInitializer()
         {
             var source = @"
@@ -1442,7 +1442,7 @@ struct S
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        [WorkItem(58593, "https://github.com/dotnet/roslyn/issues/58593")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58593")]
         public async Task TestMissingInStructWithoutFieldInitializer()
         {
             var source = @"

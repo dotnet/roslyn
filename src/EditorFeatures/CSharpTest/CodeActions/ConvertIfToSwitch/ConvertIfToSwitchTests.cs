@@ -1259,7 +1259,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21109, "https://github.com/dotnet/roslyn/issues/21109")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21109")]
         public async Task TestTrivia1()
         {
             var source =
@@ -1338,7 +1338,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21101, "https://github.com/dotnet/roslyn/issues/21101")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21101")]
         public async Task TestTrivia2()
         {
             var source =
@@ -1375,7 +1375,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd1_CSharp8()
         {
             var source =
@@ -1413,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd1_CSharp9()
         {
             var source =
@@ -1459,7 +1459,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd2_CSharp8()
         {
             var source =
@@ -1497,7 +1497,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd2_CSharp9()
         {
             var source =
@@ -1543,7 +1543,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd3_CSharp8()
         {
             var source =
@@ -1581,7 +1581,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd3_CSharp9()
         {
             var source =
@@ -1627,7 +1627,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd4()
         {
             var source =
@@ -1665,7 +1665,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd4_CSharp9()
         {
             var source =
@@ -1711,7 +1711,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd5()
         {
             var source =
@@ -1748,7 +1748,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd6()
         {
             var source =
@@ -1785,7 +1785,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd7()
         {
             var source =
@@ -1822,7 +1822,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd8()
         {
             var source =
@@ -1859,7 +1859,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd9()
         {
             var source =
@@ -1896,7 +1896,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd10()
         {
             var source =
@@ -1933,7 +1933,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd11()
         {
             var source =
@@ -1970,7 +1970,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd12()
         {
             var source =
@@ -2007,7 +2007,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd13()
         {
             var source =
@@ -2044,7 +2044,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd14()
         {
             var source =
@@ -2081,7 +2081,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd15()
         {
             var source =
@@ -2118,7 +2118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
         public async Task TestCompoundLogicalAnd16()
         {
             var source =
@@ -2155,7 +2155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(37035, "https://github.com/dotnet/roslyn/issues/37035")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37035")]
         public async Task TestComplexExpression_02()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -2188,7 +2188,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 }");
         }
 
-        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestRange_CSharp8()
         {
             var source =
@@ -2215,7 +2215,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestRange_CSharp9()
         {
             var source =
@@ -2256,7 +2256,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestComparison_CSharp8()
         {
             var source =
@@ -2279,7 +2279,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestComparison_CSharp9()
         {
             var source =
@@ -2315,7 +2315,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestComparison_SwitchExpression_CSharp9()
         {
             var source =
@@ -2364,7 +2364,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestComplexIf_CSharp8()
         {
             var source =
@@ -2387,7 +2387,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestComplexIf_CSharp9()
         {
             var source =
@@ -2436,7 +2436,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestComplexIf_Precedence_CSharp9()
         {
             var source =
@@ -2511,7 +2511,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             }.RunAsync();
         }
 
-        [Fact, WorkItem(44278, "https://github.com/dotnet/roslyn/issues/44278")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44278")]
         public async Task TestTopLevelStatement()
         {
             var source = @"
@@ -2564,7 +2564,7 @@ enum ET1
             await test.RunAsync();
         }
 
-        [Fact, WorkItem(46863, "https://github.com/dotnet/roslyn/issues/46863")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46863")]
         public async Task CommentsAtTheEndOfBlocksShouldBePlacedBeforeBreakStatements()
         {
             var source = @"
@@ -2741,7 +2741,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, WorkItem(41131, "https://github.com/dotnet/roslyn/issues/41131")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41131")]
         public async Task MoveTriviaFromElse1()
         {
             var source =
@@ -2799,7 +2799,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, WorkItem(41131, "https://github.com/dotnet/roslyn/issues/41131")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41131")]
         public async Task MoveTriviaFromElse2()
         {
             var source =

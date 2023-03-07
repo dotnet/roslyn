@@ -1396,7 +1396,7 @@ partial class C
             await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
         }
 
-        [Fact, WorkItem(31784, "https://github.com/dotnet/roslyn/issues/31784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31784")]
         public async Task QueryWhichRequiresSelectManyWithIdentityLambda()
         {
             var source = @"
