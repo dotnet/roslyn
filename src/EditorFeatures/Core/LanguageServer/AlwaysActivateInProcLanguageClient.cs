@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
             // If the LSP editor feature flag is enabled advertise support for LSP features here so they are available locally and remote.
-            var isLspEditorEnabled = GlobalOptions.GetOption(LspOptions.LspEditorFeatureFlag);
+            var isLspEditorEnabled = GlobalOptions.GetOption(LspOptionsStorage.LspEditorFeatureFlag);
 
             var serverCapabilities = isLspEditorEnabled
                 ? (VSInternalServerCapabilities)_experimentalCapabilitiesProvider.GetCapabilities(clientCapabilities)
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             // However, when the experimental LSP editor is enabled we want LSP to power NavigateTo, so we set DisableGoToWorkspaceSymbols=false.
             serverCapabilities.DisableGoToWorkspaceSymbols = !isLspEditorEnabled;
 
-            var isLspSemanticTokensEnabled = GlobalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
+            var isLspSemanticTokensEnabled = GlobalOptions.GetOption(LspOptionsStorage.LspSemanticTokensFeatureFlag);
             if (isLspSemanticTokensEnabled)
             {
                 // Using only range handling has shown to be more performant than using a combination of full/edits/range handling,

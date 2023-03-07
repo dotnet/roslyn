@@ -22,6 +22,11 @@
         <target state="translated">Добавьте "this".</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_unsafe_code_in_this_project">
+        <source>Allow unsafe code in this project</source>
+        <target state="new">Allow unsafe code in this project</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Assign_out_parameters">
         <source>Assign 'out' parameters</source>
         <target state="new">Assign 'out' parameters</target>
@@ -46,6 +51,11 @@
         <source>Compare to '{0}'</source>
         <target state="translated">Сравнить с "{0}"</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_positional_record">
+        <source>Convert to positional record</source>
+        <target state="new">Convert to positional record</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_typeof_to_nameof">
         <source>Convert 'typeof' to 'nameof'</source>
@@ -87,6 +97,21 @@
         <target state="new">Make {0} return Task instead of void.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_method_async">
+        <source>Make method async</source>
+        <target state="new">Make method async</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_method_async_remain_void">
+        <source>Make method async (stay void)</source>
+        <target state="new">Make method async (stay void)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_ref_struct">
+        <source>Make 'ref struct'</source>
+        <target state="new">Make 'ref struct'</target>
+        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
         <target state="translated">Передача зафиксированных переменных в качестве аргументов</target>
@@ -112,9 +137,24 @@
         <target state="translated">Удалить пустую строку между скобками</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_in_keyword">
+        <source>Remove 'in' keyword</source>
+        <target state="new">Remove 'in' keyword</target>
+        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Remove_new_modifier">
+        <source>Remove 'new' modifier</source>
+        <target state="new">Remove 'new' modifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unreachable_code">
         <source>Remove unreachable code</source>
         <target state="translated">Удалить недостижимый код</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_function">
+        <source>Remove unused function</source>
+        <target state="new">Remove unused function</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_return_with_yield_return">
@@ -125,6 +165,21 @@
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
         <target state="translated">Распечатать класс "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
+        <source>Upgrade all C# projects to language version '{0}'</source>
+        <target state="new">Upgrade all C# projects to language version '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
+        <source>Upgrade this project to C# language version '{0}'</source>
+        <target state="new">Upgrade this project to C# language version '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_0">
+        <source>Use '{0}'</source>
+        <target state="new">Use '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">

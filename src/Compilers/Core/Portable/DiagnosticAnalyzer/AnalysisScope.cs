@@ -59,6 +59,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public bool IsPartialAnalysis { get; }
 
+        /// <summary>
+        /// True if we are performing semantic analysis for a single source file with a single analyzer in scope,
+        /// which is a <see cref="CompilerDiagnosticAnalyzer"/>.
+        /// </summary>
+        public bool IsSemanticSingleFileAnalysisForCompilerAnalyzer =>
+            IsSingleFileAnalysis && !IsSyntacticSingleFileAnalysis && Analyzers is [CompilerDiagnosticAnalyzer];
+
         public AnalysisScope(Compilation compilation, AnalyzerOptions? analyzerOptions, ImmutableArray<DiagnosticAnalyzer> analyzers, bool hasAllAnalyzers, bool concurrentAnalysis, bool categorizeDiagnostics)
             : this(compilation.SyntaxTrees, analyzerOptions?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty,
                    analyzers, isPartialAnalysis: !hasAllAnalyzers, filterFile: null, filterSpanOpt: null, isSyntacticSingleFileAnalysis: false, concurrentAnalysis: concurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics)
@@ -171,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return ShouldInclude(node.FullSpan);
         }
 
-        private bool ShouldInclude(TextSpan filterSpan)
+        public bool ShouldInclude(TextSpan filterSpan)
         {
             return !FilterSpanOpt.HasValue || FilterSpanOpt.Value.IntersectsWith(filterSpan);
         }

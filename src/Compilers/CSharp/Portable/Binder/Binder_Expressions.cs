@@ -1572,7 +1572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (FallBackOnDiscard(identifier, diagnostics))
                     {
-                        expression = new BoundDiscardExpression(node, type: null);
+                        expression = new BoundDiscardExpression(node, NullableAnnotation.Annotated, isInferred: true, type: null);
                     }
                 }
 
@@ -2911,8 +2911,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AliasSymbol alias;
                         var declType = BindVariableTypeWithAnnotations(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
                         Debug.Assert(isVar != declType.HasType);
+                        var type = declType.Type;
 
-                        return new BoundDiscardExpression(declarationExpression, declType.Type);
+                        return new BoundDiscardExpression(declarationExpression, declType.NullableAnnotation, isInferred: type is null, type);
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     return BindOutVariableDeclarationArgument(declarationExpression, diagnostics);

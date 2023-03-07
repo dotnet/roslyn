@@ -661,8 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             => name.Identifier.ValueText;
 
         private static bool IsExtensionMethod(MethodDeclarationSyntax method)
-            => method.ParameterList.Parameters.Count > 0 &&
-               method.ParameterList.Parameters[0].Modifiers.Any(SyntaxKind.ThisKeyword);
+            => method.ParameterList.Parameters is [var parameter, ..] && parameter.Modifiers.Any(SyntaxKind.ThisKeyword);
 
         // Root namespace is a VB only concept, which basically means root namespace is always global in C#.
         protected override string GetRootNamespace(CompilationOptions compilationOptions)
@@ -674,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             if (usingDirectiveNode.Alias != null)
             {
                 if (TryGetSimpleTypeName(usingDirectiveNode.Alias.Name, typeParameterNames: null, out var aliasName, out _) &&
-                    TryGetSimpleTypeName(usingDirectiveNode.Name, typeParameterNames: null, out var name, out _))
+                    TryGetSimpleTypeName(usingDirectiveNode.NamespaceOrType, typeParameterNames: null, out var name, out _))
                 {
                     aliases = ImmutableArray.Create<(string, string)>((aliasName, name));
                     return true;

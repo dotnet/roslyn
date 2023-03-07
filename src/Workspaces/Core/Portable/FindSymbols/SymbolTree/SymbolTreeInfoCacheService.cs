@@ -245,7 +245,7 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
                 _services = service;
             }
 
-            public Task AnalyzeSolutionAsync()
+            public readonly Task AnalyzeSolutionAsync()
             {
                 foreach (var projectId in _services._workspace.CurrentSolution.ProjectIds)
                     _services._workQueue.AddWork(projectId);

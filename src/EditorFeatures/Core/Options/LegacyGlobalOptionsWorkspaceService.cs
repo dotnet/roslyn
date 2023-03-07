@@ -4,10 +4,8 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 
@@ -20,25 +18,20 @@ namespace Microsoft.CodeAnalysis.Options
     internal sealed class LegacyGlobalOptionsWorkspaceService : ILegacyGlobalOptionsWorkspaceService
     {
         private readonly IGlobalOptionService _globalOptions;
-        private readonly CodeActionOptionsStorage.Provider _provider;
 
         private static readonly Option2<bool> s_generateOverridesOption = new(
-            "GenerateOverridesOptions_SelectAll", defaultValue: true);
+            "dotnet_generate_overrides_for_all_members", defaultValue: true);
 
         private static readonly PerLanguageOption2<bool> s_generateOperators = new(
-            "GenerateEqualsAndGetHashCodeFromMembersOptions_GenerateOperators",
+            "dotnet_generate_equality_operators",
             defaultValue: false);
 
         private static readonly PerLanguageOption2<bool> s_implementIEquatable = new(
-            "GenerateEqualsAndGetHashCodeFromMembersOptions_ImplementIEquatable",
+            "dotnet_generate_iequatable_implementation",
             defaultValue: false);
 
-        private static readonly PerLanguageOption2<bool> s_addNullChecks = new(
-            "GenerateConstructorFromMembersOptions_AddNullChecks",
-            defaultValue: false);
-
-        internal static readonly PerLanguageOption2<bool> AddNullChecksToConstructorsGeneratedFromMembers = new(
-            "GenerateConstructorFromMembersOptions_AddNullChecks",
+        internal static readonly PerLanguageOption2<bool> s_addNullChecks = new(
+            "dotnet_generate_constructor_parameter_null_checks",
             defaultValue: false);
 
         [ImportingConstructor]
@@ -46,7 +39,6 @@ namespace Microsoft.CodeAnalysis.Options
         public LegacyGlobalOptionsWorkspaceService(IGlobalOptionService globalOptions)
         {
             _globalOptions = globalOptions;
-            _provider = _globalOptions.CreateProvider();
         }
 
         public bool GenerateOverrides
@@ -67,9 +59,6 @@ namespace Microsoft.CodeAnalysis.Options
             get => _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
             set => _globalOptions.SetGlobalOption(InlineHintsGlobalStateOption.DisplayAllOverride, value);
         }
-
-        public CleanCodeGenerationOptionsProvider CleanCodeGenerationOptionsProvider
-            => _provider;
 
         public bool GetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(string language)
             => _globalOptions.GetOption(s_implementIEquatable, language);

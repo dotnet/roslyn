@@ -104,6 +104,11 @@
         <target state="translated">隱藏的診斷識別碼 '{0}' 不符合指定隱藏描述項的可隱藏識別碼 '{1}'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidInstrumentationKind">
+        <source>Invalid instrumentation kind: {0}</source>
+        <target state="new">Invalid instrumentation kind: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
         <target state="translated">指定的作業區塊不屬於目前的分析內容。</target>
@@ -117,6 +122,11 @@
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
         <target state="translated">參數 '{0}' 必須是此編譯或某些參考組件中的符號。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MethodSymbolExpected">
+        <source>Method symbol expected</source>
+        <target state="new">Method symbol expected</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">

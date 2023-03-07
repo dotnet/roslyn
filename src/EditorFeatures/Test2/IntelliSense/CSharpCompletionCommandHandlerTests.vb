@@ -5090,7 +5090,7 @@ class C
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
                 Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
-                state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys.")
                 Await state.AssertNoCompletionSession()
@@ -5109,7 +5109,7 @@ class C
                               extraExportedTypes:={GetType(CompletedTaskControlledCompletionProvider)}.ToList(),
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
                 Await state.AssertSelectedCompletionItem(displayText:="System")
@@ -5141,7 +5141,7 @@ class C
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
                 Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
-                state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
 
@@ -5218,7 +5218,7 @@ class C
                 Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
                 Dim globalOptions = state.Workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
                 Dim task1 As Task = Nothing
@@ -5309,7 +5309,7 @@ class C
                 provider.Reset()
 
                 ' Switch to the non-blocking mode
-                globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 ' re-use of TestNoBlockOnCompletionItems1
                 state.SendTypeChars("Sys.")
@@ -5329,7 +5329,7 @@ class C
                 provider.Reset()
 
                 ' Switch to the blocking mode
-                globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, True)
+                globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, True)
 
 #Disable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
                 Task.Run(Function()
@@ -7938,6 +7938,78 @@ namespace NS
             End Using
         End Function
 
+        <WorkItem(67081, "https://github.com/dotnet/roslyn/issues/67081")>
+        <WpfTheory>
+        <InlineData("System", True)>
+        <InlineData("System.Collections", True)>
+        <InlineData("SystemNamespace", False)>
+        <InlineData("MyNamespace1", True)>
+        <InlineData("MyNamespace3", False)>
+        Public Async Function SortUnimportedItemFromSystemNamespacesFirst(containingNamespace As String, sortedAhead As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+namespace NS1
+{
+    class C
+    {
+        void M()
+        {
+            $$
+        }
+    }
+}
+
+namespace MyNamespace2
+{
+    public class UnimportedType { }
+}
+
+namespace  <%= containingNamespace %>
+{
+    public class UnimportedType { }
+}
+</Document>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
+                ' make sure expander is selected
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+
+                state.SendEscape()
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars("unimportedtype")
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                ' make sure expander is selected
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+
+                Dim expectedOrder As (String, String)()
+
+                If sortedAhead Then
+                    Await state.AssertSelectedCompletionItem(displayText:="UnimportedType", inlineDescription:=containingNamespace)
+                    expectedOrder =
+                    {
+                        ("UnimportedType", containingNamespace),
+                        ("UnimportedType", "MyNamespace2")
+                    }
+                Else
+                    Await state.AssertSelectedCompletionItem(displayText:="UnimportedType", inlineDescription:="MyNamespace2")
+                    expectedOrder =
+                    {
+                        ("UnimportedType", "MyNamespace2"),
+                        ("UnimportedType", containingNamespace)
+                    }
+                End If
+
+                state.AssertItemsInOrder(expectedOrder)
+
+            End Using
+        End Function
+
         <WorkItem(41601, "https://github.com/dotnet/roslyn/issues/41601")>
         <WpfTheory, CombinatorialData>
         Public Async Function SortItemsByExpandedFlag(showCompletionInArgumentLists As Boolean) As Task
@@ -9699,6 +9771,9 @@ public class C
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
 
                 state.SendTypeChars("..")
+                Await state.AssertNoCompletionSession()
+
+                state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem(displayText:="async", isHardSelected:=False)
 
                 state.SendTypeChars("{ ")
@@ -9764,6 +9839,9 @@ public class C
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
 
                 state.SendTypeChars("..")
+                Await state.AssertNoCompletionSession()
+
+                state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem(displayText:="async", isHardSelected:=False)
 
                 state.SendTypeChars("nu")
@@ -10270,7 +10348,7 @@ class C
                 Dim workspace = state.Workspace
 
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, True)
+                globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, True)
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
 
                 state.TextView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, True)
@@ -10325,7 +10403,7 @@ class C
                 Dim workspace = state.Workspace
 
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, True)
+                globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, True)
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
 
                 state.TextView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, True)
@@ -10378,7 +10456,7 @@ class C
                 Dim workspace = state.Workspace
 
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, True)
+                globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, True)
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
 
@@ -11177,6 +11255,255 @@ class Program
 
                 state.SendTypeChars("P")
                 Await state.AssertSelectedCompletionItem(displayText:="Program", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(42910, "https://github.com/dotnet/roslyn/issues/42910")>
+        Public Async Function CompletionOffOfNullableLambdaParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+struct TestStruct
+{
+    public int TestField;
+}
+
+class Program
+{
+    void Main() => TestMethod1(x => { return x?.$$ });
+
+    void TestMethod1(Predicate<TestStruct?> predicate) => default;
+}
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="TestField", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux(a =>
+        {
+            a.$$
+        });
+    }
+}
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("first")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux((a) =>
+        {
+            a.$$
+        });
+    }
+}
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("first")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount3(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux((a, b) =>
+        {
+            a.$$
+        });
+    }
+}
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="first", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("second")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount4(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux((a, b) =>
+        {
+            b.$$
+        });
+    }
+}
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("first")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount5(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux((a, b, c) =>
+        {
+            a.$$
+        });
+    }
+}
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="first", displayTextSuffix:="")
+                Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount6(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux((a, b, c) =>
+        {
+            b.$$
+        });
+    }
+}
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("first")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount7(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux((a, b, c) =>
+        {
+            c.$$
+        });
+    }
+}
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsDoNotContainAny("first", "second")
             End Using
         End Function
     End Class

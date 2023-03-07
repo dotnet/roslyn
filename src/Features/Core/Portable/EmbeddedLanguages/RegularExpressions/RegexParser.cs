@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
         }
 
-        private bool ShouldConsumeSequenceElement(bool consumeCloseParen)
+        private readonly bool ShouldConsumeSequenceElement(bool consumeCloseParen)
         {
             if (_currentToken.Kind == RegexKind.EndOfFile)
             {
@@ -702,12 +702,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return expression;
         }
 
-        private TextSpan GetTokenSpanIncludingEOF(RegexToken token)
+        private readonly TextSpan GetTokenSpanIncludingEOF(RegexToken token)
             => token.Kind == RegexKind.EndOfFile
                 ? GetTokenStartPositionSpan(token)
                 : token.GetSpan();
 
-        private TextSpan GetTokenStartPositionSpan(RegexToken token)
+        private readonly TextSpan GetTokenStartPositionSpan(RegexToken token)
         {
             return token.Kind == RegexKind.EndOfFile
                 ? new TextSpan(_lexer.Text.Last().Span.End, 0)
@@ -852,10 +852,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 result, ParseGroupingCloseParen());
         }
 
-        private bool HasCapture(int value)
+        private readonly bool HasCapture(int value)
             => _captureNumbersToSpan.ContainsKey(value);
 
-        private bool HasCapture(string value)
+        private readonly bool HasCapture(string value)
             => _captureNamesToSpan.ContainsKey(value);
 
         private void MoveBackBeforePreviousScan()
@@ -1090,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 ParseGroupingEmbeddedExpression(_options), ParseGroupingCloseParen());
         }
 
-        private void CheckCapture(ref RegexToken captureToken)
+        private readonly void CheckCapture(ref RegexToken captureToken)
         {
             if (captureToken.IsMissing)
             {
@@ -1322,7 +1322,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private static bool IsEscapedMinus([NotNullWhen(true)] RegexNode? node)
             => node is RegexSimpleEscapeNode simple && IsTextChar(simple.TypeToken, '-');
 
-        private bool TryGetRangeComponentValue(RegexExpressionNode component, out int ch)
+        private readonly bool TryGetRangeComponentValue(RegexExpressionNode component, out int ch)
         {
             // Don't bother examining the component if it has any errors already.  This also means
             // we don't have to worry about running into invalid escape sequences and the like.
@@ -1335,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return false;
         }
 
-        private bool TryGetRangeComponentValueWorker(RegexNode component, out int ch)
+        private readonly bool TryGetRangeComponentValueWorker(RegexNode component, out int ch)
         {
             switch (component.Kind)
             {

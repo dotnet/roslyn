@@ -5614,8 +5614,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalState state,
             bool isReachable)
         {
-            var savedState = this.State;
-            this.State = state;
+            var savedState = PossiblyConditionalState.Create(this);
+            this.SetState(state);
 
             bool previousDisabledDiagnostics = _disableDiagnostics;
             // If the node is not reachable, then we're only visiting to get
@@ -5644,7 +5644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType = default;
                 _disableDiagnostics = previousDisabledDiagnostics;
             }
-            this.State = savedState;
+            this.SetPossiblyConditionalState(in savedState);
 
             return resultType;
         }
@@ -6765,7 +6765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _variables.SetType(local.LocalSymbol, varType);
                             lValueType = varType;
                         }
-                        else if (argument is BoundDiscardExpression discard)
+                        else if (argument is BoundDiscardExpression discard && discard.IsInferred)
                         {
                             SetAnalyzedNullability(discard, new VisitResult(parameterWithState, parameterWithState.ToTypeWithAnnotations(compilation)), isLvalue: true);
                         }
@@ -11049,7 +11049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitDiscardExpression(BoundDiscardExpression node)
         {
-            var result = TypeWithAnnotations.Create(node.Type);
+            var result = TypeWithAnnotations.Create(node.Type, node.IsInferred ? NullableAnnotation.Annotated : node.NullableAnnotation);
             var rValueType = TypeWithState.ForType(node.Type);
             SetResult(node, rValueType, result);
             return null;

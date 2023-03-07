@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AddSynthesizedMethod(
                             frame.Constructor,
                             FlowAnalysisPass.AppendImplicitReturn(
-                                MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, Diagnostics),
+                                MethodCompiler.BindSynthesizedMethodBody(frame.Constructor, CompilationState, Diagnostics),
                                 frame.Constructor));
                     }
 
@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddSynthesizedMethod(
                         frame.Constructor,
                         FlowAnalysisPass.AppendImplicitReturn(
-                            MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, diagnostics),
+                            MethodCompiler.BindSynthesizedMethodBody(frame.Constructor, CompilationState, diagnostics),
                             frame.Constructor));
 
                     // add cctor
@@ -834,6 +834,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (!_currentMethod.IsStatic && TypeSymbol.Equals(_currentMethod.ContainingType, _topLevelMethod.ContainingType, TypeCompareKind.ConsiderEverything2))
                 ? node
                 : FramePointer(node.Syntax, _topLevelMethod.ContainingType); // technically, not the correct static type
+        }
+
+        public override BoundNode VisitMethodDefIndex(BoundMethodDefIndex node)
+        {
+            TypeSymbol type = VisitType(node.Type);
+
+            var loweredSymbol = (node.Method.MethodKind is MethodKind.LambdaMethod or MethodKind.LocalFunction) ?
+                Analysis.GetNestedFunctionInTree(_analysis.ScopeTree, node.Method.OriginalDefinition).SynthesizedLoweredMethod : node.Method;
+
+            return node.Update(loweredSymbol, type);
         }
 
         /// <summary>
@@ -1157,8 +1167,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            var newInstrumentation = node.Instrumentation;
+            if (newInstrumentation != null)
+            {
+                var newPrologue = (BoundStatement)Visit(newInstrumentation.Prologue);
+                var newEpilogue = (BoundStatement)Visit(newInstrumentation.Epilogue);
+                newInstrumentation = newInstrumentation.Update(newInstrumentation.Local, newPrologue, newEpilogue);
+            }
+
             // TODO: we may not need to update if there was nothing to rewrite.
-            return node.Update(newLocals.ToImmutableAndFree(), node.LocalFunctions, node.HasUnsafeModifier, newStatements.ToImmutableAndFree());
+            return node.Update(newLocals.ToImmutableAndFree(), node.LocalFunctions, node.HasUnsafeModifier, newInstrumentation, newStatements.ToImmutableAndFree());
         }
 
         public override BoundNode VisitScope(BoundScope node)

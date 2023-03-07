@@ -777,11 +777,6 @@
         <target state="translated">Declaraciones de espacio de nombres</target>
         <note />
       </trans-unit>
-      <trans-unit id="Namespaces_have_been_updated">
-        <source>Namespaces have been updated.</source>
-        <target state="translated">Se han actualizado los espacios de nombres.</target>
-        <note>"Namespaces" is the programming language concept</note>
-      </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
         <target state="new">class</target>
@@ -1152,6 +1147,11 @@
         <target state="translated">Preferir la estructura de solo lectura</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_read_only_struct_member">
+        <source>Prefer read-only struct member</source>
+        <target state="new">Prefer read-only struct member</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
         <target state="translated">Preferir campos de solo lectura</target>
@@ -1491,6 +1491,11 @@
         <source>Sync Namespaces</source>
         <target state="translated">Sincronizar espacios de nombres</target>
         <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Sync_namespaces_changes">
+        <source>Sync namespaces changes</source>
+        <target state="new">Sync namespaces changes</target>
+        <note />
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>

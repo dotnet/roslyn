@@ -3,7 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis.Remote.ProjectSystem;
 
-internal readonly record struct SourceFileInfo(string FilePath, IReadOnlyList<string> FolderNames);
+[DataContract]
+internal readonly record struct SourceFileInfo(
+    [property: DataMember(Order = 0)] string FilePath,
+    [property: DataMember(Order = 1)] IReadOnlyList<string> FolderNames);

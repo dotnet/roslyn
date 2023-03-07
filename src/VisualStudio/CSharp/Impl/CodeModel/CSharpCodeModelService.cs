@@ -792,11 +792,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         [return: NotNullIfNotNull(nameof(name))]
         public override string? GetUnescapedName(string? name)
-        {
-            return name != null && name.Length > 1 && name[0] == '@'
-                ? name[1..]
-                : name;
-        }
+            => name is ['@', .. var rest] ? rest : name;
 
         public override string GetName(SyntaxNode node)
         {
@@ -1557,7 +1553,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             foreach (UsingDirectiveSyntax usingDirective in GetImportNodes(parentNode))
             {
-                if (usingDirective.Name.ToString() == dottedName)
+                if (usingDirective.Name?.ToString() == dottedName)
                 {
                     importNode = usingDirective;
                     return true;
@@ -1838,7 +1834,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             if (importNode is UsingDirectiveSyntax usingDirective)
             {
-                return usingDirective.Name.ToString();
+                return usingDirective.NamespaceOrType.ToString();
             }
 
             throw new InvalidOperationException();
@@ -1852,7 +1848,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     ? null
                     : usingDirective.Parent;
 
-                name = usingDirective.Name.ToString();
+                name = usingDirective.NamespaceOrType.ToString();
 
                 return;
             }

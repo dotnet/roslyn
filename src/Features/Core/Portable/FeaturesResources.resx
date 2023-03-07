@@ -828,9 +828,6 @@ Do you want to continue?</value>
   <data name="Unable_to_load_Analyzer_assembly_0_colon_1" xml:space="preserve">
     <value>Unable to load Analyzer assembly {0}: {1}</value>
   </data>
-  <data name="Make_method_synchronous" xml:space="preserve">
-    <value>Make method synchronous</value>
-  </data>
   <data name="from_0" xml:space="preserve">
     <value>from {0}</value>
   </data>
@@ -928,12 +925,6 @@ This version used in: {2}</value>
   <data name="Rename_type_to_0" xml:space="preserve">
     <value>Rename type to {0}</value>
   </data>
-  <data name="Remove_tag" xml:space="preserve">
-    <value>Remove tag</value>
-  </data>
-  <data name="Add_missing_param_nodes" xml:space="preserve">
-    <value>Add missing param nodes</value>
-  </data>
   <data name="Asynchronously_waits_for_the_task_to_finish" xml:space="preserve">
     <value>Asynchronously waits for the task to finish.</value>
   </data>
@@ -985,18 +976,6 @@ This version used in: {2}</value>
   </data>
   <data name="Add_tuple_element_name_0" xml:space="preserve">
     <value>Add tuple element name '{0}'</value>
-  </data>
-  <data name="Take_0" xml:space="preserve">
-    <value>Take '{0}'</value>
-  </data>
-  <data name="Take_both" xml:space="preserve">
-    <value>Take both</value>
-  </data>
-  <data name="Take_bottom" xml:space="preserve">
-    <value>Take bottom</value>
-  </data>
-  <data name="Take_top" xml:space="preserve">
-    <value>Take top</value>
   </data>
   <data name="Remove_unused_variable" xml:space="preserve">
     <value>Remove unused variable</value>
@@ -2687,9 +2666,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Inline_0" xml:space="preserve">
     <value>Inline '{0}'</value>
   </data>
-  <data name="Remove_async_modifier" xml:space="preserve">
-    <value>Remove 'async' modifier</value>
-  </data>
   <data name="Extract_base_class" xml:space="preserve">
     <value>Extract base class...</value>
   </data>
@@ -3205,5 +3181,8 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Find_All_References_not_invoked_on_applicable_symbol" xml:space="preserve">
     <value>'Find All References' not invoked on applicable symbol</value>
+  </data>
+  <data name="Deconstruct_locals_for_0" xml:space="preserve">
+    <value>Deconstruct locals for '{0}'</value>
   </data>
 </root>

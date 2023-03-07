@@ -26,8 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             return await GetSyntacticClassificationsAsync(document, span);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarAtTypeMemberLevel(TestHost testHost)
         {
             await TestAsync(
@@ -43,8 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNamespace(TestHost testHost)
         {
             await TestAsync(
@@ -58,8 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestFileScopedNamespace(TestHost testHost)
         {
             await TestAsync(
@@ -71,8 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarAsLocalVariableType(TestHost testHost)
         {
             await TestInMethodAsync("var goo = 42",
@@ -83,8 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Number("42"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarOptimisticallyColored(TestHost testHost)
         {
             await TestInMethodAsync("var",
@@ -92,8 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("var"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarNotColoredInClass(TestHost testHost)
         {
             await TestInClassAsync("var",
@@ -101,8 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Identifier("var"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarInsideLocalAndExpressions(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -120,8 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarAsMethodParameter(TestHost testHost)
         {
             await TestAsync(
@@ -146,8 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task YieldYield(TestHost testHost)
         {
             await TestAsync(
@@ -196,8 +187,7 @@ class yield
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task YieldReturn(TestHost testHost)
         {
             await TestInMethodAsync("yield return 42",
@@ -207,8 +197,7 @@ class yield
                 Number("42"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task YieldFixed(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -239,8 +228,7 @@ class yield
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PartialClass(TestHost testHost)
         {
             await TestAsync("public partial class Goo",
@@ -251,8 +239,7 @@ class yield
                 Class("Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PartialMethod(TestHost testHost)
         {
             await TestInClassAsync(
@@ -273,8 +260,7 @@ class yield
         /// <summary>
         /// Partial is only valid in a type declaration
         /// </summary>
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(536313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536313")]
         public async Task PartialAsLocalVariableType(TestHost testHost)
         {
@@ -288,8 +274,7 @@ class yield
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PartialClassStructInterface(TestHost testHost)
         {
             await TestAsync(
@@ -327,8 +312,7 @@ partial interface T3
         /// <summary>
         /// Check for items only valid within a method declaration
         /// </summary>
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ContextualKeywordsOnlyValidInMethods(TestHost testHost)
         {
             foreach (var kw in s_contextualKeywordsOnlyValidInMethods)
@@ -340,8 +324,7 @@ partial interface T3
             }
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VerbatimStringLiterals1(TestHost testHost)
         {
             await TestInMethodAsync(@"@""goo""",
@@ -349,31 +332,28 @@ partial interface T3
                 Verbatim(@"@""goo"""));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VerbatimStringLiteralsUtf8_01(TestHost testHost)
         {
             await TestInMethodAsync(@"@""goo""u8",
                 testHost,
-                Verbatim(@"@""goo""u8"),
+                Verbatim(@"@""goo"""),
                 Keyword("u8"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VerbatimStringLiteralsUtf8_02(TestHost testHost)
         {
             await TestInMethodAsync(@"@""goo""U8",
                 testHost,
-                Verbatim(@"@""goo""U8"),
+                Verbatim(@"@""goo"""),
                 Keyword("U8"));
         }
 
         /// <summary>
         /// Should show up as soon as we get the @\" typed out
         /// </summary>
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VerbatimStringLiterals2(TestHost testHost)
         {
             await TestAsync(@"@""",
@@ -384,8 +364,7 @@ partial interface T3
         /// <summary>
         /// Parser does not currently support strings of this type
         /// </summary>
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VerbatimStringLiterals3(TestHost testHost)
         {
             await TestAsync(@"goo @""",
@@ -397,8 +376,7 @@ partial interface T3
         /// <summary>
         /// Uncompleted ones should span new lines
         /// </summary>
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VerbatimStringLiterals4(TestHost testHost)
         {
             var code = @"
@@ -413,8 +391,7 @@ partial interface T3
 "));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VerbatimStringLiterals5(TestHost testHost)
         {
             var code = @"
@@ -432,8 +409,7 @@ on a new line """),
                 Local("stuff"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VerbatimStringLiteralsUtf8_03(TestHost testHost)
         {
             var code = @"
@@ -446,14 +422,13 @@ more stuff";
                 testHost,
                 Verbatim(@"@"" goo bar
 and 
-on a new line ""u8"),
+on a new line """),
                 Keyword("u8"),
                 Identifier("more"),
                 Local("stuff"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VerbatimStringLiteralsUtf8_04(TestHost testHost)
         {
             var code = @"
@@ -466,7 +441,7 @@ more stuff";
                 testHost,
                 Verbatim(@"@"" goo bar
 and 
-on a new line ""U8"),
+on a new line """),
                 Keyword("U8"),
                 Identifier("more"),
                 Local("stuff"));
@@ -492,8 +467,7 @@ on a new line ""U8"),
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VerbatimStringLiteralsUtf8_05(bool script, TestHost testHost)
         {
             var code = @"string s = @""""""/*""u8;";
@@ -508,13 +482,12 @@ on a new line ""U8"),
                 Keyword("string"),
                 script ? Field("s") : Local("s"),
                 Operators.Equals,
-                Verbatim(@"@""""""/*""u8"),
+                Verbatim(@"@""""""/*"""),
                 Keyword("u8"),
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VerbatimStringLiteralsUtf8_06(bool script, TestHost testHost)
         {
             var code = @"string s = @""""""/*""u8;";
@@ -529,13 +502,12 @@ on a new line ""U8"),
                 Keyword("string"),
                 script ? Field("s") : Local("s"),
                 Operators.Equals,
-                Verbatim(@"@""""""/*""u8"),
+                Verbatim(@"@""""""/*"""),
                 Keyword("u8"),
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task StringLiteral1(TestHost testHost)
         {
             await TestAsync(@"""goo""",
@@ -543,28 +515,25 @@ on a new line ""U8"),
                 String(@"""goo"""));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task StringLiteralUtf8_01(TestHost testHost)
         {
             await TestAsync(@"""goo""u8",
                 testHost,
-                String(@"""goo""u8"),
+                String(@"""goo"""),
                 Keyword("u8"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task StringLiteralUtf8_02(TestHost testHost)
         {
             await TestAsync(@"""goo""U8",
                 testHost,
-                String(@"""goo""U8"),
+                String(@"""goo"""),
                 Keyword("U8"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task StringLiteral2(TestHost testHost)
         {
             await TestAsync(@"""""",
@@ -572,28 +541,25 @@ on a new line ""U8"),
                 String(@""""""));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task StringLiteralUtf8_03(TestHost testHost)
         {
             await TestAsync(@"""""u8",
                 testHost,
-                String(@"""""u8"),
+                String(@""""""),
                 Keyword("u8"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task StringLiteralUtf8_04(TestHost testHost)
         {
             await TestAsync(@"""""U8",
                 testHost,
-                String(@"""""U8"),
+                String(@""""""),
                 Keyword("U8"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CharacterLiteral1(TestHost testHost)
         {
             var code = @"'f'";
@@ -602,8 +568,7 @@ on a new line ""U8"),
                 String("'f'"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LinqFrom1(TestHost testHost)
         {
             var code = @"from it in goo";
@@ -615,8 +580,7 @@ on a new line ""U8"),
                 Identifier("goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LinqFrom2(TestHost testHost)
         {
             var code = @"from it in goo.Bar()";
@@ -632,8 +596,7 @@ on a new line ""U8"),
                 Punctuation.CloseParen);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LinqFrom3(TestHost testHost)
         {
             // query expression are not statement expressions, but the parser parses them anyways to give better errors
@@ -645,8 +608,7 @@ on a new line ""U8"),
                 Keyword("in"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LinqFrom4(TestHost testHost)
         {
             var code = @"from it in ";
@@ -657,8 +619,7 @@ on a new line ""U8"),
                 Keyword("in"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LinqWhere1(TestHost testHost)
         {
             var code = "from it in goo where it > 42";
@@ -674,8 +635,7 @@ on a new line ""U8"),
                 Number("42"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LinqWhere2(TestHost testHost)
         {
             var code = @"from it in goo where it > ""bar""";
@@ -768,8 +728,7 @@ on a new line ""U8"),
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ContextualKeywordsAsFieldName(TestHost testHost)
         {
             await TestAsync(
@@ -805,8 +764,7 @@ on a new line ""U8"),
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LinqKeywordsInFieldInitializer(TestHost testHost)
         {
             await TestAsync(
@@ -863,8 +821,7 @@ on a new line ""U8"),
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LinqKeywordsAsTypeName(TestHost testHost)
         {
             await TestAsync(
@@ -979,8 +936,7 @@ class select
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LinqKeywordsAsMethodParameters(TestHost testHost)
         {
             await TestAsync(
@@ -1044,8 +1000,7 @@ class select
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LinqKeywordsInLocalVariableDeclarations(TestHost testHost)
         {
             await TestAsync(
@@ -1200,8 +1155,7 @@ class select
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LinqKeywordsAsFieldNames(TestHost testHost)
         {
             await TestAsync(
@@ -1245,8 +1199,7 @@ class select
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LinqKeywordsAtFieldLevelInvalid(TestHost testHost)
         {
             await TestAsync(
@@ -1299,8 +1252,7 @@ a descending select a; }
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CommentSingle(TestHost testHost)
         {
             var code = "// goo";
@@ -1310,8 +1262,7 @@ a descending select a; }
                 Comment("// goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CommentAsTrailingTrivia1(TestHost testHost)
         {
             var code = "class Bar { // goo";
@@ -1323,8 +1274,7 @@ a descending select a; }
                 Comment("// goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CommentAsLeadingTrivia1(TestHost testHost)
         {
             var code = @"
@@ -1347,8 +1297,7 @@ class Bar {
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ShebangAsFirstCommentInScript(TestHost testHost)
         {
             var code = @"#!/usr/bin/env scriptcs
@@ -1370,8 +1319,7 @@ System.Console.WriteLine();";
             await TestAsync(code, code, testHost, Options.Script, expected);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ShebangAsFirstCommentInNonScript(TestHost testHost)
         {
             var code = @"#!/usr/bin/env scriptcs
@@ -1394,8 +1342,7 @@ System.Console.WriteLine();";
             await TestAsync(code, code, testHost, Options.Regular, expected);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ShebangNotAsFirstCommentInScript(TestHost testHost)
         {
             var code = @" #!/usr/bin/env scriptcs
@@ -1418,8 +1365,7 @@ System.Console.WriteLine();";
             await TestAsync(code, code, testHost, Options.Script, expected);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CommentAsMethodBodyContent(TestHost testHost)
         {
             var code = @"
@@ -1443,8 +1389,7 @@ class Bar {
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CommentMix1(TestHost testHost)
         {
             await TestAsync(
@@ -1462,8 +1407,7 @@ class cl
                 Comment("//comment2 */"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CommentMix2(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -1478,8 +1422,7 @@ class cl
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task XmlDocCommentOnClass(TestHost testHost)
         {
             var code = @"
@@ -1502,8 +1445,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task XmlDocCommentOnClassWithIndent(TestHost testHost)
         {
             var code = @"
@@ -1531,8 +1473,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task XmlDocComment_EntityReference(TestHost testHost)
         {
             var code = @"
@@ -1555,8 +1496,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task XmlDocComment_ExteriorTriviaInsideCloseTag(TestHost testHost)
         {
             var code = @"
@@ -1612,8 +1552,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task XmlDocCommentOnClassWithExteriorTrivia(TestHost testHost)
         {
             var code = @"
@@ -1641,8 +1580,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task XmlDocComment_ExteriorTriviaNoText(TestHost testHost)
         {
             var code =
@@ -1668,8 +1606,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task XmlDocComment_EmptyElement(TestHost testHost)
         {
             var code = @"
@@ -1688,8 +1625,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task XmlDocComment_Attribute(TestHost testHost)
         {
             var code = @"
@@ -1718,8 +1654,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task XmlDocComment_AttributeInEmptyElement(TestHost testHost)
         {
             var code = @"
@@ -1743,8 +1678,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task XmlDocComment_ExtraSpaces(TestHost testHost)
         {
             var code = @"
@@ -1768,8 +1702,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task XmlDocComment_XmlComment(TestHost testHost)
         {
             var code = @"
@@ -1787,8 +1720,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task XmlDocComment_XmlCommentWithExteriorTrivia(TestHost testHost)
         {
             var code = @"
@@ -1809,8 +1741,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task XmlDocComment_XmlCommentInElement(TestHost testHost)
         {
             var code = @"
@@ -1834,8 +1765,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(31410, "https://github.com/dotnet/roslyn/pull/31410")]
         public async Task XmlDocComment_MalformedXmlDocComment(TestHost testHost)
         {
@@ -1869,8 +1799,7 @@ class C { }";
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task MultilineXmlDocComment_ExteriorTrivia(TestHost testHost)
         {
             var code =
@@ -1897,8 +1826,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task XmlDocComment_CDataWithExteriorTrivia(TestHost testHost)
         {
             var code = @"
@@ -1919,8 +1847,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task XmlDocComment_ProcessingDirective(TestHost testHost)
         {
             await TestAsync(
@@ -1961,8 +1888,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(536321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536321")]
         public async Task KeywordTypeParameters(TestHost testHost)
         {
@@ -1978,8 +1904,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(536853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536853")]
         public async Task TypeParametersWithAttribute(TestHost testHost)
         {
@@ -1998,8 +1923,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ClassTypeDeclaration1(TestHost testHost)
         {
             var code = "class C1 { } ";
@@ -2011,8 +1935,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ClassTypeDeclaration2(TestHost testHost)
         {
             var code = "class ClassName1 { } ";
@@ -2024,8 +1947,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task StructTypeDeclaration1(TestHost testHost)
         {
             var code = "struct Struct1 { }";
@@ -2037,8 +1959,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task InterfaceDeclaration1(TestHost testHost)
         {
             var code = "interface I1 { }";
@@ -2050,8 +1971,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task EnumDeclaration1(TestHost testHost)
         {
             var code = "enum Weekday { }";
@@ -2083,8 +2003,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DelegateDeclaration1(TestHost testHost)
         {
             var code = "delegate void Action();";
@@ -2098,8 +2017,7 @@ public class Program
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task GenericTypeArgument(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -2113,8 +2031,7 @@ public class Program
                 Punctuation.CloseParen);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task GenericParameter(TestHost testHost)
         {
             var code = "class C1<P1> {}";
@@ -2129,8 +2046,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task GenericParameters(TestHost testHost)
         {
             var code = "class C1<P1,P2> {}";
@@ -2147,8 +2063,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task GenericParameter_Interface(TestHost testHost)
         {
             var code = "interface I1<P1> {}";
@@ -2163,8 +2078,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task GenericParameter_Struct(TestHost testHost)
         {
             var code = "struct S1<P1> {}";
@@ -2179,8 +2093,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task GenericParameter_Delegate(TestHost testHost)
         {
             var code = "delegate void D1<P1> {}";
@@ -2196,8 +2109,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task GenericParameter_Method(TestHost testHost)
         {
             await TestInClassAsync(
@@ -2225,8 +2137,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TernaryExpression(TestHost testHost)
         {
             await TestInExpressionAsync("true ? 1 : 0",
@@ -2238,8 +2149,7 @@ public class Program
                 Number("0"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task BaseClass(TestHost testHost)
         {
             await TestAsync(
@@ -2255,8 +2165,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestLabel(TestHost testHost)
         {
             await TestInMethodAsync("goo:",
@@ -2265,8 +2174,7 @@ public class Program
                 Punctuation.Colon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Attribute(TestHost testHost)
         {
             await TestAsync(
@@ -2279,8 +2187,7 @@ public class Program
                 Punctuation.CloseBracket);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAngleBracketsOnGenericConstraints_Bug932262(TestHost testHost)
         {
             await TestAsync(
@@ -2304,8 +2211,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestYieldPositive(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -2317,8 +2223,7 @@ public class Program
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestYieldNegative(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -2329,8 +2234,7 @@ public class Program
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestFromPositive(TestHost testHost)
         {
             await TestInExpressionAsync(
@@ -2342,8 +2246,7 @@ public class Program
                 Identifier("y"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestFromNegative(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -2354,8 +2257,7 @@ public class Program
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AttributeTargetSpecifiersModule(TestHost testHost)
         {
             await TestAsync(
@@ -2368,8 +2270,7 @@ public class Program
                 Punctuation.CloseBracket);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AttributeTargetSpecifiersAssembly(TestHost testHost)
         {
             await TestAsync(
@@ -2382,8 +2283,7 @@ public class Program
                 Punctuation.CloseBracket);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AttributeTargetSpecifiersOnDelegate(TestHost testHost)
         {
             await TestInClassAsync(
@@ -2409,8 +2309,7 @@ delegate void M();",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AttributeTargetSpecifiersOnMethod(TestHost testHost)
         {
             await TestInClassAsync(
@@ -2438,8 +2337,7 @@ void M()
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AttributeTargetSpecifiersOnCtor(TestHost testHost)
         {
             await TestAsync(
@@ -2467,8 +2365,7 @@ void M()
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AttributeTargetSpecifiersOnDtor(TestHost testHost)
         {
             await TestAsync(
@@ -2497,8 +2394,7 @@ void M()
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AttributeTargetSpecifiersOnOperator(TestHost testHost)
         {
             await TestInClassAsync(
@@ -2533,8 +2429,7 @@ static T operator +(T a, T b)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AttributeTargetSpecifiersOnEventDeclaration(TestHost testHost)
         {
             await TestInClassAsync(
@@ -2592,8 +2487,7 @@ event A E
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AttributeTargetSpecifiersOnPropertyAccessors(TestHost testHost)
         {
             await TestInClassAsync(
@@ -2644,8 +2538,7 @@ event A E
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AttributeTargetSpecifiersOnIndexers(TestHost testHost)
         {
             await TestInClassAsync(
@@ -2671,8 +2564,7 @@ int this[int i] { get; set; }",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AttributeTargetSpecifiersOnIndexerAccessors(TestHost testHost)
         {
             await TestInClassAsync(
@@ -2727,8 +2619,7 @@ int this[int i] { get; set; }",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AttributeTargetSpecifiersOnField(TestHost testHost)
         {
             await TestInClassAsync(
@@ -2749,8 +2640,7 @@ const int a = 0;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAllKeywords(TestHost testHost)
         {
             await TestAsync(
@@ -3464,8 +3354,7 @@ namespace MyNamespace
                 PPText("TaoRegion"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAllOperators(TestHost testHost)
         {
             await TestAsync(
@@ -3797,8 +3686,7 @@ public class Goo<T>
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestPartialMethodWithNamePartial(TestHost testHost)
         {
             await TestAsync(
@@ -3861,8 +3749,7 @@ public class Goo<T>
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ValueInSetterAndAnonymousTypePropertyName(TestHost testHost)
         {
             await TestAsync(
@@ -4190,8 +4077,7 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task InterpolatedStrings1(TestHost testHost)
         {
             var code = @"
@@ -4217,8 +4103,7 @@ var y = $""Hello, {x}"";
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task InterpolatedStrings2(TestHost testHost)
         {
             var code = @"
@@ -4253,8 +4138,7 @@ var c = $""{a}, {b}"";
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task InterpolatedStrings3(TestHost testHost)
         {
             var code = @"
@@ -4289,8 +4173,7 @@ var c = $@""{a}, {b}"";
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ExceptionFilter1(TestHost testHost)
         {
             var code = @"
@@ -4315,8 +4198,7 @@ catch when (true)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ExceptionFilter2(TestHost testHost)
         {
             var code = @"
@@ -4346,8 +4228,7 @@ catch (System.Exception) when (true)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task OutVar(TestHost testHost)
         {
             var code = @"
@@ -4362,8 +4243,7 @@ F(out var);";
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ReferenceDirective(TestHost testHost)
         {
             var code = @"
@@ -4375,8 +4255,7 @@ F(out var);";
                 String("\"file.dll\""));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LoadDirective(TestHost testHost)
         {
             var code = @"
@@ -4388,8 +4267,7 @@ F(out var);";
                 String("\"file.csx\""));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task IncompleteAwaitInNonAsyncContext(TestHost testHost)
         {
             var code = @"
@@ -4411,8 +4289,7 @@ void M()
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CompleteAwaitInNonAsyncContext(TestHost testHost)
         {
             var code = @"
@@ -4435,8 +4312,7 @@ void M()
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TupleDeclaration(TestHost testHost)
         {
             await TestInMethodAsync("(int, string) x",
@@ -4450,8 +4326,7 @@ void M()
                 Local("x"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TupleDeclarationWithNames(TestHost testHost)
         {
             await TestInMethodAsync("(int a, string b) x",
@@ -4467,8 +4342,7 @@ void M()
                 Local("x"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TupleLiteral(TestHost testHost)
         {
             await TestInMethodAsync("var values = (1, 2)",
@@ -4484,8 +4358,7 @@ void M()
                 Punctuation.CloseParen);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TupleLiteralWithNames(TestHost testHost)
         {
             await TestInMethodAsync("var values = (a: 1, b: 2)",
@@ -4505,8 +4378,7 @@ void M()
                 Punctuation.CloseParen);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestConflictMarkers1(TestHost testHost)
         {
             await TestAsync(
@@ -4540,8 +4412,7 @@ void M()
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestConflictMarkers2(TestHost testHost)
         {
             await TestAsync(
@@ -4581,8 +4452,7 @@ void M()
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_InsideMethod(TestHost testHost)
         {
             await TestInMethodAsync(@"
@@ -4599,8 +4469,7 @@ unmanaged++;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Type_Keyword(TestHost testHost)
         {
             await TestAsync(
@@ -4619,8 +4488,7 @@ unmanaged++;",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Type_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -4644,8 +4512,7 @@ class X<T> where T : unmanaged { }",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Type_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -4676,8 +4543,7 @@ class X<T> where T : unmanaged { }",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Method_Keyword(TestHost testHost)
         {
             await TestAsync(@"
@@ -4705,8 +4571,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Method_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -4739,8 +4604,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Method_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -4780,8 +4644,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Delegate_Keyword(TestHost testHost)
         {
             await TestAsync(
@@ -4802,8 +4665,7 @@ class X
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Delegate_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -4829,8 +4691,7 @@ delegate void D<T>() where T : unmanaged;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Delegate_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -4863,8 +4724,7 @@ delegate void D<T>() where T : unmanaged;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_LocalFunction_Keyword(TestHost testHost)
         {
             await TestAsync(@"
@@ -4901,8 +4761,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_LocalFunction_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -4944,8 +4803,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_LocalFunction_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -4994,8 +4852,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestDeclarationIsPattern(TestHost testHost)
         {
             await TestInMethodAsync(@"
@@ -5019,8 +4876,7 @@ if (foo is Action action)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestDeclarationSwitchPattern(TestHost testHost)
         {
             await TestInMethodAsync(@"
@@ -5049,8 +4905,7 @@ testHost,
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestDeclarationExpression(TestHost testHost)
         {
             await TestInMethodAsync(@"
@@ -5071,8 +4926,7 @@ int (foo, bar) = (1, 2);",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
         public async Task TestListPattern(TestHost testHost)
         {
@@ -5117,8 +4971,7 @@ switch (new int[0])
             Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
         public async Task TestListPattern2(TestHost testHost)
         {
@@ -5146,8 +4999,7 @@ _ = x switch
             Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
         public async Task TestVarPattern(TestHost testHost)
         {
@@ -5164,8 +5016,7 @@ _ = 1 is var x;
             Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestTupleTypeSyntax(TestHost testHost)
         {
             await TestInClassAsync(@"
@@ -5187,8 +5038,7 @@ public (int a, int b) Get() => null;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestOutParameter(TestHost testHost)
         {
             await TestInMethodAsync(@"
@@ -5213,8 +5063,7 @@ if (int.TryParse(""1"", out int x))
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestOutParameter2(TestHost testHost)
         {
             await TestInClassAsync(@"
@@ -5242,8 +5091,7 @@ int F = int.TryParse(""1"", out int x) ? x : -1;
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUsingDirective(TestHost testHost)
         {
             var code = @"using System.Collections.Generic;";
@@ -5259,8 +5107,7 @@ int F = int.TryParse(""1"", out int x) ? x : -1;
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUsingAliasDirectiveForIdentifier(TestHost testHost)
         {
             var code = @"using Col = System.Collections;";
@@ -5276,8 +5123,7 @@ int F = int.TryParse(""1"", out int x) ? x : -1;
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUsingAliasDirectiveForClass(TestHost testHost)
         {
             var code = @"using Con = System.Console;";
@@ -5293,8 +5139,7 @@ int F = int.TryParse(""1"", out int x) ? x : -1;
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUsingStaticDirective(TestHost testHost)
         {
             var code = @"using static System.Console;";
@@ -5340,8 +5185,7 @@ foreach (var (x, y) in new[] { (1, 2) });
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CatchDeclarationStatement(TestHost testHost)
         {
             await TestInMethodAsync(@"
@@ -5360,8 +5204,7 @@ try { } catch (Exception ex) { }
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_InsideMethod(TestHost testHost)
         {
             await TestInMethodAsync(@"
@@ -5378,8 +5221,7 @@ notnull++;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Type_Keyword(TestHost testHost)
         {
             await TestAsync(
@@ -5398,8 +5240,7 @@ notnull++;",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Type_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -5423,8 +5264,7 @@ class X<T> where T : notnull { }",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Type_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -5455,8 +5295,7 @@ class X<T> where T : notnull { }",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Method_Keyword(TestHost testHost)
         {
             await TestAsync(@"
@@ -5484,8 +5323,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Method_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -5518,8 +5356,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Method_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -5559,8 +5396,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Delegate_Keyword(TestHost testHost)
         {
             await TestAsync(
@@ -5581,8 +5417,7 @@ class X
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Delegate_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -5608,8 +5443,7 @@ delegate void D<T>() where T : notnull;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Delegate_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -5642,8 +5476,7 @@ delegate void D<T>() where T : notnull;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_LocalFunction_Keyword(TestHost testHost)
         {
             await TestAsync(@"
@@ -5680,8 +5513,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_LocalFunction_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -5723,8 +5555,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_LocalFunction_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -5773,8 +5604,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(45807, "https://github.com/dotnet/roslyn/issues/45807")]
         public async Task FunctionPointer(TestHost testHost)
         {
@@ -5937,8 +5767,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRawStringLiteral(TestHost testHost)
         {
             var code = @"
@@ -5974,8 +5803,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRawStringLiteralUtf8_01(TestHost testHost)
         {
             var code = @"
@@ -6005,15 +5833,14 @@ class C
                 Keyword("var"),
                 Local("s"),
                 Operators.Equals,
-                String("\"\"\"Hello world\"\"\"u8"),
+                String("\"\"\"Hello world\"\"\""),
                 Keyword("u8"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRawStringLiteralUtf8_02(TestHost testHost)
         {
             var code = @"
@@ -6043,15 +5870,14 @@ class C
                 Keyword("var"),
                 Local("s"),
                 Operators.Equals,
-                String("\"\"\"Hello world\"\"\"U8"),
+                String("\"\"\"Hello world\"\"\""),
                 Keyword("U8"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRawStringLiteralMultiline(TestHost testHost)
         {
             var code = @"
@@ -6091,8 +5917,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRawStringLiteralMultilineUtf8_01(TestHost testHost)
         {
             var code = @"
@@ -6126,15 +5951,14 @@ class C
                 Operators.Equals,
                 String(@"""""""
       Hello world
-   """"""u8"),
+   """""""),
                 Keyword("u8"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRawStringLiteralMultilineUtf8_02(TestHost testHost)
         {
             var code = @"
@@ -6168,15 +5992,14 @@ class C
                 Operators.Equals,
                 String(@"""""""
       Hello world
-   """"""U8"),
+   """""""),
                 Keyword("U8"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRawStringLiteralInterpolation1(TestHost testHost)
         {
             var code = @"
@@ -6216,8 +6039,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRawStringLiteralInterpolation2(TestHost testHost)
         {
             var code = @"
@@ -6257,8 +6079,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRawStringLiteralInterpolation3(TestHost testHost)
         {
             var code = @"
@@ -6300,8 +6121,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CheckedUserDefinedOperators_01(TestHost testHost)
         {
             await TestInClassAsync(
@@ -6323,8 +6143,7 @@ static T operator checked -(T a)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CheckedUserDefinedOperators_02(TestHost testHost)
         {
             await TestInClassAsync(
@@ -6349,8 +6168,7 @@ static T operator checked +(T a, T b)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CheckedUserDefinedOperators_03(TestHost testHost)
         {
             await TestInClassAsync(
@@ -6372,8 +6190,7 @@ static explicit operator checked T(T a)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CheckedUserDefinedOperators_04(TestHost testHost)
         {
             await TestInClassAsync(
@@ -6397,8 +6214,7 @@ static T I1.operator checked -(T a)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CheckedUserDefinedOperators_05(TestHost testHost)
         {
             await TestInClassAsync(
@@ -6425,8 +6241,7 @@ static T I1.operator checked +(T a, T b)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CheckedUserDefinedOperators_06(TestHost testHost)
         {
             await TestInClassAsync(
@@ -6450,8 +6265,7 @@ static explicit I1.operator checked T(T a)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task UnsignedRightShift_01(TestHost testHost)
         {
             await TestInClassAsync(
@@ -6475,8 +6289,7 @@ static T operator >>>(T a, int b)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task UnsignedRightShift_02(TestHost testHost)
         {
             await TestInClassAsync(
@@ -6503,8 +6316,7 @@ static T I1.operator checked >>>(T a, T b)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestExclamationExclamation(TestHost testHost)
         {
             await TestAsync(
@@ -6533,8 +6345,7 @@ static T I1.operator checked >>>(T a, T b)
 
         /// <seealso cref="SemanticClassifierTests.LocalFunctionUse"/>
         /// <seealso cref="TotalClassifierTests.LocalFunctionDeclarationAndUse"/>
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LocalFunctionDeclaration(TestHost testHost)
         {
             await TestAsync(
@@ -6592,8 +6403,7 @@ static T I1.operator checked >>>(T a, T b)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ScopedParameter(TestHost testHost)
         {
             await TestInMethodAsync(@"interface I { void F(scoped R r); }",
@@ -6612,8 +6422,7 @@ static T I1.operator checked >>>(T a, T b)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ScopedLocalDeclaration(TestHost testHost)
         {
             await TestInMethodAsync(@"scoped var v;",
@@ -6624,8 +6433,7 @@ static T I1.operator checked >>>(T a, T b)
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ScopedOutDeclaration(TestHost testHost)
         {
             await TestInMethodAsync(@"F(x, out scoped R y);",
@@ -6642,8 +6450,7 @@ static T I1.operator checked >>>(T a, T b)
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LambdaDefaultParameter_01(TestHost testHost)
         {
             await TestAsync(
@@ -6704,8 +6511,7 @@ static T I1.operator checked >>>(T a, T b)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LambdaDefaultParameter_02(TestHost testHost)
         {
             await TestAsync(
@@ -6744,8 +6550,7 @@ static T I1.operator checked >>>(T a, T b)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LambdaParamsArray(TestHost testHost)
         {
             await TestInMethodAsync("var lam = (params int[] xs) => xs.Length;",
@@ -6767,8 +6572,7 @@ static T I1.operator checked >>>(T a, T b)
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LambdaParamsArray_Multiple(TestHost testHost)
         {
             await TestInMethodAsync("var lam = (int a, int b = 1, params int[] xs, params int[] ys.Length) => { };",

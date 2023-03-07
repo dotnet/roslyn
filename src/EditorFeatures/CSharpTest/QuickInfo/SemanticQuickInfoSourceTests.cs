@@ -8633,5 +8633,127 @@ class Program
             await TestAsync(source,
                 MainDescription($"({FeaturesResources.local_variable}) scoped ref int r"));
         }
+
+        [Fact, WorkItem(66854, "https://github.com/dotnet/roslyn/issues/66854")]
+        public async Task TestNullableRefTypeVar1()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    void M()
+                    {
+                        object? o = null;
+                        $$var s = (string?)o;
+                    }
+                }
+                """;
+            await TestAsync(source,
+                MainDescription($"class System.String?"));
+        }
+
+        [Fact, WorkItem(66854, "https://github.com/dotnet/roslyn/issues/66854")]
+        public async Task TestNullableRefTypeVar2()
+        {
+            var source = """
+                #nullable disable
+
+                class C
+                {
+                    void M()
+                    {
+                        $$var s = GetNullableString();
+                    }
+
+                    #nullable enable
+
+                    string? GetNullableString() => null;
+
+                    #nullable restore
+                }
+                """;
+            await TestAsync(source,
+                MainDescription($"class System.String"));
+        }
+
+        [Fact]
+        public async Task TestUsingAliasToType1()
+        {
+            var source =
+@"using X = $$int;";
+            await TestAsync(source,
+                MainDescription($"struct System.Int32"));
+        }
+
+        [Fact]
+        public async Task TestUsingAliasToType1_A()
+        {
+            var source =
+@"using $$X = int;";
+            await TestAsync(source,
+                MainDescription($"struct System.Int32"));
+        }
+
+        [Fact]
+        public async Task TestUsingAliasToType2()
+        {
+            var source =
+@"using X = ($$int a, int b);";
+            await TestAsync(source,
+                MainDescription($"struct System.Int32"));
+        }
+
+        [Fact]
+        public async Task TestUsingAliasToType2_A()
+        {
+            var source =
+@"using $$X = (int a, int b);";
+            await TestAsync(source,
+                MainDescription($"(int a, int b)"));
+        }
+
+        [Fact]
+        public async Task TestUsingAliasToType3()
+        {
+            var source =
+@"using X = $$(int a, int b);";
+            await TestAsync(source);
+        }
+
+        [Fact]
+        public async Task TestUsingAliasToType4()
+        {
+            var source =
+@"using unsafe X = $$delegate*<int,int>;";
+            await TestAsync(source);
+        }
+
+        [Fact]
+        public async Task TestUsingAliasToType4_A()
+        {
+            var source =
+@"using unsafe $$X = delegate*<int,int>;";
+            await TestAsync(source,
+                MainDescription($"delegate*<int, int>"));
+        }
+
+        [Fact]
+        public async Task TestUsingAliasToType5()
+        {
+            var source =
+@"using unsafe X = $$int*;";
+            await TestAsync(source,
+                MainDescription($"struct System.Int32"));
+        }
+
+        [Fact]
+        public async Task TestUsingAliasToType5_A()
+        {
+            var source =
+@"using unsafe $$X = int*;";
+            await TestAsync(source,
+                MainDescription($"int*"));
+        }
     }
 }

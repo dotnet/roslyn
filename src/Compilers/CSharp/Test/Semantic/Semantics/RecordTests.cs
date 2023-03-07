@@ -53,10 +53,10 @@ record Point(int x, int y);
                     // (2,12): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     // class Point(int x, int y);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 12),
-                    // (2,17): warning CS9508: Parameter 'x' is unread.
+                    // (2,17): warning CS9113: Parameter 'x' is unread.
                     // class Point(int x, int y);
                     Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 17),
-                    // (2,24): warning CS9508: Parameter 'y' is unread.
+                    // (2,24): warning CS9113: Parameter 'y' is unread.
                     // class Point(int x, int y);
                     Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 24)
                 );
@@ -93,10 +93,10 @@ record Point(int x, int y);
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                    // (2,17): warning CS9508: Parameter 'x' is unread.
+                    // (2,17): warning CS9113: Parameter 'x' is unread.
                     // class Point(int x, int y);
                     Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 17),
-                    // (2,24): warning CS9508: Parameter 'y' is unread.
+                    // (2,24): warning CS9113: Parameter 'y' is unread.
                     // class Point(int x, int y);
                     Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 24)
                 );
@@ -146,10 +146,10 @@ class E
                     // (4,16): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     class Point(int x, int y);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(4, 16),
-                    // (4,21): warning CS9508: Parameter 'x' is unread.
+                    // (4,21): warning CS9113: Parameter 'x' is unread.
                     //     class Point(int x, int y);
                     Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(4, 21),
-                    // (4,28): warning CS9508: Parameter 'y' is unread.
+                    // (4,28): warning CS9113: Parameter 'y' is unread.
                     //     class Point(int x, int y);
                     Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(4, 28)
                 );
@@ -176,10 +176,10 @@ class E
 
             comp = CreateCompilation(src1);
             comp.VerifyDiagnostics(
-                    // (4,21): warning CS9508: Parameter 'x' is unread.
+                    // (4,21): warning CS9113: Parameter 'x' is unread.
                     //     class Point(int x, int y);
                     Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(4, 21),
-                    // (4,28): warning CS9508: Parameter 'y' is unread.
+                    // (4,28): warning CS9113: Parameter 'y' is unread.
                     //     class Point(int x, int y);
                     Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(4, 28)
                 );
@@ -217,10 +217,10 @@ record class Point(int x, int y);
                 // (2,19): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 19),
-                // (2,24): warning CS9508: Parameter 'x' is unread.
+                // (2,24): warning CS9113: Parameter 'x' is unread.
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 24),
-                // (2,31): warning CS9508: Parameter 'y' is unread.
+                // (2,31): warning CS9113: Parameter 'y' is unread.
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 31)
                 );
@@ -24678,7 +24678,7 @@ record C(int X)
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (4,20): error CS9500: Cannot use primary constructor parameter 'int X' in this context.
+                // (4,20): error CS9105: Cannot use primary constructor parameter 'int X' in this context.
                 //     static int Z = X + 1;
                 Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "X").WithArguments("int X").WithLocation(4, 20)
                 );
@@ -24709,7 +24709,7 @@ record C(int X)
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (4,19): error CS9500: Cannot use primary constructor parameter 'int X' in this context.
+                // (4,19): error CS9105: Cannot use primary constructor parameter 'int X' in this context.
                 //     const int Z = X + 1;
                 Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "X").WithArguments("int X").WithLocation(4, 19),
                 // (4,19): error CS0133: The expression being assigned to 'C.Z' must be constant
@@ -29538,7 +29538,7 @@ record C2(int P)
                 // (6,15): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record C2(int P)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(6, 15),
-                // (8,19): error CS9500: Cannot use primary constructor parameter 'int P' in this context.
+                // (8,19): error CS9105: Cannot use primary constructor parameter 'int P' in this context.
                 //     const int P = P;
                 Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "P").WithArguments("int P").WithLocation(8, 19),
                 // (8,19): error CS0133: The expression being assigned to 'C2.P' must be constant
@@ -30378,6 +30378,50 @@ record R1(int x);
             Assert.Contains("System.Int32 y", model.LookupSymbols(mCall.SpanStart).Select(s => s.ToTestDisplayString()));
             Assert.DoesNotContain("System.Int32 y", model.LookupSymbols(attrApplication.ArgumentList!.OpenParenToken.SpanStart + 1).Select(s => s.ToTestDisplayString()));
             Assert.DoesNotContain("System.Int32 y", model.LookupSymbols(mDefinition.SpanStart).Select(s => s.ToTestDisplayString()));
+        }
+
+        [Fact]
+        [WorkItem(66900, "https://github.com/dotnet/roslyn/issues/66900")]
+        public void Issue66900()
+        {
+            // public record ClassWithManyConstructorParameters(int P0, int P1, int P2, ...)
+            // {
+            //     public static ClassWithManyConstructorParameters Create()
+            //     {
+            //         return new ClassWithManyConstructorParameters(P0: 0, P1: 1, P2: 2, ...);
+            //     }
+            // }
+
+            var src = @"
+public record ClassWithManyConstructorParameters(int P0";
+
+            const int count = 2000;
+
+            for (int i = 1; i < count; i++)
+            {
+                src += ", int P" + i;
+            }
+
+            src += @")
+{
+    public static ClassWithManyConstructorParameters Create()
+    {
+        return new ClassWithManyConstructorParameters(P0: 0";
+
+            for (int i = 1; i < count; i++)
+            {
+                src += ", P" + i + ": " + i;
+            }
+
+            src += @");
+    }
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetCoreApp);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.DesktopLatestExtended);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
         }
     }
 }

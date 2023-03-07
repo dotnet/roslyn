@@ -10,11 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -215,20 +212,20 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             //	
             // If GetOperationsAsync does not adhere to one of these patterns, the code falls back to calling	
             // GetChangedSolutionAsync since there is no clear way to apply the changes otherwise.	
-            var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+            var operations = await codeAction.GetOperationsAsync(
+                document.Project.Solution, progressTracker, cancellationToken).ConfigureAwait(false);
             Solution newSolution;
             if (operations.Length == 0)
             {
                 newSolution = document.Project.Solution;
             }
-            else if (operations.Length == 1 && operations[0] is ApplyChangesOperation applyChangesOperation)
+            else if (operations is [ApplyChangesOperation applyChangesOperation])
             {
                 newSolution = applyChangesOperation.ChangedSolution;
             }
             else
             {
-                newSolution = await codeAction.GetRequiredChangedSolutionAsync(
-                    progressTracker, cancellationToken: cancellationToken).ConfigureAwait(false);
+                newSolution = await codeAction.GetRequiredChangedSolutionAsync(progressTracker, cancellationToken).ConfigureAwait(false);
             }
 
             var newDocument = newSolution.GetRequiredDocument(document.Id);

@@ -22,11 +22,6 @@
         <target state="translated">単一行のコントロール ステートメントに対する必須の波かっこを追加する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">このプロジェクトでアンセーフ コードを許可する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">コンストラクター初期化子のコロンの空白行に関する基本設定を適用する (試験段階)</target>
@@ -152,11 +147,6 @@
         <target state="translated">メソッドに変換</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_positional_record">
-        <source>Convert to positional record</source>
-        <target state="translated">位置指定 record に変換</target>
-        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">生文字列に変換する</target>
@@ -205,21 +195,6 @@
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
         <target state="translated">可能な場合、private フィールドを読み取り専用にする</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_ref_struct">
-        <source>Make 'ref struct'</source>
-        <target state="translated">'ref struct' を作成します</target>
-        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_in_keyword">
-        <source>Remove 'in' keyword</source>
-        <target state="translated">'in' キーワードを削除します</target>
-        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_new_modifier">
-        <source>Remove 'new' modifier</source>
-        <target state="translated">'new' 修飾子の削除</target>
         <note />
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
@@ -677,16 +652,6 @@
         <target state="translated">分解宣言の可能性により、自動選択が無効になりました。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
-        <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="translated">このプロジェクトを C# 言語バージョン '{0}' にアップグレードする</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
-        <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="translated">すべての C# プロジェクトを言語バージョン '{0}' にアップグレードする</target>
-        <note />
-      </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
         <target state="translated">&lt;クラス名&gt;</target>
@@ -707,16 +672,6 @@
         <target state="translated">&lt;構造体名&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_async">
-        <source>Make method async</source>
-        <target state="translated">メソッドを非同期にします</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_method_async_remain_void">
-        <source>Make method async (stay void)</source>
-        <target state="translated">メソッドを非同期にする (void を維持)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;名前&gt;</target>
@@ -732,11 +687,6 @@
         <target state="translated">(推奨される名前)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_function">
-        <source>Remove unused function</source>
-        <target state="translated">使用されていない関数を削除します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
         <target state="translated">'foreach' に変換する</target>
@@ -750,11 +700,6 @@
       <trans-unit id="Invert_if">
         <source>Invert if</source>
         <target state="translated">if を反転する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_0">
-        <source>Use '{0}'</source>
-        <target state="translated">'{0}' を使用します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_using_statement">

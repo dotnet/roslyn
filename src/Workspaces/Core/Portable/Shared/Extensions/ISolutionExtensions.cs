@@ -59,10 +59,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     throw ExceptionUtilities.UnexpectedValue(documentKind);
             }
         }
-
-        public static ImmutableArray<DocumentId> FilterDocumentIdsByLanguage(this Solution solution, ImmutableArray<DocumentId> documentIds, string language)
-            => documentIds.WhereAsArray(
-                (documentId, args) => args.solution.GetDocument(documentId)?.Project.Language == args.language,
-                (solution, language));
     }
 }
