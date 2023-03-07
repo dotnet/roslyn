@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
         protected abstract ISyntaxKinds SyntaxKinds { get; }
         protected abstract bool IsWrittenTo(SemanticModel semanticModel, TThisExpression expression, CancellationToken cancellationToken);
+        protected abstract bool IsLanguageSpecificFieldWriteInConstructor(IFieldReferenceOperation fieldReference, ISymbol owningSymbol);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
@@ -204,7 +205,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             });
         }
 
-        private static bool IsFieldWrite(IFieldReferenceOperation fieldReference, ISymbol owningSymbol)
+        private bool IsFieldWrite(IFieldReferenceOperation fieldReference, ISymbol owningSymbol)
         {
             // Check if the underlying member is being written or a writable reference to the member is taken.
             var valueUsageInfo = fieldReference.GetValueUsageInfo(owningSymbol);
@@ -222,7 +223,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             var isInStaticConstructor = owningSymbol.IsStaticConstructor();
             var field = fieldReference.Field;
             if ((isInConstructor || isInStaticConstructor) &&
-                field.ContainingType == owningSymbol.ContainingType)
+                field.ContainingType.OriginalDefinition.Equals(owningSymbol.ContainingType.OriginalDefinition))
             {
                 // For instance fields, ensure that the instance reference is being initialized by the constructor.
                 var instanceFieldWrittenInCtor = isInConstructor &&
@@ -235,11 +236,14 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 if (instanceFieldWrittenInCtor || staticFieldWrittenInStaticCtor)
                 {
                     // Finally, ensure that the write is not inside a lambda or local function.
-                    if (fieldReference.TryGetContainingAnonymousFunctionOrLocalFunction() is null)
-                    {
-                        // It is safe to ignore this write.
-                        return false;
-                    }
+                    if (fieldReference.TryGetContainingAnonymousFunctionOrLocalFunction() is not null)
+                        return true;
+
+                    if (IsLanguageSpecificFieldWriteInConstructor(fieldReference, owningSymbol))
+                        return true;
+
+                    // It is safe to ignore this write.
+                    return false;
                 }
             }
 
