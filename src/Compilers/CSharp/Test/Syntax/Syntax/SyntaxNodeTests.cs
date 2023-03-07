@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class SyntaxNodeTests
     {
         [Fact]
-        [WorkItem(565382, "https://developercommunity.visualstudio.com/content/problem/565382/compiling-causes-a-stack-overflow-error.html")]
+        [WorkItem("https://developercommunity.visualstudio.com/content/problem/565382/compiling-causes-a-stack-overflow-error.html")]
         public void TestLargeFluentCallWithDirective()
         {
             var builder = new StringBuilder();
@@ -693,7 +693,7 @@ a + b";
             }
         }
 
-        [WorkItem(755236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755236")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755236")]
         [Fact]
         public void TestFindNode()
         {
@@ -748,7 +748,7 @@ a + b";
             Assert.Throws<ArgumentOutOfRangeException>(() => classDecl.FindNode(root.FullSpan));
         }
 
-        [WorkItem(539941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539941")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539941")]
         [Fact]
         public void TestFindTriviaNoTriviaExistsAtPosition()
         {
@@ -898,7 +898,7 @@ a + b";
                 tree2.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single()));
         }
 
-        [Fact, WorkItem(536664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536664")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536664")]
         public void TestTriviaNodeCached()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(" class goo {}");
@@ -1742,7 +1742,7 @@ class A { }
             Assert.Equal(SyntaxKind.EndRegionDirectiveTrivia, related[1].Kind());
         }
 
-        [WorkItem(536995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536995")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536995")]
         [Fact]
         public void TestTextAndSpanWithTrivia1()
         {
@@ -1758,7 +1758,7 @@ class A { }
             Assert.False(rootNode.ToString().Contains("/*START*/"));
         }
 
-        [WorkItem(536996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536996")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536996")]
         [Fact]
         public void TestTextAndSpanWithTrivia2()
         {
@@ -1789,7 +1789,7 @@ namespace Microsoft.CSharp.Test
             Assert.Equal(namespaceNode.Span, nodeOrToken.Span);
         }
 
-        [Fact, WorkItem(537070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537070")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537070")]
         public void TestTraversalUsingCommonSyntaxNodeOrToken()
         {
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(@"class c1
@@ -1809,7 +1809,7 @@ namespace Microsoft.CSharp.Test
             walk(nodeOrToken);
         }
 
-        [WorkItem(537747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537747")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537747")]
         [Fact]
         public void SyntaxTriviaDefaultIsDirective()
         {
@@ -1976,7 +1976,7 @@ namespace Microsoft.CSharp.Test
             Assert.Equal(tt1, tr1);
         }
 
-        [WorkItem(537059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537059")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537059")]
         [Fact]
         public void TestIncompleteDeclWithDotToken()
         {
@@ -1991,7 +1991,7 @@ class Test
             Assert.Equal(SyntaxKind.MethodDeclaration, tree.GetCompilationUnitRoot().ChildNodesAndTokens()[0].ChildNodesAndTokens()[3].Kind());
         }
 
-        [WorkItem(538360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538360")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538360")]
         [Fact]
         public void TestGetTokensLanguageAny()
         {
@@ -2012,7 +2012,7 @@ class Test
             Assert.True(expectedTokenKinds.SequenceEqual(actualTokens.Select(t => t.Kind())));
         }
 
-        [WorkItem(538360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538360")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538360")]
         [Fact]
         public void TestGetTokensCommonAny()
         {
@@ -2809,7 +2809,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemove_KeepEndOfLine()
         {
             var inputText = @"
@@ -2841,7 +2841,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemoveWithoutEOL_KeepEndOfLine()
         {
             var cu = SyntaxFactory.ParseCompilationUnit(@"class A { } class B { } // test");
@@ -2857,7 +2857,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemoveBadDirectiveWithoutEOL_KeepEndOfLine_KeepDirectives()
         {
             var cu = SyntaxFactory.ParseCompilationUnit(@"class A { } class B { } #endregion");
@@ -2873,7 +2873,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemoveDocument_KeepEndOfLine()
         {
             var cu = SyntaxFactory.ParseCompilationUnit(@"
@@ -2888,7 +2888,7 @@ class A
         }
 
         [Fact]
-        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemoveFirstParameterEOLCommaTokenTrailingTrivia_KeepEndOfLine()
         {
             // EOL should be found on CommaToken TrailingTrivia
@@ -2933,7 +2933,7 @@ int b
         }
 
         [Fact]
-        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemoveFirstParameterEOLParameterSyntaxTrailingTrivia_KeepEndOfLine()
         {
             // EOL should be found on ParameterSyntax TrailingTrivia
@@ -2974,7 +2974,7 @@ int b
         }
 
         [Fact]
-        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemoveFirstParameterEOLCommaTokenLeadingTrivia_KeepEndOfLine()
         {
             // EOL should be found on CommaToken LeadingTrivia and also on ParameterSyntax TrailingTrivia
@@ -3018,7 +3018,7 @@ int b
         }
 
         [Fact]
-        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemoveFirstParameter_KeepTrailingTrivia()
         {
             var cu = SyntaxFactory.ParseCompilationUnit(@"
@@ -3059,7 +3059,7 @@ void M(
         }
 
         [Fact]
-        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemoveLastParameterEOLCommaTokenLeadingTrivia_KeepEndOfLine()
         {
             // EOL should be found on CommaToken LeadingTrivia
@@ -3102,7 +3102,7 @@ int a
         }
 
         [Fact]
-        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemoveLastParameterEOLCommaTokenTrailingTrivia_KeepEndOfLine()
         {
             // EOL should be found on CommaToken TrailingTrivia
@@ -3142,7 +3142,7 @@ int a
         }
 
         [Fact]
-        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemoveLastParameterEOLParameterSyntaxLeadingTrivia_KeepEndOfLine()
         {
             // EOL should be found on ParameterSyntax LeadingTrivia and also on CommaToken TrailingTrivia
@@ -3185,7 +3185,7 @@ int a
         }
 
         [Fact]
-        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemoveLastParameter_KeepLeadingTrivia()
         {
             var cu = SyntaxFactory.ParseCompilationUnit(@"
@@ -3225,7 +3225,7 @@ int a /* after comma */
         }
 
         [Fact]
-        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemoveClassWithEndRegionDirectiveWithoutEOL_KeepEndOfLine_KeepDirectives()
         {
             var inputText = @"
@@ -3311,7 +3311,7 @@ class A { } #endregion";
             }
         }
 
-        [WorkItem(541188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541188")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541188")]
         [Fact]
         public void GetDiagnosticsOnMissingToken()
         {
@@ -3323,7 +3323,7 @@ class A { } #endregion";
             Assert.Equal(1, diag.Count);
         }
 
-        [WorkItem(541325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541325")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541325")]
         [Fact]
         public void GetDiagnosticsOnMissingToken2()
         {
@@ -3351,7 +3351,7 @@ class Base<T>
             // TODO: Please add meaningful checks once the above deadlock issue is fixed.
         }
 
-        [WorkItem(541648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541648")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541648")]
         [Fact]
         public void GetDiagnosticsOnMissingToken4()
         {
@@ -3373,7 +3373,7 @@ public class Test1
             Assert.Equal(3, diag.Count);
         }
 
-        [WorkItem(541630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541630")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541630")]
         [Fact]
         public void GetDiagnosticsOnBadReferenceDirective()
         {
@@ -3394,7 +3394,7 @@ public class Test1
             }
         }
 
-        [WorkItem(528626, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528626")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528626")]
         [Fact]
         public void SpanOfNodeWithMissingChildren()
         {
@@ -3415,7 +3415,7 @@ public class Test1
             Assert.NotEqual(0, paramList.FullWidth);
         }
 
-        [WorkItem(542457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542457")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542457")]
         [Fact]
         public void AddMethodModifier()
         {
@@ -3452,7 +3452,7 @@ class Program
             Assert.Throws<ArgumentException>(() => SyntaxFactory.SeparatedList<TypeSyntax>(new SyntaxNodeOrToken[] { intType, intType }));
         }
 
-        [WorkItem(543310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543310")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543310")]
         [Fact]
         public void SyntaxDotParseCompilationUnitContainingOnlyWhitespace()
         {
@@ -3463,7 +3463,7 @@ class Program
             Assert.Equal("  ", node.GetLeadingTrivia().First().ToString());
         }
 
-        [WorkItem(543310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543310")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543310")]
         [Fact]
         public void SyntaxTreeDotParseCompilationUnitContainingOnlyWhitespace()
         {
@@ -3498,7 +3498,7 @@ class Program
             Assert.Equal(" ", trivia.ToFullString());
         }
 
-        [WorkItem(545116, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545116")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545116")]
         [Fact]
         public void FindTriviaOutsideNode()
         {
@@ -3606,7 +3606,7 @@ namespace HelloWorld
             Assert.Equal(ChangesFromTransform, changes2UsingCommonSyntax);
         }
 
-        [Fact, WorkItem(658329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658329")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658329")]
         public void TestSyntaxTree_GetChangesInvalid()
         {
             string SourceText = @"using System;
@@ -3639,7 +3639,7 @@ namespace HelloWorld
             Assert.Throws<ArgumentNullException>(() => FirstUsingClause.SyntaxTree.GetChanges(BlankTree));
         }
 
-        [Fact, WorkItem(658329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658329")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658329")]
         public void TestSyntaxTree_GetChangedSpansInvalid()
         {
             string SourceText = @"using System;
@@ -3776,7 +3776,7 @@ namespace HelloWorld
             Assert.Equal(2, nodeOrToken.GetTrailingTrivia().Span.Length); // zero-width elastic trivia
         }
 
-        [WorkItem(6536, "https://github.com/dotnet/roslyn/issues/6536")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/6536")]
         [Fact]
         public void TestFindTrivia_NoStackOverflowOnLargeExpression()
         {
@@ -3800,7 +3800,7 @@ namespace HelloWorld
             // no stack overflow
         }
 
-        [Fact, WorkItem(8625, "https://github.com/dotnet/roslyn/issues/8625")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8625")]
         public void SyntaxNodeContains()
         {
             var text = "a + (b - (c * (d / e)))";
@@ -3814,7 +3814,7 @@ namespace HelloWorld
             Assert.True(firstParens.Contains(e));
         }
 
-        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54239")]
         public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax_AddAsync()
         {
             var text = "static delegate(int i) { }";
@@ -3823,7 +3823,7 @@ namespace HelloWorld
             Assert.Equal("static async delegate(int i) { }", withAsync);
         }
 
-        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54239")]
         public void TestWithAsyncKeyword_ParenthesizedLambdaExpressionSyntax_AddAsync()
         {
             var text = "static (a) => { }";
@@ -3832,7 +3832,7 @@ namespace HelloWorld
             Assert.Equal("static async (a) => { }", withAsync);
         }
 
-        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54239")]
         public void TestWithAsyncKeyword_SimpleLambdaExpressionSyntax_AddAsync()
         {
             var text = "static a => { }";
@@ -3841,7 +3841,7 @@ namespace HelloWorld
             Assert.Equal("static async a => { }", withAsync);
         }
 
-        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54239")]
         public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax_ReplaceAsync()
         {
             var text = "static async/**/delegate(int i) { }";
@@ -3850,7 +3850,7 @@ namespace HelloWorld
             Assert.Equal("static async delegate(int i) { }", withAsync);
         }
 
-        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54239")]
         public void TestWithAsyncKeyword_ParenthesizedLambdaExpressionSyntax_ReplaceAsync()
         {
             var text = "static async/**/(a) => { }";
@@ -3859,7 +3859,7 @@ namespace HelloWorld
             Assert.Equal("static async (a) => { }", withAsync);
         }
 
-        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54239")]
         public void TestWithAsyncKeyword_SimpleLambdaExpressionSyntax_ReplaceAsync()
         {
             var text = "static async/**/a => { }";
@@ -3868,7 +3868,7 @@ namespace HelloWorld
             Assert.Equal("static async a => { }", withAsync);
         }
 
-        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54239")]
         public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax_RemoveExistingAsync()
         {
             var text = "static async/**/delegate(int i) { }";
@@ -3877,7 +3877,7 @@ namespace HelloWorld
             Assert.Equal("static delegate(int i) { }", withAsync);
         }
 
-        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54239")]
         public void TestWithAsyncKeyword_ParenthesizedLambdaExpressionSyntax_RemoveExistingAsync()
         {
             var text = "static async (a) => { }";
@@ -3886,7 +3886,7 @@ namespace HelloWorld
             Assert.Equal("static (a) => { }", withAsync);
         }
 
-        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54239")]
         public void TestWithAsyncKeyword_SimpleLambdaExpressionSyntax_RemoveExistingAsync()
         {
             var text = "static async/**/a => { }";
@@ -3895,7 +3895,7 @@ namespace HelloWorld
             Assert.Equal("static a => { }", withAsync);
         }
 
-        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54239")]
         public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax_RemoveNonExistingAsync()
         {
             var text = "static delegate(int i) { }";
@@ -3904,7 +3904,7 @@ namespace HelloWorld
             Assert.Equal(text, withAsync);
         }
 
-        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54239")]
         public void TestWithAsyncKeyword_ParenthesizedLambdaExpressionSyntax_RemoveNonExistingAsync()
         {
             var text = "static (a) => { }";
@@ -3913,7 +3913,7 @@ namespace HelloWorld
             Assert.Equal(text, withAsync);
         }
 
-        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54239")]
         public void TestWithAsyncKeyword_SimpleLambdaExpressionSyntax_RemoveNonExistingAsync()
         {
             var text = "static a => { }";
@@ -3922,7 +3922,7 @@ namespace HelloWorld
             Assert.Equal(text, withAsync);
         }
 
-        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54239")]
         public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax_ReplaceAsync_ExistingTwoKeywords()
         {
             var text = "static async/*async1*/ async/*async2*/delegate(int i) { }";
@@ -3932,7 +3932,7 @@ namespace HelloWorld
             Assert.Equal("static async async/*async2*/delegate(int i) { }", withAsync);
         }
 
-        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54239")]
         public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax_RemoveAllExistingAsync()
         {
             var text = "static async/*async1*/ async/*async2*/ delegate(int i) { }";
@@ -3960,7 +3960,7 @@ namespace HelloWorld
         }
 
         [Fact]
-        [WorkItem(56740, "https://github.com/dotnet/roslyn/issues/56740")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/56740")]
         public void TestStackAllocKeywordUpdate()
         {
             var text = "stackalloc/**/int[50]";
@@ -3971,7 +3971,7 @@ namespace HelloWorld
         }
 
         [Fact]
-        [WorkItem(58597, "https://github.com/dotnet/roslyn/issues/58597")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58597")]
         public void TestExclamationExclamationUpdate()
         {
             var text = "(string s!!)";

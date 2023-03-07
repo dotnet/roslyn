@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact, WorkItem(33685, "https://github.com/dotnet/roslyn/issues/33685")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33685")]
         public void ConvenienceSwitchStatementFactoriesAddParensWhenNeeded_01()
         {
             var expression = SyntaxFactory.ParseExpression("x");
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, sw2.CloseParenToken.Kind());
         }
 
-        [Fact, WorkItem(33685, "https://github.com/dotnet/roslyn/issues/33685")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33685")]
         public void ConvenienceSwitchStatementFactoriesAddParensWhenNeeded_02()
         {
             var expression = SyntaxFactory.ParseExpression("(x)");
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, sw2.CloseParenToken.Kind());
         }
 
-        [Fact, WorkItem(33685, "https://github.com/dotnet/roslyn/issues/33685")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33685")]
         public void ConvenienceSwitchStatementFactoriesOmitParensWhenPossible()
         {
             var expression = SyntaxFactory.ParseExpression("(1, 2)");

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [Fact]
-        [WorkItem(15358, "https://github.com/dotnet/roslyn/issues/15358")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15358")]
         public void WithDocumentationModeDoesntChangeFeatures()
         {
             var kvp = new KeyValuePair<string, string>("IOperation", "true");

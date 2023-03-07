@@ -2029,7 +2029,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12402")]
-        [WorkItem(12402, "https://github.com/dotnet/roslyn/issues/12402")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12402")]
         public void ConfusedForWithDeconstruction()
         {
             var text = "for ((int x, var (y, z)) in goo) { }";
@@ -2050,7 +2050,7 @@ class C
             Assert.Equal(SyntaxKind.TupleType, nullable.ElementType.Kind());
         }
 
-        [Fact, WorkItem(12803, "https://github.com/dotnet/roslyn/issues/12803")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12803")]
         public void BadTupleElementTypeInDeconstruction01()
         {
             var source =
@@ -2078,7 +2078,7 @@ namespace System
                 );
         }
 
-        [Fact, WorkItem(12803, "https://github.com/dotnet/roslyn/issues/12803")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12803")]
         public void MixedDeclarationAndAssignmentInTupleDeconstruct()
         {
             var source =
@@ -2104,7 +2104,7 @@ namespace System
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(12803, "https://github.com/dotnet/roslyn/issues/12803")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12803")]
         public void MixedDeclarationAndAssignmentInTupleDeconstructCSharp9()
         {
             var source =
@@ -2136,7 +2136,7 @@ namespace System
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(x3, int x4) = (1, 2)").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(8, 9));
         }
 
-        [Fact, WorkItem(12803, "https://github.com/dotnet/roslyn/issues/12803")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12803")]
         public void SwapAssignmentShouldNotBeParsedAsDeconstructionDeclaration()
         {
             var source =
@@ -3356,7 +3356,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(15934, "https://github.com/dotnet/roslyn/issues/15934")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15934")]
         public void PointerTypeInDeconstruction()
         {
             string source = @"

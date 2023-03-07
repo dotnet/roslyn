@@ -291,7 +291,7 @@ class D {}
             }, InspectLineMapping(syntaxTree));
         }
 
-        [WorkItem(537005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537005")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537005")]
         [Fact]
         public void TestMissingTokenAtEndOfLine()
         {
@@ -354,7 +354,7 @@ comment*/
             Assert.Equal(flps, new FileLinePositionSpan("c:\\goo.cs", new LinePosition(8, 13), new LinePosition(8, 13)));
         }
 
-        [WorkItem(537537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537537")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537537")]
         [Fact]
         public void TestDiagnosticSpanForIdentifierExpectedError()
         {
@@ -379,7 +379,7 @@ class Program
             Assert.Equal(flps, new FileLinePositionSpan("c:\\goo.cs", new LinePosition(8, 15), new LinePosition(8, 19)));
         }
 
-        [WorkItem(540077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540077")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540077")]
         [Fact]
         public void TestDiagnosticSpanForErrorAtLastToken()
         {
@@ -401,7 +401,7 @@ class C
             }
         }
 
-        [WorkItem(537215, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537215")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537215")]
         [Fact]
         public void TestLineMappingForErrors()
         {
@@ -436,7 +436,7 @@ end class";
             Assert.NotEqual(loc3, loc4);
         }
 
-        [WorkItem(541612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541612")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541612")]
         [Fact]
         public void DiagnosticsGetLineSpanForErrorinTryCatch()
         {
@@ -467,7 +467,7 @@ class Program
             }
         }
 
-        [WorkItem(537926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537926")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537926")]
         [ClrOnlyFact]
         public void TestSourceLocationToString()
         {
@@ -507,7 +507,7 @@ class MainClass
             Assert.Equal("test.txt(3,2): warning CS0000: msg", CSharpDiagnosticFormatter.Instance.Format(diagnostic, EnsureEnglishUICulture.PreferredOrNull));
         }
 
-        [Fact, WorkItem(64236, "https://github.com/dotnet/roslyn/issues/64236")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64236")]
         public void TestExternalLocationWithMappedPathAndSpan()
         {
             var filePath = "test.txt";
@@ -547,7 +547,7 @@ class MainClass
             Assert.True(mappedLineInfo.HasMappedPath);
         }
 
-        [WorkItem(1097381, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097381")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097381")]
         [Fact]
         public void TestDiagnosticsLocationsExistInsideTreeSpan()
         {
@@ -576,7 +576,7 @@ class MainClass
             Assert.Equal(5, lineSpan.EndLinePosition.Character);
         }
 
-        [WorkItem(1097381, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097381")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097381")]
         [Fact]
         public void TestDiagnosticsLocationsExistInsideTreeSpan_ZeroWidthTree()
         {

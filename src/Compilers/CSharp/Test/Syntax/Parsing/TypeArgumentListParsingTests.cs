@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseSyntaxTree(text, options: options);
         }
 
-        [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19456")]
         public void TestPredefinedType()
         {
             UsingTree(@"
@@ -135,7 +135,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19456")]
         public void TestArrayType()
         {
             UsingTree(@"
@@ -263,7 +263,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19456")]
         public void TestPredefinedPointerType()
         {
             UsingTree(@"
@@ -383,7 +383,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19456")]
         public void TestNonPredefinedPointerType()
         {
             UsingTree(@"
@@ -529,7 +529,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19456")]
         public void TestTwoItemTupleType()
         {
             UsingTree(@"
@@ -685,7 +685,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19456")]
         public void TestComparisonToTuple()
         {
             UsingTree(@"
@@ -995,7 +995,7 @@ struct XX
             EOF();
         }
 
-        [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19456")]
         public void TestOneItemTupleType()
         {
             UsingTree(@"
@@ -1134,7 +1134,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19456")]
         public void TestQualifiedName()
         {
             UsingTree(@"
@@ -1276,7 +1276,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19456")]
         public void TestAliasName()
         {
             UsingTree(@"
@@ -1418,7 +1418,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19456")]
         public void TestNullableTypeWithComma()
         {
             UsingTree(@"
@@ -1538,7 +1538,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19456")]
         public void TestNullableTypeWithGreaterThan()
         {
             UsingTree(@"
@@ -1639,7 +1639,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19456")]
         public void TestNotNullableType()
         {
             UsingTree(@"
@@ -1743,7 +1743,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19456")]
         public void TestGenericArgWithComma_01()
         {
             UsingTree(@"
@@ -1998,7 +1998,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19456")]
         public void TestGenericArgWithComma_03()
         {
             UsingTree(@"
@@ -2132,7 +2132,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19456")]
         public void TestGenericArgWithComma_04()
         {
             UsingTree(@"
@@ -2266,7 +2266,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19456")]
         public void TestGenericArgWithGreaterThan_01()
         {
             UsingTree(@"

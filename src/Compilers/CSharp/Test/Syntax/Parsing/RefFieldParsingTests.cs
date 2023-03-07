@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64720")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64720")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [Theory, WorkItem(62120, "https://github.com/dotnet/roslyn/issues/62120")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/62120")]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
         public void ObjectInitializer(LanguageVersion languageVersion)
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [Theory, WorkItem(62120, "https://github.com/dotnet/roslyn/issues/62120")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/62120")]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
         public void ObjectInitializer_CompoundAssignment(LanguageVersion languageVersion)

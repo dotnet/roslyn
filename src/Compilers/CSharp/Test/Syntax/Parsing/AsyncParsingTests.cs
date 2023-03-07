@@ -278,7 +278,7 @@ class C
             }
         }
 
-        [WorkItem(13090, "https://github.com/dotnet/roslyn/issues/13090")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13090")]
         [Fact]
         public void MethodAsyncVarAsync()
         {
@@ -663,7 +663,7 @@ class C
             EOF();
         }
 
-        [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
         [Fact]
         public void IncompleteAsyncMember01()
         {
@@ -709,7 +709,7 @@ class C
             }
         }
 
-        [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
         [Fact]
         public void IncompleteAsyncMember02()
         {
@@ -763,7 +763,7 @@ class C
             }
         }
 
-        [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
         [Fact]
         public void IncompleteAsyncMember03()
         {
@@ -818,7 +818,7 @@ class C
             }
         }
 
-        [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
         [Fact]
         public void IncompleteAsyncMember04()
         {
@@ -869,7 +869,7 @@ class C
             }
         }
 
-        [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
         [Fact]
         public void IncompleteAsyncMember05()
         {
@@ -913,7 +913,7 @@ class C
             }
         }
 
-        [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
         [Fact]
         public void IncompleteAsyncMember06()
         {
@@ -2332,7 +2332,7 @@ namespace",
             EOF();
         }
 
-        [Fact, WorkItem(18621, "https://github.com/dotnet/roslyn/issues/18621")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18621")]
         public void AsyncGenericType()
         {
             UsingTree(
@@ -2386,7 +2386,7 @@ namespace",
         }
 
         [Fact]
-        [WorkItem(16044, "https://github.com/dotnet/roslyn/issues/16044")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16044")]
         public void AsyncAsType_Property_ExpressionBody()
         {
             var test = "class async { async async => null; }";
@@ -2436,7 +2436,7 @@ namespace",
         }
 
         [Fact]
-        [WorkItem(16044, "https://github.com/dotnet/roslyn/issues/16044")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16044")]
         public void AsyncAsType_Property()
         {
             UsingTree("class async { async async { get; } }").GetDiagnostics().Verify();
@@ -2473,7 +2473,7 @@ namespace",
         }
 
         [Fact]
-        [WorkItem(16044, "https://github.com/dotnet/roslyn/issues/16044")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16044")]
         public void AsyncAsType_Indexer_ExpressionBody_ErrorCase()
         {
             var text = "interface async { async this[async i] => null; }";
@@ -2539,7 +2539,7 @@ namespace",
         }
 
         [Fact]
-        [WorkItem(16044, "https://github.com/dotnet/roslyn/issues/16044")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16044")]
         public void AsyncAsType_Indexer()
         {
             UsingTree("interface async { async this[async i] { get; } }").GetDiagnostics().Verify();
@@ -2589,7 +2589,7 @@ namespace",
         }
 
         [Fact]
-        [WorkItem(16044, "https://github.com/dotnet/roslyn/issues/16044")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16044")]
         public void AsyncAsType_Property_ExplicitInterface()
         {
             var test = "class async : async { async async.async => null; }";

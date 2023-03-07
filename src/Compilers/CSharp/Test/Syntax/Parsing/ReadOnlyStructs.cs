@@ -192,7 +192,7 @@ class Program
             Assert.True(s2.IsReadOnly);
         }
 
-        [WorkItem(19808, "https://github.com/dotnet/roslyn/issues/19808")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19808")]
         [Fact]
         public void ReadOnlyStructPartialNotMatchingModifiers()
         {

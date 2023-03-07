@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static readonly IEnumerable<object[]> Regular10AndScript = new[] { new[] { TestOptions.Regular10 }, new[] { TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10) } };
 
         [Fact]
-        [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/367")]
         public void ParsePrivate()
         {
             UsingDeclaration("private", options: null,
@@ -46,21 +46,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/367")]
         public void ParseEmpty()
         {
             Assert.Null(ParseDeclaration(""));
         }
 
         [Fact]
-        [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/367")]
         public void ParseTrash()
         {
             Assert.Null(ParseDeclaration("+-!@#$%^&*()"));
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
-        [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/367")]
         public void ParseOverflow()
         {
             const int n = 10000;
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
-        [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/367")]
         public void ParseOverflow2()
         {
             const int n = 10000;
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/367")]
         public void Statement()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/367")]
         public void Namespace()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/367")]
         public void TypeDeclaration()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/367")]
         public void MethodDeclaration()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/367")]
         public void FieldDeclaration()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/367")]
         public void CtorDeclaration()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/367")]
         public void DtorDeclaration()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/367")]
         public void ConversionDeclaration()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/367")]
         public void OperatorDeclaration()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/367")]
         public void TrashAfterDeclaration()
         {
             UsingDeclaration("public int x; public int y", offset: 0, options: null, consumeFullText: true,
@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(11959, "https://github.com/dotnet/roslyn/issues/11959")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11959")]
         public void GenericAsyncTask_01()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -821,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(11959, "https://github.com/dotnet/roslyn/issues/11959")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11959")]
         public void GenericPublicTask_01()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -872,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(11959, "https://github.com/dotnet/roslyn/issues/11959")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11959")]
         public void GenericAsyncTask_02()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(11959, "https://github.com/dotnet/roslyn/issues/11959")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11959")]
         public void GenericPublicTask_02()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -958,7 +958,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(11959, "https://github.com/dotnet/roslyn/issues/11959")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11959")]
         public void GenericAsyncTask_03()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -1005,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(11959, "https://github.com/dotnet/roslyn/issues/11959")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11959")]
         public void GenericPublicTask_03()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -2255,7 +2255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [Theory, CompilerTrait(CompilerFeature.RequiredMembers), WorkItem(61510, "https://github.com/dotnet/roslyn/issues/61510")]
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers), WorkItem("https://github.com/dotnet/roslyn/issues/61510")]
         [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
         public void RequiredModifier_LocalNamedRequired_TopLevelStatements(CSharpParseOptions parseOptions)
         {
@@ -8895,7 +8895,7 @@ Func<int, int> f1 = (param1) => 10;
         }
 
         [Fact]
-        [WorkItem(53021, "https://github.com/dotnet/roslyn/issues/53021")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/53021")]
         public void MisplacedColonColon_01()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -8949,7 +8949,7 @@ Func<int, int> f1 = (param1) => 10;
         }
 
         [Fact]
-        [WorkItem(53021, "https://github.com/dotnet/roslyn/issues/53021")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/53021")]
         public void MisplacedColonColon_02()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -9011,7 +9011,7 @@ Func<int, int> f1 = (param1) => 10;
         }
 
         [Fact]
-        [WorkItem(53021, "https://github.com/dotnet/roslyn/issues/53021")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/53021")]
         public void MisplacedColonColon_03()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -9073,7 +9073,7 @@ Func<int, int> f1 = (param1) => 10;
         }
 
         [Fact]
-        [WorkItem(53021, "https://github.com/dotnet/roslyn/issues/53021")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/53021")]
         public void MisplacedColonColon_04()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -9119,7 +9119,7 @@ Func<int, int> f1 = (param1) => 10;
         }
 
         [Fact]
-        [WorkItem(53021, "https://github.com/dotnet/roslyn/issues/53021")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/53021")]
         public void MisplacedColonColon_05()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -9168,7 +9168,7 @@ Func<int, int> f1 = (param1) => 10;
             }
         }
 
-        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59495")]
         public void EnumConstraint_OnMethod()
         {
             UsingNode(@"
@@ -9239,7 +9239,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59495")]
         public void EnumConstraint_OnType()
         {
             UsingNode(@"
@@ -9289,7 +9289,7 @@ interface I<T> where T : /*comment*/ enum /*comment*/ { }
             EOF();
         }
 
-        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59495")]
         public void EnumConstraint_OnDelegate()
         {
             UsingNode(@"
@@ -9357,7 +9357,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59495")]
         public void EnumConstraint_OnLocalFunction()
         {
             UsingNode(@"
@@ -9449,7 +9449,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59495")]
         public void DelegateConstraint_OnType_First()
         {
             UsingNode(@"
@@ -9499,7 +9499,7 @@ class C<T> where T : /*comment*/ delegate /*comment*/ { }
             EOF();
         }
 
-        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59495")]
         public void DelegateConstraint_OnType_AfterClass()
         {
             UsingNode(@"
@@ -9554,7 +9554,7 @@ class C<T> where T : class, /*comment*/ delegate /*comment*/ { }
             EOF();
         }
 
-        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59495")]
         public void DelegateConstraint_OnType_AfterType()
         {
             UsingNode(@"
@@ -9612,7 +9612,7 @@ class C<T> where T : Type, /*comment*/ delegate /*comment*/ { }
             EOF();
         }
 
-        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59495")]
         public void DelegateConstraint_OnType_AtEOF()
         {
             UsingNode(@"record R<T> where T : delegate", options: TestOptions.Regular,
@@ -10002,7 +10002,7 @@ class C<T> where T : Type, /*comment*/ delegate /*comment*/ { }
             EOF();
         }
 
-        [Theory, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60394")]
         [InlineData("+", SyntaxKind.PlusToken)]
         [InlineData("-", SyntaxKind.MinusToken)]
         [InlineData("!", SyntaxKind.ExclamationToken)]
@@ -10052,7 +10052,7 @@ class C<T> where T : Type, /*comment*/ delegate /*comment*/ { }
             EOF();
         }
 
-        [Theory, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60394")]
         [InlineData("+", SyntaxKind.PlusToken)]
         [InlineData("-", SyntaxKind.MinusToken)]
         [InlineData("*", SyntaxKind.AsteriskToken)]
@@ -10128,7 +10128,7 @@ class C<T> where T : Type, /*comment*/ delegate /*comment*/ { }
             EOF();
         }
 
-        [Theory, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60394")]
         [InlineData("implicit", SyntaxKind.ImplicitKeyword)]
         [InlineData("explicit", SyntaxKind.ExplicitKeyword)]
         public void UnheckedOperatorDeclaration_05(string op, SyntaxKind opToken)
@@ -10172,7 +10172,7 @@ class C<T> where T : Type, /*comment*/ delegate /*comment*/ { }
             EOF();
         }
 
-        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63758")]
         public void ReadonlyParameter1()
         {
             UsingTree(@"
@@ -10278,7 +10278,7 @@ public class Derived : Base {
             EOF();
         }
 
-        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63758")]
         public void ReadonlyParameter2()
         {
             UsingExpression(@"
@@ -10310,7 +10310,7 @@ public class Derived : Base {
             EOF();
         }
 
-        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63758")]
         public void ReadonlyParameter3()
         {
             UsingExpression(@"
@@ -10343,7 +10343,7 @@ public class Derived : Base {
             EOF();
         }
 
-        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63758")]
         public void ReadonlyParameter4()
         {
             UsingExpression(@"
@@ -10376,7 +10376,7 @@ public class Derived : Base {
             EOF();
         }
 
-        [Fact, WorkItem(52, "https://github.com/dotnet/roslyn/issues/52")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52")]
         public void PropertyWithErrantSemicolon1()
         {
             var text = @"
@@ -10430,7 +10430,7 @@ public class Class
             EOF();
         }
 
-        [Fact, WorkItem(52, "https://github.com/dotnet/roslyn/issues/52")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52")]
         public void PropertyWithErrantSemicolon2()
         {
             var text = @"

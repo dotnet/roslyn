@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(17458, "https://github.com/dotnet/roslyn/issues/17458")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17458")]
         public void ParsePrivate()
         {
             UsingStatement("private",
@@ -2512,7 +2512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(36413, "https://github.com/dotnet/roslyn/issues/36413")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36413")]
         public void TestUsingVarWithInvalidDeclaration()
         {
             var text = "using public readonly var a = b;";
@@ -2673,7 +2673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact, WorkItem(30565, "https://github.com/dotnet/roslyn/issues/30565")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30565")]
         public void AwaitUsingVarWithVarDecl_Reversed()
         {
             UsingTree(@"
@@ -3389,7 +3389,7 @@ class C
             Assert.NotNull(fs.Statement);
         }
 
-        [WorkItem(684860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684860")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684860")]
         [Fact]
         public void Bug684860_SkippedTokens()
         {
@@ -3414,7 +3414,7 @@ class C
             Assert.True((tokens2.Length - tokens1.Length) > n);
         }
 
-        [WorkItem(684860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684860")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684860")]
         [Fact]
         public void Bug684860_XmlText()
         {
@@ -3538,7 +3538,7 @@ class Program
                 CSharpTestBase.Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(9, 10));
         }
 
-        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/6676")]
         [Fact]
         public void TestRunEmbeddedStatementNotFollowedBySemicolon()
         {
@@ -3553,7 +3553,7 @@ System.Console.WriteLine(true)";
             Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, statement.Errors()[0].Code);
         }
 
-        [WorkItem(266237, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=266237")]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=266237")]
         [Fact]
         public void NullExceptionInLabeledStatement()
         {
@@ -3586,7 +3586,7 @@ System.Console.WriteLine(true)";
             EOF();
         }
 
-        [WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27866")]
         [Fact]
         public void ParseElseWithoutPrecedingIfStatement()
         {
@@ -3640,7 +3640,7 @@ System.Console.WriteLine(true)";
             EOF();
         }
 
-        [WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27866")]
         [Fact]
         public void ParseElseAndElseWithoutPrecedingIfStatement()
         {
@@ -3744,7 +3744,7 @@ System.Console.WriteLine(true)";
             EOF();
         }
 
-        [WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27866")]
         [Fact]
         public void ParseSubsequentElseWithoutPrecedingIfStatement()
         {
@@ -3827,7 +3827,7 @@ System.Console.WriteLine(true)";
             EOF();
         }
 
-        [WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27866")]
         [Fact]
         public void ParseElseKeywordPlacedAsIfEmbeddedStatement()
         {
@@ -4252,7 +4252,7 @@ System.Console.WriteLine(true)";
             EOF();
         }
 
-        [Fact, WorkItem(66971, "https://github.com/dotnet/roslyn/issues/66971")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66971")]
         public void ParseCaseWithoutSwitch()
         {
             UsingTree("""
@@ -4382,7 +4382,7 @@ System.Console.WriteLine(true)";
             EOF();
         }
 
-        [Fact, WorkItem(66971, "https://github.com/dotnet/roslyn/issues/66971")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66971")]
         public void ParseErrantStatementInCase1()
         {
             UsingTree("""
@@ -4546,7 +4546,7 @@ System.Console.WriteLine(true)";
             EOF();
         }
 
-        [Fact, WorkItem(66971, "https://github.com/dotnet/roslyn/issues/66971")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66971")]
         public void ParseErrantStatementInCase2()
         {
             UsingTree("""

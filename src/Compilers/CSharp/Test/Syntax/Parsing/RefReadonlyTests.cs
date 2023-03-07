@@ -466,7 +466,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(4, 16));
         }
 
-        [Fact, WorkItem(25264, "https://github.com/dotnet/roslyn/issues/25264")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25264")]
         public void TestNewRefArray()
         {
             UsingStatement("new ref[];",

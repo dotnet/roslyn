@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
         }
 
-        [WorkItem(23272, "https://github.com/dotnet/roslyn/issues/23272")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23272")]
         [Fact]
         public void PartialAccessibilityAndNullableArray()
         {
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [WorkItem(24482, "https://github.com/dotnet/roslyn/issues/24482")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24482")]
         [Fact]
         public void NullableArray_Cast_01()
         {
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [WorkItem(24482, "https://github.com/dotnet/roslyn/issues/24482")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24482")]
         [Fact]
         public void NullableArray_Cast_02()
         {
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [WorkItem(24482, "https://github.com/dotnet/roslyn/issues/24482")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24482")]
         [Fact]
         public void NullableArray_Cast_03()
         {
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [WorkItem(24482, "https://github.com/dotnet/roslyn/issues/24482")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24482")]
         [Fact]
         public void NullableArray_Cast_04()
         {
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [WorkItem(24482, "https://github.com/dotnet/roslyn/issues/24482")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24482")]
         [Fact]
         public void NullableArray_Cast_05()
         {

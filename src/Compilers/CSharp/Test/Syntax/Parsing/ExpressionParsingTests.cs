@@ -516,7 +516,7 @@ class C
             Assert.Equal(SyntaxKind.StringLiteralToken, us.Token.Kind());
         }
 
-        [WorkItem(540379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540379")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540379")]
         [Fact]
         public void TestVerbatimLiteralExpression()
         {
@@ -3002,7 +3002,7 @@ class C
             Assert.Equal("y", gs.ByExpression.ToString());
         }
 
-        [WorkItem(543075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543075")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543075")]
         [Fact]
         public void UnterminatedRankSpecifier()
         {
@@ -3016,7 +3016,7 @@ class C
             Assert.Equal(1, arrayCreation.Type.RankSpecifiers.Single().Rank);
         }
 
-        [WorkItem(543075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543075")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543075")]
         [Fact]
         public void UnterminatedTypeArgumentList()
         {
@@ -3030,7 +3030,7 @@ class C
             Assert.Equal(1, ((NameSyntax)objectCreation.Type).Arity);
         }
 
-        [WorkItem(675602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/675602")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/675602")]
         [Fact]
         public void QueryKeywordInObjectInitializer()
         {
@@ -3057,7 +3057,7 @@ class C
             Assert.Equal(SyntaxKind.ElementAccessExpression, parenExp.Expression.Kind());
         }
 
-        [WorkItem(543993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543993")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543993")]
         [Fact]
         public void ShiftOperator()
         {
@@ -3110,7 +3110,7 @@ class C
             }
         }
 
-        [WorkItem(1091974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091974")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091974")]
         [Fact]
         public void ParseBigExpression()
         {
@@ -3138,7 +3138,7 @@ namespace WB.Core.SharedKernels.DataCollection.Generated
             Assert.Equal(SyntaxKind.CompilationUnit, root.Kind());
         }
 
-        [Fact, WorkItem(15885, "https://github.com/dotnet/roslyn/pull/15885")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/15885")]
         public void InProgressLocalDeclaration1()
         {
             const string text = @"
@@ -3236,7 +3236,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(15885, "https://github.com/dotnet/roslyn/pull/15885")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/15885")]
         public void InProgressLocalDeclaration2()
         {
             const string text = @"
@@ -3331,7 +3331,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(15885, "https://github.com/dotnet/roslyn/pull/15885")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/15885")]
         public void InProgressLocalDeclaration3()
         {
             const string text = @"
@@ -3405,7 +3405,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(15885, "https://github.com/dotnet/roslyn/pull/15885")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/15885")]
         public void InProgressLocalDeclaration4()
         {
             const string text = @"
@@ -3487,7 +3487,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(15885, "https://github.com/dotnet/roslyn/pull/15885")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/15885")]
         public void InProgressLocalDeclaration5()
         {
             const string text = @"
@@ -3566,7 +3566,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(15885, "https://github.com/dotnet/roslyn/pull/15885")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/15885")]
         public void InProgressLocalDeclaration6()
         {
             const string text = @"
@@ -3639,7 +3639,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(15885, "https://github.com/dotnet/roslyn/pull/15885")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/15885")]
         public void InProgressLocalDeclaration7()
         {
             const string text = @"
@@ -3721,7 +3721,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(15885, "https://github.com/dotnet/roslyn/pull/15885")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/15885")]
         public void InProgressLocalDeclaration8()
         {
             const string text = @"
@@ -3818,7 +3818,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(377556, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
         public void TypeArgumentShiftAmbiguity_01()
         {
             const string text = @"
@@ -3905,7 +3905,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(377556, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
         public void TypeArgumentShiftAmbiguity_02()
         {
             const string text = @"
@@ -4001,7 +4001,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(377556, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
         public void TypeArgumentShiftAmbiguity_03()
         {
             const string text = @"
@@ -4087,7 +4087,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(377556, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
         public void TypeArgumentShiftAmbiguity_04()
         {
             const string text = @"
@@ -4182,7 +4182,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(377556, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
         public void TypeArgumentShiftAmbiguity_05()
         {
             const string text = @"
@@ -4275,7 +4275,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(377556, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
         public void TypeArgumentShiftAmbiguity_06()
         {
             const string text = @"
@@ -4380,7 +4380,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(377556, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
         public void TypeArgumentShiftAmbiguity_07()
         {
             const string text = @"
@@ -4485,7 +4485,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(377556, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
         public void TypeArgumentShiftAmbiguity_08()
         {
             const string text = @"
@@ -4571,7 +4571,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(377556, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
         public void TypeArgumentShiftAmbiguity_09()
         {
             const string text = @"
@@ -4667,7 +4667,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(377556, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
         public void TypeArgumentShiftAmbiguity_10()
         {
             const string text = @"
@@ -4766,7 +4766,7 @@ class C
             Assert.Equal(0, expr.Errors().Length);
         }
 
-        [Fact, WorkItem(17683, "https://github.com/dotnet/roslyn/issues/17683")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17683")]
         public void Bug17683a()
         {
             var source =
@@ -4889,7 +4889,7 @@ select t";
             EOF();
         }
 
-        [Fact, WorkItem(22830, "https://github.com/dotnet/roslyn/issues/22830")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22830")]
         public void TypeArgumentIndexerInitializer()
         {
             UsingExpression("new C { [0] = op1 < op2, [1] = true }");
@@ -5025,7 +5025,7 @@ select t";
             }
         }
 
-        [Fact, WorkItem(12214, "https://github.com/dotnet/roslyn/issues/12214")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12214")]
         public void ConditionalExpressionInInterpolation()
         {
             UsingExpression("$\"{a ? b : d}\"",
@@ -5695,7 +5695,7 @@ select t";
             EOF();
         }
 
-        [Fact, WorkItem(36122, "https://github.com/dotnet/roslyn/issues/36122")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36122")]
         public void RangeExpression_NotCast()
         {
             UsingExpression("(Offset)..(Offset + Count)");
@@ -6011,7 +6011,7 @@ select t";
         }
 
         [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_BadRef()
         {
             UsingExpression("new[] { ref }",
@@ -6045,7 +6045,7 @@ select t";
         }
 
         [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_BadRefExpression()
         {
             UsingExpression("new[] { ref obj }",
@@ -6076,7 +6076,7 @@ select t";
         }
 
         [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_BadRefElementAccess()
         {
             UsingExpression("new[] { ref[] }",
@@ -6128,7 +6128,7 @@ select t";
         }
 
         [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39072")]
         public void AnonymousObjectCreation_BadRef()
         {
             UsingExpression("new { ref }",
@@ -6160,7 +6160,7 @@ select t";
         }
 
         [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39072")]
         public void ObjectInitializer_BadRef()
         {
             UsingExpression("new C { P = ref }",
@@ -6201,7 +6201,7 @@ select t";
         }
 
         [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39072")]
         public void CollectionInitializer_BadRef_01()
         {
             UsingExpression("new C { ref }",
@@ -6234,7 +6234,7 @@ select t";
         }
 
         [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39072")]
         public void CollectionInitializer_BadRef_02()
         {
             UsingExpression("new C { { 0, ref } }",
@@ -6280,7 +6280,7 @@ select t";
         }
 
         [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39072")]
         public void AttributeArgument_BadRef()
         {
             UsingTree("class C { [Attr(ref)] void M() { } }",
@@ -6352,7 +6352,7 @@ select t";
         }
 
         [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39072")]
         public void ForLoop_BadRefCondition()
         {
             UsingStatement("for (int i = 0; ref; i++) { }",
@@ -6415,7 +6415,7 @@ select t";
         }
 
         [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_BadInElementAccess()
         {
             UsingExpression("new[] { in[] }",
@@ -6438,7 +6438,7 @@ select t";
         }
 
         [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_BadOutElementAccess()
         {
             UsingExpression("new[] { out[] }",
@@ -6461,7 +6461,7 @@ select t";
         }
 
         [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_ElementAccess()
         {
             UsingExpression("new[] { obj[] }",
@@ -6502,7 +6502,7 @@ select t";
             EOF();
         }
 
-        [Fact, WorkItem(44789, "https://github.com/dotnet/roslyn/issues/44789")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44789")]
         public void MismatchedInterpolatedStringContents_01()
         {
             var text =
@@ -6539,7 +6539,7 @@ select t";
                 );
         }
 
-        [Fact, WorkItem(44789, "https://github.com/dotnet/roslyn/issues/44789")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44789")]
         public void MismatchedInterpolatedStringContents_02()
         {
             var text =

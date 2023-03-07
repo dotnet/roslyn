@@ -66,7 +66,7 @@ static partial class C { }
                            );
         }
 
-        [WorkItem(529472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529472")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529472")]
         [Fact(Skip = "529472")]
         public void CS1002ERR_SemicolonExpected()
         {
@@ -9605,7 +9605,7 @@ p class A
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 2, Column = 3 });
         }
 
-        [WorkItem(528532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528532")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528532")]
         [Fact]
         public void ParseForwardSlash()
         {
@@ -9616,7 +9616,7 @@ p class A
             Assert.Equal(SyntaxKind.GlobalStatement, tree.GetCompilationUnitRoot().ChildNodes().ToList()[0].Kind());
         }
 
-        [WorkItem(541164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541164")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541164")]
         [Fact]
         public void CS1733ERR_ExpressionExpected()
         {

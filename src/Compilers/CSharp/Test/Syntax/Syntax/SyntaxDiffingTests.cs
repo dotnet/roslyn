@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("struct", changes[0].NewText);
         }
 
-        [Fact, WorkItem(463, "https://github.com/dotnet/roslyn/issues/463")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/463")]
         public void TestQualifyWithThis()
         {
             var original = @"
@@ -325,7 +325,7 @@ class C
             Assert.Equal("this.", changes[0].NewText);
         }
 
-        [Fact, WorkItem(463, "https://github.com/dotnet/roslyn/issues/463")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/463")]
         public void TestReplaceWithBuiltInType()
         {
             var original = @"

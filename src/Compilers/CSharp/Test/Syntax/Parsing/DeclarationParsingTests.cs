@@ -5689,7 +5689,7 @@ class Class1<T>{
                 Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "A<,>").WithLocation(1, 11));
         }
 
-        [WorkItem(537690, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537690")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537690")]
         [Fact]
         public void TestMissingSemicolonAfterListInitializer()
         {
@@ -5762,7 +5762,7 @@ partial class PartialPartial
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 14));
         }
 
-        [WorkItem(539120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539120")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539120")]
         [Fact]
         public void TestEscapedConstructor()
         {
@@ -5778,7 +5778,7 @@ class @class
             Assert.Equal(0, file.Errors().Length);
         }
 
-        [WorkItem(536956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536956")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536956")]
         [Fact]
         public void TestAnonymousMethodWithDefaultParameter()
         {
@@ -5801,7 +5801,7 @@ class C {
                 Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 28));
         }
 
-        [WorkItem(537865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537865")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537865")]
         [Fact]
         public void RegressIfDevTrueUnicode()
         {
@@ -5822,7 +5822,7 @@ System.Console.WriteLine(""Bad, breaking change"");
             TestConditionalCompilation(text, desiredText: "Good", undesiredText: "Bad");
         }
 
-        [WorkItem(537815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537815")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537815")]
         [Fact]
         public void RegressLongDirectiveIdentifierDefn()
         {
@@ -5846,7 +5846,7 @@ System.Console.WriteLine(""Bad, breaking change"");
             TestConditionalCompilation(text, desiredText: "Good", undesiredText: "Bad");
         }
 
-        [WorkItem(537815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537815")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537815")]
         [Fact]
         public void RegressLongDirectiveIdentifierUse()
         {
@@ -6253,7 +6253,7 @@ public interface I1
         }
 
         [Fact]
-        [WorkItem(4826, "https://github.com/dotnet/roslyn/pull/4826")]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/4826")]
         public void NonAccessorAfterIncompleteProperty()
         {
             UsingTree(@"
@@ -6388,7 +6388,7 @@ class C1
         }
 
         [Fact]
-        [WorkItem(13578, "https://github.com/dotnet/roslyn/issues/13578")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13578")]
         [CompilerTrait(CompilerFeature.ExpressionBody)]
         public void ExpressionBodiedCtorDtorProp()
         {
@@ -6849,7 +6849,7 @@ class C<T> : where T : X
         }
 
         [Fact]
-        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23833")]
         public void ProduceErrorsOnRef_Properties_Ref_Get()
         {
             var code = @"
@@ -6868,7 +6868,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23833")]
         public void ProduceErrorsOnRef_Properties_Ref_Get_SecondModifier()
         {
             var code = @"
@@ -6890,7 +6890,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23833")]
         public void ProduceErrorsOnRef_Properties_Ref_Set()
         {
             var code = @"
@@ -6909,7 +6909,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23833")]
         public void ProduceErrorsOnRef_Properties_Ref_Set_SecondModifier()
         {
             var code = @"
@@ -6931,7 +6931,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23833")]
         public void ProduceErrorsOnRef_Events_Ref()
         {
             var code = @"
@@ -6954,7 +6954,7 @@ public class Program
         }
 
         [Fact]
-        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23833")]
         public void ProduceErrorsOnRef_Events_Ref_SecondModifier()
         {
             var code = @"
@@ -8444,7 +8444,7 @@ Del d = delegate(int k!!) { /* ... */ };", options: TestOptions.RegularPreview,
             }
         }
 
-        [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30102")]
         public void IncompleteGenericInBaseList1()
         {
             var tree = UsingNode(@"
@@ -8490,7 +8490,7 @@ class B : A<int
             EOF();
         }
 
-        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35236")]
         public void TestNamespaceWithDotDot1()
         {
             var text = @"namespace a..b { }";
@@ -8536,7 +8536,7 @@ class B : A<int
             EOF();
         }
 
-        [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30102")]
         public void IncompleteGenericInBaseList2()
         {
             var tree = UsingNode(@"
@@ -8613,7 +8613,7 @@ class B<X, Y> : A<int
             EOF();
         }
 
-        [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30102")]
         public void TestExtraneousColonInBaseList()
         {
             var text = @"
@@ -8731,7 +8731,7 @@ class A : B : C
             EOF();
         }
 
-        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35236")]
         public void TestNamespaceWithDotDot2()
         {
             var text = @"namespace a
@@ -8779,7 +8779,7 @@ class A : B : C
             EOF();
         }
 
-        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35236")]
         public void TestNamespaceWithDotDot3()
         {
             var text = @"namespace a..
@@ -8826,7 +8826,7 @@ b { }";
             EOF();
         }
 
-        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35236")]
         public void TestNamespaceWithDotDot4()
         {
             var text = @"namespace a

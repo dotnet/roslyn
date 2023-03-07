@@ -591,7 +591,7 @@ using goo.bar;
             EOF();
         }
 
-        [WorkItem(541587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541587")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541587")]
         [Fact]
         public void GetDiagnosticsOnMissingToken3()
         {
@@ -1040,7 +1040,7 @@ partial delegate E { }
             EOF();
         }
 
-        [Fact, WorkItem(543622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543622")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543622")]
         public void CS0116ERR__NamespaceUnexpected()
         {
             var test = @"{
@@ -1218,7 +1218,7 @@ aeu";
             EOF();
         }
 
-        [Fact, WorkItem(528655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528655")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528655")]
         public void ErrorSymbolForInvalidCode()
         {
             var test = @"
@@ -1682,7 +1682,7 @@ using VT2 = (int, int);
             EOF();
         }
 
-        [Fact, WorkItem(530131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530131")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530131")]
         public void MetadataReferenceWithInvalidAlias()
         {
             var test = "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}";
@@ -2420,7 +2420,7 @@ e
             EOF();
         }
 
-        [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
         [Fact]
         public void Repro611177()
         {

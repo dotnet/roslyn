@@ -593,7 +593,7 @@ class C { void c() { } }
             Assert.Equal(newText.ToString(), finalText);
         }
 
-        [WorkItem(536457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536457")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536457")]
         [Fact]
         public void RemovePartialFromClassWithCorrectSpan()
         {
@@ -607,7 +607,7 @@ class C { void c() { } }
             Assert.Equal(newText.ToString(), output);
         }
 
-        [WorkItem(536519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536519")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536519")]
         [Fact]
         public void AddTopLevelMemberErrorDifference()
         {
@@ -623,7 +623,7 @@ public d");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536520")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536520")]
         [Fact]
         public void AddIncompleteStatementErrorDifference()
         {
@@ -639,7 +639,7 @@ public class Test
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536523")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536523")]
         [Fact]
         public void DifferentNumberOfErrorsForNonCompletedBlock()
         {
@@ -656,7 +656,7 @@ public class Test
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536649, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536649")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536649")]
         [Fact]
         public void AddingCharacterOnErrorWithExtern()
         {
@@ -672,7 +672,7 @@ class C
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536650")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536650")]
         [Fact]
         public void ErrorWithExtraModifiers()
         {
@@ -685,7 +685,7 @@ class MyClass {
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536651")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536651")]
         [Fact]
         public void CommentsCauseDifferentErrorStrings()
         {
@@ -701,7 +701,7 @@ class A
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536652, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536652")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536652")]
         [Fact]
         public void ErrorModifierOnClass()
         {
@@ -713,7 +713,7 @@ protected class My");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536653")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536653")]
         [Fact]
         public void ErrorPartialClassWithNoBody()
         {
@@ -725,7 +725,7 @@ public partial clas");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536654")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536654")]
         [Fact]
         public void ErrorConstKeywordInMethodName()
         {
@@ -741,7 +741,7 @@ public partial clas");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536655")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536655")]
         [Fact]
         public void ErrorWithOperatorDeclaration()
         {
@@ -754,7 +754,7 @@ public partial clas");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536661")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536661")]
         [Fact]
         public void ErrorWithNestedTypeInNew()
         {
@@ -769,7 +769,7 @@ class Test {
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536662")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536662")]
         [Fact]
         public void ErrorWithInvalidMethodName()
         {
@@ -781,7 +781,7 @@ class Test {
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536524, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536524")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536524")]
         [Fact]
         public void AddingAFieldInIncompleteClass()
         {
@@ -855,7 +855,7 @@ public class Test
             Assert.Equal(0, syntaxTree.GetCompilationUnitRoot().Errors().Length);
         }
 
-        [WorkItem(536563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536563")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536563")]
         [Fact]
         public void CommentOutClassKeyword()
         {
@@ -875,7 +875,7 @@ public class Test
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536565")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536565")]
         [Fact]
         public void CommentOutOpeningCurlyOnPrivateDeclaration()
         {
@@ -899,7 +899,7 @@ private class B{ public class MyClass
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536567")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536567")]
         [Fact]
         public void CommentOutBracesOnMethodDeclaration()
         {
@@ -923,7 +923,7 @@ private class B{ private class MyClass
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536568")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536568")]
         [Fact]
         public void CommentOutEventKeyword()
         {
@@ -947,7 +947,7 @@ class Test
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536571")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536571")]
         [Fact]
         public void CommentOutEventAccessor()
         {
@@ -971,7 +971,7 @@ class Test
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536573")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536573")]
         [Fact]
         public void CommentOutDotInUsingAlias()
         {
@@ -993,7 +993,7 @@ class A
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536577")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536577")]
         [Fact]
         public void CommentOutThisInIndexer()
         {
@@ -1017,7 +1017,7 @@ class A
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536578")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536578")]
         [Fact]
         public void CommentOutReturnStatementInProperty()
         {
@@ -1057,7 +1057,7 @@ class A
             SyntaxTree newTree = oldTree.WithInsertAt(locationOfInsert, ";");
         }
 
-        [WorkItem(536635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536635")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536635")]
         [Fact]
         public void AddSemicolonAfterStartOfVerbatimString()
         {
@@ -1070,7 +1070,7 @@ string s = @
             var newTree = oldTree.WithInsertAt(oldText.IndexOf('@'), ";");
         }
 
-        [WorkItem(536717, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536717")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536717")]
         [Fact]
         public void AddReturnWithTriviaAtStart()
         {
@@ -1093,7 +1093,7 @@ string s = @
             CompareIncToFullParseErrors(incrTree, fullTree);
         }
 
-        [WorkItem(536728, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536728")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536728")]
         [Fact]
         public void CommentClassWithGTandGTEOperator()
         {
@@ -1130,7 +1130,7 @@ string s = @
 #endif
         }
 
-        [WorkItem(536730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536730")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536730")]
         [Fact]
         public void CodeWithDollarSign()
         {
@@ -1149,7 +1149,7 @@ string s = @
             Assert.Equal(parsedTree.GetCompilationUnitRoot().ToFullString(), incrementalTree.GetCompilationUnitRoot().ToFullString());
         }
 
-        [WorkItem(536731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536731")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536731")]
         [Fact]
         public void CommentCodeInGOTOStatement()
         {
@@ -1165,7 +1165,7 @@ string s = @
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536734, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536734")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536734")]
         [Fact]
         public void CommentConstInConstDeclError()
         {
@@ -1185,7 +1185,7 @@ string s = @
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536738")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536738")]
         [Fact]
         public void CommentClassWithDelegateDecl()
         {
@@ -1207,7 +1207,7 @@ string s = @
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536738")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536738")]
         [Fact]
         public void CommentCloseBraceInPropertyDecl()
         {
@@ -1246,7 +1246,7 @@ string s = @
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536739")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536739")]
         [Fact]
         public void CommentFixedInIllegalArrayDecl()
         {
@@ -1268,7 +1268,7 @@ string s = @
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536788, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536788")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536788")]
         [Fact]
         public void CommentGlobalUsedAsAlias()
         {
@@ -1295,7 +1295,7 @@ class Test
             }
         }
 
-        [WorkItem(536789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536789")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536789")]
         [Fact]
         public void CommentUsingStmtGlobalUsedAsAlias()
         {
@@ -1321,7 +1321,7 @@ class Test
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536790, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536790")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536790")]
         [Fact]
         public void CmntMainInCodeWithGlobalQualifierInUnsafe()
         {
@@ -1346,7 +1346,7 @@ class Test
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536842"), WorkItem(543452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543452")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536842"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543452")]
         [Fact]
         public void DelegateDeclInvalidCastException()
         {
@@ -1368,7 +1368,7 @@ class Test
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536843")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536843")]
         [Fact]
         public void KeyExistsArgumentException()
         {
@@ -1423,7 +1423,7 @@ class Test
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536849")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536849")]
         [Fact]
         public void QueryExprWithKeywordsAsVariablesAndIncompleteJoin()
         {
@@ -1445,7 +1445,7 @@ class Test
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536865")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536865")]
         [Fact]
         public void IncompleteGenericTypeParamVarDecl()
         {
@@ -1466,7 +1466,7 @@ class Test
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536866")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536866")]
         [Fact]
         public void IncompleteArglistMethodInvocation()
         {
@@ -1487,7 +1487,7 @@ class Test
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536867, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536867")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536867")]
         [Fact]
         public void IncompleteErrorExtensionMethodDecl()
         {
@@ -1510,7 +1510,7 @@ class Test
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536868")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536868")]
         [Fact]
         public void IncompleteErrorLambdaExpr()
         {
@@ -1531,7 +1531,7 @@ class Test
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536871")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536871")]
         [Fact]
         public void IncompleteCodeFollowingXmlDocStyleComment()
         {
@@ -1551,7 +1551,7 @@ class Test
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536897")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536897")]
         [Fact]
         public void IncompleteNamespaceFollowingExternError()
         {
@@ -1569,7 +1569,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536898")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536898")]
         [Fact]
         public void IncompleteConditionWithJaggedArrayAccess()
         {
@@ -1590,7 +1590,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536899")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536899")]
         [Fact]
         public void TrailingCommentFollowingAttributesInsideMethod()
         {
@@ -1613,7 +1613,7 @@ namespace N");
             Assert.Equal(parsedTree.GetCompilationUnitRoot().ChildNodesAndTokens()[0].AsNode().ToFullString(), incrementalTree.GetCompilationUnitRoot().ChildNodesAndTokens()[0].AsNode().ToFullString());
         }
 
-        [WorkItem(536901, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536901")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536901")]
         [Fact]
         public void SpecialAttribNameWithDoubleAtToken()
         {
@@ -1630,7 +1630,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536903")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536903")]
         [Fact]
         public void AssertForAttributeWithGenericType()
         {
@@ -1648,7 +1648,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(539056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539056")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539056")]
         [Fact]
         public void AssertOnTypingColonInGenericTypeConstraint()
         {
@@ -1666,7 +1666,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536904, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536904")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536904")]
         [Fact]
         public void ArithmeticExprWithLongConstant()
         {
@@ -1687,7 +1687,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536913")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536913")]
         [Fact]
         public void AddClassKeywordWithAnonymousMethodThrowsIndexOutOfRangeException()
         {
@@ -1722,7 +1722,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536914")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536914")]
         [Fact]
         public void AddClassKeywordWithParamsModifierInAnonymousMethod()
         {
@@ -1746,7 +1746,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536916")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536916")]
         [Fact]
         public void AddEqualTokenBeforeLongConst()
         {
@@ -1764,7 +1764,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536917")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536917")]
         [Fact]
         public void AddEqualTokenBeforeHugeConst()
         {
@@ -1782,7 +1782,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536616")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536616")]
         [Fact]
         public void AddEndTagToXmlDocComment()
         {
@@ -1801,7 +1801,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(537888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537888")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537888")]
         [Fact]
         public void AddClassKeywordToCodeWithConstructorAndProperty()
         {
@@ -1832,7 +1832,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(537890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537890")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537890")]
         [Fact]
         public void AddCurlyBracesToIncompleteCode()
         {
@@ -1857,7 +1857,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(537891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537891")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537891")]
         [Fact]
         public void AddOpenParenToIncompleteMethodDeclBeforeDestructor()
         {
@@ -1876,7 +1876,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(538977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538977")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538977")]
         [Fact]
         public void AddTokenToIncompleteQueryExpr()
         {
@@ -1894,7 +1894,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536986")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536986")]
         [Fact]
         public void IncompleteGenericInterfaceImplementation()
         {
@@ -1913,7 +1913,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536988")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536988")]
         [Fact]
         public void IncompleteIndexerDecl()
         {
@@ -1932,7 +1932,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536990")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536990")]
         [Fact]
         public void IncompleteGenericVarDeclWithUnderscore()
         {
@@ -1953,7 +1953,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(536991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536991")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536991")]
         [Fact]
         public void IncompleteUnsafeArrayInit()
         {
@@ -1972,7 +1972,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(537012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537012")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537012")]
         [Fact]
         public void RemoveClassIdentifierTokenWithDelegDecl()
         {
@@ -1999,7 +1999,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(537889, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537889")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537889")]
         [Fact]
         public void RemoveBracesInExtensionIndexer()
         {
@@ -2027,7 +2027,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(537892, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537892")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537892")]
         [Fact]
         public void RemoveParensInMethodDeclContainingPartialKeyword()
         {
@@ -2049,7 +2049,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(537020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537020")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537020")]
         [Fact]
         public void IncompleteGlobalQualifierExplInterfaceImpl()
         {
@@ -2068,7 +2068,7 @@ namespace N");
             CompareTreeEquivalence(parsedTree.GetCompilationUnitRoot(), incrementalTree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(537033, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537033")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537033")]
         [Fact]
         public void RemoveParensInGetEnumeratorWithPropertyAccess()
         {
@@ -2100,7 +2100,7 @@ namespace N");
             CompareTreeEquivalence(parsedTree.GetCompilationUnitRoot(), incrementalTree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(537053, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537053")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537053")]
         [Fact]
         public void RemoveReturnTypeOnProperty()
         {
@@ -2133,7 +2133,7 @@ namespace N");
             CompareTreeEquivalence(parsedTree.GetCompilationUnitRoot(), incrementalTree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(538975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538975")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538975")]
         [Fact]
         public void RemoveTypeOnArrayInParameterWithMethodDeclError()
         {
@@ -2159,7 +2159,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(537054, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537054")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537054")]
         [Fact]
         public void RemoveReturnTypeOnGenericMethodWithTypeParamConstraint()
         {
@@ -2184,7 +2184,7 @@ namespace N");
             CompareTreeEquivalence(parsedTree.GetCompilationUnitRoot(), incrementalTree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(537084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537084")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537084")]
         [Fact]
         public void RemoveNamespaceQualifierFromTypeInIfCondition()
         {
@@ -2214,7 +2214,7 @@ namespace N");
             CompareTreeEquivalence(parsedTree.GetCompilationUnitRoot(), incrementalTree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(537092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537092")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537092")]
         [Fact]
         public void RemoveMethodNameWithLambdaExprInMethodBody()
         {
@@ -2243,7 +2243,7 @@ namespace N");
             CompareTreeEquivalence(parsedTree.GetCompilationUnitRoot(), incrementalTree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(538978, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538978")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538978")]
         [Fact]
         public void RemoveInitializerOnDeclStatementWithErrors()
         {
@@ -2264,7 +2264,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(537116, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537116")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537116")]
         [Fact]
         public void CmntEndIfInMethodDecl()
         {
@@ -2296,7 +2296,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(537125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537125")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537125")]
         [Fact]
         public void CmntAnonTypeInQueryExpr()
         {
@@ -2324,7 +2324,7 @@ namespace N");
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
-        [WorkItem(537180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537180")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537180")]
         [Fact]
         public void CmntParamsInExtProperty()
         {
@@ -2347,7 +2347,7 @@ namespace N");
             CompareTreeEquivalence(parsedTree.GetCompilationUnitRoot(), incrementalTree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(537533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537533")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537533")]
         [Fact]
         public void MultiCommentInserts()
         {
@@ -2380,7 +2380,7 @@ class Program
             CompareTreeEquivalence(parsedTree.GetCompilationUnitRoot(), reparsedTree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(542236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542236")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542236")]
         [Fact]
         public void InsertOpenBraceBeforeCodes()
         {
@@ -2398,7 +2398,7 @@ class Program
             CompareIncToFullParseErrors(reparsedTree, parsedTree);
         }
 
-        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/6676")]
         [Fact]
         public void InsertExpressionStatementWithoutSemicolonBefore()
         {
@@ -2427,7 +2427,7 @@ newText.ToString());
             CompareIncToFullParseErrors(reparsedTree, parsedTree);
         }
 
-        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/6676")]
         [Fact]
         public void InsertExpressionStatementWithoutSemicolonAfter()
         {
@@ -2457,7 +2457,7 @@ System.Console.WriteLine(false)
             CompareIncToFullParseErrors(reparsedTree, parsedTree);
         }
 
-        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/6676")]
         [Fact]
         public void MakeEmbeddedExpressionStatementWithoutSemicolon()
         {
@@ -2485,7 +2485,7 @@ System.Console.WriteLine(true)
             CompareIncToFullParseErrors(reparsedTree, parsedTree);
         }
 
-        [WorkItem(531404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531404")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531404")]
         [Fact]
         public void AppendDisabledText()
         {
@@ -2505,7 +2505,7 @@ System.Console.WriteLine(true)
                 changedTree.GetCompilationUnitRoot().EndOfFileToken.FullSpan);
         }
 
-        [Fact, WorkItem(531614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531614")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531614")]
         public void IncrementalParseStopAtEscapeBackSlash()
         {
             var text1 = @"using System;
@@ -2549,7 +2549,7 @@ class Program
             Assert.Equal(fullText, incText);
         }
 
-        [Fact, WorkItem(552741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552741")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552741")]
         public void IncrementalParseTopDownCommentOutLines()
         {
             var text = @"// <Title> Query Expression syntax </Title>
@@ -2621,7 +2621,7 @@ public class QueryExpressionTest
             }
         }
 
-        [Fact, WorkItem(552741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552741")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552741")]
         public void IncrementalParseStatementAfterQuery()
         {
             var text = @"
@@ -2653,7 +2653,7 @@ class equals
             WalkTreeAndVerify(currTree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
 
-        [Fact, WorkItem(529260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529260")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529260")]
         public void DoNotReuseAnnotatedNodes()
         {
             var text = @"
@@ -2710,7 +2710,7 @@ class D { }
         }
 
         [Fact]
-        [WorkItem(658496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658496")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658496")]
         public void DontReuseLambdaParameterAsMethodParameter()
         {
             var items = new string[]
@@ -2808,7 +2808,7 @@ class G: Program
             WalkTreeAndVerify(newTree.GetCompilationUnitRoot(), SyntaxFactory.ParseSyntaxTree(newText).GetCompilationUnitRoot());
         }
 
-        [WorkItem(23272, "https://github.com/dotnet/roslyn/issues/23272")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23272")]
         [Fact]
         public void AddAccessibilityToNullableArray()
         {
@@ -2829,7 +2829,7 @@ class B
         }
 
         [Fact]
-        [WorkItem(37663, "https://github.com/dotnet/roslyn/issues/37663")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37663")]
         public void AssemblyAttributeBeforeNamespace()
         {
             var src = @"
@@ -2849,7 +2849,7 @@ namespace N
             WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(37665, "https://github.com/dotnet/roslyn/issues/37665")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37665")]
         [Fact]
         public void AddBracketInUsingDirective()
         {
@@ -2870,7 +2870,7 @@ namespace NS
             WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(37665, "https://github.com/dotnet/roslyn/issues/37665")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37665")]
         [Fact]
         public void AddAttributeAfterUsingDirective()
         {
@@ -2891,7 +2891,7 @@ namespace NS
             WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(37665, "https://github.com/dotnet/roslyn/issues/37665")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37665")]
         [Fact]
         public void AddTrailingModifierInUsingDirective()
         {
@@ -2912,7 +2912,7 @@ namespace NS
             WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(37665, "https://github.com/dotnet/roslyn/issues/37665")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37665")]
         [Fact]
         public void AddTrailingModifierInUsingDirective_2()
         {
@@ -3255,7 +3255,7 @@ if (b) { }
         }
 
         [Fact]
-        [WorkItem(62126, "https://github.com/dotnet/roslyn/issues/62126")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/62126")]
         public void StartAttributeOnABlock()
         {
             var source = @"

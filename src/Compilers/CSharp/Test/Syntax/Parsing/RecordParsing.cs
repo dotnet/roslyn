@@ -448,7 +448,7 @@ abstract record D
             EOF();
         }
 
-        [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45538")]
         public void RecordParsing_ConstraintAndSemiColon()
         {
             UsingTree("record R<T> where T : class;");
@@ -488,7 +488,7 @@ abstract record D
             EOF();
         }
 
-        [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45538")]
         public void RecordParsing_ConstraintAndSemiColon_MissingColon()
         {
             UsingTree("record R<T> where T   class;",
@@ -532,7 +532,7 @@ abstract record D
             EOF();
         }
 
-        [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45538")]
         public void RecordParsing_TwoConstraintsAndSemiColon()
         {
             UsingTree("record R<T1, T2> where T1 : class where T2 : class;");
@@ -590,7 +590,7 @@ abstract record D
             EOF();
         }
 
-        [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45538")]
         public void RecordParsing_ConstraintAndSemiColon_Class()
         {
             UsingTree("abstract class C<T> where T : class;");
@@ -631,7 +631,7 @@ abstract record D
             EOF();
         }
 
-        [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45538")]
         public void RecordParsing_TwoConstraintsAndSemiColon_Class()
         {
             UsingTree("abstract class C<T1, T2> where T1 : class where T2 : class;");
@@ -689,7 +689,7 @@ abstract record D
             EOF();
         }
 
-        [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45538")]
         public void AbstractMethod_ConstraintsAndSemiColon()
         {
             UsingTree("abstract record R { abstract void M<T>() where T : class; }");
@@ -905,7 +905,7 @@ abstract record D
             EOF();
         }
 
-        [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45538")]
         public void RecordParsing_ConstraintsAndCurlyBraces()
         {
             UsingTree("record R<T> where T : class { }");
@@ -946,7 +946,7 @@ abstract record D
             EOF();
         }
 
-        [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45538")]
         public void RecordParsing_ConstraintAndCommaAndSemiColon()
         {
             UsingTree("record R<T> where T : class, ;",
@@ -998,7 +998,7 @@ abstract record D
             EOF();
         }
 
-        [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45538")]
         public void RecordParsing_ConstraintAndCommaAndNewAndSemiColon()
         {
             UsingTree("record R<T> where T : class, new();");
@@ -3051,7 +3051,7 @@ class C(int X, int Y)
             EOF();
         }
 
-        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem(59534, "https://github.com/dotnet/roslyn/issues/59534")]
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem("https://github.com/dotnet/roslyn/issues/59534")]
         public void RecordStructParsing_WrongOrder_CSharp10()
         {
             var text = "struct record C(int X, int Y);";
@@ -3096,7 +3096,7 @@ class C(int X, int Y)
             EOF();
         }
 
-        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem(59534, "https://github.com/dotnet/roslyn/issues/59534")]
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem("https://github.com/dotnet/roslyn/issues/59534")]
         public void RecordStructParsing_WrongOrder_CSharp9()
         {
             var text = "struct record C(int X, int Y);";
@@ -3141,7 +3141,7 @@ class C(int X, int Y)
             EOF();
         }
 
-        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem(59534, "https://github.com/dotnet/roslyn/issues/59534")]
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem("https://github.com/dotnet/roslyn/issues/59534")]
         public void StructNamedRecord_CSharp8()
         {
             var text = "struct record { }";
@@ -3161,7 +3161,7 @@ class C(int X, int Y)
             EOF();
         }
 
-        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem(59534, "https://github.com/dotnet/roslyn/issues/59534")]
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem("https://github.com/dotnet/roslyn/issues/59534")]
         public void StructNamedRecord_CSharp9()
         {
             var text = "struct record { }";
@@ -3181,7 +3181,7 @@ class C(int X, int Y)
             EOF();
         }
 
-        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem(59534, "https://github.com/dotnet/roslyn/issues/59534")]
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem("https://github.com/dotnet/roslyn/issues/59534")]
         public void StructNamedRecord_CSharp10()
         {
             var text = "struct record { }";
@@ -3995,7 +3995,7 @@ class C(int X, int Y)
             EOF();
         }
 
-        [Fact, WorkItem(51590, "https://github.com/dotnet/roslyn/issues/51590")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51590")]
         public void ParseIncompleteRecordSyntax()
         {
             ParseIncompleteSyntax("public sealed record C() { }");

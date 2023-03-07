@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("OtherSymbol", (d3.Info as CustomErrorInfo).OtherSymbol);
         }
 
-        [Fact, WorkItem(66037, "https://github.com/dotnet/roslyn/issues/66037")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66037")]
         public void DiagnosticInfo_WithSeverity()
         {
             var comp = CreateCompilation("");
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [WorkItem(537801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537801")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537801")]
         [Fact]
         public void MissingNamespaceOpenBracket()
         {
@@ -149,7 +149,7 @@ End namespace
             Assert.InRange(actualErrors.Count(), 1, int.MaxValue);
         }
 
-        [WorkItem(540086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540086")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540086")]
         [Fact]
         public void ErrorApplyIndexingToMethod()
         {
@@ -186,7 +186,7 @@ public class A
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadIndexLHS, Line = 10, Column = 34 });
         }
 
-        [WorkItem(540329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540329")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540329")]
         [Fact]
         public void ErrorMemberAccessOnLiteralToken()
         {
@@ -207,7 +207,7 @@ class X
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, @"null.Length").WithArguments(".", "<null>"));
         }
 
-        [WorkItem(542911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542911")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542911")]
         [Fact]
         public void WarningLevel_1()
         {
@@ -227,7 +227,7 @@ class X
             }
         }
 
-        [WorkItem(542911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542911")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542911")]
         [Fact]
         public void WarningLevel_2()
         {
@@ -2251,7 +2251,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_IdentifierOrNumericLiteralExpected, ","));
         }
 
-        [WorkItem(546814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546814")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546814")]
         [Fact]
         public void PragmaWarning_NoValidationForErrorCodes4()
         {
@@ -2274,7 +2274,7 @@ class Program
             CreateCompilation(text, options: commonoption).VerifyDiagnostics();
         }
 
-        [WorkItem(546814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546814")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546814")]
         [Fact]
         public void PragmaWarning_NoValidationForErrorCodes5()
         {
@@ -2349,7 +2349,7 @@ class Program
             Assert.Equal(PragmaWarningState.Disabled, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "var y").Start));
         }
 
-        [WorkItem(545407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545407")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545407")]
         [Fact]
         public void PragmaWarningDirectiveMapAtTheFirstLine()
         {
@@ -2373,8 +2373,8 @@ class Program
             return new TextSpan(index, textToFind.Length);
         }
 
-        [WorkItem(543705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543705")]
-        [WorkItem(39992, "https://github.com/dotnet/roslyn/issues/39992")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543705")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39992")]
         [Fact]
         public void GetDiagnosticsCalledTwice()
         {
@@ -2399,7 +2399,7 @@ public class Test
             Assert.Equal(1, compilation.GetDiagnostics().Length);
         }
 
-        [WorkItem(39992, "https://github.com/dotnet/roslyn/issues/39992")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39992")]
         [Fact]
         public void GetDiagnosticsCalledTwice_GetEmitDiagnostics()
         {
@@ -2451,7 +2451,7 @@ public class Test
         /// Test that invalid type argument lists produce clean error messages
         /// with minimal noise
         /// </summary>
-        [WorkItem(7177, "https://github.com/dotnet/roslyn/issues/7177")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7177")]
         [Fact]
         public void InvalidTypeArgumentList()
         {
@@ -2830,7 +2830,7 @@ class Program
 
         #region CoreCLR Signing Tests
 
-        [ConditionalFact(typeof(UnixLikeOnly), typeof(ClrOnly)), WorkItem(9288, "https://github.com/dotnet/roslyn/issues/9288")]
+        [ConditionalFact(typeof(UnixLikeOnly), typeof(ClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/9288")]
         public void Bug9288_keycontainer()
         {
             const string source = "";
