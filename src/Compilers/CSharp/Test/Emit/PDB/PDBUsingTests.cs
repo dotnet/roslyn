@@ -275,6 +275,86 @@ namespace X
 </symbols>");
         }
 
+        [Fact]
+        public void TestTypeAliases1_B()
+        {
+            var text = @"
+using P = string;
+
+class A { void M() { } }
+
+namespace X
+{
+    using Q = int;
+
+    class B { void M() { } }
+
+    namespace Y
+    {
+        using R = char;
+
+        class C { void M() { } }
+    }
+}
+";
+            CompileAndVerify(text, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetFramework).VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""A"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""20"" endLine=""4"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""22"" endLine=""4"" endColumn=""23"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""P"" target=""System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+    <method containingType=""X.B"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""24"" endLine=""10"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""26"" endLine=""10"" endColumn=""27"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""Q"" target=""System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""P"" target=""System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+    <method containingType=""X.Y.C"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""16"" startColumn=""28"" endLine=""16"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x1"" startLine=""16"" startColumn=""30"" endLine=""16"" endColumn=""31"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""R"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""Q"" target=""System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""P"" target=""System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
         public void TestTypeAliases2()
         {
@@ -349,6 +429,113 @@ namespace X
         <alias name=""P"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
         <alias name=""Q"" target=""System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
         <alias name=""P"" target=""System.Collections.Generic.List`1[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void TestTypeAliases3()
+        {
+            var text = @"
+using P = (int a, string b);
+
+class A { void M() { } }
+
+namespace X
+{
+    using Q = int[];
+
+    class B { void M() { } }
+
+    namespace Y
+    {
+        using R = dynamic;
+
+        class C { void M() { } }
+
+        namespace X
+        {
+            using unsafe S = int*;
+
+            class D { void M() { } }
+        }
+    }
+}
+";
+            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetFramework).VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""A"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""20"" endLine=""4"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""22"" endLine=""4"" endColumn=""23"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""P"" target=""System.ValueTuple`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51"" kind=""type"" />
+      </scope>
+    </method>
+    <method containingType=""X.B"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""24"" endLine=""10"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""26"" endLine=""10"" endColumn=""27"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""Q"" target=""System.Int32[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""P"" target=""System.ValueTuple`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51"" kind=""type"" />
+      </scope>
+    </method>
+    <method containingType=""X.Y.C"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""16"" startColumn=""28"" endLine=""16"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x1"" startLine=""16"" startColumn=""30"" endLine=""16"" endColumn=""31"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""R"" target=""System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""Q"" target=""System.Int32[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""P"" target=""System.ValueTuple`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51"" kind=""type"" />
+      </scope>
+    </method>
+    <method containingType=""X.Y.X.D"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""22"" startColumn=""32"" endLine=""22"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x1"" startLine=""22"" startColumn=""34"" endLine=""22"" endColumn=""35"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""S"" target=""System.Int32*, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""R"" target=""System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""Q"" target=""System.Int32[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""P"" target=""System.ValueTuple`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51"" kind=""type"" />
       </scope>
     </method>
   </methods>

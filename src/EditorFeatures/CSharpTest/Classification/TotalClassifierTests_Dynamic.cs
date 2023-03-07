@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -15,8 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class TotalClassifierTests
     {
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsParamTypeAndDefault(TestHost testHost)
         {
             await TestInClassAsync(@"void M(dynamic d = default(dynamic",
@@ -32,8 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("dynamic"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicExplicitConversion(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -49,8 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicMethodCall(TestHost testHost)
         {
             await TestInMethodAsync(@"dynamic.Equals(1, 1);",
@@ -66,8 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicNullable(TestHost testHost)
         {
             await TestInMethodAsync(@"dynamic? a",
@@ -77,8 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Local("a"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsUsingAliasForClass(TestHost testHost)
         {
             await TestAsync(
@@ -93,8 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsUsingAliasForDelegate(TestHost testHost)
         {
             await TestAsync(
@@ -109,8 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsUsingAliasForStruct(TestHost testHost)
         {
             await TestAsync(
@@ -125,8 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsUsingAliasForEnum(TestHost testHost)
         {
             await TestAsync(
@@ -141,8 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsUsingAliasForInterface(TestHost testHost)
         {
             await TestAsync(
@@ -157,8 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsExternAlias(TestHost testHost)
         {
             await TestAsync(
@@ -184,8 +172,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsDelegateType(TestHost testHost)
         {
             await TestAsync(@"delegate void dynamic()",
@@ -197,8 +184,7 @@ class C
                 Punctuation.CloseParen);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsDelegateReturnTypeAndParam(TestHost testHost)
         {
             await TestAsync(@"delegate dynamic MyDelegate (dynamic d)",
@@ -212,8 +198,7 @@ class C
                 Punctuation.CloseParen);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsDelegateLocalVariable(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -247,8 +232,7 @@ class C
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsGenericTypeName(TestHost testHost)
         {
             await TestAsync(
@@ -281,8 +265,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsGenericField(TestHost testHost)
         {
             await TestAsync(
@@ -303,8 +286,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsIndexerTypeAndParameter(TestHost testHost)
         {
             await TestInClassAsync(@"dynamic this[dynamic i]",
@@ -317,8 +299,7 @@ class C
                 Punctuation.CloseBracket);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsOperatorTypeAndParameter(TestHost testHost)
         {
             await TestInClassAsync(@"static dynamic operator +(dynamic d1)",
@@ -333,8 +314,7 @@ class C
                 Punctuation.CloseParen);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsOperatorName(TestHost testHost)
         {
             await TestInClassAsync(@"static explicit operator dynamic(dynamic s)",
@@ -349,8 +329,7 @@ class C
                 Punctuation.CloseParen);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsPropertyTypeAndName(TestHost testHost)
         {
             await TestInClassAsync(@"dynamic dynamic { get; set; }",
@@ -365,8 +344,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsEventName(TestHost testHost)
         {
             await TestInClassAsync(@"event Action dynamic",
@@ -376,8 +354,7 @@ class C
                 Event("dynamic"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsLinqLocalVariable(TestHost testHost)
         {
             await TestInMethodAsync(@"var v = from dynamic in names",
@@ -391,8 +368,7 @@ class C
                 Identifier("names"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsAnonymousTypePropertyName(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -416,8 +392,7 @@ class C
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsArgumentToLambdaExpression(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -439,8 +414,7 @@ class C
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsAnonymousMethodLocalVariable(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -469,8 +443,7 @@ class C
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsMethodName(TestHost testHost)
         {
             await TestInClassAsync(
@@ -486,8 +459,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsStaticMethodTypeAndParams(TestHost testHost)
         {
             await TestInClassAsync(
@@ -510,8 +482,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicArraysInMethodSignature(TestHost testHost)
         {
             await TestInClassAsync(
@@ -539,8 +510,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicInPartialMethods(TestHost testHost)
         {
             await TestInClassAsync(
@@ -569,8 +539,7 @@ partial void F(dynamic d)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicRefAndOutParameters(TestHost testHost)
         {
             await TestInClassAsync(
@@ -593,8 +562,7 @@ partial void F(dynamic d)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicInExtensionMethod(TestHost testHost)
         {
             await TestInClassAsync(
@@ -616,8 +584,7 @@ partial void F(dynamic d)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsBaseClass(TestHost testHost)
         {
             await TestAsync(
@@ -633,8 +600,7 @@ partial void F(dynamic d)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsGenericConstraint(TestHost testHost)
         {
             await TestAsync(
@@ -655,8 +621,7 @@ partial void F(dynamic d)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicSizeOf(TestHost testHost)
         {
             await TestInClassAsync(
@@ -680,8 +645,7 @@ partial void F(dynamic d)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicTypeOf(TestHost testHost)
         {
             await TestInMethodAsync(@"typeof(dynamic)",
@@ -719,8 +683,7 @@ partial void F(dynamic d)
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicInForeach(TestHost testHost)
         {
             await TestInMethodAsync(@"foreach (dynamic dynamic in dynamic",
@@ -733,8 +696,7 @@ partial void F(dynamic d)
                 Identifier("dynamic"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicInUsing(TestHost testHost)
         {
             await TestInMethodAsync(@"using(dynamic d",
@@ -745,8 +707,7 @@ partial void F(dynamic d)
                 Local("d"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsLocalVariableName(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -757,8 +718,7 @@ partial void F(dynamic d)
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsNamespaceName(TestHost testHost)
         {
             await TestAsync(
@@ -772,8 +732,7 @@ partial void F(dynamic d)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsClassName(TestHost testHost)
         {
             await TestAsync(
@@ -787,8 +746,7 @@ partial void F(dynamic d)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsConstructorDeclarationName(TestHost testHost)
         {
             await TestAsync(
@@ -810,8 +768,7 @@ partial void F(dynamic d)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsNamespaceAlias(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -824,8 +781,7 @@ partial void F(dynamic d)
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsGotoLabel(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -844,8 +800,7 @@ partial void F(dynamic d)
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsEnumField(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -860,8 +815,7 @@ partial void F(dynamic d)
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsEnumFieldDefinition(TestHost testHost)
         {
             await TestAsync(
@@ -877,8 +831,7 @@ partial void F(dynamic d)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsEnumType(TestHost testHost)
         {
             await TestAsync(
@@ -892,8 +845,7 @@ partial void F(dynamic d)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsGenericTypeParameter(TestHost testHost)
         {
             await TestAsync(
@@ -920,8 +872,7 @@ partial void F(dynamic d)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsFieldType(TestHost testHost)
         {
             await TestInClassAsync(@"dynamic d",
@@ -930,8 +881,7 @@ partial void F(dynamic d)
                 Field("d"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsStaticFieldType(TestHost testHost)
         {
             await TestInClassAsync(@"static dynamic d",
@@ -942,8 +892,7 @@ partial void F(dynamic d)
                 Static("d"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsLocalVariableType(TestHost testHost)
         {
             await TestInMethodAsync(@"dynamic d",
@@ -952,8 +901,7 @@ partial void F(dynamic d)
                 Local("d"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsArrayLocalVariableType(TestHost testHost)
         {
             await TestInMethodAsync(@"dynamic[] d",
@@ -964,8 +912,7 @@ partial void F(dynamic d)
                 Local("d"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsLambdaParameterType(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -990,8 +937,7 @@ partial void F(dynamic d)
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicArray(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -1008,8 +954,7 @@ partial void F(dynamic d)
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicConstructor(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -1025,8 +970,7 @@ partial void F(dynamic d)
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAfterIs(TestHost testHost)
         {
             await TestInMethodAsync(@"if (a is dynamic)",
@@ -1039,8 +983,7 @@ partial void F(dynamic d)
                 Punctuation.CloseParen);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAfterAs(TestHost testHost)
         {
             await TestInMethodAsync(@"a = a as dynamic",
@@ -1052,8 +995,7 @@ partial void F(dynamic d)
                 Keyword("dynamic"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsGenericTypeArgument(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -1075,8 +1017,7 @@ partial void F(dynamic d)
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsSecondGenericTypeArgument(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -1092,8 +1033,7 @@ partial void F(dynamic d)
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsRegionLabel(TestHost testHost)
         {
             var code =
@@ -1108,8 +1048,7 @@ partial void F(dynamic d)
                 PPKeyword("endregion"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsInterfaceType(TestHost testHost)
         {
             await TestAsync(
@@ -1123,8 +1062,7 @@ partial void F(dynamic d)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsStructType(TestHost testHost)
         {
             await TestAsync(
@@ -1138,8 +1076,7 @@ partial void F(dynamic d)
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsUndefinedGenericType(TestHost testHost)
         {
             await TestInMethodAsync(

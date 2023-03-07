@@ -44,20 +44,27 @@ $$");
         }
 
         [Fact]
-        public async Task TestNotInUsingAlias()
+        public async Task TestNotInUsing()
         {
             await VerifyAbsenceAsync(
+@"using $$");
+        }
+
+        [Fact]
+        public async Task TestInUsingAlias()
+        {
+            await VerifyKeywordAsync(
 @"using Goo = $$");
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"using Goo = d$$");
         }
 
         [Fact]
-        public async Task TestNotInGlobalUsingAlias()
+        public async Task TestInGlobalUsingAlias()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"global using Goo = $$");
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"global using Goo = d$$");
         }
 

@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             return await GetAllClassificationsAsync(document, span);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarAsUsingAliasForNamespace(TestHost testHost)
         {
             await TestAsync(
@@ -42,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547068")]
         public async Task Bug17819(TestHost testHost)
         {
@@ -71,8 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarAsUsingAliasForClass(TestHost testHost)
         {
             await TestAsync(
@@ -88,8 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarAsUsingAliasForDelegate(TestHost testHost)
         {
             await TestAsync(
@@ -104,8 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarAsUsingAliasForStruct(TestHost testHost)
         {
             await TestAsync(
@@ -120,8 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarAsUsingAliasForEnum(TestHost testHost)
         {
             await TestAsync(
@@ -136,8 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarAsUsingAliasForInterface(TestHost testHost)
         {
             await TestAsync(
@@ -152,8 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarAsConstructorName(TestHost testHost)
         {
             await TestAsync(
@@ -175,8 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRecordClass(TestHost testHost)
         {
             await TestAsync(
@@ -199,8 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRecordStruct(TestHost testHost)
         {
             await TestAsync(
@@ -225,8 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task UsingAliasGlobalNamespace(TestHost testHost)
         {
             await TestAsync(
@@ -243,8 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PartialDynamicWhere(TestHost testHost)
         {
             var code = @"partial class partial<where> where where : partial<where>
@@ -294,8 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
         public async Task VarInForeach(TestHost testHost)
         {
@@ -312,8 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ValueInSetterAndAnonymousTypePropertyName(TestHost testHost)
         {
             await TestAsync(
@@ -351,8 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestValueInEvent(TestHost testHost)
         {
             await TestInClassAsync(
@@ -395,8 +380,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestValueInProperty(TestHost testHost)
         {
             await TestInClassAsync(
@@ -438,8 +422,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ValueFieldInSetterAccessedThroughThis(TestHost testHost)
         {
             await TestInClassAsync(
@@ -466,8 +449,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NewOfInterface(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -658,8 +640,7 @@ namespace C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NameAttributeValue(TestHost testHost)
         {
             await TestAsync(
@@ -698,8 +679,7 @@ namespace C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Cref1(TestHost testHost)
         {
             await TestAsync(
@@ -739,8 +719,7 @@ class Program<T>
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CrefNamespaceIsNotClass(TestHost testHost)
         {
             await TestAsync(
@@ -772,8 +751,7 @@ namespace N
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task InterfacePropertyWithSameNameShouldBePreferredToType(TestHost testHost)
         {
             await TestAsync(
@@ -807,8 +785,7 @@ namespace N
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/633")]
         public async Task XmlDocCref(TestHost testHost)
         {
@@ -862,8 +839,7 @@ class MyClass
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestGenericTypeWithNoArity(TestHost testHost)
         {
             await TestAsync(
@@ -889,8 +865,7 @@ class Program : IReadOnlyCollection
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestGenericTypeWithWrongArity(TestHost testHost)
         {
             await TestAsync(
@@ -921,8 +896,7 @@ class Program : IReadOnlyCollection<int,string>
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestExtensionMethodDeclaration(TestHost testHost)
         {
             await TestAsync(
@@ -954,8 +928,7 @@ class Program : IReadOnlyCollection<int,string>
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestExtensionMethodUsage(TestHost testHost)
         {
             await TestAsync(
@@ -1028,8 +1001,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestConstLocals(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -1050,8 +1022,7 @@ var x = Number;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_InsideMethod(TestHost testHost)
         {
             await TestInMethodAsync(@"
@@ -1068,8 +1039,7 @@ unmanaged++;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Type_Keyword(TestHost testHost)
         {
             await TestAsync(
@@ -1088,8 +1058,7 @@ unmanaged++;",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Type_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -1113,8 +1082,7 @@ class X<T> where T : unmanaged { }",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Type_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -1145,8 +1113,7 @@ class X<T> where T : unmanaged { }",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Method_Keyword(TestHost testHost)
         {
             await TestAsync(@"
@@ -1174,8 +1141,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Method_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -1208,8 +1174,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Method_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -1249,8 +1214,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Delegate_Keyword(TestHost testHost)
         {
             await TestAsync(
@@ -1271,8 +1235,7 @@ class X
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Delegate_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -1298,8 +1261,7 @@ delegate void D<T>() where T : unmanaged;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Delegate_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -1332,8 +1294,7 @@ delegate void D<T>() where T : unmanaged;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_LocalFunction_Keyword(TestHost testHost)
         {
             await TestAsync(@"
@@ -1370,8 +1331,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_LocalFunction_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -1413,8 +1373,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_LocalFunction_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -1540,8 +1499,7 @@ class True
     Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_InsideMethod(TestHost testHost)
         {
             await TestInMethodAsync(@"
@@ -1558,8 +1516,7 @@ notnull++;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Type_Keyword(TestHost testHost)
         {
             await TestAsync(
@@ -1578,8 +1535,7 @@ notnull++;",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Type_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -1603,8 +1559,7 @@ class X<T> where T : notnull { }",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Type_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -1635,8 +1590,7 @@ class X<T> where T : notnull { }",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Method_Keyword(TestHost testHost)
         {
             await TestAsync(@"
@@ -1664,8 +1618,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Method_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -1698,8 +1651,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Method_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -1739,8 +1691,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Delegate_Keyword(TestHost testHost)
         {
             await TestAsync(
@@ -1761,8 +1712,7 @@ class X
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Delegate_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -1788,8 +1738,7 @@ delegate void D<T>() where T : notnull;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Delegate_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -1822,8 +1771,7 @@ delegate void D<T>() where T : notnull;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_LocalFunction_Keyword(TestHost testHost)
         {
             await TestAsync(@"
@@ -1860,8 +1808,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_LocalFunction_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -1903,8 +1850,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_LocalFunction_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -2180,8 +2126,7 @@ class Person
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task BasicFileScopedNamespaceClassification(TestHost testHost)
         {
             await TestAsync(
@@ -2198,8 +2143,7 @@ class C { }",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestStringEscape(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = $@""{{{12:X}}}"";",
@@ -2219,8 +2163,7 @@ class C { }",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/55313")]
         public async Task TestStaticConstructorClass(TestHost testHost)
         {
@@ -2244,8 +2187,7 @@ Punctuation.CloseCurly,
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/55313")]
         public async Task TestStaticConstructorInterface(TestHost testHost)
         {
@@ -2269,8 +2211,7 @@ Punctuation.CloseCurly,
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/59569")]
         public async Task TestArgsInTopLevel(TestHost testHost)
         {
@@ -2292,8 +2233,7 @@ Punctuation.OpenCurly,
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/59569")]
         public async Task TestArgsInNormalProgram(TestHost testHost)
         {
@@ -2321,8 +2261,7 @@ Punctuation.OpenCurly,
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncInIncompleteMember(TestHost testHost)
         {
@@ -2341,8 +2280,7 @@ Keyword("async"),
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncInIncompleteMemberWhenAsyncTypeIsDefined(TestHost testHost)
         {
@@ -2365,8 +2303,7 @@ Class("async"),
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncInPotentialLocalFunctionDeclaration(TestHost testHost)
         {
@@ -2386,8 +2323,7 @@ Keyword("async"),
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncInPotentialLocalFunctionDeclarationWhenAsyncTypeIsDefined(TestHost testHost)
         {
@@ -2411,8 +2347,7 @@ Class("async"),
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncAsLocalMemberType_NoAsyncInScope(TestHost testHost)
         {
@@ -2431,8 +2366,7 @@ Local("a"),
 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncAsLocalMemberType_AsyncInScope(TestHost testHost)
         {
@@ -2454,8 +2388,7 @@ Local("a"),
 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncAsPropertyType_NoAsyncInScope(TestHost testHost)
         {
@@ -2477,8 +2410,7 @@ Punctuation.Semicolon,
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncAsPropertyType_AsyncInScope(TestHost testHost)
         {
@@ -2503,8 +2435,7 @@ Punctuation.Semicolon,
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncAsMethodReturnType_NoAsyncInScope(TestHost testHost)
         {
@@ -2522,8 +2453,7 @@ Punctuation.OpenParen,
 Punctuation.CloseParen);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncAsMethodReturnType_AsyncInScope(TestHost testHost)
         {
@@ -2544,8 +2474,7 @@ Punctuation.OpenParen,
 Punctuation.CloseParen);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncAsAccessingName(TestHost testHost)
         {
@@ -2571,8 +2500,7 @@ Static("async"),
 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncInIncompleteDelegateOrLambda(TestHost testHost)
         {
@@ -2595,8 +2523,7 @@ Keyword("async"));
 
         /// <seealso cref="SemanticClassifierTests.LocalFunctionUse"/>
         /// <seealso cref="SyntacticClassifierTests.LocalFunctionDeclaration"/>
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LocalFunctionDeclarationAndUse(TestHost testHost)
         {
             await TestAsync(
@@ -2656,8 +2583,7 @@ Keyword("async"));
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestScopedVar(TestHost testHost)
         {
             await TestAsync("""
@@ -2695,8 +2621,7 @@ Keyword("async"));
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Lambda_DefaultParameterValue(TestHost testHost)
         {
             await TestAsync(
@@ -2722,6 +2647,98 @@ Keyword("async"));
                 Punctuation.CloseParen,
                 Operators.EqualsGreaterThan,
                 Parameter("x"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task UsingAliasToType1(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using X = int;
+                """,
+                testHost,
+                Keyword("using"),
+                Struct("X"),
+                Operators.Equals,
+                Keyword("int"),
+                Punctuation.Semicolon);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task UsingAliasToType2(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using X = int[];
+                """,
+                testHost,
+                Keyword("using"),
+                Identifier("X"),
+                Operators.Equals,
+                Keyword("int"),
+                Punctuation.OpenBracket,
+                Punctuation.CloseBracket,
+                Punctuation.Semicolon);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task UsingAliasToType3(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using unsafe X = int*;
+                """,
+                testHost,
+                Keyword("using"),
+                Keyword("unsafe"),
+                Identifier("X"),
+                Operators.Equals,
+                Keyword("int"),
+                Operators.Asterisk,
+                Punctuation.Semicolon);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task UsingAliasToType4(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using unsafe X = delegate*<int,int>;
+                """,
+                testHost,
+                Keyword("using"),
+                Keyword("unsafe"),
+                Identifier("X"),
+                Operators.Equals,
+                Keyword("delegate"),
+                Operators.Asterisk,
+                Punctuation.OpenAngle,
+                Keyword("int"),
+                Punctuation.Comma,
+                Keyword("int"),
+                Punctuation.CloseAngle,
+                Punctuation.Semicolon);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task UsingAliasToType5(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using X = (int x, string b);
+                """,
+                testHost,
+                Keyword("using"),
+                Struct("X"),
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Identifier("x"),
+                Punctuation.Comma,
+                Keyword("string"),
+                Identifier("b"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon);
         }
     }
 }

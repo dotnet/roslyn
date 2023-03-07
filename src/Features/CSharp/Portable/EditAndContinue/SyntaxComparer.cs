@@ -790,27 +790,53 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
 
                 case SyntaxKind.UsingStatement:
-                    var leftUsing = (UsingStatementSyntax)leftNode;
-                    var rightUsing = (UsingStatementSyntax)rightNode;
-
-                    if (leftUsing.Declaration != null && rightUsing.Declaration != null)
                     {
-                        distance = ComputeWeightedDistance(
-                            leftUsing.Declaration,
-                            leftUsing.Statement,
-                            rightUsing.Declaration,
-                            rightUsing.Statement);
-                    }
-                    else
-                    {
-                        distance = ComputeWeightedDistance(
-                            (SyntaxNode?)leftUsing.Expression ?? leftUsing.Declaration!,
-                            leftUsing.Statement,
-                            (SyntaxNode?)rightUsing.Expression ?? rightUsing.Declaration!,
-                            rightUsing.Statement);
+                        var leftUsing = (UsingStatementSyntax)leftNode;
+                        var rightUsing = (UsingStatementSyntax)rightNode;
+
+                        if (leftUsing.Declaration != null && rightUsing.Declaration != null)
+                        {
+                            distance = ComputeWeightedDistance(
+                                leftUsing.Declaration,
+                                leftUsing.Statement,
+                                rightUsing.Declaration,
+                                rightUsing.Statement);
+                        }
+                        else
+                        {
+                            distance = ComputeWeightedDistance(
+                                (SyntaxNode?)leftUsing.Expression ?? leftUsing.Declaration!,
+                                leftUsing.Statement,
+                                (SyntaxNode?)rightUsing.Expression ?? rightUsing.Declaration!,
+                                rightUsing.Statement);
+                        }
+
+                        return true;
                     }
 
-                    return true;
+                case SyntaxKind.UsingDirective:
+                    {
+                        var leftUsing = (UsingDirectiveSyntax)leftNode;
+                        var rightUsing = (UsingDirectiveSyntax)rightNode;
+
+                        // For now, just compute the distances of both the alias and name and combine their weights
+                        // 50/50. We could consider weighting the alias more heavily.  i.e. if you have `using X = ...`
+                        // and `using X = ...` it's more likely that this is the same alias, and just the name portion
+                        // changed versus thinking that some other using became this alias.
+                        distance =
+                            ComputeDistance(leftUsing.Alias, rightUsing.Alias) +
+                            ComputeDistance(leftUsing.NamespaceOrType, rightUsing.NamespaceOrType);
+
+                        // Consider two usings that only differ by presence/absence of 'global' to be a near match.
+                        if (leftUsing.GlobalKeyword.IsKind(SyntaxKind.None) != rightUsing.GlobalKeyword.IsKind(SyntaxKind.None))
+                            distance += EpsilonDist;
+
+                        // Consider two usings that only differ by presence/absence of 'unsafe' to be a near match.
+                        if (leftUsing.UnsafeKeyword.IsKind(SyntaxKind.None) != rightUsing.UnsafeKeyword.IsKind(SyntaxKind.None))
+                            distance += EpsilonDist;
+
+                        return true;
+                    }
 
                 case SyntaxKind.LockStatement:
                     var leftLock = (LockStatementSyntax)leftNode;
@@ -1381,7 +1407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return ((ExternAliasDirectiveSyntax)node).Identifier;
 
                 case SyntaxKind.UsingDirective:
-                    return ((UsingDirectiveSyntax)node).Name;
+                    return ((UsingDirectiveSyntax)node).NamespaceOrType;
 
                 case SyntaxKind.NamespaceDeclaration:
                 case SyntaxKind.FileScopedNamespaceDeclaration:

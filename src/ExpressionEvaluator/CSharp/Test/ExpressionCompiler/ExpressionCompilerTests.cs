@@ -5014,6 +5014,43 @@ class C
         }
 
         [Fact]
+        public void UsingAliasToNonNamedType()
+        {
+            var source = @"
+using A = int;
+
+class C
+{
+    int M()
+    {
+        A.Parse(""0"");
+        return 1;
+    }
+}
+";
+            var expectedIL = @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldstr      ""0""
+  IL_0005:  call       ""int int.Parse(string)""
+  IL_000a:  ret
+}
+";
+
+            var comp = CreateCompilation(source);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                var testData = new CompilationTestData();
+                var result = context.CompileExpression(@"A.Parse(""0"")", out var error, testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(expectedIL);
+            });
+        }
+
+        [Fact]
         public void ExternAliasForMultipleAssemblies()
         {
             var source = @"

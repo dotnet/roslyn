@@ -223,9 +223,15 @@ if (x is $$"));
         }
 
         [Fact]
+        public async Task TestNotInUsing()
+        {
+            await VerifyAbsenceAsync(
+@"using $$");
+        }
+
+        [Fact]
         public async Task TestInUsingAliasFirst()
         {
-            // Ideally, keywords should not be recommended as first token in target.
             await VerifyKeywordAsync(
 @"using A = $$");
         }
@@ -233,7 +239,6 @@ if (x is $$"));
         [Fact]
         public async Task TestInGlobalUsingAliasFirst()
         {
-            // Ideally, keywords should not be recommended as first token in target.
             await VerifyKeywordAsync(
 @"global using A = $$");
         }

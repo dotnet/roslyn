@@ -1091,6 +1091,47 @@ class C
             });
         }
 
+        [Fact]
+        public void ImportsForUsingsToTypes()
+        {
+            var source = @"
+using A = int;
+using B = (int x, int y);
+
+class C
+{
+    int M()
+    {
+        A.Parse(""0"");
+        return 1;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
+
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var importsList = GetImports(runtime, "C.M");
+
+                var imports = importsList.Single();
+
+                Assert.Equal(0, imports.Usings.Length);
+
+                var usingAliases = imports.UsingAliases;
+                Assert.Equal(2, usingAliases.Count);
+                AssertEx.SetEqual(usingAliases.Keys, "A", "B");
+
+                var aliasA = usingAliases["A"].Alias;
+                Assert.Equal("A", aliasA.Name);
+                Assert.Equal("System.Int32", aliasA.Target.ToTestDisplayString());
+
+                var aliasB = usingAliases["B"].Alias;
+                Assert.Equal("B", aliasB.Name);
+                Assert.NotEqual(aliasA.Target, aliasB.Target);
+            });
+        }
+
         private static ImportChain GetImports(RuntimeInstance runtime, string methodName)
         {
             var evalContext = CreateMethodContext(runtime, methodName);
