@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class IOperationTests_IParameterReferenceExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_TupleExpression()
         {
             string source = @"
@@ -48,7 +48,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32)) (Syn
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_TupleDeconstruction()
         {
             string source = @"
@@ -96,7 +96,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_AnonymousObjectCreation()
         {
             string source = @"
@@ -136,7 +136,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_QueryExpression()
         {
             string source = @"
@@ -191,7 +191,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_ObjectAndCollectionInitializer()
         {
             string source = @"
@@ -297,7 +297,7 @@ IObjectCreationOperation (Constructor: Class..ctor()) (OperationKind.ObjectCreat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DelegateCreationExpressionWithLambdaArgument()
         {
             string source = @"
@@ -336,7 +336,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DelegateCreationExpressionWithMethodArgument()
         {
             string source = @"
@@ -369,7 +369,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Class.Delegate
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DelegateCreationExpressionWithInvalidArgument()
         {
             string source = @"
@@ -400,7 +400,7 @@ IInvalidOperation (OperationKind.Invalid, Type: Class.Delegate, IsInvalid) (Synt
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DynamicCollectionInitializer()
         {
             string source = @"
@@ -445,7 +445,7 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_NameOfExpression()
         {
             string source = @"
@@ -467,7 +467,7 @@ INameOfOperation (OperationKind.NameOf, Type: System.String, Constant: ""x"") (S
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_PointerIndirectionExpression()
         {
             string source = @"
@@ -494,7 +494,7 @@ IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: '*x')
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_FixedLocalInitializer()
         {
             string source = @"
@@ -529,7 +529,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDe
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_RefTypeOperator()
         {
             string source = @"
@@ -552,7 +552,7 @@ IOperation:  (OperationKind.None, Type: System.Type) (Syntax: '__reftype(x)')
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_MakeRefOperator()
         {
             string source = @"
@@ -575,7 +575,7 @@ IOperation:  (OperationKind.None, Type: System.TypedReference) (Syntax: '__maker
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_RefValueOperator()
         {
             string source = @"
@@ -598,7 +598,7 @@ IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: '__refvalue(x, in
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DynamicIndexerAccess()
         {
             string source = @"
@@ -628,7 +628,7 @@ IVariableDeclaratorOperation (Symbol: dynamic y) (OperationKind.VariableDeclarat
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DynamicMemberAccess()
         {
             string source = @"
@@ -658,7 +658,7 @@ IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Sy
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DynamicInvocation()
         {
             string source = @"
@@ -685,7 +685,7 @@ IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Sy
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DynamicObjectCreation()
         {
             string source = @"
@@ -715,7 +715,7 @@ IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, Type: Clas
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_StackAllocArrayCreation()
         {
             string source = @"
@@ -744,7 +744,7 @@ IOperation:  (OperationKind.None, Type: System.Int32*) (Syntax: 'stackalloc int[
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_InterpolatedStringExpression()
         {
             string source = @"
@@ -798,7 +798,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_ThrowExpression()
         {
             string source = @"
@@ -833,7 +833,7 @@ IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw new A ... (nam
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_PatternSwitchStatement()
         {
             string source = @"
@@ -871,7 +871,7 @@ ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, T
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DefaultPatternSwitchStatement()
         {
             string source = @"
@@ -899,7 +899,7 @@ IDefaultCaseClauseOperation (Label Id: 0) (CaseKind.Default) (OperationKind.Case
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_UserDefinedLogicalConditionalOperator()
         {
             string source = @"
@@ -945,7 +945,7 @@ IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: B B.op_Bit
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ParameterReference_NoPiaObjectCreation()
         {
@@ -1001,7 +1001,7 @@ IInvalidOperation (OperationKind.Invalid, Type: I, IsInvalid) (Syntax: 'new I(x)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_ArgListOperator()
         {
             string source = @"
@@ -1030,7 +1030,7 @@ IOperation:  (OperationKind.None, Type: null) (Syntax: '__arglist(x, y)')
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(19790, "https://github.com/dotnet/roslyn/issues/19790")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19790")]
         public void ParameterReference_IsPatternExpression()
         {
             string source = @"
@@ -1055,7 +1055,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(19902, "https://github.com/dotnet/roslyn/issues/19902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19902")]
         public void ParameterReference_LocalFunctionStatement()
         {
             string source = @"

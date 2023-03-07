@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class IOperationTests_IBranchOperation_Extensions : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
         public void GetCorrespondingOperation_ForNull_ThrowsArgumentNullException()
         {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
         public void GetCorrespondingOperation_ForGotoBranch_ReturnsNull()
         {
@@ -45,7 +45,7 @@ class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
         public void GetCorrespondingOperation_LoopLookup_ForLoopWithBreak()
         {
@@ -63,7 +63,7 @@ class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
         public void GetCorrespondingOperation_LoopLookup_WhileLoopWithContinue()
         {
@@ -81,7 +81,7 @@ class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
         public void GetCorrespondingOperation_LoopLookup_DoWhileLoopWithBreakAndContinue()
         {
@@ -102,7 +102,7 @@ class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
         public void GetCorrespondingOperation_LoopLookup_ForEachLoopWithBreak()
         {
@@ -121,7 +121,7 @@ class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
         public void GetCorrespondingOperation_LoopLookup_ForEachLoopWithBreakAndContinue()
         {
@@ -142,7 +142,7 @@ class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
         public void GetCorrespondingOperation_LoopLookup_NestedLoops()
         {
@@ -163,7 +163,7 @@ class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
         public void GetCorrespondingOperation_LoopLookup_NestedLoops2()
         {
@@ -184,7 +184,7 @@ class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
         public void GetCorrespondingOperation_SwitchLookup_BreakInCase()
         {
@@ -203,7 +203,7 @@ class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
         public void GetCorrespondingOperation_SwitchLookup_NestedSwitches()
         {
@@ -227,7 +227,7 @@ class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
         public void GetCorrespondingOperation_SwitchLookup_NestedSwitches2()
         {
@@ -251,7 +251,7 @@ class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
         public void GetCorrespondingOperation_LoopLookup_LoopInSwitch()
         {
@@ -274,7 +274,7 @@ class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
         public void GetCorrespondingOperation_SwitchLookup_SwitchInLoop()
         {
@@ -296,7 +296,7 @@ class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
         public void GetCorrespondingOperation_LoopLookup_ContinueNestedInIntermediateSwitch()
         {
@@ -319,7 +319,7 @@ class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
         public void GetCorrespondingOperation_LoopLookup_BreakButNoLoop_ReturnsNull()
         {
@@ -337,7 +337,7 @@ class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/28095")]
         [Fact]
         public void GetCorrespondingOperation_SwitchLookup_BreakButNoSwitch_ReturnsNull()
         {

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class IOperationTests_IArrayElementReferenceExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReference_SingleDimensionArray_ConstantIndex()
         {
             string source = @"
@@ -40,7 +40,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReference_SingleDimensionArray_NonConstantIndex()
         {
             string source = @"
@@ -65,7 +65,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReference_SingleDimensionArray_FunctionCallArrayReference()
         {
             string source = @"
@@ -95,7 +95,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReference_MultiDimensionArray_ConstantIndices()
         {
             string source = @"
@@ -121,7 +121,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReference_MultiDimensionArray_NonConstantIndices()
         {
             string source = @"
@@ -147,7 +147,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReference_MultiDimensionArray_InvocationInIndex()
         {
             string source = @"
@@ -179,7 +179,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReference_JaggedArray_ConstantIndices()
         {
             string source = @"
@@ -208,7 +208,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReference_JaggedArray_NonConstantIndices()
         {
             string source = @"
@@ -243,7 +243,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReference_JaggedArrayOfMultidimensionalArrays()
         {
             string source = @"
@@ -279,7 +279,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReference_ImplicitConversionInIndexExpression()
         {
             string source = @"
@@ -307,7 +307,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReference_ExplicitConversionInIndexExpression()
         {
             string source = @"
@@ -335,7 +335,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReference_ImplicitUserDefinedConversionInIndexExpression()
         {
             string source = @"
@@ -368,7 +368,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReference_ExplicitUserDefinedConversionInIndexExpression()
         {
             string source = @"
@@ -401,7 +401,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReference_ExplicitUserDefinedConversionInArrayReference()
         {
             string source = @"
@@ -434,7 +434,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReferenceError_NoConversionInIndexExpression()
         {
             string source = @"
@@ -466,7 +466,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReferenceError_MissingExplicitCastInIndexExpression()
         {
             string source = @"
@@ -503,7 +503,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReferenceError_NoArrayReference()
         {
             string source = @"
@@ -534,7 +534,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[0]')
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReferenceError_NoIndices()
         {
             string source = @"
@@ -564,7 +564,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReferenceError_BadIndexing()
         {
             string source = @"
@@ -594,7 +594,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'c[0]')
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReferenceError_BadIndexCount()
         {
             string source = @"
@@ -624,7 +624,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReferenceError_ExtraElementAccessOperator()
         {
             string source = @"
@@ -657,7 +657,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Char, IsInvalid) (Syntax:
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReferenceError_IndexErrorExpression()
         {
             string source = @"
@@ -686,7 +686,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'ErrorExp
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReferenceError_InvalidIndexerExpression()
         {
             string source = @"
@@ -719,7 +719,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReferenceError_SyntaxErrorInIndexer_MissingValue()
         {
             string source = @"
@@ -750,7 +750,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReferenceError_SyntaxErrorInIndexer_MissingBracket()
         {
             string source = @"
@@ -781,7 +781,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReferenceError_SyntaxErrorInIndexer_MissingBracketAfterIndex()
         {
             string source = @"
@@ -810,7 +810,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReferenceError_SyntaxErrorInIndexer_DeeplyNestedParameterReference()
         {
             string source = @"
@@ -860,7 +860,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'args[y][
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReferenceError_NamedArgumentForArray()
         {
             string source = @"
@@ -889,7 +889,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReferenceError_RefAndOutArguments()
         {
             string source = @"
@@ -925,7 +925,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReferenceWarning_NegativeIndexExpression()
         {
             string source = @"

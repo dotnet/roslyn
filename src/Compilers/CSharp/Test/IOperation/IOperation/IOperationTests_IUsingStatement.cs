@@ -73,7 +73,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (var  ... }')
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.AsyncStreams)]
-        [Fact, WorkItem(30362, "https://github.com/dotnet/roslyn/issues/30362")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30362")]
         public void IUsingAwaitStatement_SimpleAwaitUsing()
         {
             string source = @"
@@ -127,7 +127,7 @@ IUsingOperation (IsAsynchronous) (OperationKind.Using, Type: null) (Syntax: 'awa
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.AsyncStreams)]
-        [Fact, WorkItem(30362, "https://github.com/dotnet/roslyn/issues/30362")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30362")]
         public void UsingFlow_SimpleAwaitUsing()
         {
             string source = @"
@@ -4026,7 +4026,7 @@ Block[B6] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingFlow_17()
         {
             string source = @"
@@ -4481,7 +4481,7 @@ Block[B6] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_Flow_01()
         {
             string source = @"
@@ -4565,7 +4565,7 @@ Block[B6] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_Flow_02()
         {
             string source = @"
@@ -4735,7 +4735,7 @@ Block[B14] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_Flow_03()
         {
             string source = @"
@@ -4902,7 +4902,7 @@ Block[B13] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_Flow_04()
         {
             string source = @"
@@ -5069,7 +5069,7 @@ Block[B13] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_Flow_05()
         {
             string source = @"
@@ -5223,7 +5223,7 @@ Block[B10] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_Flow_06()
         {
             string source = @"
@@ -5413,7 +5413,7 @@ Block[B10] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_Flow_07()
         {
             string source = @"
@@ -5578,7 +5578,7 @@ Block[B11] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_Flow_08()
         {
             string source = @"
@@ -5776,7 +5776,7 @@ Block[B14] - Exit [UnReachable]
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_Flow_09()
         {
             string source = @"
@@ -5864,7 +5864,7 @@ class C
 
         }
 
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_Flow_10()
         {
             string source = @"
@@ -6085,7 +6085,7 @@ class C : System.IDisposable
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_Flow_11()
         {
             string source = @"
@@ -7566,7 +7566,7 @@ Block[B6] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_SingleDeclaration()
         {
             string source = @"
@@ -7607,7 +7607,7 @@ class C : IDisposable
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_MultipleDeclarations()
         {
             string source = @"
@@ -7682,7 +7682,7 @@ class C : IDisposable
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_SingleDeclaration_MultipleVariables()
         {
             string source = @"
@@ -7736,7 +7736,7 @@ class C : IDisposable
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_MultipleDeclaration_WithLabels()
         {
             string source = @"
@@ -7804,7 +7804,7 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null) (Synt
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_SingleDeclaration_Async()
         {
             string source = @"
@@ -7849,7 +7849,7 @@ IUsingDeclarationOperation(IsAsynchronous: True, DisposeMethod: System.Threading
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_MultipleDeclarations_Async()
         {
             string source = @"
@@ -7928,7 +7928,7 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_SingleDeclaration_MultipleVariables_Async()
         {
             string source = @"
@@ -7987,7 +7987,7 @@ IUsingDeclarationOperation(IsAsynchronous: True, DisposeMethod: System.Threading
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_RegularAsync_Mix()
         {
             string source = @"

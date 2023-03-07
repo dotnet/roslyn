@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class IOperationTests_InvalidExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidInvocationExpression_BadReceiver()
         {
             string source = @"
@@ -47,7 +47,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Console.
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidInvocationExpression_OverloadResolutionFailureBadArgument()
         {
             string source = @"
@@ -82,7 +82,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidInvocationExpression_OverloadResolutionFailureExtraArgument()
         {
             string source = @"
@@ -117,7 +117,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidFieldReferenceExpression()
         {
             string source = @"
@@ -154,7 +154,7 @@ IVariableDeclaratorOperation (Symbol: ? y) (OperationKind.VariableDeclarator, Ty
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidConversionExpression_ImplicitCast()
         {
             string source = @"
@@ -203,7 +203,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidConversionExpression_ExplicitCast()
         {
             string source = @"
@@ -252,7 +252,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidUnaryExpression()
         {
             string source = @"
@@ -286,7 +286,7 @@ IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: ?, IsInv
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidBinaryExpression()
         {
             string source = @"
@@ -329,7 +329,7 @@ IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: ?, IsInva
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidLambdaBinding_UnboundLambda()
         {
             string source = @"
@@ -371,7 +371,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidLambdaBinding_LambdaExpression()
         {
             string source = @"
@@ -408,7 +408,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidFieldInitializer()
         {
             string source = @"
@@ -443,7 +443,7 @@ IFieldInitializerOperation (Field: System.Int32 Program.x) (OperationKind.FieldI
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidArrayInitializer()
         {
             string source = @"
@@ -493,7 +493,7 @@ IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: n
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidArrayCreation()
         {
             string source = @"
@@ -542,7 +542,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: X[], IsInvalid) (Syn
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidParameterDefaultValueInitializer()
         {
             string source = @"
@@ -577,7 +577,7 @@ IParameterInitializerOperation (Parameter: [System.Int32 p = default(System.Int3
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20050")]
         public void BuildsArgumentsOperationsForDuplicateExplicitArguments_Repro()
         {
             string source = @"
@@ -605,7 +605,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.String, IsInvalid) (Synta
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20050")]
         public void BuildsArgumentsOperationsForDuplicateExplicitArguments_CorrectArgumentsOrder_Methods()
         {
             string source = @"
@@ -637,7 +637,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20050")]
         public void BuildsArgumentsOperationsForDuplicateExplicitArguments_CorrectArgumentsOrder_Delegates()
         {
             string source = @"
@@ -667,7 +667,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20050")]
         public void BuildsArgumentsOperationsForDuplicateExplicitArguments_CorrectArgumentsOrder_Indexers_Getter()
         {
             string source = @"
@@ -701,7 +701,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20050")]
         public void BuildsArgumentsOperationsForDuplicateExplicitArguments_CorrectArgumentsOrder_Indexers_Setter()
         {
             string source = @"
@@ -735,7 +735,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20050")]
         public void BuildsArgumentsOperationsForDuplicateExplicitArguments_IncorrectArgumentsOrder_Methods()
         {
             string source = @"
@@ -767,7 +767,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20050")]
         public void BuildsArgumentsOperationsForDuplicateExplicitArguments_IncorrectArgumentsOrder_Delegates()
         {
             string source = @"
@@ -797,7 +797,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20050")]
         public void BuildsArgumentsOperationsForDuplicateExplicitArguments_IncorrectArgumentsOrder_Indexers_Getter()
         {
             string source = @"
@@ -831,7 +831,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20050")]
         public void BuildsArgumentsOperationsForDuplicateExplicitArguments_IncorrectArgumentsOrder_Indexers_Setter()
         {
             string source = @"

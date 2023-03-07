@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         #region Variable Declarations
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void VariableDeclarator()
         {
             string source = @"
@@ -51,7 +51,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void VariableDeclaratorWithInitializer()
         {
             string source = @"
@@ -84,7 +84,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void VariableDeclaratorWithInvalidInitializer()
         {
             string source = @"
@@ -118,7 +118,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void MultipleDeclarations()
         {
             string source = @"
@@ -156,7 +156,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void MultipleDeclarationsWithInitializers()
         {
             string source = @"
@@ -196,7 +196,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void MultipleDeclarationsWithInvalidInitializer()
         {
             string source = @"
@@ -237,7 +237,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void InvalidMultipleVariableDeclaration()
         {
             string source = @"
@@ -275,7 +275,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void VariableDeclaratorExpressionInitializer()
         {
             string source = @"
@@ -309,7 +309,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void MultipleVariableDeclarationsExpressionInitializers()
         {
             string source = @"
@@ -1393,7 +1393,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         #region Fixed Statements
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementDeclaration()
         {
             string source = @"
@@ -1440,7 +1440,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementMultipleDeclaration()
         {
             string source = @"
@@ -1496,7 +1496,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementInvalidAssignment()
         {
             string source = @"
@@ -1543,7 +1543,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementMultipleDeclarationsInvalidInitializers()
         {
             string source = @"
@@ -1601,7 +1601,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementNoInitializer()
         {
             string source = @"
@@ -1646,7 +1646,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementMultipleDeclarationsNoInitializers()
         {
             string source = @"
@@ -1700,7 +1700,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementInvalidMultipleDeclarations()
         {
             string source = @"
@@ -1832,7 +1832,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         #region Using Statements
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementDeclaration()
         {
             string source = @"
@@ -1869,7 +1869,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementMultipleDeclarations()
         {
             string source = @"
@@ -1913,7 +1913,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementInvalidInitializer()
         {
             string source = @"
@@ -1952,7 +1952,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementMultipleDeclarationsInvalidInitializers()
         {
             string source = @"
@@ -1999,7 +1999,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementNoInitializer()
         {
             string source = @"
@@ -2036,7 +2036,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementMultipleDeclarationsNoInitializers()
         {
             string source = @"
@@ -2079,7 +2079,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementInvalidMultipleDeclarations()
         {
             string source = @"
@@ -2126,7 +2126,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementExpressionInitializer()
         {
             string source = @"
@@ -2165,7 +2165,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementMultipleDeclarationsExpressionInitializers()
         {
             string source = @"
@@ -2211,7 +2211,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementLocalReferenceInitializer()
         {
             string source = @"
@@ -2246,7 +2246,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementMultipleDeclarationsLocalReferenceInitializers()
         {
             string source = @"
@@ -2470,7 +2470,7 @@ class C
         #region For Loops
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopDeclaration()
         {
             string source = @"
@@ -2501,7 +2501,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopMultipleDeclarations()
         {
             string source = @"
@@ -2539,7 +2539,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopInvalidInitializer()
         {
             string source = @"
@@ -2575,7 +2575,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopMultipleDeclarationsInvalidInitializers()
         {
             string source = @"
@@ -2619,7 +2619,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopNoInitializer()
         {
             string source = @"
@@ -2653,7 +2653,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopMultipleDeclarationsNoInitializer()
         {
             string source = @"
@@ -2693,7 +2693,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopInvalidMultipleDeclarations()
         {
             string source = @"
@@ -2735,7 +2735,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopExpressionInitializer()
         {
             string source = @"
@@ -2771,7 +2771,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopMultipleDeclarationsExpressionInitializers()
         {
             string source = @"
@@ -2876,7 +2876,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         #region Const Local Declarations
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalDeclaration()
         {
             string source = @"
@@ -2909,7 +2909,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalMultipleDeclarations()
         {
             string source = @"
@@ -2952,7 +2952,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalDeclarationInvalidInitializer()
         {
             string source = @"
@@ -2986,7 +2986,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalMultipleDeclarationsInvalidInitializers()
         {
             string source = @"
@@ -3028,7 +3028,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalDeclarationNoInitializer()
         {
             string source = @"
@@ -3063,7 +3063,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalMultipleDeclarationsNoInitializers()
         {
             string source = @"
@@ -3107,7 +3107,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalInvalidMultipleDeclarations()
         {
             string source = @"
@@ -3151,7 +3151,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalDeclarationExpressionInitializer()
         {
             string source = @"
@@ -3189,7 +3189,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalMultipleDeclarationsExpressionInitializers()
         {
             string source = @"
@@ -3237,7 +3237,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalDeclarationLocalReferenceInitializer()
         {
             string source = @"
@@ -3273,7 +3273,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalMultipleDeclarationsLocalReferenceInitializers()
         {
             string source = @"

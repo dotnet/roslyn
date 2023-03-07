@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class IOperationTests_IIfStatement : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementSimpleIf()
         {
             string source = @"
@@ -57,7 +57,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementSimpleIfWithElse()
         {
             string source = @"
@@ -113,7 +113,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementSimpleIfWithConditionEvaluationTrue()
         {
             string source = @"
@@ -161,7 +161,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (1 ==
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementSimpleIfNested1()
         {
             string source = @"
@@ -234,7 +234,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (m > 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementSimpleIfNested2()
         {
             string source = @"
@@ -306,7 +306,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (m > 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithMultipleCondition()
         {
             string source = @"
@@ -362,7 +362,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (m >=
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithElseIfCondition()
         {
             string source = @"
@@ -448,7 +448,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (n > 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithElseIfConditionOutVar()
         {
             string source = @"
@@ -551,7 +551,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (int.
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithOutVar()
         {
             string source = @"
@@ -604,7 +604,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementExplicitEmbeddedOutVar()
         {
             string source = @"
@@ -665,7 +665,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementImplicitEmbeddedOutVar()
         {
             string source = @"
@@ -721,7 +721,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithConditionPattern()
         {
             string source = @"
@@ -769,7 +769,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (obj 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithPattern()
         {
             string source = @"
@@ -816,7 +816,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithEmbeddedPattern()
         {
             string source = @"
@@ -874,7 +874,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27866")]
         public void IIfstatementWithIfMissing()
         {
             string source = @"
@@ -950,7 +950,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: '/*<bind>
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27866")]
         public void IIfstatementWithDoubleElse()
         {
             string source = @"
@@ -1055,7 +1055,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27866")]
         public void IIfstatementWithElseKeywordPlacedAsIfEmbeddedStatement()
         {
             string source = @"
@@ -1127,7 +1127,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27866")]
         public void IIfstatementWithIfKeywordMissingAndDoubleElseKeywordsPresent()
         {
             string source = @"
@@ -1227,7 +1227,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithElseMissing()
         {
             string source = @"
@@ -1286,7 +1286,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithConditionMissing()
         {
             string source = @"
@@ -1345,7 +1345,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithStatementMissing()
         {
             string source = @"
@@ -1420,7 +1420,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithFuncCall()
         {
             string source = @"
@@ -1474,7 +1474,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithDynamic()
         {
             string source = @"

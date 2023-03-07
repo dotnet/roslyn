@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class IOperationTests_IForEachLoopStatement : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_SimpleForEachLoop()
         {
             string source = @"
@@ -62,7 +62,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_WithList()
         {
             string source = @"
@@ -115,7 +115,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_WithKeyValue()
         {
             string source = @"
@@ -189,7 +189,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_WithBreak()
         {
             string source = @"
@@ -252,7 +252,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_WithContinue()
         {
             string source = @"
@@ -315,7 +315,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_QueryExpression()
         {
             string source = @"
@@ -361,7 +361,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_Struct()
         {
             string source = @"
@@ -460,7 +460,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_String()
         {
             string source = @"
@@ -508,7 +508,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_WithVar()
         {
             string source = @"
@@ -580,7 +580,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_BadElementType()
         {
             string source = @"
@@ -633,7 +633,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_NullLiteralCollection()
         {
             string source = @"
@@ -664,7 +664,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_NoElementCollection()
         {
             string source = @"
@@ -698,7 +698,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_ModifyIterationVariable()
         {
             string source = @"
@@ -737,7 +737,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_Pattern()
         {
             string source = @"
@@ -781,7 +781,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_ImplicitlyTypedString()
         {
             string source = @"
@@ -813,7 +813,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_ExplicitlyTypedVar()
         {
             string source = @"
@@ -847,7 +847,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_DynamicEnumerable()
         {
             string source = @"
@@ -879,7 +879,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_TypeParameterConstrainedToInterface()
         {
             string source = @"
@@ -932,7 +932,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_CastArrayToIEnumerable()
         {
             string source = @"
@@ -970,7 +970,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_CastCollectionToIEnumerable()
         {
             string source = @"
@@ -1009,7 +1009,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_WithThrow()
         {
             string source = @"
@@ -1080,7 +1080,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_WithDeconstructDeclaration()
         {
             string source = @"
@@ -1120,7 +1120,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_WithNestedDeconstructDeclaration()
         {
             string source = @"
@@ -1165,7 +1165,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_WithInvalidLoopControlVariable()
         {
             string source = @"
@@ -1246,7 +1246,7 @@ IBlockOperation (4 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_WithInvalidLoopControlVariable_02()
         {
             string source = @"
@@ -1283,7 +1283,7 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_InvalidLoopControlVariableDeclaration()
         {
             string source = @"
@@ -1327,7 +1327,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(19996, "https://github.com/dotnet/roslyn/issues/19996")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19996")]
         public void IForEachLoopStatement_InvalidLoopControlVariableExpression_01()
         {
             string source = @"
@@ -1373,7 +1373,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_InvalidLoopControlVariableExpression_02()
         {
             string source = @"
@@ -1422,7 +1422,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_InvalidLoopControlVariableExpression_03()
         {
             string source = @"
@@ -1462,7 +1462,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_ViaExtensionMethod()
         {
             var source = @"
@@ -1515,7 +1515,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_ViaExtensionMethodWithConversion()
         {
             var source = @"
@@ -1568,7 +1568,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_ViaExtensionMethod_WithGetEnumeratorReturningWrongType()
         {
             var source = @"
@@ -1614,7 +1614,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_ViaExtensionMethod_WithSpillInExpression()
         {
             var source = @"
@@ -1673,7 +1673,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IAwaitForEachLoopStatement_ViaExtensionMethod()
         {
             var source = @"
@@ -1728,7 +1728,7 @@ IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, E
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IAwaitForEachLoopStatement_ViaExtensionMethodWithConversion()
         {
             var source = @"
@@ -1783,7 +1783,7 @@ IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, E
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IAwaitForEachLoopStatement_ViaExtensionMethod_WithGetAsyncEnumeratorReturningWrongType()
         {
             var source = @"
@@ -1836,7 +1836,7 @@ IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, E
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IAwaitForEachLoopStatement_ViaExtensionMethod_WithSpillInExpression()
         {
             var source = @"
@@ -4555,7 +4555,7 @@ Block[B7] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void ForEachFlow_ViaExtensionMethod()
         {
             var source = @"
@@ -4685,7 +4685,7 @@ Block[B7] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void ForEachFlow_ViaExtensionMethodWithConversion()
         {
             var source = @"
@@ -4816,7 +4816,7 @@ Block[B7] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void ForEachFlow_ViaExtensionMethod_WithGetEnumeratorReturningWrongType()
         {
             var source = @"
@@ -4901,7 +4901,7 @@ Block[B4] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void ForEachFlow_ViaExtensionMethod_WithSpillInExpression()
         {
             var source = @"
@@ -5071,7 +5071,7 @@ Block[B10] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void AwaitForeachFlow_ViaExtensionMethod()
         {
             var source = @"
@@ -5202,7 +5202,7 @@ Block[B7] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void AwaitForeachFlow_ViaExtensionMethodWithConversion()
         {
             var source = @"
@@ -5334,7 +5334,7 @@ Block[B7] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void AwaitForeachFlow_ViaExtensionMethod_WithGetAsyncEnumeratorReturningWrongType()
         {
             var source = @"
@@ -5420,7 +5420,7 @@ Block[B4] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void AwaitForeachFlow_ViaExtensionMethod_WithSpillInExpression()
         {
             var source = @"
@@ -5591,7 +5591,7 @@ Block[B10] - Exit
         }
 
         [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.AsyncStreams)]
-        [WorkItem(30362, "https://github.com/dotnet/roslyn/issues/30362")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30362")]
         public void IForEachLoopStatement_SimpleAwaitForEachLoop()
         {
             string source = @"
@@ -5637,7 +5637,7 @@ IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, E
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.AsyncStreams)]
-        [Fact, WorkItem(30362, "https://github.com/dotnet/roslyn/issues/30362")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30362")]
         public void ForEachAwaitFlow_SimpleAwaitForEachLoop()
         {
             string source = @"
@@ -5761,7 +5761,7 @@ Block[B7] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.AsyncStreams)]
-        [Fact, WorkItem(30362, "https://github.com/dotnet/roslyn/issues/30362")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30362")]
         public void ForEachAwaitFlow_SimpleAwaitForEachLoop_MissingIAsyncEnumerableType()
         {
             string source = @"
@@ -5866,7 +5866,7 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.AsyncStreams)]
-        [Fact, WorkItem(49267, "https://github.com/dotnet/roslyn/issues/49267")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49267")]
         public void AsyncForeach_StructEnumerator()
         {
             var compilation = CreateCompilation(@"
@@ -5990,7 +5990,7 @@ Block[B5] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.AsyncStreams)]
-        [Fact, WorkItem(49267, "https://github.com/dotnet/roslyn/issues/49267")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49267")]
         public void AsyncForeach_StructEnumerator_ExplicitAsyncDisposeInterface()
         {
             var compilation = CreateCompilation(@"
@@ -6114,7 +6114,7 @@ Block[B5] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.AsyncStreams)]
-        [Fact, WorkItem(49267, "https://github.com/dotnet/roslyn/issues/49267")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49267")]
         public void Foreach_StructEnumerator()
         {
             var compilation = CreateCompilation(@"
@@ -6236,7 +6236,7 @@ Block[B5] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.AsyncStreams)]
-        [Fact, WorkItem(49267, "https://github.com/dotnet/roslyn/issues/49267")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49267")]
         public void Foreach_RefStructEnumerator()
         {
             var compilation = CreateCompilation(@"

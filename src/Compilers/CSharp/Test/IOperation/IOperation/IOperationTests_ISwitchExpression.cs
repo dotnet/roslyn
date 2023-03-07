@@ -936,7 +936,7 @@ Block[B8] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(32216, "https://github.com/dotnet/roslyn/issues/32216")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32216")]
         public void SwitchExpression_CompoundGuard()
         {
             string source = @"
@@ -1051,7 +1051,7 @@ Block[B8] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(32216, "https://github.com/dotnet/roslyn/issues/32216")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32216")]
         public void SwitchExpression_CompoundInput()
         {
             string source = @"
@@ -1169,7 +1169,7 @@ Block[B9] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(32216, "https://github.com/dotnet/roslyn/issues/32216")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32216")]
         public void SwitchExpression_BadInput_02()
         {
             string source = @"
@@ -1273,7 +1273,7 @@ Block[B6] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(32216, "https://github.com/dotnet/roslyn/issues/32216")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32216")]
         public void SwitchExpression_CompoundConsequence()
         {
             string source = @"
@@ -1388,7 +1388,7 @@ Block[B8] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(32216, "https://github.com/dotnet/roslyn/issues/32216")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32216")]
         public void SwitchExpression_CompoundPattern()
         {
             string source = @"

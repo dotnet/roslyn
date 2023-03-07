@@ -398,7 +398,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        [WorkItem(15513, "https://github.com/dotnet/roslyn/issues/15513")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15513")]
         public void DelegateCreationExpression_ImplicitMethodBinding_InitializerBindingReturnsJustMethodReference()
         {
             string source = @"
@@ -1022,7 +1022,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action)
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        [WorkItem(15513, "https://github.com/dotnet/roslyn/issues/15513")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15513")]
         public void DelegateCreationExpression_ExplicitDelegateConstructorAndImplicitStaticMethodBindingConversion_01()
         {
             string source = @"
@@ -1052,7 +1052,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action)
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        [WorkItem(15513, "https://github.com/dotnet/roslyn/issues/15513")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15513")]
         public void DelegateCreationExpression_ExplicitDelegateConstructorAndImplicitStaticMethodBindingConversion_02()
         {
             string source = @"
@@ -1999,7 +1999,7 @@ Block[B6] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(64774, "https://github.com/dotnet/roslyn/issues/64774")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64774")]
         public void ExplicitCastOnTuple_01()
         {
             var code = """
@@ -2030,7 +2030,7 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
             VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(code, expectedOperationTree, DiagnosticDescription.None);
         }
 
-        [Fact, WorkItem(64774, "https://github.com/dotnet/roslyn/issues/64774")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64774")]
         public void ExplicitCastOnTuple_02()
         {
             var code = """

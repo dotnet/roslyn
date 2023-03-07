@@ -2396,7 +2396,7 @@ IInvocationOperation ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.Inv
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20330")]
         public void DefaultValueNonNullForNullableParameterTypeWithMissingNullableReference_Call()
         {
             string source = @"
@@ -2458,7 +2458,7 @@ IInvocationOperation (void P.M2([System.Boolean[missing]? x = true])) (Operation
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20330")]
         public void DefaultValueNonNullForNullableParameterTypeWithMissingNullableReference_ObjectCreation()
         {
             string source = @"
@@ -2522,7 +2522,7 @@ IObjectCreationOperation (Constructor: P..ctor([System.Boolean[missing]? x = tru
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20330")]
         public void DefaultValueNonNullForNullableParameterTypeWithMissingNullableReference_Indexer()
         {
             string source = @"
@@ -2607,7 +2607,7 @@ IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20330")]
         public void DefaultValueNullForNullableParameterTypeWithMissingNullableReference_Call()
         {
             string source = @"
@@ -2663,7 +2663,7 @@ IInvocationOperation (void P.M2([System.Boolean[missing]? x = null])) (Operation
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20330")]
         public void DefaultValueNullForNullableParameterTypeWithMissingNullableReference_ObjectCreation()
         {
             string source = @"
@@ -2721,7 +2721,7 @@ IObjectCreationOperation (Constructor: P..ctor([System.Boolean[missing]? x = nul
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20330")]
         public void DefaultValueNullForNullableParameterTypeWithMissingNullableReference_Indexer()
         {
             string source = @"
@@ -2803,7 +2803,7 @@ IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20330")]
         public void DefaultValueWithParameterErrorType_Call()
         {
             string source = @"
@@ -2945,7 +2945,7 @@ IPropertyReferenceOperation: System.Int32 P.this[System.Int32 index, [S s = null
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        [WorkItem(18722, "https://github.com/dotnet/roslyn/issues/18722")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18722")]
         public void DefaultValueForGenericWithUndefinedTypeArgument()
         {
             // TODO: https://github.com/dotnet/roslyn/issues/18722
@@ -2993,7 +2993,7 @@ IInvocationOperation (void P.M2(System.Int32 x, [G<S> s = null])) (OperationKind
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        [WorkItem(18722, "https://github.com/dotnet/roslyn/issues/18722")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18722")]
         public void DefaultValueForNullableGenericWithUndefinedTypeArgument()
         {
             // TODO: https://github.com/dotnet/roslyn/issues/18722
@@ -4005,7 +4005,7 @@ IObjectCreationOperation (Constructor: P..ctor()) (OperationKind.ObjectCreation,
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        [WorkItem(39868, "https://github.com/dotnet/roslyn/issues/39868")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39868")]
         public void BadNullableDefaultArgument()
         {
             string source = @"
@@ -4043,7 +4043,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        [WorkItem(39868, "https://github.com/dotnet/roslyn/issues/39868")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39868")]
         public void NullableEnumDefaultArgument_NonZeroValue()
         {
             string source = @"

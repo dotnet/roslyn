@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class IOperationTests_ArrayCreationAndInitializer : SemanticModelTestBase
     {
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void SimpleArrayCreation_PrimitiveType()
         {
             string source = @"
@@ -37,7 +37,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Sy
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void SimpleArrayCreation_UserDefinedType()
         {
             string source = @"
@@ -63,7 +63,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void SimpleArrayCreation_ConstantDimension()
         {
             string source = @"
@@ -90,7 +90,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void SimpleArrayCreation_NonConstantDimension()
         {
             string source = @"
@@ -116,7 +116,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void SimpleArrayCreation_DimensionWithImplicitConversion()
         {
             string source = @"
@@ -145,7 +145,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void SimpleArrayCreation_DimensionWithExplicitConversion()
         {
             string source = @"
@@ -174,7 +174,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationWithInitializer_PrimitiveType()
         {
             string source = @"
@@ -202,7 +202,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Sy
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationWithInitializer_PrimitiveTypeWithExplicitDimension()
         {
             string source = @"
@@ -230,7 +230,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Sy
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationWithInitializerErrorCase_PrimitiveTypeWithIncorrectExplicitDimension()
         {
             string source = @"
@@ -262,7 +262,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsI
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationWithInitializerErrorCase_PrimitiveTypeWithNonConstantExplicitDimension()
         {
             string source = @"
@@ -294,7 +294,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsI
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationWithInitializer_NoExplicitArrayCreationExpression()
         {
             string source = @"
@@ -329,7 +329,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationWithInitializer_UserDefinedType()
         {
             string source = @"
@@ -360,7 +360,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationWithInitializer_ImplicitlyTyped()
         {
             string source = @"
@@ -391,7 +391,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new[]
             VerifyOperationTreeAndDiagnosticsForTest<ImplicitArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationWithInitializerErrorCase_ImplicitlyTypedWithoutInitializerAndDimension()
         {
             string source = @"
@@ -426,7 +426,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: ?[], IsInvalid) (Syn
             VerifyOperationTreeAndDiagnosticsForTest<ImplicitArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationWithInitializerErrorCase_ImplicitlyTypedWithoutInitializer()
         {
             string source = @"
@@ -464,7 +464,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: ?[], IsInvalid) (Syn
             VerifyOperationTreeAndDiagnosticsForTest<ImplicitArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationWithInitializer_MultipleInitializersWithConversions()
         {
             string source = @"
@@ -496,7 +496,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Sy
             VerifyOperationTreeAndDiagnosticsForTest<ImplicitArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void MultiDimensionalArrayCreation()
         {
             string source = @"
@@ -523,7 +523,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Byte[,,]) (Sy
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void MultiDimensionalArrayCreation_WithInitializer()
         {
             string source = @"
@@ -582,7 +582,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Byte[,,]) (Sy
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationOfSingleDimensionalArrays()
         {
             string source = @"
@@ -621,7 +621,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[][]) (S
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationOfMultiDimensionalArrays()
         {
             string source = @"
@@ -645,7 +645,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[][,]) (
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationOfImplicitlyTypedMultiDimensionalArrays_WithInitializer()
         {
             string source = @"
@@ -698,7 +698,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[][,,]) 
             VerifyOperationTreeAndDiagnosticsForTest<ImplicitArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationErrorCase_MissingDimension()
         {
             string source = @"
@@ -725,7 +725,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsI
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationErrorCase_InvalidInitializer()
         {
             string source = @"
@@ -758,7 +758,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsI
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationErrorCase_MissingExplicitCast()
         {
             string source = @"
@@ -789,7 +789,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsI
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreation_InvocationExpressionAsDimension()
         {
             string source = @"
@@ -818,7 +818,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Sy
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreation_InvocationExpressionWithConversionAsDimension()
         {
             string source = @"
@@ -850,7 +850,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Sy
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationErrorCase_InvocationExpressionAsDimension()
         {
             string source = @"
@@ -886,7 +886,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsI
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationErrorCase_InvocationExpressionWithConversionAsDimension()
         {
             string source = @"
@@ -922,7 +922,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsI
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7299")]
         public void SimpleArrayCreation_ConstantConversion()
         {
             string source = @"

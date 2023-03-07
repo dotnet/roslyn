@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class IOperationTests_IWhileUntilLoopStatement : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_DoWhileLoopsTest()
         {
             string source = @"
@@ -70,7 +70,7 @@ IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.W
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileLoopsTest()
         {
             string source = @"
@@ -123,7 +123,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileConditionTrue()
         {
             string source = @"
@@ -189,7 +189,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithBreak()
         {
             string source = @"
@@ -270,7 +270,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithThrow()
         {
             string source = @"
@@ -348,7 +348,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithAssignment()
         {
             string source = @"
@@ -418,7 +418,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileInvalidCondition()
         {
             string source = @"
@@ -449,7 +449,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithReturn()
         {
             string source = @"
@@ -510,7 +510,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithGoto()
         {
             string source = @"
@@ -574,7 +574,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileMissingCondition()
         {
             string source = @"
@@ -639,7 +639,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileMissingStatement()
         {
             string source = @"
@@ -672,7 +672,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithContinue()
         {
             string source = @"
@@ -737,7 +737,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileNested()
         {
             string source = @"
@@ -828,7 +828,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileChangeOuterInnerValue()
         {
             string source = @"
@@ -931,7 +931,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithDynamic()
         {
             string source = @"
@@ -1002,7 +1002,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileIncrementInCondition()
         {
             string source = @"
@@ -1048,7 +1048,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileInfiniteLoop()
         {
             string source = @"
@@ -1085,7 +1085,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileConstantCheck()
         {
             string source = @"
@@ -1121,7 +1121,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithTryCatch()
         {
             string source = @"
@@ -1195,7 +1195,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithOutVar()
         {
             string source = @"
@@ -1295,7 +1295,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_DoWithOutVar()
         {
             string source = @"

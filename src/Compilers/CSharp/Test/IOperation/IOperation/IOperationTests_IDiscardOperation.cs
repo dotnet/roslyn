@@ -359,7 +359,7 @@ Block[B5] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
-        [WorkItem(27086, "https://github.com/dotnet/roslyn/issues/27086")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27086")]
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DiscardFlow_06()
@@ -491,7 +491,7 @@ Block[B5] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
-        [WorkItem(27086, "https://github.com/dotnet/roslyn/issues/27086")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27086")]
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DiscardFlow_08()

@@ -111,7 +111,7 @@ IReturnOperation (OperationKind.YieldBreak, Type: null) (Syntax: 'yield break;')
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7299")]
         public void Return_ConstantConversions_01()
         {
             string source = @"

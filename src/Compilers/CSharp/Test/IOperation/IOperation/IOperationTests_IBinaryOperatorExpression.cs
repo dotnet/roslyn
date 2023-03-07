@@ -4818,7 +4818,7 @@ Block[B2] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [WorkItem(27044, "https://github.com/dotnet/roslyn/issues/27044")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27044")]
         [Fact]
         public void LogicalUserDefinedFlow_14()
         {

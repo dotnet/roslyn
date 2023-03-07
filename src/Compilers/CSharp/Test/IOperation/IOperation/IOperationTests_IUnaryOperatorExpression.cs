@@ -2901,8 +2901,8 @@ IUnaryOperation (UnaryOperatorKind.Not) (OperatorMethod: CustomType CustomType.o
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(18135, "https://github.com/dotnet/roslyn/issues/18135")]
-        [WorkItem(18160, "https://github.com/dotnet/roslyn/issues/18160")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18135")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18160")]
         public void Test_UnaryOperatorExpression_Type_And_TrueFalse()
         {
             string source = @"
@@ -2962,8 +2962,8 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (x &&
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(18135, "https://github.com/dotnet/roslyn/issues/18135")]
-        [WorkItem(18160, "https://github.com/dotnet/roslyn/issues/18160")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18135")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18160")]
         public void Test_UnaryOperatorExpression_Type_Or_TrueFalse()
         {
             string source = @"
@@ -3190,7 +3190,7 @@ IUnaryOperation (UnaryOperatorKind.Plus) (OperationKind.Unary, Type: ?, IsInvali
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        [WorkItem(18160, "https://github.com/dotnet/roslyn/issues/18160")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18160")]
         public void Test_BinaryExpressionSyntax_Type_And_TrueFalse_Condition()
         {
             string source = @"
