@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             _outputHelper = outputHelper
         End Sub
 
-        <WpfTheory, WorkItem(917043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917043")>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917043")>
         <CombinatorialData>
         Public Sub NoConflictForDelegate(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -37,7 +37,7 @@ class C
         End Sub
 
         <WpfTheory(Skip:="917043")>
-        <WorkItem(917043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917043")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917043")>
         <CombinatorialData>
         Public Sub NoConflictForIsolatedScopes(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -217,7 +217,7 @@ class Goo
             End Using
         End Sub
 
-        <Theory, WorkItem(546429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546429")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546429")>
         <CombinatorialData>
         Public Sub NoConflictWithNamespaceDefinedInMetadata(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -248,7 +248,7 @@ namespace N1 { }
             End Using
         End Sub
 
-        <Theory, WorkItem(608198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608198")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608198")>
         <CombinatorialData>
         Public Sub CS_ConflictInFieldInitializerOfFieldAndModuleNameResolvedThroughFullQualification(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -278,7 +278,7 @@ class [|$$C|]
             End Using
         End Sub
 
-        <Theory, WorkItem(543654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543654")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543654")>
         <CombinatorialData>
         Public Sub CS_NoConflictBetweenLambdaParameterAndField(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -297,7 +297,7 @@ class Program
             End Using
         End Sub
 
-        <Theory, WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <CombinatorialData>
         Public Sub CS_ConflictBetweenTypeParametersInTypeDeclaration(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -317,7 +317,7 @@ class Program<{|declconflict:A|}, [|$$B|]>
             End Using
         End Sub
 
-        <Theory, WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <CombinatorialData>
         Public Sub CS_ConflictBetweenTypeParametersInMethodDeclaration(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -339,7 +339,7 @@ class Program
             End Using
         End Sub
 
-        <Theory, WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <CombinatorialData>
         Public Sub CS_ConflictBetweenTypeParametersInMethodDeclaration_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -361,7 +361,7 @@ class Program
             End Using
         End Sub
 
-        <Theory, WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <CombinatorialData>
         Public Sub CS_ConflictBetweenTypeParameterAndMember_1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -383,7 +383,7 @@ class Program<{|declconflict:@a|}>
             End Using
         End Sub
 
-        <Theory, WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <CombinatorialData>
         Public Sub CS_ConflictBetweenTypeParameterAndMember_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -404,7 +404,7 @@ class Program<{|declconflict:@a|}>
             End Using
         End Sub
 
-        <Theory, WorkItem(658801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658801")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658801")>
         <CombinatorialData>
         Public Sub CS_OverridingImplicitlyUsedMethod(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -444,7 +444,7 @@ class C : A
             End Using
         End Sub
 
-        <Theory, WorkItem(682669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682669")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682669")>
         <CombinatorialData>
         Public Sub CS_OverridingImplicitlyUsedMethod_1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -483,7 +483,7 @@ class C : A
             End Using
         End Sub
 
-        <Theory, WorkItem(682669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682669")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682669")>
         <CombinatorialData>
         Public Sub CS_OverridingImplicitlyUsedMethod_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -522,7 +522,7 @@ class C : A
         End Sub
 
         <Theory, CombinatorialData>
-        <WorkItem(851604, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/851604")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/851604")>
         Public Sub ConflictInsideAttributeArgument(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -545,7 +545,7 @@ class C
         End Sub
 
         <Theory, CombinatorialData>
-        <WorkItem(6306, "https://github.com/dotnet/roslyn/issues/6306")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/6306")>
         Public Sub ResolveConflictInAnonymousTypeProperty(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -569,7 +569,7 @@ class C
         End Sub
 
         <Theory, CombinatorialData>
-        <WorkItem(6308, "https://github.com/dotnet/roslyn/issues/6308")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/6308")>
         Public Sub ResolveConflictWhenAnonymousTypeIsUsedAsGenericArgument(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -596,7 +596,7 @@ class C
 
         <Theory>
         <CombinatorialData>
-        <WorkItem(18566, "https://github.com/dotnet/roslyn/issues/18566")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/18566")>
         Public Sub ParameterInPartialMethodDefinitionConflictingWithLocalInPartialMethodImplementation(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>

@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(538721, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538721")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538721")>
         Public Async Function TestVerifyHighlightsForCSharpClassWithSynthesizedConstructor(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -167,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(528436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528436")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528436")>
         Public Async Function TestVerifyHighlightsOnCloseAngleOfGeneric(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -190,7 +190,7 @@ class {|Definition:Program|}
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(570809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570809")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570809")>
         Public Async Function TestVerifyNoHighlightsOnAsyncLambda(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -215,7 +215,7 @@ class Program
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(543768, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543768")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543768")>
         Public Async Function TestAlias1(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -240,7 +240,7 @@ namespace X
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(543768, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543768")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543768")>
         Public Async Function TestAlias2(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -265,7 +265,7 @@ namespace X
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(543768, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543768")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543768")>
         Public Async Function TestAlias3(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -290,7 +290,7 @@ namespace X
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(552000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552000")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552000")>
         Public Async Function TestAlias4(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -312,7 +312,7 @@ namespace N
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(542830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542830")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542830")>
         Public Async Function TestHighlightThroughVar1(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -336,7 +336,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(542830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542830")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542830")>
         Public Async Function TestHighlightThroughVar2(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -360,7 +360,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(542830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542830")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542830")>
         Public Async Function TestHighlightThroughVar3(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -386,7 +386,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(545648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545648")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545648")>
         Public Async Function TestUsingAliasAndTypeWithSameName1(testHost As TestHost) As Task
             Dim input =
 <Workspace>
@@ -402,7 +402,7 @@ class X { }
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(545648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545648")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545648")>
         Public Async Function TestUsingAliasAndTypeWithSameName2(testHost As TestHost) As Task
             Dim input =
 <Workspace>
@@ -418,7 +418,7 @@ class {|Definition:$$X|} { }
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(567959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567959")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567959")>
         Public Async Function TestAccessor1(testHost As TestHost) As Task
             Dim input =
 <Workspace>
@@ -446,7 +446,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(567959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567959")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567959")>
         Public Async Function TestAccessor2(testHost As TestHost) As Task
             Dim input =
 <Workspace>
@@ -474,7 +474,7 @@ class C
         End Function
 
         <WpfTheory(Skip:="604466"), CombinatorialData>
-        <WorkItem(604466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604466")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604466")>
         Public Async Function TestThisShouldNotHighlightTypeName(testHost As TestHost) As Task
             Dim input =
 <Workspace>
@@ -495,7 +495,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(531620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531620")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531620")>
         Public Async Function TestHighlightDynamicallyBoundMethod(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -526,7 +526,7 @@ class A
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(531624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531624")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531624")>
         Public Async Function TestHighlightParameterizedPropertyParameter(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -768,7 +768,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(65836, "https://github.com/dotnet/roslyn/issues/65836")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/65836")>
         Public Async Function TestRegexReference_RawStringInBounds(testHost As TestHost) As Task
             Dim input =
            <Workspace>
@@ -793,7 +793,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(65836, "https://github.com/dotnet/roslyn/issues/65836")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/65836")>
         Public Async Function TestRegexReference_RawStringOutOfBounds(testHost As TestHost) As Task
             Dim input =
            <Workspace>
@@ -947,7 +947,7 @@ namespace X
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(42988, "https://github.com/dotnet/roslyn/issues/42988")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42988")>
         Public Async Function TestNintNUint1(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -976,7 +976,7 @@ class Test
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(42988, "https://github.com/dotnet/roslyn/issues/42988")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42988")>
         Public Async Function TestNintNUint2(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -1005,7 +1005,7 @@ class Test
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(42988, "https://github.com/dotnet/roslyn/issues/42988")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42988")>
         Public Async Function TestNintNUint3(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -1034,7 +1034,7 @@ class Test
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(42988, "https://github.com/dotnet/roslyn/issues/42988")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42988")>
         Public Async Function TestNintNUint4(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -1063,7 +1063,7 @@ class Test
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(42988, "https://github.com/dotnet/roslyn/issues/42988")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42988")>
         Public Async Function TestNintNUint1_Net7(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -1092,7 +1092,7 @@ class Test
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(42988, "https://github.com/dotnet/roslyn/issues/42988")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42988")>
         Public Async Function TestNintNUint2_Net7(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -1121,7 +1121,7 @@ class Test
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(42988, "https://github.com/dotnet/roslyn/issues/42988")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42988")>
         Public Async Function TestNintNUint3_Net7(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -1150,7 +1150,7 @@ class Test
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(42988, "https://github.com/dotnet/roslyn/issues/42988")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42988")>
         Public Async Function TestNintNUint4_Net7(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -1179,7 +1179,7 @@ class Test
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(42988, "https://github.com/dotnet/roslyn/issues/42988")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42988")>
         Public Async Function TestNintNUint(testHost As TestHost) As Task
             Dim input =
             <Workspace>

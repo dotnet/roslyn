@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WorkItem(541162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541162")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541162")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceCalledVar1(host As TestHost) As Task
             Dim input =
@@ -274,7 +274,7 @@ namespace {|Definition:$$[|var|]|} { }
             Await TestAPI(input, host)
         End Function
 
-        <WorkItem(541162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541162")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541162")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceCalledVar2(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -405,7 +405,7 @@ namespace var { }
             Await TestAPI(input, host)
         End Function
 
-        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44288")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceReferenceInGlobalSuppression(host As TestHost) As Task
             Dim input =
@@ -431,7 +431,7 @@ namespace var { }
             Await TestAPI(input, host)
         End Function
 
-        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44288")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceReferenceInGlobalSuppression_OuterNamespace(host As TestHost) As Task
             Dim input =
@@ -458,7 +458,7 @@ namespace var { }
             Await TestAPI(input, host)
         End Function
 
-        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44288")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceReferenceInGlobalSuppression_InnerNamespace(host As TestHost) As Task
             Dim input =

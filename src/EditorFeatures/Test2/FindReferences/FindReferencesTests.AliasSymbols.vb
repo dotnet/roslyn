@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(667962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667962")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667962")>
         Public Async Function TestMultipleAliasSymbols(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -143,7 +143,7 @@ namespace NS
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(667962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667962")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667962")>
         Public Async Function TestMultipleAliasSymbols2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -307,7 +307,7 @@ namespace N
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/55894")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestGlobalAlias1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -335,7 +335,7 @@ namespace N
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/55894")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestGlobalAlias2(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -355,7 +355,7 @@ namespace N
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/55894")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestGlobalAlias3(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -375,7 +375,7 @@ namespace N
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/55894")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestGlobalAlias4(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -395,7 +395,7 @@ namespace N
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/55894")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestGlobalAlias5(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -415,7 +415,7 @@ namespace N
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/55894")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestGlobalAlias6(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -435,7 +435,7 @@ namespace N
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/55894")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestGlobalAlias7(kind As TestKind, host As TestHost) As Task
             Dim input =

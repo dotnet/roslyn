@@ -169,7 +169,7 @@ class C
             End Using
         End Function
 
-        <WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")>
         Public Async Function ExplicitBuiltInEnumConversionsIsApplied() As Task
             ' built-in enum conversions:
             ' https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
@@ -196,7 +196,7 @@ public class Program
 ")
         End Function
 
-        <WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")>
         Public Async Function ExplicitBuiltInEnumConversionsAreLifted() As Task
             ' built-in enum conversions:
             ' https//docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
@@ -224,7 +224,7 @@ public class Program
 
         End Function
 
-        <WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")>
         Public Async Function ExplicitBuiltInNumericConversionsAreLifted() As Task
             ' built-in numeric conversions:
             ' https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
@@ -249,7 +249,7 @@ public class Program
 ")
         End Function
 
-        <WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")>
         Public Async Function ExplicitBuiltInNumericConversionsAreOffered() As Task
             ' built-in numeric conversions:
             ' https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
@@ -274,7 +274,7 @@ public class Program
 ")
         End Function
 
-        <WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")>
         Public Async Function ExplicitUserDefinedConversionNullForgivingOperatorHandling() As Task
             Await VerifyCustomCommitProviderAsync("
 #nullable enable
@@ -309,7 +309,7 @@ public class Program
 ")
         End Function
 
-        <WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")>
         Public Async Function ExplicitConversionOfConditionalAccessOfStructAppliesNullableStruct() As Task
             ' see https://sharplab.io/#gist:08c697b6b9b6384b8ec81cc586e064e6 to run a sample
             ' conversion ((int)c?.S) fails with System.InvalidOperationException: Nullable object must have a value.
@@ -347,7 +347,7 @@ public class Program
 ")
         End Function
 
-        <WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")>
         Public Async Function ExplicitConversionOfNullableStructToNullableStructIsApplied() As Task
             ' Lifted conversion https://docs.microsoft.com/hu-hu/dotnet/csharp/language-reference/language-specification/conversions#lifted-conversion-operators
             Await VerifyCustomCommitProviderAsync("
@@ -377,7 +377,7 @@ public class Program
 ")
         End Function
 
-        <WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")>
         Public Async Function ExplicitUserDefinedConversionOfNullableStructAccessViaNullcondionalOffersLiftedConversion() As Task
             Await VerifyCustomCommitProviderAsync("
 public struct S {
@@ -406,7 +406,7 @@ public class Program
 ")
         End Function
 
-        <WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")>
         Public Async Function ExplicitUserDefinedConversionOfPropertyNamedLikeItsTypeIsHandled() As Task
             Await VerifyCustomCommitProviderAsync("
 public struct S {
@@ -441,7 +441,7 @@ public class Program
 ")
         End Function
 
-        <WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")>
         Public Async Function ExplicitUserDefinedConversionIsApplied() As Task
             Await VerifyCustomCommitProviderAsync("
 public class C
@@ -474,7 +474,7 @@ public class Program
 ")
         End Function
 
-        <WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")>
         Public Async Function ExplicitUserDefinedConversionToArray() As Task
             Await VerifyCustomCommitProviderAsync(
 "
@@ -512,7 +512,7 @@ public class Program
             )
         End Function
 
-        <WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")>
         Public Async Function ExplicitUserDefinedConversionToGenericType() As Task
             Await VerifyCustomCommitProviderAsync(
 "
@@ -556,7 +556,7 @@ public class Program
             )
         End Function
 
-        <WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")>
         <CombinatorialData>
         Public Async Function ExplicitConversionOfConditionalAccessFromClassOrStructToClassOrStruct(
             <CombinatorialValues("struct", "class")> fromClassOrStruct As String,
@@ -616,7 +616,7 @@ public class Program
 ")
         End Function
 
-        <WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")>
         <InlineData("bool")>
         <InlineData("byte")>
         <InlineData("sbyte")>
@@ -671,7 +671,7 @@ namespace N
 ")
         End Function
 
-        <WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")>
         <InlineData("white.$$", "Black", "((Black)white)$$")>
         <InlineData("white.$$;", "Black", "((Black)white)$$;")>
         <InlineData("white.Bl$$", "Black", "((Black)white)$$")>
@@ -741,7 +741,7 @@ namespace N
 ")
         End Function
 
-        <WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")>
         <InlineData("/* Leading */c.$$", "/* Leading */((float)c)$$")>
         <InlineData("/* Leading */c.fl$$", "/* Leading */((float)c)$$")>
         <InlineData("c.  $$", "((float)c)  $$")>
@@ -779,7 +779,7 @@ public class Program
 ")
         End Function
 
-        <WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")>
         <InlineData("abstract")>
         <InlineData("as")>
         <InlineData("base")>

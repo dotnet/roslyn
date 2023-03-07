@@ -114,7 +114,7 @@ class c
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(59453, "https://github.com/dotnet/roslyn/issues/59453")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/59453")>
         Public Async Function ExplicitInvokeNotInGuid(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
