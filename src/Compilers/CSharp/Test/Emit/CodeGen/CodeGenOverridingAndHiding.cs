@@ -1266,7 +1266,7 @@ Derived.Method(BASEREF List<int> a)";
             }
         }
 
-        [WorkItem(540214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540214")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540214")]
         [Fact]
         public void TestEmitSynthesizedSealedSetter()
         {
@@ -1324,7 +1324,7 @@ Base.P.Set(2)",
                 });
         }
 
-        [WorkItem(540214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540214")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540214")]
         [Fact]
         public void TestEmitSynthesizedSealedGetter()
         {
@@ -1381,7 +1381,7 @@ Derived.P.Set(2)",
                 });
         }
 
-        [WorkItem(540327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540327")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540327")]
         [Fact]
         public void TestOverrideWithSealedProperty()
         {
@@ -1978,7 +1978,7 @@ class Derived2 : Base2
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(540341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540341")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540341")]
         [Fact]
         public void TestInternalMethods()
         {
@@ -2122,7 +2122,7 @@ class Derived : Base2<int>
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [WorkItem(540341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540341")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540341")]
         [Fact]
         public void TestInternalAccessors()
         {
@@ -2463,7 +2463,7 @@ Derived.set_Property",
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [WorkItem(528172, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528172")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528172")]
         [Fact]
         public void TestHideWithInaccessibleVirtualMember()
         {
@@ -2774,7 +2774,7 @@ Derived.get_Property");
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [WorkItem(540431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540431")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540431")]
         [Fact]
         public void TestOverrideNewToVBVirtualOverloadsMetadata()
         {
@@ -2836,7 +2836,7 @@ class Test
             CompileAndVerify(comp, expectedOutput: @"CSS1_OV CSS1_OV VBS11_OL CSS1_OV CSF1_New VBF1_V VBF11 VBF1_V");
         }
 
-        [WorkItem(540431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540431")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540431")]
         [Fact]
         public void TestOverrideNewToVBVirtualPropMetadata()
         {
@@ -2993,8 +2993,8 @@ class Test
             CompileAndVerify(comp2, expectedOutput: @"TwoThreeOneZero");
         }
 
-        [WorkItem(540452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540452")]
-        [WorkItem(540453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540453")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540452")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540453")]
         [Fact]
         public void TestGenericDDerivedImplWithBaseInMetadata()
         {
@@ -3541,7 +3541,7 @@ namespace Metadata
                 });
         }
 
-        [WorkItem(540516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540516")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540516")]
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/12422")]
         public void TestCallMethodsWithLeastCustomModifiers()
         {
@@ -3561,7 +3561,7 @@ public class Program
                 expectedOutput: "51");
         }
 
-        [WorkItem(540517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540517")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540517")]
         [Fact]
         public void TestOverrideMethodsWithCustomModifiers()
         {
@@ -3710,7 +3710,7 @@ class Test
                 });
         }
 
-        [WorkItem(541834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]
         [Fact]
         public void AccessorMethodAccessorOverridingExecution()
         {
@@ -3749,7 +3749,7 @@ class Program
             CompileAndVerify(text, expectedOutput: "C1");
         }
 
-        [WorkItem(541834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]
         [Fact]
         public void AccessorMethodAccessorOverridingRoundTrip()
         {
@@ -3793,7 +3793,7 @@ public class C : B
             CompileAndVerify(text, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
-        [WorkItem(541834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]
         [Fact]
         public void MethodAccessorMethodOverridingRoundTrip()
         {
@@ -3876,7 +3876,7 @@ C::get_P");
         /// will be true, but OverriddenMethod will return null.
         /// This test just checks that nothing blows up in such cases.
         /// </summary>
-        [WorkItem(541834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]
         [Fact]
         public void ExplicitOverrideWithoutCSharpOverride()
         {
@@ -3957,7 +3957,7 @@ public class Invoke
             });
         }
 
-        [WorkItem(542828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542828")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542828")]
         [Fact]
         public void MetadataOverrideVirtualHiddenByNonVirtual()
         {
@@ -4068,7 +4068,7 @@ DerivedNonVirtual
 ");
         }
 
-        [WorkItem(543158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543158")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543158")]
         [Fact()]
         public void NoDefaultForParams_Dev10781558()
         {
@@ -4146,7 +4146,7 @@ class B : A
             }
         }
 
-        [WorkItem(543158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543158")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543158")]
         [Fact]
         public void XNoDefaultForParams_Dev10781558()
         {
@@ -4345,7 +4345,7 @@ public class Test
 Derived.M(y:2)");
         }
 
-        [WorkItem(531095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531095")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531095")]
         [Fact]
         public void MissingAssemblyReference01()
         {
@@ -4372,7 +4372,7 @@ Derived.M(y:2)");
                 );
         }
 
-        [WorkItem(531095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531095")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531095")]
         [Fact]
         public void MissingAssemblyReference02()
         {

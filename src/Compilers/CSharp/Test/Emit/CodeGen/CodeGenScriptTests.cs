@@ -484,7 +484,7 @@ public abstract class C
         /// <summary>
         /// The script entry point should complete synchronously.
         /// </summary>
-        [WorkItem(4495, "https://github.com/dotnet/roslyn/issues/4495")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4495")]
         [ConditionalFact(typeof(DesktopOnly))]
         public void ScriptEntryPoint()
         {

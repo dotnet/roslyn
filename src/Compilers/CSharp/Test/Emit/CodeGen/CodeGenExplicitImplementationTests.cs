@@ -136,7 +136,7 @@ I2.Property
 ");
         }
 
-        [WorkItem(540431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540431")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540431")]
         [Fact]
         public void TestExpImpInterfaceImplementationMetadata()
         {
@@ -227,7 +227,7 @@ class Test
             CompileAndVerify(comp, expectedOutput: @"CSS11Imp CSS1Exp CSS11Exp CSF1Imp CSF1Exp CSF11Exp");
         }
 
-        [WorkItem(540431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540431")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540431")]
         [Fact]
         public void TestVBInterfaceImplementationMetadata()
         {
@@ -260,7 +260,7 @@ class Test
             CompileAndVerify(comp, expectedOutput: @"VBS1_V VBS1_V VBS11_OL VBF1_V VBF1_V VBF11");
         }
 
-        [WorkItem(540431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540431")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540431")]
         [Fact]
         public void TestExpImpInterfaceImplementationPropMetadata()
         {
@@ -468,7 +468,7 @@ Class2.Method(4, 5, c)",
                 Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "d").WithArguments("d"));
         }
 
-        [WorkItem(540501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540501")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540501")]
         [Fact]
         public void TestImplementingGenericNestedInterfaces_Explicit()
         {
@@ -624,7 +624,7 @@ Derived6.Method",
             comp.VerifyDiagnostics(); // No Errors
         }
 
-        [WorkItem(540501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540501")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540501")]
         [Fact]
         public void TestImplementingGenericNestedInterfaces_Explicit_HideTypeParameter()
         {
@@ -935,7 +935,7 @@ I1.M9
 I1.P").VerifyDiagnostics(); // No errors
         }
 
-        [WorkItem(543426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543426")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543426")]
         [Fact]
         public void TestExplicitlyImplementInterfaceNestedInGenericType()
         {
@@ -966,7 +966,7 @@ class Outer<T>
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [WorkItem(598052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598052")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598052")]
         [Fact]
         public void TestExternAliasInName()
         {
@@ -1006,7 +1006,7 @@ class C : Q::I
             AssertEx.None(classCMembers.Select(m => m.GetDocumentationCommentId()), id => id.Contains("Q"));
         }
 
-        [WorkItem(598052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598052")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598052")]
         [Fact]
         public void TestImplementMultipleExternAliasInterfaces()
         {

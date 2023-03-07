@@ -5163,7 +5163,7 @@ class UsePia5
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
-        [WorkItem(611578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611578")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611578")]
         public void Bug611578()
         {
             string IEvent_cs = @"
@@ -5384,7 +5384,7 @@ E02");
             }
         }
 
-        [Fact, WorkItem(651240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651240")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651240")]
         public void Bug651240()
         {
             string pia = @"
@@ -5441,7 +5441,7 @@ namespace NoPiaTestApp
             VerifyEmitDiagnostics(compilation2, false, expected, expectedMEtadataOnly);
         }
 
-        [Fact, WorkItem(651408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651408")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651408")]
         public void Bug651408()
         {
             string pia = @"
@@ -5554,7 +5554,7 @@ namespace NetImplNS2
             VerifyEmitDiagnostics(compilation2, true, expected);
         }
 
-        [Fact, WorkItem(673546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673546")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673546")]
         public void MissingComAwareEventInfo()
         {
             string pia = @"
@@ -5613,7 +5613,7 @@ class UsePia
             VerifyEmitDiagnostics(compilation1, true, expected);
         }
 
-        [Fact, WorkItem(2793, "https://github.com/dotnet/roslyn/issues/2793")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2793")]
         public void DefaultValueWithoutOptional_01()
         {
             var il = @"
@@ -5680,7 +5680,7 @@ class B : IA
             }).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(2793, "https://github.com/dotnet/roslyn/issues/2793")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2793")]
         public void DefaultValueWithoutOptional_02()
         {
             var il = @"
@@ -5749,7 +5749,7 @@ class B : IA
             }).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(8088, "https://github.com/dotnet/roslyn/issues/8088")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8088")]
         public void ParametersWithoutNames()
         {
             var source = @"

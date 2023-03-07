@@ -316,7 +316,7 @@ class C
             CompileAndVerify(source, expectedOutput: "A");
         }
 
-        [Fact, WorkItem(14965, "https://github.com/dotnet/roslyn/issues/14965")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14965")]
         public void TestThrowConvertedValue()
         {
             var source = @"

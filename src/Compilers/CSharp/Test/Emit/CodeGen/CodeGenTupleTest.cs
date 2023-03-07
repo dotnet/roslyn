@@ -333,7 +333,7 @@ public static class Extensions
         }
 
         [Fact]
-        [WorkItem(14844, "https://github.com/dotnet/roslyn/issues/14844")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14844")]
         public void InterfaceImplAttributesAreNotSharedAcrossTypeRefs()
         {
             var src1 = @"
@@ -359,7 +359,7 @@ class C2 : I3, I1<(int c, int d)> {}";
         }
 
         [Fact]
-        [WorkItem(14844, "https://github.com/dotnet/roslyn/issues/14844")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14844")]
         public void ConstraintAttributesAreNotSharedAcrossTypeRefs()
         {
             var src1 = @"
@@ -1140,7 +1140,7 @@ class C
                 );
         }
 
-        [WorkItem(10874, "https://github.com/dotnet/roslyn/issues/10874")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10874")]
         [Fact]
         public void SimpleTupleNew3()
         {
@@ -1519,7 +1519,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11281, "https://github.com/dotnet/roslyn/issues/11281")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11281")]
         public void TupleTypeMismatch_01()
         {
             var source = @"
@@ -1539,7 +1539,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11282, "https://github.com/dotnet/roslyn/issues/11282")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11282")]
         public void TupleTypeMismatch_02()
         {
             var source = @"
@@ -1560,7 +1560,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11283, "https://github.com/dotnet/roslyn/issues/11283")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11283")]
         public void LongTupleTypeMismatch()
         {
             var source = @"
@@ -3262,7 +3262,7 @@ class C
         }
 
         [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))] // The used assemblies test hook is blocked by https://github.com/dotnet/roslyn/issues/39976
-        [WorkItem(39976, "https://github.com/dotnet/roslyn/issues/39976")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39976")]
         public void HugeTupleCreationParses()
         {
             StringBuilder b = new StringBuilder();
@@ -3388,7 +3388,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11287, "https://github.com/dotnet/roslyn/issues/11287")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11287")]
         public void GenericTupleWithoutTupleLibrary_02()
         {
             var source = @"
@@ -4081,7 +4081,7 @@ static class Extension
             verifier7_1.VerifyDiagnostics();
         }
 
-        [WorkItem(21518, "https://github.com/dotnet/roslyn/issues/21518")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21518")]
         [Fact]
         public void InferredName_Conversion()
         {
@@ -5031,7 +5031,7 @@ class D : C
         }
 
         [Fact]
-        [WorkItem(20528, "https://github.com/dotnet/roslyn/issues/20528")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20528")]
         public void OverrideTupleMethodWithNoNames()
         {
             string source = @"
@@ -5074,7 +5074,7 @@ class E
         }
 
         [Fact]
-        [WorkItem(20528, "https://github.com/dotnet/roslyn/issues/20528")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20528")]
         public void OverrideTupleMethodWithNoNamesWithValueTuple()
         {
             string source = @"
@@ -5118,7 +5118,7 @@ class E
         }
 
         [Fact]
-        [WorkItem(20528, "https://github.com/dotnet/roslyn/issues/20528")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20528")]
         public void OverrideTuplePropertyWithNoNames()
         {
             string source = @"
@@ -5166,7 +5166,7 @@ class D : C
         }
 
         [Fact]
-        [WorkItem(20528, "https://github.com/dotnet/roslyn/issues/20528")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20528")]
         public void OverrideTupleEventWithNoNames()
         {
             string source = @"
@@ -5441,7 +5441,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(12032, "https://github.com/dotnet/roslyn/issues/12032")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12032")]
         public void MissingTypeInAlias()
         {
             var source = @"
@@ -5478,7 +5478,7 @@ namespace TuplesCrash2
         }
 
         [Fact]
-        [WorkItem(11302, "https://github.com/dotnet/roslyn/issues/11302")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11302")]
         public void MultipleDefinitionsOfValueTuple()
         {
             var source1 = @"
@@ -5534,7 +5534,7 @@ class C3
         }
 
         [Fact]
-        [WorkItem(12082, "https://github.com/dotnet/roslyn/issues/12082")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12082")]
         public void TupleWithDynamic()
         {
             var source = @"
@@ -5589,7 +5589,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(12082, "https://github.com/dotnet/roslyn/issues/12082")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12082")]
         public void TupleWithDynamic2()
         {
             var source = @"
@@ -5798,7 +5798,7 @@ class C
             Assert.Contains(CodeAnalysisResources.TupleElementLocationCountMismatch, e.Message);
         }
 
-        [Fact, WorkItem(36676, "https://github.com/dotnet/roslyn/issues/36676")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36676")]
         public void CreateTupleTypeSymbol_WithValueTuple_TupleZero()
         {
             var tupleComp = CreateCompilationWithMscorlib40(@"
@@ -5829,7 +5829,7 @@ namespace System
             Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(vt8, default));
         }
 
-        [Fact, WorkItem(36676, "https://github.com/dotnet/roslyn/issues/36676")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36676")]
         public void CreateTupleTypeSymbol_WithValueTuple_TupleOne()
         {
             var tupleComp = CreateCompilationWithMscorlib40(@"
@@ -6198,8 +6198,8 @@ namespace System
                loc => Assert.Null(loc));
         }
 
-        [Fact, WorkItem(13277, "https://github.com/dotnet/roslyn/issues/13277")]
-        [WorkItem(14365, "https://github.com/dotnet/roslyn/issues/14365")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13277")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14365")]
         public void CreateTupleTypeSymbol_UnderlyingTypeIsError()
         {
             var comp = (Compilation)CSharpCompilation.Create("test", references: new[] { MscorlibRef, TestReferences.SymbolsTests.netModule.netModule1 });
@@ -6620,7 +6620,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateTupleTypeSymbol_UnderlyingType_DefaultArgs_01()
         {
             var source =
@@ -6659,8 +6659,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
-        [WorkItem(40105, "https://github.com/dotnet/roslyn/issues/40105")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36047")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40105")]
         public void CreateTupleTypeSymbol_UnderlyingType_DefaultArgs_02()
         {
             var source =
@@ -6701,7 +6701,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateTupleTypeSymbol_ElementTypes_DefaultArgs_01()
         {
             var source =
@@ -6739,8 +6739,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
-        [WorkItem(40105, "https://github.com/dotnet/roslyn/issues/40105")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36047")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40105")]
         public void CreateTupleTypeSymbol_ElementTypes_DefaultArgs_02()
         {
             var source =
@@ -6780,7 +6780,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateTupleTypeSymbol_UnderlyingType_WithNullableAnnotations_01()
         {
             var source =
@@ -6820,7 +6820,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateTupleTypeSymbol_UnderlyingType_WithNullableAnnotations_02()
         {
             var source =
@@ -6850,7 +6850,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateTupleTypeSymbol_ElementTypes_WithNullableAnnotations_01()
         {
             var source =
@@ -6889,7 +6889,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateTupleTypeSymbol_ElementTypes_WithNullableAnnotations_02()
         {
             var source =
@@ -7015,7 +7015,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11875, "https://github.com/dotnet/roslyn/issues/11875")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11875")]
         public void TupleImplicitConversionFail01()
         {
             var source = @"
@@ -7130,7 +7130,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11875, "https://github.com/dotnet/roslyn/issues/11875")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11875")]
         public void TupleImplicitConversionFail02()
         {
             var source = @"
@@ -7189,7 +7189,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11875, "https://github.com/dotnet/roslyn/issues/11875")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11875")]
         public void TupleImplicitConversionFail03()
         {
             var source = @"
@@ -7245,7 +7245,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11875, "https://github.com/dotnet/roslyn/issues/11875")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11875")]
         public void TupleImplicitConversionFail04()
         {
             var source = @"
@@ -7304,7 +7304,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11875, "https://github.com/dotnet/roslyn/issues/11875")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11875")]
         public void TupleImplicitConversionFail05()
         {
             var source = @"
@@ -7383,7 +7383,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11875, "https://github.com/dotnet/roslyn/issues/11875")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11875")]
         public void TupleImplicitConversionFail06()
         {
             var source = @"
@@ -8038,7 +8038,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11288, "https://github.com/dotnet/roslyn/issues/11288")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11288")]
         public void TupleConversion02()
         {
             var source = @"
@@ -8978,7 +8978,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11289")]
         public void TupleConvertedTypeUDC02()
         {
             var source = @"
@@ -9086,7 +9086,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11289")]
         public void TupleConvertedTypeUDC04()
         {
             var source = @"
@@ -9160,7 +9160,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11289")]
         public void TupleConvertedTypeUDC05()
         {
             var source = @"
@@ -9243,7 +9243,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11289")]
         public void TupleConvertedTypeUDC06()
         {
             var source = @"
@@ -9598,7 +9598,7 @@ second
 ");
         }
 
-        [WorkItem(10801, "https://github.com/dotnet/roslyn/issues/10801")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10801")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/10801")]
         public void Inference06()
         {
@@ -9821,7 +9821,7 @@ class C
                 );
         }
 
-        [WorkItem(10800, "https://github.com/dotnet/roslyn/issues/10800")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10800")]
         [Fact]
         public void Inference11()
         {
@@ -9880,7 +9880,7 @@ class C
             Assert.Equal("T d3", model.GetDeclaredSymbol(d3).ToTestDisplayString());
         }
 
-        [WorkItem(10800, "https://github.com/dotnet/roslyn/issues/10800")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10800")]
         [Fact]
         public void Inference11InNestedType()
         {
@@ -9922,7 +9922,7 @@ class C
             Assert.Equal("((System.Int32 a, dynamic), System.Int32 c)[] t3", model.GetDeclaredSymbol(t3).ToTestDisplayString());
         }
 
-        [WorkItem(10800, "https://github.com/dotnet/roslyn/issues/10800")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10800")]
         [Fact]
         public void Inference11WithLongTuple()
         {
@@ -9967,7 +9967,7 @@ class C
                 model.GetDeclaredSymbol(t3).ToTestDisplayString());
         }
 
-        [WorkItem(10800, "https://github.com/dotnet/roslyn/issues/10800")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10800")]
         [Fact]
         public void Inference11OnlyDynamicMismatch()
         {
@@ -10013,7 +10013,7 @@ class C
                 model.GetDeclaredSymbol(t3).ToTestDisplayString());
         }
 
-        [WorkItem(10800, "https://github.com/dotnet/roslyn/issues/10800")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10800")]
         [Fact]
         public void Inference11WithMoreThanTwoTypes()
         {
@@ -10040,7 +10040,7 @@ class C
                 );
         }
 
-        [WorkItem(10800, "https://github.com/dotnet/roslyn/issues/10800")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10800")]
         [Fact]
         public void Inference11WithMoreThanTwoTypes2()
         {
@@ -10110,7 +10110,7 @@ class Program
             Assert.Equal("System.Collections.Generic.IEnumerable<(System.Int32 a, dynamic)> t2", model.GetDeclaredSymbol(t2).ToTestDisplayString());
         }
 
-        [WorkItem(10800, "https://github.com/dotnet/roslyn/issues/10800")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10800")]
         [Fact]
         public void Inference11WithImplicitConversion()
         {
@@ -10382,7 +10382,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(15399, "https://github.com/dotnet/roslyn/issues/15399")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15399")]
         public void Constraints_02()
         {
             var source = @"
@@ -10753,7 +10753,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(10569, "https://github.com/dotnet/roslyn/issues/10569")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10569")]
         public void IncompleteInterfaceMethod()
         {
             var source = @"
@@ -13288,7 +13288,7 @@ partial class C
             Assert.Equal("System.ObsoleteAttribute", m10E2.GetAttributes().Single().ToString());
         }
 
-        [Fact, WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56327")]
         public void CustomValueTuple_RecordStruct()
         {
             var source = @"
@@ -13330,7 +13330,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/56327")]
         public void CustomValueTuple_StructWithPrimaryConstructor()
         {
             var source = @"
@@ -13361,7 +13361,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/56327")]
         public void CustomValueTuple_StructWithRegularConstructor()
         {
             var source = @"
@@ -13392,7 +13392,7 @@ namespace System
                 );
         }
 
-        [Fact, WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56327")]
         public void CustomValueTuple_Properties()
         {
             var source = @"
@@ -13411,7 +13411,7 @@ namespace System
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56327")]
         public void CustomValueTuple_RecordStructWithConstructor()
         {
             var source = @"
@@ -13432,7 +13432,7 @@ namespace System
                 );
         }
 
-        [Fact, WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56327")]
         public void CustomValueTuple_StructWithConstructor()
         {
             var source = @"
@@ -15046,7 +15046,7 @@ False
         }
 
         [Fact]
-        [WorkItem(11530, "https://github.com/dotnet/roslyn/issues/11530")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11530")]
         public void UnifyUnderlyingWithTuple_10()
         {
             var source = @"
@@ -15108,7 +15108,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(11986, "https://github.com/dotnet/roslyn/issues/11986")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11986")]
         public void UnifyUnderlyingWithTuple_11()
         {
             var source = @"
@@ -16363,8 +16363,8 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11282 + https://github.com/dotnet/roslyn/issues/11291")]
-        [WorkItem(11282, "https://github.com/dotnet/roslyn/issues/11282")]
-        [WorkItem(11291, "https://github.com/dotnet/roslyn/issues/11291")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11282")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11291")]
         public void TargetTyping_01()
         {
             var source = @"
@@ -16780,7 +16780,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(11322, "https://github.com/dotnet/roslyn/issues/11322")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11322")]
         public void LiteralsAndAmbiguousVT_01()
         {
             var source = @"
@@ -16828,7 +16828,7 @@ class C3
         }
 
         [Fact]
-        [WorkItem(11322, "https://github.com/dotnet/roslyn/issues/11322")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11322")]
         public void LiteralsAndAmbiguousVT_02()
         {
             var source1 = trivial2uple;
@@ -16900,7 +16900,7 @@ class C3
         }
 
         [Fact]
-        [WorkItem(11322, "https://github.com/dotnet/roslyn/issues/11322")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11322")]
         public void LongLiteralsAndAmbiguousVT_02()
         {
             var source1 = trivial2uple + trivial3uple + trivialRemainingTuples + tupleattributes_cs;
@@ -16975,7 +16975,7 @@ class C3
         }
 
         [Fact]
-        [WorkItem(11323, "https://github.com/dotnet/roslyn/issues/11323")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11323")]
         public void ExactlyMatchingExpression()
         {
             var source1 = @"
@@ -17141,7 +17141,7 @@ C2.M1");
         }
 
         [Fact]
-        [WorkItem(11325, "https://github.com/dotnet/roslyn/issues/11325")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11325")]
         public void MultipleVT_02()
         {
             var source1 = @"
@@ -17193,7 +17193,7 @@ C2.M3");
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11326")]
-        [WorkItem(11326, "https://github.com/dotnet/roslyn/issues/11326")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11326")]
         public void GetTypeInfo_01()
         {
             var source = @"
@@ -17254,7 +17254,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11326, "https://github.com/dotnet/roslyn/issues/11326")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11326")]
         public void GetTypeInfo_02()
         {
             var source = @"
@@ -17315,7 +17315,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(36185, "https://github.com/dotnet/roslyn/issues/36185")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36185")]
         public void GetTypeInfo_03()
         {
             var source = @"
@@ -17353,7 +17353,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(14600, "https://github.com/dotnet/roslyn/issues/14600")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14600")]
         public void GetSymbolInfo_01()
         {
             var source = @"
@@ -17420,7 +17420,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(23651, "https://github.com/dotnet/roslyn/issues/23651")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23651")]
         public void GetSymbolInfo_WithDuplicateInferredName()
         {
             var source = @"
@@ -18452,7 +18452,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11804, "https://github.com/dotnet/roslyn/issues/11804")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11804")]
         public void ExplicitConversionsSimple02Expr()
         {
             var source = @"
@@ -18522,7 +18522,7 @@ class C
 
         }
 
-        [WorkItem(12064, "https://github.com/dotnet/roslyn/issues/12064")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12064")]
         [Fact]
         public void ExplicitConversionsPreference01()
         {
@@ -19243,8 +19243,8 @@ public class C
             Assert.Equal("(System.Int32 a, dynamic c) x2", x2.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(60046, "https://github.com/dotnet/roslyn/issues/60046")]
-        [WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60046")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16825")]
         public void NullCoalescingOperatorWithTupleNames()
         {
             // See section 7.13 of the spec, regarding the null-coalescing operator
@@ -19329,7 +19329,7 @@ public class D
             Assert.Equal("(System.Double d, System.Int32 c) x6double", x6double.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(60046, "https://github.com/dotnet/roslyn/issues/60046")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60046")]
         public void NullCoalescingOperatorWithTupleNames_IdentityConversionOnUserDefinedConversion()
         {
             // LHS has identity conversion (for tuple names) on top of user-defined conversion
@@ -19746,7 +19746,7 @@ public class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12267")]
-        [WorkItem(12267, "https://github.com/dotnet/roslyn/issues/12267")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12267")]
         public void ConstraintsAndNames()
         {
             var source1 = @"
@@ -20106,7 +20106,7 @@ public class Derived : Base
         }
 
         [Fact]
-        [WorkItem(20528, "https://github.com/dotnet/roslyn/issues/20528")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20528")]
         public void HiddenMethodsWithNoNames()
         {
             var source = @"
@@ -20237,7 +20237,7 @@ public class C : I0
         }
 
         [Fact]
-        [WorkItem(20528, "https://github.com/dotnet/roslyn/issues/20528")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20528")]
         public void ExplicitInterfaceImplementationWithNoNames()
         {
             var source = @"
@@ -20379,7 +20379,7 @@ public class C5<T, U> : I0<(int a, int b)>, I0<(T notA, U notB)> { }
         }
 
         [Fact]
-        [WorkItem(31977, "https://github.com/dotnet/roslyn/issues/31977")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/31977")]
         public void DuplicateInterfaceDetectionWithDifferentTupleNames_02()
         {
             var source = @"
@@ -20515,7 +20515,7 @@ public class C4 : I2, I3
         }
 
         [Fact]
-        [WorkItem(31977, "https://github.com/dotnet/roslyn/issues/31977")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/31977")]
         public void DuplicateInterfaceDetectionWithDifferentTupleNames_03()
         {
             var source = @"
@@ -20593,7 +20593,7 @@ C2.M2
         }
 
         [Fact]
-        [WorkItem(31977, "https://github.com/dotnet/roslyn/issues/31977")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/31977")]
         public void DuplicateInterfaceDetectionWithDifferentTupleNames_04()
         {
             var source = @"
@@ -20729,7 +20729,7 @@ public class C4<T> : I2<T>, I3<T>
         }
 
         [Fact]
-        [WorkItem(31977, "https://github.com/dotnet/roslyn/issues/31977")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/31977")]
         public void DuplicateInterfaceDetectionWithDifferentTupleNames_05()
         {
             var source = @"
@@ -20774,7 +20774,7 @@ public class C3<T, U> : I1<(T a, T b)>, I1<(U c, U d)>
         }
 
         [Fact]
-        [WorkItem(31977, "https://github.com/dotnet/roslyn/issues/31977")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/31977")]
         public void DuplicateInterfaceDetectionWithDifferentTupleNames_06()
         {
             var source = @"
@@ -20950,7 +20950,7 @@ public class D2 : D1, I0<(int notA, int notB)>
         }
 
         [Fact]
-        [WorkItem(20528, "https://github.com/dotnet/roslyn/issues/20528")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20528")]
         public void ImplicitAndExplicitInterfaceImplementationWithNoNames()
         {
             var source = @"
@@ -22367,7 +22367,7 @@ public class B
             }
         }
 
-        [Fact, WorkItem(13088, "https://github.com/dotnet/roslyn/issues/13088")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13088")]
         public void AssignNullWithMissingValueTuple()
         {
             var source = @"
@@ -22385,7 +22385,7 @@ public class S
                 );
         }
 
-        [Fact, WorkItem(11302, "https://github.com/dotnet/roslyn/issues/11302")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11302")]
         public void CrashInVisitCallReceiverOnBadTupleSyntax()
         {
             var source1 = @"
@@ -22436,7 +22436,7 @@ class C3
                 );
         }
 
-        [Fact, WorkItem(12952, "https://github.com/dotnet/roslyn/issues/12952")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12952")]
         public void DropTupleNamesFromArray()
         {
             var source = @"
@@ -22465,7 +22465,7 @@ public class C
                 );
         }
 
-        [Fact, WorkItem(10951, "https://github.com/dotnet/roslyn/issues/10951")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10951")]
         public void ObsoleteValueTuple()
         {
             var lib_cs = @"
@@ -22544,7 +22544,7 @@ public class C
                 );
         }
 
-        [Fact, WorkItem(10951, "https://github.com/dotnet/roslyn/issues/10951")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10951")]
         public void ObsoleteValueTuple2()
         {
             var source = @"
@@ -22580,7 +22580,7 @@ namespace System
                 );
         }
 
-        [Fact, WorkItem(13365, "https://github.com/dotnet/roslyn/issues/13365")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13365")]
         public void Bug13365()
         {
             var source = @"
@@ -22630,7 +22630,7 @@ public class C
                 );
         }
 
-        [Fact, WorkItem(13494, "https://github.com/dotnet/roslyn/issues/13494")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13494")]
         public static void Bug13494()
         {
             var source1 = @"
@@ -22656,7 +22656,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(258853, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")]
         public void BadOverloadWithTupleLiteralWithNaturalType()
         {
             var source = @"
@@ -22678,7 +22678,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(258853, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")]
         public void BadOverloadWithTupleLiteralWithNoNaturalType()
         {
             var source = @"
@@ -22700,7 +22700,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(261049, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/261049")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/261049")]
         public void DevDiv261049RegressionTest()
         {
             var source = @"
@@ -22735,7 +22735,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13705")]
         public static void TupleCoVariance()
         {
             var source = @"
@@ -22752,7 +22752,7 @@ public interface I<out T>
                 );
         }
 
-        [Fact, WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13705")]
         public static void TupleCoVariance2()
         {
             var source = @"
@@ -22769,7 +22769,7 @@ public interface I<out T>
                 );
         }
 
-        [Fact, WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13705")]
         public static void TupleContraVariance()
         {
             var source = @"
@@ -22787,7 +22787,7 @@ public interface I<in T>
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13767")]
         public void TupleInConstant()
         {
             var source = @"
@@ -22823,7 +22823,7 @@ class C
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13767")]
         public void ConstantTypeFromReferencedAssembly()
         {
             var libSource = @" public class ReferencedType { } ";
@@ -22863,7 +22863,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(13661, "https://github.com/dotnet/roslyn/issues/13661")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13661")]
         public void LongTupleWithPartialNames_Bug13661()
         {
             var source = @"
@@ -22897,7 +22897,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11689")]
         public void ValueTupleNotStruct0()
         {
             var source = @"
@@ -22941,7 +22941,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11689")]
         public void ValueTupleNotStruct1()
         {
             var source = @"
@@ -23013,7 +23013,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11689")]
         public void ValueTupleNotStruct2()
         {
             var source = @"
@@ -23051,7 +23051,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11689")]
         public void ValueTupleNotStruct2i()
         {
             var source = @"
@@ -23086,7 +23086,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11689")]
         public void ValueTupleNotStruct3()
         {
             var source = @"
@@ -23130,7 +23130,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11689")]
         public void ValueTupleNotStruct4()
         {
             var source = @"
@@ -23192,7 +23192,7 @@ namespace System
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "((int, int), (int, int))").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(3, 5));
         }
 
-        [WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16879")]
         [Fact]
         public void ValueTupleBaseError_MissingReference()
         {
@@ -23294,7 +23294,7 @@ public class A
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(13472, "https://github.com/dotnet/roslyn/issues/13472")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13472")]
         public void InvalidCastRef()
         {
             var source = @"
@@ -23333,7 +23333,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(14166, "https://github.com/dotnet/roslyn/issues/14166")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14166")]
         public void RefTuple001()
         {
             var source = @"
@@ -23432,8 +23432,8 @@ public class B1
             comp1.VerifyDiagnostics();
         }
 
-        [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
-        [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14708")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14709")]
         [ConditionalFact(typeof(DesktopOnly))]
         public void RefTupleDynamicDecode001()
         {
@@ -23486,8 +23486,8 @@ namespace ConsoleApplication5
             Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Goo(System.Int32 arg)", b.ToTestDisplayString());
         }
 
-        [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
-        [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14708")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14709")]
         [Fact]
         public void RefTupleDynamicDecode002()
         {
@@ -23544,7 +23544,7 @@ namespace ConsoleApplication5
         }
 
         [Fact]
-        [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
         public void UserDefinedConversionsAndNameMismatch_01()
         {
             var source = @"
@@ -23584,7 +23584,7 @@ class AA
         }
 
         [Fact]
-        [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
         public void UserDefinedConversionsAndNameMismatch_02()
         {
             var source = @"
@@ -23624,7 +23624,7 @@ struct AA
         }
 
         [Fact]
-        [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
         public void UserDefinedConversionsAndNameMismatch_03()
         {
             var source = @"
@@ -23668,7 +23668,7 @@ struct AA
         }
 
         [Fact]
-        [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
         public void UserDefinedConversionsAndNameMismatch_04()
         {
             var source = @"
@@ -23699,7 +23699,7 @@ class AA
         }
 
         [Fact]
-        [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
         public void UserDefinedConversionsAndNameMismatch_05()
         {
             var source = @"
@@ -23731,7 +23731,7 @@ class AA
         }
 
         [Fact]
-        [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
         public void UserDefinedConversionsAndNameMismatch_06()
         {
             var source = @"
@@ -23779,8 +23779,8 @@ implicit operator AA
 --");
         }
 
-        [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
-        [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14708")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14709")]
         [Fact]
         public void RefTupleDynamicDecode003()
         {
@@ -23891,8 +23891,8 @@ namespace ConsoleApplication5
 
         }
 
-        [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
-        [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14708")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14709")]
         [ConditionalFact(typeof(DesktopOnly))]
         public void RefTupleDynamicDecode004()
         {
@@ -23944,7 +23944,7 @@ namespace ConsoleApplication5
         }
 
         [Fact]
-        [WorkItem(14267, "https://github.com/dotnet/roslyn/issues/14267")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14267")]
         public void NoSystemRuntimeFacade()
         {
             var source = @"
@@ -23970,7 +23970,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(14888, "https://github.com/dotnet/roslyn/issues/14888")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14888")]
         public void Iterator_01()
         {
             var source = @"
@@ -23999,7 +23999,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(14888, "https://github.com/dotnet/roslyn/issues/14888")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14888")]
         public void Iterator_02()
         {
             var source = @"
@@ -24029,7 +24029,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(14649, "https://github.com/dotnet/roslyn/issues/14649")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14649")]
         public void ParseLongLambda()
         {
             string filler = string.Join("\r\n", Enumerable.Range(1, 1000).Select(i => $"int y{i};"));
@@ -24187,8 +24187,8 @@ public struct S { }
         }
 
         [Fact]
-        [WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")]
-        [WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14881")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15476")]
         public void TupleElementVsLocal()
         {
             var source = @"
@@ -24250,7 +24250,7 @@ static class Program
         }
 
         [Fact]
-        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14841")]
         public void ImplicitIEnumerableImplementationWithDifferentTupleNames()
         {
             var source = @"
@@ -24313,7 +24313,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14841")]
         public void ExplicitIEnumerableImplementationWithDifferentTupleNames()
         {
             var source = @"
@@ -24376,7 +24376,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14841")]
         public void GenericImplicitIEnumerableImplementationUsedWithDifferentTypesAndTupleNames()
         {
             var source = @"
@@ -24447,7 +24447,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14841")]
         public void GenericExplicitIEnumerableImplementationUsedWithDifferentTupleNames()
         {
             var source = @"
@@ -24520,7 +24520,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14841")]
         public void GenericExplicitIEnumerableImplementationUsedWithoutTuples()
         {
             var source = @"
@@ -24590,7 +24590,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14841")]
         public void GenericExplicitIEnumerableImplementationUsedWithDifferentTypesAndTupleNames()
         {
             var source = @"
@@ -24665,7 +24665,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(14843, "https://github.com/dotnet/roslyn/issues/14843")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14843")]
         public void TupleNameDifferencesIgnoredInConstraintWhenNotIdentityConversion()
         {
             var source = @"
@@ -24680,7 +24680,7 @@ class Derived : Base<I1<(int notA, int notB)>> {}
         }
 
         [Fact]
-        [WorkItem(14843, "https://github.com/dotnet/roslyn/issues/14843")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14843")]
         public void TupleNameDifferencesIgnoredInConstraintWhenNotIdentityConversion2()
         {
             var source = @"
@@ -24696,7 +24696,7 @@ class Derived : Base<I2<(int notA, int notB)>> {}
         }
 
         [Fact]
-        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14841")]
         public void CanReImplementInterfaceWithDifferentTupleNames()
         {
             var source = @"
@@ -24719,7 +24719,7 @@ class Derived : Base, I<(int notA, int notB)>
         }
 
         [Fact]
-        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14841")]
         public void CannotOverrideWithDifferentTupleNames()
         {
             var source = @"
@@ -24746,7 +24746,7 @@ class Derived : Base, I<(int notA, int notB)>
         }
 
         [Fact]
-        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14841")]
         public void CanShadowWithDifferentTupleNames()
         {
             var source = @"
@@ -24769,7 +24769,7 @@ class Derived : Base, I<(int notA, int notB)>
         }
 
         [Fact]
-        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14841")]
         public void ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_01()
         {
             var source = @"
@@ -24799,7 +24799,7 @@ class Derived2 : Base, I<(int a, int b)>
         }
 
         [Fact]
-        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14841")]
         public void ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_02()
         {
             var source = @"
@@ -24898,7 +24898,7 @@ class Derived2 : Base, I<(int a, int b)>
         }
 
         [Fact]
-        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14841")]
         public void ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_05()
         {
             var source = @"
@@ -24928,7 +24928,7 @@ class Derived2 : Base, I<(int a, int b)>
         }
 
         [Fact]
-        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14841")]
         public void ImplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames()
         {
             var source = @"
@@ -24954,7 +24954,7 @@ class Derived : Base, I<(int notA, int notB)>
         }
 
         [Fact]
-        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14841")]
         public void ImplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames2()
         {
             var source = @"
@@ -24980,7 +24980,7 @@ class Derived : Base, I<(int notA, int notB)>
         }
 
         [Fact]
-        [WorkItem(20528, "https://github.com/dotnet/roslyn/issues/20528")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20528")]
         public void ImplicitBaseImplementationNotConsideredImplementationForInterfaceWithNoNames()
         {
             var source = @"
@@ -25006,7 +25006,7 @@ class Derived : Base, I<(int, int)>
         }
 
         [Fact]
-        [WorkItem(20528, "https://github.com/dotnet/roslyn/issues/20528")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20528")]
         public void ImplicitBaseImplementationWithNoNamesConsideredImplementationForInterface()
         {
             var source = @"
@@ -25028,7 +25028,7 @@ class Derived : Base, I<(int a, int b)>
         }
 
         [Fact]
-        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14841")]
         public void ReImplementationAndInference()
         {
             var source = @"
@@ -25068,7 +25068,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(14091, "https://github.com/dotnet/roslyn/issues/14091")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14091")]
         public void TupleTypeWithTooFewElements()
         {
             var source = @"
@@ -25102,7 +25102,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(14091, "https://github.com/dotnet/roslyn/issues/14091")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14091")]
         public void TupleExpressionWithTooFewElements()
         {
             var source = @"
@@ -25128,7 +25128,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(16159, "https://github.com/dotnet/roslyn/issues/16159")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16159")]
         public void ExtensionMethodOnConvertedTuple001()
         {
             var source = @"
@@ -25388,7 +25388,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(17962, "https://github.com/dotnet/roslyn/issues/17962")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17962")]
         public void TupleWithAsOperator()
         {
             var source = @"
@@ -25444,7 +25444,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17963")]
         public void NullableTupleInAsOperator()
         {
             var source =
@@ -25467,7 +25467,7 @@ class P
         }
 
         [Fact]
-        [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17963")]
         public void NullableTupleInAsOperator2()
         {
             var source =
@@ -25489,7 +25489,7 @@ class P
         }
 
         [Fact]
-        [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17963")]
         public void NullableTupleInIsOperator()
         {
             var source =
@@ -25519,7 +25519,7 @@ class P
         }
 
         [Fact]
-        [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17963")]
         public void NullableTupleInIsOperator2()
         {
             var source =
@@ -25540,7 +25540,7 @@ class P
         }
 
         [Fact]
-        [WorkItem(18459, "https://github.com/dotnet/roslyn/issues/18459")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18459")]
         public void CheckedConversions()
         {
             var source =
@@ -25638,7 +25638,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(19434, "https://github.com/dotnet/roslyn/issues/19434")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19434")]
         public void ExplicitTupleLiteralConversionWithNullable01()
         {
             var source = @"
@@ -25711,7 +25711,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18738")]
         public void TypelessTupleWithNoImplicitConversion_01()
         {
             var source = @"
@@ -25757,7 +25757,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18738")]
         public void TypelessTupleWithNoImplicitConversion_02()
         {
             var source = @"
@@ -25782,7 +25782,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18738")]
         public void TypelessTupleWithNoImplicitConversion2_01()
         {
             var source = @"
@@ -25828,7 +25828,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18738")]
         public void TypelessTupleWithNoImplicitConversion2_02()
         {
             var source = @"
@@ -25853,7 +25853,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18738")]
         public void TypelessTupleWithNoImplicitConversion3()
         {
             var source = @"
@@ -25893,7 +25893,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(20208, "https://github.com/dotnet/roslyn/issues/20208")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20208")]
         public void UnusedTupleAssignedToVar()
         {
             var source = @"
@@ -25925,7 +25925,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18738")]
         public void TypedTupleWithNoConversion()
         {
             var source = @"
@@ -25955,7 +25955,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20494")]
         public void MoreGenericTieBreaker_01()
         {
             var source =
@@ -25982,7 +25982,7 @@ public class A<T> {}";
         }
 
         [Fact]
-        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20494")]
         public void MoreGenericTieBreaker_01b()
         {
             var source =
@@ -26001,8 +26001,8 @@ public class C
         }
 
         [Fact]
-        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
-        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20583")]
         public void MoreGenericTieBreaker_02a1()
         {
             var source =
@@ -26026,8 +26026,8 @@ public class C
         }
 
         [Fact]
-        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
-        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20583")]
         public void MoreGenericTieBreaker_02a2()
         {
             var source =
@@ -26051,8 +26051,8 @@ public class C
         }
 
         [Fact]
-        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
-        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20583")]
         public void MoreGenericTieBreaker_02a3()
         {
             var source =
@@ -26077,8 +26077,8 @@ public interface I<in T>{}
         }
 
         [Fact]
-        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
-        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20583")]
         public void MoreGenericTieBreaker_02a4()
         {
             var source =
@@ -26103,8 +26103,8 @@ public interface I<out T>{}
         }
 
         [Fact]
-        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
-        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20583")]
         public void MoreGenericTieBreaker_02a5()
         {
             var source =
@@ -26126,8 +26126,8 @@ public class C
         }
 
         [Fact]
-        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
-        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20583")]
         public void MoreGenericTieBreaker_02a6()
         {
             var source =
@@ -26147,8 +26147,8 @@ public class C
         }
 
         [Fact]
-        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
-        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20583")]
         public void MoreGenericTieBreaker_02a7()
         {
             var source =
@@ -26170,8 +26170,8 @@ public class C
         }
 
         [Fact]
-        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
-        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20583")]
         public void MoreGenericTieBreaker_02b()
         {
             var source =
@@ -26194,7 +26194,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20494")]
         public void MoreGenericTieBreaker_03()
         {
             var source =
@@ -26215,7 +26215,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20494")]
         public void MoreGenericTieBreaker_04()
         {
             var source =
@@ -26240,7 +26240,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(21785, "https://github.com/dotnet/roslyn/issues/21785")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21785")]
         public void TypelessTupleInArrayInitializer()
         {
             string source = @"
@@ -26305,7 +26305,7 @@ namespace System
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "tuple.Item1").WithLocation(8, 9));
         }
 
-        [Fact, WorkItem(24781, "https://github.com/dotnet/roslyn/issues/24781")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24781")]
         public void InferenceWithTuple_AddingNames()
         {
             string source = @"
@@ -26338,7 +26338,7 @@ public class Class1
             Assert.Equal("IResult<System.Int32>", doSymbol.ReturnType.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(24781, "https://github.com/dotnet/roslyn/issues/24781")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24781")]
         public void InferenceWithTuple_DifferentNames()
         {
             string source = @"
@@ -26371,7 +26371,7 @@ public class Class1
             Assert.Equal("IResult<System.Int32>", doSymbol.ReturnType.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(24781, "https://github.com/dotnet/roslyn/issues/24781")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24781")]
         public void InferenceWithTuple_DroppingNames()
         {
             string source = @"
@@ -26404,7 +26404,7 @@ public class Class1
             Assert.Equal("IResult<System.Int32>", doSymbol.ReturnType.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(24781, "https://github.com/dotnet/roslyn/issues/24781")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24781")]
         public void InferenceWithDynamic()
         {
             string source = @"
@@ -26440,7 +26440,7 @@ public class Class1
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        [WorkItem(40430, "https://github.com/dotnet/roslyn/issues/40430")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40430")]
         public void MissingTypeArgumentInBase_ValueTuple(bool useImageReference)
         {
             var lib_cs = @"
@@ -26493,7 +26493,7 @@ public class C
         [InlineData(true, false)]
         [InlineData(false, true)]
         [InlineData(false, false)]
-        [WorkItem(40430, "https://github.com/dotnet/roslyn/issues/40430")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40430")]
         public void MissingTypeArgumentInBase_ValueTupleInContainer(bool useImageReference, bool missingValueTuple)
         {
             var missingContainer_cs = @"
@@ -26556,7 +26556,7 @@ public class C
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        [WorkItem(40430, "https://github.com/dotnet/roslyn/issues/40430")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40430")]
         public void MissingTypeArgumentInBase_ValueTupleAndContainer(bool useImageReference)
         {
             var missingContainer_cs = @"
@@ -26621,7 +26621,7 @@ public class C3
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        [WorkItem(40430, "https://github.com/dotnet/roslyn/issues/40430")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40430")]
         public void MissingTypeArgumentInBase(bool useImageReference)
         {
             var missing_cs = @"public class Missing { }";
@@ -26673,7 +26673,7 @@ public class C2
         }
 
         [Fact]
-        [WorkItem(41699, "https://github.com/dotnet/roslyn/issues/41699")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/41699")]
         public void MissingBaseType_TupleTypeArgumentWithNames()
         {
             var sourceA =
@@ -26703,7 +26703,7 @@ public class C2
         }
 
         [Fact]
-        [WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21727")]
         public void FailedDecodingOfTupleNamesWhenMissingValueTupleType()
         {
             var vtLib = CreateEmptyCompilation(trivial2uple + tupleattributes_cs, references: new[] { MscorlibRef }, assemblyName: "vt");
@@ -26805,7 +26805,7 @@ public class ClassB
         }
 
         [Fact]
-        [WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21727")]
         public void FailedDecodingOfLongTupleNamesWhenMissingValueTupleType()
         {
             var vtLib = CreateEmptyCompilation(tuplelib_cs + tupleattributes_cs, references: new[] { MscorlibRef }, assemblyName: "vt");
@@ -26869,7 +26869,7 @@ public class ClassB
         }
 
         [Fact]
-        [WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21727")]
         public void FailedDecodingOfTupleNamesWhenMissingNonTupleType()
         {
             var containerLib = CreateEmptyCompilation("public class Container<T> { }", references: new[] { MscorlibRef }, assemblyName: "container");
@@ -26944,7 +26944,7 @@ public class ClassB
         }
 
         [Fact]
-        [WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21727")]
         public void FailedDecodingOfTupleNamesWhenMissingContainerType()
         {
             var containerLib = CreateEmptyCompilation("public class Container<T> { public class Contained<U> { } }", references: new[] { MscorlibRef }, assemblyName: "container");
@@ -27027,9 +27027,9 @@ public class ClassB
         }
 
         [Fact]
-        [WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")]
-        [WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")]
-        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/41207")]
+        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43549")]
         public void CustomFields_01()
         {
             var source0 = @"
@@ -27110,9 +27110,9 @@ class Program
         }
 
         [Fact]
-        [WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")]
-        [WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")]
-        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/41207")]
+        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43549")]
         public void CustomFields_02()
         {
             var source0 = @"
@@ -27194,9 +27194,9 @@ class Program
         }
 
         [Fact]
-        [WorkItem(43524, "https://github.com/dotnet/roslyn/issues/43524")]
-        [WorkItem(1095184, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1095184")]
-        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43524")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1095184")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43549")]
         public void CustomFields_03()
         {
             var source0 = @"
@@ -27268,9 +27268,9 @@ class Program
         }
 
         [Fact]
-        [WorkItem(43524, "https://github.com/dotnet/roslyn/issues/43524")]
-        [WorkItem(1095184, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1095184")]
-        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43524")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1095184")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43549")]
         public void CustomFields_04()
         {
             var source0 = @"
@@ -27346,7 +27346,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(43621, "https://github.com/dotnet/roslyn/issues/43621")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43621")]
         public void CustomFields_05()
         {
             var source0 = @"
@@ -27418,7 +27418,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(41702, "https://github.com/dotnet/roslyn/issues/41702")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/41702")]
         public void TupleUnderlyingType_FromCSharp()
         {
             var source =
@@ -27442,7 +27442,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(41702, "https://github.com/dotnet/roslyn/issues/41702")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/41702")]
         public void TupleUnderlyingType_FromVisualBasic()
         {
             var source =
@@ -27549,7 +27549,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(40981, "https://github.com/dotnet/roslyn/issues/40981")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40981")]
         public void TupleFromMetadata_TypeInference()
         {
             var source0 = @"
@@ -27585,7 +27585,7 @@ public class Class
         }
 
         [Fact]
-        [WorkItem(1090920, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/1090920")]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/1090920")]
         public void GetSymbolInfoOnInitializerOfValueTupleField()
         {
 
@@ -27608,7 +27608,7 @@ namespace System
             Assert.True(model.GetSymbolInfo(literal).IsEmpty);
         }
 
-        [Fact, WorkItem(1090920, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/1090920")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/1090920")]
         public void NameofFixedBuffer()
         {
             var source = @"
@@ -27659,7 +27659,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(27322, "https://github.com/dotnet/roslyn/issues/27322")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27322")]
         public void ExpressionTreeWithTuple()
         {
             var source = @"
@@ -27916,7 +27916,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(24517, "https://github.com/dotnet/roslyn/issues/24517")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24517")]
         public void Issue24517()
         {
             var source = @"
@@ -27943,7 +27943,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(44000, "https://github.com/dotnet/roslyn/issues/44000")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44000")]
         public void TupleField_ForceComplete()
         {
             var source =
@@ -27976,7 +27976,7 @@ class C
             Assert.True(underlyingField.HasComplete(CompletionPart.All));
         }
 
-        [Fact, WorkItem(43595, "https://github.com/dotnet/roslyn/issues/43595")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43595")]
         public void EmptyValueTuple()
         {
             var source = @"
@@ -28051,7 +28051,7 @@ class C
             }
         }
 
-        [Fact, WorkItem(43595, "https://github.com/dotnet/roslyn/issues/43595")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43595")]
         public void EmptyValueTuple_WithCtor()
         {
             var source = @"
@@ -28116,7 +28116,7 @@ class C
             }
         }
 
-        [Fact, WorkItem(43595, "https://github.com/dotnet/roslyn/issues/43595")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43595")]
         public void EmptyValueTuple_WithTupleSyntaxInside()
         {
             var source = @"
@@ -28177,7 +28177,7 @@ namespace System
             }
         }
 
-        [Fact, WorkItem(43595, "https://github.com/dotnet/roslyn/issues/43595")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43595")]
         public void ValueTuple_WithTupleSyntaxInside()
         {
             var source = @"
@@ -28219,8 +28219,8 @@ namespace System
             }
         }
 
-        [Fact, WorkItem(43597, "https://github.com/dotnet/roslyn/issues/43597")]
-        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43597")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43549")]
         public void TestValueTuplesDefinition()
         {
             var comp = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples, targetFramework: TargetFramework.Mscorlib40);
@@ -28333,8 +28333,8 @@ namespace System
             }
         }
 
-        [Fact, WorkItem(43597, "https://github.com/dotnet/roslyn/issues/43597")]
-        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43597")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43549")]
         public void TestValueTuple8Definition()
         {
             var comp = CreateCompilation(trivialRemainingTuples, targetFramework: TargetFramework.Mscorlib40);
@@ -28412,7 +28412,7 @@ namespace System
             }
         }
 
-        [Fact, WorkItem(43595, "https://github.com/dotnet/roslyn/issues/43595")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43595")]
         public void TestValueTuple2Definition_WithExtraField()
         {
             var source = @"
@@ -28573,7 +28573,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(44000, "https://github.com/dotnet/roslyn/issues/44000")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44000")]
         public void TupleField_Item2()
         {
             var source =
@@ -28987,7 +28987,7 @@ public class C
             }
         }
 
-        [Theory, WorkItem(43857, "https://github.com/dotnet/roslyn/issues/43857")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/43857")]
         [InlineData("(Z a, Z b)*", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", ""b""})")]
         [InlineData("(Z, Z b)*", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, ""b""})")]
         [InlineData("(Z a, Z)*", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", null})")]
@@ -29105,7 +29105,7 @@ unsafe struct Z
         }
 
         [Fact]
-        [WorkItem(64777, "https://github.com/dotnet/roslyn/issues/64777")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64777")]
         public void NameMismatchInUserDefinedConversion()
         {
             var source = @"

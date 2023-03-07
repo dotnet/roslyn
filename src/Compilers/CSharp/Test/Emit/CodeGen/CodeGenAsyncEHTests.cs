@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         }
 
         [Fact]
-        [WorkItem(624970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624970")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624970")]
         public void AsyncWithEH()
         {
             var source = @"
@@ -145,7 +145,7 @@ class Test
             CompileAndVerify(source, expectedOutput: expected);
         }
 
-        [WorkItem(14878, "https://github.com/dotnet/roslyn/issues/14878")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14878")]
         [Fact]
         public void AsyncWithEHCodeQuality()
         {
@@ -572,7 +572,7 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 ");
         }
 
-        [Fact, WorkItem(855080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855080")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855080")]
         public void GenericCatchVariableInAsyncMethod()
         {
             var source = @"

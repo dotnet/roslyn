@@ -110,7 +110,7 @@ public class D
         }
 
         [Fact]
-        [WorkItem(46831, "https://github.com/dotnet/roslyn/issues/46831")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46831")]
         public void WRN_SyncAndAsyncEntryPoints_CSharp71()
         {
             string source = @"
@@ -147,7 +147,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(46831, "https://github.com/dotnet/roslyn/issues/46831")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46831")]
         public void WRN_SyncAndAsyncEntryPointsCSharpLatest_SyncAndAsync()
         {
             string source = @"
@@ -167,7 +167,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(46831, "https://github.com/dotnet/roslyn/issues/46831")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46831")]
         public void ERR_And_WRN_MultipleEntryPointsCSharpLatest_TwoSyncAndOneAsync()
         {
             string source = @"
@@ -194,7 +194,7 @@ public class D
         }
 
         [Fact]
-        [WorkItem(46831, "https://github.com/dotnet/roslyn/issues/46831")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46831")]
         public void WRN_SyncAndAsyncEntryPointsCSharpLatest_TwoAsyncAndOneSync()
         {
             string source = @"
@@ -244,7 +244,7 @@ public class D
         }
 
         [Fact]
-        [WorkItem(46831, "https://github.com/dotnet/roslyn/issues/46831")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46831")]
         public void WRN_SyncAndAsyncEntryPoints_WithTypeDefined()
         {
             string source = @"
@@ -292,7 +292,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("C.Main()"));
         }
 
-        [WorkItem(528677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528677")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528677")]
         [Fact]
         public void ERR_OneEntryPointAndOverload()
         {
@@ -1229,7 +1229,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoEntryPoint));
         }
 
-        [WorkItem(543468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543468")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543468")]
         [Fact()]
         public void RefParameterForMain()
         {
@@ -1246,7 +1246,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoEntryPoint));
         }
 
-        [WorkItem(544478, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544478")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544478")]
         [Fact()]
         public void ArglistParameterForMain()
         {
@@ -1270,7 +1270,7 @@ class D
                 Diagnostic(ErrorCode.ERR_NoEntryPoint));
         }
 
-        [WorkItem(543467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543467")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543467")]
         [Fact()]
         public void OutParameterForMain()
         {
@@ -1392,7 +1392,7 @@ class D
                 Diagnostic(ErrorCode.ERR_NoMainInClass, "D").WithArguments("D"));
         }
 
-        [WorkItem(753028, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/753028")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/753028")]
         [Fact]
         public void RootMemberNamedScript()
         {
@@ -1514,7 +1514,7 @@ static class Main
                 Diagnostic(ErrorCode.ERR_NoMainInClass, "Main").WithArguments("Main"));
         }
 
-        [WorkItem(543511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543511")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543511")]
         [Fact()]
         public void ExplicitMainType_OneDefineTwoDeclareValidMainForPartial()
         {
@@ -1533,7 +1533,7 @@ partial class Program
             CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("Program")).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(543512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543512")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543512")]
         public void DynamicParameterForMain()
         {
             // TODO: This should produce:
@@ -1554,7 +1554,7 @@ class Myderive : Mybase
                     Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Mybase.Main(dynamic)"));
         }
 
-        [WorkItem(630763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/630763")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/630763")]
         [Fact()]
         public void Bug630763()
         {
@@ -1583,7 +1583,7 @@ public class C
                 );
         }
 
-        [Fact, WorkItem(12113, "https://github.com/dotnet/roslyn/issues/12113")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12113")]
         public void LazyEntryPoint()
         {
             string source = @"
@@ -1603,7 +1603,7 @@ class Program
                 );
         }
 
-        [WorkItem(17923, "https://github.com/dotnet/roslyn/issues/17923")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17923")]
         [Fact]
         [CompilerTrait(CompilerFeature.RefLocalsReturns)]
         public void RefIntReturnMainEmpty()
@@ -1623,7 +1623,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
-        [WorkItem(17923, "https://github.com/dotnet/roslyn/issues/17923")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17923")]
         [Fact]
         [CompilerTrait(CompilerFeature.RefLocalsReturns)]
         public void RefIntReturnMainWithParams()

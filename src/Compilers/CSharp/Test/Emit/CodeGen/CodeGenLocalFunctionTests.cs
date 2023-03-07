@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
-        [WorkItem(37459, "https://github.com/dotnet/roslyn/pull/37459")]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/37459")]
         public void StaticLocalFunctionCaptureConstants()
         {
             var src = @"
@@ -86,7 +86,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(481125, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=481125")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=481125")]
         public void Repro481125()
         {
             var comp = CreateCompilation(@"
@@ -130,7 +130,7 @@ public class E
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem(24647, "https://github.com/dotnet/roslyn/issues/24647")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24647")]
         public void Repro24647()
         {
             var comp = CreateCompilation(@"
@@ -168,7 +168,7 @@ IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.Obj
         }
 
         [Fact]
-        [WorkItem(22027, "https://github.com/dotnet/roslyn/issues/22027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22027")]
         public void Repro22027()
         {
             CompileAndVerify(@"
@@ -200,7 +200,7 @@ static void Main(string[] args)
         }
 
         [Fact]
-        [WorkItem(21768, "https://github.com/dotnet/roslyn/issues/21768")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21768")]
         public void Repro21768()
         {
             var comp = CreateCompilation(@"
@@ -234,7 +234,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(21811, "https://github.com/dotnet/roslyn/issues/21811")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21811")]
         public void Repro21811()
         {
             var comp = CreateCompilation(@"
@@ -268,7 +268,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(21645, "https://github.com/dotnet/roslyn/issues/21645")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21645")]
         public void Repro21645()
         {
             CompileAndVerify(@"
@@ -296,7 +296,7 @@ public class Class1
         }
 
         [Fact]
-        [WorkItem(21543, "https://github.com/dotnet/roslyn/issues/21543")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21543")]
         public void Repro21543()
         {
             CompileAndVerify(@"
@@ -326,7 +326,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(472056, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=472056")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=472056")]
         public void Repro472056()
         {
             var comp = CreateCompilationWithMscorlib46(@"
@@ -556,7 +556,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(21409, "https://github.com/dotnet/roslyn/issues/21409")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21409")]
         public void Repro21409()
         {
             CompileAndVerify(
@@ -626,7 +626,7 @@ namespace Buggles
         }
 
         [Fact]
-        [WorkItem(294554, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=294554")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=294554")]
         public void ThisOnlyClosureBetweenStructCaptures()
         {
             CompileAndVerify(@"
@@ -820,8 +820,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
-        [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18814")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18918")]
         public void IntermediateStructClosures1()
         {
             var verifier = CompileAndVerify(@"
@@ -943,8 +943,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
-        [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18814")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18918")]
         public void IntermediateStructClosures2()
         {
             CompileAndVerify(@"
@@ -968,7 +968,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18814")]
         public void Repro18814()
         {
             CompileAndVerify(@"
@@ -992,7 +992,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18918")]
         public void Repro18918()
         {
             CompileAndVerify(@"
@@ -1024,7 +1024,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem(17719, "https://github.com/dotnet/roslyn/issues/17719")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17719")]
         public void Repro17719()
         {
             var comp = CompileAndVerify(@"
@@ -1043,7 +1043,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(17890, "https://github.com/dotnet/roslyn/issues/17890")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17890")]
         public void Repro17890()
         {
             var comp = CreateCompilationWithMscorlib46(@"
@@ -1091,7 +1091,7 @@ public class Class
         }
 
         [Fact]
-        [WorkItem(16783, "https://github.com/dotnet/roslyn/issues/16783")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16783")]
         public void GenericDefaultParams()
         {
             CompileAndVerify(@"
@@ -1165,7 +1165,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16895")]
         public void CaptureVarNestedLambdaSkipScope()
         {
             var src = @"
@@ -1195,7 +1195,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16895")]
         public void CaptureVarNestedLambdaSkipScope2()
         {
             var src = @"
@@ -1226,7 +1226,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16895")]
         public void CaptureVarNestedLambdaSkipScope3()
         {
             var src = @"
@@ -1257,7 +1257,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16895")]
         public void CaptureVarNestedLambdaSkipScope4()
         {
             var src = @"
@@ -1291,7 +1291,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16895")]
         public void CaptureVarNestedLambdaSkipScope5()
         {
             var src = @"
@@ -1326,7 +1326,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16895")]
         public void CaptureVarNestedLambdaSkipScope6()
         {
             var src = @"
@@ -1367,7 +1367,7 @@ class C
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16895")]
         public void CaptureVarNestedLambdaSkipScope7()
         {
             var src = @"
@@ -1406,7 +1406,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16895")]
         public void CaptureVarNestedLambdaSkipScope8()
         {
             var src = @"
@@ -1444,7 +1444,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16895")]
         public void LocalFunctionCaptureSkipScope()
         {
             var src = @"
@@ -1469,7 +1469,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(16399, "https://github.com/dotnet/roslyn/issues/16399")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16399")]
         public void RecursiveGenericLocalFunctionIterator()
         {
             var src = @"
@@ -1521,7 +1521,7 @@ d");
         }
 
         [Fact]
-        [WorkItem(243633, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/243633")]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/243633")]
         public void CaptureGenericFieldAndParameter()
         {
             var src = @"
@@ -2069,7 +2069,7 @@ NamedOptional();
             VerifyOutputInMain(source, "3 2", "System");
         }
 
-        [Fact, WorkItem(51518, "https://github.com/dotnet/roslyn/issues/51518")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51518")]
         public void OptionalParameterCodeGen()
         {
             var source = @"
@@ -2090,7 +2090,7 @@ public class C
             });
         }
 
-        [Fact, WorkItem(53478, "https://github.com/dotnet/roslyn/issues/53478")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53478")]
         public void OptionalParameterCodeGen_Reflection()
         {
             VerifyOutputInMain(@"void TestAction(int i = 5) { }
@@ -4284,7 +4284,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(21317, "https://github.com/dotnet/roslyn/issues/21317")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21317")]
         [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicGenericArg()
         {
@@ -4334,7 +4334,7 @@ L5<dynamic>(1, 3, val);
         }
 
         [Fact]
-        [WorkItem(21317, "https://github.com/dotnet/roslyn/issues/21317")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21317")]
         [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicGenericClassMethod()
         {
@@ -4729,7 +4729,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(15322, "https://github.com/dotnet/roslyn/issues/15322")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15322")]
         public void UseBeforeDeclaration()
         {
             var src = @"
@@ -4743,7 +4743,7 @@ void Assign() { x = 5; }";
         }
 
         [Fact]
-        [WorkItem(15558, "https://github.com/dotnet/roslyn/issues/15558")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15558")]
         public void CapturingSharesVar()
         {
             var src = @"
@@ -4775,7 +4775,7 @@ while (i < 10)
         }
 
         [Fact]
-        [WorkItem(15599, "https://github.com/dotnet/roslyn/issues/15599")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15599")]
         public void NestedLocalFuncCapture()
         {
             var src = @"
@@ -4798,7 +4798,7 @@ public class C {
         }
 
         [Fact]
-        [WorkItem(15599, "https://github.com/dotnet/roslyn/issues/15599")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15599")]
         public void NestedLocalFuncCapture2()
         {
             var src = @"
@@ -4822,7 +4822,7 @@ public class C {
         }
 
         [Fact]
-        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15751")]
         public void RecursiveGenericLocalFunction()
         {
             var src = @"
@@ -4841,7 +4841,7 @@ Local(""A"", 5);
         }
 
         [Fact]
-        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15751")]
         public void RecursiveGenericLocalFunction2()
         {
             var src = @"
@@ -4861,7 +4861,7 @@ Local(""A"", 5);
         }
 
         [Fact]
-        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15751")]
         public void RecursiveGenericLocalFunction3()
         {
             var src = @"
@@ -4881,7 +4881,7 @@ Local(""A"", 5);
         }
 
         [Fact]
-        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15751")]
         public void RecursiveGenericLocalFunction4()
         {
             var src = @"
@@ -4911,7 +4911,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15751")]
         public void RecursiveGenericLocalFunction5()
         {
             var src = @"
@@ -4964,7 +4964,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15751")]
         public void RecursiveGenericLocalFunction6()
         {
             var src = @"
@@ -5021,7 +5021,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15751")]
         public void RecursiveGenericLocalFunction7()
         {
             var src = @"
@@ -5078,7 +5078,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(16038, "https://github.com/dotnet/roslyn/issues/16038")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16038")]
         public void RecursiveGenericLocalFunction8()
         {
             var src = @"
@@ -5127,7 +5127,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(19119, "https://github.com/dotnet/roslyn/issues/19119")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19119")]
         public void StructFrameInitUnnecessary()
         {
             var c = CompileAndVerify(@"
@@ -5967,7 +5967,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(57325, "https://github.com/dotnet/roslyn/issues/57325")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57325")]
         public void InOutAttributes()
         {
             var source = @"
@@ -6020,7 +6020,7 @@ class Program
         [InlineData("[Attr] ")]
         [InlineData("[In] [Attr] ")]
         [InlineData("")]
-        [WorkItem(57325, "https://github.com/dotnet/roslyn/issues/57325")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57325")]
         public void IsMetadataIn_UsingModifierInSource(string attributes)
         {
             var source = $$"""
@@ -6076,7 +6076,7 @@ class Program
         [InlineData("[Attr] ")]
         [InlineData("[Out] [Attr] ")]
         [InlineData("")]
-        [WorkItem(57325, "https://github.com/dotnet/roslyn/issues/57325")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57325")]
         public void IsMetadataOut_UsingModifierInSource(string attributes)
         {
             var source = $$"""
@@ -6129,7 +6129,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(57325, "https://github.com/dotnet/roslyn/issues/57325")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57325")]
         public void BaseParameterWithDifferentRefKind()
         {
             var source = $$"""
@@ -6173,7 +6173,7 @@ static class Program
         }
 
         [Fact]
-        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49599")]
         public void MultipleLocalFunctionsUsingDynamic_01()
         {
             var source = @"
@@ -6198,7 +6198,7 @@ public class Program
         }
 
         [Fact]
-        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49599")]
         public void MultipleLocalFunctionsUsingDynamic_02()
         {
             var source = @"
@@ -6223,7 +6223,7 @@ public class Program
         }
 
         [Fact]
-        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49599")]
         public void MultipleLocalFunctionsUsingDynamic_03()
         {
             var source = @"
@@ -6248,7 +6248,7 @@ public class Program
         }
 
         [Fact]
-        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49599")]
         public void MultipleLocalFunctionsUsingDynamic_04()
         {
             var source = @"
@@ -6273,7 +6273,7 @@ public class Program
         }
 
         [Fact]
-        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49599")]
         public void MultipleLocalFunctionsUsingDynamic_05()
         {
             var source = @"

@@ -230,7 +230,7 @@ class C
             );
         }
 
-        [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
         [Fact]
         public void CS1508_DuplicateManifestResourceIdentifier()
         {
@@ -250,7 +250,7 @@ class C
             );
         }
 
-        [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
         [Fact]
         public void CS1508_DuplicateManifestResourceIdentifier_EmbeddedResource()
         {
@@ -283,7 +283,7 @@ class C
             );
         }
 
-        [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
         [Fact]
         public void CS7041_DuplicateManifestResourceFileName()
         {
@@ -303,7 +303,7 @@ class C
             );
         }
 
-        [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
         [Fact]
         public void NoDuplicateManifestResourceFileNameDiagnosticForEmbeddedResources()
         {
@@ -330,7 +330,7 @@ class C
             result.Diagnostics.Verify();
         }
 
-        [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501"), WorkItem(546297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546297")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546297")]
         [Fact]
         public void CS1508_CS7041_DuplicateManifestResourceDiagnostics()
         {

@@ -195,7 +195,7 @@ public class C : ITuple
 }");
         }
 
-        [Fact, WorkItem(51801, "https://github.com/dotnet/roslyn/issues/51801")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51801")]
         public void IndexerOverrideLacksAccessor()
         {
             var source = @"

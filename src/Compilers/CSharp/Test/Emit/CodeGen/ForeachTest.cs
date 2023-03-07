@@ -250,7 +250,7 @@ class C
             CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(540917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540917")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540917")]
         [Fact]
         public void TestArray()
         {
@@ -1583,7 +1583,7 @@ struct A
             CompileAndVerify(source, expectedOutput: "5");
         }
 
-        [Fact, WorkItem(1077204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077204")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077204")]
         public void TestValueTypeIterationVariableFieldsAreReadonly()
         {
             const string source = @"

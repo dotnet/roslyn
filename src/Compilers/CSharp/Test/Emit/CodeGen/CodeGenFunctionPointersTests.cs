@@ -3532,7 +3532,7 @@ unsafe class C
         }
 
         [Fact]
-        [WorkItem(44489, "https://github.com/dotnet/roslyn/issues/44489")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44489")]
         public void AddressOf_CannotAssignToVoidStar()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -3575,7 +3575,7 @@ unsafe class C
         }
 
         [Fact]
-        [WorkItem(44489, "https://github.com/dotnet/roslyn/issues/44489")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44489")]
         public void AddressOf_ToDelegateType()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -3627,7 +3627,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(44489, "https://github.com/dotnet/roslyn/issues/44489")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44489")]
         public void AddressOf_ToNonDelegateOrPointerType()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -3763,7 +3763,7 @@ unsafe class C
             );
         }
 
-        [Fact, WorkItem(59454, "https://github.com/dotnet/roslyn/issues/59454")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59454")]
         public void FunctionPointerInvocationInExpressionTree()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -5190,7 +5190,7 @@ func_1a <= int_2: True");
 ");
         }
 
-        [Theory, WorkItem(48919, "https://github.com/dotnet/roslyn/issues/48919")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/48919")]
         [InlineData("==")]
         [InlineData("!=")]
         [InlineData(">=")]
@@ -5213,7 +5213,7 @@ unsafe
             );
         }
 
-        [Theory, WorkItem(48919, "https://github.com/dotnet/roslyn/issues/48919")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/48919")]
         [InlineData("==")]
         [InlineData("!=")]
         [InlineData(">=")]
@@ -7164,7 +7164,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(45447, "https://github.com/dotnet/roslyn/issues/45447")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45447")]
         public void LocalFunction_ValidStatic()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
@@ -7191,7 +7191,7 @@ unsafe class FunctionPointer
 ");
         }
 
-        [Fact, WorkItem(45447, "https://github.com/dotnet/roslyn/issues/45447")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45447")]
         public void LocalFunction_ValidStatic_NestedInLocalFunction()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
@@ -7274,7 +7274,7 @@ unsafe class C
 ");
         }
 
-        [Fact, WorkItem(45447, "https://github.com/dotnet/roslyn/issues/45447")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45447")]
         public void LocalFunction_InvalidNonStatic()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -7302,7 +7302,7 @@ unsafe class FunctionPointer
             );
         }
 
-        [Fact, WorkItem(45418, "https://github.com/dotnet/roslyn/issues/45418")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45418")]
         public void RefMismatchInCall()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -7410,7 +7410,7 @@ unsafe class C
             Assert.True(lambdaSymbol.Parameters.Single().Type.IsErrorType());
         }
 
-        [Fact, WorkItem(45418, "https://github.com/dotnet/roslyn/issues/45418")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45418")]
         public void OutDeconstructionMismatch()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -8148,7 +8148,7 @@ class C
             );
         }
 
-        [Fact, WorkItem(57025, "https://github.com/dotnet/roslyn/issues/57025")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57025")]
         public void UnmanagedCallersOnlyRequiresNonRef_Errors()
         {
             var comp = CreateCompilation(new[] { @"
@@ -8768,7 +8768,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(54113, "https://github.com/dotnet/roslyn/issues/54113")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54113")]
         public void UnmanagedCallersOnlyDefinedOnConversion()
         {
             var il = UnmanagedCallersOnlyAttributeIl + @"
@@ -8817,7 +8817,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(54113, "https://github.com/dotnet/roslyn/issues/54113")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54113")]
         public void UnmanagedCallersOnlyDefinedOnConversion_InSource()
         {
             var comp = CreateCompilation(new[] { @"
@@ -9797,7 +9797,7 @@ class D
             );
         }
 
-        [Fact, WorkItem(47858, "https://github.com/dotnet/roslyn/issues/47858")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47858")]
         public void UnmanagedCallersOnlyOnMain_GetEntryPoint()
         {
             var comp = CreateCompilation(new[] { @"
@@ -9965,7 +9965,7 @@ class A
         }
 
         [Fact]
-        [WorkItem(47125, "https://github.com/dotnet/roslyn/issues/47125")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/47125")]
         public void UnmanagedCallersOnlyWithLoopInUsage_3()
         {
             var comp = CreateCompilation(new[] { @"
@@ -10018,7 +10018,7 @@ unsafe class C
         }
 
         [Fact]
-        [WorkItem(47125, "https://github.com/dotnet/roslyn/issues/47125")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/47125")]
         public void UnmanagedCallersOnlyWithLoopInUsage_5()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -10774,7 +10774,7 @@ public unsafe class C
             Assert.Equal(ConversionKind.AnonymousFunction, conversion.Kind);
         }
 
-        [Fact, WorkItem(47487, "https://github.com/dotnet/roslyn/issues/47487")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47487")]
         public void InAndRefParameter()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
@@ -10814,7 +10814,7 @@ static void Test(in int b, ref char c)
 ");
         }
 
-        [Fact, WorkItem(47487, "https://github.com/dotnet/roslyn/issues/47487")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47487")]
         public void OutDiscard()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
@@ -10864,7 +10864,7 @@ static void Test(out int i1, out int i2)
 ");
         }
 
-        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49315")]
         public void ReturnByRefFromRefReturningMethod()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
@@ -10896,7 +10896,7 @@ unsafe
 ");
         }
 
-        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49315")]
         public void ReturnByRefFromRefReturningMethod_FunctionPointerDoesNotReturnByRefError()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -10918,7 +10918,7 @@ unsafe
             );
         }
 
-        [WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49315")]
         [Fact]
         public void ReturnByRefFromRefReturningMethod_NotSafeToEscape()
         {
@@ -10952,7 +10952,7 @@ unsafe
             );
         }
 
-        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49315")]
         public void ReturnByRefFromRefReturningMethod_SafeToEscape()
         {
             string source = @"
@@ -10991,7 +10991,7 @@ unsafe
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49315")]
         public void ReturnByRefFromRefReturningMethod_RefReadonlyToRefError()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -11013,7 +11013,7 @@ unsafe
             );
         }
 
-        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49315")]
         public void ReturnByRefFromRefReturningMethod_RefToRefReadonly()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
@@ -11045,7 +11045,7 @@ unsafe
 ");
         }
 
-        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49315")]
         public void RefAssignment()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
@@ -11082,7 +11082,7 @@ unsafe
 ");
         }
 
-        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49315")]
         public void RefAssignmentThroughTernary()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
@@ -11120,7 +11120,7 @@ unsafe
 ");
         }
 
-        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49315")]
         public void RefReturnThroughTernary()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
@@ -11153,7 +11153,7 @@ unsafe
 ");
         }
 
-        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49315")]
         public void PassedAsByRefParameter()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
@@ -11195,7 +11195,7 @@ unsafe
 ");
         }
 
-        [Fact, WorkItem(49760, "https://github.com/dotnet/roslyn/issues/49760")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49760")]
         public void ReturnRefStructByValue_CanEscape()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
@@ -11230,7 +11230,7 @@ ref struct BorrowedReference {
 ");
         }
 
-        [Fact, WorkItem(49760, "https://github.com/dotnet/roslyn/issues/49760")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49760")]
         public void ReturnRefStructByValue_CannotEscape()
         {
             var comp = CreateCompilationWithSpan(@"
@@ -11369,7 +11369,7 @@ unsafe
             );
         }
 
-        [Fact, WorkItem(49639, "https://github.com/dotnet/roslyn/issues/49639")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49639")]
         public void CompareToNullWithNestedUnconstrainedTypeParameter()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
@@ -11412,7 +11412,7 @@ False");
 ");
         }
 
-        [Fact, WorkItem(48765, "https://github.com/dotnet/roslyn/issues/48765")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48765")]
         public void TypeOfFunctionPointerInAttribute()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -11444,7 +11444,7 @@ class C<T> {}
             );
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_ObjectDefault_Enum_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -11469,7 +11469,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(default(B<delegate*<void>[]>.E))").WithLocation(11, 2));
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_GenericObjectDefault_Enum_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -11494,7 +11494,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A<object>(default(B<delegate*<void>[]>.E))").WithLocation(11, 2));
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_ObjectDefault_Enum_ConstructorArgument_ParamsArray([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -11519,7 +11519,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, @"A(null, ""abc"", default(B<delegate*<void>[]>.E))").WithLocation(11, 2));
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_ObjectDefault_Enum_NamedArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -11544,7 +11544,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = default(B<delegate*<void>[]>.E))").WithLocation(11, 2));
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_TypedDefault_Enum_Implicit_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -11572,7 +11572,7 @@ class C<T> {}
             verifier.VerifyDiagnostics();
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_GenericTypedDefault_Enum_Implicit_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -11600,7 +11600,7 @@ class C<T> {}
             verifier.VerifyDiagnostics();
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_TypedDefault_Enum_Implicit_NamedArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -11625,7 +11625,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = default)").WithLocation(11, 2));
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_TypedDefault_Enum_Explicit_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -11654,7 +11654,7 @@ class C<T> {}
             verifier.VerifyDiagnostics();
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_TypedDefault_Enum_Explicit_NamedArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -11679,7 +11679,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = default(B<delegate*<void>[]>.E))").WithLocation(11, 2));
         }
 
-        [Fact, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_ObjectDefault_GenericArgument()
         {
             var source = """
@@ -11711,7 +11711,7 @@ class C<T> {}
             verifier.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_ObjectDefault_Array()
         {
             var source = """
@@ -11743,7 +11743,7 @@ class C<T> {}
             verifier.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_ObjectDefault_Standalone()
         {
             var source = """
@@ -11761,7 +11761,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_BadArgType, "default(delegate*<void>)").WithArguments("1", "delegate*<void>", "object").WithLocation(6, 4));
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_ObjectConstant_Enum_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -11787,7 +11787,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(B<delegate*<void>[]>.C)").WithLocation(12, 2));
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_ObjectConstant_EnumArray_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -11812,7 +11812,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(new B<delegate*<void>[]>.E[]{})").WithLocation(11, 2));
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_ObjectArrayConstant_EnumArray_ConstructorArgument_01(
             [CombinatorialValues("class", "struct")] string kind,
             [CombinatorialValues("object", "object[]")] string parameterType)
@@ -11839,7 +11839,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(new object[] { new B<delegate*<void>[]>.E() })").WithLocation(11, 2));
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_ObjectArrayConstant_EnumArray_ConstructorArgument_02([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -11862,7 +11862,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_BadArgType, "new B<delegate*<void>[]>.E[]{}").WithArguments("1", "B<delegate*<void>[]>.E[]", "object[]").WithLocation(11, 4));
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_ObjectParamsConstant_EnumArray_ConstructorArgument(
             [CombinatorialValues("class", "struct")] string kind,
             [CombinatorialValues("[]{}", "()")] string initializer)
@@ -11889,7 +11889,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, $"A(new B<delegate*<void>[]>.E{initializer})").WithLocation(11, 2));
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_GenericObjectConstant_Enum_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -11915,7 +11915,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A<object>(B<delegate*<void>[]>.C)").WithLocation(12, 2));
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_GenericTypedConstant_Enum_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -11944,7 +11944,7 @@ class C<T> {}
             verifier.VerifyDiagnostics();
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_ObjectConstant_Enum_ConstructorNamedArguments([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -11970,7 +11970,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(y: 1, x: B<delegate*<void>[]>.C)").WithLocation(12, 2));
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_ObjectConstant_Enum_NamedArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -11996,7 +11996,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = B<delegate*<void>[]>.C)").WithLocation(12, 2));
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_ObjectConstant_EnumArray_NamedArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -12021,7 +12021,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = new B<delegate*<void>[]>.E[]{})").WithLocation(11, 2));
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_ObjectArrayConstant_EnumArray_NamedArgument(
             [CombinatorialValues("class", "struct")] string kind,
             [CombinatorialValues("object", "object[]")] string parameterType)
@@ -12048,7 +12048,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = new object[] { new B<delegate*<void>[]>.E() })").WithLocation(11, 2));
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_TypedConstant_Enum_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -12077,7 +12077,7 @@ class C<T> {}
             verifier.VerifyDiagnostics();
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_TypedConstant_EnumArray_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -12105,7 +12105,7 @@ class C<T> {}
             verifier.VerifyDiagnostics();
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_TypedParamsConstant_EnumArray_ConstructorArgument(
             [CombinatorialValues("class", "struct")] string kind,
             [CombinatorialValues("[]{}", "()")] string initializer)
@@ -12135,7 +12135,7 @@ class C<T> {}
             verifier.VerifyDiagnostics();
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_TypedConstant_Enum_NamedArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
@@ -12161,7 +12161,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = B<delegate*<void>[]>.C)").WithLocation(12, 2));
         }
 
-        [Fact, WorkItem(55394, "https://github.com/dotnet/roslyn/issues/55394")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55394")]
         public void SwitchExpression_01()
         {
             var code = @"
@@ -12205,7 +12205,7 @@ static void M(string s) => System.Console.WriteLine(s);
 ");
         }
 
-        [Fact, WorkItem(55394, "https://github.com/dotnet/roslyn/issues/55394")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55394")]
         public void SwitchExpression_02()
         {
             var code = @"
@@ -12251,7 +12251,7 @@ static void M2(string s) => throw null;
 ");
         }
 
-        [Fact, WorkItem(55394, "https://github.com/dotnet/roslyn/issues/55394")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55394")]
         public void SwitchExpression_03()
         {
             var code = @"
@@ -12297,7 +12297,7 @@ static void M2(object s) => throw null;
 ");
         }
 
-        [Fact, WorkItem(55394, "https://github.com/dotnet/roslyn/issues/55394")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55394")]
         public void SwitchExpression_04()
         {
             var code = @"

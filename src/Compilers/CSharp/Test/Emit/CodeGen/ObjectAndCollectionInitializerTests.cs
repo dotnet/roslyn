@@ -793,7 +793,7 @@ public class Test
 }");
         }
 
-        [WorkItem(2021, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/2021")]
+        [WorkItem("https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/2021")]
         [Fact()]
         public void ObjectInitializerFieldlikeEvent()
         {
@@ -1926,7 +1926,7 @@ class Program
             var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerArray()
         {
             var source = @"
@@ -1975,7 +1975,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerMDArray()
         {
             var source = @"
@@ -2066,7 +2066,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerJaggedArrayNestedInitializer()
         {
             var source = @"
@@ -2123,7 +2123,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerArrayNestedObjectInitializer()
         {
             var source = @"
@@ -3333,7 +3333,7 @@ partial class C : IEnumerable
 ");
         }
 
-        [Fact, WorkItem(1089276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089276")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089276")]
         public void PointerIndexing_01()
         {
             var source = @"
@@ -3360,7 +3360,7 @@ unsafe class C
             CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: "1", verify: Verification.Fails);
         }
 
-        [Fact, WorkItem(1089276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089276")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089276")]
         public void PointerIndexing_02()
         {
             var source = @"
@@ -3406,7 +3406,7 @@ unsafe class C
         }
 
         [Fact]
-        [WorkItem(38726, "https://github.com/dotnet/roslyn/issues/38726")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38726")]
         public void CollectionInitializerBoxingConversion_01()
         {
             var source =
@@ -3447,7 +3447,7 @@ static class Program
         }
 
         [Fact]
-        [WorkItem(38726, "https://github.com/dotnet/roslyn/issues/38726")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38726")]
         public void CollectionInitializerBoxingConversion_02()
         {
             var source =

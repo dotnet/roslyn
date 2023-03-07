@@ -280,7 +280,7 @@ C()
         }
 
         // Successive Operator On Class
-        [WorkItem(540992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540992")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540992")]
         [Fact]
         public void TestSuccessiveOperatorOnClass()
         {
@@ -534,7 +534,7 @@ struct C
 ");
         }
 
-        [WorkItem(4383, "https://github.com/dotnet/roslyn/issues/4383")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4383")]
         [Fact]
         public void DecimalConstInit001()
         {
@@ -596,7 +596,7 @@ public static class Module1
 ");
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void DecimalConstInit002()
         {
@@ -630,7 +630,7 @@ class C
             CompileAndVerify(source2).VerifyIL("C..cctor", expectedIL);
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void DecimalConstInit003()
         {
@@ -666,7 +666,7 @@ class C
             CompileAndVerify(source2).VerifyIL("C..cctor", expectedIL);
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void DecimalConstInit004()
         {
@@ -699,7 +699,7 @@ class C
             }
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void StaticLambdaConstructorAlwaysEmitted()
         {
@@ -724,7 +724,7 @@ class C
 ");
         }
 
-        [WorkItem(217748, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=217748")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=217748")]
         [Fact]
         public void BadExpressionConstructor()
         {
@@ -740,7 +740,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F()").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(4, 17));
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void SkipSynthesizedStaticConstructor_01()
         {
@@ -763,7 +763,7 @@ class C
             }
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void SkipSynthesizedStaticConstructor_02()
         {
@@ -785,7 +785,7 @@ class C
             }
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void SkipSynthesizedStaticConstructor_03()
         {
@@ -806,7 +806,7 @@ class C
 }");
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void SkipSynthesizedStaticConstructor_04()
         {
@@ -830,7 +830,7 @@ class C
 }");
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void SkipSynthesizedStaticConstructor_05()
         {
@@ -852,7 +852,7 @@ class C
             }
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void SkipSynthesizedStaticConstructor_06()
         {
@@ -882,7 +882,7 @@ class C
 }");
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void SkipSynthesizedStaticConstructor_08()
         {
@@ -902,7 +902,7 @@ class C
 }");
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void SkipSynthesizedStaticConstructor_09()
         {
@@ -931,7 +931,7 @@ class C
             }
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void SkipSynthesizedStaticConstructor_10()
         {
@@ -958,7 +958,7 @@ class C
 }");
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void SkipSynthesizedStaticConstructor_11()
         {
@@ -985,7 +985,7 @@ class C
 }");
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void SkipSynthesizedStaticConstructor_12()
         {
@@ -1015,7 +1015,7 @@ class C
 }");
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void SkipSynthesizedStaticConstructor_13()
         {
@@ -1045,7 +1045,7 @@ class C
 }");
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void SkipSynthesizedStaticConstructor_14()
         {
@@ -1075,7 +1075,7 @@ class C
 }");
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void SkipSynthesizedStaticConstructor_15()
         {
@@ -1105,7 +1105,7 @@ class C
 }");
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void SkipSynthesizedStaticConstructor_16()
         {
@@ -1134,7 +1134,7 @@ class C
 }");
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void SkipSynthesizedStaticConstructor_17()
         {
@@ -1166,7 +1166,7 @@ unsafe class C
 }");
         }
 
-        [WorkItem(543606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
         [ConditionalFact(typeof(DesktopOnly))]
         public void StaticNullInitializerHasNoEffectOnTypeIL()
         {
@@ -1211,7 +1211,7 @@ class C
             CompileAndVerify(source2, parseOptions: parseOptions).VerifyTypeIL("C", expectedIL);
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void ExplicitStaticConstructor_01()
         {
@@ -1233,7 +1233,7 @@ class C
 }");
         }
 
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void ExplicitStaticConstructor_02()
         {
@@ -1258,7 +1258,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(55797, "https://github.com/dotnet/roslyn/issues/55797")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55797")]
         public void TwoParameterlessConstructors()
         {
             string source = @"
@@ -1289,7 +1289,7 @@ public class C
                 );
         }
 
-        [Fact, WorkItem(55797, "https://github.com/dotnet/roslyn/issues/55797")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55797")]
         public void TwoParameterlessConstructors_2()
         {
             string source = @"
@@ -1314,7 +1314,7 @@ public class C
                 );
         }
 
-        [Fact, WorkItem(55797, "https://github.com/dotnet/roslyn/issues/55797")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55797")]
         public void TwoParameterlessConstructors_3()
         {
             string source = @"
@@ -1339,7 +1339,7 @@ public class C
                 );
         }
 
-        [Fact, WorkItem(55797, "https://github.com/dotnet/roslyn/issues/55797")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55797")]
         public void TwoParameterlessConstructors_Struct()
         {
             string source = @"

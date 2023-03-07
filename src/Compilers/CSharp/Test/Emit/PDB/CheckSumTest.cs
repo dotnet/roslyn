@@ -194,7 +194,7 @@ class C1
         }
 
         [Fact]
-        [WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/50611")]
         public void TestPartialClassFieldInitializers()
         {
             var text1 = WithWindowsLineBreaks(@"
@@ -252,7 +252,7 @@ int y = 1;
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void NormalizedPath_Tree()
         {
@@ -289,7 +289,7 @@ class C
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
-        [WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/50611")]
         public void NoResolver()
         {
             var comp = CSharpCompilation.Create(
@@ -321,7 +321,7 @@ class C { void M() { } }
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void NormalizedPath_LineDirective()
         {
@@ -378,7 +378,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void NormalizedPath_ChecksumDirective()
         {
@@ -443,7 +443,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void NormalizedPath_NoBaseDirectory()
         {

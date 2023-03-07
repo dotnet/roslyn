@@ -952,7 +952,7 @@ After");
 }");
         }
 
-        [Fact, WorkItem(543249, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543249")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543249")]
         public void UsingInCatchBlock()
         {
             var text = @"
@@ -2203,7 +2203,7 @@ Dispose";
         }
 
         // Dispose() called for nested using
-        [Fact, WorkItem(528943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528943")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528943")]
         public void DisposeCalled_NestedUsing()
         {
             var source = @"
@@ -2375,7 +2375,7 @@ struct MyManagedClass : IDisposable
         }
 
         // Dispose() called for first objects with exception thrown after second block
-        [Fact, WorkItem(542982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542982")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542982")]
         public void DisposeCalledAfterThrow_NestedUsing()
         {
             var source = @"
@@ -2447,7 +2447,7 @@ struct  MyManagedClass : IDisposable
 }");
         }
 
-        [Fact, WorkItem(542982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542982")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542982")]
         public void DisposeCalledAfterThrow_NestedUsing_2()
         {
             var source = @"
@@ -2548,7 +2548,7 @@ struct  MyManagedClass : IDisposable
         }
 
         // Multiple objects can be used in with a using statement, but they must be declared inside the using statement
-        [Fact, WorkItem(542982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542982")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542982")]
         public void MultipleResourceInUsing_2()
         {
             var source = @"
@@ -2572,7 +2572,7 @@ struct MyManagedClass1 : IDisposable
         }
 
         // Dispose() called for both objects when exception thrown in compound case
-        [Fact, WorkItem(528943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528943")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528943")]
         public void DisposeCalledForMultiResources()
         {
             var source = @"
@@ -2637,7 +2637,7 @@ struct MyManagedClass1 : IDisposable
         }
 
         // Dangling using keyword
-        [WorkItem(528933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528933")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528933")]
         [Fact]
         public void DanglingUsing()
         {
@@ -2854,7 +2854,7 @@ class A1
         }
 
         // Put the using around the try
-        [Fact, WorkItem(528943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528943")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528943")]
         public void UsingAroundTry()
         {
             var source = @"
@@ -3025,7 +3025,7 @@ struct A : System.IDisposable
             CompileAndVerify(source, expectedOutput: "5");
         }
 
-        [Fact, WorkItem(1077204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077204")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077204")]
         public void TestValueTypeUsingVariableFieldsAreReadonly()
         {
             const string source = @"
@@ -3058,7 +3058,7 @@ struct A : System.IDisposable
             CompileAndVerify(source, expectedOutput: "0");
         }
 
-        [Fact, WorkItem(1077204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077204")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077204")]
         public void TestValueTypeUsingVariableFieldsAreReadonly2()
         {
             const string source = @"

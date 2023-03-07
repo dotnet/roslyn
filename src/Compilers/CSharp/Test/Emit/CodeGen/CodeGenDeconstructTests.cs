@@ -170,7 +170,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(13632, "https://github.com/dotnet/roslyn/issues/13632")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13632")]
         public void SimpleAssignWithoutConversion()
         {
             string source = @"
@@ -284,7 +284,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(27520, "https://github.com/dotnet/roslyn/issues/27520")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27520")]
         public void GetDeconstructionInfoOnIncompleteCode()
         {
             string source = @"
@@ -317,7 +317,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(15634, "https://github.com/dotnet/roslyn/issues/15634")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15634")]
         public void DeconstructMustReturnVoid()
         {
             string source = @"
@@ -1432,7 +1432,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(18629, "https://github.com/dotnet/roslyn/issues/18629")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18629")]
         public void ValueTupleNotRequiredIfReturnIsNotUsed()
         {
             string source = @"
@@ -1478,7 +1478,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(18629, "https://github.com/dotnet/roslyn/issues/18629")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18629")]
         public void ValueTupleNotRequiredIfReturnIsNotUsed2()
         {
             string source = @"
@@ -1519,7 +1519,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(18629, "https://github.com/dotnet/roslyn/issues/18629")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18629")]
         public void ValueTupleNotRequiredIfReturnIsNotUsed3()
         {
             string source = @"
@@ -1569,7 +1569,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(18629, "https://github.com/dotnet/roslyn/issues/18629")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18629")]
         public void ValueTupleRequiredWhenRightHandSideIsTuple()
         {
             string source = @"
@@ -1591,7 +1591,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(18629, "https://github.com/dotnet/roslyn/issues/18629")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18629")]
         public void ValueTupleRequiredWhenRightHandSideIsTupleButNoReferenceEmitted()
         {
             string source = @"
@@ -1961,7 +1961,7 @@ field: 2
         }
 
         [Fact]
-        [WorkItem(18554, "https://github.com/dotnet/roslyn/issues/18554")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18554")]
         public void AssigningIntoIndexers()
         {
             string source = @"
@@ -2028,7 +2028,7 @@ field: 1
         }
 
         [Fact]
-        [WorkItem(18554, "https://github.com/dotnet/roslyn/issues/18554")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18554")]
         public void AssigningTupleIntoIndexers()
         {
             string source = @"
@@ -3002,7 +3002,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(12400, "https://github.com/dotnet/roslyn/issues/12400")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12400")]
         public void AssignWithPostfixOperator()
         {
             string source = @"
@@ -3036,7 +3036,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(12400, "https://github.com/dotnet/roslyn/issues/12400")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12400")]
         public void AssignWithPrefixOperator()
         {
             string source = @"
@@ -3070,7 +3070,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(13631, "https://github.com/dotnet/roslyn/issues/13631")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13631")]
         public void DeconstructionDeclaration()
         {
             string source = @"
@@ -4382,7 +4382,7 @@ static class Extension
         }
 
         [Fact]
-        [WorkItem(22495, "https://github.com/dotnet/roslyn/issues/22495")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22495")]
         public void ForEachCollectionSymbol()
         {
             string source = @"
@@ -6005,7 +6005,7 @@ class C
             Assert.Equal(SymbolKind.Discard, isymbol.Kind);
         }
 
-        [Fact, WorkItem(25829, "https://github.com/dotnet/roslyn/issues/25829")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25829")]
         public void SameTypeDiscardsAreEqual01()
         {
             var source =
@@ -6058,7 +6058,7 @@ class C
             Assert.Equal(1, set.Count);
         }
 
-        [Fact, WorkItem(25829, "https://github.com/dotnet/roslyn/issues/25829")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25829")]
         public void SameTypeDiscardsAreEqual02()
         {
             var source =
@@ -6107,7 +6107,7 @@ class C
             Assert.Equal(1, set.Count);
         }
 
-        [Fact, WorkItem(25829, "https://github.com/dotnet/roslyn/issues/25829")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25829")]
         public void DifferentTypeDiscardsAreNotEqual()
         {
             var source =
@@ -7573,7 +7573,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(15893, "https://github.com/dotnet/roslyn/issues/15893")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15893")]
         public void DeconstructionOfOnlyOneElement()
         {
             string source = @"
@@ -7597,7 +7597,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(14876, "https://github.com/dotnet/roslyn/issues/14876")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14876")]
         public void TupleTypeInDeconstruction()
         {
             string source = @"
@@ -7620,7 +7620,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(12468, "https://github.com/dotnet/roslyn/issues/12468")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12468")]
         public void RefReturningVarInvocation()
         {
             string source = @"
@@ -7666,7 +7666,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(16106, "https://github.com/dotnet/roslyn/issues/16106")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16106")]
         public void DefAssignmentsStruct001()
         {
             string source = @"
@@ -7706,7 +7706,7 @@ public class MyClass
         }
 
         [Fact]
-        [WorkItem(16106, "https://github.com/dotnet/roslyn/issues/16106")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16106")]
         public void DefAssignmentsStruct002()
         {
             string source = @"
@@ -7730,7 +7730,7 @@ public class MyClass
         }
 
         [Fact]
-        [WorkItem(16106, "https://github.com/dotnet/roslyn/issues/16106")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16106")]
         public void DefAssignmentsStruct003()
         {
             string source = @"
@@ -7757,7 +7757,7 @@ public class MyClass
         }
 
         [Fact]
-        [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16962")]
         public void Events_01()
         {
             string source = @"
@@ -7787,7 +7787,7 @@ Handler");
         }
 
         [Fact]
-        [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16962")]
         public void Events_02()
         {
             string source = @"
@@ -7821,7 +7821,7 @@ Handler");
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.WinRTNeedsWindowsDesktop)]
-        [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16962")]
         public void Events_03()
         {
             string source1 = @"
@@ -7868,7 +7868,7 @@ Handler", references: WinRtRefs.Concat(new[] { ValueTupleRef, comp1.ToMetadataRe
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.WinRTNeedsWindowsDesktop)]
-        [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16962")]
         public void Events_04()
         {
             string source1 = @"
@@ -7931,7 +7931,7 @@ Handler", references: WinRtRefs.Concat(new[] { ValueTupleRef, comp1.ToMetadataRe
         }
 
         [Fact]
-        [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16962")]
         public void Events_05()
         {
             string source = @"
@@ -7958,7 +7958,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16962")]
         public void Events_06()
         {
             string source = @"
@@ -8140,7 +8140,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(38702, "https://github.com/dotnet/roslyn/issues/38702")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38702")]
         public void AssignInConstructorWithProperties2()
         {
             string source = @"
@@ -8495,7 +8495,7 @@ class D
                 );
         }
 
-        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17756")]
         public void TestDiscardedAssignmentNotLvalue()
         {
             var source = @"
@@ -8522,7 +8522,7 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19398")]
         public void TupleCastInDeconstruction()
         {
             var source = @"
@@ -8538,7 +8538,7 @@ class C
             CompileAndVerify(source, expectedOutput: @"1 2");
         }
 
-        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19398")]
         public void TupleCastInDeconstruction2()
         {
             var source = @"
@@ -8560,7 +8560,7 @@ class D
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19398")]
         public void TupleCastInDeconstruction3()
         {
             var source = @"
@@ -8612,7 +8612,7 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19398")]
         public void TupleCastInDeconstruction4()
         {
             var source = @"
@@ -8672,7 +8672,7 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
 ");
         }
 
-        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19398")]
         public void UserDefinedCastInDeconstruction()
         {
             var source = @"
@@ -8692,7 +8692,7 @@ class C
             CompileAndVerify(source, expectedOutput: @"3 4");
         }
 
-        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19398")]
         public void DeconstructionLoweredToNothing()
         {
             var source = @"
@@ -8716,7 +8716,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19398")]
         public void DeconstructionLoweredToNothing2()
         {
             var source = @"
@@ -8738,7 +8738,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19398")]
         public void DeconstructionLoweredToNothing3()
         {
             var source = @"
@@ -8757,7 +8757,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "once");
         }
 
-        [WorkItem(21028, "https://github.com/dotnet/roslyn/issues/21028")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21028")]
         [Fact]
         public void InferredName()
         {
@@ -8783,7 +8783,7 @@ class C
             comp.VerifyEmitDiagnostics();
         }
 
-        [WorkItem(21028, "https://github.com/dotnet/roslyn/issues/21028")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21028")]
         [Fact]
         public void InferredName_ConditionalOperator()
         {
@@ -8808,7 +8808,7 @@ class C
             comp.VerifyEmitDiagnostics();
         }
 
-        [WorkItem(21028, "https://github.com/dotnet/roslyn/issues/21028")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21028")]
         [Fact]
         public void InferredName_ImplicitArray()
         {
@@ -8834,7 +8834,7 @@ class C
             comp.VerifyEmitDiagnostics();
         }
 
-        [WorkItem(21028, "https://github.com/dotnet/roslyn/issues/21028")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21028")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/32006")]
         public void InferredName_Lambda()
         {
@@ -8869,7 +8869,7 @@ class C
             comp.VerifyEmitDiagnostics();
         }
 
-        [WorkItem(21028, "https://github.com/dotnet/roslyn/issues/21028")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21028")]
         [Fact]
         public void InferredName_ConditionalOperator_LongTuple()
         {
@@ -8895,7 +8895,7 @@ class C
             comp.VerifyEmitDiagnostics();
         }
 
-        [WorkItem(21028, "https://github.com/dotnet/roslyn/issues/21028")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21028")]
         [Fact]
         public void InferredName_ConditionalOperator_UseSite()
         {
@@ -9417,7 +9417,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(46562, "https://github.com/dotnet/roslyn/issues/46562")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46562")]
         public void CompoundAssignment()
         {
             string source = @"
@@ -9462,7 +9462,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(50654, "https://github.com/dotnet/roslyn/issues/50654")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50654")]
         public void Repro50654()
         {
             string source = @"

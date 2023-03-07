@@ -444,7 +444,7 @@ class C
 True");
         }
 
-        [WorkItem(544283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544283")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544283")]
         [Fact]
         public void MissingLibrary()
         {
@@ -475,7 +475,7 @@ namespace System.Linq.Expressions
                 );
         }
 
-        [WorkItem(543322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543322")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543322")]
         [Fact]
         public void CaptureParameterCallAddition()
         {
@@ -506,7 +506,7 @@ class Program : TestBase
                 .VerifyDiagnostics();
         }
 
-        [WorkItem(543322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543322")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543322")]
         [Fact]
         public void ExpressionConversionInExpression()
         {
@@ -647,7 +647,7 @@ class Program : TestBase
                 expectedOutput: @"k");
         }
 
-        [WorkItem(544027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544027")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544027")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void AnonymousCreation()
         {
@@ -669,7 +669,7 @@ class Program : TestBase
                 expectedOutput: @"k");
         }
 
-        [WorkItem(544028, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544028")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544028")]
         [Fact]
         public void ArrayIndex()
         {
@@ -695,7 +695,7 @@ class Program : TestBase
                 expectedOutput: @"k");
         }
 
-        [WorkItem(544029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544029")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544029")]
         [Fact]
         public void ArrayCreation()
         {
@@ -720,7 +720,7 @@ class Program : TestBase
                 expectedOutput: @"k");
         }
 
-        [WorkItem(544030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544030")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544030")]
         [Fact]
         public void ArrayInitialization()
         {
@@ -742,7 +742,7 @@ class Program : TestBase
                 expectedOutput: @"k");
         }
 
-        [WorkItem(544112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544112")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544112")]
         [Fact]
         public void CS0838ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer()
         {
@@ -763,7 +763,7 @@ class Program
                 );
         }
 
-        [WorkItem(544031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544031")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544031")]
         [Fact]
         public void ArrayLength()
         {
@@ -788,7 +788,7 @@ class Program : TestBase
                 expectedOutput: @"k");
         }
 
-        [WorkItem(544032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544032")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544032")]
         [Fact]
         public void AsOperator()
         {
@@ -810,7 +810,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544034")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544034")]
         [Fact]
         public void BaseReference()
         {
@@ -866,7 +866,7 @@ class Program : TestBase
                 );
         }
 
-        [WorkItem(544035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544035")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544035")]
         [Fact]
         public void Multiply()
         {
@@ -918,7 +918,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544036")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544036")]
         [Fact]
         public void Subtract()
         {
@@ -973,7 +973,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544037")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544037")]
         [Fact]
         public void Divide()
         {
@@ -1025,7 +1025,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544038")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544038")]
         [Fact]
         public void Remainder()
         {
@@ -1077,7 +1077,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544041, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544041")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544041")]
         [Fact]
         public void And()
         {
@@ -1129,7 +1129,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544042, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544042")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544042")]
         [Fact]
         public void ExclusiveOr()
         {
@@ -1181,7 +1181,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544043")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544043")]
         [Fact]
         public void BitwiseOr()
         {
@@ -1233,7 +1233,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544039"), WorkItem(544040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544040")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544039"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544040")]
         [Fact]
         public void MoreBinaryOperators()
         {
@@ -1279,7 +1279,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544059")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544059")]
         [Fact]
         public void UnaryOperators()
         {
@@ -1390,7 +1390,7 @@ class Program : TestBase
                 expectedOutput: "123k");
         }
 
-        [WorkItem(546147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546147")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546147")]
         [Fact]
         public void DelegateInvoke()
         {
@@ -1415,7 +1415,7 @@ class P
         }
 
         [Fact]
-        [WorkItem(10838, "https://github.com/mono/mono/issues/10838")]
+        [WorkItem("https://github.com/mono/mono/issues/10838")]
         public void GrabBag02()
         {
             var source =
@@ -1543,7 +1543,7 @@ class Program
             );
         }
 
-        [WorkItem(544044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544044")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544044")]
         [Fact]
         public void CollectionInitialization()
         {
@@ -1565,7 +1565,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544390, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544390")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544390")]
         [Fact]
         public void ObjectInitialization()
         {
@@ -1687,7 +1687,7 @@ Lambda((Parameter(x Type:System.Int32)) => Lambda((Parameter(y Type:System.Int32
 """);
         }
 
-        [WorkItem(544218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544218")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544218")]
         [Fact]
         public void Linq()
         {
@@ -1816,7 +1816,7 @@ S");
 
         #region Regression Tests
 
-        [WorkItem(544159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544159")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544159")]
         [Fact]
         public void BinaryAddOperandTypesEnumAndInt()
         {
@@ -1838,7 +1838,7 @@ class Test
             CompileAndVerifyUtil(text, expectedOutput: "Green");
         }
 
-        [WorkItem(544207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544207")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544207")]
         [Fact]
         public void BinaryAddOperandTypesStringAndString()
         {
@@ -1860,7 +1860,7 @@ class Test
             CompileAndVerifyUtil(text, expectedOutput: "Hello World!");
         }
 
-        [WorkItem(544226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544226")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544226")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void BinaryAddOperandTypesDelegate()
         {
@@ -1881,7 +1881,7 @@ class Test
             CompileAndVerifyUtil(text, expectedOutput: "(x, y) => Convert((x + y))");
         }
 
-        [WorkItem(544187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544187")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544187")]
         [Fact]
         public void EnumLogicalOperators()
         {
@@ -1911,7 +1911,7 @@ class Test
             CompileAndVerifyUtil(text, expectedOutput: "Red, Green, Green");
         }
 
-        [WorkItem(544171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544171")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544171")]
         [Fact]
         public void GenericInterfacePropertyAccess()
         {
@@ -1935,7 +1935,7 @@ class Test
             CompileAndVerifyUtil(text, expectedOutput: "");
         }
 
-        [WorkItem(544171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544171")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544171")]
         [Fact]
         public void GenericFieldAccess()
         {
@@ -1959,7 +1959,7 @@ class Test
             CompileAndVerifyUtil(text, expectedOutput: "");
         }
 
-        [WorkItem(544185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544185")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544185")]
         [Fact]
         public void UnaryPlusOperandNullableInt()
         {
@@ -2037,7 +2037,7 @@ class Test
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544213, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544213")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544213")]
         [Fact]
         public void DelegateInvocation()
         {
@@ -2086,7 +2086,7 @@ class Test
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544220")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544220")]
         [Fact]
         public void CoalesceWithLiftedImplicitUDC()
         {
@@ -2113,7 +2113,7 @@ class Test
                 expectedOutput: "");
         }
 
-        [WorkItem(544222, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544222")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544222")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void CoalesceWithImplicitUDC()
         {
@@ -2146,7 +2146,7 @@ class A
                 expectedOutput: "(x, y) => (x ?? Convert(y))");
         }
 
-        [WorkItem(546156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546156"), WorkItem(546157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546157")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546156"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546157")]
         [Fact]
         public void CoalesceWithImplicitUDCFromNullable01()
         {
@@ -2195,7 +2195,7 @@ CT0
 Coalesce(Parameter(c1 Type:System.Nullable`1[CT3]) Parameter(c2 Type:System.Nullable`1[CT0]) Conversion:Lambda((Parameter(p Type:CT3)) => Convert(Convert(Parameter(p Type:CT3) Lifted LiftedToNull Type:System.Nullable`1[CT3]) Method:[System.Nullable`1[CT0] op_Implicit(System.Nullable`1[CT3])] Type:System.Nullable`1[CT0]) ReturnType:System.Nullable`1[CT0] Type:System.Func`2[CT3,System.Nullable`1[CT0]]) Type:System.Nullable`1[CT0])");
         }
 
-        [WorkItem(544248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544248")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544248")]
         [Fact]
         public void CoalesceWithImplicitUDC2()
         {
@@ -2228,7 +2228,7 @@ Coalesce(Parameter(x Type:System.Nullable`1[SampStruct]) Parameter(y Type:System
             );
         }
 
-        [Fact, WorkItem(544223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544223"), WorkItem(546146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546146")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544223"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546146")]
         public void CoalesceWithLiftedImplicitPDC()
         {
             var text =
@@ -2269,7 +2269,7 @@ ConvertChecked(ConvertChecked(Parameter(x Type:System.Int32) Type:System.Int64) 
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(544228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544228")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544228")]
         [Fact]
         public void NewOfDecimal()
         {
@@ -2302,7 +2302,7 @@ Lambda:
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544241")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544241")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void ArrayIndexTypeLong()
         {
@@ -2325,7 +2325,7 @@ public class Test
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544240")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544240")]
         [Fact]
         public void EventAssignment()
         {
@@ -2357,7 +2357,7 @@ public class D : C
             );
         }
 
-        [WorkItem(544233, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544233")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544233")]
         [Fact]
         public void UnsafePointerAddition()
         {
@@ -2383,7 +2383,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "x"));
         }
 
-        [WorkItem(544276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544276")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544276")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void UnsafeParamTypeInDelegate()
         {
@@ -2407,7 +2407,7 @@ unsafe public class Test
             CompileAndVerifyUtil(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: TrimExpectedOutput(expectedOutput), verify: Verification.Fails);
         }
 
-        [WorkItem(544246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544246")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544246")]
         [Fact]
         public void MethodCallWithParams()
         {
@@ -2498,7 +2498,7 @@ public class Test
                     ");
         }
 
-        [WorkItem(544270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544270")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544270")]
         [Fact]
         public void MethodCallWithParams2()
         {
@@ -2545,7 +2545,7 @@ public class Test
                 );
         }
 
-        [WorkItem(544419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544419")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544419")]
         [Fact]
         public void ExplicitUDC2()
         {
@@ -2602,7 +2602,7 @@ Lambda:
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544027")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544027")]
         [Fact]
         public void AnonTypes1()
         {
@@ -2641,7 +2641,7 @@ public class Test
                 expectedOutput: "New([Void .ctor(System.String, System.Decimal, Int32)](Constant(Bill Type:System.String), Constant(6950.85 Type:System.Decimal), Constant(45 Type:System.Int32)){System.String Name System.Decimal Salary Int32 Age} Type:<>f__AnonymousType0`3[System.String,System.Decimal,System.Int32])");
         }
 
-        [WorkItem(544252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544252")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544252")]
         [Fact]
         public void EqualsWithOperandsNullableStructAndNull()
         {
@@ -2662,7 +2662,7 @@ public class Test
             CompileAndVerifyUtil(text, expectedOutput: "False");
         }
 
-        [WorkItem(544254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544254")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544254")]
         [Fact]
         public void GreaterThanUD1()
         {
@@ -2694,7 +2694,7 @@ public class Test
             CompileAndVerifyUtil(text, expectedOutput: "True");
         }
 
-        [WorkItem(544255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544255")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544255")]
         [Fact]
         public void ExpressionTreeAndOperatorOverloading()
         {
@@ -2739,7 +2739,7 @@ public class Test
             CompileAndVerifyUtil(text, expectedOutput: "0");
         }
 
-        [WorkItem(544269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544269")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544269")]
         [Fact]
         public void CheckedImplicitConversion()
         {
@@ -2794,7 +2794,7 @@ Lambda:
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(3906, "https://github.com/dotnet/roslyn/issues/3906")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3906")]
         [Fact]
         public void GenericField01()
         {
@@ -2833,7 +2833,7 @@ public class M
                 expectedOutput: "");
         }
 
-        [WorkItem(3906, "https://github.com/dotnet/roslyn/issues/3906")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3906")]
         [Fact]
         public void GenericProperty01()
         {
@@ -2872,7 +2872,7 @@ public class M
                 expectedOutput: "");
         }
 
-        [WorkItem(544304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544304")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544304")]
         [Fact]
         public void CheckedEnumAddition()
         {
@@ -2894,7 +2894,7 @@ class Test : TestBase
                 expectedOutput: "");
         }
 
-        [WorkItem(544275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544275")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544275")]
         [Fact]
         public void SizeOf()
         {
@@ -2913,7 +2913,7 @@ public class Test
             CompileAndVerifyUtil(text, expectedOutput: "() => 4");
         }
 
-        [WorkItem(544285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544285")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544285")]
         [Fact]
         public void ImplicitReferenceConversion()
         {
@@ -2949,7 +2949,7 @@ Lambda:
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544287")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544287")]
         [Fact]
         public void ExplicitIdentityConversion()
         {
@@ -2991,7 +2991,7 @@ Lambda:
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544411")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544411")]
         [Fact]
         public void ExplicitConvIntToNullableInt()
         {
@@ -3033,7 +3033,7 @@ Lambda:
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544277")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544277")]
         [Fact]
         public void ConvertExtensionMethodToDelegate()
         {
@@ -3054,7 +3054,7 @@ class A
             CompileAndVerifyUtil(text, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(544306, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544306")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544306")]
         [Fact]
         public void ExplicitConversionNullToNullableType()
         {
@@ -3093,7 +3093,7 @@ Lambda:
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544295")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544295")]
         [Fact]
         public void LiftedEquality()
         {
@@ -3113,7 +3113,7 @@ class Program
             CompileAndVerifyUtil(text, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(544396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544396")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544396")]
         [Fact]
         public void UserDefinedOperatorWithPointerType()
         {
@@ -3147,7 +3147,7 @@ unsafe class Test
             c.VerifyDiagnostics();
         }
 
-        [WorkItem(544398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544398")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544398")]
         [Fact]
         public void BitwiseComplementOnNullableShort()
         {
@@ -3194,7 +3194,7 @@ Lambda:
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544400")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544400")]
         [Fact]
         public void ExpressionTreeWithIterators()
         {
@@ -3228,7 +3228,7 @@ namespace ConsoleApplication2
             CompileAndVerifyUtil(text, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544401")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544401")]
         [Fact]
         public void AnonMethodInsideExprTree()
         {
@@ -3252,7 +3252,7 @@ public class A
                 );
         }
 
-        [WorkItem(544403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544403")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544403")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void ConditionalWithOperandTypesObjectArrAndStringArr()
         {
@@ -3275,7 +3275,7 @@ public class Test
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17756")]
         public void ConditionalWithTrivialCondition()
         {
             var text =
@@ -3305,7 +3305,7 @@ public class Test
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544413, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544413")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544413")]
         [Fact]
         public void ExplicitConversionLambdaToExprTree()
         {
@@ -3370,7 +3370,7 @@ Lambda:
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(4593, "https://github.com/dotnet/roslyn/issues/4593")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4593")]
         [Fact]
         public void ExprTreeConvertedNullOnLHS()
         {
@@ -3389,7 +3389,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null").WithLocation(6, 47));
         }
 
-        [WorkItem(4593, "https://github.com/dotnet/roslyn/issues/4593")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4593")]
         [Fact]
         public void ExprTreeNullableInt()
         {
@@ -3446,8 +3446,8 @@ Lambda:
                  expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544442")]
-        [WorkItem(4593, "https://github.com/dotnet/roslyn/issues/4593")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544442")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4593")]
         [Fact]
         public void ExprTreeFieldInitCoalesceWithNullOnLHS()
         {
@@ -3481,7 +3481,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null"));
         }
 
-        [WorkItem(544429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544429")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544429")]
         [Fact]
         public void ExtraConversionInDelegateCreation()
         {
@@ -3527,7 +3527,7 @@ class Program
             CompileAndVerify(comp45, expectedOutput: expectedOutput45);
         }
 
-        [WorkItem(544430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544430")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544430")]
         [Fact]
         public void ExtraConversionInLiftedUserDefined()
         {
@@ -3561,7 +3561,7 @@ class Program
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(529420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529420")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529420")]
         [Fact]
         public void HalfLiftedLeftShift()
         {
@@ -3585,7 +3585,7 @@ class Program
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(544451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544451")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544451")]
         [Fact]
         public void BinaryOnLiftedByteEnum()
         {
@@ -3642,7 +3642,7 @@ class Program : TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(544458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544458")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544458")]
         [Fact]
         public void EmptyCollectionInit()
         {
@@ -3666,7 +3666,7 @@ public class Parent
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544485, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544485")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544485")]
         [Fact]
         public void EmptyObjectInitForPredefinedType()
         {
@@ -3704,7 +3704,7 @@ Lambda:
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544546")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544546")]
         [Fact]
         public void BadExprTreeLambdaInNSDecl()
         {
@@ -3754,7 +3754,7 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
     );
         }
 
-        [WorkItem(544546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544546")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544546")]
         [Fact]
         public void BadExprTreeLambdaInNSDeclWithCSharp6()
         {
@@ -3803,7 +3803,7 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.<invalid-global-code>()").WithLocation(2, 84));
         }
 
-        [WorkItem(544548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544548")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544548")]
         [Fact]
         public void NSAliasSystemIsGlobal()
         {
@@ -3848,7 +3848,7 @@ class Test
                 );
         }
 
-        [WorkItem(544586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544586")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544586")]
         [Fact]
         public void ExprTreeInsideAnonymousMethod()
         {
@@ -3883,7 +3883,7 @@ class Test
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544598")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544598")]
         [Fact]
         public void ConstructorWithParamsParameter()
         {
@@ -3908,7 +3908,7 @@ class MyClass
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544599")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544599")]
         [Fact]
         public void ExplicitEnumToDecimal()
         {
@@ -4186,7 +4186,7 @@ Convert(Convert(Parameter(x Type:System.Nullable`1[E]) Lifted LiftedToNull Type:
 }");
         }
 
-        [WorkItem(544955, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544955")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544955")]
         [Fact]
         public void FirstOperandOfConditionalOperatorImplementsOperatorTrue()
         {
@@ -4223,7 +4223,7 @@ class MyClass
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(545042, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545042")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545042")]
         [Fact]
         public void AnonMethodInExprTree()
         {
@@ -4247,7 +4247,7 @@ public class Program
             );
         }
 
-        [WorkItem(545122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545122")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545122")]
         [Fact]
         public void CollInitAddMethodWithParams()
         {
@@ -4290,7 +4290,7 @@ public class B : IEnumerable
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(545189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545189")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545189")]
         [Fact]
         public void ExprTreeInTypeArgument()
         {
@@ -4325,7 +4325,7 @@ public class MemberInitializerTest
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "GenericMethod").WithArguments("MemberInitializerTest.GenericMethod<T>()").WithLocation(9, 29));
         }
 
-        [WorkItem(545191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545191")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545191")]
         [Fact]
         public void ObjectInitializersValueType()
         {
@@ -4366,7 +4366,7 @@ class Program
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(545396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545396")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545396")]
         [Fact]
         public void LongLengthArrayProperty()
         {
@@ -4391,7 +4391,7 @@ public class Test
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(545457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545457")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545457")]
         [Fact]
         public void NullableDecimalToNullableEnumExplicitConv()
         {
@@ -4429,7 +4429,7 @@ three";
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(545461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545461")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545461")]
         [Fact]
         public void LiftedUserDefinedConversionWithNullArg()
         {
@@ -4459,7 +4459,7 @@ public struct C
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(546731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546731")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546731")]
         [Fact]
         public void CallLeastDerivedOverride()
         {
@@ -4499,7 +4499,7 @@ TestClass1
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(530529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530529")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530529")]
         [Fact]
         public void BoxTypeParameter()
         {
@@ -4542,7 +4542,7 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(530529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530529")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530529")]
         [Fact]
         public void BoxTypeParameter1()
         {
@@ -4583,7 +4583,7 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(546601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546601")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546601")]
         [Fact]
         public void NewArrayInitInAsAndIs()
         {
@@ -4616,8 +4616,8 @@ TypeAs(Parameter(t Type:Test) Type:System.Object)";
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(531047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531047")]
-        [Fact, WorkItem(531047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531047")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531047")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531047")]
         public void NullIsRegression()
         {
             string source =
@@ -4637,7 +4637,7 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4471")]
         public void GenericPropertyReceiverCast()
         {
             string source =
@@ -4679,7 +4679,7 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4471")]
         public void GenericPropertyReceiverCastClass()
         {
             string source =
@@ -4721,7 +4721,7 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4471")]
         public void GenericPropertyReceiverCastClass1()
         {
             string source =
@@ -4763,7 +4763,7 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4471")]
         public void GenericPropertyReceiverCastClass2()
         {
             string source =
@@ -4807,7 +4807,7 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4471")]
         public void GenericPropertyReceiverCastClass3()
         {
             string source =
@@ -4851,7 +4851,7 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4471")]
         public void GenericPropertyReceiverCastStruct()
         {
             string source =
@@ -5057,7 +5057,7 @@ namespace ConsoleApplication1
                 expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(7241, "https://github.com/dotnet/roslyn/issues/7241")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7241")]
         public void EnumEquality005()
         {
             string source =
@@ -5140,7 +5140,7 @@ namespace ConsoleApplication1
                 parseOptions: TestOptions.ExperimentalParseOptions);
         }
 
-        [WorkItem(546618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546618")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546618")]
         [Fact]
         public void TildeNullableEnum()
         {
@@ -5172,7 +5172,7 @@ Convert(Not(Convert(Parameter(x Type:Test+Color) Type:System.Int32) Type:System.
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(531382, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531382")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531382")]
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void IndexerIsIndexedProperty()
         {
@@ -5211,7 +5211,7 @@ class Program
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(579711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579711")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579711")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void CheckedEnumConversion()
         {
@@ -5243,7 +5243,7 @@ x => ConvertChecked(x)";
                 expectedOutput: expected);
         }
 
-        [WorkItem(717364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/717364")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/717364")]
         [Fact]
         public void NullAs()
         {
@@ -5264,7 +5264,7 @@ class Test
             CompileAndVerifyUtil(text, expectedOutput: "() => (null As String)");
         }
 
-        [WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")]
         [Fact]
         public void MissingMember_System_Type__GetTypeFromHandle()
         {
@@ -5314,7 +5314,7 @@ class C
             }
         }
 
-        [WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")]
         [Fact]
         public void MissingMember_System_Reflection_FieldInfo__GetFieldFromHandle()
         {
@@ -5380,7 +5380,7 @@ class B<T>
             }
         }
 
-        [WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")]
         [Fact]
         public void MissingMember_System_Reflection_MethodBase__GetMethodFromHandle()
         {
@@ -5459,7 +5459,7 @@ class B<T>
             }
         }
 
-        [WorkItem(957927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957927")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957927")]
         [Fact]
         public void Bug957927()
         {
@@ -5489,7 +5489,7 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1090404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090404")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090404")]
         [Fact]
         public void Bug1090404()
         {
@@ -5526,7 +5526,7 @@ public class Goo
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1090404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090404")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090404")]
         [Fact]
         public void Bug1090404_2()
         {
@@ -5563,7 +5563,7 @@ public class Goo
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1089777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089777")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089777")]
         [Fact]
         public void Bug1089777()
         {
@@ -5594,7 +5594,7 @@ class A
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1009636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
         [Fact]
         public void Bug1009636()
         {
@@ -5629,7 +5629,7 @@ namespace VS2013Compatibility
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1009636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
         [Fact]
         public void Bug1009636_2()
         {
@@ -5663,7 +5663,7 @@ class C : TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1009636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
         [Fact]
         public void Bug1009636_3()
         {
@@ -5691,7 +5691,7 @@ class C : TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1009636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
         [Fact]
         public void Bug1009636_4()
         {
@@ -5722,7 +5722,7 @@ class C : TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1009636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
         [Fact]
         public void Bug1009636_5()
         {
@@ -5753,7 +5753,7 @@ class C : TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1009636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
         [Fact]
         public void Bug1009636_6()
         {
@@ -5779,7 +5779,7 @@ class C : TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1009636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
         [Fact]
         public void Bug1009636_7()
         {
@@ -5819,7 +5819,7 @@ class C : TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1009636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
         [Fact]
         public void Bug1009636_8()
         {
@@ -5853,7 +5853,7 @@ class C : TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1098521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098521")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098521")]
         [Fact]
         public void InterpolationUsesOverloadResolution()
         {
@@ -5921,7 +5921,7 @@ class C : TestBase
         /// <summary>
         /// Ignore inaccessible members of System.Linq.Expressions.Expression.
         /// </summary>
-        [WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1618")]
         [Fact]
         public void IgnoreInaccessibleExpressionMembers()
         {
@@ -5960,7 +5960,7 @@ class C
             }
         }
 
-        [WorkItem(3923, "https://github.com/dotnet/roslyn/issues/3923")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3923")]
         [Fact]
         public void NameofInExpressionTree()
         {
@@ -5983,7 +5983,7 @@ public class Program
                 .VerifyDiagnostics();
         }
 
-        [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3292")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void EnumConversions001()
         {
@@ -6022,7 +6022,7 @@ class C //: TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3292")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void EnumConversions002()
         {
@@ -6061,7 +6061,7 @@ class C //: TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3292")]
         [Fact]
         public void EnumConversions003()
         {
@@ -6104,7 +6104,7 @@ class C //: TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(6416, "https://github.com/dotnet/roslyn/issues/6416")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/6416")]
         [Fact]
         public void CapturedThis001()
         {
@@ -6156,7 +6156,7 @@ value(ConsoleApplication6.Program)";
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(6416, "https://github.com/dotnet/roslyn/issues/6416")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/6416")]
         [Fact]
         public void CapturedThis002()
         {

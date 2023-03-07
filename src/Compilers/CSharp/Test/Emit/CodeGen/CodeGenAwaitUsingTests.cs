@@ -1455,7 +1455,7 @@ struct S : System.IAsyncDisposable
         }
 
         [Fact]
-        [WorkItem(24267, "https://github.com/dotnet/roslyn/issues/24267")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24267")]
         public void AssignsInAsyncWithAwaitUsing()
         {
             var comp = CreateCompilationWithTasksExtensions(@"
@@ -1682,7 +1682,7 @@ public class D
         }
 
         [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_ExtensionMethod()
         {
             string source = @"
@@ -1713,7 +1713,7 @@ public static class Extensions
         }
 
         [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_TwoOverloads()
         {
             string source = @"
@@ -1741,7 +1741,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_Expression_ExtensionMethod()
         {
             string source = @"
@@ -1772,7 +1772,7 @@ public static class Extensions
         }
 
         [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_Expression_InstanceMethod()
         {
             string source = @"
@@ -1802,7 +1802,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod()
         {
             string source = @"
@@ -1832,7 +1832,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InterfacePreferredOverInstanceMethod()
         {
             // SPEC: In the situation where a type can be implicitly converted to IDisposable and also fits the disposable pattern,
@@ -1868,7 +1868,7 @@ public class C : System.IAsyncDisposable
         }
 
         [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_OptionalParameter()
         {
             string source = @"
@@ -1898,7 +1898,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_ParamsParameter()
         {
             string source = @"
@@ -1928,7 +1928,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_ReturningVoid()
         {
             string source = @"
@@ -1956,7 +1956,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_ReturningInt()
         {
             string source = @"
@@ -1983,7 +1983,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_Inaccessible()
         {
             string source = @"
@@ -2016,7 +2016,7 @@ public class C
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_UsingDeclaration()
         {
             string source = @"
@@ -2214,7 +2214,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_Awaitable()
         {
             string source = @"
@@ -2254,7 +2254,7 @@ public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
         }
 
         [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_ReturnsTask()
         {
             string source = @"
@@ -2283,7 +2283,7 @@ public struct C
         }
 
         [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_ReturnsTaskOfInt()
         {
             string source = @"
@@ -2343,7 +2343,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(30956, "https://github.com/dotnet/roslyn/issues/30956")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30956")]
         public void GetAwaiterBoxingConversion()
         {
             var source =
@@ -2381,7 +2381,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: "StructAwaitable");
         }
 
-        [Fact, WorkItem(45111, "https://github.com/dotnet/roslyn/issues/45111")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45111")]
         public void MissingIAsyncDisposableInterfaceInPatternDisposal()
         {
             var source = @"
@@ -2404,7 +2404,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "DISPOSED");
         }
 
-        [Fact, WorkItem(45111, "https://github.com/dotnet/roslyn/issues/45111")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45111")]
         public void MissingIDisposableInterfaceOnClass()
         {
             var source = @"
@@ -2426,7 +2426,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(45111, "https://github.com/dotnet/roslyn/issues/45111")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45111")]
         public void MissingIDisposableInterfaceOnRefStruct()
         {
             var source = @"

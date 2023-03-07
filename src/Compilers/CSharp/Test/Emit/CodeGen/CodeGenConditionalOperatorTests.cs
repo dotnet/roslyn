@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenConditionalOperatorTests : CSharpTestBase
     {
-        [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void ConditionalDelegateInterfaceUnification1()
         {
             var src =
@@ -108,7 +108,7 @@ class C : I
 ");
         }
 
-        [Fact, WorkItem(20266, "https://github.com/dotnet/roslyn/issues/20266")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20266")]
         public void ConditionalAccessInMethodGroupConversion()
         {
             var source = @"
@@ -133,7 +133,7 @@ class C
             CompileAndVerify(comp);
         }
 
-        [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void ConditionalDelegateInterfaceUnification2()
         {
             var src =
@@ -259,7 +259,7 @@ class C : I
 ");
         }
 
-        [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void ConditionalDelegateInterfaceUnification3()
         {
             var src =
@@ -384,7 +384,7 @@ class C : I
 }");
         }
 
-        [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void ConditionalDelegateInterfaceUnification4()
         {
             var src =
@@ -540,7 +540,7 @@ class C : I
 ");
         }
 
-        [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
+        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void NestedConditional1()
         {
             var src =
@@ -624,7 +624,7 @@ public class C : I
 }");
         }
 
-        [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
+        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void NestedConditional2()
         {
             var src =
@@ -712,7 +712,7 @@ public class C : I
 }");
         }
 
-        [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
+        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void NestedConditional3()
         {
             var src =
@@ -814,7 +814,7 @@ public class C : I
 }");
         }
 
-        [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
+        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void NestedConditional4()
         {
             var src =
@@ -1618,7 +1618,7 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
         }
 
-        [WorkItem(528275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528275")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528275")]
         [Fact]
         public void TestConditionalOperatorForImplicitConv()
         {
@@ -1698,7 +1698,7 @@ class Program
             CompileAndVerify(source).VerifyIL("Program.Main", expectedIL);
         }
 
-        [Fact, WorkItem(530071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530071")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530071")]
         public void TestConditionalOperatorForImplicitlyTypedArrays()
         {
             var source = @"
@@ -2116,7 +2116,7 @@ public static class Program
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
         }
 
-        [Fact(), WorkItem(543609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543609")]
+        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543609")]
         public void SeveralAdjacentIfsWithConditionalExpressions()
         {
             var source = @"
@@ -2169,7 +2169,7 @@ class Class1
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Class1.Main", expectedIL);
         }
 
-        [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
+        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void TestNestedConditionalAndNullOperators()
         {
             var src =
@@ -2254,7 +2254,7 @@ public class C : I
 }");
         }
 
-        [Fact(), WorkItem(543609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543609")]
+        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543609")]
         public void UnreachableLabelInUnreachableCode()
         {
             var source = @"
@@ -2301,7 +2301,7 @@ class Class1
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Class1.Main", expectedIL);
         }
 
-        [Fact, WorkItem(12439, "https://github.com/dotnet/roslyn/issues/12439")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12439")]
         public void GenericStructInLambda()
         {
             var source = @"
@@ -2328,7 +2328,7 @@ static class LiveList
             CompileAndVerify(source);
         }
 
-        [Fact, WorkItem(12439, "https://github.com/dotnet/roslyn/issues/12439")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12439")]
         public void GenericStructInIterator()
         {
             var source = @"
@@ -2355,7 +2355,7 @@ static class LiveList
             CompileAndVerify(source);
         }
 
-        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17756")]
         public void TestConditionalOperatorNotLvalue()
         {
             var source = @"
@@ -2403,7 +2403,7 @@ static class LiveList
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17756")]
         public void TestConditionalOperatorNotLvaluePointerElementAccess()
         {
             var source = @"
@@ -2437,7 +2437,7 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
         }
 
-        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17756")]
         public void TestConditionalOperatorNotLvalueRefCall()
         {
             var source = @"
@@ -3062,7 +3062,7 @@ hello
 
         }
 
-        [Fact, WorkItem(40690, "https://github.com/dotnet/roslyn/issues/40690")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40690")]
         public void ConditionalAccess_GenericExtension_ValueTuple()
         {
             var source = @"
@@ -3128,7 +3128,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(40690, "https://github.com/dotnet/roslyn/issues/40690")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40690")]
         public void ConditionalAccess_InstanceMethod_ValueTuple()
         {
             var source = @"
@@ -3189,7 +3189,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66152")]
         public void NullableSideEffects_01()
         {
             var source = @"
@@ -3247,7 +3247,7 @@ class Program
 ");
         }
 
-        [Fact, WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66152")]
         public void NullableSideEffects_02()
         {
             var source = @"
@@ -3315,7 +3315,7 @@ class Program
 ");
         }
 
-        [Fact, WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66152")]
         public void NullableSideEffects_03()
         {
             var source = @"

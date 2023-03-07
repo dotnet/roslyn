@@ -2496,7 +2496,7 @@ class C
             Assert.Equal("ref System.Object A.P { get; }", property.OverriddenProperty.ToTestDisplayString());
         }
 
-        [WorkItem(12763, "https://github.com/dotnet/roslyn/issues/12763")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12763")]
         [Fact]
         public void RefReturnFieldUse001()
         {
@@ -2524,7 +2524,7 @@ public class A<T>
                 );
         }
 
-        [WorkItem(12763, "https://github.com/dotnet/roslyn/issues/12763")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12763")]
         [Fact]
         public void RefAssignFieldUse001()
         {
@@ -2634,7 +2634,7 @@ class E : Exception
         }
 
         [Fact]
-        [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13206")]
         public void Lambda_01()
         {
             var source =
@@ -2674,7 +2674,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13206")]
         public void Lambda_02()
         {
             var source =
@@ -2710,7 +2710,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13206")]
         public void Lambda_03()
         {
             var source =
@@ -2750,7 +2750,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13206")]
         public void Delegate_01()
         {
             var source =
@@ -2788,7 +2788,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13206")]
         public void Delegate_02()
         {
             var source =
@@ -2841,7 +2841,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13206")]
         public void Delegate_03()
         {
             var source =
@@ -2893,7 +2893,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(16947, "https://github.com/dotnet/roslyn/issues/16947")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16947")]
         public void Dynamic001()
         {
             var source =
@@ -2932,7 +2932,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(16947, "https://github.com/dotnet/roslyn/issues/16947")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16947")]
         public void Dynamic001a()
         {
             var source =
@@ -3039,7 +3039,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(16947, "https://github.com/dotnet/roslyn/issues/16947")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16947")]
         public void Dynamic001b()
         {
             var source =
@@ -3083,7 +3083,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(16947, "https://github.com/dotnet/roslyn/issues/16947")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16947")]
         public void Dynamic002()
         {
             var source =
@@ -3121,7 +3121,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(16947, "https://github.com/dotnet/roslyn/issues/16947")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16947")]
         public void Dynamic003()
         {
             var source =
@@ -3589,7 +3589,7 @@ class Program
 Program+RefFunc1`2[Derived1,Base]", verify: Verification.Passes);
         }
 
-        [WorkItem(25024, "https://github.com/dotnet/roslyn/issues/25024")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25024")]
         [Fact]
         public void RefReturnDiscardLifetime()
         {

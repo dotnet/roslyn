@@ -78,7 +78,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(13867, "https://github.com/dotnet/roslyn/issues/13867")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13867")]
         public void AsyncWithLotsLocals()
         {
             var source = @"
@@ -1273,7 +1273,7 @@ public class C
             });
         }
 
-        [WorkItem(9775, "https://github.com/dotnet/roslyn/issues/9775")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/9775")]
         [Fact]
         public void Fixed_Debug()
         {
@@ -1529,7 +1529,7 @@ class C
 }");
         }
 
-        [WorkItem(15290, "https://github.com/dotnet/roslyn/issues/15290")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15290")]
         [Fact]
         public void ReuseLocals()
         {
@@ -1854,7 +1854,7 @@ class Test
 }");
         }
 
-        [WorkItem(15290, "https://github.com/dotnet/roslyn/issues/15290")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15290")]
         [Fact]
         public void ReuseLocalsSynthetic()
         {

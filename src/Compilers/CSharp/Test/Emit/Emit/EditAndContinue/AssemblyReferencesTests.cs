@@ -423,7 +423,7 @@ class C
                         "Lib, Version=1.0.2000.1001, Culture=neutral, PublicKeyToken=null", "1.0.2000.1002")));
         }
 
-        [WorkItem(9004, "https://github.com/dotnet/roslyn/issues/9004")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/9004")]
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DependencyVersionWildcardsCollisions()
         {
@@ -509,7 +509,7 @@ class C
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
-        [WorkItem(202017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/202017")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/202017")]
         public void CurrentCompilationVersionWildcards()
         {
             var source0 = MarkedSource(@"

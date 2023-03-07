@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CodeGenStackAllocInitializerTests : CompilingTestBase
     {
         [Fact]
-        [WorkItem(29092, "https://github.com/dotnet/roslyn/issues/29092")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29092")]
         public void TestMixedWithInitBlock()
         {
 

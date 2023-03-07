@@ -2691,7 +2691,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(30024, "https://github.com/dotnet/roslyn/issues/30024")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30024")]
         public void SpanNotAllowedLHS()
         {
             CreateCompilationWithMscorlibAndSpan(@"
@@ -2890,7 +2890,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36443")]
         public void StructLHSAcrossAwait()
         {
             // This only works when compiling for debug mode currently.

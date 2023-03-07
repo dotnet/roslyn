@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                     pdb: (pdbStream ?? new MemoryStream()).ToImmutable());
         }
 
-        [Fact, WorkItem(4578, "https://github.com/dotnet/roslyn/issues/4578")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4578")]
         public void BanVersionWildcards()
         {
             string source = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             Assert.True(resultNonDeterministic.Success);
         }
 
-        [Fact, WorkItem(372, "https://github.com/dotnet/roslyn/issues/372")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/372")]
         public void Simple()
         {
             var source =
@@ -231,7 +231,7 @@ namespace N
             AssertEx.Equal(result5.pdb, result6.pdb);
         }
 
-        [WorkItem(926, "https://github.com/dotnet/roslyn/issues/926")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/926")]
         [Theory]
         [MemberData(nameof(PdbFormats))]
         public void CompareAllBytesEmitted_Debug(DebugInformationFormat pdbFormat)
@@ -270,7 +270,7 @@ namespace N
             compilation.Emit(output);
         }
 
-        [Fact, WorkItem(11990, "https://github.com/dotnet/roslyn/issues/11990")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11990")]
         public void ForwardedTypesAreEmittedInADeterministicOrder()
         {
             var forwardedToCode = @"
@@ -442,7 +442,7 @@ Partial.c = 3";
             }
         }
 
-        [Fact, WorkItem(53865, "https://github.com/dotnet/roslyn/issues/53865")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53865")]
         public void DeterminismWithFixedFields()
         {
             string source = @"

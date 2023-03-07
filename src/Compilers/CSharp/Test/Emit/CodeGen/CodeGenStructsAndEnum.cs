@@ -499,7 +499,7 @@ q");
 ");
         }
 
-        [WorkItem(540954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540954")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540954")]
         [Fact]
         public void StructInit()
         {
@@ -527,7 +527,7 @@ struct Struct
             CompileAndVerify(text, options: TestOptions.DebugExe).VerifyIL("Struct.Main()", expectedIL);
         }
 
-        [WorkItem(541845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541845")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541845")]
         [Fact]
         public void ConstructEnum()
         {
@@ -574,7 +574,7 @@ class A
             CompileAndVerify(text, expectedOutput: "SundayAA").VerifyIL("A.Main()", expectedIL);
         }
 
-        [WorkItem(541599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541599")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541599")]
         [Fact]
         public void TestStructWithStaticField01()
         {
@@ -593,7 +593,7 @@ public struct S
             CompileAndVerify(source, expectedOutput: @"123");
         }
 
-        [Fact, WorkItem(543088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543088")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543088")]
         public void UseStructLocal()
         {
             var text = @"
@@ -1042,7 +1042,7 @@ public class D
 ");
         }
 
-        [WorkItem(16364, "https://github.com/dotnet/roslyn/issues/16364")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16364")]
         [Fact]
         public void InplaceCtor003()
         {
@@ -1137,7 +1137,7 @@ public class D
 ");
         }
 
-        [WorkItem(16364, "https://github.com/dotnet/roslyn/issues/16364")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16364")]
         [Fact]
         public void InplaceCtor004()
         {
@@ -1248,7 +1248,7 @@ public class D
 ");
         }
 
-        [WorkItem(16364, "https://github.com/dotnet/roslyn/issues/16364")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16364")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void InplaceCtor005()
         {
@@ -1590,7 +1590,7 @@ public class D
         }
 
         [Fact]
-        [WorkItem(27049, "https://github.com/dotnet/roslyn/issues/27049")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27049")]
         public void BoxingRefStructForBaseCall()
         {
             CreateCompilation(@"
@@ -2254,7 +2254,7 @@ readonly struct S
 ");
         }
 
-        [WorkItem(842477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842477")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842477")]
         [Fact]
         public void DecimalConst()
         {

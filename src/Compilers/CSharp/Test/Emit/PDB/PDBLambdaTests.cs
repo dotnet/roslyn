@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBLambdaTests : CSharpPDBTestBase
     {
-        [WorkItem(539898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539898")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539898")]
         [Fact]
         public void SequencePoints_Body()
         {
@@ -75,7 +75,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
         [Fact]
         public void Nested()
         {
@@ -111,7 +111,7 @@ class Test
             compilation.VerifyPdbLambdasAndClosures(source);
         }
 
-        [WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
         [Fact]
         public void InitialSequencePoints()
         {
@@ -172,7 +172,7 @@ class Test
 </symbols>");
         }
 
-        [WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
         [Fact]
         public void Nested_InitialSequencePoints()
         {
@@ -2102,7 +2102,7 @@ record D(int X) : C(F(X, out int z), () => z)
         }
 
         [Fact]
-        [WorkItem(32352, "https://github.com/dotnet/roslyn/issues/32352")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32352")]
         public void ClosureAllocationSequencePoints()
         {
             var source = @"

@@ -1666,7 +1666,7 @@ class Test
 </symbols>");
         }
 
-        [WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17947")]
         [Fact]
         public void VariablesAndConstantsInUnreachableCode()
         {
@@ -2461,7 +2461,7 @@ class Program
 </symbols>");
         }
 
-        [WorkItem(637465, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637465")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637465")]
         [Fact]
         public void DynamicLocalOptimizedAway()
         {

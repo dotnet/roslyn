@@ -1744,7 +1744,7 @@ class C
                 "C: {<>c}");
         }
 
-        [WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")]
         [Fact]
         public void PartialMethod()
         {
@@ -1800,7 +1800,7 @@ class C
                 Handle(2, TableIndex.AssemblyRef));
         }
 
-        [WorkItem(60804, "https://github.com/dotnet/roslyn/issues/60804")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/60804")]
         [Fact]
         public void PartialMethod_WithLambda()
         {
@@ -4593,7 +4593,7 @@ class C
                 .Verify();
         }
 
-        [WorkItem(1175704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1175704")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1175704")]
         [Fact]
         public void EventFields()
         {
@@ -5461,7 +5461,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(54939, "https://github.com/dotnet/roslyn/issues/54939")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54939")]
         public void AddNamespace()
         {
             var source0 =
@@ -5683,7 +5683,7 @@ class B : I
                 Handle(3, TableIndex.AssemblyRef));
         }
 
-        [WorkItem(930065, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/930065")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/930065")]
         [Fact]
         public void ModifyConstructorBodyInPresenceOfExplicitInterfaceImplementation()
         {
@@ -7218,8 +7218,8 @@ class C
 }");
         }
 
-        [WorkItem(780989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780989")]
-        [WorkItem(829353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829353")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780989")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829353")]
         [Fact]
         public void PrivateImplementationDetails_ArrayInitializer_FromMetadata()
         {
@@ -7370,8 +7370,8 @@ class C
 }");
         }
 
-        [WorkItem(780989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780989")]
-        [WorkItem(829353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829353")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780989")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829353")]
         [Fact]
         public void PrivateImplementationDetails_ArrayInitializer_FromSource()
         {
@@ -7544,7 +7544,7 @@ class C
         /// Should not generate method for string switch since
         /// the CLR only allows adding private members.
         /// </summary>
-        [WorkItem(834086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834086")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834086")]
         [Fact]
         public void PrivateImplementationDetails_ComputeStringHash()
         {
@@ -7654,7 +7654,7 @@ class C
         /// Unique ids should not conflict with ids
         /// from previous generation.
         /// </summary>
-        [WorkItem(9847, "https://github.com/dotnet/roslyn/issues/9847")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/9847")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9847")]
         public void UniqueIds()
         {
@@ -8197,7 +8197,7 @@ class B : A<B>
         /// used by the method body, since there may be existing
         /// references to that slot, in a Watch window for instance.
         /// </summary>
-        [WorkItem(843320, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843320")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843320")]
         [Fact]
         public void PreserveLocalTypes()
         {
@@ -8378,7 +8378,7 @@ class B : A<B>
 }");
         }
 
-        [WorkItem(779531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/779531")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/779531")]
         [Fact]
         public void ChangeLocalType()
         {
@@ -8755,7 +8755,7 @@ class C
         /// <summary>
         /// Reuse existing anonymous types.
         /// </summary>
-        [WorkItem(825903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825903")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825903")]
         [Fact]
         public void AnonymousTypes()
         {
@@ -8850,7 +8850,7 @@ namespace M
         /// and gaps in indices.
         /// </summary>
         [ConditionalFact(typeof(WindowsOnly), Reason = "ILASM doesn't support Portable PDBs")]
-        [WorkItem(2982, "https://github.com/dotnet/coreclr/issues/2982")]
+        [WorkItem("https://github.com/dotnet/coreclr/issues/2982")]
         public void AnonymousTypes_OtherTypeNames()
         {
             var ilSource =
@@ -9922,7 +9922,7 @@ class C
         /// Should not re-use locals if the method metadata
         /// signature is unsupported.
         /// </summary>
-        [WorkItem(9849, "https://github.com/dotnet/roslyn/issues/9849")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/9849")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9849")]
         public void LocalType_UnsupportedSignatureContent()
         {
@@ -10007,7 +10007,7 @@ class C
         /// <summary>
         /// Should not re-use locals with custom modifiers.
         /// </summary>
-        [WorkItem(9848, "https://github.com/dotnet/roslyn/issues/9848")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/9848")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9848")]
         public void LocalType_CustomModifiers()
         {
@@ -10170,7 +10170,7 @@ class C
         /// Local names array (from PDB) may have fewer slots than method
         /// signature (from metadata) when the trailing slots are unnamed.
         /// </summary>
-        [WorkItem(782270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782270")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782270")]
         [Fact]
         public void Bug782270()
         {
@@ -10260,7 +10260,7 @@ class C
         /// <summary>
         /// Similar to above test but with no named locals in original.
         /// </summary>
-        [WorkItem(782270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782270")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782270")]
         [Fact]
         public void Bug782270_NoNamedLocals()
         {
@@ -10405,8 +10405,8 @@ class C
 ");
         }
 
-        [WorkItem(770502, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770502")]
-        [WorkItem(839565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/839565")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770502")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/839565")]
         [Fact]
         public void DynamicOperations()
         {
@@ -10842,7 +10842,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EncNoPIAReference).WithArguments("I"));
         }
 
-        [WorkItem(844472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844472")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844472")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void LocalSignatureWithNoPIAType()
         {
@@ -11016,7 +11016,7 @@ public struct S
             CheckNames(readers, reader1.GetTypeDefNames());
         }
 
-        [WorkItem(844536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844536")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844536")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void NoPIATypeInNamespace()
         {
@@ -11148,7 +11148,7 @@ public interface IB
         /// Should use TypeDef rather than TypeRef for unrecognized
         /// local of a type defined in the original assembly.
         /// </summary>
-        [WorkItem(910777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910777")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910777")]
         [Fact]
         public void UnrecognizedLocalOfTypeFromAssembly()
         {
@@ -11232,7 +11232,7 @@ class C
         /// Similar to above test but with anonymous type
         /// added in subsequent generation.
         /// </summary>
-        [WorkItem(910777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910777")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910777")]
         [Fact]
         public void UnrecognizedLocalOfAnonymousTypeFromAssembly()
         {
@@ -11467,7 +11467,7 @@ class C
             }
         }
 
-        [WorkItem(923492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923492")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923492")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SymWriterErrors()
         {
@@ -11498,7 +11498,7 @@ testData: new CompilationTestData { SymWriterFactory = _ => new MockSymUnmanaged
             Assert.False(diff1.EmitResult.Success);
         }
 
-        [WorkItem(1058058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1058058")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1058058")]
         [Fact]
         public void BlobContainsInvalidValues()
         {
@@ -11766,7 +11766,7 @@ public class C
             CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>o__0#2");
         }
 
-        [WorkItem(918650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918650")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918650")]
         [Fact]
         public void ManyGenerations()
         {
@@ -11797,7 +11797,7 @@ public class C
             }
         }
 
-        [WorkItem(187868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/187868")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/187868")]
         [Fact]
         public void PdbReadingErrors()
         {
