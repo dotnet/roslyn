@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                                     if (shouldReport)
                                     {
-                                        _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options);
+                                        _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options, cancellationToken: context.CancellationToken);
                                     }
                                 }
 

@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 foreach (var (parameter, hasReference) in _unusedParameters)
                 {
-                    ReportUnusedParameterDiagnostic(parameter, hasReference, context.ReportDiagnostic, context.Options);
+                    ReportUnusedParameterDiagnostic(parameter, hasReference, context.ReportDiagnostic, context.Options, context.CancellationToken);
                 }
             }
 
@@ -129,9 +129,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 IParameterSymbol parameter,
                 bool hasReference,
                 Action<Diagnostic> reportDiagnostic,
-                AnalyzerOptions analyzerOptions)
+                AnalyzerOptions analyzerOptions,
+                CancellationToken cancellationToken)
             {
-                if (!IsUnusedParameterCandidate(parameter))
+                if (!IsUnusedParameterCandidate(parameter, cancellationToken))
                 {
                     return;
                 }
@@ -200,7 +201,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 yield return compilation.SystemComponentModelCompositionImportingConstructorAttribute();
             }
 
-            private bool IsUnusedParameterCandidate(IParameterSymbol parameter)
+            private bool IsUnusedParameterCandidate(IParameterSymbol parameter, CancellationToken cancellationToken)
             {
                 // Ignore certain special parameters/methods.
                 // Note that "method.ExplicitOrImplicitInterfaceImplementations" check below is not a complete check,
@@ -227,11 +228,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     return false;
                 }
 
-                // Ignore parameters of record primary constructors since they map to public properties
-                // TODO: Remove this when implicit operations are synthesised: https://github.com/dotnet/roslyn/issues/47829 
-                var methodSyntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
-                if (method.IsConstructor() &&
-                    (_compilationAnalyzer.IsRecordDeclaration(methodSyntax) || _compilationAnalyzer.IsClassDeclaration(methodSyntax)))
+                // Ignore parameters of type primary constructors since they map to public properties
+                if (parameter.IsPrimaryConstructor(cancellationToken))
                 {
                     return false;
                 }
@@ -271,6 +269,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     return false;
                 }
 
+                var methodSyntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax(cancellationToken);
                 if (_compilationAnalyzer.ReturnsThrow(methodSyntax))
                 {
                     return false;

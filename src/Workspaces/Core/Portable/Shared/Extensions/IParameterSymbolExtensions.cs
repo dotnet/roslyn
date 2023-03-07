@@ -53,38 +53,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return result.ToImmutableAndFree();
         }
-
-        public static IPropertySymbol? GetAssociatedSynthesizedRecordProperty(this IParameterSymbol parameter, CancellationToken cancellationToken)
-        {
-            if (parameter is
-                {
-                    DeclaringSyntaxReferences.Length: > 0,
-                    ContainingSymbol: IMethodSymbol
-                    {
-                        MethodKind: MethodKind.Constructor,
-                        DeclaringSyntaxReferences.Length: > 0,
-                        ContainingType: { IsRecord: true } containingType,
-                    } constructor,
-                })
-            {
-                // ok, we have a record constructor.  This might be the primary constructor or not.
-                var parameterSyntax = parameter.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-                var constructorSyntax = constructor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-                if (containingType.DeclaringSyntaxReferences.Any(static (r, arg) => r.GetSyntax(arg.cancellationToken) == arg.constructorSyntax, (constructorSyntax, cancellationToken)))
-                {
-                    // this was a primary constructor. see if we can map this parameter to a corresponding synthesized property 
-                    foreach (var member in containingType.GetMembers(parameter.Name))
-                    {
-                        if (member is IPropertySymbol { DeclaringSyntaxReferences.Length: > 0 } property &&
-                            property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) == parameterSyntax)
-                        {
-                            return property;
-                        }
-                    }
-                }
-            }
-
-            return null;
-        }
     }
 }

@@ -29,14 +29,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
             Return CType(provider, VisualBasicAnalyzerOptionsProvider).UnusedValueAssignment
         End Function
 
-        Protected Overrides Function IsRecordDeclaration(node As SyntaxNode) As Boolean
-            Return False
-        End Function
-
-        Protected Overrides Function IsClassDeclaration(node As SyntaxNode) As Boolean
-            Return False
-        End Function
-
         Protected Overrides Function SupportsDiscard(tree As SyntaxTree) As Boolean
             Return False
         End Function

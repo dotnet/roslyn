@@ -23,12 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         {
         }
 
-        protected override bool IsRecordDeclaration(SyntaxNode node)
-            => node is RecordDeclarationSyntax;
-
-        protected override bool IsClassDeclaration(SyntaxNode node)
-            => node is ClassDeclarationSyntax;
-
         protected override bool SupportsDiscard(SyntaxTree tree)
             => tree.Options.LanguageVersion() >= LanguageVersion.CSharp7;
 
