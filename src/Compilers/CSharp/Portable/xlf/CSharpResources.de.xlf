@@ -817,6 +817,11 @@
         <target state="translated">Durch den Aufruf des impliziten Bereichsindexers kann das Argument nicht benannt werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedCollectionLiteralNoBestType">
+        <source>No best type found for implicitly-typed collection literal.</source>
+        <target state="new">No best type found for implicitly-typed collection literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
         <target state="translated">Der implizit eingegebene Parameter „{0}“ der Lambdafunktion darf keinen Standardwert aufweisen.</target>

@@ -817,6 +817,11 @@
         <target state="translated">암시적 범위 인덱서 호출로 인수 이름을 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedCollectionLiteralNoBestType">
+        <source>No best type found for implicitly-typed collection literal.</source>
+        <target state="new">No best type found for implicitly-typed collection literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
         <target state="translated">암시적 형식 람다 매개 변수 '{0}'은(는) 기본값을 가질 수 없습니다.</target>

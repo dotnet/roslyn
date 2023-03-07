@@ -817,6 +817,11 @@
         <target state="translated">隱含 Range 索引子的引動過程無法為引數命名。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedCollectionLiteralNoBestType">
+        <source>No best type found for implicitly-typed collection literal.</source>
+        <target state="new">No best type found for implicitly-typed collection literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
         <target state="translated">隱含輸入的 Lambda 參數 '{0}' 不能有預設值。</target>

@@ -817,6 +817,11 @@
         <target state="translated">Volání implicitního indexeru rozsahů nemůže pojmenovat argument.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedCollectionLiteralNoBestType">
+        <source>No best type found for implicitly-typed collection literal.</source>
+        <target state="new">No best type found for implicitly-typed collection literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
         <target state="translated">Implicitně zadaný parametr lambda {0} nemůže mít výchozí hodnotu.</target>

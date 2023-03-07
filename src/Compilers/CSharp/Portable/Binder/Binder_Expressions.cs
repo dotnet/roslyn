@@ -386,6 +386,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = RebindSimpleBinaryOperatorAsConverted(unconvertedBinaryOperator, diagnostics);
                     }
                     break;
+                case BoundUnconvertedCollectionLiteralExpression expr:
+                    {
+                        bool hasErrors = expr.HasErrors;
+                        var syntax = (CollectionCreationExpressionSyntax)expr.Syntax;
+                        var collectionType = expr.Type;
+                        if (collectionType is null)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, syntax.Location);
+                            collectionType = CreateErrorType();
+                            hasErrors = true;
+                        }
+                        // PROTOTYPE: We're dropping hasErrors.
+                        // PROTOTYPE: Do we need a Conversion here? For a BoundConvertedSwitchExpression,
+                        // we're adding an Identity conversion when using the natural type rather than target type.
+                        result = BindCollectionInitializerCollectionLiteral(
+                            expr,
+                            collectionType,
+                            wasTargetTyped: false,
+                            hasEnumerableInitializerType: true,
+                            wasCompilerGenerated: expr.WasCompilerGenerated,
+                            diagnostics);
+                    }
+                    break;
                 default:
                     result = expression;
                     break;
@@ -3417,6 +3440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, ref useSiteInfo, out _);
             diagnostics.Add(node, useSiteInfo);
 
+            // PROTOTYPE: When do we hit the void case? Add a corresponding test for collection literals.
             if ((object)bestType == null || bestType.IsVoidType()) // Dev10 also reports ERR_ImplicitlyTypedArrayNoBestType for void.
             {
                 Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, node);
@@ -4481,6 +4505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         private BoundExpression BindCollectionLiteralExpression(CollectionCreationExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             MessageID.IDS_FeatureCollectionLiterals.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
@@ -4490,7 +4515,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Add(bindElement(element, diagnostics));
             }
-            return new BoundUnconvertedCollectionLiteralExpression(syntax, builder.ToImmutableAndFree(), this);
+
+            var initializers = builder.ToImmutableAndFree();
+            TypeSymbol? collectionType = null;
+
+            // PROTOTYPE: Confirm with LDM that we use the element expressions rather than
+            // the element types to infer best common type.
+            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var bestType = BestTypeInferrer.InferBestType(initializers, Conversions, ref useSiteInfo, out _);
+            if (bestType is { })
+            {
+                if (bestType.IsRestrictedType(ignoreSpanLikeTypes: true))
+                {
+                    // PROTOTYPE: Use error specific to collection literals.
+                    Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, syntax, bestType);
+                }
+                else
+                {
+                    // PROTOTYPE: When using the natural type, verify each element can be converted to the
+                    // common type, even if there is an Add() overload for the unconverted value.
+
+                    // PROTOTYPE: Ensure use-site error is reported when List<T> is missing. See Binder.GetWellKnownType().
+                    // Clone test EnumType_02() and remove type List<T> for instance.
+                    collectionType = GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, ref useSiteInfo).Construct(bestType);
+                }
+            }
+
+            diagnostics.Add(syntax, useSiteInfo);
+            return new BoundUnconvertedCollectionLiteralExpression(syntax, initializers, this, type: collectionType);
 
             BoundExpression bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics)
             {
@@ -4515,6 +4567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+#nullable disable
 
         private BoundExpression BindDelegateCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, BindingDiagnosticBag diagnostics)
         {
@@ -5510,7 +5563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindCollectionInitializerElementAddMethod(
-            ExpressionSyntax elementInitializer,
+            SyntaxNode elementInitializer,
             ImmutableArray<BoundExpression> boundElementInitializerExpressions,
             bool hasEnumerableInitializerType,
             Binder collectionInitializerAddMethodBinder,

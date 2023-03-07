@@ -817,6 +817,11 @@
         <target state="translated">无法通过对隐式范围索引器的调用为参数命名。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedCollectionLiteralNoBestType">
+        <source>No best type found for implicitly-typed collection literal.</source>
+        <target state="new">No best type found for implicitly-typed collection literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
         <target state="translated">隐式键入的 lambda 参数 "{0}" 不能具有默认值。</target>

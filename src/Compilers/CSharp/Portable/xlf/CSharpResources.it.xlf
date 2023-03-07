@@ -817,6 +817,11 @@
         <target state="translated">La chiamata dell'indicizzatore di intervallo implicito non può assegnare un nome all'argomento.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedCollectionLiteralNoBestType">
+        <source>No best type found for implicitly-typed collection literal.</source>
+        <target state="new">No best type found for implicitly-typed collection literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
         <target state="translated">Il parametro lambda tipizzato in modo implicito '{0}' non può avere un valore predefinito.</target>

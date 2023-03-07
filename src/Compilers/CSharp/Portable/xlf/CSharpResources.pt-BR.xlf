@@ -817,6 +817,11 @@
         <target state="translated">A invocação do Indexador de Intervalo implícito não pode nomear o argumento.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedCollectionLiteralNoBestType">
+        <source>No best type found for implicitly-typed collection literal.</source>
+        <target state="new">No best type found for implicitly-typed collection literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
         <target state="translated">O parâmetro lambda '{0}' digitado implicitamente não pode ter um valor padrão.</target>

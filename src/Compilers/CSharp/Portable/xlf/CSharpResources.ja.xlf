@@ -817,6 +817,11 @@
         <target state="translated">暗黙的な範囲インデクサーの呼び出しでは、引数に名前を付けることはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedCollectionLiteralNoBestType">
+        <source>No best type found for implicitly-typed collection literal.</source>
+        <target state="new">No best type found for implicitly-typed collection literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
         <target state="translated">暗黙的に型指定されたラムダパラメーター '{0}' に既定値を指定することはできません。</target>
