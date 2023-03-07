@@ -183,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(oldTree.ToString(), newTree.ToString())
         End Sub
 
-        <Fact, WorkItem(12638, "https://github.com/dotnet/roslyn/issues/12638")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12638")>
         Public Sub WithFilePath_Nothing()
             Dim oldTree As SyntaxTree = New VisualBasicSyntaxTree.DummySyntaxTree()
             Assert.Equal(String.Empty, oldTree.WithFilePath(Nothing).FilePath)

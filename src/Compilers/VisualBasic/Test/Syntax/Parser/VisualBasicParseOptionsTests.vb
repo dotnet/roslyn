@@ -90,7 +90,7 @@ Public Class VisualBasicParseOptionsTests
         Assert.Equal(highest, PredefinedPreprocessorSymbols.CurrentVersionNumber.ToString(CultureInfo.InvariantCulture))
     End Sub
 
-    <Fact, WorkItem(21094, "https://github.com/dotnet/roslyn/issues/21094")>
+    <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21094")>
     Public Sub CurrentVersionNumberIsCultureIndependent()
         Dim currentCulture = CultureInfo.CurrentCulture
         Try
@@ -173,7 +173,7 @@ Public Class VisualBasicParseOptionsTests
             </errors>)
     End Sub
 
-    <Fact, WorkItem(536060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536060")>
+    <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536060")>
     Public Sub BC30620ERR_InvalidOptionStrict_FollowedByAssemblyAttribute()
         ParseAndVerify(<![CDATA[
             Option Strict False
@@ -184,7 +184,7 @@ Public Class VisualBasicParseOptionsTests
         </errors>)
     End Sub
 
-    <Fact, WorkItem(536067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536067")>
+    <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536067")>
     Public Sub BC30627ERR_OptionStmtWrongOrder()
         ParseAndVerify(<![CDATA[
             Imports System
@@ -195,7 +195,7 @@ Public Class VisualBasicParseOptionsTests
         </errors>)
     End Sub
 
-    <Fact, WorkItem(536362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536362")>
+    <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536362")>
     Public Sub BC30206ERR_ExpectedForOptionStmt_NullReferenceException()
         ParseAndVerify(<![CDATA[
             Option
@@ -212,7 +212,7 @@ Public Class VisualBasicParseOptionsTests
     </errors>)
     End Sub
 
-    <Fact, WorkItem(536432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536432")>
+    <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536432")>
     Public Sub BC30205ERR_ExpectedEOS_ParseOption_ExtraSyntaxAtEOL()
         ParseAndVerify(<![CDATA[
             Option Infer On O

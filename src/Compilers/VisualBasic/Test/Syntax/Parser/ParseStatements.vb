@@ -242,7 +242,7 @@ Public Class ParseStatements
             ]]>)
     End Sub
 
-    <WorkItem(538594, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538594")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538594")>
     <Fact>
     Public Sub ParseOnErrorGoto()
         ParseAndVerify(<![CDATA[
@@ -343,7 +343,7 @@ Public Class ParseStatements
         ]]>)
     End Sub
 
-    <WorkItem(539194, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539194")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539194")>
     <Fact>
     Public Sub ParseSingleLineIfThenWithColon()
         ' Goo should be a call statement and not a label
@@ -383,7 +383,7 @@ End Module
             )
     End Sub
 
-    <WorkItem(539204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539204")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539204")>
     <Fact>
     Public Sub ParseColonLineCont()
         ' 2nd Else and ElseIf are dangling in the line ifs
@@ -407,7 +407,7 @@ End Module
         Diagnostic(ERRID.ERR_LineContWithCommentOrNoPrecSpace, "_"))
     End Sub
 
-    <WorkItem(539204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539204")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539204")>
     <Fact>
     Public Sub ParseSingleLineIfThenExtraElse()
         ' 2nd Else and ElseIf are dangling in the line ifs
@@ -427,7 +427,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(539205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539205")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539205")>
     <Fact>
     Public Sub ParseSingleLineIfWithNestedSingleLineIf()
         ' This is a valid nested line if in a line if
@@ -494,7 +494,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(539207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539207")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539207")>
     <Fact>
     Public Sub ParseSingleLineIfWithNestedDoLoop1()
         ' This is a single line if that contains an invalid do .. loop 
@@ -543,7 +543,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(539209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539209")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539209")>
     <Fact>
     Public Sub ParseSingleLineSubWithSingleLineIfFollowedByColonComma()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -556,7 +556,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(539210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539210")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539210")>
     <Fact>
     Public Sub ParseSingleLineIfFollowedByColonNewLine()
         ' Per Dev10 the second WriteLine should NOT be part of
@@ -598,7 +598,7 @@ End Module
 
     End Sub
 
-    <WorkItem(539211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539211")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539211")>
     <Fact>
     Public Sub ParseSingleLineSubWithSingleLineIfFollowedByComma()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -611,7 +611,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(539211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539211")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539211")>
     <Fact>
     Public Sub ParseSingleLineSubWithSingleLineIfFollowedByParen()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -624,7 +624,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(530904, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530904")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530904")>
     <Fact>
     Public Sub SingleLineLambdaComma()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -645,7 +645,7 @@ End Module
 </errors>)
     End Sub
 
-    <WorkItem(539212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539212")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539212")>
     <Fact>
     Public Sub ParseSingleLineSubWithSingleLineIfWithAnotherSingleLineSub()
         ' The second single line sub is within a var declaration after the end statement in the then clause!
@@ -659,7 +659,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(539212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539212")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539212")>
     <Fact>
     Public Sub ParseSingleLineSubWithIncompleteSingleLineIf()
         ' Dev10 reports single line if must contain one statement.
@@ -672,7 +672,7 @@ End Module
 ]]>, Diagnostic(ERRID.ERR_ExpectedEndIf, "If True Then"))
     End Sub
 
-    <WorkItem(539212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539212")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539212")>
     <Fact>
     Public Sub ParseSubLambdaWithIncompleteSingleLineIf()
         ' The single line if actually gets parsed as a block if in both dev10 and roslyn
@@ -727,7 +727,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(538606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538606")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538606")>
     <Fact>
     Public Sub LabelFollowedByMethodInvocation()
         ParseAndVerify(<![CDATA[
@@ -742,7 +742,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(541358, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541358")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541358")>
     <Fact>
     Public Sub LabelRelatedToBug8037()
         ParseAndVerify(<![CDATA[
@@ -829,7 +829,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(542623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542623")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542623")>
     <Fact>
     Public Sub ParseMidIdentifier1()
         ParseAndVerify(<![CDATA[
@@ -850,7 +850,7 @@ End Module
         )
     End Sub
 
-    <WorkItem(542623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542623")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542623")>
     <Fact>
     Public Sub ParseMidIdentifier2()
         ParseAndVerify(<![CDATA[
@@ -1167,7 +1167,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(536076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536076")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536076")>
     <Fact>
     Public Sub ParseQueryFromNullableRangeVariable()
         ParseAndVerify(<![CDATA[
@@ -1288,7 +1288,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(531540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531540")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531540")>
     <Fact>
     Public Sub SelectCaseInLambda()
         ParseAndVerify(<![CDATA[
@@ -1308,7 +1308,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(530633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530633")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530633")>
     <Fact>
     Public Sub SubImplements()
         ParseAndVerify(<![CDATA[
@@ -1500,7 +1500,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(546693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546693")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546693")>
     <Fact()>
     Public Sub ParseLambdaSingleLineIfWithColonElseIfInsideIfBlock_1()
         ParseAndVerify(<![CDATA[
@@ -1519,7 +1519,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(546693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546693")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546693")>
     <Fact()>
     Public Sub ParseLambdaSingleLineIfWithColonElseIfInsideIfBlock_2()
         ParseAndVerify(<![CDATA[
@@ -1584,7 +1584,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(530940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530940")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530940")>
     <Fact()>
     Public Sub ParseSingleLineIfColon()
         ParseAndVerify(<![CDATA[
@@ -1644,7 +1644,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(601004, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601004")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601004")>
     <Fact()>
     Public Sub ParseSingleLineIfEmptyElse()
         ParseAndVerify(<![CDATA[
@@ -1676,7 +1676,7 @@ End Module
     ''' <summary>
     ''' EmptyStatement following colon.
     ''' </summary>
-    <WorkItem(530966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530966")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530966")>
     <Fact()>
     Public Sub ParseEmptyStatementFollowingColon()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -1752,7 +1752,7 @@ End Module
             SyntaxKind.EndOfFileToken)
     End Sub
 
-    <WorkItem(531486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531486")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531486")>
     <Fact()>
     Public Sub ParseSingleLineIfElse()
         ParseAndVerify(<![CDATA[
@@ -1767,7 +1767,7 @@ End Module
 </errors>)
     End Sub
 
-    <WorkItem(546910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546910")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546910")>
     <Fact()>
     Public Sub ParseMultiLineIfLambdaWithStatementColonElse()
         ParseAndVerify(<![CDATA[
@@ -1784,7 +1784,7 @@ End Module
 </errors>)
     End Sub
 
-    <WorkItem(546910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546910")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546910")>
     <Fact()>
     Public Sub ParseSingleLineIfLambdaWithStatementColonElse()
         ParseAndVerify(<![CDATA[
@@ -2001,7 +2001,7 @@ End Module
         Assert.Equal(SyntaxKind.ForBlock, statement.Kind)
     End Sub
 
-    <WorkItem(537169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537169")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537169")>
     <Fact>
     Public Sub ParseGettypeNextString()
         ParseAndVerify(<![CDATA[Next.goo(GetType(Func(Of A))), "")]]>,
@@ -2009,7 +2009,7 @@ End Module
             Diagnostic(ERRID.ERR_ExtraNextVariable, ".goo(GetType(Func(Of A)))"))
     End Sub
 
-    <WorkItem(538515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538515")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538515")>
     <Fact>
     Public Sub IncParseAGPower17()
         Dim code As String = (<![CDATA[
@@ -2060,7 +2060,7 @@ End Namespace
         ParseAndVerify(code)
     End Sub
 
-    <WorkItem(539055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539055")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539055")>
     <Fact>
     Public Sub ParseReturnFollowedByComma()
         ParseAndVerify(<![CDATA[
@@ -2070,7 +2070,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(538443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538443")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538443")>
     <Fact>
     Public Sub ParseMultiIfThenElseOnOneLine()
         ParseAndVerify(<![CDATA[
@@ -2087,7 +2087,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(538440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538440")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538440")>
     <Fact>
     Public Sub ParseSingleIfElseTerminatedByColon()
         Dim t = ParseAndVerify(<![CDATA[ 
@@ -2125,7 +2125,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(538481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538481")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538481")>
     <Fact>
     Public Sub ParseLineContAtEnd()
         Dim t = ParseAndVerify(<![CDATA[
@@ -2231,7 +2231,7 @@ End Module
         Assert.IsType(Of LocalDeclarationStatementSyntax)(ifBlock.Statements(0))
 
     End Sub
-    <WorkItem(540669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540669")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540669")>
     <Fact>
     Public Sub SingleLineIfNotTerminateByEmptyStatement()
 
@@ -2264,7 +2264,7 @@ End Module
 
     End Sub
 
-    <WorkItem(540844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540844")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540844")>
     <Fact>
     Public Sub TestForEachAfterOffset()
         Const prefix As String = "GARBAGE"
@@ -2297,7 +2297,7 @@ End Module
 
     End Sub
 
-    <WorkItem(543248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543248")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543248")>
     <Fact()>
     Public Sub ParseBadCollectionRangeVariableDeclaration1()
 
@@ -2313,7 +2313,7 @@ End Module
                           Diagnostic(ERRID.ERR_ExpectedIn, ""))
     End Sub
 
-    <WorkItem(543364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543364")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543364")>
     <Fact()>
     Public Sub ParseLabelAfterElse()
 
@@ -2328,7 +2328,7 @@ End Module
     End Module]]>, Diagnostic(ERRID.ERR_Syntax, "100"))
     End Sub
 
-    <WorkItem(544224, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544224")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544224")>
     <Fact()>
     Public Sub ParsePartialSingleLineIfStatement()
         Dim stmt = SyntaxFactory.ParseExecutableStatement("If True")
@@ -2356,7 +2356,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(536260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536260")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536260")>
     <Fact()>
     Public Sub BC30012ERR_LbExpectedEndIf()
         ParseAndVerify(<![CDATA[
@@ -2372,7 +2372,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(527095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527095")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527095")>
     <Fact()>
     Public Sub BC30016ERR_InvOutsideProc_Label()
         ParseAndVerify(<![CDATA[
@@ -3069,7 +3069,7 @@ End Module]]>,
             </errors>)
     End Sub
 
-    <WorkItem(527019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527019")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527019")>
     <Fact()>
     Public Sub BC31427ERR_BadCCExpression_ParseErrorMismatchExpectedEOSVSBadCCExpressionExpected()
         ParseAndVerify(<![CDATA[
@@ -3084,7 +3084,7 @@ End Module]]>,
             </errors>)
     End Sub
 
-    <WorkItem(536271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536271")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536271")>
     <Fact()>
     Public Sub BC32020ERR_ExpectedAssignmentOperator()
         ParseAndVerify(<![CDATA[
@@ -3249,7 +3249,7 @@ End Module]]>,
         </errors>)
     End Sub
 
-    <WorkItem(527028, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527028")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527028")>
     <Fact()>
     Public Sub BC36631ERR_ExpectedJoin()
         ParseAndVerify(<![CDATA[
@@ -3425,7 +3425,7 @@ End Module
             Diagnostic(ERRID.ERR_InvalidEndProperty, "End Property"))
     End Sub
 
-    <WorkItem(536268, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536268")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536268")>
     <Fact()>
     Public Sub ParseExpectedXmlNameAndIllegalChar()
         ParseAndVerify(<![CDATA[
@@ -3440,7 +3440,7 @@ End Module
                  Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, "                                    "))
     End Sub
 
-    <WorkItem(536270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536270")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536270")>
     <Fact()>
     Public Sub ParseExpectedXmlnsAndExpectedEQAndExpectedXmlName()
         ParseAndVerify(<![CDATA[
@@ -3513,7 +3513,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(545166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")>
     <WorkItem(894062, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30287ERR_ExpectedDot_ParseVariant()
@@ -3676,7 +3676,7 @@ End Namespace
         </errors>)
     End Sub
 
-    <WorkItem(539208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539208")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539208")>
     <Fact()>
     Public Sub BC32005ERR_BogusWithinLineIf_2()
         ParseAndVerify(<![CDATA[
@@ -3735,7 +3735,7 @@ End Namespace
         Diagnostic(ERRID.ERR_InvInsideEnum, "300:"))
     End Sub
 
-    <WorkItem(539182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539182")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539182")>
     <Fact()>
     Public Sub ParseEmptyStatementWithBadToken()
         ' There should only be one error reported
@@ -3754,7 +3754,7 @@ End Namespace
              </errors>)
     End Sub
 
-    <WorkItem(539515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539515")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539515")>
     <Fact()>
     Public Sub ParseNestedSingleLineIfFollowedByEndIf()
         ' Report error for mismatched END IF.  
@@ -3770,7 +3770,7 @@ End Namespace
 
     End Sub
 
-    <WorkItem(539515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539515")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539515")>
     <Fact()>
     Public Sub ParseSingleLineWithNestedMultiLineIf()
         ' Report error for mismatched END IF.
@@ -3952,7 +3952,7 @@ End Namespace
              Diagnostic(ERRID.ERR_ExpectedIdentifier, "").WithLocation(40, 26))
     End Sub
 
-    <WorkItem(542066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542066")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542066")>
     <Fact()>
     Public Sub Bug9035()
         ParseAndVerify(<![CDATA[
@@ -4084,7 +4084,7 @@ End Namespace
             Diagnostic(ERRID.ERR_EndSyncLockNoSyncLock, "end synclock"))
     End Sub
 
-    <WorkItem(543724, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543724")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543724")>
     <Fact()>
     Public Sub ElseIfStatementOutsideMethodBody()
         ParseAndVerify(<![CDATA[
@@ -4096,7 +4096,7 @@ End Class
         Diagnostic(ERRID.ERR_ExpectedExpression, ""))
     End Sub
 
-    <WorkItem(544495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544495")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544495")>
     <Fact>
     Public Sub CatchFinallyStatementOutsideMethodBody()
         ParseAndVerify(<![CDATA[
@@ -4106,7 +4106,7 @@ End Class
         Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Finally"))
     End Sub
 
-    <WorkItem(544519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544519")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544519")>
     <Fact>
     Public Sub TryStatementOutsideMethodBody()
         ParseAndVerify(<![CDATA[
@@ -4124,7 +4124,7 @@ End Module
 
 #End Region
 
-    <WorkItem(545543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545543")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545543")>
     <Fact>
     Public Sub ParseInvalidUseOfBlockWithinSingleLineLambda()
         Dim compilationDef =
@@ -4146,7 +4146,7 @@ End Module
                                        Diagnostic(ERRID.ERR_NameNotDeclared1, "j").WithArguments("j"))
     End Sub
 
-    <WorkItem(545543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545543")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545543")>
     <ConditionalFact(GetType(WindowsOnly))>
     Public Sub ParseValidUseOfBlockWithinMultiLineLambda()
         Dim compilationDef =
@@ -4174,7 +4174,7 @@ End Module
         Assert.Equal(1, NodeFound.Count)
     End Sub
 
-    <WorkItem(545543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545543")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545543")>
     <ConditionalFact(GetType(WindowsOnly))>
     Public Sub ParseValidUseOfNonBlockWithinSingleLineLambda()
         Dim compilationDef =
@@ -4204,7 +4204,7 @@ End Module
         Assert.Equal(1, NodeFound1.Count)
     End Sub
 
-    <WorkItem(545543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545543")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545543")>
     <ConditionalFact(GetType(WindowsOnly))>
     Public Sub ParseValidUseOfBlockWithinSingleLineLambda()
         'Subtle Variation with Single line Statement Lambda and a Block Construct
@@ -4234,7 +4234,7 @@ End Module
         Assert.Equal(1, NodeFound1.Count)
     End Sub
 
-    <WorkItem(530516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530516")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530516")>
     <Fact()>
     Public Sub Bug530516()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -4381,7 +4381,7 @@ End Class
         Assert.True(identifierToken.IsMissing)
     End Sub
 
-    <WorkItem(546688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546688")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546688")>
     <Fact()>
     Public Sub Bug16568_If()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -4469,7 +4469,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(546688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546688")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546688")>
     <Fact()>
     Public Sub Bug16568_Else()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -4557,7 +4557,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(546734, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546734")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546734")>
     <Fact()>
     Public Sub Bug16688()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -4689,7 +4689,7 @@ End Class
         Assert.Equal(token.ToFullString(), "    Exit ")
     End Sub
 
-    <WorkItem(531059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531059")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531059")>
     <Fact()>
     Public Sub ParseSingleLineLambdaInSingleLineIf()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -4730,7 +4730,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(547060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547060")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547060")>
     <Fact()>
     Public Sub ParseSingleLineLambdaInSingleLineIf01()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -4753,7 +4753,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(578144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578144")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578144")>
     <Fact()>
     Public Sub ParseStatementLambdaOnSingleLineLambdaWithColon()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -4767,7 +4767,7 @@ End Module
             Diagnostic(ERRID.ERR_InvalidEndSub, "End Sub"))
     End Sub
 
-    <WorkItem(531086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531086")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531086")>
     <Fact()>
     Public Sub Bug17550()
         ParseAndVerify("<!--" + vbCrLf,
@@ -4788,7 +4788,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(531102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531102")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531102")>
     <Fact()>
     Public Sub Bug17574_XmlAttributeAccess()
         ParseAndVerify(<![CDATA[
@@ -5179,7 +5179,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(531102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531102")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531102")>
     <Fact()>
     Public Sub Bug17574_XmlElementAccess()
         ParseAndVerify(<![CDATA[
@@ -5335,7 +5335,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(531102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531102")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531102")>
     <Fact()>
     Public Sub Bug17574_XmlDescendantAccess()
         ParseAndVerify(<![CDATA[
@@ -5515,7 +5515,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(531102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531102")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531102")>
     <Fact()>
     Public Sub Bug17574_Comment()
         ParseAndVerify(<![CDATA[
@@ -5577,7 +5577,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(531102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531102")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531102")>
     <Fact()>
     Public Sub Bug17574_Other()
         ParseAndVerify(<![CDATA[
@@ -5627,7 +5627,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(531480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531480")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531480")>
     <Fact>
     Public Sub ImplicitLineContinuationAfterQuery()
         ParseAndVerify(<![CDATA[
@@ -5736,7 +5736,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(531632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531632")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531632")>
     <Fact()>
     Public Sub ColonTerminatorFollowingXmlAttributeAccess()
         ParseAndVerify(<![CDATA[
@@ -5749,7 +5749,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(547195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547195")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547195")>
     <Fact()>
     Public Sub ColonFollowingImplicitContinuation()
         ParseAndVerify(<![CDATA[
@@ -5819,7 +5819,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(547305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547305")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547305")>
     <Fact()>
     Public Sub Bug547305()
         ParseAndVerify(<![CDATA[
@@ -5898,7 +5898,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(552836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552836")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552836")>
     <Fact()>
     Public Sub MoreNextVariablesThanBlockContexts()
         ParseAndVerify(<![CDATA[
@@ -5934,7 +5934,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
     <Fact()>
     Public Sub Bug553962()
         ParseAndVerify(<![CDATA[
@@ -6086,8 +6086,8 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
-    <WorkItem(571807, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/571807")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/571807")>
     <Fact()>
     Public Sub Bug571807()
         ParseAndVerify(<![CDATA[
@@ -6124,7 +6124,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(570756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570756")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570756")>
     <Fact()>
     Public Sub FullWidthKeywords()
         Dim source = <![CDATA[
@@ -6135,8 +6135,8 @@ End Module
         ParseAndVerify(source)
     End Sub
 
-    <WorkItem(588122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/588122")>
-    <WorkItem(587130, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587130")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/588122")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587130")>
     <Fact()>
     Public Sub FullWidthKeywords001()
         Dim source = <![CDATA[
@@ -6153,7 +6153,7 @@ End Module
         ParseAndVerify(source)
     End Sub
 
-    <WorkItem(571529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/571529")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/571529")>
     <Fact()>
     Public Sub Bug571529()
         ParseAndVerify(<![CDATA[
@@ -6166,7 +6166,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(581662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581662")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581662")>
     <Fact()>
     Public Sub BlankLinesFollowingUnderscore()
         ParseAndVerify(<![CDATA[
@@ -6235,7 +6235,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(608214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608214")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608214")>
     <Fact()>
     Public Sub Bug608214()
         ParseAndVerify(<![CDATA[
@@ -6289,8 +6289,8 @@ End Module
             )
     End Sub
 
-    <WorkItem(608214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608214")>
-    <WorkItem(610345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610345")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608214")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610345")>
     <Fact()>
     Public Sub Bug608214_2()
         ParseAndVerify(<![CDATA[
@@ -6342,7 +6342,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(608225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608225")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608225")>
     <Fact()>
     Public Sub Bug608225()
         ParseAndVerify(<![CDATA[
@@ -6475,7 +6475,7 @@ End Module
     ''' <summary>
     ''' Line continuation trivia should include the underscore only.
     ''' </summary>
-    <WorkItem(581662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581662")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581662")>
     <Fact()>
     Public Sub LineContinuationTrivia()
         Dim source = <![CDATA[
@@ -6528,7 +6528,7 @@ End Module
     ''' <summary>
     ''' Each colon should be a separate trivia node.
     ''' </summary>
-    <WorkItem(612584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612584")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612584")>
     <Fact()>
     Public Sub ConsecutiveColonsTrivia()
         Dim source = <![CDATA[
@@ -6624,7 +6624,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(619627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619627")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619627")>
     <Fact()>
     Public Sub OuterEndWithinMultiLineLambda()
         ParseAndVerify(<![CDATA[
@@ -6762,7 +6762,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(620546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620546")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620546")>
     <Fact()>
     Public Sub NestedMultiLineBlocksInSingleLineIf()
         ParseAndVerify(<![CDATA[
@@ -6993,7 +6993,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(622712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622712")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622712")>
     <Fact()>
     Public Sub ColonTerminatorWithTrailingTrivia()
         ParseAndVerify(<![CDATA[
@@ -7019,7 +7019,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(623023, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623023")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623023")>
     <Fact()>
     Public Sub SingleLineIfWithinNestedSingleLineBlocks()
         ParseAndVerify(<![CDATA[
@@ -7152,7 +7152,7 @@ End Module
     ''' scanner if the colons are on the same line vs.
     ''' separate lines with line continuations.
     ''' </summary>
-    <WorkItem(634703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634703")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634703")>
     <Fact>
     Public Sub MultipleColons()
         CheckMethodStatementsAndTrivia(<![CDATA[
@@ -7336,7 +7336,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(638187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638187")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638187")>
     <Fact()>
     Public Sub IsNextStatementInsideLambda()
         ParseAndVerify(<![CDATA[
@@ -7496,7 +7496,7 @@ End Module
     ''' Currently, any statement on the same line as
     ''' the invalid label is ignored.
     ''' </summary>
-    <WorkItem(642558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642558")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642558")>
     <Fact()>
     Public Sub ErrorInStatementFollowingInvalidLabel()
         ParseAndVerify(<![CDATA[
@@ -7554,7 +7554,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(640520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640520")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640520")>
     <Fact()>
     Public Sub Bug640520()
         ParseAndVerify(<![CDATA[
@@ -7595,7 +7595,7 @@ End Class
             </errors>)
     End Sub
 
-    <WorkItem(648998, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648998")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648998")>
     <Fact()>
     Public Sub Bug648998()
         Dim tree = Parse(<![CDATA[
@@ -7682,7 +7682,7 @@ BC30188: Declaration expected.
 
     End Sub
 
-    <WorkItem(649162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649162")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649162")>
     <Fact()>
     Public Sub Bug649162()
         ParseAndVerify(<![CDATA[
@@ -7705,7 +7705,7 @@ Imports <xmlns:=''>, Imports <xmlns::=''>, Imports <xmlns==''>
             </errors>)
     End Sub
 
-    <WorkItem(650318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650318")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650318")>
     <Fact()>
     Public Sub Bug650318()
         ParseAndVerify(<![CDATA[
@@ -7760,7 +7760,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(671115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/671115")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/671115")>
     <Fact()>
     Public Sub IsNewLine()
         Dim sourceFormat = "Module M{0}    Dim x = 1 'Comment{0}End Module{0}"
@@ -7771,7 +7771,7 @@ End Module
         ParseAndVerify(String.Format(sourceFormat, PARAGRAPH_SEPARATOR))
     End Sub
 
-    <WorkItem(674590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674590")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674590")>
     <Fact()>
     Public Sub Bug674590()
         ParseAndVerify(<![CDATA[
@@ -7854,7 +7854,7 @@ End Class
             </errors>)
     End Sub
 
-    <WorkItem(684860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684860")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684860")>
     <Fact()>
     Public Sub Bug684860_SkippedTokens()
         Const n = 100000
@@ -7881,7 +7881,7 @@ End Class
         Assert.True((tokens2.Length - tokens1.Length) > n)
     End Sub
 
-    <WorkItem(684860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684860")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684860")>
     <Fact()>
     Public Sub Bug684860_XmlText()
         Const n = 100000
@@ -7919,7 +7919,7 @@ End Class
         End Sub
     End Class
 
-    <WorkItem(685268, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685268")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685268")>
     <Fact()>
     Public Sub Bug685268()
         ParseAndVerify(<![CDATA[
@@ -7937,7 +7937,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(685474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685474")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685474")>
     <Fact()>
     Public Sub Bug685474()
         ParseAndVerify(<![CDATA[
@@ -7967,7 +7967,7 @@ b
             </errors>)
     End Sub
 
-    <WorkItem(697117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697117")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697117")>
     <Fact()>
     Public Sub Bug697117()
         ParseAndVerify(<![CDATA[
@@ -8323,7 +8323,7 @@ End Class
             </errors>)
     End Sub
 
-    <WorkItem(716242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716242")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716242")>
     <Fact()>
     Public Sub Bug716242()
         ParseAndVerify(<![CDATA[
@@ -8408,7 +8408,7 @@ End Class
         Next
     End Sub
 
-    <WorkItem(539515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539515")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539515")>
     <Fact()>
     Public Sub ParseIllegaLineCont()
         ParseAndVerify(
@@ -8423,7 +8423,7 @@ End Module
 )
     End Sub
 
-    <WorkItem(539515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539515")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539515")>
     <Fact()>
     Public Sub ParseIllegaLineCont_1()
         ParseAndVerify(
@@ -8441,7 +8441,7 @@ End Module
     End Sub
 
     <Fact()>
-    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    <WorkItem("https://github.com/dotnet/vblang/issues/65")>
     Public Sub ParseLineContWithNoSpaceBeforeCommentV16()
         ParseAndVerify(
         <![CDATA[
@@ -8456,7 +8456,7 @@ End Module
     End Sub
 
     <Fact()>
-    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    <WorkItem("https://github.com/dotnet/vblang/issues/65")>
     Public Sub ParseLineContWithMultipleSpacesBeforeCommentV16()
         ParseAndVerify(
         <![CDATA[
@@ -8471,7 +8471,7 @@ End Module
     End Sub
 
     <Fact()>
-    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    <WorkItem("https://github.com/dotnet/vblang/issues/65")>
     Public Sub ParseLineContWithCommentV16()
         ParseAndVerify(
         <![CDATA[
@@ -8486,7 +8486,7 @@ End Module
     End Sub
 
     <Fact()>
-    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    <WorkItem("https://github.com/dotnet/vblang/issues/65")>
     Public Sub ParseLineContWithCommentV15()
         ParseAndVerify(
         <![CDATA[
@@ -8502,7 +8502,7 @@ End Module
     End Sub
 
     <Fact()>
-    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    <WorkItem("https://github.com/dotnet/vblang/issues/65")>
     Public Sub ParseLineContWithCommentV15_5()
         ParseAndVerify(
         <![CDATA[
@@ -8518,7 +8518,7 @@ End Module
     End Sub
 
     <Fact()>
-    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    <WorkItem("https://github.com/dotnet/vblang/issues/65")>
     Public Sub ParseLineContWithoutComment()
         ParseAndVerify(
         <![CDATA[
@@ -8533,7 +8533,7 @@ End Module
     End Sub
 
     <Fact>
-    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/14761")>
     Public Sub ParseLineIfFollowedByAnotherStatement_01()
         Dim compilationDef =
 <compilation>
@@ -8579,7 +8579,7 @@ BC30081: 'If' must end with a matching 'End If'.
     End Sub
 
     <Fact>
-    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/14761")>
     Public Sub ParseLineIfFollowedByAnotherStatement_02()
         Dim compilationDef =
 <compilation>
@@ -8633,7 +8633,7 @@ BC30205: End of statement expected.
     End Sub
 
     <Fact>
-    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/14761")>
     Public Sub ParseLineIfFollowedByAnotherStatement_03()
         Dim compilationDef =
 <compilation>
@@ -8672,7 +8672,7 @@ BC30205: End of statement expected.
     End Sub
 
     <Fact>
-    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/14761")>
     Public Sub ParseLineIfFollowedByAnotherStatement_04()
         Dim compilationDef =
 <compilation>
@@ -8720,7 +8720,7 @@ BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
     End Sub
 
     <Fact>
-    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/14761")>
     Public Sub ParseLineIfFollowedByAnotherStatement_05()
         Dim compilationDef =
 <compilation>
@@ -8761,7 +8761,7 @@ BC30205: End of statement expected.
     End Sub
 
     <Fact>
-    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/14761")>
     Public Sub ParseLineIfFollowedByAnotherStatement_06()
         Dim compilationDef =
 <compilation>
@@ -8802,7 +8802,7 @@ BC30205: End of statement expected.
     End Sub
 
     <Fact>
-    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/14761")>
     Public Sub ParseLineIfFollowedByAnotherStatement_07()
         Dim compilationDef =
 <compilation>
@@ -8902,7 +8902,7 @@ BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
     End Sub
 
     <Fact>
-    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/14761")>
     Public Sub ParseLineIfFollowedByAnotherStatement_08()
         Dim compilationDef =
 <compilation>
@@ -8930,7 +8930,7 @@ End Module
     End Sub
 
     <Fact>
-    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/14761")>
     Public Sub ParseLineIfFollowedByAnotherStatement_09()
         Dim compilationDef =
 <compilation>
@@ -8994,7 +8994,7 @@ BC30205: End of statement expected.
     End Sub
 
     <Fact>
-    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/14761")>
     Public Sub ParseLineIfFollowedByAnotherStatement_10()
         Dim compilationDef =
 <compilation>
@@ -9058,7 +9058,7 @@ BC30205: End of statement expected.
     End Sub
 
     <Fact>
-    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/14761")>
     Public Sub ParseLineIfFollowedByAnotherStatement_11()
         Dim compilationDef =
 <compilation>
@@ -9089,7 +9089,7 @@ BC30205: End of statement expected.
     End Sub
 
     <Fact>
-    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/14761")>
     Public Sub ParseLineIfFollowedByAnotherStatement_12()
         Dim compilationDef =
 <compilation>
@@ -9154,7 +9154,7 @@ Else 3")
     End Sub
 
     <Fact>
-    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/14761")>
     Public Sub ParseLineIfFollowedByAnotherStatement_13()
         Dim compilationDef =
 <compilation>
@@ -9184,7 +9184,7 @@ BC33104: 'If' operator requires either two or three operands.
     End Sub
 
     <Fact>
-    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/14761")>
     Public Sub ParseLineIfFollowedByAnotherStatement_14()
         Dim compilationDef =
 <compilation>
@@ -9214,7 +9214,7 @@ BC33104: 'If' operator requires either two or three operands.
     End Sub
 
     <Fact>
-    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/14761")>
     Public Sub ParseLineIfFollowedByAnotherStatement_15()
         Dim compilationDef =
 <compilation>
@@ -9250,7 +9250,7 @@ BC42105: Function 'Test2' doesn't return a value on all code paths. A null refer
     End Sub
 
     <Fact>
-    <WorkItem(405887, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=405887")>
+    <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=405887")>
     Public Sub ParseLineIfWithIncompleteInterpolatedString_01()
         Dim compilationDef =
 <compilation>
@@ -9285,7 +9285,7 @@ End Module
     End Sub
 
     <Fact>
-    <WorkItem(405887, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=405887")>
+    <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=405887")>
     Public Sub ParseLineIfWithIncompleteInterpolatedString_02()
         Dim compilationDef =
 <compilation>
@@ -9317,7 +9317,7 @@ End Module
     End Sub
 
     <Fact>
-    <WorkItem(405887, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=405887")>
+    <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=405887")>
     Public Sub ParseLineIfWithIncompleteInterpolatedString_03()
         Dim compilationDef =
 <compilation>
@@ -9340,7 +9340,7 @@ BC30451: 'sServiceName' is not declared. It may be inaccessible due to its prote
     End Sub
 
     <Fact>
-    <WorkItem(405887, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=405887")>
+    <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=405887")>
     Public Sub ParseLineIfWithIncompleteInterpolatedString_04()
         Dim compilationDef =
 <compilation>
@@ -9366,7 +9366,7 @@ BC30370: '}' expected.
     End Sub
 
     <Fact>
-    <WorkItem(405887, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=405887")>
+    <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=405887")>
     Public Sub ParseLineIfWithIncompleteInterpolatedString_05()
         Dim compilationDef =
 <compilation>

@@ -383,7 +383,7 @@ End Enum
         TraverseAllNodes()
     End Sub
 
-    <WorkItem(527076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527076")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527076")>
     <Fact>
     Public Sub ParseMustOverrideInsideModule()
         ParseAndVerify(<![CDATA[
@@ -443,7 +443,7 @@ End Class
              </errors>)
     End Sub
 
-    <WorkItem(543607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543607")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543607")>
     <Fact()>
     Public Sub ParseInheritsAtInvalidLocation()
         ParseAndVerify(<![CDATA[
@@ -486,7 +486,7 @@ End Class
              </errors>)
     End Sub
 
-    <WorkItem(527022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527022")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527022")>
     <Fact()>
     Public Sub BC30037ERR_IllegalChar_TypeParamMissingAsCommaOrRParen()
         ParseAndVerify(<![CDATA[
@@ -707,7 +707,7 @@ p1 as vb$anonymous1
 
     <WorkItem(887748, "DevDiv/Personal")>
     <WorkItem(889062, "DevDiv/Personal")>
-    <WorkItem(538919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538919")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538919")>
     <Fact>
     Public Sub BC30602ERR_InterfaceMemberSyntax_TypeStatement()
         ParseAndVerify(<![CDATA[
@@ -904,7 +904,7 @@ p1 as vb$anonymous1
             </errors>)
     End Sub
 
-    <WorkItem(536278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536278")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536278")>
     <Fact>
     Public Sub BC31140ERR_InvalidUseOfCustomModifier_ExpectedSpecifierAndInvalidEndSub()
         ParseAndVerify(<![CDATA[
@@ -948,7 +948,7 @@ p1 as vb$anonymous1
             </errors>)
     End Sub
 
-    <WorkItem(538990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538990")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538990")>
     <Fact>
     Public Sub Bug4770()
         ParseAndVerify(<![CDATA[
@@ -960,7 +960,7 @@ p1 as vb$anonymous1
                  </errors>)
     End Sub
 
-    <WorkItem(539509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539509")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539509")>
     <Fact>
     Public Sub EnumsWithGenericParameter()
         ' Enums should recover the same was as other declarations that do not allow generics.

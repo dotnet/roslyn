@@ -1008,7 +1008,7 @@ End Namespace
     End Sub
 
     <ConditionalFact(GetType(DesktopClrOnly))>
-    <WorkItem(10841, "https://github.com/mono/mono/issues/10841")>
+    <WorkItem("https://github.com/mono/mono/issues/10841")>
     Public Sub AllowsLeadingOrTrailingImplicitLineContinuation()
 
         Dim cu = SyntaxFactory.ParseCompilationUnit(s_allInOneSource)
@@ -1107,7 +1107,7 @@ End Namespace
     End Sub
 
     <ConditionalFact(GetType(DesktopClrOnly))>
-    <WorkItem(10841, "https://github.com/mono/mono/issues/10841")>
+    <WorkItem("https://github.com/mono/mono/issues/10841")>
     Public Sub AllowsLeadingOrTrailingImplicitLineContinuationNegativeTests()
 
         Dim cu = SyntaxFactory.ParseCompilationUnit(s_allInOneSource)
@@ -1167,7 +1167,7 @@ End Namespace
 
     End Sub
 
-    <WorkItem(531480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531480")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531480")>
     <Fact>
     Public Sub ImplicitLineContinuationAfterQuery()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -1195,7 +1195,7 @@ End Module
         Next
     End Sub
 
-    <WorkItem(530665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530665")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530665")>
     <Fact>
     Public Sub ImplicitLineContinuationAfterDictionaryAccessOperator()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -1217,7 +1217,7 @@ End Module
 
     End Sub
 
-    <WorkItem(990618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/990618")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/990618")>
     <Fact>
     Public Sub Bug990618()
         Dim text = SyntaxFacts.GetText(SyntaxKind.BeginCDataToken)

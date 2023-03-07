@@ -219,7 +219,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(530374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530374")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530374")>
         Public Sub RoundtripSerializeDeepExpression()
             Dim text = <Goo><![CDATA[
 Module Module15
@@ -426,7 +426,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(530374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530374")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530374")>
         Public Sub RoundtripSerializeDeepExpression2()
             Dim text = <Goo><![CDATA[
 Module GroupJoin2
@@ -440,7 +440,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(1038237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038237")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038237")>
         Public Sub RoundTripPragmaDirective()
             Dim text = <Goo><![CDATA[
 #Disable Warning BC40000

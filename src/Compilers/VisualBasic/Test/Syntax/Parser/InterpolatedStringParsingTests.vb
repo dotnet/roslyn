@@ -862,7 +862,7 @@ End Module")
 End Module")
     End Sub
 
-    <Fact, WorkItem(6341, "https://github.com/dotnet/roslyn/issues/6341")>
+    <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6341")>
     Public Sub LineBreakInInterpolation_1()
         Parse(
 "Module Program
@@ -896,7 +896,7 @@ BC30648: String constants must end with a double quote.
 
     End Sub
 
-    <Fact, WorkItem(6341, "https://github.com/dotnet/roslyn/issues/6341")>
+    <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6341")>
     Public Sub LineBreakInInterpolation_2()
         Parse(
 "Module Program

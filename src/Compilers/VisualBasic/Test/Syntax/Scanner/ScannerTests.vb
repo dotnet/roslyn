@@ -1540,7 +1540,7 @@ End If]]>.Value,
         Assert.Equal(TypeCharacter.Decimal, tks(1).GetTypeCharacter())
     End Sub
 
-    <WorkItem(538543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538543")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538543")>
     <Fact>
     Public Sub Scanner_DecimalLiteralExpToken()
         Dim Str = "1E1D"
@@ -1800,7 +1800,7 @@ End If]]>.Value,
         Assert.Equal(31085, token.GetSyntaxErrorsNoTree()(0).Code)
     End Sub
 
-    <Fact, WorkItem(529782, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529782")>
+    <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529782")>
     Public Sub DateAndDecimalCultureIndependentTokens()
         Dim SavedCultureInfo = CurrentThread.CurrentCulture
         Try
@@ -1976,7 +1976,7 @@ End If
         ]]>)
     End Sub
 
-    <WorkItem(538747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538747")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538747")>
     <Fact>
     Public Sub OghamSpacemark()
         ParseAndVerify(<![CDATA[
@@ -1986,7 +1986,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(531175, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531175")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531175")>
     <Fact>
     Public Sub Bug17703()
         ParseAndVerify(<![CDATA[
@@ -2005,7 +2005,7 @@ Dim x = <
                        </errors>)
     End Sub
 
-    <WorkItem(530916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530916")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530916")>
     <Fact>
     Public Sub Bug17189()
         ParseAndVerify(<![CDATA[
@@ -2027,7 +2027,7 @@ a<
         </errors>)
     End Sub
 
-    <WorkItem(530682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530682")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530682")>
     <Fact>
     Public Sub Bug16698()
         ParseAndVerify(<![CDATA[#Const x = <!--
@@ -2050,7 +2050,7 @@ a<
         VerifyNoWhitespaceInKeywords()
     End Sub
 
-    <WorkItem(547317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547317")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547317")>
     <Fact>
     Public Sub ParseHugeNumber()
         ParseAndVerify(<![CDATA[
@@ -2070,7 +2070,7 @@ EndModule
         VerifyNoWhitespaceInKeywords()
     End Sub
 
-    <WorkItem(547317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547317")>
+    <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547317")>
     <Fact>
     Public Sub ParseHugeNumberLabel()
         ParseAndVerify(<![CDATA[
