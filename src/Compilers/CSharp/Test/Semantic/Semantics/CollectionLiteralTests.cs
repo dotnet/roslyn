@@ -996,8 +996,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CompileAndVerify(new[] { source, GetCollectionExtensions() }, expectedOutput: "[], [], [1, 2], [3, 4], ");
         }
 
-        // PROTOTYPE: Test constructor use-site error.
-
         [Fact]
         public void CollectionInitializerType_07()
         {
@@ -1530,6 +1528,73 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (9,23): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         object o = (S)[1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(9, 23));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_UseSiteErrors()
+        {
+            string assemblyA = GetUniqueName();
+            string sourceA = """
+                public class A1 { }
+                public class A2 { }
+                """;
+            var comp = CreateCompilation(sourceA, assemblyName: assemblyA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                using System.Collections;
+                using System.Collections.Generic;
+                public class B1 : IEnumerable
+                {
+                    List<int> _list = new List<int>();
+                    public B1(A1 a = null) { }
+                    public void Add(int i) { _list.Add(i); }
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                public class B2 : IEnumerable
+                {
+                    List<int> _list = new List<int>();
+                    public void Add(int x, A2 y = null) { _list.Add(x); }
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            var refB = comp.EmitToImageReference();
+
+            string sourceC = """
+                class C
+                {
+                    static void Main()
+                    {
+                        B1 x;
+                        x = [];
+                        x.Report();
+                        x = [1, 2];
+                        x.Report();
+                        B2 y;
+                        y = [];
+                        y.Report();
+                        y = [3, 4];
+                        y.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceC, GetCollectionExtensions() }, references: new[] { refA, refB }, expectedOutput: "[], [1, 2], [], [3, 4], ");
+
+            comp = CreateCompilation(new[] { sourceC, GetCollectionExtensions() }, references: new[] { refB });
+            comp.VerifyEmitDiagnostics(
+                // (6,13): error CS0012: The type 'A1' is defined in an assembly that is not referenced. You must add a reference to assembly 'a897d975-a839-4fff-828b-deccf9495adc, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         x = [];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "[]").WithArguments("A1", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 13),
+                // (8,13): error CS0012: The type 'A1' is defined in an assembly that is not referenced. You must add a reference to assembly 'a897d975-a839-4fff-828b-deccf9495adc, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         x = [1, 2];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "[1, 2]").WithArguments("A1", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 13),
+                // (13,14): error CS0012: The type 'A2' is defined in an assembly that is not referenced. You must add a reference to assembly 'a897d975-a839-4fff-828b-deccf9495adc, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         y = [3, 4];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "3").WithArguments("A2", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(13, 14),
+                // (13,17): error CS0012: The type 'A2' is defined in an assembly that is not referenced. You must add a reference to assembly 'a897d975-a839-4fff-828b-deccf9495adc, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         y = [3, 4];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "4").WithArguments("A2", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(13, 17));
         }
 
         [Fact]
