@@ -62,8 +62,8 @@ public class Cls
         }
 
         [Fact]
-        [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
-        [WorkItem(16348, "https://github.com/dotnet/roslyn/issues/16348")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12182")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16348")]
         public void DiagnosticsDifferenceBetweenLanguageVersions_01()
         {
             var text = @"
@@ -133,7 +133,7 @@ public class Cls
 
         [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_01()
         {
             var text = @"
@@ -180,7 +180,7 @@ public class Cls
 
         [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_02()
         {
             var text = @"
@@ -227,7 +227,7 @@ public class Cls
 
         [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_03()
         {
             var text = @"
@@ -280,7 +280,7 @@ public class Cls
 
         [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_04()
         {
             var text = @"
@@ -347,7 +347,7 @@ public class Cls
 
         [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_05()
         {
             var text = @"
@@ -388,7 +388,7 @@ public class Cls
 
         [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_06()
         {
             var text = @"
@@ -425,7 +425,7 @@ public class Cls
 
         [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_07()
         {
             var text = @"
@@ -463,7 +463,7 @@ public class Cls
 
         [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_08()
         {
             var text = @"
@@ -501,7 +501,7 @@ public class Cls
 
         [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_09()
         {
             var text = @"
@@ -539,7 +539,7 @@ public class Cls
 
         [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_10()
         {
             var text = @"
@@ -577,7 +577,7 @@ public class Cls
 
         [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_11()
         {
             var text = @"
@@ -624,7 +624,7 @@ public class Cls
 
         [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_12()
         {
             var text = @"
@@ -661,7 +661,7 @@ public class Cls
 
         [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_13()
         {
             var text = @"
@@ -699,7 +699,7 @@ public class Cls
 
         [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_14()
         {
             var text = @"
@@ -739,7 +739,7 @@ public class Cls
 
         [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_15()
         {
             var text = @"
@@ -778,7 +778,7 @@ public class Cls
 
         [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_16()
         {
             var text = @"
@@ -4371,7 +4371,7 @@ True");
         }
 
         [Fact]
-        [WorkItem(14214, "https://github.com/dotnet/roslyn/issues/14214")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14214")]
         public void Scope_ExpressionBodiedLocalFunctions_01()
         {
             var source =
@@ -5614,7 +5614,7 @@ IFieldInitializerOperation (Field: System.Boolean X.Test1) (OperationKind.FieldI
         }
 
         [Fact]
-        [WorkItem(10487, "https://github.com/dotnet/roslyn/issues/10487")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10487")]
         public void FieldInitializers_03()
         {
             var source =
@@ -5647,7 +5647,7 @@ True");
         }
 
         [Fact]
-        [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16935")]
         public void FieldInitializers_04()
         {
             var source =
@@ -11366,7 +11366,7 @@ IPropertyInitializerOperation (Property: System.Boolean X.Test1 { get; }) (Opera
         }
 
         [Fact]
-        [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16935")]
         public void PropertyInitializers_02()
         {
             var source =
@@ -12026,7 +12026,7 @@ public class X
         }
 
         [Fact]
-        [WorkItem(10466, "https://github.com/dotnet/roslyn/issues/10466")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10466")]
         public void Scope_Query_05()
         {
             var source =
@@ -12162,7 +12162,7 @@ public class X
         }
 
         [Fact]
-        [WorkItem(10466, "https://github.com/dotnet/roslyn/issues/10466")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10466")]
         public void Scope_Query_06()
         {
             var source =
@@ -12431,7 +12431,7 @@ public class X
         }
 
         [Fact]
-        [WorkItem(10466, "https://github.com/dotnet/roslyn/issues/10466")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10466")]
         public void Scope_Query_09()
         {
             var source =
@@ -12521,8 +12521,8 @@ public class X
         }
 
         [Fact]
-        [WorkItem(10466, "https://github.com/dotnet/roslyn/issues/10466")]
-        [WorkItem(12052, "https://github.com/dotnet/roslyn/issues/12052")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10466")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12052")]
         public void Scope_Query_10()
         {
             var source =
@@ -18595,7 +18595,7 @@ public class Cls
         }
 
         [Fact]
-        [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16935")]
         public void ConstructorInitializers_05()
         {
             var text = @"
@@ -19771,7 +19771,7 @@ public class Cls
         }
 
         [Fact]
-        [WorkItem(12058, "https://github.com/dotnet/roslyn/issues/12058")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12058")]
         public void MissingArgumentAndNamedOutVarArgument()
         {
             var source =
@@ -19802,7 +19802,7 @@ public class Cls
         }
 
         [Fact]
-        [WorkItem(12266, "https://github.com/dotnet/roslyn/issues/12266")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12266")]
         public void LocalVariableTypeInferenceAndOutVar_01()
         {
             var text = @"
@@ -19835,7 +19835,7 @@ public class Cls
         }
 
         [Fact]
-        [WorkItem(12266, "https://github.com/dotnet/roslyn/issues/12266")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12266")]
         public void LocalVariableTypeInferenceAndOutVar_02()
         {
             var text = @"
@@ -19868,7 +19868,7 @@ public class Cls
         }
 
         [Fact]
-        [WorkItem(12266, "https://github.com/dotnet/roslyn/issues/12266")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12266")]
         public void LocalVariableTypeInferenceAndOutVar_03()
         {
             var text = @"
@@ -19901,7 +19901,7 @@ public class Cls
         }
 
         [Fact]
-        [WorkItem(12266, "https://github.com/dotnet/roslyn/issues/12266")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12266")]
         public void LocalVariableTypeInferenceAndOutVar_04()
         {
             var text = @"
@@ -19936,7 +19936,7 @@ public class Cls
         }
 
         [Fact]
-        [WorkItem(12266, "https://github.com/dotnet/roslyn/issues/12266")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12266")]
         public void LocalVariableTypeInferenceAndOutVar_05()
         {
             var text = @"
@@ -19971,7 +19971,7 @@ public class Cls
         }
 
         [Fact]
-        [WorkItem(15732, "https://github.com/dotnet/roslyn/issues/15732")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15732")]
         public void LocalVariableTypeInferenceAndOutVar_06()
         {
             var text = @"
@@ -20008,7 +20008,7 @@ public class Cls
         }
 
         [Fact]
-        [WorkItem(15732, "https://github.com/dotnet/roslyn/issues/15732")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15732")]
         public void LocalVariableTypeInferenceAndOutVar_07()
         {
             var text = @"
@@ -20042,7 +20042,7 @@ public class Cls
             VerifyModelForOutVar(model, yDecl, yRef[2]);
         }
 
-        [Fact, WorkItem(13219, "https://github.com/dotnet/roslyn/issues/13219")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13219")]
         public void IndexingDynamic()
         {
             var text = @"
@@ -20193,7 +20193,7 @@ public class Cls
                 );
         }
 
-        [Fact, WorkItem(13219, "https://github.com/dotnet/roslyn/issues/13219")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13219")]
         public void IndexingDynamicWithOutVar()
         {
             var text = @"
@@ -20221,7 +20221,7 @@ public class Cls
                 );
         }
 
-        [Fact, WorkItem(13219, "https://github.com/dotnet/roslyn/issues/13219")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13219")]
         public void IndexingDynamicWithOutInt()
         {
             var text = @"
@@ -20244,7 +20244,7 @@ public class Cls
             compilation.VerifyDiagnostics();
         }
 
-        [ClrOnlyFact, WorkItem(13219, "https://github.com/dotnet/roslyn/issues/13219")]
+        [ClrOnlyFact, WorkItem("https://github.com/dotnet/roslyn/issues/13219")]
         public void OutVariableDeclarationInIndex()
         {
             var source1 =
@@ -21360,7 +21360,7 @@ public class X
         }
 
         [Fact]
-        [WorkItem(13460, "https://github.com/dotnet/roslyn/issues/13460")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13460")]
         public void Scope_DeclaratorArguments_07()
         {
             var source =
@@ -21408,7 +21408,7 @@ public class X
         }
 
         [Fact]
-        [WorkItem(13459, "https://github.com/dotnet/roslyn/issues/13459")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13459")]
         public void Scope_DeclaratorArguments_08()
         {
             var source =
@@ -24407,7 +24407,7 @@ static bool TakeOutParam(bool y, out bool x)
         }
 
         [Fact]
-        [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16935")]
         public void GlobalCode_Lambda_02()
         {
             var source =
@@ -32431,7 +32431,7 @@ class H
             Assert.True(x1.Type.IsErrorType());
         }
 
-        [Fact, WorkItem(17321, "https://github.com/dotnet/roslyn/issues/17321")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17321")]
         public void InferenceFailure_01()
         {
             string source =
@@ -32573,7 +32573,7 @@ class H
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
         }
 
-        [Fact, WorkItem(14717, "https://github.com/dotnet/roslyn/issues/14717")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14717")]
         public void ExpressionVariableInCase_1()
         {
             string source =
@@ -32611,7 +32611,7 @@ class Program
             VerifyModelForOutVarInNotExecutableCode(model, x1Decl, x1Ref);
         }
 
-        [Fact, WorkItem(14717, "https://github.com/dotnet/roslyn/issues/14717")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14717")]
         public void ExpressionVariableInCase_2()
         {
             string source =
@@ -32862,7 +32862,7 @@ public class X
 System.Int32");
         }
 
-        [Fact, WorkItem(14825, "https://github.com/dotnet/roslyn/issues/14825")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14825")]
         public void OutVarDeclaredInReceiverUsedInArgument()
         {
             var source =
@@ -33426,7 +33426,7 @@ public static class S
         }
 
         [Fact]
-        [WorkItem(363727, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/363727")]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/363727")]
         public void FindCorrectBinderOnEmbeddedStatementWithMissingIdentifier()
         {
             var source =
@@ -35094,8 +35094,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
-        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
         public void GetEnclosingBinderInternalRecovery_01()
         {
             string source = @"
@@ -35128,8 +35128,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
-        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
         public void GetEnclosingBinderInternalRecovery_02()
         {
             string source = @"
@@ -35167,8 +35167,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
-        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
         public void GetEnclosingBinderInternalRecovery_03()
         {
             string source = @"
@@ -35211,8 +35211,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
-        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
         public void GetEnclosingBinderInternalRecovery_04()
         {
             string source = @"
@@ -35242,8 +35242,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
-        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
         public void GetEnclosingBinderInternalRecovery_05()
         {
             string source = @"
@@ -35281,8 +35281,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
-        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
         public void GetEnclosingBinderInternalRecovery_06()
         {
             string source = @"
@@ -35314,8 +35314,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
-        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
         public void GetEnclosingBinderInternalRecovery_07()
         {
             string source = @"
@@ -35350,8 +35350,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
-        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
         public void GetEnclosingBinderInternalRecovery_08()
         {
             string source = @"
@@ -35389,8 +35389,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
-        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
         public void GetEnclosingBinderInternalRecovery_09()
         {
             string source = @"
@@ -35419,8 +35419,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
-        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
         public void GetEnclosingBinderInternalRecovery_10()
         {
             string source = @"
@@ -35456,7 +35456,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(445600, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=445600")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=445600")]
         public void GetEnclosingBinderInternalRecovery_11()
         {
             var text = @"
@@ -35503,7 +35503,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(17208, "https://github.com/dotnet/roslyn/issues/17208")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17208")]
         public void ErrorRecoveryShouldIgnoreNonDelegates()
         {
             var source =
@@ -35530,7 +35530,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(17208, "https://github.com/dotnet/roslyn/issues/17208")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17208")]
         public void ErrorRecoveryShouldIgnoreNonDelegates_Expression()
         {
             var source =
@@ -35558,7 +35558,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(17208, "https://github.com/dotnet/roslyn/issues/17208")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17208")]
         public void ErrorRecoveryShouldIgnoreNonDelegates_Query()
         {
             var source =
@@ -35582,7 +35582,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(388744, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=388744")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=388744")]
         public void SpeculativeSemanticModelWithOutDiscard()
         {
             var source =
@@ -35613,8 +35613,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(10604, "https://github.com/dotnet/roslyn/issues/10604")]
-        [WorkItem(16306, "https://github.com/dotnet/roslyn/issues/16306")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10604")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16306")]
         public void GetForEachSymbolInfoWithOutVar()
         {
             var source =
@@ -35642,7 +35642,7 @@ public class C
                 info.GetEnumeratorMethod.ToTestDisplayString());
         }
 
-        [WorkItem(19382, "https://github.com/dotnet/roslyn/issues/19382")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19382")]
         [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void DiscardAndArgList()
         {
@@ -35680,7 +35680,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(23378, "https://github.com/dotnet/roslyn/issues/23378")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23378")]
         public void OutVarInArgList_01()
         {
             var text = @"
@@ -35721,7 +35721,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(23378, "https://github.com/dotnet/roslyn/issues/23378")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23378")]
         public void OutVarInArgList_02()
         {
             var text = @"
@@ -36238,7 +36238,7 @@ public class C : System.Collections.Generic.List<int>
         }
 
         [Fact]
-        [WorkItem(49997, "https://github.com/dotnet/roslyn/issues/49997")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49997")]
         public void Issue49997()
         {
             var text = @"
@@ -36266,7 +36266,7 @@ static class Ext
         }
 
         [Fact]
-        [WorkItem(60801, "https://github.com/dotnet/roslyn/issues/60801")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/60801")]
         public void GetSymbolInfoOnSpeculativeMethodBodySemanticModelInAttribute_01()
         {
             var source = @"
@@ -36315,7 +36315,7 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
-        [WorkItem(60801, "https://github.com/dotnet/roslyn/issues/60801")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/60801")]
         public void GetSymbolInfoOnSpeculativeMethodBodySemanticModelInAttribute_02()
         {
             var source = @"
@@ -36359,7 +36359,7 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
-        [WorkItem(60801, "https://github.com/dotnet/roslyn/issues/60801")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/60801")]
         public void GetSymbolInfoOnSpeculativeMethodBodySemanticModelInDefaultParameterValue_01()
         {
             var source = @"
@@ -36403,7 +36403,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(60801, "https://github.com/dotnet/roslyn/issues/60801")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/60801")]
         public void GetSymbolInfoOnSpeculativeMethodBodySemanticModelInDefaultParameterValue_02()
         {
             var source = @"

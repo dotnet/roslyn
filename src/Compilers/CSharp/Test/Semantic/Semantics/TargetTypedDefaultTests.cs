@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     [CompilerTrait(CompilerFeature.DefaultLiteral)]
     public class DefaultLiteralTests : CompilingTestBase
     {
-        [Fact, WorkItem(30384, "https://github.com/dotnet/roslyn/issues/30384")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30384")]
         public void TestCSharp7()
         {
             string source = @"
@@ -51,7 +51,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(19013, "https://github.com/dotnet/roslyn/issues/19013")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19013")]
         public void TestCSharp7Cascade()
         {
             string source = @"
@@ -120,7 +120,7 @@ internal static class Extensions
                 "null(System.String) null(System.String) 0(System.Int32) (, )(System.ValueTuple`2[System.String,System.String]) (, )(System.ValueTuple`2[System.String,System.String]) null(System.String) null(System.String) ");
         }
 
-        [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18609")]
         public void AssignmentToInt()
         {
             string source = @"
@@ -220,7 +220,7 @@ public class CustomAttribute : System.Attribute
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18609")]
         public void InStringInterpolation()
         {
             string source = @"
@@ -257,7 +257,7 @@ class C
             Assert.Null(model.GetSymbolInfo(nullSyntax).Symbol);
         }
 
-        [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18609")]
         public void InRawStringInterpolation()
         {
             string source = @"
@@ -294,8 +294,8 @@ class C
             Assert.Null(model.GetSymbolInfo(nullSyntax).Symbol);
         }
 
-        [Fact, WorkItem(35684, "https://github.com/dotnet/roslyn/issues/35684")]
-        [WorkItem(40791, "https://github.com/dotnet/roslyn/issues/40791")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35684")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40791")]
         public void ComparisonWithGenericType_Unconstrained()
         {
             string source = @"
@@ -336,7 +336,7 @@ class C
             Assert.Equal(Conversion.Identity, model.GetConversion(default2));
         }
 
-        [Fact, WorkItem(40791, "https://github.com/dotnet/roslyn/issues/40791")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40791")]
         public void ComparisonWithGenericType_Unconstrained_Inequality()
         {
             string source = @"
@@ -364,7 +364,7 @@ class C
         /// <summary>
         /// <seealso cref="BuiltInOperators.IsValidObjectEquality"/>
         /// </summary>
-        [Fact, WorkItem(40791, "https://github.com/dotnet/roslyn/issues/40791")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40791")]
         public void ComparisonWithGenericType_VariousConstraints()
         {
             string source = @"
@@ -439,8 +439,8 @@ public class Derived : C2<int?>
                 );
         }
 
-        [Fact, WorkItem(38643, "https://github.com/dotnet/roslyn/issues/38643")]
-        [WorkItem(40791, "https://github.com/dotnet/roslyn/issues/40791")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38643")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40791")]
         public void ComparisonWithGenericType_ValueType()
         {
             string source = @"
@@ -465,7 +465,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(38643, "https://github.com/dotnet/roslyn/issues/38643")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38643")]
         public void ComparisonWithGenericType_ReferenceType()
         {
             string source = @"
@@ -489,7 +489,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "FalseFalse TrueTrue FalseFalse");
         }
 
-        [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18609")]
         public void InUsing()
         {
             string source = @"
@@ -718,7 +718,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18609")]
         public void BadAssignment()
         {
             string source = @"
@@ -2062,7 +2062,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "NullReferenceException");
         }
 
-        [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18609")]
         public void NegationUnaryOperatorOnDefault()
         {
             string source = @"
@@ -3489,7 +3489,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "null");
         }
 
-        [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18609")]
         public void ExplicitCast()
         {
             string source = @"
@@ -3552,7 +3552,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18609")]
         public void DefaultNullableParameter()
         {
             var text = @"

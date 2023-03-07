@@ -322,7 +322,7 @@ world.";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(306, "https://github.com/dotnet/roslyn/issues/306"), WorkItem(308, "https://github.com/dotnet/roslyn/issues/308")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/306"), WorkItem("https://github.com/dotnet/roslyn/issues/308")]
         public void DynamicInterpolation()
         {
             string source =
@@ -617,7 +617,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(1119878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119878")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119878")]
         public void NoFillIns01()
         {
             string source =
@@ -952,7 +952,7 @@ class Program {
                 );
         }
 
-        [WorkItem(1097388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097388")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097388")]
         [Fact]
         public void InterpolationExpressionMustBeValue01()
         {
@@ -1011,7 +1011,7 @@ class Program {
                 );
         }
 
-        [WorkItem(1097428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097428")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097428")]
         [Fact]
         public void BadCorelib01()
         {
@@ -1042,7 +1042,7 @@ class Program {
             );
         }
 
-        [WorkItem(1097428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097428")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097428")]
         [Fact]
         public void BadCorelib02()
         {
@@ -1132,7 +1132,7 @@ class Program {
 }");
         }
 
-        [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57750")]
 #if NETCOREAPP
         [InlineData(TargetFramework.Net60)]
         [InlineData(TargetFramework.Net50)]
@@ -1239,7 +1239,7 @@ class App{
             }
         }
 
-        [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57750")]
 #if NETCOREAPP
         [InlineData(TargetFramework.Net60)]
         [InlineData(TargetFramework.Net50)]
@@ -1342,7 +1342,7 @@ class App{
             }
         }
 
-        [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57750")]
 #if NETCOREAPP
         [InlineData(TargetFramework.Net60)]
         [InlineData(TargetFramework.Net50)]
@@ -1398,7 +1398,7 @@ class App{
 }");
         }
 
-        [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57750")]
 #if NETCOREAPP
         [InlineData(TargetFramework.Net60)]
         [InlineData(TargetFramework.Net50)]
@@ -1450,7 +1450,7 @@ class App{
 }");
         }
 
-        [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
         [Fact]
         public void Syntax01()
         {
@@ -1474,7 +1474,7 @@ class Program
                 );
         }
 
-        [WorkItem(1097941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097941")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097941")]
         [Fact]
         public void Syntax02()
         {
@@ -1491,7 +1491,7 @@ class C
             Assert.True(SyntaxFactory.ParseSyntaxTree(text).GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error));
         }
 
-        [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
         [Fact]
         public void Syntax03()
         {
@@ -1516,7 +1516,7 @@ class Program
                 );
         }
 
-        [WorkItem(1099105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099105")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099105")]
         [Fact]
         public void NoUnexpandedForm()
         {
@@ -1538,7 +1538,7 @@ class Program {
 -System.String[]-");
         }
 
-        [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
         [Fact]
         public void Dynamic01()
         {
@@ -1561,7 +1561,7 @@ class Program {
                 );
         }
 
-        [WorkItem(1099238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099238")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099238")]
         [Fact]
         public void Syntax04()
         {
@@ -1587,7 +1587,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(1098612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098612")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098612")]
         public void MissingConversionFromFormattableStringToIFormattable()
         {
             var text =
@@ -1623,7 +1623,7 @@ static class C
                 );
         }
 
-        [Theory, WorkItem(54702, "https://github.com/dotnet/roslyn/issues/54702")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/54702")]
         [InlineData(@"$""{s1}{s2}""", @"$""{s1}{s2}{s3}""", @"$""{s1}{s2}{s3}{s4}""", @"$""{s1}{s2}{s3}{s4}{s5}""")]
         [InlineData(@"$""{s1}"" + $""{s2}""", @"$""{s1}"" + $""{s2}"" + $""{s3}""", @"$""{s1}"" + $""{s2}"" + $""{s3}"" + $""{s4}""", @"$""{s1}"" + $""{s2}"" + $""{s3}"" + $""{s4}"" + $""{s5}""")]
         public void InterpolatedStringHandler_ConcatPreferencesForAllStringElements(string twoComponents, string threeComponents, string fourComponents, string fiveComponents)
@@ -3097,7 +3097,7 @@ value:2");
 ");
         }
 
-        [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/55609")]
         [InlineData(@"$""base{hole}""")]
         [InlineData(@"$""base"" + $""{hole}""")]
         public void DynamicInHoles_UsesFormat(string expression)
@@ -3149,7 +3149,7 @@ Console.WriteLine(" + expression + @");
 ");
         }
 
-        [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/55609")]
         [InlineData(@"$""{hole}base""")]
         [InlineData(@"$""{hole}"" + $""base""")]
         public void DynamicInHoles_UsesFormat2(string expression)
@@ -4186,7 +4186,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [Fact, WorkItem(58346, "https://github.com/dotnet/roslyn/issues/58346")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58346")]
         public void UserDefinedConversion_AsFromTypeOfConversion_01()
         {
             var code = @"
@@ -4227,7 +4227,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 ");
         }
 
-        [Fact, WorkItem(58346, "https://github.com/dotnet/roslyn/issues/58346")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58346")]
         public void UserDefinedConversion_AsFromTypeOfConversion_02()
         {
             var code = @"
@@ -4268,7 +4268,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 ");
         }
 
-        [Fact, WorkItem(58346, "https://github.com/dotnet/roslyn/issues/58346")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58346")]
         public void UserDefinedConversion_AsFromTypeOfConversion_03()
         {
             var code = @"
@@ -4838,7 +4838,7 @@ literal:Literal");
 ");
         }
 
-        [Theory, WorkItem(55345, "https://github.com/dotnet/roslyn/issues/55345")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/55345")]
         [InlineData(@"$""{1,2:f}Literal""")]
         [InlineData(@"$""{1,2:f}"" + $""Literal""")]
         public void HandlerConversionPreferredOverStringForNonConstant(string expression)
@@ -7194,7 +7194,7 @@ class C
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [Fact, WorkItem(58025, "https://github.com/dotnet/roslyn/issues/58025")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58025")]
         public void InterpolatedStringHandlerArgumentAttributeError_NullConstant_02()
         {
             var code = @"
@@ -9705,7 +9705,7 @@ public partial struct CustomHandler
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(56624, "https://github.com/dotnet/roslyn/issues/56624")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/56624")]
         public void RefOrOutParameter_AsReceiver([CombinatorialValues("ref", "out")] string parameterRefness, [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression)
         {
             var code = @"
@@ -9869,7 +9869,7 @@ s1.I:1
 s2.I:2");
         }
 
-        [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58514")]
         public void StructReceiver_Rvalue_ObjectCreationReceiver_01()
         {
             var code = @"
@@ -9970,7 +9970,7 @@ StructLogger#1:
 ");
         }
 
-        [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58514")]
         public void StructReceiver_Rvalue_ObjectCreationReceiver_02()
         {
             var code = @"
@@ -10119,7 +10119,7 @@ StructLogger#2:
 ");
         }
 
-        [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58514")]
         public void StructArgument_Rvalue_ObjectCreationArgument_01()
         {
             var code = @"
@@ -10218,7 +10218,7 @@ StructLogger#1:
 ");
         }
 
-        [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58514")]
         public void StructArgument_Rvalue_ObjectCreationArgument_02()
         {
             var code = @"
@@ -10316,7 +10316,7 @@ StructLogger#1:
 }");
         }
 
-        [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58514")]
         public void StructArgument_Rvalue_ObjectCreationArgument_03()
         {
             var code = @"
@@ -10370,7 +10370,7 @@ internal ref struct DummyHandler
             );
         }
 
-        [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58514")]
         public void ReferenceReceiver_Rvalue_ObjectCreationReceiver_01()
         {
             var code = @"
@@ -10469,7 +10469,7 @@ ClassLogger#1:
 ");
         }
 
-        [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58514")]
         public void ReferenceArgument_Rvalue_ObjectCreationArgument_01()
         {
             var code = @"
@@ -10568,7 +10568,7 @@ ClassLogger#1:
 ");
         }
 
-        [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58514")]
         public void ReferenceArgument_Rvalue_ObjectCreationArgument_02()
         {
             var code = @"
@@ -10666,7 +10666,7 @@ ClassLogger#1:
 }");
         }
 
-        [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58514")]
         public void ReferenceArgument_Rvalue_ObjectCreationArgument_03()
         {
             var code = @"
@@ -10765,7 +10765,7 @@ public partial struct CustomHandler
         }
 
         [Fact]
-        [WorkItem(65470, "https://github.com/dotnet/roslyn/issues/65470")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/65470")]
         public void StructReceiver_Lvalue_02()
         {
             var code = @"
@@ -13153,7 +13153,7 @@ Expression<Func<CustomHandler>> expr = () => " + expression + @";
             );
         }
 
-        [Fact, WorkItem(55114, "https://github.com/dotnet/roslyn/issues/55114")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55114")]
         public void AsStringInExpressionTrees_01()
         {
             var code = @"
@@ -13213,7 +13213,7 @@ Expression<Func<string, string>> e = o => $""{o.Length}"";";
 ");
         }
 
-        [Fact, WorkItem(55114, "https://github.com/dotnet/roslyn/issues/55114")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55114")]
         public void AsStringInExpressionTrees_02()
         {
             var code = @"
@@ -13272,7 +13272,7 @@ Expression e = (string o) => $""{o.Length}"";";
 ");
         }
 
-        [Fact, WorkItem(55114, "https://github.com/dotnet/roslyn/issues/55114")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55114")]
         public void AsStringInExpressionTrees_03()
         {
             var code = @"
@@ -13334,7 +13334,7 @@ Expression<Func<Func<string, string>>> e = () => o => $""{o.Length}"";";
 ");
         }
 
-        [Fact, WorkItem(55114, "https://github.com/dotnet/roslyn/issues/55114")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55114")]
         public void AsStringInExpressionTrees_04()
         {
             var code = @"
@@ -13396,7 +13396,7 @@ Expression e = Func<string, string> () => (string o) => $""{o.Length}"";";
 ");
         }
 
-        [Fact, WorkItem(55114, "https://github.com/dotnet/roslyn/issues/55114")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55114")]
         public void AsStringInExpressionTrees_05()
         {
             var code = @"
@@ -13605,7 +13605,7 @@ public partial class CustomHandler
             };
         }
 
-        [Fact, WorkItem(1370647, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1370647")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1370647")]
         public void AsFormattableString()
         {
             var code = @"
@@ -13627,7 +13627,7 @@ void M(System.FormattableString s)
                 );
         }
 
-        [Fact, WorkItem(1370647, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1370647")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1370647")]
         public void AsIFormattable()
         {
             var code = @"
@@ -14261,7 +14261,7 @@ public ref struct CustomHandler
         }
 
         // As above but with scoped parameter in AppendFormatted().
-        [WorkItem(63262, "https://github.com/dotnet/roslyn/issues/63262")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63262")]
         [Theory]
         [InlineData(@"$""{s}""")]
         [InlineData(@"$""{s}"" + $""""")]
@@ -14674,7 +14674,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref S)", "s").WithLocation(17, 18));
         }
 
-        [WorkItem(63262, "https://github.com/dotnet/roslyn/issues/63262")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63262")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -14717,7 +14717,7 @@ class Program
         }
 
         // As above but with scoped parameter in AppendFormatted().
-        [WorkItem(63262, "https://github.com/dotnet/roslyn/issues/63262")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63262")]
         [Fact]
         public void RefEscape_11B()
         {
@@ -14751,7 +14751,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(63262, "https://github.com/dotnet/roslyn/issues/63262")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63262")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -14797,7 +14797,7 @@ class Program
         }
 
         // As above but with scoped parameter in AppendFormatted().
-        [WorkItem(63262, "https://github.com/dotnet/roslyn/issues/63262")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63262")]
         [Fact]
         public void RefEscape_12B()
         {
@@ -14841,7 +14841,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "h3").WithArguments("h3").WithLocation(29, 16));
         }
 
-        [WorkItem(63306, "https://github.com/dotnet/roslyn/issues/63306")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63306")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -15078,7 +15078,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref R)", "r").WithLocation(18, 28));
         }
 
-        [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/54703")]
         [InlineData(@"$""{{ {i} }}""")]
         [InlineData(@"$""{{ "" + $""{i}"" + $"" }}""")]
         public void BracesAreEscaped_01(string expression)
@@ -15123,7 +15123,7 @@ value:1
 ");
         }
 
-        [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/54703")]
         [InlineData(@"$""{{ {i} }}""")]
         [InlineData(@"$""{{ "" + $""{i}"" + $"" }}""")]
         public void BracesAreEscaped_02(string expression)
@@ -16236,7 +16236,7 @@ format:
 ");
         }
 
-        [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/55609")]
         [InlineData(@"$""{h1}{h2}""")]
         [InlineData(@"$""{h1}"" + $""{h2}""")]
         public void RefStructHandler_DynamicInHole(string expression)
@@ -17250,7 +17250,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello + {other}""").WithArguments("interpolated strings", "6").WithLocation(7, 16));
         }
 
-        [Fact, WorkItem(1566008, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1566008")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1566008")]
         public void InterpolatedStringInForeach_HasErrors()
         {
             var text = """

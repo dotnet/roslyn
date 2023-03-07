@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     /// </summary>
     public class FuzzTests : CompilingTestBase
     {
-        [Fact, WorkItem(16167, "https://github.com/dotnet/roslyn/issues/16167")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16167")]
         public void CompileXmlAsSource()
         {
             var text = @"

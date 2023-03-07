@@ -1136,7 +1136,7 @@ class C2
         }
 
         [Fact]
-        [WorkItem(32728, "https://github.com/dotnet/roslyn/issues/32728")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32728")]
         public void UsingPatternWithLangVer7_3()
         {
             var source = @"
@@ -1166,7 +1166,7 @@ class C2
         }
 
         [Fact]
-        [WorkItem(32728, "https://github.com/dotnet/roslyn/issues/32728")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32728")]
         public void UsingInvalidPatternWithLangVer7_3()
         {
             var source = @"
@@ -1700,7 +1700,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "t0").WithArguments("T0").WithLocation(16, 16));
         }
 
-        [WorkItem(543168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543168")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543168")]
         [Fact]
         public void EmbeddedDeclaration()
         {
@@ -1719,7 +1719,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = new object();"));
         }
 
-        [WorkItem(529547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529547")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529547")]
         [Fact]
         public void UnusedLocal()
         {
@@ -1752,7 +1752,7 @@ public class Test
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(545331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545331")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545331")]
         [Fact]
         public void MissingIDisposable()
         {
@@ -1806,7 +1806,7 @@ class C
                 );
         }
 
-        [WorkItem(9581, "https://github.com/dotnet/roslyn/issues/9581")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/9581")]
         [Fact]
         public void TestCyclicInference()
         {

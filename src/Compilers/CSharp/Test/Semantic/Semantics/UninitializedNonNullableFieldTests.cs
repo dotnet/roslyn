@@ -222,7 +222,7 @@ struct S
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(29849, "https://github.com/dotnet/roslyn/issues/29849")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29849")]
         public void UnconstrainedGenericType()
         {
             var source =
@@ -391,7 +391,7 @@ struct S
         }
 
         [Fact]
-        [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34668")]
         public void StaticFields_DefaultConstructor_NoInitializer_Field()
         {
             var source =
@@ -408,7 +408,7 @@ struct S
         }
 
         [Fact]
-        [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34668")]
         public void StaticFields_DefaultConstructor_NoInitializer_Property()
         {
             var source =
@@ -424,7 +424,7 @@ struct S
         }
 
         [Fact]
-        [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34668")]
         public void StaticFields_DefaultConstructor_NoInitializer_Event()
         {
             var source =
@@ -442,7 +442,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34668")]
         public void StaticFields_DefaultConstructor()
         {
             var source =
@@ -475,7 +475,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34668")]
         public void StaticFields_ExplicitConstructor()
         {
             var source =
@@ -639,8 +639,8 @@ class C<T>
         }
 
         [Fact]
-        [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
-        [WorkItem(37511, "https://github.com/dotnet/roslyn/issues/37511")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34668")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37511")]
         public void StaticFields_GenericTypes()
         {
             var source =
@@ -677,7 +677,7 @@ class C<T, U, V>
         }
 
         [Fact]
-        [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34668")]
         public void StaticEvents()
         {
             var source =
@@ -707,7 +707,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34668")]
         public void StaticFields_NotAllPaths()
         {
             var source =
@@ -924,7 +924,7 @@ struct S1
 ");
         }
 
-        [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48574")]
         public void StructConstructorInitializer_UninitializedField()
         {
             var source = @"
@@ -959,7 +959,7 @@ public struct S1
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "field").WithLocation(13, 12));
         }
 
-        [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48574")]
         public void StructConstructorInitializer_NestedUninitializedField()
         {
             var source = @"
@@ -987,7 +987,7 @@ public struct S2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1").WithLocation(10, 9));
         }
 
-        [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48574")]
         public void StructConstructorInitializer_InitializedFieldViaParameterlessConstructor()
         {
             var source = @"
@@ -1028,7 +1028,7 @@ struct S1
 ");
         }
 
-        [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48574")]
         public void StructConstructorInitializer_UninitializedFieldWithParameterlessConstructor()
         {
             var source = @"
@@ -1095,7 +1095,7 @@ struct S1
 ");
         }
 
-        [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48574")]
         public void StructConstructorInitializer_InitializedFieldViaInitializer()
         {
             var source = @"
@@ -1172,7 +1172,7 @@ struct S1
 ");
         }
 
-        [Fact, WorkItem(43215, "https://github.com/dotnet/roslyn/issues/43215")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43215")]
         public void FieldInitializer_CallWithOutParam()
         {
             var source = @"
@@ -1325,7 +1325,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(37511, "https://github.com/dotnet/roslyn/issues/37511")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37511")]
         public void GenericType()
         {
             var source =
@@ -1407,8 +1407,8 @@ class C<T>
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(29065, "https://github.com/dotnet/roslyn/issues/29065")]
-        [WorkItem(30021, "https://github.com/dotnet/roslyn/issues/30021")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29065")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30021")]
         [Fact]
         public void GenericType_NonNullTypes()
         {
@@ -1848,7 +1848,7 @@ class C5<T, U> where T : A where U : T
         }
 
         [Fact]
-        [WorkItem(30022, "https://github.com/dotnet/roslyn/issues/30022")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30022")]
         public void StructAssignThis()
         {
             var source =
@@ -2086,7 +2086,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(25529, "https://github.com/dotnet/roslyn/issues/25529")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25529")]
         public void UnassignedNonNullFieldsUnreachable()
         {
             var comp = CreateCompilation(@"
@@ -2141,8 +2141,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(43523, "https://github.com/dotnet/roslyn/issues/43523")]
-        [WorkItem(44046, "https://github.com/dotnet/roslyn/issues/44046")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43523")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44046")]
         public void IndirectInitialization_WithAssertsOrThrows()
         {
             var source = @"
@@ -2194,7 +2194,7 @@ class C3
         }
 
         [Fact]
-        [WorkItem(41110, "https://github.com/dotnet/roslyn/issues/41110")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/41110")]
         public void TrackMemberStateAcrossInitializers()
         {
             var source = @"
@@ -2218,7 +2218,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(44180, "https://github.com/dotnet/roslyn/issues/44180")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44180")]
         public void MemberNotNull_PropertiesFields()
         {
             var source = @"
@@ -2246,7 +2246,7 @@ class Field
         }
 
         [Fact]
-        [WorkItem(41296, "https://github.com/dotnet/roslyn/issues/41296")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/41296")]
         public void InitializeInTryAndInCatch()
         {
             var source = @"
@@ -2277,7 +2277,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(44212, "https://github.com/dotnet/roslyn/issues/44212")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44212")]
         public void InitializeUsingNullCoalescingAssignment()
         {
             var source = @"
@@ -2443,7 +2443,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(46121, "https://github.com/dotnet/roslyn/issues/46121")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46121")]
         public void StaticInitializers_MultipleFiles_01()
         {
             var source1 = @"
@@ -2476,7 +2476,7 @@ partial class C
         }
 
         [Fact]
-        [WorkItem(46121, "https://github.com/dotnet/roslyn/issues/46121")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46121")]
         public void StaticInitializers_MultipleFiles_02()
         {
             var source1 = @"
@@ -2610,7 +2610,7 @@ public partial class Class1
         }
 
         [Fact]
-        [WorkItem(1090263, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/1090263")]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/1090263")]
         public void PropertyNoGetter()
         {
             var comp = CreateCompilation(@"
@@ -2728,7 +2728,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(58073, "https://github.com/dotnet/roslyn/issues/58073")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58073")]
         public void DiagnosticAdditionalLocations_SquiggleConstructor()
         {
             var source =
@@ -2751,7 +2751,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(58073, "https://github.com/dotnet/roslyn/issues/58073")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58073")]
         public void DiagnosticAdditionalLocations_SquiggleProperty()
         {
             var source =
@@ -2773,7 +2773,7 @@ public class C
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(66037, "https://github.com/dotnet/roslyn/issues/66037")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66037")]
         public void TestAdditionalLocationOnCompilerDiagnostic(bool warnAsError)
         {
             var options = WithNullableEnable();

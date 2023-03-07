@@ -1077,7 +1077,7 @@ unsafe class Program
         }
 
         // As above with 'out _' instead of 'out var _'.
-        [WorkItem(65651, "https://github.com/dotnet/roslyn/issues/65651")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/65651")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -1132,7 +1132,7 @@ unsafe class Program
         }
 
         // ReturnsSpan() returns ref Span<int>, callers return Span<int> by value.
-        [WorkItem(65651, "https://github.com/dotnet/roslyn/issues/65651")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/65651")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -1184,7 +1184,7 @@ unsafe class Program
         }
 
         // ReturnsSpan() and callers return Span<int> by value.
-        [WorkItem(65651, "https://github.com/dotnet/roslyn/issues/65651")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/65651")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -1582,7 +1582,7 @@ static class Extensions
             comp.VerifyEmitDiagnostics();
         }
 
-        [WorkItem(65522, "https://github.com/dotnet/roslyn/issues/65522")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/65522")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -3438,7 +3438,7 @@ unsafe class Program
                 );
         }
 
-        [WorkItem(21831, "https://github.com/dotnet/roslyn/issues/21831")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21831")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -3493,7 +3493,7 @@ unsafe class Program
                 );
         }
 
-        [WorkItem(21858, "https://github.com/dotnet/roslyn/issues/21858")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21858")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -3544,7 +3544,7 @@ unsafe class Program
                 );
         }
 
-        [WorkItem(21880, "https://github.com/dotnet/roslyn/issues/21880")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21880")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -3618,7 +3618,7 @@ unsafe class Program
             }
         }
 
-        [WorkItem(21911, "https://github.com/dotnet/roslyn/issues/21911")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21911")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -3664,7 +3664,7 @@ unsafe class Program
                 );
         }
 
-        [WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35146")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -3688,7 +3688,7 @@ public readonly ref struct S<T>
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35146")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -3712,7 +3712,7 @@ public ref struct S<T>
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35146")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -3762,7 +3762,7 @@ public readonly ref struct S<T>
 ");
         }
 
-        [WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35146")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -3812,7 +3812,7 @@ public ref struct S<T>
 ");
         }
 
-        [WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35146")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -3862,7 +3862,7 @@ public ref struct S<T>
 ");
         }
 
-        [WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35146")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -3891,7 +3891,7 @@ public ref struct S<T>
                 Diagnostic(ErrorCode.WRN_EscapeVariable, "x").WithArguments("x").WithLocation(13, 18));
         }
 
-        [WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35146")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -3949,7 +3949,7 @@ public ref struct S<T>
 ");
         }
 
-        [WorkItem(22197, "https://github.com/dotnet/roslyn/issues/22197")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22197")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -3997,7 +3997,7 @@ public ref struct S<T>
             );
         }
 
-        [WorkItem(22197, "https://github.com/dotnet/roslyn/issues/22197")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22197")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -4036,7 +4036,7 @@ public ref struct S<T>
 ");
         }
 
-        [WorkItem(65522, "https://github.com/dotnet/roslyn/issues/65522")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/65522")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -4800,7 +4800,7 @@ public {refModifier} ref struct S
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "local2").WithArguments("local2").WithLocation(11, 18));
         }
 
-        [WorkItem(22361, "https://github.com/dotnet/roslyn/issues/22361")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22361")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -4860,7 +4860,7 @@ public ref struct S
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
         }
 
-        [WorkItem(22456, "https://github.com/dotnet/roslyn/issues/22456")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22456")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -4903,7 +4903,7 @@ public class C
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
         }
 
-        [WorkItem(24776, "https://github.com/dotnet/roslyn/issues/24776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24776")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -4932,7 +4932,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "TestStruct").WithArguments("TestStruct").WithLocation(8, 36));
         }
 
-        [WorkItem(24776, "https://github.com/dotnet/roslyn/issues/24776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24776")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -4958,7 +4958,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "TestStruct").WithArguments("TestStruct").WithLocation(8, 36));
         }
 
-        [WorkItem(25398, "https://github.com/dotnet/roslyn/issues/25398")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25398")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -5000,7 +5000,7 @@ class C
                 );
         }
 
-        [WorkItem(25398, "https://github.com/dotnet/roslyn/issues/25398")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25398")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -5027,7 +5027,7 @@ class C
                 );
         }
 
-        [WorkItem(25398, "https://github.com/dotnet/roslyn/issues/25398")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25398")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -5054,7 +5054,7 @@ class C
                 );
         }
 
-        [WorkItem(25398, "https://github.com/dotnet/roslyn/issues/25398")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25398")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -5083,7 +5083,7 @@ class C
                 );
         }
 
-        [WorkItem(25485, "https://github.com/dotnet/roslyn/issues/25485")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25485")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -5107,7 +5107,7 @@ public struct Thing
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "Span<Thing>").WithArguments("System.Span<Thing>").WithLocation(5, 21));
         }
 
-        [WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/26457")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -5137,7 +5137,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(8, 9));
         }
 
-        [WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/26457")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -5164,7 +5164,7 @@ struct Test
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(8, 9));
         }
 
-        [WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/26457")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -5191,7 +5191,7 @@ readonly struct Test
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(8, 9));
         }
 
-        [WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/26457")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -5220,7 +5220,7 @@ ref struct Test
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(8, 9));
         }
 
-        [WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/26457")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -5247,7 +5247,7 @@ readonly ref struct Test
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(8, 9));
         }
 
-        [WorkItem(29927, "https://github.com/dotnet/roslyn/issues/29927")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29927")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -5264,7 +5264,7 @@ class C
 }", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseDll).VerifyDiagnostics();
         }
 
-        [WorkItem(29927, "https://github.com/dotnet/roslyn/issues/29927")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29927")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -5282,7 +5282,7 @@ class C
 }", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseDll).VerifyDiagnostics();
         }
 
-        [WorkItem(29927, "https://github.com/dotnet/roslyn/issues/29927")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29927")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -5304,7 +5304,7 @@ class C
                 );
         }
 
-        [WorkItem(62973, "https://github.com/dotnet/roslyn/issues/62973")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/62973")]
         [Fact]
         public void RegressionTest62973()
         {
@@ -5362,7 +5362,7 @@ class D
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseDll).VerifyDiagnostics();
         }
 
-        [WorkItem(63384, "https://github.com/dotnet/roslyn/issues/63384")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63384")]
         [Theory]
         [InlineData("nuint")]
         [InlineData("nint")]
@@ -5380,7 +5380,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(63446, "https://github.com/dotnet/roslyn/issues/63446")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63446")]
         public void RefDiscardAssignment()
         {
             var source = @"
@@ -5420,7 +5420,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_01()
         {
             var source =
@@ -5499,7 +5499,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_02()
         {
             var source =
@@ -5566,7 +5566,7 @@ struct Wrap
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_03()
         {
             var source =
@@ -5611,7 +5611,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_04()
         {
             var source =
@@ -5656,7 +5656,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_05()
         {
             var source =
@@ -5708,7 +5708,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_06()
         {
             var source =
@@ -5755,7 +5755,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_07()
         {
             var source =
@@ -5802,7 +5802,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_08()
         {
             var source =
@@ -5854,7 +5854,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_09()
         {
             var source =
@@ -5895,7 +5895,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_10()
         {
             var source =
@@ -5945,7 +5945,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_11()
         {
             var source =
@@ -5991,7 +5991,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_12()
         {
             var source =
@@ -6029,7 +6029,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_13()
         {
             var source =
@@ -6088,7 +6088,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_14()
         {
             var source =
@@ -6148,7 +6148,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_15()
         {
             var source =
@@ -6201,7 +6201,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_16()
         {
             var source =
@@ -6254,7 +6254,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_17()
         {
             var source =
@@ -6335,7 +6335,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_18()
         {
             var source =
@@ -6391,7 +6391,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_19()
         {
             var source =
@@ -6447,7 +6447,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_20()
         {
             var source =
@@ -6520,7 +6520,7 @@ public struct Vec4
         }
 
         [Fact]
-        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64776")]
         public void DefensiveCopy_21()
         {
             var source =
@@ -6989,7 +6989,7 @@ public struct Vec4
                 );
         }
 
-        [Fact, WorkItem(64783, "https://github.com/dotnet/roslyn/issues/64783")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64783")]
         public void OutArgumentsDoNotContributeValEscape_01()
         {
             var source = """
@@ -7031,7 +7031,7 @@ public struct Vec4
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(56587, "https://github.com/dotnet/roslyn/issues/56587")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56587")]
         public void OutArgumentsDoNotContributeValEscape_02()
         {
             // Test that out discard arguments are not treated as inputs.

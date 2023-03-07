@@ -366,7 +366,7 @@ delegate int Del(int x);
             }
         }
 
-        [Fact, WorkItem(45460, "https://github.com/dotnet/roslyn/issues/45460")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45460")]
         public void TestConstantConditional()
         {
             var source = @"
@@ -417,7 +417,7 @@ public class Program {
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(46231, "https://github.com/dotnet/roslyn/issues/46231")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46231")]
         public void TestFixedConditional()
         {
             var source = @"
@@ -461,7 +461,7 @@ public class Program {
         [InlineData("long", "System.Int64", "System.Int64")]
         [InlineData("byte", "System.Int32", "System.Byte")]
         [InlineData("ushort", "System.Int32", "System.UInt16")]
-        [WorkItem(49598, "https://github.com/dotnet/roslyn/issues/49598")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49598")]
         public void IntType_01(string sourceType, string resultType1, string resultType2)
         {
             var source =
@@ -494,7 +494,7 @@ $@"{resultType1}: 1
         [Theory]
         [InlineData("uint")]
         [InlineData("ulong")]
-        [WorkItem(49598, "https://github.com/dotnet/roslyn/issues/49598")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49598")]
         public void IntType_02(string sourceType)
         {
             var source =
@@ -527,7 +527,7 @@ $@"class Program
         }
 
         [Fact]
-        [WorkItem(49598, "https://github.com/dotnet/roslyn/issues/49598")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49598")]
         public void IntType_03()
         {
             var source =
@@ -558,7 +558,7 @@ System.Char: A";
         }
 
         [Fact]
-        [WorkItem(49598, "https://github.com/dotnet/roslyn/issues/49598")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49598")]
         public void IntType_04()
         {
             var source =
@@ -589,7 +589,7 @@ System.Int32: 65";
         }
 
         [Fact]
-        [WorkItem(49627, "https://github.com/dotnet/roslyn/issues/49627")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49627")]
         public void UserDefinedConversions_01()
         {
             var source =
@@ -615,7 +615,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(49627, "https://github.com/dotnet/roslyn/issues/49627")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49627")]
         public void UserDefinedConversions_02()
         {
             var source =

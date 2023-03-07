@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class NullableSemanticTests : SemanticModelTestBase
     {
-        [Fact, WorkItem(651624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651624")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651624")]
         public void NestedNullableWithAttemptedConversion()
         {
             var src =
@@ -44,7 +44,7 @@ class C {
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == y").WithArguments("==", "int??", "int?"));
         }
 
-        [Fact, WorkItem(544152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544152")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544152")]
         public void TestBug12347()
         {
             string source = @"
@@ -79,7 +79,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("System.Nullable<T>", "T", "string").WithLocation(8, 14));
         }
 
-        [Fact, WorkItem(544152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544152")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544152")]
         public void TestBug12347_CSharp8()
         {
             string source = @"
@@ -104,7 +104,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(529269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529269")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529269")]
         public void TestLiftedIncrementOperatorBreakingChanges01()
         {
             // The native compiler not only *allows* this to compile, it lowers to:
@@ -146,7 +146,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(543954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543954")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543954")]
         public void TestLiftedIncrementOperatorBreakingChanges02()
         {
             // Now here we have a case where the compilation *should* succeed, and does, but 
@@ -213,7 +213,7 @@ class C
             verifier = CompileAndVerify(source: source3, expectedOutput: "1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
         }
 
-        [Fact, WorkItem(543954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543954")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543954")]
         public void TestLiftedIncrementOperatorBreakingChanges03()
         {
             // Let's in fact verify that this works correctly for all possible conversions to built-in types:
@@ -1655,7 +1655,7 @@ class C
 
         #region "Regression"
 
-        [Fact, WorkItem(543837, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543837")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543837")]
         public void Test11827()
         {
             string source2 = @"
@@ -1671,7 +1671,7 @@ class Program
             var verifier = CompileAndVerify(source: source2, expectedOutput: "0");
         }
 
-        [Fact, WorkItem(544001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544001")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544001")]
         public void NullableUsedInUsingStatement()
         {
             string source = @"
@@ -1697,7 +1697,7 @@ struct S : IDisposable
             CompileAndVerify(source: source, expectedOutput: @"S123");
         }
 
-        [Fact, WorkItem(544002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544002")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544002")]
         public void NullableUserDefinedUnary02()
         {
             string source = @"
@@ -1737,7 +1737,7 @@ struct S
             CompileAndVerify(source: source, expectedOutput: @"10203040-10-20-30-40");
         }
 
-        [Fact, WorkItem(544005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544005")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544005")]
         public void NoNullableValueFromOptionalParam()
         {
             string source = @"
@@ -1769,7 +1769,7 @@ class Test
             var verifier = CompileAndVerify(source, expectedOutput: expected);
         }
 
-        [Fact, WorkItem(544006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544006")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544006")]
         public void ConflictImportedMethodWithNullableOptionalParam()
         {
             string source = @"
@@ -1817,7 +1817,7 @@ public class Test
             CompileAndVerify(comp, expectedOutput: @"0");
         }
 
-        [Fact, WorkItem(544258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544258")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544258")]
         public void BindDelegateToObjectMethods()
         {
             string source = @"
@@ -1836,7 +1836,7 @@ public class Test
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(544909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544909")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544909")]
         public void OperationOnEnumNullable()
         {
             string source = @"
@@ -1873,7 +1873,7 @@ public class NullableTest
             CompileAndVerify(source, expectedOutput: "tfffttt");
         }
 
-        [Fact, WorkItem(544583, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544583")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544583")]
         public void ShortCircuitOperatorsOnNullable()
         {
             string source = @"
@@ -2033,7 +2033,7 @@ ttttfnnnn";
             CompileAndVerify(source, expectedOutput: expected);
         }
 
-        [Fact, WorkItem(529530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529530"), WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529530"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void NullableEnumMinusNull()
         {
             var source = @"
@@ -2073,7 +2073,7 @@ public struct S
             CompileAndVerify(source, expectedOutput: "False");
         }
 
-        [Fact, WorkItem(545166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")]
         public void Op_ExplicitImplicitOnNullable()
         {
             var source = @"

@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 );
         }
 
-        [WorkItem(545408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545408")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545408")]
         [Fact]
         public void TestDelegateCovarianceConversions()
         {
@@ -321,7 +321,7 @@ D");
 }");
         }
 
-        [WorkItem(545408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545408")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545408")]
         [Fact]
         public void TestDelegateContravarianceConversions()
         {
@@ -422,7 +422,7 @@ class Program
 }");
         }
 
-        [WorkItem(545408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545408")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545408")]
         [Fact]
         public void TestInterfaceCovarianceConversions()
         {
@@ -521,7 +521,7 @@ class Program
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
-        [WorkItem(545408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545408")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545408")]
         [Fact]
         public void TestInterfaceContravarianceConversions()
         {
@@ -976,7 +976,7 @@ class Program
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
-        [WorkItem(545408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545408")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545408")]
         [Fact]
         public void TestVarianceConversions()
         {
@@ -1190,7 +1190,7 @@ System.Collections.Generic.List`1[System.Int32]
 ");
         }
 
-        [WorkItem(528424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528424")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528424")]
         [Fact()]
         public void TestErrorOperand()
         {
@@ -1280,7 +1280,7 @@ interface I<in T, out U> {{ }}";
             }
         }
 
-        [Fact, WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4028")]
         public void ConditionalAccessToEvent_01()
         {
             string source = @"
@@ -1330,7 +1330,7 @@ System.Action
             Assert.Null(model.GetSymbolInfo(access).Symbol);
         }
 
-        [Fact, WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4028")]
         public void ConditionalAccessToEvent_02()
         {
             string source = @"
@@ -1387,7 +1387,7 @@ Target
             Assert.Null(model.GetSymbolInfo(access).Symbol);
         }
 
-        [Fact, WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4028")]
         public void ConditionalAccessToEvent_03()
         {
             string source = @"
@@ -1431,7 +1431,7 @@ class TestClass
             Assert.Null(model.GetSymbolInfo(access).Symbol);
         }
 
-        [Fact(), WorkItem(4615, "https://github.com/dotnet/roslyn/issues/4615")]
+        [Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/4615")]
         public void ConditionalAndConditionalMethods()
         {
             string source = @"
@@ -1495,7 +1495,7 @@ Test
             CompileAndVerify(compilation, expectedOutput: "---");
         }
 
-        [Fact, WorkItem(1198816, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
         public void DefiniteAssignment_UnconvertedConditionalOperator()
         {
             var source =

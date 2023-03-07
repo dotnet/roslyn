@@ -225,7 +225,7 @@ System.Console.Write(""complete"");",
 
         }
 
-        [WorkItem(543890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543890")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543890")]
         [Fact]
         public void ThisIndexerAccessInScript()
         {
@@ -254,7 +254,7 @@ this[1]
             Assert.Equal(0, summary.MethodGroup.Length);
         }
 
-        [WorkItem(540875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540875")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540875")]
         [Fact]
         public void MainInScript2()
         {
@@ -277,7 +277,7 @@ this[1]
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(540875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540875")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540875")]
         [Fact]
         public void MainInScript1()
         {
@@ -500,7 +500,7 @@ WriteLine(""hello"");
             Assert.Equal("void System.Console.WriteLine(System.String value)", info.Symbol.ToTestDisplayString());
         }
 
-        [WorkItem(3817, "https://github.com/dotnet/roslyn/issues/3817")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3817")]
         [Fact]
         public void LabelLookup()
         {
@@ -542,7 +542,7 @@ object y = x;";
             Assert.Same(symbol0, symbol1);
         }
 
-        [WorkItem(543890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543890")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543890")]
         [Fact]
         public void ThisIndexerAccessInSubmission()
         {
@@ -574,8 +574,8 @@ this[1]
         /// <summary>
         /// LookupSymbols should not include the submission class.
         /// </summary>
-        [WorkItem(530986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530986")]
-        [WorkItem(1010871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010871")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530986")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010871")]
         [Fact]
         public void LookupSymbols()
         {
@@ -616,7 +616,7 @@ this[1]
             submission.VerifyDiagnostics();
         }
 
-        [WorkItem(543370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543370")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543370")]
         [Fact]
         public void CheckedDecimalAddition()
         {
@@ -628,7 +628,7 @@ decimal d = checked(2M + 1M);
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(543370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543370")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543370")]
         [Fact]
         public void CheckedEnumAddition()
         {
@@ -641,7 +641,7 @@ FileAccess fa = checked(FileAccess.Read + 1);
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(543370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543370")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543370")]
         [Fact]
         public void DelegateAddition()
         {
@@ -653,7 +653,7 @@ a += null;
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(870885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/870885")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/870885")]
         [Fact]
         public void Bug870885()
         {
@@ -666,7 +666,7 @@ a += null;
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "o").WithArguments("o"));
         }
 
-        [WorkItem(949595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949595")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949595")]
         [Fact]
         public void GlobalAttributes()
         {
@@ -874,7 +874,7 @@ class D
             Assert.Throws<InvalidOperationException>(() => CreateSubmission("a + 1", previous: s0));
         }
 
-        [WorkItem(3795, "https://github.com/dotnet/roslyn/issues/3795")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3795")]
         [Fact]
         public void ErrorInUsing()
         {
@@ -958,7 +958,7 @@ static int Baz = w;
                 );
         }
 
-        [WorkItem(550, "https://github.com/dotnet/roslyn/issues/550")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/550")]
         [Fact]
         public void ERR_VariableUsedBeforeDeclaration_02()
         {
@@ -983,7 +983,7 @@ void F()
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "c").WithArguments("c").WithLocation(5, 16));
         }
 
-        [WorkItem(550, "https://github.com/dotnet/roslyn/issues/550")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/550")]
         [Fact]
         public void ERR_UseDefViolation()
         {
@@ -1025,7 +1025,7 @@ System.TypedReference c;
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference"));
         }
 
-        [WorkItem(529387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529387")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529387")]
         [Fact]
         public void IsVariable_PreviousSubmission()
         {
@@ -1049,7 +1049,7 @@ System.TypedReference c;
                 Diagnostic(ErrorCode.ERR_FixedNeeded, "&x").WithLocation(1, 1));
         }
 
-        [WorkItem(530404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530404")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530404")]
         [Fact]
         public void DiagnosticsPass()
         {
@@ -1062,7 +1062,7 @@ System.TypedReference c;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null").WithLocation(1, 65));
         }
 
-        [WorkItem(527850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527850")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527850")]
         [Fact]
         public void ArithmeticOperators_MultiplicationExpression()
         {
@@ -1077,9 +1077,9 @@ System.TypedReference c;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "i* i"));
         }
 
-        [WorkItem(527850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527850")]
-        [WorkItem(522569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522569")]
-        [WorkItem(4737, "https://github.com/dotnet/roslyn/issues/4737")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527850")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522569")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4737")]
         [Fact(Skip = "4737")]
         public void TopLevelLabel()
         {
@@ -1090,7 +1090,7 @@ goto Label;");
             s0.VerifyDiagnostics();
         }
 
-        [WorkItem(541210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541210")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541210")]
         [Fact]
         public void TopLevelGoto()
         {
@@ -1101,7 +1101,7 @@ goto Label;");
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "Object").WithArguments("Object"));
         }
 
-        [WorkItem(541166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541166")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541166")]
         [Fact]
         public void DefineExtensionMethods()
         {
@@ -1125,7 +1125,7 @@ goto Label;");
         }
 
         [Fact]
-        [WorkItem(13590, "https://github.com/dotnet/roslyn/issues/13590")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13590")]
         public void FixedBuffer_01()
         {
             string source =
@@ -1145,7 +1145,7 @@ goto Label;");
         }
 
         [Fact]
-        [WorkItem(13590, "https://github.com/dotnet/roslyn/issues/13590")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13590")]
         public void FixedBuffer_02()
         {
             string source =
@@ -1171,8 +1171,8 @@ goto Label;");
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44418")]
-        [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
-        [WorkItem(44418, "https://github.com/dotnet/roslyn/issues/44418")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10023")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44418")]
         public void Errors_01()
         {
             var code = "System.Console.WriteLine(1);";
@@ -1260,8 +1260,8 @@ goto Label;");
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44418")]
-        [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
-        [WorkItem(44418, "https://github.com/dotnet/roslyn/issues/44418")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10023")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44418")]
         public void Errors_02()
         {
             var compilationUnit = CSharp.SyntaxFactory.ParseCompilationUnit("\nSystem.Console.WriteLine(1);", options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
@@ -1298,8 +1298,8 @@ goto Label;");
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44418")]
-        [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
-        [WorkItem(44418, "https://github.com/dotnet/roslyn/issues/44418")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10023")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44418")]
         public void Errors_03()
         {
             var code = "System.Console.WriteLine(out var x, x);";
@@ -1365,7 +1365,7 @@ goto Label;");
         }
 
         [Fact]
-        [WorkItem(17779, "https://github.com/dotnet/roslyn/issues/17779")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17779")]
         public void TestScriptWithConstVar()
         {
             var script = CreateEmptyCompilation(

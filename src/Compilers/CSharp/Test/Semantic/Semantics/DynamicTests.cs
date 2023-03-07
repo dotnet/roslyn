@@ -342,7 +342,7 @@ class B<T> : A<dynamic>, I<object>
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(667053, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667053")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667053")]
         public void OverrideChangesTypeAndParameterNames()
         {
             string source = @"
@@ -371,7 +371,7 @@ class Program
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(667053, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667053")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667053")]
         public void OverrideChangesTypeGeneric()
         {
             string source = @"
@@ -845,7 +845,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(624322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624322")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624322")]
         public void BinaryOps_VoidArgument()
         {
             string source = @"
@@ -982,7 +982,7 @@ public class C
             TestOperatorKinds(source);
         }
 
-        [Fact, WorkItem(27800, "https://github.com/dotnet/roslyn/issues/27800"), WorkItem(32068, "https://github.com/dotnet/roslyn/issues/32068")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27800"), WorkItem("https://github.com/dotnet/roslyn/issues/32068")]
         public void TestDynamicCompoundOperatorOrdering()
         {
             CompileAndVerify(@"
@@ -1538,7 +1538,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(608628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608628")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608628")]
         public void MoreSpecificType()
         {
             string source = @"
@@ -1641,7 +1641,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref"));
         }
 
-        [Fact, WorkItem(624410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624410")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624410")]
         public void CompileTimeChecking_Elision3()
         {
             string source = @"
@@ -1681,7 +1681,7 @@ public class C
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(627101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627101")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627101")]
         public void CompileTimeChecking_MethodConstraints_Elided1()
         {
             string source = @"
@@ -1703,7 +1703,7 @@ class C
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(624684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624684")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624684")]
         public void CompileTimeChecking_MethodConstraints_Elided2()
         {
             string source = @"
@@ -1727,7 +1727,7 @@ class Program
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(624684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624684")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624684")]
         public void CompileTimeChecking_MethodConstraints_Explicit2()
         {
             string source = @"
@@ -1800,7 +1800,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(598621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598621")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598621")]
         public void DynamicOverloadApplicability_ExplicitTypeArguments_ApplicabilitySucceeds_FinalValidationFails()
         {
             string source = @"
@@ -2035,7 +2035,7 @@ public class Derived : Base<List<dynamic>, List<object>>
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(633857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633857")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633857")]
         public void Erasure_InterfaceSet()
         {
             string source = @"
@@ -2739,7 +2739,7 @@ class C : List<int>
             TestTypes(source);
         }
 
-        [Fact, WorkItem(578404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578404")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578404")]
         public void ExpressionTrees()
         {
             string source = @"
@@ -2865,7 +2865,7 @@ class C : List<int>
                 );
         }
 
-        [Fact, WorkItem(578401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578401")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578401")]
         public void ExpressionTrees_ByRefDynamic()
         {
             string source = @"
@@ -2927,7 +2927,7 @@ class C : List<int>
         }
 
         [Fact]
-        [WorkItem(18320, "https://github.com/dotnet/roslyn/issues/18320")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18320")]
         public void TestMissingMicrosoftCSharpDllReference()
         {
             string source = @"
@@ -3420,7 +3420,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(693741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/693741")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/693741")]
         public void DynamicAndNull()
         {
             var source = @"
@@ -3520,7 +3520,7 @@ class C
 
         #endregion
 
-        [Fact, WorkItem(922611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922611"), WorkItem(56, "CodePlex")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922611"), WorkItem(56, "CodePlex")]
         public void Bug922611_01()
         {
             string source = @"
@@ -3551,7 +3551,7 @@ class Test
             Assert.Equal("void Test.Goo<dynamic>(System.Collections.Generic.IEnumerable<dynamic> source, System.Action<dynamic> action)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(922611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922611"), WorkItem(56, "CodePlex")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922611"), WorkItem(56, "CodePlex")]
         public void Bug922611_02()
         {
             string source = @"
@@ -3584,7 +3584,7 @@ class Test
             Assert.Equal("void Test.Goo<dynamic>(System.Action<dynamic> action, System.Collections.Generic.IEnumerable<dynamic> source)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(875140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
         public void Bug875140_01()
         {
             string source = @"
@@ -3612,7 +3612,7 @@ class Program
             Assert.Equal("System.Object Program.Goo<System.Object>(System.Action<System.Object, System.Object> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(875140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
         public void Bug875140_02()
         {
             string source = @"
@@ -3640,7 +3640,7 @@ class Program
             Assert.Equal("System.Object Program.Goo<System.Object>(System.Action<System.Object, System.Object> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(875140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
         public void Bug875140_03()
         {
             string source = @"
@@ -3665,7 +3665,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(875140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
         public void Bug875140_04()
         {
             string source = @"
@@ -3691,7 +3691,7 @@ class Program
             Assert.Equal("dynamic Program.Goo<dynamic>(System.Func<dynamic, dynamic> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(1149588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1149588")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1149588")]
         public void AccessPropertyWithoutArguments()
         {
             string source1 = @"
@@ -3736,7 +3736,7 @@ class Test
             CompileAndVerify(compilation2, expectedOutput: @"4");
         }
 
-        [Fact, WorkItem(9945, "https://github.com/dotnet/roslyn/issues/9945")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9945")]
         public void DynamicGetOnlyProperty()
         {
             string source = @"
@@ -3763,7 +3763,7 @@ class Program
             );
         }
 
-        [Fact, WorkItem(9945, "https://github.com/dotnet/roslyn/issues/9945")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9945")]
         public void DynamicGetOnlyPropertyIndexer()
         {
             string source = @"
@@ -3854,7 +3854,7 @@ class Program
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        [WorkItem(204561, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
         public void SuppressDynamicIndexerAccessOffOfType_01()
         {
             var iLSource = @"
@@ -3992,7 +3992,7 @@ class Test
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        [WorkItem(204561, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
         public void SuppressDynamicIndexerAccessOffOfType_02()
         {
             var iLSource = @"
@@ -4108,7 +4108,7 @@ class Test
                 );
         }
 
-        [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22813")]
         [Fact]
         public void InArgumentDynamic()
         {
@@ -4133,7 +4133,7 @@ class C
                 );
         }
 
-        [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22813")]
         [Fact]
         public void InArgumentDynamic2()
         {
@@ -4161,7 +4161,7 @@ class C
                 );
         }
 
-        [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22813")]
         [Fact]
         public void InArgumentDynamicLocalFunction()
         {
@@ -4210,7 +4210,7 @@ class C
                 );
         }
 
-        [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22813")]
         [Fact]
         public void InArgumentDynamicCtor()
         {
@@ -4240,7 +4240,7 @@ class C
                 );
         }
 
-        [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22813")]
         [Fact]
         public void InArgumentDynamicIndexer()
         {

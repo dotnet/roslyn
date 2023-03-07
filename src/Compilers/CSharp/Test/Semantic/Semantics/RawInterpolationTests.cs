@@ -372,7 +372,7 @@ world.";
         CompileAndVerify(source, expectedOutput: expectedOutput);
     }
 
-    [Fact, WorkItem(306, "https://github.com/dotnet/roslyn/issues/306"), WorkItem(308, "https://github.com/dotnet/roslyn/issues/308")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/306"), WorkItem("https://github.com/dotnet/roslyn/issues/308")]
     public void DynamicInterpolation()
     {
         string source =
@@ -632,7 +632,7 @@ class Program
         CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
     }
 
-    [Fact, WorkItem(1119878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119878")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119878")]
     public void NoFillIns01()
     {
         string source =
@@ -964,7 +964,7 @@ class Program {
             Diagnostic(ErrorCode.WRN_AlignmentMagnitude, "int.MinValue").WithArguments("-2147483648", "32767").WithLocation(10, 43));
     }
 
-    [WorkItem(1097388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097388")]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097388")]
     [Fact]
     public void InterpolationExpressionMustBeValue01()
     {
@@ -1009,7 +1009,7 @@ class Program {
             Diagnostic(ErrorCode.ERR_NoImplicitConv, "Program.Main(null)").WithArguments("void", "object").WithLocation(7, 37));
     }
 
-    [WorkItem(1097428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097428")]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097428")]
     [Fact]
     public void BadCorelib01()
     {
@@ -1039,7 +1039,7 @@ class Program {
             Diagnostic(ErrorCode.ERR_NoSuchMember, @"$""""""X = { 1 } """"""").WithArguments("string", "Format").WithLocation(15, 21));
     }
 
-    [WorkItem(1097428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097428")]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097428")]
     [Fact]
     public void BadCorelib02()
     {
@@ -1128,7 +1128,7 @@ class Program {
 }");
     }
 
-    [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
     [Fact]
     public void Syntax01()
     {
@@ -1146,7 +1146,7 @@ class Program
         CreateCompilation(text).VerifyDiagnostics();
     }
 
-    [WorkItem(1097941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097941")]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097941")]
     [Fact]
     public void Syntax02()
     {
@@ -1163,7 +1163,7 @@ class C
         Assert.True(SyntaxFactory.ParseSyntaxTree(text).GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error));
     }
 
-    [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
     [Fact]
     public void Syntax03()
     {
@@ -1187,7 +1187,7 @@ class Program
             Diagnostic(ErrorCode.ERR_TooManyCloseBracesForRawString, "}").WithLocation(6, 43));
     }
 
-    [WorkItem(1099105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099105")]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099105")]
     [Fact]
     public void NoUnexpandedForm()
     {
@@ -1209,7 +1209,7 @@ class Program {
 -System.String[]-");
     }
 
-    [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
     [Fact]
     public void Dynamic01()
     {
@@ -1231,7 +1231,7 @@ class Program {
             Diagnostic(ErrorCode.ERR_ConstantExpected, "a").WithLocation(4, 23));
     }
 
-    [WorkItem(1099238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099238")]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099238")]
     [Fact]
     public void Syntax04()
     {
@@ -1250,7 +1250,7 @@ class Program
         CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics();
     }
 
-    [Fact, WorkItem(1098612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098612")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098612")]
     public void MissingConversionFromFormattableStringToIFormattable()
     {
         var text =
@@ -1325,7 +1325,7 @@ class C
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""""""hello + {other}""""""").WithArguments("interpolated strings", "6").WithLocation(7, 16));
     }
 
-    [Fact, WorkItem(61355, "https://github.com/dotnet/roslyn/issues/61355")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61355")]
     public void StringFormatLowering1()
     {
         string source =

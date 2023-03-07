@@ -1141,7 +1141,7 @@ class C
                 "System.TypeCode System.Enum.GetTypeCode()",
             };
 
-        [Fact, WorkItem(545556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545556")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545556")]
         public void TestAssortedMembers()
         {
             var text = @"
@@ -1614,7 +1614,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540633")]
         [Fact]
         public void TestConstructorInitializers()
         {
@@ -1665,7 +1665,7 @@ class D : C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540888")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540888")]
         [Fact]
         public void TestLambdaInConstructorInitializer()
         {
@@ -1707,7 +1707,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540890")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540890")]
         [Fact]
         public void TestLambdaAtEof()
         {
@@ -1742,7 +1742,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540890")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540890")]
         [Fact]
         public void TestLambdaWithMissingBody()
         {
@@ -1780,7 +1780,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540890")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540890")]
         [Fact]
         public void TestIncompleteConstructorParameters1()
         {
@@ -1809,7 +1809,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540890")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540890")]
         [Fact]
         public void TestIncompleteConstructorParameters2()
         {
@@ -1839,7 +1839,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540890")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540890")]
         [Fact]
         public void TestIncompleteConstructorParameters3()
         {
@@ -1869,7 +1869,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540890")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540890")]
         [Fact]
         public void TestIncompleteConstructorParameters4()
         {
@@ -1899,7 +1899,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(542360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542360")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542360")]
         [Fact]
         public void TestMethodParameterAndTypeParameterScope()
         {
@@ -1937,7 +1937,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(16801, "https://github.com/dotnet/roslyn/issues/16801")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16801")]
         public void TestLocalFunctionParameterAndTypeParameterScope()
         {
             var text = @"
@@ -1978,7 +1978,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(529406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529406")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529406")]
         [Fact]
         public void TestLeftToRightDeclarators()
         {
@@ -2038,7 +2038,7 @@ unsafe class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(782871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782871")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782871")]
         [Fact]
         public void NestedForEachLoops()
         {
@@ -2083,7 +2083,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(782871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782871")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782871")]
         [Fact]
         public void NestedForEachLoops_Embedded()
         {
@@ -2123,7 +2123,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(782871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782871")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782871")]
         [Fact]
         public void NestedForLoops_Embedded()
         {
@@ -2164,7 +2164,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(782871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782871")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782871")]
         [Fact]
         public void NestedFixedStatements_Embedded()
         {
@@ -2205,7 +2205,7 @@ unsafe class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(782871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782871")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782871")]
         [Fact]
         public void NestedUsingStatements_Embedded()
         {
@@ -2302,8 +2302,8 @@ label1:
             AssertEx.SetEqual(new[] { "default", "case int i:", "label1" }, symbols.Select(s => s.ToTestDisplayString()));
         }
 
-        [WorkItem(586815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586815")]
-        [WorkItem(598371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598371")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586815")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598371")]
         [Fact]
         public void Cref()
         {

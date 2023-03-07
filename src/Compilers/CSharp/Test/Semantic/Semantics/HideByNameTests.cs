@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region Methods
 
-        [WorkItem(545796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545796")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545796")]
         [Fact]
         public void MethodOverloadResolutionHidesByNameStatic()
         {
@@ -751,7 +751,7 @@ public class C : B, I
 
         #endregion Indexers
 
-        [Fact, WorkItem(897971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897971")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897971")]
         public void LocalHideFieldByName()
         {
             CreateCompilation(@"

@@ -3119,7 +3119,7 @@ Unmanaged: 3");
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
-        [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25654")]
         public void UnmanagedConstraint_PointersTypeInference()
         {
             var compilation = CreateCompilation(@"
@@ -3146,7 +3146,7 @@ class C
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
-        [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25654")]
         public void UnmanagedConstraint_PointersTypeInference_CallFromADifferentMethod()
         {
             var compilation = CreateCompilation(@"
@@ -3176,7 +3176,7 @@ class C
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
-        [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25654")]
         public void UnmanagedConstraint_PointersTypeInference_WithOtherArgs()
         {
             var compilation = CreateCompilation(@"
@@ -3202,7 +3202,7 @@ unsafe class C
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
-        [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25654")]
         public void UnmanagedConstraint_PointersTypeInference_WithOtherArgs_CallFromADifferentMethod()
         {
             var compilation = CreateCompilation(@"
@@ -3231,7 +3231,7 @@ unsafe class C
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
-        [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25654")]
         public void UnmanagedConstraint_PointersTypeInference_Errors()
         {
             CreateCompilation(@"
@@ -3780,7 +3780,7 @@ public unsafe struct MyStruct<T> where T : unmanaged
                 .VerifyIL("MyStruct<T>.Test", il);
         }
 
-        [Fact, WorkItem(31439, "https://github.com/dotnet/roslyn/issues/31439")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31439")]
         public void CircularTypeArgumentUnmanagedConstraint()
         {
             var code = @"
@@ -3978,7 +3978,7 @@ public unsafe struct OtherStruct
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(32103, "https://github.com/dotnet/roslyn/issues/32103")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32103")]
         public void StructContainingTuple_Unmanaged_RequiresCSharp8()
         {
             var code = @"
@@ -4011,7 +4011,7 @@ public class C
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(32103, "https://github.com/dotnet/roslyn/issues/32103")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32103")]
         public void StructContainingGenericTuple_Unmanaged()
         {
             var code = @"
@@ -4163,7 +4163,7 @@ public class MyClass
                 );
         }
 
-        [Fact, WorkItem(45141, "https://github.com/dotnet/roslyn/issues/45141")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45141")]
         public void CannotCombineDiagnostics()
         {
             var comp = CreateCompilation(@"
@@ -4227,7 +4227,7 @@ class C3<T1> where T1 : class, class
             );
         }
 
-        [Fact, WorkItem(45141, "https://github.com/dotnet/roslyn/issues/45141")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45141")]
         public void CannotCombineDiagnostics_InheritedClassStruct()
         {
             var comp = CreateCompilation(@"

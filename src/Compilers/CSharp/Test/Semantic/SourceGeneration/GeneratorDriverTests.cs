@@ -1280,7 +1280,7 @@ class C { }
             }
         }
 
-        [Fact, WorkItem(66337, "https://github.com/dotnet/roslyn/issues/66337")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66337")]
         public void Diagnostics_Respect_SuppressMessageAttribute()
         {
             var gen001 = CSDiagnostic.Create("GEN001", "generators", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 2);
@@ -2246,7 +2246,7 @@ class C { }
             Assert.Throws<ArgumentNullException>(() => driver.WithUpdatedParseOptions(null!));
         }
 
-        [Fact, WorkItem(57455, "https://github.com/dotnet/roslyn/issues/57455")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57455")]
         public void RemoveTriggeringSyntaxAndVerifySyntaxTreeConsistentWithCompilation()
         {
             var source = @"
@@ -2934,7 +2934,7 @@ class C { }
         }
 
         [ConditionalFact(typeof(NoIOperationValidation))]
-        [WorkItem(59190, "https://github.com/dotnet/roslyn/issues/59190")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/59190")]
         public void LongBinaryExpression()
         {
             var source = @"
@@ -2972,7 +2972,7 @@ public static readonly string F = ""a""
         }
 
         [Fact]
-        [WorkItem(59209, "https://github.com/dotnet/roslyn/issues/59209")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/59209")]
         public void Binary_Additional_Files_Do_Not_Throw_When_Compared()
         {
             var source = "class C{}";
@@ -3005,7 +3005,7 @@ public static readonly string F = ""a""
         }
 
         [Fact]
-        [WorkItem(58625, "https://github.com/dotnet/roslyn/issues/58625")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58625")]
         public void Incremental_Generators_Can_Recover_From_Exceptions()
         {
             var source = "class C{}";

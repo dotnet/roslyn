@@ -788,7 +788,7 @@ unsafe class C
 }");
         }
 
-        [WorkItem(528783, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528783")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528783")]
         [Fact]
         public void TestNamedAndOptionalParametersArgumentName()
         {
@@ -820,7 +820,7 @@ namespace NS
             Assert.Equal("ss", symInfo.Symbol.Name);
         }
 
-        [WorkItem(542418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542418")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542418")]
         [Fact]
         public void OptionalValueInvokesInstanceMethod()
         {
@@ -855,7 +855,7 @@ namespace NS
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2()").WithArguments("value").WithLocation(5, 37));
         }
 
-        [WorkItem(11638, "https://github.com/dotnet/roslyn/issues/11638")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11638")]
         [Fact]
         public void OptionalValueHasObjectInitializer()
         {
@@ -876,8 +876,8 @@ public struct Vector3
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new Vector3() { X = 1f, Y = 1f, Z = 1f}").WithArguments("vector").WithLocation(3, 39));
         }
 
-        [WorkItem(542411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542411")]
-        [WorkItem(542365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542365")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542411")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542365")]
         [Fact]
         public void GenericOptionalParameters()
         {
@@ -889,7 +889,7 @@ public struct Vector3
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(542458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542458")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542458")]
         [Fact]
         public void OptionalValueTypeFromReferencedAssembly()
         {
@@ -937,7 +937,7 @@ public class D
             CompileWithCustomILSource(source, ilSource);
         }
 
-        [WorkItem(542867, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542867")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542867")]
         [Fact]
         public void OptionalParameterDeclaredWithAttributes()
         {
@@ -991,7 +991,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "0");
         }
 
-        [WorkItem(543871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543871")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543871")]
         [Fact]
         public void RefParameterDeclaredWithOptionalAttribute()
         {
@@ -1016,7 +1016,7 @@ public class Parent
  Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("x", "Parent.Goo(ref int)"));
         }
 
-        [Fact, WorkItem(544491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544491")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544491")]
         public void EnumAsDefaultParameterValue()
         {
             string source = @"
@@ -1212,7 +1212,7 @@ public static class ErrorCases
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"));
         }
 
-        [WorkItem(544440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544440")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544440")]
         [ConditionalFact(typeof(DesktopOnly))]
         public void TestBug12768()
         {
@@ -1392,7 +1392,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "M3()").WithArguments("System.Type", "Missing").WithLocation(17, 9));
         }
 
-        [WorkItem(545329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545329")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545329")]
         [Fact()]
         public void ComOptionalRefParameter()
         {
@@ -1430,7 +1430,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "D.M(ref object)").WithLocation(25, 11));
         }
 
-        [WorkItem(545337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545337")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545337")]
         [ClrOnlyFact]
         public void TestVbDecimalAndDateTimeDefaultParameters()
         {
@@ -1574,7 +1574,7 @@ True";
             verifier.VerifyIL("D.Main", il);
         }
 
-        [WorkItem(545337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545337")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545337")]
         [Fact]
         public void TestCSharpDecimalAndDateTimeDefaultParameters()
         {
@@ -1966,7 +1966,7 @@ F1()
         }
 
         [Fact]
-        [WorkItem(546713, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546713")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546713")]
         public void Test16631()
         {
             var source =
@@ -2022,7 +2022,7 @@ public class D : B
         }
 
         [Fact]
-        [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
         public void IsOptionalVsHasDefaultValue_PrimitiveStruct()
         {
             var source = @"
@@ -2104,7 +2104,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
         public void IsOptionalVsHasDefaultValue_UserDefinedStruct()
         {
             var source = @"
@@ -2155,7 +2155,7 @@ public struct S
         }
 
         [Fact]
-        [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
         public void IsOptionalVsHasDefaultValue_String()
         {
             var source = @"
@@ -2237,7 +2237,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
         public void IsOptionalVsHasDefaultValue_Decimal()
         {
             var source = @"
@@ -2320,7 +2320,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
         public void IsOptionalVsHasDefaultValue_DateTime()
         {
             var source = @"
@@ -2488,7 +2488,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "obj").WithArguments("obj", "object").WithLocation(8, 14));
         }
 
-        [Fact, WorkItem(59789, "https://github.com/dotnet/roslyn/issues/59789")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59789")]
         public void DefaultValue_NonNullConvertedString()
         {
             var source = @"

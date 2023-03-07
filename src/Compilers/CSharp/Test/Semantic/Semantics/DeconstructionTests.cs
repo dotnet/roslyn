@@ -925,7 +925,7 @@ IInvocationOperation (virtual System.String (System.Int32, System.String).ToStri
         }
 
         [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
-        [WorkItem(12283, "https://github.com/dotnet/roslyn/issues/12283")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12283")]
         public void RefReturningMethod2()
         {
             string source = @"
@@ -960,7 +960,7 @@ class C
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
-        [WorkItem(12283, "https://github.com/dotnet/roslyn/issues/12283")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12283")]
         public void RefReturningMethod2_IOperation()
         {
             string source = @"
@@ -3069,7 +3069,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
-        [WorkItem(12283, "https://github.com/dotnet/roslyn/issues/12283")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12283")]
         public void RefReturningVarInvocation()
         {
             string source = @"
@@ -3129,7 +3129,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12468"), CompilerTrait(CompilerFeature.RefLocalsReturns)]
-        [WorkItem(12468, "https://github.com/dotnet/roslyn/issues/12468")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12468")]
         public void RefReturningVarInvocation2()
         {
             string source = @"
@@ -3224,7 +3224,7 @@ class C
         }
 
         [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
-        [WorkItem(12283, "https://github.com/dotnet/roslyn/issues/12283")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12283")]
         public void RefReturningInvocation()
         {
             string source = @"
@@ -3799,7 +3799,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(13081, "https://github.com/dotnet/roslyn/issues/13081")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13081")]
         public void GettingDiagnosticsWhenValueTupleIsMissing()
         {
             var source = @"
@@ -3975,7 +3975,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(14287, "https://github.com/dotnet/roslyn/issues/14287")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14287")]
         public void TupleDeconstructionStatementWithTypesCannotBeConst()
         {
             string source = @"
@@ -4017,7 +4017,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact, WorkItem(14287, "https://github.com/dotnet/roslyn/issues/14287")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14287")]
         public void TupleDeconstructionStatementWithoutTypesCannotBeConst()
         {
             string source = @"
@@ -4065,7 +4065,7 @@ class C
             );
         }
 
-        [Fact, WorkItem(15934, "https://github.com/dotnet/roslyn/issues/15934")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15934")]
         public void PointerTypeInDeconstruction()
         {
             string source = @"
@@ -4184,7 +4184,7 @@ class Program
             Assert.Same(x2, model.GetSymbolInfo(refs.Where(r => r.Identifier.ValueText == "x2").Single()).Symbol);
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_01()
         {
             string source1 = @"
@@ -4325,7 +4325,7 @@ class C
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_02()
         {
             string source1 = @"
@@ -4456,7 +4456,7 @@ class C
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_03()
         {
             string source1 = @"
@@ -4590,7 +4590,7 @@ class C
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_04()
         {
             string source1 = @"
@@ -4624,7 +4624,7 @@ class C
             StandAlone_03_VerifySemanticModel(comp2);
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_05()
         {
             string source1 = @"
@@ -4703,7 +4703,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(23651, "https://github.com/dotnet/roslyn/issues/23651")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23651")]
         public void StandAlone_05_WithDuplicateNames()
         {
             string source1 = @"
@@ -4730,7 +4730,7 @@ class C
             Assert.True(aaType.TupleElementNames.IsDefault);
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_06()
         {
             string source1 = @"
@@ -4796,7 +4796,7 @@ using var = System.Int32;
             Assert.Equal("var=System.Int32", model.GetAliasInfo(declarations[1].Type).ToTestDisplayString());
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_07()
         {
             string source1 = @"
@@ -4877,7 +4877,7 @@ class C
             Assert.Equal("var=System.Int32", model.GetAliasInfo(declarations[1].Type).ToTestDisplayString());
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_08()
         {
             string source1 = @"
@@ -4901,7 +4901,7 @@ using var = System.Int32;
             StandAlone_07_VerifySemanticModel(comp2);
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_09()
         {
             string source1 = @"
@@ -4959,7 +4959,7 @@ class C
             Assert.Equal("al=System.Int32", model.GetAliasInfo(declaration.Type).ToTestDisplayString());
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_10()
         {
             string source1 = @"
@@ -5005,7 +5005,7 @@ using al = System.Int32;
             Assert.Equal("al=System.Int32", model.GetAliasInfo(declaration.Type).ToTestDisplayString());
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_11()
         {
             string source1 = @"
@@ -5066,7 +5066,7 @@ class C
             Assert.Equal("al=System.Int32", model.GetAliasInfo(declaration.Type).ToTestDisplayString());
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_12()
         {
             string source1 = @"
@@ -5090,7 +5090,7 @@ using al = System.Int32;
             StandAlone_11_VerifySemanticModel(comp2);
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_13()
         {
             string source1 = @"
@@ -5133,7 +5133,7 @@ class C
             Assert.False(tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_14()
         {
             string source1 = @"
@@ -5283,7 +5283,7 @@ class C
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_15()
         {
             string source1 = @"
@@ -5427,7 +5427,7 @@ class C
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_16()
         {
             string source1 = @"
@@ -5570,7 +5570,7 @@ class C
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_17()
         {
             string source1 = @"
@@ -5604,7 +5604,7 @@ class C
             StandAlone_16_VerifySemanticModel(comp2);
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_18()
         {
             string source1 = @"
@@ -5720,7 +5720,7 @@ class C
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_19()
         {
             string source1 = @"
@@ -5830,7 +5830,7 @@ class C
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_20()
         {
             string source1 = @"
@@ -5936,7 +5936,7 @@ class C
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
         }
 
-        [Fact, WorkItem(17572, "https://github.com/dotnet/roslyn/issues/17572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17572")]
         public void StandAlone_21()
         {
             string source1 = @"
@@ -5967,7 +5967,7 @@ class C
             StandAlone_20_VerifySemanticModel(comp2);
         }
 
-        [Fact, WorkItem(17921, "https://github.com/dotnet/roslyn/issues/17921")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17921")]
         public void DiscardVoid_01()
         {
             var source = @"class C
@@ -6007,7 +6007,7 @@ class C
             Assert.Equal(CandidateReason.None, symbols.CandidateReason);
         }
 
-        [Fact, WorkItem(17921, "https://github.com/dotnet/roslyn/issues/17921")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17921")]
         public void DeconstructVoid_01()
         {
             var source = @"class C
@@ -6050,7 +6050,7 @@ class C
             Assert.Equal(CandidateReason.None, symbols.CandidateReason);
         }
 
-        [Fact, WorkItem(17921, "https://github.com/dotnet/roslyn/issues/17921")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17921")]
         public void DeconstructVoid_02()
         {
             var source = @"class C
@@ -6090,7 +6090,7 @@ class C
             Assert.Equal(CandidateReason.None, symbols.CandidateReason);
         }
 
-        [Fact, WorkItem(17921, "https://github.com/dotnet/roslyn/issues/17921")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17921")]
         public void DeconstructVoid_03()
         {
             var source = @"class C
@@ -6132,7 +6132,7 @@ class C
             Assert.Equal(CandidateReason.None, symbols.CandidateReason);
         }
 
-        [Fact, WorkItem(17921, "https://github.com/dotnet/roslyn/issues/17921")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17921")]
         public void DeconstructVoid_04()
         {
             var source = @"class C
@@ -6267,7 +6267,7 @@ IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.
         }
 
         [Fact]
-        [WorkItem(46165, "https://github.com/dotnet/roslyn/issues/46165")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46165")]
         public void Issue46165_1()
         {
             var text = @"
@@ -6305,7 +6305,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(46165, "https://github.com/dotnet/roslyn/issues/46165")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46165")]
         public void Issue46165_2()
         {
             var text = @"
@@ -6331,7 +6331,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(46165, "https://github.com/dotnet/roslyn/issues/46165")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46165")]
         public void Issue46165_3()
         {
             var text = @"
@@ -6366,7 +6366,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(46165, "https://github.com/dotnet/roslyn/issues/46165")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46165")]
         public void Issue46165_4()
         {
             var text = @"
@@ -6453,7 +6453,7 @@ class C2
                 );
         }
 
-        [Fact, WorkItem(58472, "https://github.com/dotnet/roslyn/issues/58472")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58472")]
         public void DeconstructionIntoImplicitIndexers()
         {
             var source = @"
@@ -6539,7 +6539,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(61332, "https://github.com/dotnet/roslyn/issues/61332")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61332")]
         public void NestedNullableConversions()
         {
             var code = """

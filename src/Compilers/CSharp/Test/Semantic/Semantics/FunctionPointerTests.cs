@@ -511,7 +511,7 @@ unsafe class C
             }
         }
 
-        [Fact, WorkItem(57994, "https://github.com/dotnet/roslyn/issues/57994")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57994")]
         public void UserDefinedConversion_02()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -558,7 +558,7 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: delegate*<Syst
 ");
         }
 
-        [Fact, WorkItem(57994, "https://github.com/dotnet/roslyn/issues/57994")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57994")]
         public void UserDefinedConversion_03()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -605,7 +605,7 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: delegate*<Syst
 ");
         }
 
-        [Fact, WorkItem(57994, "https://github.com/dotnet/roslyn/issues/57994")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57994")]
         public void UserDefinedConversion_04()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -656,7 +656,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
 ");
         }
 
-        [Fact, WorkItem(57994, "https://github.com/dotnet/roslyn/issues/57994")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57994")]
         public void UserDefinedConversion_05()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -1858,7 +1858,7 @@ IInvocationOperation ( void C.M1<T>(delegate*<T, T> param)) (OperationKind.Invoc
 ");
         }
 
-        [Fact, WorkItem(51037, "https://github.com/dotnet/roslyn/issues/51037")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51037")]
         public void FunctionPointerGenericSubstitutionCustomModifiersTypesDefinedOnClass()
         {
             var il = @"
@@ -1910,7 +1910,7 @@ class D6 {}
                            m1.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(51037, "https://github.com/dotnet/roslyn/issues/51037")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51037")]
         public void FunctionPointerGenericSubstitutionCustomModifiersTypesDefinedOnMethod()
         {
             var il = @"
@@ -2584,7 +2584,7 @@ unsafe class C
             AssertEx.Equal(expectedTypes, invocationTypes);
         }
 
-        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50096")]
         public void FunctionPointerInferenceInParameter()
         {
             var verifier = CompileAndVerify(@"
@@ -2609,7 +2609,7 @@ unsafe
 ");
         }
 
-        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50096")]
         public void FunctionPointerInferenceInParameter_ImplicitReferenceConversionOnParameter()
         {
             var verifier = CompileAndVerify(@"
@@ -2634,7 +2634,7 @@ unsafe
 ");
         }
 
-        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50096")]
         public void FunctionPointerInferenceInReturn()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -2662,7 +2662,7 @@ unsafe
             );
         }
 
-        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50096")]
         public void FunctionPointerInference_ThroughMethodGroup()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -2695,7 +2695,7 @@ unsafe
             );
         }
 
-        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50096")]
         public void FunctionPointerInference_ThroughLambdaExpression()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -2727,7 +2727,7 @@ unsafe
             );
         }
 
-        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50096")]
         public void AddressOfInference_OnDelegateType()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -2761,7 +2761,7 @@ unsafe
             );
         }
 
-        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50096")]
         public void FunctionPointerInference_ExactInferenceThroughArray_CallingConventionMismatch()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -2794,7 +2794,7 @@ unsafe
             );
         }
 
-        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50096")]
         public void FunctionPointerInference_ExactInferenceThroughArray_RefKindMismatch()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -2827,7 +2827,7 @@ unsafe
             );
         }
 
-        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50096")]
         public void FunctionPointerInference_ExactInferenceThroughArray_RefKindMatch()
         {
             // ILVerify: Unexpected type on the stack. ImportCalli not implemented
@@ -2862,7 +2862,7 @@ unsafe
 ");
         }
 
-        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50096")]
         public void FunctionPointerInference_LowerBoundInference_CallingConventionMismatch()
         {
             var verifier = CreateCompilationWithFunctionPointers(@"
@@ -2886,7 +2886,7 @@ unsafe
             );
         }
 
-        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50096")]
         public void FunctionPointerInference_LowerBoundInference_RefKindMismatch()
         {
             var verifier = CreateCompilationWithFunctionPointers(@"
@@ -2919,7 +2919,7 @@ unsafe
             );
         }
 
-        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50096")]
         public void FunctionPointerInference_UpperBoundInference_CallingConventionMismatch()
         {
             var verifier = CreateCompilationWithFunctionPointers(@"
@@ -2943,7 +2943,7 @@ unsafe
             );
         }
 
-        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50096")]
         public void FunctionPointerInference_UpperBoundInference_RefKindMismatch()
         {
             var verifier = CreateCompilationWithFunctionPointers(@"
@@ -3923,7 +3923,7 @@ IBlockOperation (4 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
 ");
         }
 
-        [Fact, WorkItem(44953, "https://github.com/dotnet/roslyn/issues/44953")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44953")]
         public void StaticClassInFunctionPointer()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -3945,7 +3945,7 @@ unsafe static class C
             );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem(44953, "https://github.com/dotnet/roslyn/issues/44953")]
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/44953")]
         public void RestrictedTypeInFunctionPointer()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -3968,7 +3968,7 @@ unsafe static class C
             );
         }
 
-        [Fact, WorkItem(46688, "https://github.com/dotnet/roslyn/issues/46688")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46688")]
         public void NewAfterPtrDeclaration()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -3998,7 +3998,7 @@ unsafe class C
             );
         }
 
-        [Fact, WorkItem(48071, "https://github.com/dotnet/roslyn/issues/48071")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48071")]
         public void FunctionPointerCalledWithNamedArguments()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -4017,7 +4017,7 @@ public class C
             );
         }
 
-        [Fact, WorkItem(48071, "https://github.com/dotnet/roslyn/issues/48071")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48071")]
         public void FunctionPointerCalledWithNamedArguments2()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -4036,7 +4036,7 @@ public class C
             );
         }
 
-        [Fact, WorkItem(53973, "https://github.com/dotnet/roslyn/issues/53973")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53973")]
         public void FunctionPointerNullable()
         {
             var comp = CreateCompilationWithFunctionPointers(@"

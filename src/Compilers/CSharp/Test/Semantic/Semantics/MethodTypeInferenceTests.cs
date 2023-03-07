@@ -492,7 +492,7 @@ class C
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Apply").WithArguments("C.Apply<T>(C.F<T>)").WithLocation(8, 7));
         }
 
-        [Fact, WorkItem(578362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578362")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578362")]
         public void TypeInferenceDynamicByRef()
         {
             string source = @"
@@ -515,7 +515,7 @@ class C
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Goo").WithArguments("C.Goo<T>(ref T[])"));
         }
 
-        [WorkItem(541810, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541810")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541810")]
         [Fact]
         public void TestMethodTypeInferenceWhenFixedParameterIsOpenGenericType()
         {
@@ -541,7 +541,7 @@ class Test
             CompileAndVerify(source).VerifyDiagnostics();
         }
 
-        [WorkItem(541811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541811")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541811")]
         [Fact]
         public void TestMethodTypeInferenceWhenFixedParameterIsOpenGenericType2()
         {
@@ -607,7 +607,7 @@ class Test
             CompileAndVerify(source).VerifyDiagnostics();
         }
 
-        [WorkItem(541887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541887")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541887")]
         [Fact()]
         public void Bug8785_1()
         {
@@ -863,7 +863,7 @@ void M((string, string?) tuple)
             return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken);
         }
 
-        [WorkItem(541887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541887")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541887")]
         [Fact]
         public void Bug8785_2()
         {
@@ -895,7 +895,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadArgType, "345").WithArguments("2", "int", "?"));
         }
 
-        [WorkItem(542591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542591")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542591")]
         [Fact]
         public void Bug9877()
         {
@@ -914,7 +914,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "E").WithArguments("E"));
         }
 
-        [WorkItem(9145, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/9145")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/9145")]
         [Fact]
         public void Bug9145()
         {
@@ -971,7 +971,7 @@ class Program
             CreateCompilationWithMscorlib40(source, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
         }
 
-        [WorkItem(543691, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543691")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543691")]
         [Fact]
         public void Bug()
         {
@@ -992,7 +992,7 @@ class Program
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(649800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649800")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649800")]
         [Fact]
         public void InferringVoid()
         {
@@ -1020,7 +1020,7 @@ public class Test
             );
         }
 
-        [WorkItem(717264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/717264")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/717264")]
         [Fact]
         public void SubstitutedMethod()
         {
@@ -1050,7 +1050,7 @@ public class C<T>
             Assert.Equal("void C<System.Char>.M<System.Char>(System.Func<System.Char, System.Char> f1, System.Func<System.Int64, System.Char> f2)", method.ToTestDisplayString());
         }
 
-        [WorkItem(717264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/717264")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/717264")]
         [Fact]
         public void SubstitutedMethod_Params()
         {
@@ -1080,7 +1080,7 @@ public class C<T>
             Assert.Equal("void C<System.Char>.M<System.Char>(System.Func<System.Char, System.Char> f1, System.Func<System.Int64, System.Char> f2, params System.Int32[] a)", method.ToTestDisplayString());
         }
 
-        [WorkItem(8712, "https://github.com/dotnet/roslyn/issues/8712")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8712")]
         [Fact]
         public void EnumerableJoinIntellisenseForParameterTypesShouldPopOutAutoComplete_1()
         {
@@ -1121,7 +1121,7 @@ public class Test
             Assert.Equal("Book", bookType.Name);
         }
 
-        [WorkItem(8712, "https://github.com/dotnet/roslyn/issues/8712")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8712")]
         [Fact]
         public void EnumerableJoinIntellisenseForParameterTypesShouldPopOutAutoComplete_2()
         {
@@ -1162,7 +1162,7 @@ public class Test
             Assert.Equal("Author", authorType.Name);
         }
 
-        [WorkItem(8712, "https://github.com/dotnet/roslyn/issues/8712")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8712")]
         [Fact]
         public void EnumerableJoinIntellisenseForParameterTypesShouldPopOutAutoComplete_3()
         {

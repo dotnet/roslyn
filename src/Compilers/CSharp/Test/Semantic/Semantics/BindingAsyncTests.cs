@@ -1117,7 +1117,7 @@ class Driver
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
 
-        [WorkItem(611150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611150")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611150")]
         [Fact]
         public void AwaitInLambdaInLock()
         {
@@ -2353,7 +2353,7 @@ partial class Test
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo").WithLocation(22, 23));
         }
 
-        [WorkItem(611150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611150")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611150")]
         [Fact]
         public void UnobservedAwaitableExpression_ForgetAwait12()
         {
@@ -2408,7 +2408,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth((int?)null)"));
         }
 
-        [WorkItem(611150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611150")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611150")]
         [Fact]
         public void UnobservedAwaitableExpression_ForgetAwait12_breaking()
         {
@@ -3406,7 +3406,7 @@ public class D
                 Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecuritySafeCritical").WithArguments("SecuritySafeCritical"));
         }
 
-        [Fact, WorkItem(547077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547077")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547077")]
         public void Repro_17880()
         {
             var source = @"
@@ -3422,7 +3422,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Meth"));
         }
 
-        [Fact, WorkItem(547079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547079")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547079")]
         public void Repro_17883()
         {
             var source = @"
@@ -3444,7 +3444,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M1"));
         }
 
-        [Fact, WorkItem(547081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547081")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547081")]
         public void Repro_17885_CSharp_71()
         {
             var source = @"
@@ -3461,7 +3461,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(5, 30));
         }
 
-        [Fact, WorkItem(547081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547081")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547081")]
         public void Repro_17885_CSharp7()
         {
             var source = @"
@@ -3485,7 +3485,7 @@ class Test
                 );
         }
 
-        [Fact, WorkItem(547088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547088")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547088")]
         public void Repro_17914()
         {
             var source = @"
@@ -3529,7 +3529,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_SynchronizedAsyncMethod, "F1"));
         }
 
-        [Fact, WorkItem(66530, "https://github.com/dotnet/roslyn/issues/66530")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66530")]
         public void BadAsync_MethodImpl_Synchronized_Lambda()
         {
             var source = @"
@@ -3610,7 +3610,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(552382, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552382")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552382")]
         public void GetAwaiterIsExtension()
         {
             var source =
@@ -3652,7 +3652,7 @@ namespace B
         }
 
         [Fact]
-        [WorkItem(576311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576311")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576311")]
         public void BadDelegateTypeForAsync()
         {
             var source =
@@ -3673,7 +3673,7 @@ class C
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(6, 29));
         }
 
-        [WorkItem(588706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/588706")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/588706")]
         [Fact]
         public void AsyncAsLambdaParameter()
         {
@@ -3697,7 +3697,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(629368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
         public void GetAwaiterFieldUsedLikeMethod()
         {
             string source = @"
@@ -3721,7 +3721,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(629368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
         public void GetAwaiterPropertyUsedLikeMethod()
         {
             string source = @"
@@ -3745,7 +3745,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(628619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628619")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628619")]
         public void ReturnExpressionNotConvertible()
         {
             string source = @"
@@ -3767,7 +3767,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(632824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632824")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632824")]
         public void RefParameterOnAsyncLambda()
         {
             string source = @"
@@ -3799,7 +3799,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(858059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858059")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858059")]
         public void UnawaitedVersusLambda()
         {
             string source =
@@ -3890,7 +3890,7 @@ class C
             compilation.VerifyEmitDiagnostics();
         }
 
-        [Theory, CombinatorialData, WorkItem(64964, "https://github.com/dotnet/roslyn/issues/64964")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/64964")]
         public void UnobservedAwaitableExpression_AsyncTopLevelStatement(bool voidReturn)
         {
             var src = $$"""
@@ -4015,7 +4015,7 @@ public class C : I
             Assert.Equal(voidReturn ? "System.Threading.Tasks.Task" : "System.Threading.Tasks.Task<System.Int32>", entryPoint.ReturnType.ToTestDisplayString());
         }
 
-        [Theory, CombinatorialData, WorkItem(64964, "https://github.com/dotnet/roslyn/issues/64964")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/64964")]
         public void UnobservedAwaitableExpression_NonAsyncTopLevelStatements_Task(bool voidReturn)
         {
             var src = $$"""
@@ -4081,7 +4081,7 @@ public class C : I
             Assert.Equal(voidReturn ? "System.Void" : "System.Int32", entryPoint.ReturnType.ToTestDisplayString());
         }
 
-        [Theory, CombinatorialData, WorkItem(64964, "https://github.com/dotnet/roslyn/issues/64964")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/64964")]
         public void UnobservedAwaitableExpression_NonAsyncTopLevelStatements_TaskT(bool voidReturn)
         {
             var src = $$"""

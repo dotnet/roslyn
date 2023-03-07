@@ -77,7 +77,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(7030, "https://github.com/dotnet/roslyn/issues/7030")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7030")]
         public void Issue7030()
         {
             var source = @"

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 // init-only is unverifiable
                 verify: Verification.Skipped);
 
-        [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45900")]
         public void RecordLanguageVersion()
         {
             var src1 = @"
@@ -120,7 +120,7 @@ record Point(int x, int y);
             Assert.Equal(SpecialType.System_Object, point.BaseTypeNoUseSiteDiagnostics.SpecialType);
         }
 
-        [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45900")]
         public void RecordLanguageVersion_Nested()
         {
             var src1 = @"
@@ -191,7 +191,7 @@ class E
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45900")]
         public void RecordClassLanguageVersion()
         {
             var src = @"
@@ -237,7 +237,7 @@ record class Point(int x, int y);
         }
 
         [CombinatorialData]
-        [Theory, WorkItem(49302, "https://github.com/dotnet/roslyn/issues/49302")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/49302")]
         public void GetSimpleNonTypeMembers(bool useCompilationReference)
         {
             var lib_src = @"
@@ -260,7 +260,7 @@ class C
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem(49302, "https://github.com/dotnet/roslyn/issues/49302")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49302")]
         public void GetSimpleNonTypeMembers_SingleCompilation()
         {
             var src = @"
@@ -284,7 +284,7 @@ class C
                 model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(49302, "https://github.com/dotnet/roslyn/issues/49302")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49302")]
         public void GetSimpleNonTypeMembers_DirectApiCheck()
         {
             var src = @"
@@ -296,7 +296,7 @@ public record RecordB();
                 b.GetSimpleNonTypeMembers("op_Equality").ToTestDisplayStrings());
         }
 
-        [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49628")]
         public void AmbigCtor()
         {
             var src = @"
@@ -324,7 +324,7 @@ record R3([System.Diagnostics.CodeAnalysis.NotNull] R3 x);
             Assert.Equal(new[] { "R..ctor(R x)", "R..ctor(R original)" }, r.GetMembers(".ctor").ToTestDisplayStrings());
         }
 
-        [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49628")]
         public void AmbigCtor_Generic()
         {
             var src = @"
@@ -344,7 +344,7 @@ record R2<T>(R2<T?> x) { }
                 );
         }
 
-        [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49628")]
         public void AmbigCtor_WithExplicitCopyCtor()
         {
             var src = @"
@@ -364,7 +364,7 @@ record R(R x)
             Assert.Equal(new[] { "R..ctor(R x)", "R..ctor(R x)" }, r.GetMembers(".ctor").ToTestDisplayStrings());
         }
 
-        [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49628")]
         public void AmbigCtor_WithBase()
         {
             var src = @"
@@ -427,7 +427,7 @@ record R3(R3 x) : Base
                 );
         }
 
-        [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49628")]
         public void AmbigCtor_WithPropertyInitializer()
         {
             var src = @"
@@ -484,7 +484,7 @@ record R(int I)
             Assert.Equal("System.Int32 R.<I>k__BackingField", outVar.ContainingSymbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46123")]
         public void IncompletePositionalRecord()
         {
             string source = @"
@@ -517,7 +517,7 @@ public record A(int i,) { }
             Assert.IsType<ParameterSyntax>(primaryCtor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
         }
 
-        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46123")]
         public void IncompletePositionalRecord_WithTrivia()
         {
             string source = @"
@@ -551,7 +551,7 @@ public record A(int i, // A
             Assert.IsType<ParameterSyntax>(primaryCtor.Parameters[2].DeclaringSyntaxReferences.Single().GetSyntax());
         }
 
-        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46123")]
         public void IncompleteConstructor()
         {
             string source = @"
@@ -576,7 +576,7 @@ public class C
             Assert.Equal(0, ctor.Parameters[1].Locations.Single().SourceSpan.Length);
         }
 
-        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46123")]
         public void IncompletePositionalRecord_WithType()
         {
             string source = @"
@@ -604,7 +604,7 @@ public record A(int i, int ) { }
             Assert.Equal(0, ctor.Parameters[1].Locations.Single().SourceSpan.Length);
         }
 
-        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46123")]
         public void IncompletePositionalRecord_WithTwoTypes()
         {
             string source = @"
@@ -638,7 +638,7 @@ public record A(int, string ) { }
             Assert.IsType<ParameterSyntax>(comp.GetMember<NamedTypeSymbol>("A").Constructors[0].Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
         }
 
-        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46123")]
         public void IncompletePositionalRecord_WithTwoTypes_SameType()
         {
             string source = @"
@@ -672,7 +672,7 @@ public record A(int, int ) { }
             Assert.IsType<ParameterSyntax>(comp.GetMember<NamedTypeSymbol>("A").Constructors[0].Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
         }
 
-        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46123")]
         public void IncompletePositionalRecord_WithTwoTypes_WithTrivia()
         {
             string source = @"
@@ -698,7 +698,7 @@ public record A(int // A
             Assert.IsType<ParameterSyntax>(ctor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
         }
 
-        [Fact, WorkItem(46083, "https://github.com/dotnet/roslyn/issues/46083")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46083")]
         public void IncompletePositionalRecord_SingleParameter()
         {
             string source = @"
@@ -992,7 +992,7 @@ record C(int X, int Y)
                 );
         }
 
-        [Fact, WorkItem(48947, "https://github.com/dotnet/roslyn/issues/48947")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48947")]
         public void RecordProperties_05()
         {
             var src = @"
@@ -1224,7 +1224,7 @@ record C1(object O1)
         }
 
         [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
-        [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes()
         {
             var src = @"
@@ -1277,7 +1277,7 @@ unsafe record C(
         }
 
         [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
-        [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes_NominalMembers()
         {
             var src = @"
@@ -1329,7 +1329,7 @@ public unsafe record C
         }
 
         [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
-        [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes_NominalMembers_AutoProperties()
         {
             var src = @"
@@ -1381,7 +1381,7 @@ public unsafe record C
         }
 
         [Fact]
-        [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes_PointerTypeAllowedForParameterAndProperty()
         {
             var src = @"
@@ -1429,7 +1429,7 @@ unsafe record C(int* P1, int*[] P2, C<int*[]> P3)
         }
 
         [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
-        [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes_StaticFields()
         {
             var src = @"
@@ -1467,7 +1467,7 @@ public unsafe record C
                 );
         }
 
-        [Fact, WorkItem(48584, "https://github.com/dotnet/roslyn/issues/48584")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48584")]
         public void RecordProperties_11_UnreadPositionalParameter()
         {
             var comp = CreateCompilation(@"
@@ -1516,7 +1516,7 @@ record C5(object O7) : Base((System.Func<object, object>)(_ => (O7 = 42) )) // 4
                 );
         }
 
-        [Fact, WorkItem(48584, "https://github.com/dotnet/roslyn/issues/48584")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48584")]
         public void RecordProperties_11_UnreadPositionalParameter_InRefOut()
         {
             var comp = CreateCompilation(@"
@@ -1701,7 +1701,7 @@ class Program
 ");
         }
 
-        [Fact, WorkItem(50170, "https://github.com/dotnet/roslyn/issues/50170")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50170")]
         public void StaticCtor()
         {
             var src = @"
@@ -1722,7 +1722,7 @@ record R(int x)
             CompileAndVerify(comp, expectedOutput: "static ctor", verify: Verification.Skipped);
         }
 
-        [Fact, WorkItem(50170, "https://github.com/dotnet/roslyn/issues/50170")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50170")]
         public void StaticCtor_ParameterlessPrimaryCtor()
         {
             var src = @"
@@ -1736,7 +1736,7 @@ record R()
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem(50170, "https://github.com/dotnet/roslyn/issues/50170")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50170")]
         public void StaticCtor_CopyCtor()
         {
             var src = @"
@@ -1863,7 +1863,7 @@ Block[B2] - Exit
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44859")]
         public void WithExpr4()
         {
             var src = @"
@@ -2163,7 +2163,7 @@ record C(int X, int Y)
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44859")]
         public void WithExpr17()
         {
             var src = @"
@@ -2189,7 +2189,7 @@ record C(int X) : B
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44859")]
         public void WithExpr18()
         {
             var src = @"
@@ -2357,7 +2357,7 @@ record C(int X)
                 );
         }
 
-        [Fact, WorkItem(46427, "https://github.com/dotnet/roslyn/issues/46427"), WorkItem(46249, "https://github.com/dotnet/roslyn/issues/46249")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46427"), WorkItem("https://github.com/dotnet/roslyn/issues/46249")]
         public void WithExpr25_TypeParameterWithRecordConstraint()
         {
             var src = @"
@@ -2394,7 +2394,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(46427, "https://github.com/dotnet/roslyn/issues/46427"), WorkItem(46249, "https://github.com/dotnet/roslyn/issues/46249")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46427"), WorkItem("https://github.com/dotnet/roslyn/issues/46249")]
         public void WithExpr26_TypeParameterWithRecordAndInterfaceConstraint()
         {
             var src = @"
@@ -2497,7 +2497,7 @@ record R(int X);
             Assert.Equal("System.Int32 R.X { get; init; }", symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(46465, "https://github.com/dotnet/roslyn/issues/46465")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46465")]
         public void WithExpr29_DisallowedAsExpressionStatement()
         {
             var src = @"
@@ -2726,7 +2726,7 @@ class C : Base<S>
                 );
         }
 
-        [Fact, WorkItem(47513, "https://github.com/dotnet/roslyn/issues/47513")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47513")]
         public void BothGetHashCodeAndEqualsAreDefined()
         {
             var src = @"
@@ -2740,7 +2740,7 @@ public sealed record C
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(47513, "https://github.com/dotnet/roslyn/issues/47513")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47513")]
         public void BothGetHashCodeAndEqualsAreNotDefined()
         {
             var src = @"
@@ -2752,7 +2752,7 @@ public sealed record C
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(47513, "https://github.com/dotnet/roslyn/issues/47513")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47513")]
         public void GetHashCodeIsDefinedButEqualsIsNot()
         {
             var src = @"
@@ -2765,7 +2765,7 @@ public sealed record C
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(47513, "https://github.com/dotnet/roslyn/issues/47513")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47513")]
         public void EqualsIsDefinedButGetHashCodeIsNot()
         {
             var src = @"
@@ -2781,7 +2781,7 @@ public sealed record C
                 Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("C").WithLocation(5, 17));
         }
 
-        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord()
         {
             var src = @"
@@ -2824,7 +2824,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_Struct()
         {
             var src = @"
@@ -2838,7 +2838,7 @@ struct record { }
                 );
         }
 
-        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_Interface()
         {
             var src = @"
@@ -2852,7 +2852,7 @@ interface record { }
                 );
         }
 
-        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_Enum()
         {
             var src = @"
@@ -2866,7 +2866,7 @@ enum record { }
                 );
         }
 
-        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_Delegate()
         {
             var src = @"
@@ -2880,7 +2880,7 @@ delegate void record();
                 );
         }
 
-        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_Delegate_Escaped()
         {
             var src = @"
@@ -2890,7 +2890,7 @@ delegate void @record();
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_Alias()
         {
             var src = @"
@@ -2907,7 +2907,7 @@ using record = System.Console;
                 );
         }
 
-        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_Alias_Escaped()
         {
             var src = @"
@@ -2921,7 +2921,7 @@ using @record = System.Console;
                 );
         }
 
-        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_TypeParameter()
         {
             var src = @"
@@ -2960,7 +2960,7 @@ class C3
                 );
         }
 
-        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_TypeParameter_Escaped()
         {
             var src = @"
@@ -2986,7 +2986,7 @@ class C3
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_TypeParameter_Escaped_Partial()
         {
             var src = @"
@@ -3054,7 +3054,7 @@ partial class C3
                 );
         }
 
-        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_Record()
         {
             var src = @"
@@ -3068,7 +3068,7 @@ record record { }
                 );
         }
 
-        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_TwoParts()
         {
             var src = @"
@@ -3086,7 +3086,7 @@ partial class record { }
                 );
         }
 
-        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_Escaped()
         {
             var src = @"
@@ -3096,7 +3096,7 @@ class @record { }
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_MixedEscapedPartial()
         {
             var src = @"
@@ -3111,7 +3111,7 @@ partial class record { }
                 );
         }
 
-        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_MixedEscapedPartial_ReversedOrder()
         {
             var src = @"
@@ -3126,7 +3126,7 @@ partial class @record { }
                 );
         }
 
-        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_BothEscapedPartial()
         {
             var src = @"
@@ -3166,7 +3166,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "RAN");
         }
 
-        [Fact, WorkItem(45591, "https://github.com/dotnet/roslyn/issues/45591")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45591")]
         public void Clone_DisallowedInSource()
         {
             var src = @"
@@ -4908,7 +4908,7 @@ public record C : B {
                 );
         }
 
-        [Fact, WorkItem(47093, "https://github.com/dotnet/roslyn/issues/47093")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47093")]
         public void ToString_TopLevelRecord_Empty()
         {
             var src = @"
@@ -5274,7 +5274,7 @@ sealed record C2(int I1, int I2) : C1(I1);
             CompileAndVerify(comp, expectedOutput: "C2 { I1 = 42, I2 = 43 }", verify: Verification.Skipped /* init-only */);
         }
 
-        [Fact, WorkItem(47672, "https://github.com/dotnet/roslyn/issues/47672")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47672")]
         public void ToString_RecordWithIndexer()
         {
             var src = @"
@@ -5316,7 +5316,7 @@ record C1(int I1)
                 );
         }
 
-        [Fact, WorkItem(47672, "https://github.com/dotnet/roslyn/issues/47672")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47672")]
         public void ToString_PrivateGetter()
         {
             var src = @"
@@ -5334,7 +5334,7 @@ record C1
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem(47797, "https://github.com/dotnet/roslyn/issues/47797")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47797")]
         public void ToString_OverriddenVirtualProperty_NoRepetition()
         {
             var src = @"
@@ -5354,7 +5354,7 @@ record B : A
             CompileAndVerify(comp, expectedOutput: "B { P = 2 }");
         }
 
-        [Fact, WorkItem(47797, "https://github.com/dotnet/roslyn/issues/47797")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47797")]
         public void ToString_OverriddenAbstractProperty_NoRepetition()
         {
             var src = @"
@@ -5396,7 +5396,7 @@ record C2: Error;
                 );
         }
 
-        [Fact, WorkItem(49263, "https://github.com/dotnet/roslyn/issues/49263")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49263")]
         public void ToString_SelfReferentialBase()
         {
             var src = @"
@@ -5442,7 +5442,7 @@ abstract sealed record C1;
             Assert.True(toString.IsImplicitlyDeclared);
         }
 
-        [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47092")]
         public void ToString_TopLevelRecord_OneField_ValueType()
         {
             var src = @"
@@ -5497,7 +5497,7 @@ record C1
 ");
         }
 
-        [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47092")]
         public void ToString_TopLevelRecord_OneField_ConstrainedValueType()
         {
             var src = @"
@@ -5536,7 +5536,7 @@ record C1<T> where T : struct
 ");
         }
 
-        [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47092")]
         public void ToString_TopLevelRecord_OneField_ReferenceType()
         {
             var src = @"
@@ -5573,7 +5573,7 @@ record C1
 ");
         }
 
-        [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47092")]
         public void ToString_TopLevelRecord_OneField_Unconstrained()
         {
             var src = @"
@@ -7904,7 +7904,7 @@ record C(int X, int Y) : Base(X, Y) {}
         }
 
         [Fact]
-        [WorkItem(44898, "https://github.com/dotnet/roslyn/issues/44898")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44898")]
         public void AccessibilityOfBaseCtor_03()
         {
             var src = @"
@@ -7921,7 +7921,7 @@ record B(object P) : A;
         }
 
         [Fact]
-        [WorkItem(44898, "https://github.com/dotnet/roslyn/issues/44898")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44898")]
         public void AccessibilityOfBaseCtor_04()
         {
             var src = @"
@@ -7938,7 +7938,7 @@ record B(object P) : A {}
         }
 
         [Fact]
-        [WorkItem(44898, "https://github.com/dotnet/roslyn/issues/44898")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44898")]
         public void AccessibilityOfBaseCtor_05()
         {
             var src = @"
@@ -7955,7 +7955,7 @@ record B : A;
         }
 
         [Fact]
-        [WorkItem(44898, "https://github.com/dotnet/roslyn/issues/44898")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44898")]
         public void AccessibilityOfBaseCtor_06()
         {
             var src = @"
@@ -8516,7 +8516,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44859")]
         public void WithExprStaticWithMethod2()
         {
             var src = @"
@@ -8568,7 +8568,7 @@ record C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44859")]
         public void WithExprCloneReturnDifferent()
         {
             var src = @"
@@ -9119,7 +9119,7 @@ record B(int X)
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b").WithLocation(14, 10));
         }
 
-        [Fact, WorkItem(44763, "https://github.com/dotnet/roslyn/issues/44763")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44763")]
         public void WithExpr_NullableAnalysis_05()
         {
             var src = @"
@@ -9189,7 +9189,7 @@ record B
             );
         }
 
-        [Fact, WorkItem(44691, "https://github.com/dotnet/roslyn/issues/44691")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44691")]
         public void WithExpr_NullableAnalysis_07()
         {
             var src = @"
@@ -9220,7 +9220,7 @@ record B([AllowNull] string X) // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(11, 9));
         }
 
-        [Fact, WorkItem(44691, "https://github.com/dotnet/roslyn/issues/44691")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44691")]
         public void WithExpr_NullableAnalysis_08()
         {
             var src = @"
@@ -9364,7 +9364,7 @@ record B(string? X) : A
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44859")]
         public void WithExpr_NullableAnalysis_NullableClone()
         {
             var src = @"
@@ -9392,7 +9392,7 @@ record B(string? X)
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44859")]
         public void WithExpr_NullableAnalysis_MaybeNullClone()
         {
             var src = @"
@@ -9423,7 +9423,7 @@ record B(string? X)
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44859")]
         public void WithExpr_NullableAnalysis_NotNullClone()
         {
             var src = @"
@@ -9448,7 +9448,7 @@ record B(string? X)
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44859")]
         public void WithExpr_NullableAnalysis_NullableClone_NoInitializers()
         {
             var src = @"
@@ -9710,7 +9710,7 @@ ref struct S1
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
         }
 
-        [WorkItem(44616, "https://github.com/dotnet/roslyn/issues/44616")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44616")]
         [Fact]
         public void Inheritance_01()
         {
@@ -9755,7 +9755,7 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6) : A
             AssertEx.Equal(expectedMembers, actualMembers);
         }
 
-        [WorkItem(44616, "https://github.com/dotnet/roslyn/issues/44616")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44616")]
         [Fact]
         public void Inheritance_02()
         {
@@ -9782,7 +9782,7 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6) : A
             AssertEx.Equal(new[] { "System.Type A.B.EqualityContract { get; }" }, actualMembers);
         }
 
-        [WorkItem(44616, "https://github.com/dotnet/roslyn/issues/44616")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44616")]
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
@@ -9818,7 +9818,7 @@ record C1(object P, object Q) : B
             AssertEx.Equal(new[] { "System.Type C2.EqualityContract { get; }", "System.Object C2.P { get; init; }" }, GetProperties(comp, "C2").ToTestDisplayStrings());
         }
 
-        [WorkItem(44616, "https://github.com/dotnet/roslyn/issues/44616")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44616")]
         [Fact]
         public void Inheritance_04()
         {
@@ -9948,7 +9948,7 @@ class Program
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
         }
 
-        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_07()
         {
@@ -9987,7 +9987,7 @@ record B2(int X, int Y) : A
             Assert.Equal(Accessibility.Protected, b1Ctor.DeclaredAccessibility);
         }
 
-        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_08()
         {
@@ -10021,7 +10021,7 @@ record C(int X, int Y, int Z) : B
             AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }", "System.Int32 C.X { get; init; }", "System.Int32 C.Y { get; init; }" }, actualMembers);
         }
 
-        [Fact, WorkItem(48947, "https://github.com/dotnet/roslyn/issues/48947")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48947")]
         public void Inheritance_09()
         {
             var source =
@@ -11207,7 +11207,7 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6, objec
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
         }
 
-        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_33()
         {
@@ -11268,7 +11268,7 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
             AssertEx.Equal(expectedMembers, actualMembers);
         }
 
-        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_34()
         {
@@ -11304,7 +11304,7 @@ record B(string P1, string P2) : A;
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
         }
 
-        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_35()
         {
@@ -11518,7 +11518,7 @@ class Program
 }");
         }
 
-        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_36()
         {
@@ -11748,7 +11748,7 @@ class Program
 }");
         }
 
-        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_37()
         {
@@ -12044,7 +12044,7 @@ class Program
         }
 
         // Member in intermediate base that hides abstract property. Not supported.
-        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_38()
         {
@@ -12109,7 +12109,7 @@ class Program
         }
 
         // Member in intermediate base that hides abstract property. Not supported.
-        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_39()
         {
@@ -12218,7 +12218,7 @@ record CB(object P) : B;
         }
 
         // Accessor names that do not match the property name.
-        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_40()
         {
@@ -12297,7 +12297,7 @@ B").VerifyDiagnostics();
         }
 
         // Accessor names that do not match the property name and are not valid C# names.
-        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_41()
         {
@@ -12396,7 +12396,7 @@ B").VerifyDiagnostics();
             }
         }
 
-        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_42()
         {
@@ -12506,7 +12506,7 @@ B").VerifyDiagnostics();
             }
         }
 
-        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_43()
         {
@@ -12588,7 +12588,7 @@ record B : A
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
         }
 
-        [Theory, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         [InlineData(false)]
         [InlineData(true)]
         public void CopyCtor(bool useCompilationReference)
@@ -12668,7 +12668,7 @@ record B : A
 }");
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_WithOtherOverload()
         {
             var source =
@@ -12711,7 +12711,7 @@ public record C(object P1, object P2) : B(3, 4)
 }");
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_WithObsoleteCopyConstructor()
         {
             var source =
@@ -12726,7 +12726,7 @@ public record C(object P1, object P2) : B(3, 4) { }
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_WithParamsCopyConstructor()
         {
             var source =
@@ -12768,7 +12768,7 @@ public record C(object P1, object P2) : B(3, 4) { }
 ");
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_WithInitializers()
         {
             var source =
@@ -12811,7 +12811,7 @@ public record C(object P1, object P2) : B(3, 4) { }
 }");
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_NotInRecordType()
         {
             var source =
@@ -12861,7 +12861,7 @@ public class D : C
 }");
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor()
         {
             var source =
@@ -12886,7 +12886,7 @@ public record C(object P1, object P2) : B(0, 1)
                 );
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_DerivesFromObject()
         {
             var source =
@@ -12924,7 +12924,7 @@ public record C(object P1, object P2) : B(0, 1)
 ");
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_DerivesFromObject_WithFieldInitializer()
         {
             var source =
@@ -12970,7 +12970,7 @@ public record C(object P1, object P2) : B(0, 1)
 ");
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_DerivesFromObject_GivesParameterToBase()
         {
             var source = @"
@@ -12990,7 +12990,7 @@ public record C(object I)
                 );
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_DerivesFromObject_WithSomeOtherConstructor()
         {
             var source = @"
@@ -13022,7 +13022,7 @@ public record C(object I)
 ");
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_DerivesFromObject_UsesThis()
         {
             var source =
@@ -13041,7 +13041,7 @@ public record C(object I)
                 );
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_UserDefined_DerivesFromObject_UsesBase()
         {
             var source =
@@ -13079,7 +13079,7 @@ public record C(object I)
 ");
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_NoPositionalMembers()
         {
             var source =
@@ -13104,7 +13104,7 @@ public record C(object P1) : B(0, 1)
                 );
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_UsesThis()
         {
             var source =
@@ -13126,7 +13126,7 @@ public record C(object P1, object P2) : B(0, 1)
                 );
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_UsesBase()
         {
             var source =
@@ -13158,7 +13158,7 @@ public record D(int j) : B(0)
                 );
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_UserDefined_WithFieldInitializers()
         {
             var source =
@@ -13202,7 +13202,7 @@ public record D(int J) : C(1)
 ");
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_Synthesized_WithFieldInitializers()
         {
             var source =
@@ -13246,7 +13246,7 @@ public record D(int J) : C(1)
 ");
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_UserDefinedButPrivate()
         {
             var source =
@@ -13287,7 +13287,7 @@ public record E(object P1, object P2) : B(0, 1); // 3
                 );
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_InaccessibleToCaller()
         {
             var sourceA =
@@ -13328,7 +13328,7 @@ record C(object P1, object P2) : B(3, 4)
                 );
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_InaccessibleToCallerFromPE_WithIVT()
         {
             var sourceA = @"
@@ -13368,8 +13368,8 @@ record C(int j) : B(3, 4)
                 );
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
-        [WorkItem(45012, "https://github.com/dotnet/roslyn/issues/45012")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45012")]
         public void CopyCtor_UserDefinedButPrivate_InSealedType()
         {
             var source =
@@ -13390,8 +13390,8 @@ public sealed record C(int j) : B(0)
             Assert.True(copyCtor.DeclaredAccessibility == Accessibility.Private);
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
-        [WorkItem(45012, "https://github.com/dotnet/roslyn/issues/45012")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45012")]
         public void CopyCtor_UserDefinedButInternal()
         {
             var source =
@@ -13427,7 +13427,7 @@ public record Unsealed(object P1, object P2) : B(0, 1)
             Assert.True(unsealedCopyCtor.DeclaredAccessibility == Accessibility.Internal);
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_BaseHasRefKind()
         {
             var source =
@@ -13450,7 +13450,7 @@ public record C(int j) : B(1)
                 );
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_BaseHasRefKind_WithThisInitializer()
         {
             var source =
@@ -13478,7 +13478,7 @@ public record C(int j) : B(1)
             AssertEx.Equal(expectedMembers, actualMembers);
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_WithPrivateField()
         {
             var source =
@@ -13525,7 +13525,7 @@ public record C(object P1, object P2) : B(3, 4)
 }");
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_MissingInMetadata()
         {
             // IL for `public record B { }`
@@ -13606,7 +13606,7 @@ public record C : B
                 );
         }
 
-        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_InaccessibleInMetadata()
         {
             // IL for `public record B { }`
@@ -13679,7 +13679,7 @@ public record C : B {
                 );
         }
 
-        [Fact, WorkItem(45077, "https://github.com/dotnet/roslyn/issues/45077")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45077")]
         public void CopyCtor_AmbiguitiesInMetadata()
         {
             // IL for a minimal `public record B { }` with injected copy constructors
@@ -13867,7 +13867,7 @@ THROW
             }
         }
 
-        [Fact, WorkItem(45077, "https://github.com/dotnet/roslyn/issues/45077")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45077")]
         public void CopyCtor_AmbiguitiesInMetadata_GenericType()
         {
             // IL for a minimal `public record B<T> { }` with modopt in nested position of parameter type
@@ -15592,7 +15592,7 @@ record B(int X) : A;
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/45010")]
-        [WorkItem(45010, "https://github.com/dotnet/roslyn/issues/45010")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45010")]
         public void Deconstruct_ObsoleteProperty()
         {
             var source =
@@ -15625,7 +15625,7 @@ record B(int X)
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/45009")]
-        [WorkItem(45009, "https://github.com/dotnet/roslyn/issues/45009")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45009")]
         public void Deconstruct_RefProperty()
         {
             var source =
@@ -20108,7 +20108,7 @@ record B : A;
         }
 
         [Fact]
-        [WorkItem(48723, "https://github.com/dotnet/roslyn/issues/48723")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48723")]
         public void EqualityContract_24_SetterOnlyProperty()
         {
             var src = @"
@@ -20127,7 +20127,7 @@ record R
         }
 
         [Fact]
-        [WorkItem(48723, "https://github.com/dotnet/roslyn/issues/48723")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48723")]
         public void EqualityContract_24_GetterAndSetterProperty()
         {
             var src = @"
@@ -20145,7 +20145,7 @@ record R2 : R;
         }
 
         [Fact]
-        [WorkItem(48723, "https://github.com/dotnet/roslyn/issues/48723")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48723")]
         public void EqualityContract_25_SetterOnlyProperty_DerivedRecord()
         {
             var src = @"
@@ -20168,7 +20168,7 @@ record R : Base
         }
 
         [Fact]
-        [WorkItem(48723, "https://github.com/dotnet/roslyn/issues/48723")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48723")]
         public void EqualityContract_26_SetterOnlyProperty_InMetadata()
         {
             // `record Base;` with modified EqualityContract property, method bodies simplified and nullability removed
@@ -20276,7 +20276,7 @@ record R : Base
         }
 
         [Fact]
-        [WorkItem(48723, "https://github.com/dotnet/roslyn/issues/48723")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48723")]
         public void EqualityContract_27_GetterAndSetterProperty_ExplicitlyOverridden()
         {
             var src = @"
@@ -20691,7 +20691,7 @@ False False True True
 ").VerifyDiagnostics();
         }
 
-        [WorkItem(44692, "https://github.com/dotnet/roslyn/issues/44692")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44692")]
         [Fact]
         public void DuplicateProperty_01()
         {
@@ -20718,7 +20718,7 @@ False False True True
             AssertEx.Equal(expectedMembers, actualMembers);
         }
 
-        [WorkItem(44692, "https://github.com/dotnet/roslyn/issues/44692")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44692")]
         [Fact]
         public void DuplicateProperty_02()
         {
@@ -23157,7 +23157,7 @@ True").VerifyDiagnostics();
             }
         }
 
-        [WorkItem(44895, "https://github.com/dotnet/roslyn/issues/44895")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44895")]
         [Fact]
         public void Equality_08()
         {
@@ -23927,7 +23927,7 @@ record C;
         }
 
         [Fact]
-        [WorkItem(44988, "https://github.com/dotnet/roslyn/issues/44988")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44988")]
         public void Equality_22()
         {
             var source =
@@ -24566,7 +24566,7 @@ record B : A
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.Equals(A?)", "A.Equals(A)").WithLocation(5, 8));
         }
 
-        [WorkItem(45026, "https://github.com/dotnet/roslyn/issues/45026")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45026")]
         [Fact]
         public void IEquatableT_15()
         {
@@ -24819,7 +24819,7 @@ record R(int P1, int* P2, delegate*<int> P3);";
             Assert.True(p.HasPointerType);
         }
 
-        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberModifiers_RefOrOut()
         {
             var src = @"
@@ -24840,7 +24840,7 @@ record R(ref int P1, out int P2);
                 );
         }
 
-        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberModifiers_RefOrOut_WithBase()
         {
             var src = @"
@@ -24859,7 +24859,7 @@ record R(ref int P1, out int P2) : Base(P2 = 1);
                 );
         }
 
-        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberModifiers_In()
         {
             var src = @"
@@ -24890,7 +24890,7 @@ public class C
             AssertEx.Equal(expectedMembers, actualMembers);
         }
 
-        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberModifiers_This()
         {
             var src = @"
@@ -24905,7 +24905,7 @@ record R(this int i);
                 );
         }
 
-        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberModifiers_Params()
         {
             var src = @"
@@ -24935,7 +24935,7 @@ public class C
             AssertEx.Equal(expectedMembers, actualMembers);
         }
 
-        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberDefaultValue()
         {
             var src = @"
@@ -24954,7 +24954,7 @@ record R(int P = 42)
             CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
         }
 
-        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberDefaultValue_AndPropertyWithInitializer()
         {
             var src = @"
@@ -24991,7 +24991,7 @@ record R(int P = 1)
 }");
         }
 
-        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberDefaultValue_AndPropertyWithoutInitializer()
         {
             var src = @"
@@ -25025,7 +25025,7 @@ record R(int P = 42)
 }");
         }
 
-        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberDefaultValue_AndPropertyWithInitializer_CopyingParameter()
         {
             var src = @"
@@ -27687,7 +27687,7 @@ interface I1 {}
         }
 
         [Fact]
-        [WorkItem(46657, "https://github.com/dotnet/roslyn/issues/46657")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46657")]
         public void CanDeclareIteratorInRecord()
         {
             var source = @"
@@ -27893,7 +27893,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(47867, "https://github.com/dotnet/roslyn/issues/47867")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/47867")]
         public void ToString_RecordWithStaticMembers()
         {
             var src = @"
@@ -27920,7 +27920,7 @@ record C1(int I1)
         }
 
         [Fact]
-        [WorkItem(47867, "https://github.com/dotnet/roslyn/issues/47867")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/47867")]
         public void ToString_NestedRecord()
         {
             var src = @"
@@ -28085,7 +28085,7 @@ public record struct RecStruct
         }
 
         [Fact]
-        [WorkItem(50040, "https://github.com/dotnet/roslyn/issues/50040")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/50040")]
         public void RaceConditionInAddMembers()
         {
             var src = @"
@@ -28129,7 +28129,7 @@ public sealed class Hamster : Document
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc()
         {
             var src = @"
@@ -28174,7 +28174,7 @@ namespace System.Runtime.CompilerServices
 ", property.GetDocumentationCommentXml());
         }
 
-        [Fact, WorkItem(53912, "https://github.com/dotnet/roslyn/issues/53912")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53912")]
         public void XmlDoc_CrefToPositionalProperty_Test53912()
         {
             var source = @"
@@ -28289,7 +28289,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Cref()
         {
             var src = @"
@@ -28328,7 +28328,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Error()
         {
             var src = @"
@@ -28358,7 +28358,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Duplicate()
         {
             var src = @"
@@ -28388,7 +28388,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_ParamRef()
         {
             var src = @"
@@ -28419,7 +28419,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_ParamRef_Error()
         {
             var src = @"
@@ -28448,7 +28448,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_WithExplicitProperty()
         {
             var src = @"
@@ -28499,7 +28499,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_EmptyParameterList()
         {
             var src = @"
@@ -28534,7 +28534,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Partial_ParamListSecond()
         {
             var src = @"
@@ -28581,7 +28581,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Partial_ParamListFirst()
         {
             var src = @"
@@ -28628,7 +28628,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Partial_ParamListFirst_XmlDocSecond()
         {
             var src = @"
@@ -28676,7 +28676,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Partial_ParamListSecond_XmlDocFirst()
         {
             var src = @"
@@ -28724,7 +28724,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Partial_DuplicateParameterList_XmlDocSecond()
         {
             var src = @"
@@ -28776,7 +28776,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Partial_DuplicateParameterList_XmlDocFirst()
         {
             var src = @"
@@ -28827,7 +28827,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Partial_DuplicateParameterList_XmlDocOnBoth()
         {
             var src = @"
@@ -28886,7 +28886,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Partial_DifferentParameterLists_XmlDocSecond()
         {
             var src = @"
@@ -28934,7 +28934,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Partial_DifferentParameterLists_XmlDocOnBoth()
         {
             var src = @"
@@ -28992,7 +28992,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Nested()
         {
             var src = @"
@@ -29043,7 +29043,7 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Nested_ReferencingOuterParam()
         {
             var src = @"
@@ -29105,7 +29105,7 @@ namespace System.Runtime.CompilerServices
 ", constructor.GetDocumentationCommentXml());
         }
 
-        [Fact, WorkItem(51590, "https://github.com/dotnet/roslyn/issues/51590")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51590")]
         public void SealedIncomplete()
         {
             var source = @"
@@ -29127,7 +29127,7 @@ public sealed record(";
                 );
         }
 
-        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52630")]
         public void HiddenPositionalMember_Property()
         {
             var source = @"
@@ -29152,7 +29152,7 @@ public record C(int I) : Base(I)
                 );
         }
 
-        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52630")]
         public void HiddenPositionalMember_Field()
         {
             var source = @"
@@ -29177,7 +29177,7 @@ public record C(int I) : Base(I)
                 );
         }
 
-        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52630")]
         public void HiddenPositionalMember_Field_HiddenWithConstant()
         {
             var source = @"
@@ -29597,7 +29597,7 @@ record C(int P)
                 );
         }
 
-        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52630")]
         public void HiddenPositionalMember_Property_HiddenWithZeroArityMethod()
         {
             var source = @"
@@ -29628,7 +29628,7 @@ public record C(int I) : Base(I)
             comp.VerifyEmitDiagnostics(expected);
         }
 
-        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52630")]
         public void HiddenPositionalMember_Property_HiddenWithZeroArityMethod_DeconstructInSource()
         {
             var source = @"
@@ -29660,7 +29660,7 @@ public record C(int I) : Base(I)
             comp.VerifyEmitDiagnostics(expected);
         }
 
-        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52630")]
         public void HiddenPositionalMember_Property_HiddenWithZeroArityMethod_WithNew()
         {
             var source = @"
@@ -29682,7 +29682,7 @@ public record C(int I) : Base(I) // 1
                 );
         }
 
-        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52630")]
         public void HiddenPositionalMember_Property_HiddenWithGenericMethod()
         {
             var source = @"
@@ -29712,7 +29712,7 @@ public record C(int I) : Base(I)
                 );
         }
 
-        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52630")]
         public void HiddenPositionalMember_Property_FromGrandBase()
         {
             var source = @"
@@ -29743,7 +29743,7 @@ public record C(int I) : Base(I)
             comp.VerifyEmitDiagnostics(expected);
         }
 
-        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52630")]
         public void HiddenPositionalMember_Property_NotHiddenByIndexer()
         {
             var source = @"
@@ -29779,7 +29779,7 @@ public record C(int Item) : Base(Item)
 ");
         }
 
-        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52630")]
         public void HiddenPositionalMember_Property_NotHiddenByIndexer_WithIndexerName()
         {
             var source = @"
@@ -29816,7 +29816,7 @@ public record C(int I) : Base(I)
 ");
         }
 
-        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52630")]
         public void HiddenPositionalMember_Property_HiddenWithType()
         {
             var source = @"
@@ -29842,7 +29842,7 @@ public record C(int I) : Base(I)
                 );
         }
 
-        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52630")]
         public void HiddenPositionalMember_Property_HiddenWithEvent()
         {
             var source = @"
@@ -29871,7 +29871,7 @@ public record C(int I) : Base(I)
                 );
         }
 
-        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52630")]
         public void HiddenPositionalMember_Property_HiddenWithConstant()
         {
             var source = @"
@@ -29897,7 +29897,7 @@ public record C(int I) : Base(I)
                 );
         }
 
-        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52630")]
         public void HiddenPositionalMember_Property_AbstractInBase()
         {
             var source = @"
@@ -29921,7 +29921,7 @@ record Derived(int I) : Base
                 );
         }
 
-        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52630")]
         public void HiddenPositionalMember_Property_AbstractInBase_AbstractInDerived()
         {
             var source = @"
@@ -30128,7 +30128,7 @@ record R2 : I(0)
         }
 
         [Theory]
-        [WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44902")]
         [CombinatorialData]
         public void CrossAssemblySupportingAndNotSupportingCovariantReturns(bool useCompilationReference)
         {
@@ -30195,7 +30195,7 @@ public record C(int I) : B(I);";
             AssertEx.Equal(expectedMembers, actualMembers);
         }
 
-        [Fact, WorkItem(60379, "https://github.com/dotnet/roslyn/issues/60379")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60379")]
         public void RecordPositionalMembersScope()
         {
             var src = @"
@@ -30211,7 +30211,7 @@ record R2(string Id);
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(60379, "https://github.com/dotnet/roslyn/issues/60379")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60379")]
         public void TypeParametersAndTypeMembersInScopeOnTypeAttribute()
         {
             var src = @"
@@ -30242,7 +30242,7 @@ class C3<T>
                     );
         }
 
-        [Fact, WorkItem(62051, "https://github.com/dotnet/roslyn/issues/62051")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62051")]
         public void MisingBaseType()
         {
             var src = @"
@@ -30274,7 +30274,7 @@ public class C : // 3
         }
 
         [Fact]
-        [WorkItem(64238, "https://github.com/dotnet/roslyn/issues/64238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64238")]
         public void NoMethodBodiesInComImportType()
         {
             var source1 =
@@ -30381,7 +30381,7 @@ record R1(int x);
         }
 
         [Fact]
-        [WorkItem(66900, "https://github.com/dotnet/roslyn/issues/66900")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66900")]
         public void Issue66900()
         {
             // public record ClassWithManyConstructorParameters(int P0, int P1, int P2, ...)

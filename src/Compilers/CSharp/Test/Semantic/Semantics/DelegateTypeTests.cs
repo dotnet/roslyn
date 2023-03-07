@@ -1459,7 +1459,7 @@ namespace N
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
-        [WorkItem(55923, "https://github.com/dotnet/roslyn/issues/55923")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55923")]
         [Fact]
         public void ConvertMethodGroupToObject_01()
         {
@@ -1518,7 +1518,7 @@ namespace N
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
-        [WorkItem(55923, "https://github.com/dotnet/roslyn/issues/55923")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55923")]
         [Fact]
         public void ConvertMethodGroupToObject_02()
         {
@@ -1564,7 +1564,7 @@ namespace N
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
-        [WorkItem(55923, "https://github.com/dotnet/roslyn/issues/55923")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55923")]
         [Fact]
         public void ConvertMethodGroupToObject_03()
         {
@@ -1990,7 +1990,7 @@ class Program
 
         // System.Func<> and System.Action<> cannot be used as the delegate type
         // when the parameters or return type are not valid type arguments.
-        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55217")]
         [Fact]
         public void InvalidTypeArguments()
         {
@@ -2912,7 +2912,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(ref int i) => i").WithArguments("lambda expression", "System.Delegate").WithLocation(6, 13));
         }
 
-        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
+        [WorkItem("https://github.com/dotnet/csharplang/issues/4674")]
         [Fact]
         public void OverloadResolution_01()
         {
@@ -2938,7 +2938,7 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
+        [WorkItem("https://github.com/dotnet/csharplang/issues/4674")]
         [Fact]
         public void OverloadResolution_02()
         {
@@ -2974,7 +2974,7 @@ C.M(object y)
 ");
         }
 
-        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
+        [WorkItem("https://github.com/dotnet/csharplang/issues/4674")]
         [Fact]
         public void OverloadResolution_03()
         {
@@ -3010,7 +3010,7 @@ C.M
 ");
         }
 
-        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
+        [WorkItem("https://github.com/dotnet/csharplang/issues/4674")]
         [Fact]
         public void OverloadResolution_04()
         {
@@ -3177,7 +3177,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate () { return string.Empty; }").WithLocation(10, 11));
         }
 
-        [WorkItem(55319, "https://github.com/dotnet/roslyn/issues/55319")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55319")]
         [Fact]
         public void OverloadResolution_08()
         {
@@ -3204,7 +3204,7 @@ static class Extensions
             CompileAndVerify(source, expectedOutput: "extension, instance, ");
         }
 
-        [WorkItem(55319, "https://github.com/dotnet/roslyn/issues/55319")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55319")]
         [Fact]
         public void OverloadResolution_09()
         {
@@ -3232,7 +3232,7 @@ static class Extensions
             CompileAndVerify(source, expectedOutput: "extension, instance, ");
         }
 
-        [WorkItem(55319, "https://github.com/dotnet/roslyn/issues/55319")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55319")]
         [Fact]
         public void OverloadResolution_10()
         {
@@ -3314,7 +3314,7 @@ class C
             comp.VerifyDiagnostics(expectedDiagnostics10AndLater);
         }
 
-        [WorkItem(55691, "https://github.com/dotnet/roslyn/issues/55691")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55691")]
         [Fact]
         public void OverloadResolution_12()
         {
@@ -3377,7 +3377,7 @@ AppBuilderExtensions.Map(this IAppBuilder app, PathString path, Action<IAppBuild
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(55691, "https://github.com/dotnet/roslyn/issues/55691")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55691")]
         [Fact]
         public void OverloadResolution_13()
         {
@@ -3403,7 +3403,7 @@ F(object obj, Action a)
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(55691, "https://github.com/dotnet/roslyn/issues/55691")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55691")]
         [Fact]
         public void OverloadResolution_14()
         {
@@ -3426,7 +3426,7 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
+        [WorkItem("https://github.com/dotnet/csharplang/issues/4674")]
         [Fact]
         public void OverloadResolution_15()
         {
@@ -3454,7 +3454,7 @@ StringAction
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(56623, "https://github.com/dotnet/roslyn/issues/56623")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/56623")]
         [Fact]
         public void OverloadResolution_16()
         {
@@ -3670,7 +3670,7 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1361172, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1361172")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1361172")]
         [Fact]
         public void OverloadResolution_22()
         {
@@ -3720,7 +3720,7 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1361172, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1361172")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1361172")]
         [Fact]
         public void OverloadResolution_24()
         {
@@ -3743,7 +3743,7 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(56167, "https://github.com/dotnet/roslyn/issues/56167")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/56167")]
         [Fact]
         public void OverloadResolution_25()
         {
@@ -3766,7 +3766,7 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(56167, "https://github.com/dotnet/roslyn/issues/56167")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/56167")]
         [Fact]
         public void OverloadResolution_26()
         {
@@ -3789,7 +3789,7 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(56167, "https://github.com/dotnet/roslyn/issues/56167")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/56167")]
         [Fact]
         public void OverloadResolution_27()
         {
@@ -3813,7 +3813,7 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(56319, "https://github.com/dotnet/roslyn/issues/56319")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/56319")]
         [Fact]
         public void OverloadResolution_28()
         {
@@ -4337,7 +4337,7 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
+        [WorkItem("https://github.com/dotnet/csharplang/issues/4674")]
         [Fact]
         public void OverloadResolution_43()
         {
@@ -4525,7 +4525,7 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(57627, "https://github.com/dotnet/roslyn/issues/57627")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57627")]
         [Fact]
         public void OverloadResolution_48()
         {
@@ -4977,7 +4977,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(55909, "https://github.com/dotnet/roslyn/issues/55909")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55909")]
         public void BestCommonType_11()
         {
             var source =
@@ -5344,7 +5344,7 @@ System.Action");
             Assert.True(HaveMatchingSignatures(((INamedTypeSymbol)typeInfo.Type!).DelegateInvokeMethod!, method));
         }
 
-        [WorkItem(55320, "https://github.com/dotnet/roslyn/issues/55320")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55320")]
         [Fact]
         public void InferredReturnType_01()
         {
@@ -5389,7 +5389,7 @@ System.Func`2[System.Boolean,System.Threading.Tasks.Task]
 ");
         }
 
-        [WorkItem(55320, "https://github.com/dotnet/roslyn/issues/55320")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55320")]
         [Fact]
         public void InferredReturnType_03()
         {
@@ -5417,7 +5417,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(7, 50));
         }
 
-        [WorkItem(55320, "https://github.com/dotnet/roslyn/issues/55320")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55320")]
         [Fact]
         public void InferredReturnType_04()
         {
@@ -6156,7 +6156,7 @@ System.Func`1[System.Object]
         }
 
         [Fact]
-        [WorkItem(55909, "https://github.com/dotnet/roslyn/issues/55909")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55909")]
         public void TypeInference_Variance_04()
         {
             var source =
@@ -6185,7 +6185,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(55909, "https://github.com/dotnet/roslyn/issues/55909")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55909")]
         public void TypeInference_Variance_05()
         {
             var source =
@@ -6273,7 +6273,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(55909, "https://github.com/dotnet/roslyn/issues/55909")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55909")]
         public void TypeInference_Variance_08()
         {
             var source =
@@ -6315,7 +6315,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(55909, "https://github.com/dotnet/roslyn/issues/55909")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55909")]
         public void TypeInference_Variance_09()
         {
             var source =
@@ -6498,7 +6498,7 @@ $@"System.Func`1[System.Int32]
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54257")]
         [Fact]
         public void TypeInference_ExplicitReturnType_02()
         {
@@ -6533,7 +6533,7 @@ $@"System.Func`2[System.Int32,System.Int32]
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54257")]
         [Fact]
         public void TypeInference_ExplicitReturnType_03()
         {
@@ -6584,7 +6584,7 @@ class Program
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
-        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54257")]
         [Fact]
         public void TypeInference_ExplicitReturnType_04()
         {
@@ -6629,7 +6629,7 @@ System.Func`2[System.Int32,System.Int32]
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54257")]
         [Fact]
         public void TypeInference_ExplicitReturnType_05()
         {
@@ -6679,7 +6679,7 @@ class Program
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
-        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54257")]
         [Fact]
         public void TypeInference_ExplicitReturnType_06()
         {
@@ -6714,7 +6714,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54257")]
         [Fact]
         public void TypeInference_ExplicitReturnType_07()
         {
@@ -6775,7 +6775,7 @@ class Program
 
         // Variance in inference from explicit return type is disallowed
         // (see https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-06-21.md).
-        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54257")]
         [Fact]
         public void TypeInference_ExplicitReturnType_08()
         {
@@ -6845,7 +6845,7 @@ class Program
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
-        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54257")]
         [Fact]
         public void TypeInference_ExplicitReturnType_09()
         {
@@ -6876,7 +6876,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(object? (y2) => y2)").WithLocation(13, 9));
         }
 
-        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54257")]
         [Fact]
         public void TypeInference_ExplicitReturnType_10()
         {
@@ -6917,7 +6917,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54257")]
         [Fact]
         public void TypeInference_ExplicitReturnType_11()
         {
@@ -6976,7 +6976,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(39, 9));
         }
 
-        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54257")]
         [Fact]
         public void TypeInference_ExplicitReturnType_12()
         {
@@ -7037,7 +7037,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y4").WithLocation(25, 9));
         }
 
-        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57517")]
         [Fact]
         public void TypeInference_03()
         {
@@ -7079,7 +7079,7 @@ Test4(() => () => 4);
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
-        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57517")]
         [Fact]
         public void TypeInference_04()
         {
@@ -7108,7 +7108,7 @@ class Program
             CompileAndVerify(source);
         }
 
-        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57517")]
         [Fact]
         public void TypeInference_05()
         {
@@ -7137,7 +7137,7 @@ class Program
             CompileAndVerify(source);
         }
 
-        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57517")]
         [Fact]
         public void TypeInference_06()
         {
@@ -7182,7 +7182,7 @@ class Program
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
-        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57517")]
         [Fact]
         public void TypeInference_07()
         {
@@ -7236,7 +7236,7 @@ class Program
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
-        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57517")]
         [Fact]
         public void TypeInference_08()
         {
@@ -7268,7 +7268,7 @@ class Program
             CompileAndVerify(source);
         }
 
-        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57517")]
         [Fact]
         public void TypeInference_09()
         {
@@ -7293,7 +7293,7 @@ class Program
             CompileAndVerify(source);
         }
 
-        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57517")]
         [Fact]
         public void TypeInference_10()
         {
@@ -7319,7 +7319,7 @@ class Program
             CompileAndVerify(source);
         }
 
-        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57517")]
         [Fact]
         public void TypeInference_11()
         {
@@ -7345,7 +7345,7 @@ class Program
             CompileAndVerify(source);
         }
 
-        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57517")]
         [Fact]
         public void TypeInference_12()
         {
@@ -7368,7 +7368,7 @@ class Program
             CompileAndVerify(source);
         }
 
-        [WorkItem(57630, "https://github.com/dotnet/roslyn/issues/57630")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57630")]
         [Fact]
         public void TypeInference_13()
         {
@@ -8907,7 +8907,7 @@ class Program
 ");
         }
 
-        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55217")]
         [Fact]
         public void SynthesizedDelegateTypes_11()
         {
@@ -8948,7 +8948,7 @@ class Program
 ");
         }
 
-        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55217")]
         [ConditionalFact(typeof(DesktopOnly))]
         public void SynthesizedDelegateTypes_12()
         {
@@ -8978,7 +8978,7 @@ class Program
 ");
         }
 
-        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55217")]
         [Fact]
         public void SynthesizedDelegateTypes_13()
         {
@@ -9168,7 +9168,7 @@ System.Action`2[System.Object,System.Object[]]
         }
 
         [Fact]
-        [WorkItem(55570, "https://github.com/dotnet/roslyn/issues/55570")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55570")]
         public void SynthesizedDelegateTypes_18()
         {
             var source =
@@ -9195,7 +9195,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(55570, "https://github.com/dotnet/roslyn/issues/55570")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55570")]
         public void SynthesizedDelegateTypes_19()
         {
             var source =
@@ -9226,7 +9226,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(55570, "https://github.com/dotnet/roslyn/issues/55570")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55570")]
         public void SynthesizedDelegateTypes_20()
         {
             var source =
@@ -9268,7 +9268,7 @@ class Program
         /// Synthesized delegate types should only be emitted if referenced in the assembly.
         /// </summary>
         [Fact]
-        [WorkItem(55896, "https://github.com/dotnet/roslyn/issues/55896")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55896")]
         public void SynthesizedDelegateTypes_21()
         {
             var source =
@@ -9303,7 +9303,7 @@ class Program
         /// Synthesized delegate types should only be emitted if referenced in the assembly.
         /// </summary>
         [Fact]
-        [WorkItem(55896, "https://github.com/dotnet/roslyn/issues/55896")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55896")]
         public void SynthesizedDelegateTypes_22()
         {
             var source =
@@ -9348,7 +9348,7 @@ D4");
         /// Synthesized delegate types should only be emitted if referenced in the assembly.
         /// </summary>
         [Fact]
-        [WorkItem(55896, "https://github.com/dotnet/roslyn/issues/55896")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55896")]
         public void SynthesizedDelegateTypes_23()
         {
             var source =
@@ -9478,7 +9478,7 @@ class B<T>
 ");
         }
 
-        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55217")]
         [Fact]
         public void SynthesizedDelegateTypes_26()
         {
@@ -9501,7 +9501,7 @@ class Program
 ");
         }
 
-        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55217")]
         [Fact]
         public void SynthesizedDelegateTypes_27()
         {
@@ -9524,7 +9524,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 20));
         }
 
-        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55217")]
         [Fact]
         public void SynthesizedDelegateTypes_28()
         {
@@ -9603,7 +9603,7 @@ class C
 ");
         }
 
-        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55217")]
         [Fact]
         public void SynthesizedDelegateTypes_29()
         {
@@ -10328,7 +10328,7 @@ class Program
 ");
         }
 
-        [Fact, WorkItem(64436, "https://github.com/dotnet/roslyn/issues/64436")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64436")]
         public void SynthesizedDelegateTypes_NamedArguments_Ref()
         {
             var source = """
@@ -10392,7 +10392,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("1", "out").WithLocation(32, 16));
         }
 
-        [Fact, WorkItem(64436, "https://github.com/dotnet/roslyn/issues/64436")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64436")]
         public void SynthesizedDelegateTypes_NamedArguments_Pointer()
         {
             var source = """
@@ -10440,7 +10440,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "inferred2").WithArguments("arg2", "<anonymous delegate>").WithLocation(21, 5));
         }
 
-        [Fact, WorkItem(64436, "https://github.com/dotnet/roslyn/issues/64436")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64436")]
         public void SynthesizedDelegateTypes_NamedArguments_MoreThan16Parameters()
         {
             var range = Enumerable.Range(1, 17);
@@ -10767,7 +10767,7 @@ class Program
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63565")]
         public void SynthesizedDelegateTypes_UnscopedRefAttribute_01()
         {
             string source = """
@@ -10820,7 +10820,7 @@ class Program
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63565")]
         public void SynthesizedDelegateTypes_UnscopedRefAttribute_02()
         {
             string source = """
@@ -10872,7 +10872,7 @@ class Program
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63565")]
         public void SynthesizedDelegateTypes_UnscopedRefAttribute_03()
         {
             string source = """
@@ -10913,7 +10913,7 @@ class Program
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63565")]
         public void SynthesizedDelegateTypes_UnscopedRefAttribute_MissingType()
         {
             var attributeAssemblyName = GetUniqueName();
@@ -10982,7 +10982,7 @@ class Program
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63565")]
         public void SynthesizedDelegateTypes_UnscopedRefAttribute_MissingConstructor_01()
         {
             string sourceA = """
@@ -11015,7 +11015,7 @@ class Program
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63565")]
         public void SynthesizedDelegateTypes_UnscopedRefAttribute_MissingConstructor_02()
         {
             string source = """
@@ -11100,7 +11100,7 @@ class Program
             CompileAndVerify(source, expectedOutput: @"<>F{00000001}`2[System.Int32,System.Int32]");
         }
 
-        [WorkItem(56808, "https://github.com/dotnet/roslyn/issues/56808")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/56808")]
         [Fact]
         public void Invoke_03()
         {
@@ -11477,7 +11477,7 @@ class Program
             protected override ITypeSymbol WithNullableAnnotation(CodeAnalysis.NullableAnnotation nullableAnnotation) => this;
         }
 
-        [WorkItem(56407, "https://github.com/dotnet/roslyn/issues/56407")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/56407")]
         [Fact]
         public void UserDefinedConversions_01()
         {
@@ -12121,8 +12121,8 @@ class Program
         /// overload resolution performance in those cases because fewer overloads may be applicable.
         /// </summary>
         [Fact]
-        [WorkItem(1153265, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1153265")]
-        [WorkItem(58106, "https://github.com/dotnet/roslyn/issues/58106")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1153265")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58106")]
         public void InferDelegateType_01()
         {
             var source =
@@ -12152,8 +12152,8 @@ class Program
         /// will consider more overloads when binding for error recovery.
         /// </summary>
         [Fact]
-        [WorkItem(1153265, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1153265")]
-        [WorkItem(58106, "https://github.com/dotnet/roslyn/issues/58106")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1153265")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58106")]
         public void InferDelegateType_02()
         {
             var source =
@@ -12320,7 +12320,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(64656, "https://github.com/dotnet/roslyn/issues/64656")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64656")]
         public void UsingStatic_DelegateInference()
         {
             var source = """
@@ -14528,7 +14528,7 @@ class Program
             } // end of class <>f__AnonymousDelegate0`1
             """;
 
-        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         public void DefaultParameterValue_Decimal_Lambda_DelegateIL()
         {
             var source = """
@@ -14566,7 +14566,7 @@ class Program
             verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", s_anonymousDelegateWithDecimalConstant);
         }
 
-        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         public void DefaultParameterValue_Decimal_Lambda_ClosureIL()
         {
             var source = """
@@ -14640,7 +14640,7 @@ class Program
                 """);
         }
 
-        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         public void DefaultParameterValue_Decimal_LocalFunction_DelegateIL()
         {
             var source = """
@@ -14678,7 +14678,7 @@ class Program
             verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", s_anonymousDelegateWithDecimalConstant);
         }
 
-        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         public void DefaultParameterValue_Decimal_LocalFunction_ClosureIL()
         {
             var source = """
@@ -14757,7 +14757,7 @@ class Program
                 """);
         }
 
-        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         public void DefaultParameterValue_Decimal_MethodGroup()
         {
             var source = """
@@ -14836,7 +14836,7 @@ class Program
             } // end of class <>f__AnonymousDelegate0`1
             """;
 
-        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         public void DefaultParameterValue_DateTime_Lambda_DelegateIL()
         {
             var source = """
@@ -14860,7 +14860,7 @@ class Program
             verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", s_anonymousDelegateWithDateTimeConstant);
         }
 
-        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         public void DefaultParameterValue_DateTime_Lambda_ClosureIL()
         {
             var source = """
@@ -14936,7 +14936,7 @@ class Program
                 """);
         }
 
-        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         public void DefaultParameterValue_DateTime_LocalFunction_DelegateIL()
         {
             var source = """
@@ -14960,7 +14960,7 @@ class Program
             verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", s_anonymousDelegateWithDateTimeConstant);
         }
 
-        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         public void DefaultParameterValue_DateTime_LocalFunction_ClosureIL()
         {
             var source = """
@@ -15041,7 +15041,7 @@ class Program
                 """);
         }
 
-        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         public void DefaultParameterValue_DateTime_MethodGroup()
         {
             var source = """
@@ -15157,7 +15157,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "2m").WithArguments("System.Decimal").WithLocation(2, 24));
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Lambda(string type)
@@ -15187,7 +15187,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
             comp.VerifyEmitDiagnostics();
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Lambda_AsArgument(string type)
@@ -15205,7 +15205,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(1, 28));
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Lambda_AsGenericArgument(string type)
@@ -15223,7 +15223,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(1, 28));
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Lambda_CustomType(string type)
@@ -15244,7 +15244,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(3, 32));
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal", "System.Decimal")]
         [InlineData("decimal?", "System.Nullable`1[System.Decimal]")]
         public void MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_Alone(string type, string typeFullName)
@@ -15265,7 +15265,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 """).VerifyDiagnostics();
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal")]
         [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_Alone_CustomType(string type)
@@ -15282,7 +15282,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
             comp.VerifyEmitDiagnostics();
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_WithOptional(string type)
@@ -15302,7 +15302,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(4, 68));
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_WithOptional_CustomType(string type)
@@ -15320,7 +15320,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
             comp.VerifyEmitDiagnostics();
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_WithDefault(string type)
@@ -15339,7 +15339,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(3, 58));
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_WithDefault_CustomType(string type)
@@ -15356,7 +15356,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
             comp.VerifyEmitDiagnostics();
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Method(string type)
@@ -15380,7 +15380,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(5, 39));
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Method_ExplicitAttribute_WithOptional(string type)
@@ -15404,7 +15404,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C.M").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(4, 9));
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Method_ExplicitAttribute_WithOptional_CustomType(string type)
@@ -15427,7 +15427,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
             comp.VerifyEmitDiagnostics();
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Method_ExplicitAttribute_WithDefault(string type)
@@ -15450,7 +15450,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C.M").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(3, 9));
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Method_ExplicitAttribute_WithDefault_CustomType(string type)
@@ -15472,7 +15472,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
             comp.VerifyEmitDiagnostics();
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal")]
         [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_ExternalMethodGroup(string type)
@@ -15496,7 +15496,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C.M").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(1, 9));
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal")]
         [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_ExternalMethodGroup_CustomType(string type)
@@ -15519,7 +15519,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
             comp2.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         public void MissingDecimalConstantAttribute_Field()
         {
             var source = """
@@ -15536,7 +15536,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "D = 1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(3, 26));
         }
 
-        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         public void MissingDecimalConstantAttribute_Field_ExplicitAttribute_Alone()
         {
             var source = """
@@ -15560,7 +15560,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "d").WithArguments("d").WithLocation(1, 15));
         }
 
-        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         public void MissingDecimalConstantAttribute_Field_ExplicitAttribute_WithDefault()
         {
             var source = """
@@ -15575,7 +15575,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         public void MissingDecimalConstantAttribute_OverloadResolution()
         {
             var source1 = """
@@ -15616,7 +15616,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
             comp2.VerifyDiagnostics(diagnostics);
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("DateTime", "System.DateTime")]
         [InlineData("DateTime?", "System.Nullable`1[System.DateTime]")]
         public void MissingDateTimeConstantAttribute_Lambda_Alone(string type, string typeFullName)
@@ -15638,7 +15638,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 """).VerifyDiagnostics();
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("DateTime")]
         [InlineData("DateTime?")]
         public void MissingDateTimeConstantAttribute_Lambda_Alone_CustomType(string type)
@@ -15656,7 +15656,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
             comp.VerifyEmitDiagnostics();
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("DateTime ")]
         [InlineData("DateTime?")]
         public void MissingDateTimeConstantAttribute_Lambda_WithOptional(string type)
@@ -15686,7 +15686,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
             comp.VerifyDiagnostics(diagnostics);
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("DateTime ")]
         [InlineData("DateTime?")]
         public void MissingDateTimeConstantAttribute_Lambda_WithOptional_CustomType(string type)
@@ -15705,7 +15705,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
             comp.VerifyEmitDiagnostics();
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("DateTime ")]
         [InlineData("DateTime?")]
         public void MissingDateTimeConstantAttribute_ExternalMethodGroup(string type)
@@ -15733,7 +15733,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C.M").WithArguments("System.Runtime.CompilerServices.DateTimeConstantAttribute", ".ctor").WithLocation(1, 9));
         }
 
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("DateTime ")]
         [InlineData("DateTime?")]
         public void MissingDateTimeConstantAttribute_ExternalMethodGroup_CustomType(string type)
@@ -15760,7 +15760,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
             comp2.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65728")]
         public void MissingDateTimeConstantAttribute_OverloadResolution()
         {
             var source1 = """

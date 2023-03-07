@@ -248,7 +248,7 @@ class Test
 
         /// <remarks>Based on LambdaTests.TestLambdaErrors03</remarks>
         [Fact]
-        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         public void TestVarianceConversionCycle()
         {
             // To determine which overload is better, we have to try to convert D<IIn<I>> to D<I>
@@ -277,7 +277,7 @@ class C
 
         /// <remarks>http://blogs.msdn.com/b/ericlippert/archive/2008/05/07/covariance-and-contravariance-part-twelve-to-infinity-but-not-beyond.aspx</remarks>
         [Fact]
-        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         public void TestVarianceConversionInfiniteExpansion01()
         {
             // IC<double> is convertible to IN<IC<string>> if and only
@@ -302,7 +302,7 @@ class C
 
         /// <remarks>http://blogs.msdn.com/b/ericlippert/archive/2008/05/07/covariance-and-contravariance-part-twelve-to-infinity-but-not-beyond.aspx</remarks>
         [Fact]
-        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         public void TestVarianceConversionInfiniteExpansion02()
         {
             var text = @"
@@ -337,7 +337,7 @@ class Test
                 );
         }
 
-        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         [Fact]
         public void TestVarianceConversionLongFailure()
         {
@@ -373,8 +373,8 @@ class M {
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a").WithArguments("A", "N<X>"));
         }
 
-        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
-        [WorkItem(529488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529488")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529488")]
         [Fact]
         public void TestVarianceConversionLongSuccess_Breaking()
         {
@@ -415,7 +415,7 @@ class M
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a").WithArguments("A", "N<X>"));
         }
 
-        [WorkItem(542482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542482")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542482")]
         [Fact]
         public void CS1961ERR_UnexpectedVariance_ConstraintTypes()
         {
@@ -524,7 +524,7 @@ interface I8<in T, U>
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "S<T>").WithArguments("I8<T, U>.M(S<T>)", "T", "contravariant", "invariantly").WithLocation(33, 12));
         }
 
-        [WorkItem(602022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602022")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602022")]
         [Fact]
         public void CS1961ERR_UnexpectedVariance_Enums()
         {
@@ -564,7 +564,7 @@ interface I4<in T, U>
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "C<T>.E").WithArguments("I4<T, U>.M(C<T>.E)", "T", "contravariant", "invariantly").WithLocation(19, 14));
         }
 
-        [WorkItem(542794, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542794")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542794")]
         [Fact]
         public void ContravariantBaseInterface()
         {
@@ -583,7 +583,7 @@ interface IB<in T> : IA<IB<T>> { }
         /// Report errors on type parameter use
         /// rather than declaration.
         /// </summary>
-        [WorkItem(855750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855750")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855750")]
         [Fact]
         public void ErrorLocations()
         {

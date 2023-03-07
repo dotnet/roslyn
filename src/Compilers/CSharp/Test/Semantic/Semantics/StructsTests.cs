@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class StructsTests : CompilingTestBase
     {
-        [WorkItem(540982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540982")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540982")]
         [Fact()]
         public void TestInitFieldStruct()
         {
@@ -41,7 +41,7 @@ public struct A
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("A.a").WithLocation(4, 7));
         }
 
-        [WorkItem(1075325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075325"), WorkItem(343, "CodePlex")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075325"), WorkItem(343, "CodePlex")]
         [Fact()]
         public void TestInitEventStruct_01()
         {
@@ -93,7 +93,7 @@ struct S {
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [WorkItem(1075325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075325"), WorkItem(343, "CodePlex")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075325"), WorkItem(343, "CodePlex")]
         [Fact()]
         public void TestStaticInitInStruct()
         {
@@ -119,7 +119,7 @@ struct S {
         }
 
         // Test constructor forwarding works for structs
-        [WorkItem(540896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540896")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540896")]
         [Fact]
         public void TestConstructorStruct()
         {
@@ -144,7 +144,7 @@ struct  Goo
         }
 
         // Calling struct default constructor in another constructor
-        [WorkItem(540896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540896")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540896")]
         [Fact]
         public void TestConstructorStruct02()
         {
@@ -165,7 +165,7 @@ public struct Struct
         }
 
         // Test constructor forwarding works for structs
-        [WorkItem(540896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540896")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540896")]
         [Fact]
         public void TestConstructorStruct03()
         {
@@ -216,8 +216,8 @@ class Program
         }
 
         // Overriding base System.Object methods on struct
-        [WorkItem(20496, "https://github.com/dotnet/roslyn/issues/20496")]
-        [WorkItem(540990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540990")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20496")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540990")]
         [ClrOnlyFact(ClrOnlyReason.MemberOrder)]
         public void TestOverridingBaseConstructorStruct()
         {
@@ -305,7 +305,7 @@ S::ToString";
         }
 
         // Test constructor for generic struct
-        [WorkItem(540993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540993")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540993")]
         [Fact]
         public void TestConstructorForGenericStruct()
         {
@@ -335,7 +335,7 @@ class Test
         }
 
         // Assign to decimal in struct constructor
-        [WorkItem(540994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540994")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540994")]
         [Fact]
         public void TestAssigntoDecimalInStructConstructor()
         {
@@ -493,7 +493,7 @@ public class C
 }");
         }
 
-        [WorkItem(541309, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541309")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541309")]
         [Fact]
         public void PrivateParameterlessConstructorInMetadata()
         {
@@ -548,7 +548,7 @@ public class C
 }");
         }
 
-        [WorkItem(543934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543934")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543934")]
         [Fact]
         public void ObjectCreationExprStructTypeInstanceFieldAssign()
         {
@@ -572,7 +572,7 @@ public class TestClass
                 );
         }
 
-        [WorkItem(543896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543896")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543896")]
         [Fact]
         public void ObjectCreationExprStructTypePropertyAssign()
         {
@@ -599,7 +599,7 @@ public class mem033
                 );
         }
 
-        [WorkItem(545498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545498")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545498")]
         [Fact]
         public void StructMemberNullableTypeCausesCycle()
         {

@@ -129,7 +129,7 @@ int field = constantField;
             Assert.IsAssignableFrom<SourceLocalSymbol>(symbol.GetSymbol());
         }
 
-        [WorkItem(540513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540513")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540513")]
         [Fact]
         public void BindVariableInGlobalStatement()
         {
@@ -144,7 +144,7 @@ int i = 2;
             Assert.Equal(SymbolKind.Field, symbol.Kind);
         }
 
-        [WorkItem(543860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543860")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543860")]
         [Fact]
         public void BindVarKeyword()
         {
@@ -169,7 +169,7 @@ int i = 2;
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(543860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543860")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543860")]
         [Fact]
         public void BindVarKeyword_MultipleDeclarators()
         {
@@ -194,7 +194,7 @@ int i = 2;
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(543860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543860")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543860")]
         [Fact]
         public void BindVarNamedType()
         {
@@ -220,7 +220,7 @@ public class var { }
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(543860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543860")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543860")]
         [Fact]
         public void BindVarNamedType_Ambiguous()
         {
@@ -253,7 +253,7 @@ public struct var { }
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(543864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543864")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543864")]
         [Fact]
         public void BindQueryVariable()
         {

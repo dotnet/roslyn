@@ -106,7 +106,7 @@ class Test
                 );
         }
 
-        [WorkItem(546081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546081")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546081")]
         [Fact]
         public void IteratorBlockWithUnreachableCode()
         {
@@ -147,7 +147,7 @@ class Test
             Assert.True(emitResult.Success);
         }
 
-        [WorkItem(546364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546364")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546364")]
         [Fact]
         public void IteratorWithEnumeratorMoveNext()
         {
@@ -179,7 +179,7 @@ public class Program
             CompileAndVerify(text).VerifyDiagnostics();
         }
 
-        [WorkItem(813557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813557")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813557")]
         [Fact]
         public void IteratorWithDelegateCreationExpression()
         {
@@ -204,7 +204,7 @@ public class Program
             CompileAndVerify(text).VerifyDiagnostics();
         }
 
-        [WorkItem(888254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/888254")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/888254")]
         [Fact]
         public void IteratorWithTryCatch()
         {
@@ -244,7 +244,7 @@ namespace RoslynYield
             CompileAndVerify(text).VerifyDiagnostics();
         }
 
-        [WorkItem(888254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/888254")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/888254")]
         [Fact]
         public void IteratorWithTryCatchFinally()
         {
@@ -303,7 +303,7 @@ namespace RoslynYield
         }
 
         [Fact]
-        [WorkItem(5390, "https://github.com/dotnet/roslyn/issues/5390")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/5390")]
         public void TopLevelYieldReturn()
         {
             // The incomplete statement is intended
@@ -336,7 +336,7 @@ namespace RoslynYield
         }
 
         [Fact]
-        [WorkItem(5390, "https://github.com/dotnet/roslyn/issues/5390")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/5390")]
         public void TopLevelYieldBreak()
         {
             var text = "yield break;";
@@ -354,7 +354,7 @@ namespace RoslynYield
         }
 
         [Fact]
-        [WorkItem(11649, "https://github.com/dotnet/roslyn/issues/11649")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11649")]
         public void IteratorRewriterShouldNotRewriteBaseMethodWrapperSymbol()
         {
             var text =
@@ -383,7 +383,7 @@ class Base
         }
 
         [Fact]
-        [WorkItem(11649, "https://github.com/dotnet/roslyn/issues/11649")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11649")]
         public void IteratorRewriterShouldNotRewriteBaseMethodWrapperSymbol2()
         {
             var source =
@@ -423,7 +423,7 @@ class Base
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        [WorkItem(261047, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=261047&_a=edit")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=261047&_a=edit")]
         public void MissingExpression()
         {
             var text =
@@ -458,7 +458,7 @@ IReturnOperation (OperationKind.YieldReturn, Type: null, IsInvalid) (Syntax: 'yi
         }
 
         [Fact]
-        [WorkItem(3825, "https://github.com/dotnet/roslyn/issues/3825")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3825")]
         public void ObjectCreationExpressionSyntax_01()
         {
             var text = @"
@@ -492,7 +492,7 @@ class Test<TKey, TValue>
         }
 
         [Fact]
-        [WorkItem(3825, "https://github.com/dotnet/roslyn/issues/3825")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3825")]
         public void ObjectCreationExpressionSyntax_02()
         {
             var text = @"

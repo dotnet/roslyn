@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
 public partial class RawInterpolationTests : CompilingTestBase
 {
-    [Theory, WorkItem(54702, "https://github.com/dotnet/roslyn/issues/54702")]
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/54702")]
     [InlineData(@"$""""""{s1}{s2}""""""", @"$""""""{s1}{s2}{s3}""""""", @"$""""""{s1}{s2}{s3}{s4}""""""", @"$""""""{s1}{s2}{s3}{s4}{s5}""""""")]
     [InlineData(@"$""""""{s1}"""""" + $""""""{s2}""""""", @"$""""""{s1}"""""" + $""""""{s2}"""""" + $""""""{s3}""""""", @"$""""""{s1}"""""" + $""""""{s2}"""""" + $""""""{s3}"""""" + $""""""{s4}""""""", @"$""""""{s1}"""""" + $""""""{s2}"""""" + $""""""{s3}"""""" + $""""""{s4}"""""" + $""""""{s5}""""""")]
     public void InterpolatedStringHandler_ConcatPreferencesForAllStringElements(string twoComponents, string threeComponents, string fourComponents, string fiveComponents)
@@ -1494,7 +1494,7 @@ value:2");
 ");
     }
 
-    [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/55609")]
     [InlineData(@"$""""""base{hole}""""""")]
     [InlineData(@"$""""""base"""""" + $""""""{hole}""""""")]
     public void DynamicInHoles_UsesFormat(string expression)
@@ -1546,7 +1546,7 @@ Console.WriteLine(" + expression + @");
 ");
     }
 
-    [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/55609")]
     [InlineData(@"$""""""{hole}base""""""")]
     [InlineData(@"$""""""{hole}"""""" + $""""""base""""""")]
     public void DynamicInHoles_UsesFormat2(string expression)
@@ -8018,7 +8018,7 @@ public partial struct CustomHandler
     }
 
     [Theory, CombinatorialData]
-    [WorkItem(56624, "https://github.com/dotnet/roslyn/issues/56624")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/56624")]
     public void RefOrOutParameter_AsReceiver([CombinatorialValues("ref", "out")] string parameterRefness,
         [CombinatorialValues(@"$""""""literal""""""", @"$""""""literal"""""" + $""""""
 
@@ -9853,7 +9853,7 @@ Expression<Func<CustomHandler>> expr = () => " + expression + @";
             Diagnostic(ErrorCode.ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion, expression).WithLocation(5, 46));
     }
 
-    [Fact, WorkItem(55114, "https://github.com/dotnet/roslyn/issues/55114")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55114")]
     public void AsStringInExpressionTrees_01()
     {
         var code = @"
@@ -9913,7 +9913,7 @@ Expression<Func<string, string>> e = o => $""""""{o.Length}"""""";";
 ");
     }
 
-    [Fact, WorkItem(55114, "https://github.com/dotnet/roslyn/issues/55114")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55114")]
     public void AsStringInExpressionTrees_02()
     {
         var code = @"
@@ -9972,7 +9972,7 @@ Expression e = (string o) => $""""""{o.Length}"""""";";
 ");
     }
 
-    [Fact, WorkItem(55114, "https://github.com/dotnet/roslyn/issues/55114")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55114")]
     public void AsStringInExpressionTrees_03()
     {
         var code = @"
@@ -10034,7 +10034,7 @@ Expression<Func<Func<string, string>>> e = () => o => $""""""{o.Length}"""""";";
 ");
     }
 
-    [Fact, WorkItem(55114, "https://github.com/dotnet/roslyn/issues/55114")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55114")]
     public void AsStringInExpressionTrees_04()
     {
         var code = @"
@@ -10096,7 +10096,7 @@ Expression e = Func<string, string> () => (string o) => $""""""{o.Length}"""""";
 ");
     }
 
-    [Fact, WorkItem(55114, "https://github.com/dotnet/roslyn/issues/55114")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55114")]
     public void AsStringInExpressionTrees_05()
     {
         var code = @"
@@ -10310,7 +10310,7 @@ public partial class CustomHandler
         };
     }
 
-    [Fact, WorkItem(1370647, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1370647")]
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1370647")]
     public void AsFormattableString()
     {
         var code = @"
@@ -10331,7 +10331,7 @@ void M(System.FormattableString s)
             Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""""""{1}"""""" + $""""""literal""""""").WithArguments("string", "System.FormattableString").WithLocation(3, 30));
     }
 
-    [Fact, WorkItem(1370647, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1370647")]
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1370647")]
     public void AsIFormattable()
     {
         var code = @"
@@ -11325,7 +11325,7 @@ class Program
             Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler this").WithLocation(5, 104));
     }
 
-    [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/54703")]
     [InlineData(@"$$""""""{ {{i}} }""""""")]
     [InlineData(@"$$""""""{ """""" + $""""""{i}"""""" + $$"""""" }""""""")]
     public void BracesAreEscaped_01(string expression)
@@ -11370,7 +11370,7 @@ value:1
 ");
     }
 
-    [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/54703")]
     [InlineData(@"$$""""""{ {{i}} }""""""")]
     [InlineData(@"$$""""""{ """""" + $""""""{i}"""""" + $$"""""" }""""""")]
     public void BracesAreEscaped_02(string expression)
@@ -11425,7 +11425,7 @@ literal: }");
 ");
     }
 
-    [Theory, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/59603")]
     [InlineData(@"$$$""""""{{1 + 2}}""""""")]
     public void BracesNotEscaped1(string expression)
     {
@@ -11463,7 +11463,7 @@ literal:{{1 + 2}}");
 ");
     }
 
-    [Theory, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/59603")]
     [InlineData(@"$$$$""""""{{1 + 2}}""""""")]
     public void BracesNotEscaped2(string expression)
     {
@@ -11501,7 +11501,7 @@ literal:{{1 + 2}}");
 ");
     }
 
-    [Theory, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/59603")]
     [InlineData(@"$$$$""""""{{{1 + 2}}}""""""")]
     public void BracesNotEscaped3(string expression)
     {
@@ -12604,7 +12604,7 @@ format:
 ");
     }
 
-    [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/55609")]
     [InlineData(@"$""""""{h1}{h2}""""""")]
     [InlineData(@"$""""""{h1}"""""" + $""""""{h2}""""""")]
     public void RefStructHandler_DynamicInHole(string expression)

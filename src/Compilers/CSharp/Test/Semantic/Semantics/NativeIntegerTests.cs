@@ -1180,7 +1180,7 @@ public class B : A<nint>
         }
 
         [Fact]
-        [WorkItem(49845, "https://github.com/dotnet/roslyn/issues/49845")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49845")]
         public void Retargeting_06()
         {
             var source1 =
@@ -3475,7 +3475,7 @@ class C2 : IA, IB
         }
 
         [Fact]
-        [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45519")]
         public void Partial_01()
         {
             var source =
@@ -3757,7 +3757,7 @@ class Program
             }
         }
 
-        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42975")]
         [Fact]
         public void AliasName_04()
         {
@@ -3786,7 +3786,7 @@ class Program
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
-        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42975")]
         [Fact]
         public void AliasName_05()
         {
@@ -3812,7 +3812,7 @@ namespace nuint
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42975")]
         [Fact]
         public void Using_01()
         {
@@ -3845,7 +3845,7 @@ class Program
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
-        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42975")]
         [Fact]
         public void Using_02()
         {
@@ -3877,7 +3877,7 @@ namespace nuint
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42975")]
         [Fact]
         public void AttributeType_01()
         {
@@ -3913,7 +3913,7 @@ class AAttribute : System.Attribute
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
-        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42975")]
         [Fact]
         public void AttributeType_02()
         {
@@ -3935,7 +3935,7 @@ class nuintAttribute : Attribute { }";
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42975")]
         [Fact]
         public void AttributeType_03()
         {
@@ -3963,7 +3963,7 @@ class BAttribute : Attribute
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42975")]
         [Fact]
         public void GetSpeculativeTypeInfo()
         {
@@ -4520,7 +4520,7 @@ class Program
 }");
         }
 
-        [WorkItem(42453, "https://github.com/dotnet/roslyn/issues/42453")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42453")]
         [Fact]
         public void ReadOnlyField_VirtualMethods()
         {
@@ -4731,7 +4731,7 @@ False
             }
         }
 
-        [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
+        [WorkItem("https://github.com/dotnet/csharplang/issues/3259")]
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
@@ -4846,7 +4846,7 @@ False
 }");
         }
 
-        [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
+        [WorkItem("https://github.com/dotnet/csharplang/issues/3259")]
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
@@ -5030,7 +5030,7 @@ False
             comp.VerifyDiagnostics(diagnostics);
         }
 
-        [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
+        [WorkItem("https://github.com/dotnet/csharplang/issues/3259")]
         [Fact]
         public void BuiltInOperators_UnderlyingTypes()
         {
@@ -5089,7 +5089,7 @@ class A
             comp.VerifyDiagnostics(diagnostics);
         }
 
-        [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
+        [WorkItem("https://github.com/dotnet/csharplang/issues/3259")]
         [Theory]
         [InlineData(false, false)]
         [InlineData(true, false)]
@@ -5203,7 +5203,7 @@ class A
 }");
         }
 
-        [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
+        [WorkItem("https://github.com/dotnet/csharplang/issues/3259")]
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
@@ -5356,7 +5356,7 @@ class A
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42941")]
         public void NativeIntegerOperatorsCSharp8_01(bool useCompilationReference, bool lifted)
         {
             string typeSuffix = lifted ? "?" : "";
@@ -5406,7 +5406,7 @@ $@"public class A
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42941")]
         public void NativeIntegerOperatorsCSharp8_02(bool useCompilationReference, [CombinatorialValues("nint", "nint?", "nuint", "nuint?")] string type)
         {
             var sourceA =
@@ -5450,7 +5450,7 @@ $@"public class A
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42941")]
         public void NativeIntegerOperatorsCSharp8_03(bool useCompilationReference, [CombinatorialValues("nint", "nint?", "nuint", "nuint?")] string type)
         {
             var sourceA =
@@ -5542,7 +5542,7 @@ $@"public class A
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42941")]
         public void NativeIntegerOperatorsCSharp8_04(bool useCompilationReference, [CombinatorialValues("nint", "nint?", "nuint", "nuint?")] string type)
         {
             var sourceA =
@@ -5584,7 +5584,7 @@ $@"public class A
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42941")]
         public void NativeIntegerOperatorsCSharp8_05(bool useCompilationReference, [CombinatorialValues("nint", "nint?", "nuint", "nuint?")] string type)
         {
             var sourceA =
@@ -5652,7 +5652,7 @@ $@"public class A
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42941")]
         public void NativeIntegerConversionsCSharp8_01(bool useCompilationReference, [CombinatorialValues("nint", "nuint")] string type)
         {
             var sourceA =
@@ -5711,7 +5711,7 @@ $@"public class A
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42941")]
         public void NativeIntegerConversionsCSharp8_02(bool useCompilationReference, bool signed)
         {
             string type = signed ? "nint" : "nuint";
@@ -5756,7 +5756,7 @@ $@"class B : A
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42941")]
         public void NativeIntegerConversionsCSharp8_03(bool useCompilationReference, bool signed)
         {
             string type = signed ? "nint" : "nuint";
@@ -5889,7 +5889,7 @@ $@"class B : A
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42941")]
         public void NativeIntegerConversionsCSharp8_04(bool useCompilationReference, [CombinatorialValues("nint", "nuint")] string type)
         {
             var sourceA =
@@ -6223,8 +6223,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nu").WithArguments("nuint", "nint").WithLocation(41, 22));
         }
 
-        [WorkItem(42955, "https://github.com/dotnet/roslyn/issues/42955")]
-        [WorkItem(45525, "https://github.com/dotnet/roslyn/issues/45525")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42955")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45525")]
         [Fact]
         public void ConstantConversions_01()
         {
@@ -6274,7 +6274,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "System.OverflowException" : "1152921504606846975");
         }
 
-        [WorkItem(45531, "https://github.com/dotnet/roslyn/issues/45531")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45531")]
         [Fact]
         public void ConstantConversions_02()
         {
@@ -6311,9 +6311,9 @@ class Program
             CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "-1" : "1152921504606846975");
         }
 
-        [WorkItem(42955, "https://github.com/dotnet/roslyn/issues/42955")]
-        [WorkItem(45525, "https://github.com/dotnet/roslyn/issues/45525")]
-        [WorkItem(45531, "https://github.com/dotnet/roslyn/issues/45531")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42955")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45525")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45531")]
         [Fact]
         public void ConstantConversions_03()
         {
@@ -13202,7 +13202,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(51714, "https://github.com/dotnet/roslyn/issues/51714")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/51714")]
         public void ConstantFolding_02()
         {
             var source =
@@ -13267,7 +13267,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(51714, "https://github.com/dotnet/roslyn/issues/51714")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/51714")]
         public void ConstantFolding_03()
         {
             var source =
@@ -13378,7 +13378,7 @@ System.OverflowException
 {(IntPtr.Size == 4 ? "System.OverflowException" : "0")}");
         }
 
-        [WorkItem(42460, "https://github.com/dotnet/roslyn/issues/42460")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42460")]
         [Fact]
         public void UncheckedLeftShift_01()
         {
@@ -13402,7 +13402,7 @@ $@"{expectedValue}
 {expectedValue}");
         }
 
-        [WorkItem(42460, "https://github.com/dotnet/roslyn/issues/42460")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42460")]
         [Fact]
         public void UncheckedLeftShift_02()
         {
@@ -13426,7 +13426,7 @@ $@"{expectedValue}
 {expectedValue}");
         }
 
-        [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42500")]
         [Fact]
         public void ExplicitImplementationReturnTypeDifferences()
         {
@@ -13464,8 +13464,8 @@ class C : I
             Assert.Equal("S<System.IntPtr> C.I.F4()", type.GetMember("I.F4").ToTestDisplayString());
         }
 
-        [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
-        [WorkItem(44358, "https://github.com/dotnet/roslyn/issues/44358")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42500")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44358")]
         [Fact]
         public void OverrideReturnTypeDifferences()
         {
@@ -13500,7 +13500,7 @@ class B : A
             Assert.Equal("System.IntPtr[] B.F4()", type.GetMember("F4").ToTestDisplayString());
         }
 
-        [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42500")]
         [Fact]
         public void OverrideParameterTypeCustomModifierDifferences()
         {
@@ -13559,7 +13559,7 @@ class B : A
             Assert.Equal("void B.F4(System.IntPtr modopt(System.Int32) i)", type.GetMember("F4").ToTestDisplayString());
         }
 
-        [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42500")]
         [Fact]
         public void OverrideReturnTypeCustomModifierDifferences()
         {
@@ -13622,7 +13622,7 @@ class B : A
             Assert.Equal("System.IntPtr[] modopt(System.Int32) B.F4()", type.GetMember("F4").ToTestDisplayString());
         }
 
-        [WorkItem(42457, "https://github.com/dotnet/roslyn/issues/42457")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42457")]
         [Fact]
         public void Int64Conversions()
         {
@@ -13701,7 +13701,7 @@ $@"{{
             }
         }
 
-        [WorkItem(44810, "https://github.com/dotnet/roslyn/issues/44810")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44810")]
         [Theory]
         [InlineData("void*")]
         [InlineData("byte*")]
@@ -13838,7 +13838,7 @@ System.OverflowException
 }");
         }
 
-        [WorkItem(48035, "https://github.com/dotnet/roslyn/issues/48035")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48035")]
         [Theory]
         [InlineData(null)]
         [InlineData("sbyte")]
@@ -13917,7 +13917,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "E.B").WithArguments("E", "nuint").WithLocation(32, 13));
         }
 
-        [WorkItem(48035, "https://github.com/dotnet/roslyn/issues/48035")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48035")]
         [Theory]
         [InlineData(null)]
         [InlineData("sbyte")]
@@ -13952,7 +13952,7 @@ B
 1");
         }
 
-        [WorkItem(48035, "https://github.com/dotnet/roslyn/issues/48035")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48035")]
         [Fact]
         public void EnumConversions_03()
         {
@@ -14625,7 +14625,7 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
                 comp.GetMember<NamedTypeSymbol>(typeName).InterfacesNoUseSiteDiagnostics().Single();
         }
 
-        [WorkItem(49596, "https://github.com/dotnet/roslyn/issues/49596")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49596")]
         [Fact]
         public void SignedToUnsignedConversions_Implicit()
         {
@@ -14970,7 +14970,7 @@ enum E { }
             }
         }
 
-        [Fact, WorkItem(60714, "https://github.com/dotnet/roslyn/issues/60714")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60714")]
         public void ConversionFromNuintToDouble()
         {
             var source = """
@@ -15012,7 +15012,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(60714, "https://github.com/dotnet/roslyn/issues/60714")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60714")]
         public void ConversionFromNuintToFloat()
         {
             var source = """
@@ -15331,7 +15331,7 @@ struct Outer<@nint>
             Assert.Equal(TypeKind.TypeParameter, symbol.TypeKind);
         }
 
-        [Fact, WorkItem(43347, "https://github.com/dotnet/roslyn/issues/43347")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43347")]
         public void MaskShiftCount()
         {
             // positive nint shift right
@@ -15717,7 +15717,7 @@ class C
             }
         }
 
-        [Theory, WorkItem(43347, "https://github.com/dotnet/roslyn/issues/43347")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/43347")]
         [InlineData("System.IntPtr", ">>")]
         [InlineData("System.IntPtr", ">>>")]
         [InlineData("System.IntPtr", "<<")]
@@ -15745,7 +15745,7 @@ class C
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(60944, "https://github.com/dotnet/roslyn/issues/60944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/60944")]
         public void NopConversions([CombinatorialValues("nint", "nuint")] string inputType, [CombinatorialValues("nint", "nuint")] string outputType)
         {
             var source =

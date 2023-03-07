@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class TypeofTests : CSharpTestBase
     {
-        [Fact, WorkItem(1720, "https://github.com/dotnet/roslyn/issues/1720")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1720")]
         public void GetSymbolsOnResultOfTypeof()
         {
             var source = @"

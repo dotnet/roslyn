@@ -1151,7 +1151,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(58647, "https://github.com/dotnet/roslyn/issues/58647")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58647")]
         public void IncrementalGenerator_With_Syntax_Filter_Removed_Tree_Add_New_Generator()
         {
             var source1 = @"

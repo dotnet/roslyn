@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
-        [Fact, WorkItem(29656, "https://github.com/dotnet/roslyn/issues/29656")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29656")]
         public void RefReturningAsyncLocalFunction()
         {
             var source = @"
@@ -1564,7 +1564,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(17014, "https://github.com/dotnet/roslyn/pull/17014")]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/17014")]
         public void RecursiveLocalFuncsAsParameterTypes()
         {
             var comp = CreateCompilation(@"
@@ -1592,7 +1592,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16451")]
         public void BadGenericConstraint()
         {
             var comp = CreateCompilation(@"
@@ -1608,7 +1608,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16451")]
         public void RecursiveDefaultParameter()
         {
             var comp = CreateCompilation(@"
@@ -1628,7 +1628,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16451")]
         public void RecursiveDefaultParameter2()
         {
             var comp = CreateCompilation(@"
@@ -1649,7 +1649,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16451")]
         public void MutuallyRecursiveDefaultParameters()
         {
             var comp = CreateCompilation(@"
@@ -2412,7 +2412,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(13193, "https://github.com/dotnet/roslyn/issues/13193")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13193")]
         public void LocalFunctionConflictingName()
         {
             var comp = CreateCompilation(@"
@@ -2685,7 +2685,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "CallerMemberName()").WithArguments("string", "int").WithLocation(13, 9));
         }
 
-        [WorkItem(10708, "https://github.com/dotnet/roslyn/issues/10708")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10708")]
         [CompilerTrait(CompilerFeature.Dynamic, CompilerFeature.Params)]
         [Fact]
         public void DynamicArgumentToParams()
@@ -2764,7 +2764,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Local").WithArguments("Local", "2").WithLocation(10, 9));
         }
 
-        [WorkItem(3923, "https://github.com/dotnet/roslyn/issues/3923")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3923")]
         [Fact]
         public void ExpressionTreeLocalFunctionUsage_01()
         {
@@ -3934,7 +3934,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(10521, "https://github.com/dotnet/roslyn/issues/10521")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10521")]
         public void LocalFunctionInIf()
         {
             var source = @"
@@ -3960,7 +3960,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(10521, "https://github.com/dotnet/roslyn/issues/10521")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10521")]
         public void LabeledLocalFunctionInIf()
         {
             var source = @"
@@ -4188,7 +4188,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(12467, "https://github.com/dotnet/roslyn/issues/12467")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12467")]
         public void ParamUnassigned_01()
         {
             var src = @"
@@ -4219,7 +4219,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(12467, "https://github.com/dotnet/roslyn/issues/12467")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12467")]
         public void ParamUnassigned_02()
         {
             var src = @"
@@ -4252,7 +4252,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(12467, "https://github.com/dotnet/roslyn/issues/12467")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12467")]
         public void ParamUnassigned_03()
         {
             var src = @"
@@ -4289,7 +4289,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(12467, "https://github.com/dotnet/roslyn/issues/12467")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12467")]
         public void ParamUnassigned_04()
         {
             var src = @"
@@ -4322,7 +4322,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(49500, "https://github.com/dotnet/roslyn/issues/49500")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49500")]
         public void OutParam_Extern_01()
         {
             var src = @"
@@ -4347,7 +4347,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(49500, "https://github.com/dotnet/roslyn/issues/49500")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49500")]
         public void OutParam_Extern_02()
         {
             var src = @"
@@ -4388,7 +4388,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(13172, "https://github.com/dotnet/roslyn/issues/13172")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13172")]
         public void InheritUnsafeContext()
         {
             var comp = CreateCompilationWithMscorlib46(@"
@@ -4477,7 +4477,7 @@ unsafe class D
                 Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(2)").WithLocation(33, 13));
         }
 
-        [Fact, WorkItem(16167, "https://github.com/dotnet/roslyn/issues/16167")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16167")]
         public void DeclarationInLocalFunctionParameterDefault()
         {
             var text = @"
@@ -4618,7 +4618,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16757")]
         public void LocalFunctionParameterDefaultUsingConst()
         {
             var source = @"
@@ -4656,7 +4656,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(16821, "https://github.com/dotnet/roslyn/issues/16821")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16821")]
         public void LocalFunction_ParameterDefaultValue_NameOfLocalFunction()
         {
             var source = """
@@ -4669,7 +4669,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(15536, "https://github.com/dotnet/roslyn/issues/15536")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15536")]
         public void CallFromDifferentSwitchSection_01()
         {
             var source = @"
@@ -4701,7 +4701,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(15536, "https://github.com/dotnet/roslyn/issues/15536")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15536")]
         public void CallFromDifferentSwitchSection_02()
         {
             var source = @"
@@ -4733,7 +4733,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(15536, "https://github.com/dotnet/roslyn/issues/15536")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15536")]
         public void CallFromDifferentSwitchSection_03()
         {
             var source = @"
@@ -4766,7 +4766,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(15536, "https://github.com/dotnet/roslyn/issues/15536")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15536")]
         public void CallFromDifferentSwitchSection_04()
         {
             var source = @"
@@ -4799,7 +4799,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(15536, "https://github.com/dotnet/roslyn/issues/15536")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15536")]
         public void CallFromDifferentSwitchSection_05()
         {
             var source = @"
@@ -4838,7 +4838,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(16751, "https://github.com/dotnet/roslyn/issues/16751")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16751")]
         public void SemanticModelInAttribute_01()
         {
             var source =
@@ -4887,7 +4887,7 @@ class Test : System.Attribute
         }
 
         [Fact]
-        [WorkItem(19778, "https://github.com/dotnet/roslyn/issues/19778")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19778")]
         public void BindDynamicInvocation()
         {
             var source =
@@ -4912,7 +4912,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(19778, "https://github.com/dotnet/roslyn/issues/19778")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19778")]
         public void BindDynamicInvocation_Async()
         {
             var source =
@@ -4940,7 +4940,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(21317, "https://github.com/dotnet/roslyn/issues/21317")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21317")]
         [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicGenericArg()
         {
@@ -5002,7 +5002,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23699")]
         public void GetDeclaredSymbolOnTypeParameter()
         {
             var src = @"
@@ -6496,7 +6496,7 @@ class Program
 13");
         }
 
-        [Fact, WorkItem(38129, "https://github.com/dotnet/roslyn/issues/38129")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38129")]
         public void StaticLocalFunctionLocalFunctionReference_01()
         {
             var source =
@@ -6522,7 +6522,7 @@ class C
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "F1()").WithArguments("F1").WithLocation(11, 13));
         }
 
-        [Fact, WorkItem(39706, "https://github.com/dotnet/roslyn/issues/39706")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39706")]
         public void StaticLocalFunctionLocalFunctionReference_02()
         {
             var source =
@@ -6545,7 +6545,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "Local<int>()").WithArguments("Local").WithLocation(9, 13));
         }
 
-        [Fact, WorkItem(39706, "https://github.com/dotnet/roslyn/issues/39706")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39706")]
         public void StaticLocalFunctionLocalFunctionReference_03()
         {
             var source =
@@ -6574,7 +6574,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "Local<int>()").WithArguments("Local").WithLocation(14, 13));
         }
 
-        [Fact, WorkItem(38240, "https://github.com/dotnet/roslyn/issues/38240")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38240")]
         public void StaticLocalFunctionLocalFunctionDelegateReference_01()
         {
             var source =
@@ -6603,7 +6603,7 @@ class C
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "F1").WithArguments("F1").WithLocation(12, 28));
         }
 
-        [Fact, WorkItem(39706, "https://github.com/dotnet/roslyn/issues/39706")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39706")]
         public void StaticLocalFunctionLocalFunctionDelegateReference_02()
         {
             var source =
@@ -6632,7 +6632,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "Local<string>").WithArguments("Local").WithLocation(12, 28));
         }
 
-        [Fact, WorkItem(39706, "https://github.com/dotnet/roslyn/issues/39706")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39706")]
         public void StaticLocalFunctionLocalFunctionDelegateReference_03()
         {
             var source =
@@ -6688,7 +6688,7 @@ class Program
 System.String");
         }
 
-        [Fact, WorkItem(38240, "https://github.com/dotnet/roslyn/issues/38240")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38240")]
         public void StaticLocalFunctionStaticFunctionsDelegateReference()
         {
             var source =
@@ -6713,7 +6713,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(38240, "https://github.com/dotnet/roslyn/issues/38240")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38240")]
         public void StaticLocalFunctionThisAndBaseDelegateReference()
         {
             var source =
@@ -6761,7 +6761,7 @@ class C : B
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "M").WithLocation(19, 28));
         }
 
-        [Fact, WorkItem(38240, "https://github.com/dotnet/roslyn/issues/38240")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38240")]
         public void StaticLocalFunctionDelegateReferenceWithReceiver()
         {
             var source =
@@ -6794,7 +6794,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(38143, "https://github.com/dotnet/roslyn/issues/38143")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38143")]
         public void EmittedAsStatic_01()
         {
             var source =
@@ -6814,7 +6814,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(38143, "https://github.com/dotnet/roslyn/issues/38143")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38143")]
         public void EmittedAsStatic_02()
         {
             var source =
@@ -6845,7 +6845,7 @@ class C
         /// method even if no references to type parameters.
         /// </summary>
         [Fact]
-        [WorkItem(38143, "https://github.com/dotnet/roslyn/issues/38143")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38143")]
         public void EmittedAsStatic_03()
         {
             var source =
@@ -7144,7 +7144,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "await").WithArguments("await").WithLocation(23, 30));
         }
 
-        [Theory, CombinatorialData, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/59775")]
         public void TypeParameterScope_InMethodAttributeNameOf(bool useCSharp10)
         {
             var source = @"
@@ -7174,7 +7174,7 @@ public class MyAttribute : System.Attribute
             VerifyTParameter(comp, 1, "void C.M2<TParameter>()");
         }
 
-        [Theory, CombinatorialData, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/59775")]
         public void TypeParameterScope_InMethodAttributeNameOfNameOf(bool useCSharp10)
         {
             var source = @"
@@ -7211,7 +7211,7 @@ public class MyAttribute : System.Attribute
             VerifyTParameter(comp, 1, "void C.M2<TParameter>()");
         }
 
-        [Theory, CombinatorialData, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/59775")]
         public void TypeParameterScope_InMethodAttributeNameOf_TopLevel(bool useCSharp10)
         {
             var source = @"
@@ -7503,8 +7503,8 @@ public class MyAttribute : System.Attribute
                 => SyntaxFactory.ParseCompilationUnit($@"class X {{ {source} void M() {{ }} }}", options: parseOptions).DescendantNodes().OfType<AttributeSyntax>().Single();
         }
 
-        [Theory, CombinatorialData, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
-        [WorkItem(60194, "https://github.com/dotnet/roslyn/issues/60194")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/59775")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/60194")]
         public void TypeParameterScope_InMethodAttributeNameOf_CompatBreak(bool useCSharp10)
         {
             var source = @"
@@ -7738,7 +7738,7 @@ public class MyAttribute : System.Attribute
             VerifyTParameter(comp, 1, null);
         }
 
-        [Fact, WorkItem(60110, "https://github.com/dotnet/roslyn/issues/60110")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60110")]
         public void TypeParameterScope_NotInParameterAttribute()
         {
             var comp = CreateCompilation(@"
@@ -7774,7 +7774,7 @@ public class MyAttribute : System.Attribute
             VerifyTParameter(comp, 1, null);
         }
 
-        [Fact, WorkItem(60110, "https://github.com/dotnet/roslyn/issues/60110")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60110")]
         public void TypeParameterScope_NotInParameterAttribute_NotShadowingConst()
         {
             var comp = CreateCompilation(@"
@@ -7809,7 +7809,7 @@ public class MyAttribute : System.Attribute
             VerifyTParameter(comp, 1, "C", symbolKind: SymbolKind.NamedType, lookupFinds: "System.String C.TParameter");
         }
 
-        [Fact, WorkItem(60194, "https://github.com/dotnet/roslyn/issues/60194")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60194")]
         public void TypeParameterScope_InParameterAttributeNameOf()
         {
             var comp = CreateCompilation(@"
@@ -8061,7 +8061,7 @@ public class MyAttribute : System.Attribute
             VerifyTParameter(comp, 1, null);
         }
 
-        [Fact, WorkItem(60110, "https://github.com/dotnet/roslyn/issues/60110")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60110")]
         public void TypeParameterScope_NotInTypeParameterAttribute()
         {
             var comp = CreateCompilation(@"
@@ -8097,7 +8097,7 @@ public class MyAttribute : System.Attribute
             VerifyTParameter(comp, 1, null);
         }
 
-        [Fact, WorkItem(60194, "https://github.com/dotnet/roslyn/issues/60194")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60194")]
         public void TypeParameterScope_InTypeParameterAttributeNameOf()
         {
             var comp = CreateCompilation(@"
@@ -8248,7 +8248,7 @@ public class MyAttribute : System.Attribute
             VerifyTParameter(comp, 1, null);
         }
 
-        [Fact, WorkItem(60110, "https://github.com/dotnet/roslyn/issues/60110")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60110")]
         public void TypeParameterScope_InParameterDefaultValue_NotShadowingConstant()
         {
             var comp = CreateCompilation(@"
@@ -8283,7 +8283,7 @@ public class MyAttribute : System.Attribute
             VerifyTParameter(comp, 1, "C", symbolKind: SymbolKind.NamedType, lookupFinds: "System.String C.TParameter");
         }
 
-        [Fact, WorkItem(60194, "https://github.com/dotnet/roslyn/issues/60194")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60194")]
         public void TypeParameterScope_InParameterNameOfDefaultValue()
         {
             var comp = CreateCompilation(@"
@@ -8624,7 +8624,7 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
-        [WorkItem(60801, "https://github.com/dotnet/roslyn/issues/60801")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/60801")]
         public void ParameterScope_InMethodAttributeNameOf_GetSymbolInfoOnSpeculativeMethodBodySemanticModel()
         {
             var source = @"
@@ -9445,7 +9445,7 @@ public class MyAttribute : System.Attribute
                 );
         }
 
-        [Fact, WorkItem(1556927, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1556927")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1556927")]
         public void ParameterScope_ValueLocalNotInPropertyOrAccessorAttributeNameOf_UnknownAccessor()
         {
             var source = @"
@@ -10072,7 +10072,7 @@ public class MyAttribute : System.Attribute
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(1556927, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1556927")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1556927")]
         public void LambdaOutsideMemberModel()
         {
             var text = @"
@@ -10099,7 +10099,7 @@ int P
             Assert.Null(model.GetSymbolInfo(node).Symbol);
         }
 
-        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43697")]
         public void DefiniteAssignment_01()
         {
             var text = @"
@@ -10137,7 +10137,7 @@ public class C
                 );
         }
 
-        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43697")]
         public void DefiniteAssignment_02()
         {
             var text = @"
@@ -10170,7 +10170,7 @@ public class C
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43697")]
         public void DefiniteAssignment_03()
         {
             var text = @"
@@ -10209,7 +10209,7 @@ public class C
                 );
         }
 
-        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43697")]
         public void DefiniteAssignment_04()
         {
             var text = @"
@@ -10246,7 +10246,7 @@ public class C
                 );
         }
 
-        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43697")]
         public void DefiniteAssignment_05()
         {
             var text = @"

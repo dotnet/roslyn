@@ -532,7 +532,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33564")]
         public void TestNameofIndexerName()
         {
             var source = @"
@@ -576,7 +576,7 @@ class C
             CompileAndVerify(source, expectedOutput: @"Contains");
         }
 
-        [Fact, WorkItem(1013334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1013334")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1013334")]
         public void TestCompatStatementExpressionInvocation()
         {
             var source = @"
@@ -600,7 +600,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: @"12");
         }
 
-        [Fact, WorkItem(1013334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1013334")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1013334")]
         public void TestCompatStatementExpressionInvocation02()
         {
             var source = @"
@@ -624,7 +624,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: @"12");
         }
 
-        [Fact, WorkItem(1013334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1013334")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1013334")]
         public void TestCompatStatementExpressionInvocation03()
         {
             var source = @"
@@ -646,7 +646,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(1013334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1013334")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1013334")]
         public void TestCompatStatementExpressionInvocation04()
         {
             var source = @"
@@ -672,7 +672,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(1023539, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1023539")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1023539")]
         public void SymbolInfoForMethodGroup01()
         {
             var source =
@@ -694,7 +694,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(1023539, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1023539")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1023539")]
         public void SymbolInfoForMethodGroup02()
         {
             var source =
@@ -720,7 +720,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForMethodGroup03()
         {
             var source =
@@ -756,7 +756,7 @@ public class Program
         }
 
         [Fact]
-        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForMethodGroup04()
         {
             var source =
@@ -803,7 +803,7 @@ namespace N1
         }
 
         [Fact]
-        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForEmptyMethodGroup()
         {
             var source =
@@ -840,7 +840,7 @@ public class Program
         }
 
         [Fact]
-        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForTypeFromInstance()
         {
             var source =
@@ -876,7 +876,7 @@ public class Program
         }
 
         [Fact]
-        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForMethodGroup05()
         {
             var source =
@@ -922,7 +922,7 @@ namespace N1
         }
 
         [Fact]
-        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForNothingFound()
         {
             var source =
@@ -1092,7 +1092,7 @@ public class Program
         }
 
         [Fact]
-        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForMethodGroup06()
         {
             var source =
@@ -1152,7 +1152,7 @@ public class Program
             var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(10467, "https://github.com/dotnet/roslyn/issues/10467")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10467")]
         public void NameofFixedBuffer()
         {
             var source =
@@ -1196,7 +1196,7 @@ class Other {
                 "MessageType x MessageType").VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(10467, "https://github.com/dotnet/roslyn/issues/10467")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10467")]
         public void NameofMethodFixedBuffer()
         {
             var source =
@@ -1242,7 +1242,7 @@ unsafe struct Struct1
                 Diagnostic(ErrorCode.ERR_BadArgType, "myStruct.MessageType").WithArguments("1", "char*", "char[]").WithLocation(26, 23));
         }
 
-        [Fact, WorkItem(12696, "https://github.com/dotnet/roslyn/issues/12696")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12696")]
         public void FixedFieldAccessInsideNameOf()
         {
             var source =
@@ -1277,7 +1277,7 @@ class EntryPoint
             CompileAndVerify(compilation, expectedOutput: "normalField fixedField fixedField").VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(12696, "https://github.com/dotnet/roslyn/issues/12696")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12696")]
         public void FixedFieldAccessFromInnerClass()
         {
             var source =
@@ -1326,7 +1326,7 @@ class Program
 }", expectedOutput: "Main");
         }
 
-        [Fact, WorkItem(20600, "https://github.com/dotnet/roslyn/issues/20600")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20600")]
         public void PermitInstanceQualifiedFromType()
         {
             var source = @"

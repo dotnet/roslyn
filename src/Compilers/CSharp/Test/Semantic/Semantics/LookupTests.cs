@@ -100,7 +100,7 @@ class C
             Assert.Equal(expected_lookupNames.ListToSortedString(), actual);
         }
 
-        [WorkItem(538262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538262")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538262")]
         [Fact]
         public void LookupCompilationUnitSyntax()
         {
@@ -119,7 +119,7 @@ class Test
             GetLookupSymbols(testSrc);
         }
 
-        [WorkItem(527476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527476")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527476")]
         [Fact]
         public void LookupConstrAndDestr()
         {
@@ -185,7 +185,7 @@ class Test
             Assert.Equal(expected_lookupSymbols.ListToSortedString(), actual_lookupSymbols.ListToSortedString());
         }
 
-        [WorkItem(527477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527477")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527477")]
         [Fact]
         public void LookupNotYetDeclLocalVar()
         {
@@ -225,7 +225,7 @@ class Test
             Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(538301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538301")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538301")]
         [Fact]
         public void LookupByNameIncorrectArity()
         {
@@ -247,7 +247,7 @@ class Test
             Assert.Empty(actual_lookupSymbols);
         }
 
-        [WorkItem(538310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538310")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538310")]
         [Fact]
         public void LookupInProtectedNonNestedType()
         {
@@ -264,7 +264,7 @@ protected class MyClass {
             GetLookupSymbols(testSrc);
         }
 
-        [WorkItem(538311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538311")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538311")]
         [Fact]
         public void LookupClassContainsVolatileEnumField()
         {
@@ -285,7 +285,7 @@ class Test {
             GetLookupSymbols(testSrc);
         }
 
-        [WorkItem(538312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538312")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538312")]
         [Fact]
         public void LookupUsingAlias()
         {
@@ -329,7 +329,7 @@ namespace T1
             Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(538313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538313")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538313")]
         [Fact]
         public void LookupUsingNameSpaceContSameTypeNames()
         {
@@ -385,7 +385,7 @@ namespace T2
             Assert.Contains(expected_in_lookupSymbols[2], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(527489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527489")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527489")]
         [Fact]
         public void LookupMustNotBeNonInvocableMember()
         {
@@ -471,7 +471,7 @@ class Test
             info.Free();
         }
 
-        [WorkItem(538365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538365")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538365")]
         [Fact]
         public void LookupWithNameZeroArity()
         {
@@ -533,7 +533,7 @@ class Test
             Assert.DoesNotContain(not_expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(538365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538365")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538365")]
         [Fact]
         public void LookupWithNameZeroArityAndLookupOptionsAllMethods()
         {
@@ -602,7 +602,7 @@ class Test
             Assert.Contains(expected_in_lookupSymbols[3], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(539160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539160")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539160")]
         [Fact]
         public void LookupExcludeInAppropriateNS()
         {
@@ -653,7 +653,7 @@ class Test
         /// from the current type.
         /// </summary>
         [Fact]
-        [WorkItem(539814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539814")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539814")]
         public void LookupProtectedInBase()
         {
             var testSrc = @"
@@ -698,7 +698,7 @@ class B : A
             Assert.Equal("Goo", names.Single());
         }
 
-        [WorkItem(528263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528263")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528263")]
         [Fact]
         public void LookupStartOfScopeMethodBody()
         {
@@ -741,7 +741,7 @@ class B : A
             Assert.Contains(expected_in_lookupSymbols[2], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(528263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528263")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528263")]
         [Fact]
         public void LookupEndOfScopeMethodBody()
         {
@@ -792,7 +792,7 @@ class B : A
             Assert.DoesNotContain(not_expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(540888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540888")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540888")]
         [Fact]
         public void LookupLambdaParamInConstructorInitializer()
         {
@@ -841,7 +841,7 @@ class MyClass
             Assert.Contains(expected_in_lookupSymbols[2], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(540893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540893")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540893")]
         [Fact]
         public void TestForLocalVarDeclLookupAtForKeywordInForStmt()
         {
@@ -878,7 +878,7 @@ class MyClass
             Assert.DoesNotContain(not_expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(540894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540894")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540894")]
         [Fact]
         public void TestForeachIterVarLookupAtForeachKeyword()
         {
@@ -917,7 +917,7 @@ class MyClass
             Assert.DoesNotContain(not_expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(540912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540912")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540912")]
         [Fact]
         public void TestLookupInConstrInitIncompleteConstrDecl()
         {
@@ -956,7 +956,7 @@ class MyClass
             Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(541060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541060")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541060")]
         [Fact]
         public void TestLookupInsideIncompleteNestedLambdaBody()
         {
@@ -996,7 +996,7 @@ class C
             Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(541611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541611")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541611")]
         [Fact]
         public void LookupLambdaInsideAttributeUsage()
         {
@@ -1123,7 +1123,7 @@ class Program
             Assert.Contains("System.Int32 y", lookupSymbols);
         }
 
-        [WorkItem(541909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541909")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541909")]
         [Fact]
         public void LookupFromRangeVariableAfterFromClause()
         {
@@ -1159,7 +1159,7 @@ class Program
             Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(541921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541921")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541921")]
         [Fact]
         public void LookupFromRangeVariableInsideNestedFromClause()
         {
@@ -1197,7 +1197,7 @@ class Program
             Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(541919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541919")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541919")]
         [Fact]
         public void LookupLambdaVariableInQueryExpr()
         {
@@ -1232,7 +1232,7 @@ class Program
             Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(541910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541910")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541910")]
         [Fact]
         public void LookupInsideQueryExprOutsideTypeDecl()
         {
@@ -1249,7 +1249,7 @@ class Program
             Assert.NotEmpty(actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(542203, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542203")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542203")]
         [Fact]
         public void LookupInsideQueryExprInMalformedFromClause()
         {
@@ -1278,7 +1278,7 @@ class Program
             Assert.NotEmpty(actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(543295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543295")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543295")]
         [Fact]
         public void MultipleOverlappingInterfaceConstraints()
         {
@@ -1318,7 +1318,7 @@ public class NumberSpecification<TCandidate>
             CreateCompilation(testSrc).VerifyDiagnostics();
         }
 
-        [WorkItem(529406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529406")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529406")]
         [Fact]
         public void FixedPointerInitializer()
         {
@@ -1372,7 +1372,7 @@ class Program
             CompilationUtils.CheckISymbols(symbols, "System", "Microsoft");
         }
 
-        [Fact, WorkItem(546523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546523")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546523")]
         public void TestLookupSymbolsNestedNamespacesNotImportedByUsings_01()
         {
             var source =
@@ -1396,7 +1396,7 @@ class Program
             Assert.DoesNotContain(systemXmlNS, actual_lookupSymbols);
         }
 
-        [Fact, WorkItem(546523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546523")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546523")]
         public void TestLookupSymbolsNestedNamespacesNotImportedByUsings_02()
         {
             var usings = "using X;";
@@ -1463,7 +1463,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(530826, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530826")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530826")]
         public void TestAmbiguousInterfaceLookup()
         {
             var source =
@@ -1569,7 +1569,7 @@ class C
             Assert.Equal("E.F(object)", reducedFrom.ToDisplayString());
         }
 
-        [WorkItem(3651, "https://github.com/dotnet/roslyn/issues/3651")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3651")]
         [Fact]
         public void ExtensionMethodDelegateCreation()
         {
@@ -1607,7 +1607,7 @@ class C
             Assert.Equal("E.F(object)", reducedFrom.ToDisplayString());
         }
 
-        [WorkItem(7493, "https://github.com/dotnet/roslyn/issues/7493")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7493")]
         [Fact]
         public void GenericNameLookup()
         {
@@ -1626,7 +1626,7 @@ class C
         #region regressions
 
         [Fact]
-        [WorkItem(552472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552472")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552472")]
         public void BrokenCode01()
         {
             var source =
@@ -1645,7 +1645,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(552472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552472")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552472")]
         public void BrokenCode02()
         {
             var source =
@@ -1825,7 +1825,7 @@ public class Outer
             Assert.Equal(2, symbols.Length);
         }
 
-        [Fact, WorkItem(1078958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078958")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078958")]
         public void Bug1078958()
         {
             const string source = @"
@@ -1843,7 +1843,7 @@ class C
             Assert.True(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
         }
 
-        [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
         public void Bug1078961()
         {
             const string source = @"
@@ -1865,7 +1865,7 @@ class C
             Assert.False(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
         }
 
-        [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
         public void Bug1078961_2()
         {
             const string source = @"
@@ -1887,7 +1887,7 @@ class C
             Assert.False(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
         }
 
-        [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
         public void Bug1078961_3()
         {
             const string source = @"
@@ -1910,7 +1910,7 @@ class C
             Assert.False(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
         }
 
-        [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
         public void Bug1078961_4()
         {
             const string source = @"
@@ -1932,7 +1932,7 @@ class C
             Assert.False(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
         }
 
-        [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
         public void Bug1078961_5()
         {
             const string source = @"
@@ -1955,7 +1955,7 @@ class C
             Assert.True(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
         }
 
-        [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
         public void Bug1078961_6()
         {
             const string source = @"
@@ -1986,7 +1986,7 @@ class C
             Assert.True(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
         }
 
-        [Fact, WorkItem(1091936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
         public void Bug1091936_1()
         {
             const string source = @"
@@ -2018,7 +2018,7 @@ class Program
             Assert.Equal(symbolInfo.Symbol.GetSymbol(), m);
         }
 
-        [Fact, WorkItem(1091936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
         public void Bug1091936_2()
         {
             const string source = @"
@@ -2048,7 +2048,7 @@ class Program
             Assert.Equal(symbolInfo.Symbol.GetSymbol(), m);
         }
 
-        [Fact, WorkItem(1091936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
         public void Bug1091936_3()
         {
             const string source = @"
@@ -2078,7 +2078,7 @@ class Program
             Assert.Equal(symbolInfo.Symbol.GetSymbol(), m);
         }
 
-        [Fact, WorkItem(1091936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
         public void Bug1091936_4()
         {
             const string source = @"

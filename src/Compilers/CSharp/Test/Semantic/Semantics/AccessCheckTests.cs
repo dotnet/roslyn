@@ -386,7 +386,7 @@ public class E : B.N
                 Diagnostic(ErrorCode.ERR_BadProtectedAccess, "iField").WithArguments("A.iField", "D", "B.N.NN").WithLocation(19, 27));
         }
 
-        [WorkItem(539561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539561")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539561")]
         [Fact]
         public void AccessCheckProtected02()
         {
@@ -407,7 +407,7 @@ class C : I<C.D.E>
             c.VerifyDiagnostics();
         }
 
-        [WorkItem(539561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539561")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539561")]
         [Fact]
         public void AccessCheckProtected03()
         {
@@ -550,7 +550,7 @@ namespace CS1540
             c.VerifyDiagnostics();
         }
 
-        [WorkItem(539561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539561")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539561")]
         [Fact]
         public void AccessCheckPrivate()
         {
@@ -571,7 +571,7 @@ class C : I<C.D.E>
             c.VerifyDiagnostics();
         }
 
-        [WorkItem(539561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539561")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539561")]
         [Fact]
         public void AccessCheckPrivate02()
         {
@@ -1038,7 +1038,7 @@ public class A
             Assert.Empty(c.GetDiagnostics());
         }
 
-        [WorkItem(543745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543745")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543745")]
         [Fact]
         public void InternalInaccessibleProperty()
         {
@@ -1071,7 +1071,7 @@ public class A
                 );
         }
 
-        [WorkItem(546209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546209")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546209")]
         [Fact]
         public void OverriddenMemberFromInternalType()
         {
@@ -1144,7 +1144,7 @@ internal abstract class B3 : A
                 Diagnostic(ErrorCode.ERR_InaccessibleGetter, "b3.P").WithArguments("B3.P").WithLocation(14, 13));
         }
 
-        [WorkItem(546209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546209")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546209")]
         [Fact]
         public void InternalOverriddenMember()
         {
@@ -1183,7 +1183,7 @@ public abstract class B : A
             compilation3.VerifyDiagnostics();
         }
 
-        [WorkItem(530360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530360")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530360")]
         [Fact]
         public void InaccessibleReturnType()
         {
@@ -1225,7 +1225,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadAccess, "b.M").WithArguments("B.M()"));
         }
 
-        [WorkItem(530360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530360")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530360")]
         [Fact]
         public void InaccessibleReturnType_Dynamic()
         {
@@ -1266,7 +1266,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadAccess, "b.M(d)").WithArguments("B.M(int)"));
         }
 
-        [WorkItem(563573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563573")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563573")]
         [Fact]
         public void MissingIdentifier01()
         {
@@ -1293,7 +1293,7 @@ class C
             CreateCompilation(source).GetDiagnostics();
         }
 
-        [WorkItem(563563, "DevDiv"), WorkItem(563573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563573")]
+        [WorkItem(563563, "DevDiv"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563573")]
         [Fact]
         public void MissingIdentifier02()
         {
@@ -1321,7 +1321,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(552452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552452")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552452")]
         public void AccessTestInBadCode01()
         {
             var source =
@@ -1350,7 +1350,7 @@ public class TestClass1 { }
             CreateCompilation(source).GetDiagnostics();
         }
 
-        [Fact, WorkItem(13652, "https://github.com/dotnet/roslyn/issues/13652")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13652")]
         public void UnusedFieldInAbstractClassShouldTriggerWarning()
         {
             var text = @"
@@ -1364,7 +1364,7 @@ abstract class Class1
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "_UnusedField").WithArguments("Class1._UnusedField").WithLocation(4, 17));
         }
 
-        [Fact, WorkItem(13652, "https://github.com/dotnet/roslyn/issues/13652")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13652")]
         public void AssignedButNotReadFieldInAbstractClassShouldTriggerWarning()
         {
             var text = @"
@@ -1383,7 +1383,7 @@ abstract class Class1
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_AssignedButNotReadField").WithArguments("Class1._AssignedButNotReadField").WithLocation(4, 17));
         }
 
-        [Fact, WorkItem(13652, "https://github.com/dotnet/roslyn/issues/13652")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13652")]
         public void UsedButNotAssignedFieldInAbstractClassShouldTriggerWarning()
         {
             var text = @"
@@ -1402,7 +1402,7 @@ internal abstract class Class1
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "_UnAssignedField1").WithArguments("Class1._UnAssignedField1", "0").WithLocation(4, 19));
         }
 
-        [Fact, WorkItem(13652, "https://github.com/dotnet/roslyn/issues/13652")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13652")]
         public void UsedButNotAssignedFieldInAbstractInternalClassWithIVTsShouldNotTriggerWarning()
         {
             var text = @"
@@ -1420,7 +1420,7 @@ internal abstract class Class1
             CompileAndVerify(text).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(13652, "https://github.com/dotnet/roslyn/issues/13652")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13652")]
         public void UsedButNotAssignedFieldInAbstractPublicClassShouldNotTriggerWarning()
         {
             var text = @"
@@ -1436,7 +1436,7 @@ public abstract class Class1
             CompileAndVerify(text).VerifyDiagnostics();
         }
 
-        [WorkItem(29253, "https://github.com/dotnet/roslyn/issues/29253")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29253")]
         [Fact]
         public void InaccessibleToUnnamedExe_01()
         {
@@ -1468,7 +1468,7 @@ public abstract class Class1
                 Diagnostic(ErrorCode.ERR_BadAccess, "A").WithArguments("A").WithLocation(5, 13));
         }
 
-        [WorkItem(29253, "https://github.com/dotnet/roslyn/issues/29253")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29253")]
         [Fact]
         public void InaccessibleToUnnamedExe_02()
         {

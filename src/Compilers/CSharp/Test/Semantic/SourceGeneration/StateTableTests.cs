@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
-        [WorkItem(54832, "https://github.com/dotnet/roslyn/issues/54832")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54832")]
         public void Batch_Node_Records_NewInput_Step_On_First_Run()
         {
             var inputNode = new InputNode<int>((_) => ImmutableArray.Create(1, 2, 3));
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
-        [WorkItem(54832, "https://github.com/dotnet/roslyn/issues/54832")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54832")]
         public void Batch_Node_Records_Cached_Step_If_All_Inputs_Are_Cached()
         {
             var inputNode = new InputNode<int>((_) => ImmutableArray.Create(1, 2, 3));
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
-        [WorkItem(54832, "https://github.com/dotnet/roslyn/issues/54832")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54832")]
         public void Batch_Node_Steps_Records_Removed_Steps_As_Inputs()
         {
             var inputValue = ImmutableArray.Create(1, 2, 3);
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
-        [WorkItem(54832, "https://github.com/dotnet/roslyn/issues/54832")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54832")]
         public void Batch_Node_Records_InputModified_Step_When_Inputs_Are_Changed()
         {
             int thirdElement = 3;
@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
-        [WorkItem(54832, "https://github.com/dotnet/roslyn/issues/54832")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54832")]
         public void Transform_Node_Records_NewInput_OnFirst_Run()
         {
             var inputNode = new InputNode<int>((_) => ImmutableArray.Create(1));
@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
-        [WorkItem(54832, "https://github.com/dotnet/roslyn/issues/54832")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54832")]
         public void Transform_Node_Records_InputCached_When_Input_Is_Cached()
         {
             var inputNode = new InputNode<int>((_) => ImmutableArray.Create(1));
@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
-        [WorkItem(54832, "https://github.com/dotnet/roslyn/issues/54832")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54832")]
         public void Transform_Node_Records_InputModified_When_Input_Is_Modified()
         {
             int value = 1;
@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
-        [WorkItem(54832, "https://github.com/dotnet/roslyn/issues/54832")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54832")]
         public void Transform_Node_Records_InputModified_OutputUnchanged_When_Input_Is_Modified_Output_Is_Cached()
         {
             int value = 1;
@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
-        [WorkItem(54832, "https://github.com/dotnet/roslyn/issues/54832")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54832")]
         public void InputNode_With_Different_Element_Count_Records_Add_Remove_For_Replaced_Items()
         {
             ImmutableArray<int> inputNodeValue = ImmutableArray.Create(1, 2, 3);
@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
-        [WorkItem(54832, "https://github.com/dotnet/roslyn/issues/54832")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54832")]
         public void TransformNode_Records_Removed_Outputs_Of_Removed_Inputs()
         {
             ImmutableArray<int> inputNodeValue = ImmutableArray.Create(1, 2, 3);
@@ -816,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
-        [WorkItem(54832, "https://github.com/dotnet/roslyn/issues/54832")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54832")]
         public void CombineNode_Records_Removed_Outputs_Of_Removed_First_Input()
         {
             ImmutableArray<int> inputNodeValue = ImmutableArray.Create(1, 2, 3);

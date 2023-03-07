@@ -1389,7 +1389,7 @@ record struct R(ref int P1, out int P2);
                 );
         }
 
-        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberModifiers_This()
         {
             var src = @"
@@ -1404,7 +1404,7 @@ record struct R(this int i);
                 );
         }
 
-        [Fact, WorkItem(45591, "https://github.com/dotnet/roslyn/issues/45591")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45591")]
         public void Clone_DisallowedInSource()
         {
             var src = @"
@@ -1480,7 +1480,7 @@ record struct C9 : System.ICloneable
         }
 
         [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
-        [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes()
         {
             var src = @"
@@ -1533,7 +1533,7 @@ unsafe record struct C(
         }
 
         [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
-        [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes_NominalMembers()
         {
             var src = @"
@@ -1585,7 +1585,7 @@ public unsafe record struct C
         }
 
         [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
-        [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes_NominalMembers_AutoProperties()
         {
             var src = @"
@@ -1637,7 +1637,7 @@ public unsafe record struct C
         }
 
         [Fact]
-        [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes_PointerTypeAllowedForParameterAndProperty()
         {
             var src = @"
@@ -1686,7 +1686,7 @@ unsafe record struct C(int* P1, int*[] P2, C<int*[]> P3)
         }
 
         [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
-        [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes_StaticFields()
         {
             var src = @"
@@ -8048,7 +8048,7 @@ record struct B(string? X)
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(14, 21));
         }
 
-        [Fact, WorkItem(44763, "https://github.com/dotnet/roslyn/issues/44763")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44763")]
         public void WithExpr_NullableAnalysis_05()
         {
             var src = @"
@@ -10434,7 +10434,7 @@ Block[B3] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(src, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
         }
 
-        [Fact, WorkItem(53849, "https://github.com/dotnet/roslyn/issues/53849")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53849")]
         public void WithExpr_AnonymousType_ValueIsLoweredToo()
         {
             var src = @"
@@ -10448,7 +10448,7 @@ System.Console.WriteLine(adjusted);
             verifier.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(53849, "https://github.com/dotnet/roslyn/issues/53849")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53849")]
         public void WithExpr_AnonymousType_ValueIsLoweredToo_NestedWith()
         {
             var src = @"
@@ -10792,7 +10792,7 @@ record struct R3(int X) : Error3
             Assert.False(model.TryGetSpeculativeSemanticModel(baseWithoutParens.SpanStart + 2, speculativeBase, out _));
         }
 
-        [Fact, WorkItem(54413, "https://github.com/dotnet/roslyn/issues/54413")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54413")]
         public void ValueTypeCopyConstructorLike_NoThisInitializer()
         {
             var src = @"
@@ -10989,7 +10989,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(58328, "https://github.com/dotnet/roslyn/issues/58328")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58328")]
         public void ExplicitConstructors_05()
         {
             var source =
@@ -11012,7 +11012,7 @@ record struct S4(char A, char B)
         }
 
         [Fact]
-        [WorkItem(58328, "https://github.com/dotnet/roslyn/issues/58328")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58328")]
         public void ExplicitConstructors_06()
         {
             var source =
@@ -11185,7 +11185,7 @@ record struct S3(char A)
         }
 
         [Fact]
-        [WorkItem(58328, "https://github.com/dotnet/roslyn/issues/58328")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58328")]
         public void ExplicitConstructors_10()
         {
             var source =
@@ -11424,7 +11424,7 @@ class record<T> : I { }
         }
 
         [Fact]
-        [WorkItem(64238, "https://github.com/dotnet/roslyn/issues/64238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64238")]
         public void NoMethodBodiesInComImportType()
         {
             var source1 =

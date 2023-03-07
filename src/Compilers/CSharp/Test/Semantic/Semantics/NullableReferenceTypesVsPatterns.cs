@@ -363,7 +363,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
         public void ConditionalBranching_IsVarDeclarationPattern_AlreadyTestedAsNonNull()
         {
             CSharpCompilation c = CreateNullableCompilation(@"
@@ -414,7 +414,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(29909, "https://github.com/dotnet/roslyn/issues/29909")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29909")]
         public void IsPattern_02()
         {
             var source =
@@ -560,7 +560,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(28798, "https://github.com/dotnet/roslyn/issues/28798")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28798")]
         public void IsPattern_AffectsNullConditionalOperator_VarPattern()
         {
             var source =
@@ -613,8 +613,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(29909, "https://github.com/dotnet/roslyn/issues/29909")]
-        [WorkItem(23944, "https://github.com/dotnet/roslyn/issues/23944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29909")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23944")]
         public void PatternSwitch()
         {
             var source =
@@ -710,7 +710,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(30952, "https://github.com/dotnet/roslyn/issues/30952")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30952")]
         public void IsDeclarationPattern_02()
         {
             var source =
@@ -1030,7 +1030,7 @@ class C
                 );
         }
 
-        [WorkItem(32503, "https://github.com/dotnet/roslyn/issues/32503")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32503")]
         [Fact]
         public void PatternDeclarationBreaksNullableAnalysis()
         {
@@ -1226,8 +1226,8 @@ class Program
         }
 
         [Fact]
-        [WorkItem(30597, "https://github.com/dotnet/roslyn/issues/30597")]
-        [WorkItem(32414, "https://github.com/dotnet/roslyn/issues/32414")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30597")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32414")]
         public void NotExhaustiveForNull_01()
         {
             var source = @"
@@ -1345,8 +1345,8 @@ class Program
         }
 
         [Fact]
-        [WorkItem(30597, "https://github.com/dotnet/roslyn/issues/30597")]
-        [WorkItem(32414, "https://github.com/dotnet/roslyn/issues/32414")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30597")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32414")]
         public void NotExhaustiveForNull_02()
         {
             var source = @"
@@ -1400,7 +1400,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(null, \"\")").WithLocation(30, 25));
         }
 
-        [Fact, WorkItem(31881, "https://github.com/dotnet/roslyn/issues/31881")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31881")]
         public void NullableVsPattern_31881()
         {
             var source = @"
@@ -1435,8 +1435,8 @@ public class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(33499, "https://github.com/dotnet/roslyn/issues/33499")]
-        [WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33499")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
         public void PatternVariablesAreNotOblivious_33499()
         {
             var source = @"
@@ -1476,7 +1476,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(29619, "https://github.com/dotnet/roslyn/issues/29619")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29619")]
         public void StructWithNotBackedProperty()
         {
             var source = @"
@@ -1884,7 +1884,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(34246, "https://github.com/dotnet/roslyn/issues/34246")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34246")]
         public void LearnFromConstantPattern_01()
         {
             var source = @"
@@ -1905,8 +1905,8 @@ class Program
         }
 
         [Fact]
-        [WorkItem(34233, "https://github.com/dotnet/roslyn/issues/34233")]
-        [WorkItem(39888, "https://github.com/dotnet/roslyn/issues/39888")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34233")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39888")]
         public void SwitchExpressionResultType_01()
         {
             CSharpCompilation c = CreateNullableCompilation(@"
@@ -1986,7 +1986,7 @@ public interface IOut<out T> { }
         }
 
         [Fact]
-        [WorkItem(39264, "https://github.com/dotnet/roslyn/issues/39264")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39264")]
         public void IsPatternSplitState_01()
         {
             CSharpCompilation c = CreateNullableCompilation(@"
@@ -2047,7 +2047,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(39264, "https://github.com/dotnet/roslyn/issues/39264")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39264")]
         public void IsPatternSplitState_02()
         {
             CSharpCompilation c = CreateNullableCompilation(@"
@@ -2078,7 +2078,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(39264, "https://github.com/dotnet/roslyn/issues/39264")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39264")]
         public void IsPatternSplitState_03()
         {
             CSharpCompilation c = CreateNullableCompilation(@"
@@ -2113,7 +2113,7 @@ public class C {
         }
 
         [Fact]
-        [WorkItem(40629, "https://github.com/dotnet/roslyn/issues/40629")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40629")]
         public void NullTestInSwitch_01()
         {
             CSharpCompilation c = CreateNullableCompilation(@"
@@ -2262,7 +2262,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(50161, "https://github.com/dotnet/roslyn/issues/50161")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/50161")]
         public void NestedPattern_Field_01()
         {
             var source =
@@ -2290,7 +2290,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(50161, "https://github.com/dotnet/roslyn/issues/50161")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/50161")]
         public void NestedPattern_Field_02()
         {
             var source =
@@ -2316,7 +2316,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(50161, "https://github.com/dotnet/roslyn/issues/50161")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/50161")]
         public void NestedPattern_Property_01()
         {
             var source =
@@ -2344,7 +2344,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(50161, "https://github.com/dotnet/roslyn/issues/50161")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/50161")]
         public void NestedPattern_Property_02()
         {
             var source =
@@ -2369,7 +2369,7 @@ class Test
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(51461, "https://github.com/dotnet/roslyn/issues/51461")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51461")]
         public void NestedLambdaArm_DoesNotObserveStateFromOtherArms()
         {
             var comp = CreateCompilation(@"
@@ -2393,7 +2393,7 @@ class C
             );
         }
 
-        [Fact, WorkItem(51461, "https://github.com/dotnet/roslyn/issues/51461")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51461")]
         public void TargetTypedSwitch_01()
         {
             var comp = CreateCompilation(@"
@@ -2418,7 +2418,7 @@ class C
             );
         }
 
-        [Fact, WorkItem(51461, "https://github.com/dotnet/roslyn/issues/51461")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51461")]
         public void TargetTypedSwitch_02()
         {
             var comp = CreateCompilation(@"
@@ -2443,7 +2443,7 @@ class C
             );
         }
 
-        [Fact, WorkItem(51461, "https://github.com/dotnet/roslyn/issues/51461")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51461")]
         public void TargetTypedSwitch_03()
         {
             var comp = CreateCompilation(@"
@@ -2461,7 +2461,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(51461, "https://github.com/dotnet/roslyn/issues/51461")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51461")]
         public void TargetTypedSwitch_04()
         {
             var comp = CreateCompilation(@"
@@ -2479,7 +2479,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(51461, "https://github.com/dotnet/roslyn/issues/51461")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51461")]
         public void TargetTypedSwitch_05()
         {
             var source =
@@ -2516,7 +2516,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 27));
         }
 
-        [Fact, WorkItem(51461, "https://github.com/dotnet/roslyn/issues/51461")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51461")]
         public void TargetTypedSwitch_06()
         {
             var comp = CreateCompilation(@"
@@ -2548,7 +2548,7 @@ class C
             );
         }
 
-        [Fact, WorkItem(51461, "https://github.com/dotnet/roslyn/issues/51461")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51461")]
         public void TargetTypedSwitch_07()
         {
             var comp = CreateCompilation(@"
@@ -2573,7 +2573,7 @@ class C
             );
         }
 
-        [Fact, WorkItem(51461, "https://github.com/dotnet/roslyn/issues/51461"), WorkItem(49735, "https://github.com/dotnet/roslyn/issues/49735")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51461"), WorkItem("https://github.com/dotnet/roslyn/issues/49735")]
         public void TargetTypedSwitch_08()
         {
             var comp = CreateCompilation(@"
@@ -2592,7 +2592,7 @@ class B { public static implicit operator C?(B b) => null; }
             );
         }
 
-        [Fact, WorkItem(51461, "https://github.com/dotnet/roslyn/issues/51461"), WorkItem(49735, "https://github.com/dotnet/roslyn/issues/49735")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51461"), WorkItem("https://github.com/dotnet/roslyn/issues/49735")]
         public void TargetTypedSwitch_09()
         {
             var comp = CreateCompilation(@"
@@ -2607,7 +2607,7 @@ class B { public static implicit operator C?(B b) => null; }
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(51461, "https://github.com/dotnet/roslyn/issues/51461"), WorkItem(49735, "https://github.com/dotnet/roslyn/issues/49735")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51461"), WorkItem("https://github.com/dotnet/roslyn/issues/49735")]
         public void TargetTypedSwitch_10()
         {
             var comp = CreateCompilation(@"
@@ -2622,7 +2622,7 @@ class B { public static implicit operator C(B b) => new C(); }
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(51904, "https://github.com/dotnet/roslyn/issues/51904")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51904")]
         public void TupleSwitchWithSuppression()
         {
             // When an input value is suppressed, it will get a dedicated
@@ -2747,7 +2747,7 @@ public class C
                 );
         }
 
-        [Fact, WorkItem(59804, "https://github.com/dotnet/roslyn/issues/59804")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59804")]
         public void NestedTypeUsedInPropertyPattern()
         {
             var source = @"
@@ -2784,7 +2784,7 @@ public class Class2
                 );
         }
 
-        [Fact, WorkItem(59804, "https://github.com/dotnet/roslyn/issues/59804")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59804")]
         public void NestedTypeUsedInPropertyPattern_ExtendedProperty()
         {
             var source = @"
@@ -2823,7 +2823,7 @@ public class Class2
                 );
         }
 
-        [Fact, WorkItem(59804, "https://github.com/dotnet/roslyn/issues/59804")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59804")]
         public void MethodUsedInPropertyPattern()
         {
             var source = @"
@@ -2857,7 +2857,7 @@ public class Class2
                 );
         }
 
-        [Fact, WorkItem(65976, "https://github.com/dotnet/roslyn/issues/65976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65976")]
         public void LoopWithPatternDeclaration()
         {
             var source = """
@@ -2893,7 +2893,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(65976, "https://github.com/dotnet/roslyn/issues/65976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65976")]
         public void LoopWithPatternDeclaration_Tuple()
         {
             var source = """
@@ -2929,7 +2929,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(65976, "https://github.com/dotnet/roslyn/issues/65976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65976")]
         public void LoopWithPatternDeclaration_ListPattern()
         {
             var source = """
@@ -2959,7 +2959,7 @@ List<T> Infer<T>(T t) => new() { t };
                 );
         }
 
-        [Fact, WorkItem(65976, "https://github.com/dotnet/roslyn/issues/65976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65976")]
         public void LoopWithPatternDeclaration_ListPattern_Inline()
         {
             var source = """
@@ -2988,7 +2988,7 @@ List<T> Infer<T>(T t) => new() { t };
                 );
         }
 
-        [Fact, WorkItem(65976, "https://github.com/dotnet/roslyn/issues/65976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65976")]
         public void LoopWithPatternDeclaration_SlicePattern()
         {
             var source = """
@@ -3021,7 +3021,7 @@ class Collection<T>
             // Slice is assumed to be never null
         }
 
-        [Fact, WorkItem(65976, "https://github.com/dotnet/roslyn/issues/65976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65976")]
         public void LoopWithPatternDeclaration_SlicePattern_NestedNullability()
         {
             var source = """
@@ -3058,7 +3058,7 @@ class Collection<T>
                 );
         }
 
-        [Fact, WorkItem(65976, "https://github.com/dotnet/roslyn/issues/65976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65976")]
         public void LoopWithDeconstructionPattern()
         {
             var source = """
@@ -3100,7 +3100,7 @@ class Container<T>
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(65976, "https://github.com/dotnet/roslyn/issues/65976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65976")]
         public void LoopWithFieldPattern()
         {
             var source = """
@@ -3135,7 +3135,7 @@ class Container<T>
                 );
         }
 
-        [Fact, WorkItem(65976, "https://github.com/dotnet/roslyn/issues/65976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65976")]
         public void LoopWithFieldPattern_Inline()
         {
             var source = """
@@ -3169,7 +3169,7 @@ class Container<T>
                 );
         }
 
-        [Fact, WorkItem(65976, "https://github.com/dotnet/roslyn/issues/65976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65976")]
         public void LoopWithPropertyPattern()
         {
             var source = """
@@ -3204,7 +3204,7 @@ class Container<T>
                 );
         }
 
-        [Fact, WorkItem(65976, "https://github.com/dotnet/roslyn/issues/65976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65976")]
         public void LoopWithLocalDeclaration()
         {
             var source = """
@@ -3231,7 +3231,7 @@ List<T> Infer<T>(T t) => new() { t };
                 );
         }
 
-        [Fact, WorkItem(65976, "https://github.com/dotnet/roslyn/issues/65976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65976")]
         public void LoopWithDeconstructionDeclaration()
         {
             var source = """
@@ -3258,7 +3258,7 @@ List<T> Infer<T>(T t) => new() { t };
                 );
         }
 
-        [Fact, WorkItem(65976, "https://github.com/dotnet/roslyn/issues/65976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65976")]
         public void LoopWithDeconstructionDeclaration_CustomType()
         {
             var source = """

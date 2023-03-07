@@ -696,7 +696,7 @@ public class Program
             );
         }
 
-        [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20226")]
         [Fact]
         public void InterfaceImpl()
         {
@@ -756,7 +756,7 @@ public class Program
             );
         }
 
-        [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20226")]
         [Fact]
         public void RefIteratorInAsync()
         {
@@ -813,7 +813,7 @@ class C1
             );
         }
 
-        [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20226")]
         [Fact]
         public void RefIteratorInIterator()
         {
@@ -1074,7 +1074,7 @@ public class Program
                 );
         }
 
-        [Fact, WorkItem(62747, "https://github.com/dotnet/roslyn/issues/62747")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62747")]
         public void AsyncLocals_Foreach()
         {
             var src = @"
@@ -1112,7 +1112,7 @@ public class Program
                 );
         }
 
-        [Fact, WorkItem(62747, "https://github.com/dotnet/roslyn/issues/62747")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62747")]
         public void AsyncLocals_Deconstruction()
         {
             var src = @"
@@ -1157,7 +1157,7 @@ public class Program
                 );
         }
 
-        [Fact, WorkItem(62747, "https://github.com/dotnet/roslyn/issues/62747")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62747")]
         public void AsyncLocals_Using()
         {
             var src = @"
@@ -1380,7 +1380,7 @@ public class Program
             );
         }
 
-        [WorkItem(21979, "https://github.com/dotnet/roslyn/issues/21979")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21979")]
         [Fact]
         public void MethodConversion()
         {
@@ -1580,7 +1580,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(23627, "https://github.com/dotnet/roslyn/issues/23627")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23627")]
         public void CreateVariableFromRefStructFieldInNonRefStruct()
         {
             var code = @"
@@ -1609,7 +1609,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(23627, "https://github.com/dotnet/roslyn/issues/23627")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23627")]
         public void CreateVariableFromRefStructFieldInRefStruct()
         {
             var code = @"
@@ -1643,7 +1643,7 @@ ref struct Program
         }
 
         [Fact]
-        [WorkItem(24627, "https://github.com/dotnet/roslyn/issues/24627")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24627")]
         public void ArgMixingBogusInstanceCall()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -1678,7 +1678,7 @@ class Program
                 );
         }
 
-        [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27874")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -1713,7 +1713,7 @@ class C
 10");
         }
 
-        [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27874")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -1750,7 +1750,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27357")]
         public void PassingSpansToInParameters_Methods()
         {
             CompileAndVerify(CreateCompilationWithMscorlibAndSpan(@"
@@ -1796,7 +1796,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27357")]
         public void PassingSpansToInParameters_Indexers()
         {
             CompileAndVerify(CreateCompilationWithMscorlibAndSpan(@"
@@ -1842,7 +1842,7 @@ class C
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
-        [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27357")]
         public void PassingSpansToParameters_Errors(LanguageVersion languageVersion)
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -1949,7 +1949,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27357")]
         public void PassingSpansToParameters_Errors_Arglist()
         {
             CreateCompilationWithMscorlibAndSpan(@"
@@ -1990,7 +1990,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(44588, "https://github.com/dotnet/roslyn/issues/44588")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44588")]
         public void SwitchDefaultLocalInitialization_01()
         {
             var source = @"
@@ -2043,7 +2043,7 @@ struct Struct2
         }
 
         [Fact]
-        [WorkItem(44588, "https://github.com/dotnet/roslyn/issues/44588")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44588")]
         public void SwitchDefaultLocalInitialization_02()
         {
             var source = @"
@@ -2108,7 +2108,7 @@ struct Struct2
         }
 
         [Fact]
-        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39663")]
         public void AssignToDiscard_01()
         {
             var text = @"
@@ -2131,7 +2131,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39663")]
         public void AssignToDiscard_02()
         {
             var text = @"
@@ -2157,7 +2157,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39663")]
         public void AssignToDiscard_03()
         {
             var text = @"
@@ -2181,7 +2181,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39663")]
         public void AssignToDiscard_04()
         {
             var text = @"
@@ -2211,7 +2211,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39663")]
         public void AssignToDiscard_05()
         {
             var text = @"

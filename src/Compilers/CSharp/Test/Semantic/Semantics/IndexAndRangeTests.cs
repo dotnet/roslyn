@@ -607,7 +607,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(31889, "https://github.com/dotnet/roslyn/issues/31889")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/31889")]
         public void ArrayRangeIllegalRef()
         {
             var comp = CreateEmptyCompilation(@"
@@ -661,7 +661,7 @@ public class C {
         }
 
         [Fact]
-        [WorkItem(31889, "https://github.com/dotnet/roslyn/issues/31889")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/31889")]
         public void ArrayRangeIllegalRefNoRange()
         {
             var comp = CreateCompilationWithIndex(@"
@@ -751,7 +751,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(31889, "https://github.com/dotnet/roslyn/issues/31889")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/31889")]
         public void FromEndIllegalRef()
         {
             var comp = CreateCompilationWithIndex(@"
@@ -781,7 +781,7 @@ public class C {
         }
 
         [Fact]
-        [WorkItem(31889, "https://github.com/dotnet/roslyn/issues/31889")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/31889")]
         public void FromEndIllegalRefNoIndex()
         {
             var comp = CreateCompilationWithIndex(@"
@@ -1556,7 +1556,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(7, 22));
         }
 
-        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39852")]
         public void DontAllowNamedArgumentsForImplicitRangeIndexer()
         {
             CreateCompilationWithIndexAndRangeAndSpan(@"
@@ -1593,7 +1593,7 @@ public class C
                     Diagnostic(ErrorCode.ERR_ImplicitRangeIndexerWithName, "notEvenTheCorrectName").WithLocation(12, 48));
         }
 
-        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39852")]
         public void DontAllowNamedArgumentsForImplicitIndexIndexer()
         {
             CreateCompilationWithIndexAndRangeAndSpan(@"
@@ -1622,7 +1622,7 @@ public class C
                     Diagnostic(ErrorCode.ERR_ImplicitIndexIndexerWithName, "notEvenTheCorrectName").WithLocation(10, 48));
         }
 
-        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39852")]
         public void AllowNamedArgumentsForRealRangeIndexer1()
         {
             var comp = CreateCompilationWithIndexAndRange(@"
@@ -1642,7 +1642,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "42");
         }
 
-        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39852")]
         public void AllowNamedArgumentsForRealRangeIndexer2()
         {
             var comp = CreateCompilationWithIndexAndRange(@"
@@ -1662,7 +1662,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "42");
         }
 
-        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39852")]
         public void DontAllowIncorrectNamedArgumentsForRealRangeIndexer()
         {
             CreateCompilationWithIndexAndRange(@"
@@ -1683,7 +1683,7 @@ public class C
                     Diagnostic(ErrorCode.ERR_BadNamedArgument, "param").WithArguments("this", "param").WithLocation(11, 31));
         }
 
-        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39852")]
         public void AllowNamedArgumentsForRealIndexIndexer1()
         {
             var comp = CreateCompilationWithIndexAndRange(@"
@@ -1703,7 +1703,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "42");
         }
 
-        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39852")]
         public void AllowNamedArgumentsForRealIndexIndexer2()
         {
             var comp = CreateCompilationWithIndexAndRange(@"
@@ -1723,7 +1723,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "42");
         }
 
-        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39852")]
         public void DontAllowIncorrectNamedArgumentsForRealIndexIndexer()
         {
             CreateCompilationWithIndexAndRange(@"
@@ -1745,7 +1745,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(52724, "https://github.com/dotnet/roslyn/issues/52724")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/52724")]
         public void ValEscape_01()
         {
             var comp = CreateCompilation(@"
@@ -1776,7 +1776,7 @@ namespace ConsoleApp1 {
         }
 
         [Fact]
-        [WorkItem(52724, "https://github.com/dotnet/roslyn/issues/52724")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/52724")]
         public void ValEscape_02()
         {
             var comp = CreateCompilation(@"

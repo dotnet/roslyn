@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SymbolKind.Property, GetSpeculativeSymbol(sub, "NewLine").Kind);
         }
 
-        [WorkItem(5450, "https://github.com/dotnet/roslyn/issues/5450")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/5450")]
         [Fact]
         public void GlobalUsings()
         {
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             sub3.VerifyDiagnostics();
         }
 
-        [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4811")]
         [Fact]
         public void AliasCurrentSubmission()
         {
@@ -96,7 +96,7 @@ class Type { }
             Assert.Equal(typeSymbol, GetSpeculativeType(sub, "T"));
         }
 
-        [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4811")]
         [Fact]
         public void AliasPreviousSubmission()
         {
@@ -196,7 +196,7 @@ using J = I;
             Assert.Equal(SpecialType.System_Int64, GetSpeculativeType(sub4, "A").SpecialType);
         }
 
-        [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4811")]
         [Fact]
         public void UsingStaticCurrentSubmission()
         {
@@ -215,7 +215,7 @@ class Type
             Assert.Equal(sub.ScriptClass.GetMember("Type"), GetSpeculativeSymbol(sub, "Field").ContainingType);
         }
 
-        [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4811")]
         [Fact]
         public void UsingStaticPreviousSubmission()
         {
@@ -331,7 +331,7 @@ namespace B
             sub2.VerifyDiagnostics();
         }
 
-        [WorkItem(5423, "https://github.com/dotnet/roslyn/issues/5423")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/5423")]
         [Fact]
         public void UsingsFromLoadedScript()
         {
@@ -376,7 +376,7 @@ t = typeof(C); // declaration exposed
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "F").WithArguments("F").WithLocation(8, 12));
         }
 
-        [WorkItem(5423, "https://github.com/dotnet/roslyn/issues/5423")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/5423")]
         [Fact]
         public void UsingsToLoadedScript()
         {
@@ -488,7 +488,7 @@ t = typeof(File); // global using exposed
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4811")]
         [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void ConsumePreviousSubmissionUsings_Valid()
         {

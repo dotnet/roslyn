@@ -187,7 +187,7 @@ class C
             Assert.False(IsBeforeFieldInit(typeSymbol));
         }
 
-        [WorkItem(543606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
         [Fact]
         public void SourceStaticConstructorConstantInitializersDecimal01()
         {
@@ -202,7 +202,7 @@ class C
             Assert.True(IsBeforeFieldInit(typeSymbol));
         }
 
-        [WorkItem(543606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
         [Fact]
         public void SourceStaticConstructorConstantInitializersDecimal02()
         {
@@ -219,7 +219,7 @@ class C
             Assert.False(IsBeforeFieldInit(typeSymbol));
         }
 
-        [WorkItem(543606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
         [Fact]
         public void SourceStaticConstructorConstantInitializersDecimal03()
         {
@@ -234,7 +234,7 @@ class C
             Assert.True(IsBeforeFieldInit(typeSymbol));
         }
 
-        [WorkItem(543606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
         [Fact]
         public void SourceStaticConstructorConstantInitializersDecimal04()
         {
@@ -251,7 +251,7 @@ class C
             Assert.False(IsBeforeFieldInit(typeSymbol));
         }
 
-        [WorkItem(543606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
         [Fact]
         public void SourceStaticConstructorConstantInitializersDecimal05()
         {
@@ -267,7 +267,7 @@ class C
             Assert.True(IsBeforeFieldInit(typeSymbol));
         }
 
-        [WorkItem(543606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
         [Fact]
         public void StaticConstructorNullInitializer()
         {
