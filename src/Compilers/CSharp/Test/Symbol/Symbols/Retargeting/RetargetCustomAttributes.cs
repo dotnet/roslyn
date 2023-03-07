@@ -269,7 +269,7 @@ class TestClass
         }
 
         [Fact]
-        [WorkItem(569089, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569089"), WorkItem(575948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575948")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569089"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575948")]
         public void NullArrays()
         {
             var source1 = @"
@@ -323,7 +323,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(65048, "https://github.com/dotnet/roslyn/issues/65048")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/65048")]
         public void MissingAttributeType()
         {
             var source1 = @"
@@ -353,7 +353,7 @@ public class C1
         }
 
         [Fact]
-        [WorkItem(65048, "https://github.com/dotnet/roslyn/issues/65048")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/65048")]
         public void MissingAttributeConstructor()
         {
             var source1_1 = @"

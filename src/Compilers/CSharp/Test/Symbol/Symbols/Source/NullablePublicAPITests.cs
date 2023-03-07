@@ -96,7 +96,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34412")]
         public void FieldDeclarations()
         {
             var source = @"
@@ -162,7 +162,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34412")]
         public void PropertyDeclarations()
         {
             var source = @"
@@ -229,7 +229,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34412")]
         public void MethodReturnDeclarations()
         {
             var source = @"
@@ -303,7 +303,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34412")]
         public void ParameterDeclarations()
         {
             var source = @"
@@ -392,7 +392,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(35034, "https://github.com/dotnet/roslyn/issues/35034")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35034")]
         public void MethodDeclarationReceiver()
         {
             var source = @"
@@ -648,7 +648,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34412")]
         public void ArrayElements()
         {
             var source =
@@ -708,7 +708,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34412")]
         public void TypeParameters()
         {
             var source =
@@ -773,7 +773,7 @@ public interface I<T, U, V>
         }
 
         [Fact]
-        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34412")]
         public void Constraints()
         {
             var source =
@@ -837,7 +837,7 @@ public interface I
         }
 
         [Fact]
-        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34412")]
         public void TypeArguments_01()
         {
             var source =
@@ -906,7 +906,7 @@ public interface IB<T, U, V>
         }
 
         [Fact]
-        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34412")]
         public void TypeArguments_02()
         {
             var source =
@@ -965,7 +965,7 @@ public interface IB<T, U, V>
         }
 
         [Fact]
-        [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34412")]
         public void Locals()
         {
             var source =
@@ -1099,7 +1099,7 @@ class C
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, typeInfo.Nullability.Annotation);
         }
 
-        [Fact, WorkItem(34919, "https://github.com/dotnet/roslyn/issues/34919")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34919")]
         public void EnumInitializer()
         {
             var source = @"
@@ -1533,7 +1533,7 @@ class C
             }
         }
 
-        [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48574")]
         public void SpeculativeGetTypeInfo_Constructor()
         {
             var source = @"
@@ -1589,7 +1589,7 @@ class C
             }
         }
 
-        [Fact, WorkItem(45398, "https://github.com/dotnet/roslyn/issues/45398")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45398")]
         public void VarInLambda_GetTypeInfo()
         {
             var source = @"
@@ -1629,7 +1629,7 @@ class C
             Assert.Equal(PublicNullableAnnotation.Annotated, type.Nullability.Annotation);
         }
 
-        [Fact, WorkItem(45398, "https://github.com/dotnet/roslyn/issues/45398")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45398")]
         public void VarInLambda_ParameterMismatch_GetTypeInfo()
         {
             var source = @"
@@ -1675,7 +1675,7 @@ class C
             Assert.Equal(PublicNullableAnnotation.None, type.Nullability.Annotation);
         }
 
-        [Fact, WorkItem(45398, "https://github.com/dotnet/roslyn/issues/45398")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45398")]
         public void VarInLambda_ErrorDelegateType_GetTypeInfo()
         {
             var source = @"
@@ -2607,7 +2607,7 @@ class C
 
         [InlineData("always")]
         [InlineData("never")]
-        [Theory, WorkItem(37659, "https://github.com/dotnet/roslyn/issues/37659")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/37659")]
         public void InvalidCodeVar_GetsCorrectSymbol(string flagState)
         {
             var source = @"
@@ -2638,7 +2638,7 @@ public class C
             Assert.Equal(SpecialType.System_String, symbol.Type.SpecialType);
         }
 
-        [Fact, WorkItem(37879, "https://github.com/dotnet/roslyn/issues/37879")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37879")]
         public void MissingSymbols_ReinferredParent()
         {
             var source = @"
@@ -2668,7 +2668,7 @@ class C
             Assert.Empty(symbolInfo.CandidateSymbols);
         }
 
-        [Fact, WorkItem(37879, "https://github.com/dotnet/roslyn/issues/37879")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37879")]
         public void MultipleSymbols_ReinferredParent()
         {
             var source = @"
@@ -3672,7 +3672,7 @@ class C
             Assert.Equal(localFunctionSymbol, o2Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
         }
 
-        [Fact, WorkItem(45825, "https://github.com/dotnet/roslyn/issues/45825")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45825")]
         public void LocalFunctionReturnSpeculation()
         {
             var comp = CreateCompilation(@"
@@ -3707,7 +3707,7 @@ class C
             Assert.Equal("C!", typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: true));
         }
 
-        [Fact, WorkItem(45825, "https://github.com/dotnet/roslyn/issues/45825")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45825")]
         public void LambdaReturnSpeculation()
         {
             var comp = CreateCompilation(@"
@@ -4312,7 +4312,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(38638, "https://github.com/dotnet/roslyn/issues/38638")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38638")]
         public void TypeParameter_Default()
         {
             var source =
@@ -4346,7 +4346,7 @@ class B2 : A<int?>
         }
 
         [Fact]
-        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40750")]
         public void SpeculativeSymbolInfo_OutVariableInDifferentContext_01()
         {
             var source =
@@ -4374,7 +4374,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40750")]
         public void SpeculativeSymbolInfo_OutVariableInDifferentContext_02()
         {
             var source =
@@ -4402,7 +4402,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40750")]
         public void SpeculativeSymbolInfo_OutVariableInDifferentContext_03()
         {
             var source =
@@ -4432,7 +4432,7 @@ M(out C c);");
         }
 
         [Fact]
-        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40750")]
         public void SpeculativeSymbolInfo_OutVariableInDifferentContext_04()
         {
             var source =
@@ -4462,7 +4462,7 @@ M(out C c);");
         }
 
         [Fact]
-        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40750")]
         public void SpeculativeSymbolInfo_OutVariableInDifferentContext_05()
         {
             var source =
@@ -4492,7 +4492,7 @@ M(out C c);");
         }
 
         [Fact]
-        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40750")]
         public void SpeculativeSymbolInfo_WholeBody_01()
         {
             var source =
@@ -4524,7 +4524,7 @@ void M2(out C c2)
         }
 
         [Fact]
-        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40750")]
         public void SpeculativeSymbolInfo_WholeBody_02()
         {
             var source =
@@ -4557,7 +4557,7 @@ void M2(out C c2)
         }
 
         [Fact]
-        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40750")]
         public void SpeculativeSymbolInfo_ArrowExpression_01()
         {
             var source =
@@ -4585,7 +4585,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40750")]
         public void SpeculativeSymbolInfo_ArrowExpression_02()
         {
             var source =
@@ -4615,7 +4615,7 @@ M(out C c)"));
         }
 
         [Fact]
-        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40750")]
         public void SpeculativeSymbolInfo_ConstructorInitializer_01()
         {
             var source =
@@ -4646,7 +4646,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40750")]
         public void SpeculativeSymbolInfo_ConstructorInitializer_02()
         {
             var source =
@@ -4679,8 +4679,8 @@ M(out C c))"));
         }
 
         [Fact]
-        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750"),
-         WorkItem(39993, "https://github.com/dotnet/roslyn/issues/39993")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40750"),
+         WorkItem("https://github.com/dotnet/roslyn/issues/39993")]
         public void SpeculativeSymbolInfo_Expression()
         {
             var source =
@@ -4918,7 +4918,7 @@ class C
             Assert.Equal(PublicNullableFlowState.NotNull, typeInfo.Nullability.FlowState);
         }
 
-        [Theory, WorkItem(47467, "https://github.com/dotnet/roslyn/issues/47467")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47467")]
         [InlineData("void M() {}")]
         [InlineData(@"void M() {}
 M();")]
@@ -5012,7 +5012,7 @@ namespace System
             AssertEx.Equal("(System.String a, System.String b)", model.GetTypeInfo(tupleLiteral).Type.ToTestDisplayString(includeNonNullable: false));
         }
 
-        [Fact, WorkItem(51461, "https://github.com/dotnet/roslyn/issues/51461")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51461")]
         public void LambdaInBadExpression()
         {
             var comp = CreateCompilation(@"

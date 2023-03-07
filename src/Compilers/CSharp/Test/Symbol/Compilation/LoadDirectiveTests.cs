@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_SourceFileReferencesNotSupported, @"#load ""test""").WithLocation(1, 1));
         }
 
-        [Fact, WorkItem(6439, "https://github.com/dotnet/roslyn/issues/6439")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6439")]
         public void ErrorInInactiveRegion()
         {
             var code = @"
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             compilation.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(6698, "https://github.com/dotnet/roslyn/issues/6698")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6698")]
         public void Cycles()
         {
             var code = "#load \"a.csx\"";

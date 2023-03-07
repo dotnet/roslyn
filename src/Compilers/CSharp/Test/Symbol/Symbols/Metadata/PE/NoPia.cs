@@ -1350,7 +1350,7 @@ public interface I7
         }
 
         [Fact]
-        [WorkItem(62863, "https://github.com/dotnet/roslyn/issues/62863")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/62863")]
         public void ExplicitInterfaceImplementations()
         {
             var sourcePIA =

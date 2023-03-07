@@ -751,7 +751,7 @@ public class B
         }
 
         [Fact]
-        [WorkItem(8195, "https://github.com/dotnet/roslyn/issues/38195")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38195")]
         public void SemanticModel_SubstitutedField_Equality()
         {
             var source =
@@ -802,7 +802,7 @@ public class A<T>
         }
 
         [Fact]
-        [WorkItem(8195, "https://github.com/dotnet/roslyn/issues/38195")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38195")]
         public void SemanticModel_SubstitutedMethod_Equality()
         {
             var source =
@@ -859,7 +859,7 @@ public class A<T>
         }
 
         [Fact]
-        [WorkItem(8195, "https://github.com/dotnet/roslyn/issues/38195")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38195")]
         public void SemanticModel_SubstitutedEvent_Equality()
         {
             var source =
@@ -913,7 +913,7 @@ public class A<T>
         }
 
         [Fact]
-        [WorkItem(58226, "https://github.com/dotnet/roslyn/issues/58226")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58226")]
         public void LambdaSymbol()
         {
             var source =
@@ -944,7 +944,7 @@ void M1<TResult>(Func<object?[], TResult>? f) { }
         }
 
         [Fact]
-        [WorkItem(58226, "https://github.com/dotnet/roslyn/issues/58226")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58226")]
         public void LambdaSymbol_02()
         {
             var source =

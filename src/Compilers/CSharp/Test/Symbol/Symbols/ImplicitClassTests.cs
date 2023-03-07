@@ -76,7 +76,7 @@ void Goo()
             Assert.Null(model.GetSymbolInfo(toStringIdentifier).Symbol);
         }
 
-        [Fact, WorkItem(531535, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531535")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531535")]
         public void Events()
         {
             var c = CreateCompilationWithMscorlib45(@"
@@ -89,7 +89,7 @@ event System.Action e;
             Assert.False(@event.TypeWithAnnotations.IsDefault);
         }
 
-        [WorkItem(598860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598860")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598860")]
         [Fact]
         public void AliasQualifiedNamespaceName()
         {

@@ -232,8 +232,8 @@ long _f = 0l;
                 );
         }
 
-        [WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")]
-        [WorkItem(9153, "https://github.com/dotnet/roslyn/issues/9153")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8360")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/9153")]
         [Fact]
         public void PublicSignWithRelativeKeyPath()
         {
@@ -249,7 +249,7 @@ long _f = 0l;
         }
 
         [Fact]
-        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11497")]
         public void PublicSignWithEmptyKeyPath()
         {
             CreateCompilation("", options: TestOptions.ReleaseDll.WithPublicSign(true).WithCryptoKeyFile("")).VerifyDiagnostics(
@@ -258,7 +258,7 @@ long _f = 0l;
         }
 
         [Fact]
-        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11497")]
         public void PublicSignWithEmptyKeyPath2()
         {
             CreateCompilation("", options: TestOptions.ReleaseDll.WithPublicSign(true).WithCryptoKeyFile("\"\"")).VerifyDiagnostics(
@@ -269,7 +269,7 @@ long _f = 0l;
         }
 
         [Fact]
-        [WorkItem(233669, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=233669")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=233669")]
         public void CompilationName()
         {
             // report an error, rather then silently ignoring the directory
@@ -607,7 +607,7 @@ namespace A.B {
             Assert.Null(c.GetDirectiveReference(rd4[0]));
         }
 
-        [Fact, WorkItem(530131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530131")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530131")]
         public void MetadataReferenceWithInvalidAlias()
         {
             var refcomp = CSharpCompilation.Create("DLL",
@@ -675,7 +675,7 @@ namespace A.B {
                 );
         }
 
-        [Fact, WorkItem(530131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530131")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530131")]
         public void MetadataReferenceWithInvalidAliasWithCSharp6()
         {
             var refcomp = CSharpCompilation.Create("DLL",
@@ -974,7 +974,7 @@ class D
             Assert.Equal(1, comp1.SyntaxTrees.Length);
         }
 
-        [WorkItem(713356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")]
         [ClrOnlyFact]
         public void MissedModuleA()
         {
@@ -1030,7 +1030,7 @@ var a = new C2();
             CompileAndVerify(assembly, verify: Verification.FailsILVerify);
         }
 
-        [WorkItem(713356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")]
         [Fact]
         public void MissedModuleB_OneError()
         {
@@ -1084,8 +1084,8 @@ var a = new C2();
                 Diagnostic(ErrorCode.ERR_MissingNetModuleReference).WithArguments("a1.netmodule"));
         }
 
-        [WorkItem(718500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718500")]
-        [WorkItem(716762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716762")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718500")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716762")]
         [Fact]
         public void MissedModuleB_NoErrorForUnmanagedModules()
         {
@@ -1119,7 +1119,7 @@ var a = new C2();
             assembly.VerifyEmitDiagnostics();
         }
 
-        [WorkItem(715872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715872")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715872")]
         [Fact]
         public void MissedModuleC()
         {
@@ -1335,7 +1335,7 @@ var a = new C2();
             });
         }
 
-        [WorkItem(537623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537623")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537623")]
         [Fact]
         public void NegCreateCompilation()
         {
@@ -1343,7 +1343,7 @@ var a = new C2();
             Assert.Throws<ArgumentNullException>(() => CSharpCompilation.Create("goo", references: new MetadataReference[] { null }));
         }
 
-        [WorkItem(537637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537637")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537637")]
         [Fact]
         public void NegGetSymbol()
         {
@@ -1370,7 +1370,7 @@ var a = new C2();
             });
         }
 
-        [WorkItem(537778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537778")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537778")]
         // Throw exception when the parameter of the parameter type of GetReferencedAssemblySymbol is VB.CompilationReference
         [Fact]
         public void NegGetSymbol1()
@@ -1405,7 +1405,7 @@ var a = new C2();
         }
 
         // Add already existing item
-        [Fact, WorkItem(537574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537574")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537574")]
         public void NegReference2()
         {
             var ref1 = Net451.mscorlib;
@@ -1430,7 +1430,7 @@ var a = new C2();
         }
 
         // Add a new invalid item
-        [Fact, WorkItem(537575, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537575")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537575")]
         public void NegReference3()
         {
             var ref1 = InvalidRef;
@@ -1446,7 +1446,7 @@ var a = new C2();
         }
 
         // Replace a non-existing item with null
-        [Fact, WorkItem(537567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537567")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537567")]
         public void NegReference4()
         {
             var ref1 = Net451.mscorlib;
@@ -1467,7 +1467,7 @@ var a = new C2();
         }
 
         // Replace a non-existing item with another valid item
-        [Fact, WorkItem(537566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537566")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537566")]
         public void NegReference5()
         {
             var ref1 = Net451.mscorlib;
@@ -1491,7 +1491,7 @@ var a = new C2();
             Assert.Equal(0, comp.SyntaxTrees.Length);
         }
 
-        [WorkItem(527256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527256")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527256")]
         // Throw exception when the parameter of SyntaxTrees.Contains is null
         [Fact]
         public void NegSyntaxTreesContains()
@@ -1500,7 +1500,7 @@ var a = new C2();
             Assert.False(comp.SyntaxTrees.Contains(null));
         }
 
-        [WorkItem(537784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537784")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537784")]
         // Throw exception when the parameter of GetSpecialType() is out of range
         [Fact]
         public void NegGetSpecialType()
@@ -1533,7 +1533,7 @@ var a = new C2();
             });
         }
 
-        [WorkItem(538168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538168")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538168")]
         // Replace a non-existing item with another valid item and disorder the args
         [Fact]
         public void NegTree2()
@@ -1547,7 +1547,7 @@ var a = new C2();
             });
         }
 
-        [WorkItem(537576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537576")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537576")]
         // Add already existing item
         [Fact]
         public void NegSynTree1()
@@ -1712,8 +1712,8 @@ class A
             Assert.Equal("ModuleAssemblyName", compilation.Assembly.Identity.Name);
         }
 
-        [WorkItem(8506, "https://github.com/dotnet/roslyn/issues/8506")]
-        [WorkItem(17403, "https://github.com/dotnet/roslyn/issues/17403")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8506")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17403")]
         [Fact]
         public void CrossCorlibSystemObjectReturnType_Script()
         {
@@ -1761,7 +1761,7 @@ class A
                 .ReturnTypeOpt);
         }
 
-        [WorkItem(3719, "https://github.com/dotnet/roslyn/issues/3719")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3719")]
         [Fact]
         public void GetEntryPoint_Script()
         {
@@ -1889,7 +1889,7 @@ class B
             Assert.Equal(2, list.Count);
         }
 
-        [Fact, WorkItem(750437, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750437")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750437")]
         public void ConflictingAliases()
         {
             var alias = Net451.System.WithAliases(new[] { "alias" });
@@ -1915,7 +1915,7 @@ class myClass : alias::Uri
                 Diagnostic(ErrorCode.ERR_AmbigContext, "alias").WithArguments("alias", "<global namespace>", "<global namespace>").WithLocation(3, 17));
         }
 
-        [WorkItem(546088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546088")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546088")]
         [Fact]
         public void CompilationDiagsIncorrectResult()
         {
@@ -2344,7 +2344,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         }
 
         [Fact]
-        [WorkItem(797640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797640")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797640")]
         public void GetMetadataReferenceAPITest()
         {
             var comp = CSharpCompilation.Create("Compilation");
@@ -2361,7 +2361,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         }
 
         [Fact]
-        [WorkItem(40466, "https://github.com/dotnet/roslyn/issues/40466")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40466")]
         public void GetMetadataReference_VisualBasicSymbols()
         {
             var comp = CreateCompilation("");
@@ -2455,7 +2455,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         }
 
         [Fact]
-        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateArrayType_DefaultArgs()
         {
             var comp = (Compilation)CSharpCompilation.Create("");
@@ -2484,7 +2484,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         }
 
         [Fact]
-        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateArrayType_ElementNullableAnnotation()
         {
             var comp = (Compilation)CSharpCompilation.Create("");
@@ -2652,7 +2652,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         }
 
         [Fact]
-        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateAnonymousType_DefaultArgs()
         {
             var comp = (Compilation)CSharpCompilation.Create("");
@@ -2682,7 +2682,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         }
 
         [Fact]
-        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateAnonymousType_MemberNullableAnnotations_Empty()
         {
             var comp = (Compilation)CSharpCompilation.Create("");
@@ -2692,7 +2692,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         }
 
         [Fact]
-        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateAnonymousType_MemberNullableAnnotations()
         {
             var comp = (Compilation)CSharpCompilation.Create("");
@@ -3021,7 +3021,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(36046, "https://github.com/dotnet/roslyn/issues/36046")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36046")]
         public void ConstructTypeWithNullability()
         {
             var source =
@@ -3055,7 +3055,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(37310, "https://github.com/dotnet/roslyn/issues/37310")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37310")]
         public void ConstructMethodWithNullability()
         {
             var source =
@@ -3089,7 +3089,7 @@ class C
             Assert.Throws<ArgumentException>(() => genericMethod.Construct(typeArguments, default));
         }
 
-        [Fact, WorkItem(65499, "https://github.com/dotnet/roslyn/issues/65499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65499")]
         public void NetModuleReference()
         {
             var module = CreateCompilation(string.Empty, options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule));
@@ -3106,7 +3106,7 @@ class C
             Assert.Equal(2, comp.Assembly.Modules.Length);
         }
 
-        [Fact, WorkItem(65499, "https://github.com/dotnet/roslyn/issues/65499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65499")]
         public void NetModuleReference_AssemblySpecifiedAsModule()
         {
             var module = CreateCompilation(string.Empty);
@@ -3125,7 +3125,7 @@ class C
             Assert.Equal(1, comp.Assembly.Modules.Length);
         }
 
-        [Fact, WorkItem(65499, "https://github.com/dotnet/roslyn/issues/65499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65499")]
         public void NetModuleReference_ModuleSpecifiedAsAssembly()
         {
             var module = CreateCompilation(string.Empty, options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule));

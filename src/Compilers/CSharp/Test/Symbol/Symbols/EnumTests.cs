@@ -265,7 +265,7 @@ enum F
                 Diagnostic(ErrorCode.ERR_CircConstValue, "M0").WithArguments("E.M0").WithLocation(3, 5));
         }
 
-        [WorkItem(843037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843037")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843037")]
         [ConditionalFact(typeof(NoIOperationValidation))]
         public void CircularDefinitionManyMembers_Explicit()
         {
@@ -278,7 +278,7 @@ enum F
                 Diagnostic(ErrorCode.ERR_CircConstValue, "M0").WithArguments("E.M0").WithLocation(3, 5));
         }
 
-        [WorkItem(843037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843037")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843037")]
         [ConditionalFact(typeof(NoIOperationValidation))]
         public void InvertedDefinitionManyMembers_Explicit()
         {
@@ -311,7 +311,7 @@ enum F
             return builder.ToString();
         }
 
-        [WorkItem(45625, "https://github.com/dotnet/roslyn/issues/45625")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45625")]
         [Fact]
         public void UseSiteError_01()
         {
@@ -355,7 +355,7 @@ public class C
             Assert.False(value.HasValue);
         }
 
-        [WorkItem(45625, "https://github.com/dotnet/roslyn/issues/45625")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45625")]
         [Fact]
         public void UseSiteError_02()
         {

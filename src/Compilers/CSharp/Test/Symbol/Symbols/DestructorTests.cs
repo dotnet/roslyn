@@ -140,7 +140,7 @@ class C7
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "C7").WithArguments("C7.~C7()"));
         }
 
-        [WorkItem(528912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528912")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528912")]
         [Fact]
         public void InvokeFinalize()
         {
@@ -222,7 +222,7 @@ class G : F
                 Diagnostic(ErrorCode.ERR_CallingFinalizeDeprecated, "Finalize()"));
         }
 
-        [WorkItem(528912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528912")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528912")]
         [Fact]
         public void InvokeBaseFinalize()
         {
@@ -367,7 +367,7 @@ class C : I
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I").WithArguments("C", "I.Finalize()", "C.~C()").WithLocation(7, 11));
         }
 
-        [WorkItem(528912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528912")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528912")]
         [Fact]
         public void DestructorDelegate()
         {
@@ -433,7 +433,7 @@ class @ref
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(546830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546830")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546830")]
         [Fact]
         public void OverrideSealedFinalizer()
         {
@@ -468,7 +468,7 @@ class Derived : Base
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "Derived").WithArguments("Derived.~Derived()", "Base.~Base()"));
         }
 
-        [WorkItem(546830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546830")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546830")]
         [Fact]
         public void OverrideNewslotVirtualFinalFinalizer()
         {
@@ -506,7 +506,7 @@ class Derived : Base
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "Derived").WithArguments("Derived.~Derived()", "Base.Finalize()"));
         }
 
-        [WorkItem(528903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528903")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528903")]
         [Fact]
         public void AbstractFinalize()
         {
@@ -532,7 +532,7 @@ class Derived : Base
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.~Base()"));
         }
 
-        [WorkItem(647933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/647933")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/647933")]
         [Fact]
         public void ConditionalAttributeOnDestructor()
         {

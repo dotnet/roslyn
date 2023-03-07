@@ -403,7 +403,7 @@ public class L<T>
             AssertCanUnify(type6, type6);
         }
 
-        [WorkItem(1042692, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042692")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042692")]
         [Fact]
         public void SubstituteWithOtherTypeParameter()
         {

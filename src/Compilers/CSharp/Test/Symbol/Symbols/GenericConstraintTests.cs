@@ -264,7 +264,7 @@ class C1 : A1<C1.C2> // invalid
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "C1").WithArguments("A1<T>", "A1<C1.C2>.A2", "T", "C1.C2").WithLocation(9, 7));
         }
 
-        [WorkItem(542616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542616")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542616")]
         [Fact]
         public void NewConstraintWithPrivateConstructorErr()
         {
@@ -293,7 +293,7 @@ public class Gen<T> where T : new() { public T t;}
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "PrivateCtorClass").WithArguments("Gen<T>", "T", "PrivateCtorClass").WithLocation(5, 26));
         }
 
-        [WorkItem(542617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542617")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542617")]
         [Fact]
         public void InterfaceConstraintWithClassTypeArgumentErr()
         {
@@ -315,7 +315,7 @@ public class Gen<T> where T : InterfaceConstraint
                     WithArguments("Gen<T>", "InterfaceConstraint", "T", "ViolateInterfaceConstraint").WithLocation(6, 63));
         }
 
-        [WorkItem(542617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542617")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542617")]
         [Fact]
         public void NestedViolationsInvolvingArraysAndPointers()
         {
@@ -368,7 +368,7 @@ unsafe interface I
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "o").WithArguments("A<int>").WithLocation(8, 27));
         }
 
-        [WorkItem(542618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542618")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542618")]
         [Fact]
         public void AllowReferenceTypeVolatileField()
         {
@@ -491,7 +491,7 @@ class C : I<int, object>
         /// Similar to ExplicitImplementationInterfaceConstraintViolations but
         /// where the constraint violation involves a reference to the containing type.
         /// </summary>
-        [WorkItem(542948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542948")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542948")]
         [Fact]
         public void ExplicitImplementationInterfaceConstraintViolationsOnContainer()
         {
@@ -1056,7 +1056,7 @@ struct S
             CompileAndVerify(source);
         }
 
-        [WorkItem(528571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528571")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528571")]
         [Fact]
         public void ConstraintsWithinStruct()
         {
@@ -1157,7 +1157,7 @@ S");
             compilation.VerifyIL("C.F3<T>()", expectedIL);
         }
 
-        [WorkItem(542376, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542376")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542376")]
         [ClrOnlyFact]
         public void NullT()
         {
@@ -1322,7 +1322,7 @@ S");
 }");
         }
 
-        [WorkItem(542312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542312")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542312")]
         [ClrOnlyFact]
         public void NewTStatement()
         {
@@ -1618,7 +1618,7 @@ S[0]");
         /// Access fields on constrained generic types.
         /// </summary>
         [ClrOnlyFact]
-        [WorkItem(542277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542277")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542277")]
         public void Fields()
         {
             var source =
@@ -3120,7 +3120,7 @@ public class A3
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "M<object>").WithArguments("B3", "d521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 12));
         }
 
-        [WorkItem(542753, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542753")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542753")]
         [Fact]
         public void MissingTypeInVariantInterfaceConstraint()
         {
@@ -3209,7 +3209,7 @@ class C
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "o").WithArguments("AOut<T>", "IOut<B>", "T", "IOut<object>").WithLocation(13, 38));
         }
 
-        [WorkItem(542174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542174")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542174")]
         [ClrOnlyFact]
         public void ConstraintsOnOverriddenMethod()
         {
@@ -3229,7 +3229,7 @@ class B: A
             Assert.Equal("I<U> B.F<U>() where U : class", method.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
         }
 
-        [WorkItem(542264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542264")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542264")]
         [Fact]
         public void PartialMethodsDifferentTypeParameterNames()
         {
@@ -3271,7 +3271,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "C").WithLocation(16, 18));
         }
 
-        [WorkItem(542331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542331")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542331")]
         [Fact]
         public void InterfaceImplementationMismatchNewMethod()
         {
@@ -3357,7 +3357,7 @@ class D
             Assert.Equal(bx, impl);
         }
 
-        [WorkItem(528855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528855")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528855")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ModReqsInConstraintsAreNotSupported()
         {
@@ -3422,7 +3422,7 @@ class C3 : I
         /// generates invalid types when implementing or overriding
         /// generic methods with such constraints.)
         /// </summary>
-        [WorkItem(528856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528856")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528856")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ModOptsInConstraintsAreIgnored()
         {
@@ -3495,7 +3495,7 @@ class P
         /// Constraints on the nested type must match
         /// constraints from the containing types.
         /// </summary>
-        [WorkItem(528859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528859")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528859")]
         [Fact]
         public void InconsistentConstraintsAreNotSupported()
         {
@@ -3631,7 +3631,7 @@ class P
                 Diagnostic(ErrorCode.ERR_BogusType, "IOut").WithArguments("IIn<T>.IOut"));
         }
 
-        [WorkItem(528861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528861")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528861")]
         [Fact]
         public void ConstraintsAreCheckedAlongHierarchy()
         {
@@ -3723,7 +3723,7 @@ class C4 : B4<I, A, object> { }
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "C3").WithArguments("IA3_1<T>", "T", "object").WithLocation(5, 7));
         }
 
-        [WorkItem(542755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542755")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542755")]
         [ClrOnlyFact]
         public void SpellingOfGenericClassNameIsPreserved()
         {
@@ -4315,7 +4315,7 @@ class C : I
             CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, targetFramework: TargetFramework.Mscorlib40);
         }
 
-        [WorkItem(542358, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542358")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542358")]
         [Fact]
         public void InterfaceConstraintsAbsorbed()
         {
@@ -4331,7 +4331,7 @@ class C : I<System.ValueType>
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(542359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542359")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542359")]
         [Fact]
         public void ExplicitImplementationMethodConstraintViolations()
         {
@@ -4370,7 +4370,7 @@ class C : IA<int, double>, IB<string>, IC<int>, ID<string>
                 Diagnostic(ErrorCode.ERR_BaseConstraintConflict, "U").WithArguments("U", "int", "class").WithLocation(21, 20));
         }
 
-        [WorkItem(542362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542362")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542362")]
         [Fact]
         public void CycleInvolvingAlias()
         {
@@ -4381,7 +4381,7 @@ class B<T> where T : C { }";
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(542363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542363")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542363")]
         [Fact]
         public void InvokeExplicitImplementationMethod()
         {
@@ -4405,7 +4405,7 @@ class C : IB
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(542364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542364")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542364")]
         [Fact]
         public void CheckConstraintsOverriddenMethodDefaultParameter()
         {
@@ -4423,7 +4423,7 @@ class C : B<int>
                 Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "x").WithArguments("int", "S").WithLocation(7, 33));
         }
 
-        [WorkItem(542366, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542366")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542366")]
         [Fact]
         public void NestedConstraintsWithinConstraints()
         {
@@ -4460,7 +4460,7 @@ interface I
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "U").WithArguments("A<T>", "T", "int").WithLocation(16, 16));
         }
 
-        [WorkItem(542367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542367")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542367")]
         [Fact]
         public void ConstraintChecksBeforeOverloadResolution()
         {
@@ -4478,7 +4478,7 @@ class Program
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(542380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542380")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542380")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void StructProperties()
         {
@@ -4760,7 +4760,7 @@ class B
 ");
         }
 
-        [WorkItem(542527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542527")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542527")]
         [ClrOnlyFact]
         public void SelfReferentialInheritedConstraints01()
         {
@@ -4870,7 +4870,7 @@ abstract class E : D, IB
                 symbolValidator: validator);
         }
 
-        [WorkItem(542601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542601")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542601")]
         [ClrOnlyFact]
         public void SelfReferentialInheritedConstraints03()
         {
@@ -4901,7 +4901,7 @@ class P
 System.Int32");
         }
 
-        [WorkItem(542601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542601")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542601")]
         [ClrOnlyFact]
         public void SelfReferentialInheritedConstraints04()
         {
@@ -4943,7 +4943,7 @@ class C : I<object>, I<C>
             Assert.Equal(nReferencesExpected, nReferences);
         }
 
-        [WorkItem(542532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542532")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542532")]
         [ClrOnlyFact]
         public void SelfReferentialConstraintsWithLambda()
         {
@@ -4980,7 +4980,7 @@ class Program
 M1<T, U>");
         }
 
-        [WorkItem(542277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542277")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542277")]
         [ClrOnlyFact]
         public void AccessToMembersOfInheritedConstraints()
         {
@@ -5016,7 +5016,7 @@ class S
             CompileAndVerify(source, expectedOutput: "5");
         }
 
-        [WorkItem(542564, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542564")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542564")]
         [Fact]
         public void Arrays()
         {
@@ -5110,7 +5110,7 @@ class B<T>
 }");
         }
 
-        [WorkItem(542620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542620")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542620")]
         [ClrOnlyFact]
         public void DuplicateConstraintTypes()
         {
@@ -5161,7 +5161,7 @@ interface I6<U> : I3<I<U>, I<U>> { }";
         /// Type argument violating duplicate constraint types
         /// should result in a single error, not multiple.
         /// </summary>
-        [WorkItem(542620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542620")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542620")]
         [Fact]
         public void DuplicateConstraintTypeViolations()
         {
@@ -5228,7 +5228,7 @@ class C
         /// 'class' constraints should not be removed if explicit class
         /// constraint is specified.
         /// </summary>
-        [WorkItem(543335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543335")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543335")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ObjectAndValueTypeMetadataConstraints()
         {
@@ -5257,7 +5257,7 @@ class C
             CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("R2").TypeParameters[0], TypeParameterConstraintKind.ReferenceType, false, true, "A", "A", "A");
         }
 
-        [WorkItem(543335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543335")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543335")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ObjectAndValueTypeMethodMetadataConstraints()
         {
@@ -5406,7 +5406,7 @@ class C1 : C0
         /// Object constraints should be dropped from TypeParameterSymbol.ConstraintTypes
         /// on import and type substitution.
         /// </summary>
-        [WorkItem(543831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543831")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543831")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ObjectConstraintTypes()
         {
@@ -5498,7 +5498,7 @@ class D0 : D<object>
         /// Object constraint should not be emitted
         /// for compatibility with Dev10.
         /// </summary>
-        [WorkItem(543710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543710")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543710")]
         [ClrOnlyFact]
         public void EmittedObjectConstraint()
         {
@@ -5612,7 +5612,7 @@ class D2 : D<A>
             CheckConstraints(type.GetMember<MethodSymbol>("M4").TypeParameters[0], TypeParameterConstraintKind.None, false, true, "B", "B", "B", "A");
         }
 
-        [WorkItem(545410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545410")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545410")]
         [Fact]
         public void InheritedValueConstraintForNullable1()
         {
@@ -5636,7 +5636,7 @@ class B : A
             CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
         }
 
-        [WorkItem(545410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545410")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545410")]
         [Fact]
         public void InheritedValueConstraintForNullable2()
         {
@@ -5675,7 +5675,7 @@ class B : A
                 Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(6, 16));
         }
 
-        [WorkItem(543710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543710")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543710")]
         [ClrOnlyFact]
         public void InheritedObjectConstraint2()
         {
@@ -5731,7 +5731,7 @@ End Module",
             Utils.CheckSymbols(typeParameter.ConstraintTypes(), constraintTypeDescriptions);
         }
 
-        [WorkItem(545327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545327")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545327")]
         [Fact]
         public void MissingObjectType()
         {
@@ -5813,7 +5813,7 @@ class @c
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(545460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545460")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545460")]
         [Fact]
         public void TypeConstrainedToLambda()
         {
@@ -5830,7 +5830,7 @@ class B : A<int>
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
-        [WorkItem(545460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545460")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545460")]
         [Fact]
         public void TypeConstrainedToErrorType()
         {
@@ -5848,7 +5848,7 @@ class B : A<int>
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(3, 46));
         }
 
-        [WorkItem(545588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545588")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545588")]
         [Fact]
         public void SatisfyOwnConstraints01()
         {
@@ -5882,7 +5882,7 @@ class B5 : A<object[]>
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(545588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545588")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545588")]
         [Fact]
         public void SatisfyOwnConstraints02()
         {
@@ -5923,7 +5923,7 @@ class B : A<int, object>
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "M1<U>").WithArguments("A<int, object>.M1<U>()", "int", "U", "U").WithLocation(24, 14));
         }
 
-        [WorkItem(545588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545588")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545588")]
         [Fact]
         public void SatisfyOwnConstraints03()
         {
@@ -6039,7 +6039,7 @@ class E
         /// <summary>
         /// Cycle with field types with new() constraint.
         /// </summary>
-        [WorkItem(546394, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546394")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546394")]
         [Fact]
         public void HasPublicParameterlessConstructorCycle01()
         {
@@ -6063,7 +6063,7 @@ class C<T> where T : new() { }";
         /// <summary>
         /// Cycle with event types with new() constraint.
         /// </summary>
-        [WorkItem(546394, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546394")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546394")]
         [Fact]
         public void HasPublicParameterlessConstructorCycle02()
         {
@@ -6100,7 +6100,7 @@ delegate D<T> D<T>() where T : new();";
         /// Cycle with field-like event type with new() constraint
         /// where field type is determined by an initializer.
         /// </summary>
-        [WorkItem(546394, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546394")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546394")]
         [Fact]
         public void HasPublicParameterlessConstructorCycle03()
         {
@@ -6124,7 +6124,7 @@ delegate void D<out T>() where T : new();";
         /// Cycle with event type with new() constraint where
         /// the event is an explicit implementation.
         /// </summary>
-        [WorkItem(546394, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546394")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546394")]
         [Fact]
         public void HasPublicParameterlessConstructorCycle04()
         {
@@ -6149,7 +6149,7 @@ class C : I<C>
         /// <summary>
         /// Cycle with property types with new() constraint.
         /// </summary>
-        [WorkItem(546394, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546394")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546394")]
         [Fact]
         public void HasPublicParameterlessConstructorCycle05()
         {
@@ -6170,7 +6170,7 @@ class C<T> where T : new() { }";
         /// Cycle with property types with new() constraint where the types
         /// are parameter types and properties are explicit implementations.
         /// </summary>
-        [WorkItem(546394, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546394")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546394")]
         [Fact]
         public void HasPublicParameterlessConstructorCycle06()
         {
@@ -6226,7 +6226,7 @@ class B2 : IB<B2>
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "i").WithArguments("IB<T>", "T", "B2").WithLocation(27, 31));
         }
 
-        [WorkItem(546780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546780")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546780")]
         [Fact]
         public void Bug16806()
         {
@@ -6244,7 +6244,7 @@ class B2 : IB<B2>
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "B<>").WithLocation(5, 19));
         }
 
-        [WorkItem(546972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546972")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546972")]
         [Fact]
         public void Bug17407()
         {
@@ -6285,7 +6285,7 @@ public class Test2
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(531227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531227")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531227")]
         [Fact]
         public void ConstraintOverrideBaseTypeCycle()
         {
@@ -6306,7 +6306,7 @@ public class Derived : Base<Derived>
             derivedType.GetMembers();
         }
 
-        [WorkItem(531227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531227")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531227")]
         [Fact]
         public void ConstraintExplicitImplementationInterfaceCycle()
         {
@@ -6327,7 +6327,7 @@ public class Implementation : Interface<Implementation>
             implementingType.GetMembers();
         }
 
-        [WorkItem(546973, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546973")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546973")]
         [Fact]
         public void AllowBadConstraintsInMetadata()
         {
@@ -6371,7 +6371,7 @@ public class Test5
             CreateCompilationWithILAndMscorlib40(source, ilSource, appendDefaultHeader: false).VerifyDiagnostics();
         }
 
-        [WorkItem(531630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531630")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531630")]
         [Fact]
         public void CheckConstraintOnArrayTypeArgument()
         {
@@ -6428,7 +6428,7 @@ public interface IC<T> : IB where T : IB { }";
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("IA", "e521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 7));
         }
 
-        [WorkItem(577251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577251")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577251")]
         [Fact]
         public void Bug577251()
         {
@@ -6460,7 +6460,7 @@ class D<T> : C<T>, IB { }";
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(578350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578350")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578350")]
         [Fact]
         public void Bug578350()
         {
@@ -6489,7 +6489,7 @@ class B2 : A<dynamic>, I
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
-        [WorkItem(654522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654522")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654522")]
         [ClrOnlyFact]
         public void Bug654522()
         {
@@ -6658,7 +6658,7 @@ class B<T> : A where T : A
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("A.E"));
         }
 
-        [WorkItem(746999, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746999")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746999")]
         [Fact]
         public void AccessProtectedMemberOnInstance_2()
         {
@@ -6692,7 +6692,7 @@ class B<T> : A where T : B<T>
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("A.E"));
         }
 
-        [WorkItem(746999, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746999")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746999")]
         [Fact]
         public void AccessProtectedMemberOnInstance_3()
         {
@@ -6730,7 +6730,7 @@ class B : A
                 Diagnostic(ErrorCode.ERR_BadProtectedAccess, "P").WithArguments("A.P", "A", "B.C1<T, U, V>"));
         }
 
-        [WorkItem(767334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767334")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767334")]
         [ClrOnlyFact]
         public void ConstraintOnSynthesizedExplicitImplementationMethod()
         {
@@ -6791,7 +6791,7 @@ C4
 C`1[A]");
         }
 
-        [WorkItem(837422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837422")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837422")]
         [ClrOnlyFact]
         public void RedundantValueTypeConstraint()
         {
@@ -6813,7 +6813,7 @@ class B : A<ValueType>, I<ValueType>
             CompileAndVerify(source);
         }
 
-        [WorkItem(4097, "https://github.com/dotnet/roslyn/issues/4097")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4097")]
         [Fact]
         public void ObsoleteTypeInConstraints()
         {
@@ -6864,7 +6864,7 @@ partial class Class4
         }
 
         [Fact]
-        [WorkItem(278264, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=278264")]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=278264")]
         public void IntPointerConstraintIntroducedBySubstitution()
         {
             string source = @"
@@ -6894,7 +6894,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/41779")]
         public void Bug41779_Original()
         {
             var source =
@@ -6928,7 +6928,7 @@ static class Program
         }
 
         [Fact]
-        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/41779")]
         public void Bug41779_DoubleTypeArg()
         {
             var source =
@@ -6971,7 +6971,7 @@ static class Program
         }
 
         [Fact]
-        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/41779")]
         public void Bug41779_Instance()
         {
             var source =
@@ -7045,7 +7045,7 @@ static class Program
         }
 
         [Fact]
-        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/41779")]
         public void Bug41779_Extension()
         {
             var source =
@@ -7104,7 +7104,7 @@ static class Program
         }
 
         [Fact]
-        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/41779")]
         public void Bug41779_Static()
         {
             var source =
@@ -7146,7 +7146,7 @@ static class Program
             );
         }
 
-        [Fact, WorkItem(1279758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279758/")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279758/")]
         public void RecursiveConstraintsFromUnifiedAssemblies_1()
         {
             var code = @"
@@ -7192,7 +7192,7 @@ public class C : A<C, C.D>
             Assert.Equal(expectedDiagnostic.Code, c.GetUseSiteDiagnostic().Code);
         }
 
-        [Fact, WorkItem(1279758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279758/")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279758/")]
         public void RecursiveConstraintsFromUnifiedAssemblies_2()
         {
             var remappedCode = @"public class F {}";

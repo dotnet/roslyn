@@ -382,7 +382,7 @@ class C
             Assert.NotEqual(symbol1, symbol2);
         }
 
-        [WorkItem(539740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539740")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539740")]
         [Fact]
         public void NamespaceWithoutName()
         {
@@ -409,7 +409,7 @@ class C
             Assert.Equal(string.Empty, symbol.Name);
         }
 
-        [WorkItem(539740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539740")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539740")]
         [Fact]
         public void FileScopedNamespaceWithoutName()
         {
@@ -826,7 +826,7 @@ namespace N {
             Assert.Equal(bOuter, cBaseType);
         }
 
-        [Fact, WorkItem(528655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528655")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528655")]
         public void ErrorSymbolForInvalidCode()
         {
             var text = @"
@@ -846,7 +846,7 @@ public class A
             Assert.Equal(1, invalid.Count());
         }
 
-        [Fact, WorkItem(543225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543225"), WorkItem(529057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529057")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543225"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529057")]
         public void MergePartialMethodAndParameterSymbols()
         {
             var text = @"
@@ -906,7 +906,7 @@ partial class PC
             Assert.Equal(1, ppSym02.Locations.Length);
         }
 
-        [Fact, WorkItem(544221, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544221")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544221")]
         public void GetTypeInfoForOptionalParameterDefaultValueInDelegate()
         {
             var text = @"
@@ -934,7 +934,7 @@ class Test
             Assert.Equal("System.Int32", type2.Type.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(544231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544231")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544231")]
         public void GetDeclSymbolForParameterOfPartialMethod()
         {
             var text1 = @"
@@ -975,7 +975,7 @@ partial class Partial001
             Assert.NotEqual(sym1.Locations[0], sym2.Locations[0]);
         }
 
-        [Fact, WorkItem(544473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544473")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544473")]
         public void GetDeclSymbolForTypeParameterOfPartialMethod()
         {
             var text1 = @"
@@ -1165,7 +1165,7 @@ class AnonTypeTest
             Assert.Equal("a1, a1, a2, a2, a3, a3, GetGoo, igoo, sField", results);
         }
 
-        [Fact(), WorkItem(542861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542861"), WorkItem(529673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529673")]
+        [Fact(), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542861"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529673")]
         public void GetSymbolInfoForAccessorParameters()
         {
             var text = @"
@@ -1215,7 +1215,7 @@ public class Test
             Assert.NotEqual(parasym, argsym2);
         }
 
-        [WorkItem(545648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545648")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545648")]
         [Fact]
         public void AliasDeclaredSymbolWithConflict()
         {
@@ -1240,7 +1240,7 @@ class X { }
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = System;"));
         }
 
-        [WorkItem(529751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529751")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529751")]
         [Fact]
         public void ExternAlias()
         {
@@ -1284,7 +1284,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c"));
         }
 
-        [Fact, WorkItem(546687, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546687"), WorkItem(529751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529751")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546687"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529751")]
         public void ExternAliasWithoutTarget()
         {
             var source = @"
@@ -1320,7 +1320,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "C").WithArguments("C", "X"));
         }
 
-        [WorkItem(545648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545648")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545648")]
         [Fact]
         public void UsingDirectiveAliasSemanticInfo()
         {
@@ -1342,7 +1342,7 @@ class Test
             Assert.Equal(SymbolKind.Alias, model.GetDeclaredSymbol(usingSyntax).Kind);
         }
 
-        [WorkItem(545882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545882")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545882")]
         [Fact]
         public void SpeculativelyBindConstructorInitializerInPlaceOfActual()
         {
@@ -1372,7 +1372,7 @@ class Test
             Assert.Empty(method.Parameters);
         }
 
-        [WorkItem(545882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545882")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545882")]
         [Fact]
         public void SpeculativelyBindConstructorInitializerInNewLocation()
         {
@@ -1482,7 +1482,7 @@ enum C
         }
 
         [Fact]
-        [WorkItem(648305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648305")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648305")]
         public void TestGetSpeculativeSemanticModelInDefaultValueArgument()
         {
             var compilation = CreateCompilation(@"
@@ -1526,7 +1526,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(746002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746002")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746002")]
         public void TestGetSpeculativeSemanticModelInDefaultValueArgument2()
         {
             var compilation = CreateCompilation(@"
@@ -1570,7 +1570,7 @@ interface I
         }
 
         [Fact]
-        [WorkItem(657701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/657701")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/657701")]
         public void TestGetSpeculativeSemanticModelInConstructorDefaultValueArgument()
         {
             var compilation = CreateCompilation(@"
@@ -1698,7 +1698,7 @@ class C
             Assert.Equal("Hello", constantInfo.Value);
         }
 
-        [WorkItem(529893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529893")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529893")]
         [Fact]
         public void AliasCalledVar()
         {
@@ -2123,7 +2123,7 @@ foreach(short ele in a)
             Assert.Equal(SymbolKind.Method, sortedCandidates[1].Kind);
         }
 
-        [WorkItem(545882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545882")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545882")]
         [Fact]
         public void TestGetSpeculativeSemanticModelForConstructorInitializer_UnsupportedLocation()
         {
@@ -2287,7 +2287,7 @@ unsafe class C
             Assert.Equal("p", symbol.Name);
         }
 
-        [WorkItem(663704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/663704")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/663704")]
         [Fact]
         public void TestGetSpeculativeSemanticModelInsideUnknownAccessor()
         {
@@ -2361,7 +2361,7 @@ class C
         }
 
         [Fact()]
-        [WorkItem(10211, "https://github.com/dotnet/roslyn/issues/10211")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10211")]
         public void GetDependenceChainRegression_10211_working()
         {
             var compilation = CreateEmptyCompilation(@"
@@ -2374,7 +2374,7 @@ class Child : Parent {}
         }
 
         [Fact()]
-        [WorkItem(10211, "https://github.com/dotnet/roslyn/issues/10211")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10211")]
         public void GetDependenceChainRegression_10211()
         {
             var compilation = CreateEmptyCompilation(@"
@@ -3102,7 +3102,7 @@ class A
             Assert.Null(symbolInfo.Symbol);
         }
 
-        [WorkItem(731108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/731108")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/731108")]
         [Fact]
         public void Repro731108()
         {
@@ -3134,7 +3134,7 @@ public class C
             Assert.Equal(TypeKind.Error, ((IParameterSymbol)symbol).Type.TypeKind);
         }
 
-        [WorkItem(783566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/783566")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/783566")]
         [Fact]
         public void SpeculateAboutYieldStatement1()
         {
@@ -3167,7 +3167,7 @@ class C
             Assert.Equal(TypeKind.Error, info.ConvertedType.TypeKind);
         }
 
-        [WorkItem(783566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/783566")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/783566")]
         [Fact]
         public void SpeculateAboutYieldStatement2()
         {
@@ -3202,7 +3202,7 @@ class C
             Assert.Equal(SpecialType.System_Int64, info.ConvertedType.SpecialType);
         }
 
-        [WorkItem(791794, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/791794")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/791794")]
         [Fact]
         public void SpeculateAboutOmittedArraySizeInCref()
         {
@@ -3234,7 +3234,7 @@ class C
             Assert.Equal(0, info.CandidateSymbols.Length);
         }
 
-        [WorkItem(14384, "https://github.com/dotnet/roslyn/issues/14384")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14384")]
         [Fact]
         public void SpeculateWithExpressionVariables_out()
         {
@@ -3275,7 +3275,7 @@ class C
             Assert.Equal(info1.Symbol, info2.Symbol);
         }
 
-        [WorkItem(14384, "https://github.com/dotnet/roslyn/issues/14384")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14384")]
         [Fact]
         public void SpeculateWithExpressionVariables_out2()
         {
@@ -3316,7 +3316,7 @@ class C
             Assert.Equal(info1.Symbol, info2.Symbol);
         }
 
-        [WorkItem(14384, "https://github.com/dotnet/roslyn/issues/14384")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14384")]
         [Fact]
         public void SpeculateWithExpressionVariables_out3()
         {
@@ -3350,7 +3350,7 @@ class C
             Assert.Equal(info1.Symbol, info2.Symbol);
         }
 
-        [WorkItem(14384, "https://github.com/dotnet/roslyn/issues/14384")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14384")]
         [Fact]
         public void SpeculateWithExpressionVariables_out4()
         {
@@ -3392,7 +3392,7 @@ class C
             Assert.Equal(info1.Symbol, info2.Symbol);
         }
 
-        [WorkItem(14384, "https://github.com/dotnet/roslyn/issues/14384")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14384")]
         [Fact]
         public void SpeculateWithExpressionVariables_pattern()
         {
@@ -3433,7 +3433,7 @@ class C
             Assert.Equal(info1.Symbol, info2.Symbol);
         }
 
-        [WorkItem(14384, "https://github.com/dotnet/roslyn/issues/14384")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14384")]
         [Fact]
         public void SpeculateWithExpressionVariables_pattern2()
         {
@@ -3474,7 +3474,7 @@ class C
             Assert.Equal(info1.Symbol, info2.Symbol);
         }
 
-        [WorkItem(14384, "https://github.com/dotnet/roslyn/issues/14384")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14384")]
         [Fact]
         public void SpeculateWithExpressionVariables_pattern3()
         {
@@ -3557,7 +3557,7 @@ class C { }";
             return SyntaxFactory.ParseCompilationUnit(source + " class X {}").Members.First().AsTypeDeclarationSyntax().AttributeLists.First().Attributes.First();
         }
 
-        [WorkItem(784255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784255")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784255")]
         [Fact]
         public void Repro784255()
         {
@@ -3592,7 +3592,7 @@ struct S
             var info = speculativeModel.GetSymbolInfo(attributeSyntax.Name);
         }
 
-        [WorkItem(1015557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015557")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015557")]
         [Fact(Skip = "1015557")]
         public void GetSpeculativeSymbolInfoForGenericNameInCref()
         {
@@ -3759,7 +3759,7 @@ class Derived : Test
             Assert.Equal(stringType, identifierInfo.ConvertedType);
         }
 
-        [Fact, WorkItem(45825, "https://github.com/dotnet/roslyn/issues/45825")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45825")]
         public void LambdaReturnSpeculation()
         {
             var comp = CreateCompilation(@"
@@ -3794,7 +3794,7 @@ class C
             Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: false));
         }
 
-        [WorkItem(850907, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850907")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850907")]
         [Fact]
         public void ExtensionMethodViability()
         {
@@ -3822,7 +3822,7 @@ static class Extensions
             Assert.Contains(extensionMethod.ReduceExtensionMethod().ISymbol, memberGroup);
         }
 
-        [WorkItem(849698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849698")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849698")]
         [Fact]
         public void LookupExternAlias()
         {
@@ -3876,7 +3876,7 @@ namespace NS
             Assert.Equal("void NS.C.M0()", symbol.ToTestDisplayString());
         }
 
-        [WorkItem(1019366, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019366")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019366")]
         [WorkItem(273, "CodePlex")]
         [ClrOnlyFact]
         public void Bug1019366()
@@ -4003,7 +4003,7 @@ namespace Microsoft.Conformance.Expressions
                 );
         }
 
-        [Fact, WorkItem(1504, "https://github.com/dotnet/roslyn/issues/1504")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1504")]
         public void ContainingSymbol02()
         {
             var source =
@@ -4032,7 +4032,7 @@ class C
             }
         }
 
-        [Fact, WorkItem(1504, "https://github.com/dotnet/roslyn/issues/1504")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1504")]
         public void ContainingSymbol03()
         {
             var source =
@@ -4062,7 +4062,7 @@ class C
             }
         }
 
-        [Fact, WorkItem(1504, "https://github.com/dotnet/roslyn/issues/1504")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1504")]
         public void ContainingSymbol04()
         {
             var source =
@@ -4086,7 +4086,7 @@ class C
             var discarded2 = model.GetEnclosingSymbol(source.IndexOf(" => x"));
         }
 
-        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/976")]
         [Fact]
         public void ConstantValueOfInterpolatedString()
         {
@@ -4166,7 +4166,7 @@ class Program
             Assert.Equal("Level 5", model.GetConstantValue(actual[7]).Value);
         }
 
-        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/976")]
         [Fact]
         public void ConstantValueOfRawInterpolatedString()
         {
@@ -4191,7 +4191,7 @@ class Program
             Assert.False(model.GetConstantValue(actual[1]).HasValue);
         }
 
-        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/976")]
         [Fact]
         public void ConstantValueOfRawInterpolatedString2()
         {
@@ -4219,7 +4219,7 @@ class Program
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(actual[1]).Type.SpecialType);
         }
 
-        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/976")]
         [Fact]
         public void ConstantValueOfRawInterpolatedString3()
         {
@@ -4307,7 +4307,7 @@ class Program
             Assert.Equal(SpecialType.System_String, model.GetTypeInfo(actual[7]).Type.SpecialType);
         }
 
-        [WorkItem(814, "https://github.com/dotnet/roslyn/issues/814")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/814")]
         [Fact]
         public void TypeOfDynamic()
         {
@@ -4393,7 +4393,7 @@ namespace N
             Assert.False(semanticModel.IsAccessible(positionInCGoo, fieldZ));
         }
 
-        [Fact, WorkItem(40201, "https://github.com/dotnet/roslyn/issues/40201")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40201")]
         public void SpeculativeModelConflictingNameUnary_DeclarationPattern()
         {
             var source = @"
@@ -4436,7 +4436,7 @@ class C
             Assert.Equal(SpecialType.System_Boolean, speculativeTypeInfo.Type.SpecialType);
         }
 
-        [Fact, WorkItem(52013, "https://github.com/dotnet/roslyn/issues/52013")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52013")]
         public void NameOf_ArgumentDoesNotExist()
         {
             var source = @"
@@ -4460,7 +4460,7 @@ public partial class C
             Assert.Equal("DEBUG", model.GetConstantValue(root.DescendantNodes().OfType<InvocationExpressionSyntax>().Single()));
         }
 
-        [Theory, CombinatorialData, WorkItem(54437, "https://github.com/dotnet/roslyn/issues/54437")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54437")]
         public void TestVarTuple(NullableContextOptions nullableContextOption)
         {
             var source = """
@@ -4514,7 +4514,7 @@ public partial class C
             }
         }
 
-        [Theory, CombinatorialData, WorkItem(54437, "https://github.com/dotnet/roslyn/issues/54437")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54437")]
         public void TestVarTupleWithVarTypeInScope(NullableContextOptions nullableContextOption)
         {
             var source = """

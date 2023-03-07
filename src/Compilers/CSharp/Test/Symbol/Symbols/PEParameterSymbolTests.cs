@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 #endif
 
         [Fact]
-        [WorkItem(8018, "https://github.com/dotnet/roslyn/issues/8018")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8018")]
         public void IsOptional()
         {
             var vbComp = CreateVisualBasicCompilation(@"

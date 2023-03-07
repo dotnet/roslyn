@@ -14854,7 +14854,7 @@ class Test
 
         [ConditionalTheory(typeof(CoreClrOnly))]
         [CombinatorialData]
-        [WorkItem(60069, "https://github.com/dotnet/roslyn/issues/60069")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/60069")]
         public void DelegateCaching_01(bool isVirtual)
         {
             var (modifier, body) = GetModifierAndBody(isVirtual);
@@ -14920,7 +14920,7 @@ SimpleStruct
 
         [ConditionalTheory(typeof(CoreClrOnly))]
         [CombinatorialData]
-        [WorkItem(60069, "https://github.com/dotnet/roslyn/issues/60069")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/60069")]
         public void DelegateCaching_02(bool isVirtual)
         {
             var (modifier, body) = GetModifierAndBody(isVirtual);
@@ -17310,7 +17310,7 @@ public class C2 : C11<int>, I1<int>
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(61553, "https://github.com/dotnet/roslyn/issues/61553")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/61553")]
         public void ImplementAbstractStaticMethod_23(bool genericFirst, bool isVirtual)
         {
             // An "ambiguity" in implicit implementation declared in generic base class 
@@ -17416,7 +17416,7 @@ public class C2 : C1<int>, I1
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(61553, "https://github.com/dotnet/roslyn/issues/61553")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/61553")]
         public void ImplementAbstractStaticMethod_24(bool genericFirst, bool genericIsStatic, bool isVirtual)
         {
             // Static vs. instance doesn't cause an ambiguity in implicit implementation declared in generic base class 
@@ -31553,7 +31553,7 @@ C2 conversion
         }
 
         [Fact]
-        [WorkItem(56753, "https://github.com/dotnet/roslyn/issues/56753")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/56753")]
         public void ConsumeAbstractConversionOperator_19()
         {
             var source1 =
@@ -31607,7 +31607,7 @@ Derived conversion
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/53802")]
         public void TestAmbiguousImplementationMethod_01(bool isVirtual)
         {
             var (modifier, body) = GetModifierAndBody(isVirtual);
@@ -31700,7 +31700,7 @@ class YetAnother : Interface<int, int>
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/53802")]
         public void TestAmbiguousImplementationMethod_02(bool isVirtual)
         {
             var (modifier, body) = GetModifierAndBody(isVirtual);
@@ -31772,7 +31772,7 @@ public class Derived : Base<int>, Interface<int, int>
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/53802")]
         public void TestAmbiguousImplementationMethod_03(bool isVirtual)
         {
             var (modifier, body) = GetModifierAndBody(isVirtual);
@@ -31838,7 +31838,7 @@ public class Derived : Base<int>, Interface<int, int>
         }
 
         [Fact]
-        [WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/53802")]
         public void TestAmbiguousImplementationMethod_04()
         {
             var source2 = @"
@@ -31873,7 +31873,7 @@ class Other : Interface<int, int>
         }
 
         [Fact]
-        [WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/53802")]
         public void TestAmbiguousImplementationMethod_05()
         {
             var source2 = @"
@@ -31949,7 +31949,7 @@ public interface I2<T> where T : I2<T>
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(54113, "https://github.com/dotnet/roslyn/issues/54113")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54113")]
         public void UnmanagedCallersOnly_02(bool isVirtual)
         {
             string modifier, body;
@@ -33343,7 +33343,7 @@ public class C5 : I1<C5>
             }
         }
 
-        [Fact, WorkItem(65685, "https://github.com/dotnet/roslyn/issues/65685")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65685")]
         public void NoDuplicateConversionForImplicitAndExplicitImplementations()
         {
             CreateCompilation("""
@@ -33446,7 +33446,7 @@ public class C5 : I1<C5>
         }
 
         [Fact]
-        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66516")]
         public void AbstractEntryPoint()
         {
             CreateCompilation("""
@@ -33461,7 +33461,7 @@ public class C5 : I1<C5>
         }
 
         [Fact]
-        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66516")]
         public void VirtualEntryPoint()
         {
             CreateCompilation("""
@@ -33478,7 +33478,7 @@ public class C5 : I1<C5>
         }
 
         [Fact]
-        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66516")]
         public void AbstractEntryPointWithImplementation()
         {
             CompileAndVerify("""
@@ -33502,7 +33502,7 @@ public class C5 : I1<C5>
         }
 
         [Fact]
-        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66516")]
         public void AbstractEntryPointWithExplicitImplementation()
         {
             CreateCompilation("""
@@ -33524,7 +33524,7 @@ public class C5 : I1<C5>
         }
 
         [Fact]
-        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66516")]
         public void VirtualEntryPointWithImplementation()
         {
             CompileAndVerify("""
@@ -33548,7 +33548,7 @@ public class C5 : I1<C5>
         }
 
         [Fact]
-        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66516")]
         public void VirtualEntryPointWithExplicitImplementation()
         {
             CreateCompilation("""

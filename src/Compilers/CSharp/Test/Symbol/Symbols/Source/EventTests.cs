@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
     public class EventTests : CSharpTestBase
     {
         #region Positive Cases
-        [WorkItem(537323, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537323")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537323")]
         [Fact]
         public void EventInStructFollowedByClassDecl()
         {
@@ -44,7 +44,7 @@ class main1
             Assert.Equal("main1, Test1", actual);
         }
 
-        [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
         [Fact]
         public void EventEscapedIdentifier()
         {
@@ -309,7 +309,7 @@ public class E
             Assert.NotNull(eventSymbol2);
         }
 
-        [WorkItem(542748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542748")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542748")]
         [Fact()]
         public void FieldLikeEventAccessorIsSynthesized()
         {
@@ -329,7 +329,7 @@ class C
             Assert.True(fevent.RemoveMethod.IsImplicitlyDeclared, "FieldLikeEvent RemoveAccessor");
         }
 
-        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7845")]
         public void EventWithDynamicAttribute_DynamicAttributeIsSynthesized()
         {
             var source = @"
@@ -371,7 +371,7 @@ class A
             CompileAndVerify(comp, symbolValidator: validator);
         }
 
-        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7845")]
         public void EventFieldWithDynamicAttribute_CannotCompileWithoutSystemCore()
         {
             var source = @"
@@ -388,7 +388,7 @@ public class A
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("A.E1").WithLocation(4, 41));
         }
 
-        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7845")]
         public void EventWithDynamicAttribute_CannotCompileWithoutSystemCore()
         {
             var source = @"
@@ -402,7 +402,7 @@ public class A
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(4, 32));
         }
 
-        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7845")]
         public void EventFieldWithDynamicAttribute_IsLoadedAsDynamic()
         {
             var libText = @"
@@ -447,7 +447,7 @@ class LambdaConsumer
                                                     expectedOutput: "Print method ran.", sourceSymbolValidator: validator);
         }
 
-        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7845")]
         public void EventWithDynamicAttribute_IsLoadedAsDynamic()
         {
             var libText = @"
@@ -493,7 +493,7 @@ class D
                                                     expectedOutput: "Print method ran.");
         }
 
-        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7845")]
         public void EventFieldWithDynamicAttribute_IsLoadedAsDynamicViaCompilationRef()
         {
             var libText = @"
@@ -522,7 +522,7 @@ class D
                 expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7845")]
         public void EventFieldWithDynamicAttribute_CanBeOverridden()
         {
             var libText = @"
@@ -582,7 +582,7 @@ Printed: Charlie
                 expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7845")]
         public void EventWithDynamicAttribute_OverriddenTypeDoesntLeak()
         {
             var libText = @"
@@ -614,7 +614,7 @@ public class CL2 : CL1
             CompileAndVerify(source: source, references: new[] { libAssemblyRef }, symbolValidator: validator);
         }
 
-        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7845")]
         public void EventFieldWithDynamicAttribute_OverriddenTypeDoesntLeak()
         {
             var libText = @"
@@ -646,7 +646,7 @@ public class CL2 : CL1
             CompileAndVerify(source: source, references: new[] { libAssemblyRef }, symbolValidator: validator);
         }
 
-        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7845")]
         public void EventWithoutDynamicAttributeFromLegacyCompiler()
         {
             #region IL for class C
@@ -852,7 +852,7 @@ class C
 
         #region Error cases
         [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39979
-        [WorkItem(39979, "https://github.com/dotnet/roslyn/issues/39979")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39979")]
         public void VoidEvent()
         {
             var text =
@@ -1147,7 +1147,7 @@ class E : Interface
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "e").WithArguments("D.e"));
         }
 
-        [WorkItem(541704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541704")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541704")]
         [Fact]
         public void OperationsInDeclaringType()
         {
@@ -1359,7 +1359,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_ReturnNotLValue, "This").WithArguments("S.This").WithLocation(22, 9));
         }
 
-        [WorkItem(546356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546356")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546356")]
         [Fact]
         public void StructEvent2()
         {
@@ -1394,7 +1394,7 @@ struct S
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("S.E"));
         }
 
-        [WorkItem(546356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546356")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546356")]
         [Fact]
         public void StructEvent3()
         {
@@ -1460,7 +1460,7 @@ class C
             CreateCompilation(text).VerifyEmitDiagnostics(expected);
         }
 
-        [WorkItem(542570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]
         [Fact]
         public void UseMissingAccessorInInterface()
         {
@@ -1880,7 +1880,7 @@ class C
             Assert.Equal(Accessibility.Public, event3.RemoveMethod.DeclaredAccessibility);
         }
 
-        [WorkItem(538956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538956")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538956")]
         [Fact]
         public void EventAccessorDoesNotHideMethod()
         {
@@ -1903,7 +1903,7 @@ class Program {
             CreateCompilation(cSharpSource).VerifyDiagnostics();
         }
 
-        [WorkItem(538956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538956")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538956")]
         [Fact]
         public void EventAccessorDoesNotConflictWithMethod()
         {
@@ -1928,7 +1928,7 @@ class Program {
             CreateCompilation(cSharpSource).VerifyDiagnostics();
         }
 
-        [WorkItem(538992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538992")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538992")]
         [Fact]
         public void CannotAccessEventThroughParenthesizedType()
         {
@@ -1979,7 +1979,7 @@ class Outer
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "Q").WithArguments("Outer.Goo.Q"));
         }
 
-        [WorkItem(542461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542461")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542461")]
         [Fact]
         public void EventMustDelegate()
         {
@@ -2052,7 +2052,7 @@ namespace TestEvents
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "Changed"));
         }
 
-        [WorkItem(543791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543791")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543791")]
         [Fact]
         public void MultipleDeclaratorsOneError()
         {
@@ -2075,7 +2075,7 @@ class A
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "b").WithArguments("A.b"));
         }
 
-        [WorkItem(545682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545682")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545682")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void EventHidingMethod()
         {
@@ -2120,7 +2120,7 @@ class A
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "E1").WithArguments("B.E1").WithLocation(5, 11));
         }
 
-        [WorkItem(547071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547071")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547071")]
         [Fact]
         public void InvalidEventDeclarations()
         {
@@ -2348,7 +2348,7 @@ class Derived2 : Base
             Assert.Equal("myRemove", event2.RemoveMethod.Name);
         }
 
-        [Fact, WorkItem(570905, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570905")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570905")]
         public void OverriddenAccessorName_BaseMissingAccessor()
         {
             var source = @"
@@ -2394,7 +2394,7 @@ class Derived2 : Base
             Assert.Equal("remove_E", event2.RemoveMethod.Name);
         }
 
-        [WorkItem(850168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850168")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850168")]
         [Fact]
         public void AbstractFieldLikeEvent()
         {
@@ -2418,7 +2418,7 @@ public abstract class A
             Assert.NotNull(eventF.AssociatedField); // Since it has an initializer.
         }
 
-        [Fact, WorkItem(406, "https://github.com/dotnet/roslyn/issues/406")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/406")]
         public void AbstractBaseEvent()
         {
             var source =
@@ -2467,7 +2467,7 @@ namespace ConsoleApplication3
                 );
         }
 
-        [Fact, WorkItem(40092, "https://github.com/dotnet/roslyn/issues/40092")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40092")]
         public void ExternEventInitializer()
         {
             var text = @"

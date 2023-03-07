@@ -661,7 +661,7 @@ class A
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(547164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547164")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547164")]
         [Fact]
         public void MultiLine_PatternShorterOnSubsequentLine()
         {
@@ -2495,7 +2495,7 @@ partial class C
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(547139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547139")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547139")]
         [Fact]
         public void UnprocessedXMLComment_Accessor()
         {
@@ -2652,8 +2652,8 @@ partial class C
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem(637435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637435")]
-        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637435")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18610")]
         public void NonXmlWhitespace()
         {
             var ch = '\u1680';
@@ -2692,8 +2692,8 @@ class C {{ }}
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem(637435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637435")]
-        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637435")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18610")]
         public void Repro637435()
         {
             var sourceTemplate = @"
@@ -2924,7 +2924,7 @@ class C {{ }}
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18610")]
         public void IncludeFileResolution()
         {
             var xml1 = @"
@@ -3314,7 +3314,7 @@ class C {{ }}
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18610")]
         public void WRN_XMLParseIncludeError_Xml()
         {
             var xmlFile1 = Temp.CreateFile(extension: ".xml").WriteAllText("<OpenWithoutClose>");
@@ -3544,7 +3544,7 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath1), actual);
         }
 
-        [WorkItem(554196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554196")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554196")]
         [Fact]
         public void XPathDocumentRoot()
         {
@@ -3815,7 +3815,7 @@ class C {{ }}
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(552495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552495")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552495")]
         [Fact]
         public void IncludeMismatchedQuotationMarks()
         {
@@ -3832,7 +3832,7 @@ class C { }
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(598371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598371")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598371")]
         [Fact]
         public void CrefParameterOrReturnTypeLookup1()
         {
@@ -3877,7 +3877,7 @@ class X
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(586815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586815")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586815")]
         [Fact]
         public void CrefParameterOrReturnTypeLookup2()
         {
@@ -4353,7 +4353,7 @@ partial class C
         }
 
         [Fact]
-        [WorkItem(21348, "https://github.com/dotnet/roslyn/issues/21348")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21348")]
         public void IncludedName_TypeParamAndTypeParamRefHandling()
         {
             var xml = @"
@@ -4698,7 +4698,7 @@ public class C
             Assert.Equal(expected, actual);
         }
 
-        [Fact, WorkItem(921838, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/921838")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/921838")]
         public void InaccessibleMembers()
         {
             var source =
@@ -4732,7 +4732,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(531144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531144")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531144")]
         [Fact]
         public void NamespaceCref()
         {
@@ -4761,7 +4761,7 @@ public class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(531144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531144")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531144")]
         [Fact]
         public void SymbolKinds()
         {
@@ -4880,7 +4880,7 @@ class Generic<T>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(530695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530695")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530695")]
         [Fact]
         public void FieldDocComment()
         {
@@ -4931,7 +4931,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(530695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530695")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530695")]
         [Fact]
         public void FieldDocCommentDiagnostics()
         {
@@ -5001,7 +5001,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(531187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531187")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531187")]
         [Fact]
         public void DelegateDocComments()
         {
@@ -5087,7 +5087,7 @@ public class C { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(531233, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531233")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531233")]
         [Fact]
         public void CrefAttributeInOtherElement()
         {
@@ -5120,7 +5120,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(531233, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531233")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531233")]
         [Fact]
         public void NameAttributeInOtherElement()
         {
@@ -5172,7 +5172,7 @@ class Program
             Assert.NotEmpty(comp.GetDiagnostics());
         }
 
-        [WorkItem(531349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531349")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531349")]
         [Fact]
         public void GetDeclarationDiagnostics()
         {
@@ -5194,7 +5194,7 @@ class Program
             Assert.Equal(2, comp.GetDiagnostics().Count());
         }
 
-        [WorkItem(531409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531409")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531409")]
         [Fact]
         public void ExplicitInterfaceImplementation()
         {
@@ -5344,7 +5344,7 @@ class C<T>
             Assert.Equal(expectedText, actualText);
         }
 
-        [WorkItem(546989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546989")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546989")]
         [Fact]
         public void GenericMethodWithoutTypeParameters1()
         {
@@ -5407,7 +5407,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(546989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546989")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546989")]
         [Fact]
         public void GenericMethodWithoutTypeParameters2()
         {
@@ -5476,7 +5476,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(546989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546989")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546989")]
         [Fact]
         public void GenericMethodWithoutTypeParameters3()
         {
@@ -5524,7 +5524,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(547163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547163")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547163")]
         [Fact]
         public void NestedGenericTypes()
         {
@@ -5651,7 +5651,7 @@ class A<T>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(527260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527260")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527260")]
         [Fact]
         public void IllegalXmlCharacter()
         {
@@ -5677,9 +5677,9 @@ class A { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(547311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547311")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547311")]
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18610")]
         public void UndeclaredXmlNamespace()
         {
             var source = @"
@@ -5729,7 +5729,7 @@ class A { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(551323, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551323")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551323")]
         [Fact]
         public void MultiLine_OneLinePlusEnding()
         {
@@ -5758,7 +5758,7 @@ class C { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(577385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577385")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577385")]
         [Fact]
         public void FormatBeforeFinalParse()
         {
@@ -5825,7 +5825,7 @@ class C { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(587126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587126")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587126")]
         [Fact]
         public void DeclaringGenericTypeInReturnType()
         {
@@ -5853,7 +5853,7 @@ class C { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(587126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587126")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587126")]
         [Fact]
         public void DeclaringGenericTypeInParameterType1()
         {
@@ -5886,7 +5886,7 @@ class C<T>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(587126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587126")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587126")]
         [Fact]
         public void DeclaringGenericTypeInParameterType2()
         {
@@ -5929,7 +5929,7 @@ class B<U>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(552379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552379")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552379")]
         [Fact]
         public void MultipleDocComments()
         {
@@ -5985,7 +5985,7 @@ public partial class C { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(552379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552379")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552379")]
         [Fact]
         public void MultipleDocComments_Separated()
         {
@@ -6062,7 +6062,7 @@ public class E { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(552379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552379")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552379")]
         [Fact]
         public void MultipleDocComments_SplitXml()
         {
@@ -6091,7 +6091,7 @@ public class A { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(689497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689497")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689497")]
         [Fact]
         public void TriviaBetweenDocCommentAndDeclaration()
         {
@@ -6127,7 +6127,7 @@ public class A { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(703368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703368")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703368")]
         [Fact]
         public void NonGenericBeatsGeneric()
         {
@@ -6159,7 +6159,7 @@ public class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(703587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703587")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703587")]
         [Fact]
         public void ObjectMemberViaInterface()
         {
@@ -6202,7 +6202,7 @@ public class C : IEquatable<C>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(531505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531505")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531505")]
         [ClrOnlyFact]
         public void Pia()
         {
@@ -6258,7 +6258,7 @@ public class C { }
             }
         }
 
-        [WorkItem(757110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/757110")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/757110")]
         [Fact]
         public void NoAssemblyElementForNetModule()
         {
@@ -6281,7 +6281,7 @@ public class C { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(743425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743425")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743425")]
         [Fact]
         public void WRN_UnqualifiedNestedTypeInCref()
         {
@@ -6328,7 +6328,7 @@ class C<T>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(743425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743425")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743425")]
         [Fact]
         public void WRN_UnqualifiedNestedTypeInCref_Buried()
         {
@@ -6369,7 +6369,7 @@ class C<T>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(743425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743425")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743425")]
         [Fact]
         public void WRN_UnqualifiedNestedTypeInCref_Generic()
         {
@@ -6431,7 +6431,7 @@ public class C {} // CS1587
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18610")]
         public void Dev11_303769()
         {
             // XML processing instructions
@@ -6603,7 +6603,7 @@ namespace Demo
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18610")]
         public void Dev11_142553()
         {
             // Need to cache XML files.
@@ -6685,7 +6685,7 @@ class C { }
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18610")]
         public void DtdDenialOfService()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText(
@@ -6872,7 +6872,7 @@ class Module1
         #endregion Dev10 bugs
 
         [ClrOnlyFact]
-        [WorkItem(1115058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115058")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115058")]
         public void UnterminatedElement()
         {
             var source = @"
@@ -6901,9 +6901,9 @@ class Module1
         /// <summary>
         /// "--" is not valid within an XML comment.
         /// </summary>
-        [WorkItem(8807, "https://github.com/dotnet/roslyn/issues/8807")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8807")]
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18610")]
         public void IncludeErrorDashDashInName()
         {
             var dir = Temp.CreateDirectory();
@@ -6932,7 +6932,7 @@ $@"<?xml version=""1.0""?>
         }
 
         [Fact]
-        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/52663")]
         public void PositionalRecord_01()
         {
             var source = @"
@@ -6969,7 +6969,7 @@ record Rec(string Value);
         }
 
         [Fact]
-        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/52663")]
         public void PositionalRecord_02()
         {
             var source = @"
@@ -6998,7 +6998,7 @@ record Rec(string Value);
         }
 
         [Fact]
-        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/52663")]
         public void PositionalRecord_03()
         {
             var source = @"
@@ -7046,7 +7046,7 @@ record Rec(string Value);
         }
 
         [Fact]
-        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/52663")]
         public void PositionalRecord_04()
         {
             var source = @"
@@ -7090,7 +7090,7 @@ record Rec(string Item1, object Item2);
         }
 
         [Fact]
-        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/52663")]
         public void PositionalRecord_05()
         {
             var source = @"
@@ -7130,7 +7130,7 @@ record Rec(string Item1, object Item2);
         }
 
         [Fact]
-        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/52663")]
         public void PositionalRecord_06()
         {
             var source = @"
@@ -7167,7 +7167,7 @@ record Rec(string Item)
         }
 
         [Fact]
-        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/52663")]
         public void PositionalRecord_07()
         {
             var source = @"
@@ -7198,7 +7198,7 @@ record Rec(string Item)
         }
 
         [Fact]
-        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/52663")]
         public void PositionalRecord_08()
         {
             var source = @"
@@ -7242,7 +7242,7 @@ record Rec(string Item)
         }
 
         [Fact]
-        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/52663")]
         public void PositionalRecord_09()
         {
             var source = @"
@@ -7286,7 +7286,7 @@ record Rec(string Item)
         }
 
         [Fact]
-        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/52663")]
         public void PositionalRecord_10()
         {
             var source = @"

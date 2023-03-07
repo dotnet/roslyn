@@ -125,7 +125,7 @@ class A {
             }
         }
 
-        [WorkItem(537237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537237")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537237")]
         [Fact]
         public void FieldModifiers()
         {
@@ -220,7 +220,7 @@ class A {
             Assert.Equal("C<T>.S<System.String>", sym.Type.ToTestDisplayString());
         }
 
-        [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
         [Fact]
         public void EventEscapedIdentifier()
         {
@@ -241,7 +241,7 @@ class C1
             Assert.Equal("@out", dout.ToString());
         }
 
-        [WorkItem(539653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539653")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539653")]
         [Fact]
         public void ConstFieldWithoutValueErr()
         {
@@ -260,7 +260,7 @@ class C
             Assert.Null(mem.ConstantValue);
         }
 
-        [WorkItem(543538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543538")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543538")]
         [Fact]
         public void Error_InvalidConst()
         {
@@ -325,7 +325,7 @@ class A
                 );
         }
 
-        [WorkItem(543538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543538")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543538")]
         [Fact]
         public void Error_InvalidConstWithCSharp6()
         {
@@ -393,7 +393,7 @@ class A
                 );
         }
 
-        [WorkItem(543791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543791")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543791")]
         [Fact]
         public void MultipleDeclaratorsOneError()
         {
@@ -416,7 +416,7 @@ class A
         /// <summary>
         /// Fields named "value__" should be marked rtspecialname.
         /// </summary>
-        [WorkItem(546185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546185")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546185")]
         [ClrOnlyFact(ClrOnlyReason.Unknown, Skip = "https://github.com/dotnet/roslyn/issues/6190")]
         public void RTSpecialName()
         {
@@ -481,7 +481,7 @@ class K
                 "Error: Field name value__ is reserved for Enums only.");
         }
 
-        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364"), WorkItem(54799, "https://github.com/dotnet/roslyn/issues/54799")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/26364"), WorkItem("https://github.com/dotnet/roslyn/issues/54799")]
         [Fact]
         public void FixedSizeBufferTrue()
         {
@@ -501,7 +501,7 @@ unsafe struct S
             Assert.Equal(10, goo.FixedSize);
         }
 
-        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364"), WorkItem(54799, "https://github.com/dotnet/roslyn/issues/54799")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/26364"), WorkItem("https://github.com/dotnet/roslyn/issues/54799")]
         [Fact]
         public void FixedSizeBufferFalse()
         {

@@ -697,8 +697,8 @@ public class Derived2 : Derived
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
-        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void Repro819774()
         {
             var il = @"
@@ -749,7 +749,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void ObjectToDynamic_ImplementationParameter()
         {
             var il = @"
@@ -782,7 +782,7 @@ class C : I
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void DynamicToObject_ImplementationParameter()
         {
             var il = @"
@@ -1219,7 +1219,7 @@ class C : Base
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void DynamicToObject_ImplementationReturn()
         {
             var il = @"
@@ -1263,7 +1263,7 @@ class C : I
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void ObjectToDynamic_ImplementationReturn()
         {
             var il = @"
@@ -1303,7 +1303,7 @@ class C : I
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void DynamicVsObjectComplexParameter()
         {
             var il = @"
@@ -1347,7 +1347,7 @@ public class C : I<byte, char>
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void DynamicVsObjectComplexReturn()
         {
             var il = @"
@@ -1391,7 +1391,7 @@ public class C : I<byte, char>
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void DynamicToObjectAndViceVersa_OverrideParameter()
         {
             var il = @"
@@ -1445,7 +1445,7 @@ class Derived : Base
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void DynamicToObject_OverrideReturn()
         {
             var il = @"
@@ -1499,7 +1499,7 @@ class Derived : Base
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void ObjectToDynamic_OverrideReturn()
         {
             var il = @"
@@ -1549,7 +1549,7 @@ class Derived : Base
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        [WorkItem(830632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830632")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830632")]
         public void AccessorsAddCustomModifiers_Override()
         {
             var il = @"
@@ -1666,7 +1666,7 @@ class Derived : Base
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        [WorkItem(830632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830632")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830632")]
         public void AccessorsRemoveCustomModifiers_Override()
         {
             var il = @"
@@ -1778,7 +1778,7 @@ class Derived : Base
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        [WorkItem(830632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830632")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830632")]
         public void AccessorsAddCustomModifiers_ExplicitImplementation()
         {
             var il = @"
@@ -1880,7 +1880,7 @@ class Implementation : I
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        [WorkItem(830632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830632")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830632")]
         public void AccessorsRemoveCustomModifiers_ExplicitImplementation()
         {
             var il = @"

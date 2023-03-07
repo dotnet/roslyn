@@ -2464,7 +2464,7 @@ public class FileModifierTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "C").WithArguments("C", "E.M<T>(T)").WithLocation(10, 30));
     }
 
-    [Theory, WorkItem(62435, "https://github.com/dotnet/roslyn/issues/62435")]
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/62435")]
     [InlineData("class")]
     [InlineData("struct")]
     [InlineData("interface")]

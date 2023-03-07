@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     {
         [Theory]
         [CombinatorialData]
-        [WorkItem(33083, "https://github.com/dotnet/roslyn/issues/33083")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33083")]
         public void MethodImplementation_011(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -8535,7 +8535,7 @@ public interface I1
         }
 
         [Fact]
-        [WorkItem(33083, "https://github.com/dotnet/roslyn/issues/33083")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33083")]
         public void MethodModifiers_03()
         {
             var source1 =
@@ -10615,7 +10615,7 @@ class Test2 : I1
         }
 
         [Fact]
-        [WorkItem(34658, "https://github.com/dotnet/roslyn/issues/34658")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34658")]
         public void MethodModifiers_18()
         {
             var source1 =
@@ -23421,7 +23421,7 @@ class Test2 : I1, I2, I3
         }
 
         [Fact]
-        [WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38398")]
         public void InconsistentAccessibility_01()
         {
             var source1 =
@@ -23508,7 +23508,7 @@ class Test2 : I1, I2, I3
         }
 
         [Fact]
-        [WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38398")]
         public void InconsistentAccessibility_02()
         {
             var source1 =
@@ -23604,7 +23604,7 @@ class Test2 : I1, I2, I3
         }
 
         [Fact]
-        [WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38398")]
         public void InconsistentAccessibility_03()
         {
             var source1 =
@@ -23691,7 +23691,7 @@ class Test2 : I1, I2, I3
         }
 
         [Fact]
-        [WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38398")]
         public void InconsistentAccessibility_04()
         {
             var source1 =
@@ -32378,7 +32378,7 @@ class Test1
         }
 
         [Fact]
-        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34704")]
         public void NestedTypes_10()
         {
             var source1 =
@@ -32562,7 +32562,7 @@ class C11
         }
 
         [Fact]
-        [WorkItem(38735, "https://github.com/dotnet/roslyn/issues/38735")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38735")]
         public void NestedTypes_52()
         {
             var source1 =
@@ -32593,7 +32593,7 @@ interface IB<T> : IA<IQ<T>> { }
         }
 
         [Fact]
-        [WorkItem(58424, "https://github.com/dotnet/roslyn/issues/58424")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58424")]
         public void NestedTypes_53()
         {
             var source1 =
@@ -32620,7 +32620,7 @@ public interface Other
         }
 
         [Fact]
-        [WorkItem(58424, "https://github.com/dotnet/roslyn/issues/58424")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58424")]
         public void NestedTypes_54()
         {
             var source1 =
@@ -32654,8 +32654,8 @@ public interface Other
         }
 
         [Fact]
-        [WorkItem(58424, "https://github.com/dotnet/roslyn/issues/58424")]
-        [WorkItem(62795, "https://github.com/dotnet/roslyn/issues/62795")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58424")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/62795")]
         public void NestedTypes_55()
         {
             var source1 =
@@ -32690,7 +32690,7 @@ namespace Ns0
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32540")]
         public void MethodImplementationInDerived_01(bool isStatic)
         {
             string modifiers = isStatic ? "static abstract " : "";
@@ -33855,7 +33855,7 @@ class Test1 : I1
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32540")]
         public void MethodImplementationInDerived_11(bool isStatic)
         {
             string modifiers = isStatic ? "static abstract " : "";
@@ -34045,7 +34045,7 @@ I4.M1
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20083")]
         public void MethodImplementationInDerived_12(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -34532,7 +34532,7 @@ class Test1 : I2, I3
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20084")]
         public void MethodImplementationInDerived_14(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -36712,7 +36712,7 @@ public partial interface I
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32540")]
         public void PropertyImplementationInDerived_01(bool isStatic)
         {
             string modifiers = isStatic ? "static abstract " : "";
@@ -38095,7 +38095,7 @@ class Test2 : I4
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32540")]
         public void PropertyImplementationInDerived_11(bool isStatic)
         {
             string modifiers = isStatic ? "static abstract " : "";
@@ -38288,7 +38288,7 @@ I4.M1.set
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20083")]
         public void PropertyImplementationInDerived_12(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -38837,7 +38837,7 @@ class Test1 : I2, I3
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20084")]
         public void PropertyImplementationInDerived_14(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -39740,7 +39740,7 @@ public interface I3 : I1
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32540")]
         public void EventImplementationInDerived_01(bool isStatic)
         {
             string modifiers = isStatic ? "static abstract " : "";
@@ -40773,7 +40773,7 @@ class Test3 : I5
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32540")]
         public void EventImplementationInDerived_11(bool isStatic)
         {
             string modifiers = isStatic ? "static abstract " : "";
@@ -40973,7 +40973,7 @@ I4.M1.remove
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20083")]
         public void EventImplementationInDerived_12(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -41517,7 +41517,7 @@ class Test1 : I2, I3
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20084")]
         public void EventImplementationInDerived_14(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -42307,7 +42307,7 @@ I4.M1.remove
         }
 
         [Fact]
-        [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32540")]
         public void IndexerImplementationInDerived_01()
         {
             var source1 =
@@ -42916,7 +42916,7 @@ class Test2 : I4
         }
 
         [Fact]
-        [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32540")]
         public void IndexerImplementationInDerived_11()
         {
             var source1 =
@@ -42982,7 +42982,7 @@ public interface I3 : I1
         }
 
         [Fact]
-        [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20083")]
         public void IndexerImplementationInDerived_12()
         {
             var source1 =
@@ -43266,7 +43266,7 @@ class Test1 : I2, I3
         }
 
         [Fact]
-        [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20084")]
         public void IndexerImplementationInDerived_14()
         {
             var source1 =
@@ -49130,7 +49130,7 @@ I2.-
         }
 
         [Fact]
-        [WorkItem(52202, "https://github.com/dotnet/roslyn/issues/52202")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/52202")]
         public void Operators_32()
         {
             var source1 =
@@ -49369,7 +49369,7 @@ true
         }
 
         [Fact]
-        [WorkItem(52202, "https://github.com/dotnet/roslyn/issues/52202")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/52202")]
         public void Operators_33()
         {
             var source1 =
@@ -50577,7 +50577,7 @@ public interface ITest33
         }
 
         [Fact]
-        [WorkItem(35911, "https://github.com/dotnet/roslyn/issues/35911")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35911")]
         public void NoPia_10()
         {
             string pia = @"
@@ -50969,7 +50969,7 @@ class Test1 : I2
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void MethodReAbstraction_03(bool isStatic)
         {
             string modifiers = isStatic ? "static abstract " : "";
@@ -51077,7 +51077,7 @@ class Test1 : I2
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void MethodReAbstraction_04(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -51247,7 +51247,7 @@ class Test1 : I3
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void MethodReAbstraction_07(bool isStatic)
         {
             string modifiers = isStatic ? "static abstract " : "";
@@ -51356,7 +51356,7 @@ class Test1 : I3
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void MethodReAbstraction_08(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -51639,7 +51639,7 @@ class Test1 : I4
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void MethodReAbstraction_13(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -52423,7 +52423,7 @@ class Test1 : I2
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_003(bool isStatic)
         {
             string modifiers = isStatic ? "static abstract " : "";
@@ -52558,7 +52558,7 @@ Test1.set_P1
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_004(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -52748,7 +52748,7 @@ class Test1 : I3
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_007(bool isStatic)
         {
             string modifiers = isStatic ? "static abstract " : "";
@@ -52885,7 +52885,7 @@ I3.set_P1
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_008(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -53212,7 +53212,7 @@ class Test1 : I4
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_013(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -54860,7 +54860,7 @@ class Test1 : I2
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_039(bool isStatic)
         {
             string modifiers = isStatic ? "static abstract " : "";
@@ -54927,7 +54927,7 @@ class Test1 : I2
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_040(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -55064,7 +55064,7 @@ class Test1 : I3
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_043(bool isStatic)
         {
             string modifiers = isStatic ? "static abstract " : "";
@@ -55134,7 +55134,7 @@ class Test1 : I3
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_044(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -55358,7 +55358,7 @@ class Test1 : I4
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_049(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -55796,7 +55796,7 @@ class Test1 : I2
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_061(bool isStatic)
         {
             string modifiers = isStatic ? "static abstract " : "";
@@ -55862,7 +55862,7 @@ class Test1 : I2
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_062(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -55998,7 +55998,7 @@ class Test1 : I3
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_065(bool isStatic)
         {
             string modifiers = isStatic ? "static abstract " : "";
@@ -56067,7 +56067,7 @@ class Test1 : I3
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_066(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -56290,7 +56290,7 @@ class Test1 : I4
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_071(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -57387,7 +57387,7 @@ class Test1 : I2
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void EventReAbstraction_003(bool isStatic)
         {
             string modifiers = isStatic ? "static abstract " : "";
@@ -57510,7 +57510,7 @@ Test1.remove_P1
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void EventReAbstraction_004(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -57693,7 +57693,7 @@ class Test1 : I3
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void EventReAbstraction_007(bool isStatic)
         {
             string modifiers = isStatic ? "static abstract " : "";
@@ -57818,7 +57818,7 @@ I3.remove_P1
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void EventReAbstraction_008(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -58120,7 +58120,7 @@ class Test1 : I4
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void EventReAbstraction_013(bool isStatic)
         {
             string modifiers = isStatic ? "static virtual " : "";
@@ -59344,7 +59344,7 @@ class Test1 : I2
         }
 
         [Fact]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_003()
         {
             var source1 =
@@ -59390,7 +59390,7 @@ Test1.set_P1
         }
 
         [Fact]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_004()
         {
             var source1 =
@@ -59498,7 +59498,7 @@ class Test1 : I3
         }
 
         [Fact]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_007()
         {
             var source1 =
@@ -59547,7 +59547,7 @@ I3.set_P1
         }
 
         [Fact]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_008()
         {
             var source1 =
@@ -59754,7 +59754,7 @@ class Test1 : I4
         }
 
         [Fact]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_013()
         {
             var source1 =
@@ -60325,7 +60325,7 @@ class Test1 : I2
         }
 
         [Fact]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_039()
         {
             var source1 =
@@ -60365,7 +60365,7 @@ class Test1 : I2
         }
 
         [Fact]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_040()
         {
             var source1 =
@@ -60467,7 +60467,7 @@ class Test1 : I3
         }
 
         [Fact]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_043()
         {
             var source1 =
@@ -60510,7 +60510,7 @@ class Test1 : I3
         }
 
         [Fact]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_044()
         {
             var source1 =
@@ -60711,7 +60711,7 @@ class Test1 : I4
         }
 
         [Fact]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_049()
         {
             var source1 =
@@ -61084,7 +61084,7 @@ class Test1 : I2
         }
 
         [Fact]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_061()
         {
             var source1 =
@@ -61123,7 +61123,7 @@ class Test1 : I2
         }
 
         [Fact]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_062()
         {
             var source1 =
@@ -61224,7 +61224,7 @@ class Test1 : I3
         }
 
         [Fact]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_065()
         {
             var source1 =
@@ -61266,7 +61266,7 @@ class Test1 : I3
         }
 
         [Fact]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_066()
         {
             var source1 =
@@ -61466,7 +61466,7 @@ class Test1 : I4
         }
 
         [Fact]
-        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_071()
         {
             var source1 =
@@ -62427,7 +62427,7 @@ public class C0 : I1
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(36532, "https://github.com/dotnet/roslyn/issues/36532")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36532")]
         public void WindowsRuntimeEvent_01(bool isStatic)
         {
             string modifiers = isStatic ? "static" : "instance";
@@ -62568,7 +62568,7 @@ class C1 : I1, Interface<int>
         }
 
         [Fact]
-        [WorkItem(36532, "https://github.com/dotnet/roslyn/issues/36532")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36532")]
         public void WindowsRuntimeEvent_02()
         {
             var source = @"
@@ -62617,7 +62617,7 @@ class C1 : I1
         }
 
         [Fact]
-        [WorkItem(36532, "https://github.com/dotnet/roslyn/issues/36532")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/36532")]
         public void WindowsRuntimeEvent_03()
         {
             var source = @"
@@ -62682,7 +62682,7 @@ class C1 : I1, Interface
 
         [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
-        [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34452")]
         public void ExplicitlyImplementedViaAccessors_01(bool isStatic)
         {
             string modifiers = isStatic ? "static" : "instance";
@@ -63017,7 +63017,7 @@ class Test4 : C1, I1
 
         [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
-        [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34452")]
         public void ExplicitlyImplementedViaAccessors_02(bool isStatic)
         {
             string modifiers = isStatic ? "static" : "instance";
@@ -63183,7 +63183,7 @@ class Test4 : C1, I1
 
         [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
-        [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34452")]
         public void ExplicitlyImplementedViaAccessors_03(bool isStatic)
         {
             string modifiers = isStatic ? "static" : "instance";
@@ -63349,7 +63349,7 @@ class Test4 : C1, I1
 
         [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
-        [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34452")]
         public void ExplicitlyImplementedViaAccessors_04(bool isStatic)
         {
             string modifiers = isStatic ? "static" : "instance";
@@ -63523,7 +63523,7 @@ class Test4 : C1, I1
 
         [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
-        [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34452")]
         public void ExplicitlyImplementedViaAccessors_05(bool isStatic)
         {
             string modifiers = isStatic ? "static" : "instance";
@@ -63681,7 +63681,7 @@ class C3 : C2, I1
 
         [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
-        [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34452")]
         public void ExplicitlyImplementedViaAccessors_06(bool isStatic)
         {
             string modifiers = isStatic ? "static" : "instance";
@@ -63930,7 +63930,7 @@ interface I3 : I2
 
         [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
-        [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34452")]
         public void ExplicitlyImplementedViaAccessors_07(bool isStatic)
         {
             string modifiers = isStatic ? "static" : "instance";
@@ -64046,7 +64046,7 @@ interface I3 : I2
 
         [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
-        [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34452")]
         public void ExplicitlyImplementedViaAccessors_08(bool isStatic)
         {
             string modifiers = isStatic ? "static" : "instance";
@@ -64162,7 +64162,7 @@ interface I3 : I2
 
         [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
-        [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34452")]
         public void ExplicitlyImplementedViaAccessors_09(bool isStatic)
         {
             string modifiers = isStatic ? "static" : "instance";
@@ -64282,7 +64282,7 @@ interface I3 : I2
 
         [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
-        [WorkItem(34453, "https://github.com/dotnet/roslyn/issues/34453")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34453")]
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_01(bool isStatic)
         {
             string modifiers = isStatic ? "static" : "instance";
@@ -64355,7 +64355,7 @@ class C2 : C1, I1
 
         [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
-        [WorkItem(34453, "https://github.com/dotnet/roslyn/issues/34453")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34453")]
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_02(bool isStatic)
         {
             string modifiers = isStatic ? "static" : "instance";
@@ -64435,7 +64435,7 @@ class C2 : C1, I1
 
         [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
-        [WorkItem(34453, "https://github.com/dotnet/roslyn/issues/34453")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34453")]
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_03(bool isStatic)
         {
             string modifiers = isStatic ? "static" : "instance";
@@ -64510,7 +64510,7 @@ class C2 : C1, I1
 
         [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
-        [WorkItem(34453, "https://github.com/dotnet/roslyn/issues/34453")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34453")]
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_04(bool isStatic)
         {
             string modifiers = isStatic ? "static" : "instance";
@@ -64588,7 +64588,7 @@ class C2 : C1, I1
         }
 
         [Fact]
-        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34704")]
         public void NestedTypes_11()
         {
             var source1 =
@@ -64611,7 +64611,7 @@ interface A : A.B
         }
 
         [Fact]
-        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34704")]
         public void NestedTypes_12()
         {
             var source1 =
@@ -64640,7 +64640,7 @@ interface A : A.B.I
         }
 
         [Fact]
-        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34704")]
         public void NestedTypes_13()
         {
             var source1 =
@@ -64670,7 +64670,7 @@ interface IB : IA
         }
 
         [Fact]
-        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34704")]
         public void NestedTypes_14()
         {
             var source1 =
@@ -64700,7 +64700,7 @@ interface IA : IB.IQ
         }
 
         [Fact]
-        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34704")]
         public void NestedTypes_15()
         {
             var source1 =
@@ -64723,7 +64723,7 @@ interface IA : B.IQ
         }
 
         [Fact]
-        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34704")]
         public void NestedTypes_16()
         {
             var source1 =
@@ -64742,7 +64742,7 @@ interface I1
         }
 
         [Fact]
-        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34704")]
         public void NestedTypes_17()
         {
             var source1 =
@@ -64761,7 +64761,7 @@ class C : C.I1
         }
 
         [Fact]
-        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34704")]
         public void NestedTypes_18()
         {
             var source1 =
@@ -64787,7 +64787,7 @@ public class CB : CB.CCB.IB, CB.ICB.IB
         }
 
         [Fact]
-        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34704")]
         public void NestedTypes_19()
         {
             var source1 =
@@ -64813,7 +64813,7 @@ public class CD : CD.ICD.CB
         }
 
         [Fact]
-        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34704")]
         public void NestedTypes_20()
         {
             var source1 =
@@ -64846,7 +64846,7 @@ public interface IE : IE.CIE.IB, IE.IIE.IB
         }
 
         [Fact]
-        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34704")]
         public void NestedTypes_21()
         {
             var source1 =
@@ -64871,7 +64871,7 @@ class C1 : C1.C2.I3
         }
 
         [Fact]
-        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34704")]
         public void NestedTypes_22()
         {
             var source1 =
@@ -64904,7 +64904,7 @@ interface IB : CA.I1
         }
 
         [Fact]
-        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34704")]
         public void NestedTypes_23()
         {
             var source1 =
@@ -64938,7 +64938,7 @@ class CA : IB.CQ
         }
 
         [Fact]
-        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38469")]
         public void NestedTypes_24()
         {
             var source1 =
@@ -64982,7 +64982,7 @@ I100.C100.Test2",
         }
 
         [Fact]
-        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38469")]
         public void NestedTypes_25()
         {
             var source1 =
@@ -65026,7 +65026,7 @@ I100.C100.Test2",
         }
 
         [Fact]
-        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38469")]
         public void NestedTypes_26()
         {
             var source1 =
@@ -65070,7 +65070,7 @@ I100.C100.Test2",
         }
 
         [Fact]
-        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38469")]
         public void NestedTypes_27()
         {
             var source1 =
@@ -65122,7 +65122,7 @@ class Test : I101
         }
 
         [Fact]
-        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38469")]
         public void NestedTypes_28()
         {
             var source1 =
@@ -65170,7 +65170,7 @@ class Test : I101
         }
 
         [Fact]
-        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38469")]
         public void NestedTypes_29()
         {
             var source1 =
@@ -65210,7 +65210,7 @@ interface C : B
         }
 
         [Fact]
-        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38469")]
         public void NestedTypes_30()
         {
             var source1 =
@@ -65249,7 +65249,7 @@ interface D : A.E
         }
 
         [Fact]
-        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38469")]
         public void NestedTypes_31()
         {
             var source1 =
@@ -65294,7 +65294,7 @@ interface I5 : I3, I1
         }
 
         [Fact]
-        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38469")]
         public void NestedTypes_32()
         {
             var source1 =
@@ -65340,7 +65340,7 @@ interface I5 : I3, I1
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_33()
         {
             var source1 =
@@ -65386,7 +65386,7 @@ class C3 : C1
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_34()
         {
             var source1 =
@@ -65425,7 +65425,7 @@ class C3 : C1
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_35()
         {
             var source1 =
@@ -65470,7 +65470,7 @@ class C3 : C1
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_36()
         {
             var source1 =
@@ -65508,7 +65508,7 @@ class C3 : C1
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_37()
         {
             var source1 =
@@ -65553,7 +65553,7 @@ class C3 : C1
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_38()
         {
             var source1 =
@@ -65591,7 +65591,7 @@ class C3 : C1
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_39()
         {
             var source1 =
@@ -65632,7 +65632,7 @@ class C3 : C1
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_40()
         {
             var source1 =
@@ -65666,7 +65666,7 @@ class C3 : C1
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_41()
         {
             var source1 =
@@ -65708,7 +65708,7 @@ class C3 : C1
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_42()
         {
             var source1 =
@@ -65743,7 +65743,7 @@ class C3 : C1
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_43()
         {
             var source1 =
@@ -65785,7 +65785,7 @@ class C3 : C1
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_44()
         {
             var source1 =
@@ -65820,7 +65820,7 @@ class C3 : C1
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_45()
         {
             var source1 =
@@ -65859,7 +65859,7 @@ class C3 : C1
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_46()
         {
             var source1 =
@@ -65905,7 +65905,7 @@ class C3 : C1
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_47()
         {
             var source1 =
@@ -65957,7 +65957,7 @@ class C3 : C1<int>
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_48()
         {
             var source1 =
@@ -66002,7 +66002,7 @@ class C3 : C1
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_49()
         {
             var source1 =
@@ -66040,7 +66040,7 @@ class C3 : C1
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_50()
         {
             var source1 =
@@ -66083,7 +66083,7 @@ class C3 : C1
         }
 
         [Fact]
-        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38711")]
         public void NestedTypes_51()
         {
             var source1 =
@@ -66119,7 +66119,7 @@ class C3 : C1
         }
 
         [Fact]
-        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39731")]
         public void VarianceSafety_01()
         {
             var source1 =
@@ -66170,7 +66170,7 @@ interface I1<out T1, in T2, T3>
         }
 
         [Fact]
-        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39731")]
         public void VarianceSafety_02()
         {
             var source1 =
@@ -66199,7 +66199,7 @@ interface I2<in T1, out T2>
         }
 
         [Fact]
-        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39731")]
         public void VarianceSafety_03()
         {
             var source1 =
@@ -66243,7 +66243,7 @@ interface I1<out T1, in T2, T3>
         }
 
         [Fact]
-        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39731")]
         public void VarianceSafety_04()
         {
             var source1 =
@@ -66272,7 +66272,7 @@ interface I2<in T1, out T2>
         }
 
         [Fact]
-        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39731")]
         public void VarianceSafety_05()
         {
             var source1 =
@@ -66362,7 +66362,7 @@ interface I3<T3>
         }
 
         [Fact]
-        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39731")]
         public void VarianceSafety_06()
         {
             var source1 =
@@ -66473,7 +66473,7 @@ interface I3<T3>
         }
 
         [Fact]
-        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39731")]
         public void VarianceSafety_07()
         {
             var source1 =
@@ -66577,7 +66577,7 @@ M5");
         }
 
         [Fact]
-        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39731")]
         public void VarianceSafety_08()
         {
             var source1 =
@@ -66626,7 +66626,7 @@ M2");
         }
 
         [Fact]
-        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39731")]
         public void VarianceSafety_09()
         {
             var source1 =
@@ -66659,7 +66659,7 @@ interface I2<out T>
         }
 
         [Fact]
-        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39731")]
         public void VarianceSafety_10()
         {
             var source1 =
@@ -66692,7 +66692,7 @@ b");
         }
 
         [Fact]
-        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39731")]
         public void VarianceSafety_11()
         {
             var source1 =
@@ -66754,7 +66754,7 @@ M2");
         }
 
         [Fact]
-        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39731")]
         public void VarianceSafety_12()
         {
             var source1 =
@@ -66930,7 +66930,7 @@ b").VerifyDiagnostics();
         }
 
         [Fact]
-        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
         public void Errors_01()
         {
             var source1 =
@@ -66964,7 +66964,7 @@ interface I1
         }
 
         [Fact]
-        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
         public void Errors_02()
         {
             var source1 =
@@ -66995,7 +66995,7 @@ interface I1 : I1
         }
 
         [Fact]
-        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
         public void Errors_03()
         {
             var source1 =
@@ -67030,7 +67030,7 @@ interface I2
         }
 
         [Fact]
-        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
         public void Errors_04()
         {
             var source1 =
@@ -67071,7 +67071,7 @@ interface I2 : I1
         }
 
         [Fact]
-        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
         public void Errors_05()
         {
             var source1 =
@@ -67112,7 +67112,7 @@ interface I1 : I2
         }
 
         [Fact]
-        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
         public void Errors_06()
         {
             var source1 =
@@ -67148,7 +67148,7 @@ interface I1
         }
 
         [Fact]
-        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
         public void Errors_07()
         {
             var source1 =
@@ -67179,7 +67179,7 @@ interface I1 : I1
         }
 
         [Fact]
-        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
         public void Errors_08()
         {
             var source1 =
@@ -67217,7 +67217,7 @@ interface I2
         }
 
         [Fact]
-        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
         public void Errors_09()
         {
             var source1 =
@@ -67258,7 +67258,7 @@ interface I2 : I1
         }
 
         [Fact]
-        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
         public void Errors_10()
         {
             var source1 =
@@ -67299,7 +67299,7 @@ interface I1 : I2
         }
 
         [Fact]
-        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
         public void Errors_11()
         {
             var source1 =
@@ -67337,7 +67337,7 @@ interface I1
         }
 
         [Fact]
-        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
         public void Errors_12()
         {
             var source1 =
@@ -67369,7 +67369,7 @@ interface I1 : I1
         }
 
         [Fact]
-        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
         public void Errors_13()
         {
             var source1 =
@@ -67409,7 +67409,7 @@ interface I2
         }
 
         [Fact]
-        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
         public void Errors_14()
         {
             var source1 =
@@ -67451,7 +67451,7 @@ interface I2 : I1
         }
 
         [Fact]
-        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
         public void Errors_15()
         {
             var source1 =
@@ -67493,7 +67493,7 @@ interface I1 : I2
         }
 
         [Fact]
-        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
         public void Errors_16()
         {
             var source1 =
@@ -67515,7 +67515,7 @@ interface I1<T>
                 );
         }
 
-        [Fact, WorkItem(41481, "https://github.com/dotnet/roslyn/issues/41481")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41481")]
         public void IncompletePropertyImplementationSyntax_01()
         {
             var source1 =
@@ -67542,7 +67542,7 @@ interface I1<T>
                 );
         }
 
-        [Fact, WorkItem(49341, "https://github.com/dotnet/roslyn/issues/49341")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49341")]
         public void RefReturningAutoProperty_01()
         {
             var source1 =
@@ -67581,7 +67581,7 @@ interface IC
                 );
         }
 
-        [Fact, WorkItem(49341, "https://github.com/dotnet/roslyn/issues/49341")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49341")]
         public void RefReturningAutoProperty_02()
         {
             var source1 =
@@ -67614,7 +67614,7 @@ interface IC
                 );
         }
 
-        [Fact, WorkItem(49341, "https://github.com/dotnet/roslyn/issues/49341")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49341")]
         public void RefReturningAutoProperty_03()
         {
             var source1 =
@@ -67659,7 +67659,7 @@ interface IC
                 );
         }
 
-        [Fact, WorkItem(50491, "https://github.com/dotnet/roslyn/issues/50491")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50491")]
         public void RuntimeFeatureAsInterface_01()
         {
             var source1 =
@@ -67690,7 +67690,7 @@ namespace System.Runtime.CompilerServices
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
         }
 
-        [Fact, WorkItem(50491, "https://github.com/dotnet/roslyn/issues/50491")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50491")]
         public void RuntimeFeatureAsInterface_02()
         {
             var source1 =
@@ -67718,7 +67718,7 @@ namespace System.Runtime.CompilerServices
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
         }
 
-        [Fact, WorkItem(50491, "https://github.com/dotnet/roslyn/issues/50491")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50491")]
         public void RuntimeFeatureAsInterface_03()
         {
             var source1 =
@@ -67750,7 +67750,7 @@ class Test
                 verify: VerifyOnMonoOrCoreClr);
         }
 
-        [Fact, WorkItem(53565, "https://github.com/dotnet/roslyn/issues/53565")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53565")]
         public void PartialPropertyImplementation_01()
         {
             var source1 =
@@ -67827,7 +67827,7 @@ C1.get_P3
             }
         }
 
-        [Fact, WorkItem(53565, "https://github.com/dotnet/roslyn/issues/53565")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53565")]
         public void PartialPropertyImplementation_02()
         {
             var source1 =
@@ -68820,7 +68820,7 @@ class Test1 : I2<Test1>
         }
 
         [Fact]
-        [WorkItem(64238, "https://github.com/dotnet/roslyn/issues/64238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64238")]
         public void NoMethodBodiesInComImportType()
         {
             var source1 =
@@ -68914,7 +68914,7 @@ public interface I1
                 );
         }
 
-        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66135")]
         public void ConstrainedCallOnInParameter_DefaultImplementation()
         {
             var source = @"

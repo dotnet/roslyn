@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     public class CustomModifiersTests : CSharpTestBase
     {
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiedTypeArgument_01()
         {
             var ilSource = @"
@@ -89,8 +89,8 @@ class Module1
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiedTypeArgument_02()
         {
             var ilSource = @"
@@ -163,8 +163,8 @@ class Module1
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiers_01()
         {
             var ilSource = @"
@@ -221,8 +221,8 @@ class Module1
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiers_02()
         {
             var ilSource = @"
@@ -307,8 +307,8 @@ class CL3
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_01()
         {
             var ilSource = @"
@@ -380,8 +380,8 @@ class CL3
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_02()
         {
             var ilSource = @"
@@ -453,8 +453,8 @@ class CL3
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_03()
         {
             var ilSource = @"
@@ -526,8 +526,8 @@ class CL3
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_04()
         {
             var ilSource = @"
@@ -600,8 +600,8 @@ class CL3
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8948")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRefReturn_01()
         {
             var ilSource = @"
@@ -711,8 +711,8 @@ Overridden P");
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8948")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRefReturn_02()
         {
             var ilSource = @"
@@ -821,8 +821,8 @@ Overridden P");
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8948")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRefReturn_03()
         {
             var ilSource = @"
@@ -931,8 +931,8 @@ Overridden P");
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8948")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRefReturn_04()
         {
             var ilSource = @"
@@ -1041,8 +1041,8 @@ Overridden P");
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8948")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRefReturn_05()
         {
             var ilSource = @"
@@ -1136,8 +1136,8 @@ CL3.P
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiers_03()
         {
             var ilSource = @"
@@ -1239,8 +1239,8 @@ Get Overridden");
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiers_04()
         {
             var ilSource = @"
@@ -1311,8 +1311,8 @@ class CL3
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiers_05()
         {
             var ilSource = @"
@@ -1376,7 +1376,7 @@ class Module1
             CompileAndVerify(compilation, expectedOutput: "123");
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
         public void ConstructedTypesEquality_02()
         {
             var ilSource = @"
@@ -1472,8 +1472,8 @@ class Module1
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void RetargetingModifiedTypeArgument_01()
         {
             var ilSource = @"
@@ -1534,7 +1534,7 @@ class Module1
             Assert.NotSame(compilation1.SourceModule.CorLibrary(), compilation2.SourceModule.CorLibrary());
         }
 
-        [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
         public void TypeUnification_01()
         {
             var ilSource = @"
@@ -1573,7 +1573,7 @@ interface ITest4<T, U>
                 );
         }
 
-        [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
         public void TypeUnification_02()
         {
             var ilSource = @"
@@ -1644,7 +1644,7 @@ interface ITest4<T, U>
             compilation.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
         public void TypeUnification_04()
         {
             var ilSource = @"
@@ -1683,7 +1683,7 @@ interface ITest4<T, U>
                 );
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
         public void TypeUnification_05()
         {
             var ilSource = @"
@@ -1725,7 +1725,7 @@ interface ITest4<T, U>
                 );
         }
 
-        [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
         public void TypeUnification_06()
         {
             var ilSource = @"
@@ -1761,8 +1761,8 @@ interface ITest4<T, U>
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void DynamicEncodingDecoding_01()
         {
             var ilSource = @"
@@ -1844,8 +1844,8 @@ class CL3 : CL2
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void Delegates_01()
         {
             var ilSource = @"
@@ -1987,8 +1987,8 @@ Test 6");
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(4623, "https://github.com/dotnet/roslyn/issues/4623")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4623")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void MultiDimensionalArray_01()
         {
             var ilSource = @"
@@ -2043,8 +2043,8 @@ Overridden");
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/5725")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiersWithConstructedType_01()
         {
             var ilSource = @"
@@ -2114,8 +2114,8 @@ Overridden");
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/5725")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiersWithConstructedType_02()
         {
             var ilSource = @"
@@ -2185,8 +2185,8 @@ Overridden");
         }
 
         [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
-        [WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/5725")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiersWithConstructedType_03()
         {
             var ilSource = @"
@@ -2258,8 +2258,8 @@ Overridden");
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem(14453, "https://github.com/dotnet/roslyn/issues/14453")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14453")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiersWithConstructedType_04()
         {
             var source = @"
@@ -2292,8 +2292,8 @@ class CL2 : CL1
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem(14453, "https://github.com/dotnet/roslyn/issues/14453")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14453")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiersWithConstructedType_05()
         {
             var source = @"
@@ -2340,8 +2340,8 @@ CL3.Test");
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(5993, "https://github.com/dotnet/roslyn/issues/5993")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/5993")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_05()
         {
             var ilSource = @"
@@ -2397,7 +2397,7 @@ Implemented B",
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_06()
         {
             var ilSource =
@@ -2432,7 +2432,7 @@ Implemented B",
                 });
         }
 
-        [Fact, WorkItem(6372, "https://github.com/dotnet/roslyn/issues/6372")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6372")]
         public void ModifiedTypeParameterAsTypeArgument_01()
         {
             var ilSource = @"
@@ -2494,8 +2494,8 @@ Implemented B",
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(7674, "https://github.com/dotnet/roslyn/issues/7674")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7674")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void PropertyWithDynamic()
         {
             var ilSource = @"
@@ -2610,8 +2610,8 @@ Get Overridden3");
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(7674, "https://github.com/dotnet/roslyn/issues/7674")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7674")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void EventWithDynamic()
         {
             var ilSource = @"
@@ -2724,8 +2724,8 @@ Remove Overridden3");
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
-        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7845")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18411")]
         public void EventFieldWithDynamic()
         {
             var ilSource = @"
@@ -2817,7 +2817,7 @@ Charlie");
         }
 
         [Fact]
-        [WorkItem(58520, "https://github.com/dotnet/roslyn/issues/58520")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58520")]
         public void Issue58520_01()
         {
             var ilSource = @"
@@ -2908,7 +2908,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(58520, "https://github.com/dotnet/roslyn/issues/58520")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58520")]
         public void Issue58520_02()
         {
             var ilSource = @"

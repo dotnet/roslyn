@@ -172,7 +172,7 @@ struct S<T> where T : struct
             Assert.Equal(customModifiers, substitutedArrayType.ElementTypeWithAnnotations.CustomModifiers);
         }
 
-        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63758")]
         public void ReadonlyParameter1()
         {
             CreateCompilation(@"
@@ -185,7 +185,7 @@ public class Base {
                 Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(3, 23));
         }
 
-        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63758")]
         public void ReadonlyParameter2()
         {
             CreateCompilation(@"
@@ -198,7 +198,7 @@ public class Base {
             Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(3, 19));
         }
 
-        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63758")]
         public void ReadonlyParameter3()
         {
             CreateCompilation(@"
@@ -211,7 +211,7 @@ public class Base {
                 Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(3, 19));
         }
 
-        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63758")]
         public void ReadonlyParameter4()
         {
             CreateCompilation(@"
@@ -226,7 +226,7 @@ public class Base {
                 Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(5, 18));
         }
 
-        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63758")]
         public void ReadonlyParameter5()
         {
             CreateCompilation(@"
@@ -241,7 +241,7 @@ public class Base {
                 Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(5, 22));
         }
 
-        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63758")]
         public void ReadonlyParameter6()
         {
             CreateCompilation(@"

@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         }
 
         [Fact]
-        [WorkItem(193333, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=193333")]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=193333")]
         public void EnumWithPrivateValueField()
         {
             var il = @"

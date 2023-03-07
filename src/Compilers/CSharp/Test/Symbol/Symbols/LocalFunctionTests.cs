@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class LocalFunctionTests : CSharpTestBase
     {
-        [Fact, WorkItem(27719, "https://github.com/dotnet/roslyn/issues/27719")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27719")]
         public void LocalFunctionIsNotStatic()
         {
             var source = @"
@@ -36,7 +36,7 @@ class C
             Assert.False(local.IsStatic);
         }
 
-        [Fact, WorkItem(27719, "https://github.com/dotnet/roslyn/issues/27719")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27719")]
         public void StaticLocalFunctionIsStatic()
         {
             var source = @"
@@ -57,7 +57,7 @@ class C
             Assert.True(local.IsStatic);
         }
 
-        [Fact, WorkItem(27719, "https://github.com/dotnet/roslyn/issues/27719")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27719")]
         public void LocalFunctionInStaticMethodIsNotStatic()
         {
             var source = @"
@@ -190,7 +190,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1));
         }
 
-        [Fact, WorkItem(65938, "https://github.com/dotnet/roslyn/issues/65938")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65938")]
         public void StaticLocalFunction_CapturingMethodGroup()
         {
             CreateCompilation("""

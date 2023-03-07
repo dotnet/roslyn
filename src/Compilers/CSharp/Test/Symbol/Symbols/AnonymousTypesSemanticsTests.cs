@@ -1412,7 +1412,7 @@ public class ClassA
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(20338, "https://github.com/dotnet/roslyn/issues/20338")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20338")]
         public void AnonymousTypeSymbols_Error_DuplicateName_OperationTree()
         {
             string source = @"
@@ -1523,7 +1523,7 @@ public class ClassA
             Assert.Equal("System.Type System.Object.GetType()", syms[index++]);
         }
 
-        [WorkItem(543189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543189")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543189")]
         [Fact()]
         public void CheckAnonymousTypeAsConstValue()
         {
@@ -1570,7 +1570,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
         [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Queryable()
         {
@@ -1599,7 +1599,7 @@ public class Program
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
         [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Queryable_OperationTree()
         {
@@ -1717,7 +1717,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
         [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Enumerable()
         {
@@ -1746,7 +1746,7 @@ public class Program
 }").VerifyDiagnostics();
         }
 
-        [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
         [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Enumerable2()
         {
@@ -1776,7 +1776,7 @@ public class Program
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22588, "https://github.com/dotnet/roslyn/issues/22588")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22588")]
         public void AnonymousTypeSymbols_ErrorCases()
         {
             string source = @"
@@ -1835,7 +1835,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(27338, "https://github.com/dotnet/roslyn/issues/27338")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27338")]
         public void AnonymousTypeCreation_MixedInitializers()
         {
             string source = @"

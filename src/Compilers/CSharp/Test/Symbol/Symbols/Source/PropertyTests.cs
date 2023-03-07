@@ -335,7 +335,7 @@ class C
         }
 
         [WorkItem(542745, "DevDiv")]
-        [WorkItem(542745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542745")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542745")]
         [Fact()]
         public void AutoImplementedAccessorNotImplicitlyDeclared()
         {
@@ -372,7 +372,7 @@ interface I
             Assert.False(q.SetMethod.IsImplicitlyDeclared);
         }
 
-        [WorkItem(542746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542746")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542746")]
         [Fact]
         public void AutoImplementedBackingFieldLocation()
         {
@@ -431,7 +431,7 @@ class C
             Assert.Equal(prop.Locations[0].ToString(), backField.Locations[0].ToString());
         }
 
-        [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
         [Fact]
         public void EventEscapedIdentifier()
         {
@@ -490,7 +490,7 @@ class Program
 ");
         }
 
-        [WorkItem(528633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528633")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528633")]
         [Fact]
         public void MismatchedAccessorTypes()
         {
@@ -606,7 +606,7 @@ class C : B<string>
             Assert.Equal(accessor.AssociatedSymbol, property);
         }
 
-        [WorkItem(538789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538789")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538789")]
         [Fact]
         public void NoAccessors()
         {
@@ -964,7 +964,7 @@ class C
             CompileWithCustomILSource(cSharpSource, ilSource);
         }
 
-        [WorkItem(538956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538956")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538956")]
         [ClrOnlyFact]
         public void PropertyAccessorDoesNotHideMethod()
         {
@@ -987,7 +987,7 @@ class Program {
             CompileWithCustomILSource(cSharpSource, null);
         }
 
-        [WorkItem(538956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538956")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538956")]
         [ClrOnlyFact]
         public void PropertyAccessorDoesNotConflictWithMethod()
         {
@@ -1012,7 +1012,7 @@ class Program {
             CompileWithCustomILSource(cSharpSource, null);
         }
 
-        [WorkItem(538956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538956")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538956")]
         [Fact]
         public void PropertyAccessorCannotBeCalledAsMethod()
         {
@@ -1034,7 +1034,7 @@ class Program {
                 Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "get_Goo").WithArguments("I.Goo.get"));
         }
 
-        [WorkItem(538992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538992")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538992")]
         [Fact]
         public void CanNotAccessPropertyThroughParenthesizedType()
         {
@@ -1097,7 +1097,7 @@ class B {
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "a.Goo").WithArguments("A.Goo"));
         }
 
-        [WorkItem(527658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527658")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527658")]
         [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void CS1546ERR_BindToBogusProp1_PropertyWithPinnedModifierIsBogus()
         {
@@ -1120,7 +1120,7 @@ class B {
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("A.Goo", "A.get_Goo()"));
         }
 
-        [WorkItem(538850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538850")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538850")]
         [Fact]
         public void PropertyWithMismatchedReturnTypeOfGetterIsBogus()
         {
@@ -1143,7 +1143,7 @@ class B {
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("A.Goo", "A.get_Goo()"));
         }
 
-        [WorkItem(527659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527659")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527659")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void PropertyWithCircularReturnTypeIsNotSupported()
         {
@@ -1176,7 +1176,7 @@ class B {
             // error CS0570: 'A.Goo' is not supported by the language
         }
 
-        [WorkItem(527664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527664")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527664")]
         [Fact(Skip = "527664")]
         public void PropertyWithOpenGenericTypeAsTypeArgumentOfReturnTypeIsNotSupported()
         {
@@ -1199,7 +1199,7 @@ class B {
             // TODO: check diagnostics when it is implemented
         }
 
-        [WorkItem(527657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527657")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527657")]
         [Fact(Skip = "527657")]
         public void Dev10IgnoresSentinelInPropertySignature()
         {
@@ -1238,7 +1238,7 @@ class B {
             CompileWithCustomILSource(cSharpSource, ilSource);
         }
 
-        [WorkItem(527660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527660")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527660")]
         [Fact(Skip = "527660")]
         public void CanReadPropertyWithModOptInBaseClassOfReturnType()
         {
@@ -1299,7 +1299,7 @@ class B {
             CompileWithCustomILSource(cSharpSource, ilSource);
         }
 
-        [WorkItem(527656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527656")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527656")]
         [Fact(Skip = "527656")]
         public void CanReadNonModOptPropertyWithOpenGenericModOptGetter()
         {
@@ -1357,7 +1357,7 @@ class B {
             CreateCompilationWithILAndMscorlib40(cSharpSource, ilSource).VerifyDiagnostics();
         }
 
-        [WorkItem(538845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538845")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538845")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void CanReadPropertyWithMultipleAndNestedModOpts()
         {
@@ -1402,7 +1402,7 @@ class B {
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("A.Goo", "A.get_Goo()"));
         }
 
-        [WorkItem(538846, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538846")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538846")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void CanNotReadPropertyWithModReq()
         {
@@ -1425,7 +1425,7 @@ class B {
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("A.Goo", "A.get_Goo()"));
         }
 
-        [WorkItem(527662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527662")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527662")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void CanReadPropertyWithModReqInBaseClassOfReturnType()
         {
@@ -1447,7 +1447,7 @@ class B {
             CreateCompilationWithILAndMscorlib40(cSharpSource, ilSource).VerifyDiagnostics();
         }
 
-        [WorkItem(538787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538787")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538787")]
         [Fact]
         public void CanNotReadPropertyOfUnsupportedType()
         {
@@ -1491,7 +1491,7 @@ class C {
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "new Indexers()[null]").WithArguments("Indexers.this[string]", "Indexers.get_Item(string)").WithLocation(4, 22));
         }
 
-        [WorkItem(538791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538791")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538791")]
         [Fact]
         public void CanNotReadAmbiguousProperty()
         {
@@ -1564,7 +1564,7 @@ class B {
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "A.Goo").WithArguments("void", "object"));
         }
 
-        [WorkItem(527663, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527663")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527663")]
         [Fact]
         public void CanNotReadPropertyFromAmbiguousGenericClass()
         {
@@ -1599,7 +1599,7 @@ class B {
                 Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "A<int>").WithArguments("09f9df97-a228-4ca4-9b71-151909f205e6, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "A<T>", "09f9df97-a228-4ca4-9b71-151909f205e6, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 16));
         }
 
-        [WorkItem(538789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538789")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538789")]
         [Fact]
         public void PropertyWithoutAccessorsIsBogus()
         {
@@ -1627,7 +1627,7 @@ class C {
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "Goo").WithArguments("B", "Goo"));
         }
 
-        [WorkItem(538946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538946")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538946")]
         [Fact]
         public void FalseAmbiguity()
         {
@@ -1655,7 +1655,7 @@ class C
             Assert.Empty(diagnostics);
         }
 
-        [WorkItem(539320, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539320")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539320")]
         [Fact]
         public void FalseWarningCS0109ForNewModifier()
         {
@@ -1692,7 +1692,7 @@ class MyClass : MyBase
             Assert.Empty(diagnostics);
         }
 
-        [WorkItem(539319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539319")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539319")]
         [Fact]
         public void FalseErrorCS0103ForValueKeywordInExpImpl()
         {
@@ -1842,7 +1842,7 @@ class C : N.I<int>
             //TODO: To be implemented once indexer properties implemented
         }
 
-        [WorkItem(539998, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539998")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539998")]
         [ClrOnlyFact]
         public void ImportDefaultPropertiesWithParameters()
         {
@@ -1893,7 +1893,7 @@ class Program
             CompileAndVerify(compilation, sourceSymbolValidator: validator, /*symbolValidator: validator,*/ expectedOutput: "1221");
         }
 
-        [WorkItem(540342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540342")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540342")]
         [ClrOnlyFact]
         public void NoSequencePointsForAutoPropertyAccessors()
         {
@@ -1905,7 +1905,7 @@ class C
             CompileAndVerify(text).VerifyDiagnostics();
         }
 
-        [WorkItem(541688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541688")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541688")]
         [Fact]
         public void Simple2()
         {
@@ -1934,7 +1934,7 @@ public class A : Attribute
             Assert.Equal(ErrorCode.ERR_DuplicateNameInClass, (ErrorCode)one.Code);
         }
 
-        [WorkItem(528769, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528769")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528769")]
         [Fact]
         public void IndexerGetSetParameterLocation()
         {
@@ -1971,7 +1971,7 @@ class Test
             Assert.True(locs[0].IsInSource, "InSource");
         }
 
-        [WorkItem(545682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545682")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545682")]
         [ClrOnlyFact]
         public void PropertyWithParametersHidingMethod01()
         {
@@ -2858,7 +2858,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "P").WithArguments("automatically implemented properties", "3"));
         }
 
-        [WorkItem(1073332, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073332")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073332")]
         [ClrOnlyFact]
         public void Bug1073332_01()
         {
@@ -2879,7 +2879,7 @@ class Test
             CompileAndVerify(text, expectedOutput: "123").VerifyDiagnostics();
         }
 
-        [WorkItem(1073332, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073332")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073332")]
         [Fact]
         public void Bug1073332_02()
         {
@@ -2932,7 +2932,7 @@ unsafe class Test
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(5, 47));
         }
 
-        [Fact, WorkItem(4696, "https://github.com/dotnet/roslyn/issues/4696")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4696")]
         public void LangVersionAndReadonlyAutoProperty()
         {
             var source = @"

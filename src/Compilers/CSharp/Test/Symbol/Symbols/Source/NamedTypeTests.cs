@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         };
 
         [Theory, MemberData(nameof(TestData))]
-        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
         public void IsExplicitDefinitionOfNoPiaLocalType1(string type)
         {
             var compilation = CreateCompilation($"[System.CLSCompliant(false)] {type}");
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, MemberData(nameof(TestData))]
-        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
         public void IsExplicitDefinitionOfNoPiaLocalType2(string type)
         {
             var compilation = CreateCompilation($"[System.Runtime.InteropServices.TypeIdentifierAttribute] {type}");
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, MemberData(nameof(TestData))]
-        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
         public void IsExplicitDefinitionOfNoPiaLocalType3(string type)
         {
             var compilation = CreateCompilation($"[System.Runtime.InteropServices.TypeIdentifier] {type}");
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, MemberData(nameof(TestData))]
-        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
         public void IsExplicitDefinitionOfNoPiaLocalType4(string type)
         {
             var compilation = CreateCompilation(@$"
@@ -59,7 +59,7 @@ using System.Runtime.InteropServices;
         }
 
         [Theory, MemberData(nameof(TestData))]
-        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
         public void IsExplicitDefinitionOfNoPiaLocalType5(string type)
         {
             var compilation = CreateCompilation(@$"
@@ -71,7 +71,7 @@ using System.Runtime.InteropServices;
         }
 
         [Theory, MemberData(nameof(TestData))]
-        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
         public void IsExplicitDefinitionOfNoPiaLocalType6(string type)
         {
             var compilation = CreateCompilation(@$"
@@ -83,7 +83,7 @@ using TI = System.Runtime.InteropServices.TypeIdentifierAttribute;
         }
 
         [Theory, MemberData(nameof(TestData))]
-        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
         public void IsExplicitDefinitionOfNoPiaLocalType7(string type)
         {
             var compilation = CreateCompilation(@$"
@@ -95,7 +95,7 @@ using TIAttribute = System.Runtime.InteropServices.TypeIdentifierAttribute;
         }
 
         [Theory, MemberData(nameof(TestData))]
-        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
         public void IsExplicitDefinitionOfNoPiaLocalType8(string type)
         {
             var compilation = CreateCompilation(@$"
@@ -107,7 +107,7 @@ using TIAttribute = System.Runtime.InteropServices.TypeIdentifierAttribute;
         }
 
         [Theory, MemberData(nameof(TestData))]
-        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
         public void IsExplicitDefinitionOfNoPiaLocalType9(string type)
         {
             var compilation = CreateCompilation(new[]
@@ -121,7 +121,7 @@ using TIAttribute = System.Runtime.InteropServices.TypeIdentifierAttribute;
         }
 
         [Theory, MemberData(nameof(TestData))]
-        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
         public void IsExplicitDefinitionOfNoPiaLocalType10(string type)
         {
             var compilation = CreateCompilation(new[]
@@ -135,7 +135,7 @@ using TIAttribute = System.Runtime.InteropServices.TypeIdentifierAttribute;
         }
 
         [Theory, MemberData(nameof(TestData))]
-        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
         public void IsExplicitDefinitionOfNoPiaLocalType11(string type)
         {
             var compilation = CreateCompilation(new[]
@@ -149,7 +149,7 @@ using TIAttribute = System.Runtime.InteropServices.TypeIdentifierAttribute;
         }
 
         [Theory, MemberData(nameof(TestData))]
-        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
         public void IsExplicitDefinitionOfNoPiaLocalType12(string type)
         {
             var compilation = CreateCompilation(new[]
@@ -167,7 +167,7 @@ namespace N
         }
 
         [Theory, MemberData(nameof(TestData))]
-        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
         public void IsExplicitDefinitionOfNoPiaLocalType13(string type)
         {
             var compilation = CreateCompilation(new[]
@@ -185,7 +185,7 @@ namespace N
         }
 
         [Theory, MemberData(nameof(TestData))]
-        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
         public void IsExplicitDefinitionOfNoPiaLocalType14(string type)
         {
             var compilation = CreateCompilation(new[]

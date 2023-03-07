@@ -2646,7 +2646,7 @@ partial class Derived : Base
             }
         }
 
-        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44930")]
         public void DifferentReturnTypes_01()
         {
             var source = @"
@@ -2668,7 +2668,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M").WithLocation(5, 25));
         }
 
-        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44930")]
         public void DifferentReturnTypes_02()
         {
             var source = @"
@@ -2684,7 +2684,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M").WithLocation(5, 24));
         }
 
-        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44930")]
         public void DifferentReturnTypes_03()
         {
             var source = @"
@@ -2712,7 +2712,7 @@ partial class C
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("IEnumerable<string?> C.M2()", "IEnumerable<string> C.M2()").WithLocation(11, 40));
         }
 
-        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44930")]
         public void DifferentReturnTypes_04()
         {
             var source = @"
@@ -2746,7 +2746,7 @@ partial class C
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M2").WithLocation(11, 41));
         }
 
-        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44930")]
         public void DifferentReturnTypes_05()
         {
             var source = @"
@@ -2773,7 +2773,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M2").WithLocation(13, 41));
         }
 
-        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44930")]
         public void DifferentReturnTypes_06()
         {
             var source = @"
@@ -2800,7 +2800,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M2").WithLocation(13, 38));
         }
 
-        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44930")]
         public void DifferentReturnTypes_07()
         {
             var source = @"
@@ -2834,7 +2834,7 @@ partial class C
             );
         }
 
-        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44930")]
         public void DifferentReturnTypes_08()
         {
             var source = @"
@@ -2918,7 +2918,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(28, 32));
         }
 
-        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44930")]
         public void DifferentReturnTypes_09()
         {
             var source = @"
@@ -2946,7 +2946,7 @@ partial class C
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("int C.M2()", "ref int C.M2()").WithLocation(8, 28));
         }
 
-        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44930")]
         public void DifferentReturnTypes_10()
         {
             var source = @"
@@ -2968,7 +2968,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M2").WithArguments("C.M2<U>()", "U").WithLocation(8, 22));
         }
 
-        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44930")]
         public void DifferentReturnTypes_11()
         {
             var source = @"
@@ -2987,7 +2987,7 @@ partial class C<T>
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44930")]
         public void DifferentReturnTypes_12()
         {
             var source = @"
@@ -3003,7 +3003,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1()", "C.M1()").WithLocation(5, 37));
         }
 
-        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44930")]
         public void DifferentReturnTypes_13()
         {
             var source = @"
@@ -3019,7 +3019,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M1").WithLocation(5, 36));
         }
 
-        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44930")]
         public void DifferentReturnTypes_14()
         {
             var source = @"
@@ -3044,7 +3044,7 @@ partial class C
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("dynamic C.M2()", "object C.M2()").WithLocation(8, 27));
         }
 
-        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44930")]
         public void DifferentReturnTypes_15()
         {
             var source = @"
@@ -3071,7 +3071,7 @@ partial class C
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("nint C.M2()", "IntPtr C.M2()").WithLocation(10, 27));
         }
 
-        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44930")]
         public void DifferentReturnTypes_16()
         {
             var source = @"
@@ -3099,7 +3099,7 @@ partial class C
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("ref readonly int C.M2()", "ref int C.M2()").WithLocation(8, 28));
         }
 
-        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44930")]
         public void DifferentReturnTypes_17()
         {
             var source = @"
@@ -3233,7 +3233,7 @@ partial class C
         }
 
         [Fact]
-        [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45519")]
         public void DifferentSignatures_Dynamic()
         {
             var source =
@@ -3263,7 +3263,7 @@ partial class C
         }
 
         [Fact]
-        [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45519")]
         public void DifferentSignatures_Nullable()
         {
             var source =
@@ -3326,7 +3326,7 @@ partial class C
 
         // Errors reported for all differences.
         [Fact]
-        [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45519")]
         public void DifferentSignatures_Tuples()
         {
             var source =
@@ -3370,7 +3370,7 @@ partial class C
         }
 
         [Fact]
-        [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45519")]
         public void DifferentSignatures_NativeIntegers()
         {
             var source =

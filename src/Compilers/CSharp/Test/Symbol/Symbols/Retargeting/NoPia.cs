@@ -1538,7 +1538,7 @@ public class C
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13200")]
         public void CannotEmbedValueTupleImplicitlyReferred_ByMethod()
         {
             string piaSource = @"
@@ -1592,7 +1592,7 @@ public interface ITest2 : ITest1 { }
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13200")]
         public void CannotEmbedValueTupleImplicitlyReferred_ByProperty()
         {
             string piaSource = @"
@@ -1645,7 +1645,7 @@ public interface ITest2 : ITest1 { }
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13200")]
         public void CannotEmbedGenericDelegateReferred_ByEvent()
         {
             string piaSource = @"
@@ -1687,7 +1687,7 @@ public interface ITest2 : ITest1 { }
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13200")]
         public void CannotEmbedValueTupleImplicitlyReferred_ByField()
         {
             string piaSource = @"
@@ -1742,7 +1742,7 @@ public interface ITest2
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13200")]
         public void CannotEmbedValueTupleImplicitlyReferredFromMetadata()
         {
             string piaSource = @"
@@ -2562,7 +2562,7 @@ public struct S2<T>
         }
 
         [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
-        [WorkItem(685240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685240")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685240")]
         public void Bug685240()
         {
             string piaSource = @"
@@ -2621,7 +2621,7 @@ public class Consumer
         }
 
         [Fact]
-        [WorkItem(24964, "https://github.com/dotnet/roslyn/issues/24964")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24964")]
         public void UnificationAcrossDistinctCoreLibs()
         {
             string pia = @"

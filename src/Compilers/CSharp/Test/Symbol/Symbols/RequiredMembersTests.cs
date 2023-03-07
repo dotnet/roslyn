@@ -3614,7 +3614,7 @@ struct S
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_01()
     {
         var code = @"
@@ -3633,7 +3633,7 @@ class C
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_02()
     {
         var code = """
@@ -3653,7 +3653,7 @@ class C
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_03()
     {
         var code = """
@@ -3684,7 +3684,7 @@ class C
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_04()
     {
         var code = """
@@ -3704,7 +3704,7 @@ class C
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_05()
     {
         var code = """
@@ -3725,7 +3725,7 @@ class C
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_06()
     {
         var code = """
@@ -3753,7 +3753,7 @@ class C
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_07()
     {
         var code = """
@@ -3781,7 +3781,7 @@ class C
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_08()
     {
         var code = """
@@ -3805,7 +3805,7 @@ class C
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_09()
     {
         var code = """
@@ -3829,7 +3829,7 @@ public class C
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_01()
     {
         var code = """
@@ -3861,7 +3861,7 @@ class C
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_02()
     {
         var code = """
@@ -3893,7 +3893,7 @@ class C
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_03()
     {
         var code = """
@@ -3925,7 +3925,7 @@ class C
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_04()
     {
         var code = """
@@ -3958,7 +3958,7 @@ class C
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_05()
     {
         var code = """
@@ -3992,7 +3992,7 @@ class C
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_01()
     {
         var @base = """
@@ -4037,7 +4037,7 @@ class Derived : Base
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_02()
     {
         var @base = """
@@ -4082,7 +4082,7 @@ class Derived : Base
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_03()
     {
         var @base = """
@@ -4127,7 +4127,7 @@ class Derived : Base
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_04()
     {
         var @base = """
@@ -4171,7 +4171,7 @@ class Derived : Base
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_05()
     {
         var @base = """
@@ -4522,7 +4522,7 @@ public class Derived : Base
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(61718, "https://github.com/dotnet/roslyn/issues/61718")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/61718")]
     public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_09A()
     {
         var @base = $$"""
@@ -4609,7 +4609,7 @@ public class Derived : Base
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(61718, "https://github.com/dotnet/roslyn/issues/61718")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/61718")]
     public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_09B()
     {
         var code = """
@@ -4672,7 +4672,7 @@ public class Derived : Base
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    [WorkItem(61718, "https://github.com/dotnet/roslyn/issues/61718")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/61718")]
     public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_09C()
     {
         var @base = $$"""
@@ -5515,7 +5515,7 @@ public class Derived : Base
         Assert.Equal(isRequired, property.IsRequired);
     }
 
-    [Fact, WorkItem(61822, "https://github.com/dotnet/roslyn/issues/61822")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61822")]
     public void RequiredMembersNotAllowedInSubmission()
     {
         var reference = CreateCompilationWithRequiredMembers("").ToMetadataReference();
@@ -5534,7 +5534,7 @@ public class Derived : Base
         );
     }
 
-    [Fact, WorkItem(61822, "https://github.com/dotnet/roslyn/issues/61822")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61822")]
     public void RequiredMembersNotAllowedInScript()
     {
         var reference = CreateCompilationWithRequiredMembers("").ToMetadataReference();
@@ -5553,7 +5553,7 @@ public class Derived : Base
         );
     }
 
-    [Fact, WorkItem(62062, "https://github.com/dotnet/roslyn/issues/62062")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62062")]
     public void DuplicateRequiredMembers_Fields()
     {
         var comp = CreateCompilationWithRequiredMembers("""
@@ -5595,7 +5595,7 @@ public class Derived : Base
         );
     }
 
-    [Fact, WorkItem(62062, "https://github.com/dotnet/roslyn/issues/62062")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62062")]
     public void DuplicateRequiredMembers_Properties()
     {
         var comp = CreateCompilationWithRequiredMembers("""
@@ -5637,7 +5637,7 @@ public class Derived : Base
         );
     }
 
-    [Fact, WorkItem(62062, "https://github.com/dotnet/roslyn/issues/62062")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62062")]
     public void DuplicateRequiredMembers_Mixed01()
     {
         var comp = CreateCompilationWithRequiredMembers("""
@@ -5658,7 +5658,7 @@ public class Derived : Base
         );
     }
 
-    [Fact, WorkItem(62062, "https://github.com/dotnet/roslyn/issues/62062")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62062")]
     public void DuplicateRequiredMembers_Mixed02()
     {
         var comp = CreateCompilationWithRequiredMembers("""

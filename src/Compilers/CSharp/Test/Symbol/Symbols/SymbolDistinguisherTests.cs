@@ -686,7 +686,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "M<C>").WithArguments("Lib.M<T>()", "C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", "T", "C [file.cs(2)]").WithLocation(8, 13));
         }
 
-        [WorkItem(6262, "https://github.com/dotnet/roslyn/issues/6262")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/6262")]
         [Fact]
         public void SymbolDistinguisherEquality()
         {
@@ -708,7 +708,7 @@ class C { }";
             return a.First.Equals(b.First) && a.Second.Equals(b.Second);
         }
 
-        [WorkItem(8470, "https://github.com/dotnet/roslyn/issues/8470")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8470")]
         [Fact]
         public void DescriptionNoCompilation()
         {
@@ -728,7 +728,7 @@ class B { }";
             int hashCode2A = arg2A.GetHashCode();
         }
 
-        [WorkItem(8470, "https://github.com/dotnet/roslyn/issues/8470")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8470")]
         [Fact]
         public void CompareDiagnosticsNoCompilation()
         {
@@ -754,7 +754,7 @@ public class B<T> where T : A { }";
             }
         }
 
-        [WorkItem(8588, "https://github.com/dotnet/roslyn/issues/8588")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8588")]
         [Fact]
         public void SameErrorTypeArgumentsDifferentSourceAssemblies()
         {

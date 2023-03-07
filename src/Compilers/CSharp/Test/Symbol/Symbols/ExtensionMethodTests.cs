@@ -208,7 +208,7 @@ static class S
                 Diagnostic(ErrorCode.ERR_BadArgType, "c.P").WithArguments("1", "object", "System.Action").WithLocation(13, 11));
         }
 
-        [WorkItem(529063, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529063")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529063")]
         [Fact]
         public void GetSymbolInfoTest()
         {
@@ -298,7 +298,7 @@ static class Program
 xyz", verify: Verification.FailsILVerify);
         }
 
-        [WorkItem(541143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541143")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541143")]
         [ClrOnlyFact]
         public void NumericConversionsAreNotAllowed()
         {
@@ -327,7 +327,7 @@ static class Program
             CompileAndVerify(source, expectedOutput: "object");
         }
 
-        [WorkItem(541144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541144")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541144")]
         [ClrOnlyFact]
         public void EnumerationConversionsAreNotAllowed()
         {
@@ -356,7 +356,7 @@ static class Program
             CompileAndVerify(source, expectedOutput: "object");
         }
 
-        [WorkItem(541145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541145")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541145")]
         [ClrOnlyFact]
         public void CannotCreateDelegateToExtensionMethodOnValueType()
         {
@@ -381,7 +381,7 @@ static class Program
             CompileAndVerify(source, expectedOutput: "2", verify: Verification.FailsILVerify);
         }
 
-        [WorkItem(528426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528426")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528426")]
         [ClrOnlyFact]
         public void TypedReferenceCannotBeUsedAsTypeArgument()
         {
@@ -406,8 +406,8 @@ static class Program
             CompileAndVerify(source, expectedOutput: "2");
         }
 
-        [WorkItem(541146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541146")]
-        [WorkItem(868538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868538")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541146")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868538")]
         [Fact]
         public void VariablesUsedInExtensionMethodGroupMustBeDefinitelyAssigned()
         {
@@ -446,7 +446,7 @@ static class Program
                 );
         }
 
-        [WorkItem(541187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541187")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541187")]
         [Fact]
         public void ExtensionMethodsCannotBeDeclaredInNamespaces()
         {
@@ -465,7 +465,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "Goo"));
         }
 
-        [WorkItem(541189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541189")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541189")]
         [ClrOnlyFact]
         public void ExtensionMethodsDeclaredInEnclosingNamespaceArePreferredOverImported2()
         {
@@ -494,7 +494,7 @@ namespace N
             CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [WorkItem(541189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541189")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541189")]
         [ClrOnlyFact]
         public void ExtensionMethodsDeclaredInEnclosingNamespaceArePreferredOverImported()
         {
@@ -1423,8 +1423,8 @@ class B
             );
         }
 
-        [WorkItem(541330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541330")]
-        [WorkItem(541335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541335")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541330")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541335")]
         [Fact]
         public void ReturnDelegateAsObject()
         {
@@ -1493,7 +1493,7 @@ static class S2
             );
         }
 
-        [WorkItem(868538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868538")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868538")]
         [Fact]
         public void IsAndAs()
         {
@@ -2607,7 +2607,7 @@ internal static class C
             });
         }
 
-        [WorkItem(541327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541327")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541327")]
         [Fact]
         public void RegressBug7992()
         {
@@ -2684,7 +2684,7 @@ S");
 }");
         }
 
-        [WorkItem(541652, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541652")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541652")]
         [ClrOnlyFact]
         public void ReduceExtensionMethodWithNullReceiverType()
         {
@@ -2709,7 +2709,7 @@ S");
             });
         }
 
-        [WorkItem(528730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528730")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528730")]
         [Fact]
         public void ThisParameterCalledOnNonSourceMethodSymbol()
         {
@@ -2760,7 +2760,7 @@ class Program
                 options: options);
         }
 
-        [WorkItem(528853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528853")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528853")]
         [Fact]
         public void NoOverloadTakesNArguments()
         {
@@ -2786,7 +2786,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("y", "S.M(object, object)").WithLocation(7, 9));
         }
 
-        [WorkItem(543711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543711")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543711")]
         [Fact]
         public void ReduceReducedExtensionsMethod()
         {
@@ -2817,7 +2817,7 @@ class Program
             Assert.Null(reducedWithReceiver.ReduceExtensionMethod(int32Type, null!));
         }
 
-        [WorkItem(37780, "https://github.com/dotnet/roslyn/issues/37780")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37780")]
         [Fact]
         public void ReducedExtensionMethodVsUnmanagedConstraint()
         {
@@ -2893,7 +2893,7 @@ public struct MyStruct<T>
         /// error for the instance method that was used for binding. The inaccessible
         /// error may be helpful for the user or for "quick fix" in particular.
         /// </summary>
-        [WorkItem(529866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529866")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529866")]
         [Fact]
         public void InstanceMethodAndInaccessibleExtensionMethod_Diagnostics()
         {
@@ -2925,7 +2925,7 @@ static class Extensions
                 Diagnostic(ErrorCode.ERR_BadArgType, "1d").WithArguments("1", "double", "float").WithLocation(6, 16));
         }
 
-        [WorkItem(545322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545322")] // Bug relates to defunct LookupOptions.IgnoreAccessibility.
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545322")] // Bug relates to defunct LookupOptions.IgnoreAccessibility.
         [Fact]
         public void InstanceMethodAndInaccessibleExtensionMethod_Symbols()
         {
@@ -2983,7 +2983,7 @@ static class Extensions
                 Diagnostic(ErrorCode.ERR_BadArgType, "1d").WithArguments("1", "double", "float"));
         }
 
-        [WorkItem(541890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541890")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541890")]
         [Fact]
         public void InstanceMethodAndInaccessibleExtensionMethod_CandidateSymbols()
         {
@@ -3026,7 +3026,7 @@ static class Extensions
                 "void C.Test(float f)");
         }
 
-        [WorkItem(529596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529596")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529596")]
         [Fact(Skip = "529596")]
         public void DelegateFromValueTypeExtensionMethod()
         {
@@ -3081,7 +3081,7 @@ static class DevDivBugs142219
         }
 
         [ClrOnlyFact]
-        [WorkItem(545734, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545734")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545734")]
         public void ExtensionMethodWithRefParameterFromMetadata()
         {
             var lib = @"
@@ -3111,7 +3111,7 @@ static class Program
             CompileAndVerify(consumer, references: new[] { libReference });
         }
 
-        [Fact, WorkItem(545800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545800")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545800")]
         public void SameExtensionMethodSymbol()
         {
             var src1 = @"
@@ -3172,7 +3172,7 @@ class Test
         /// Dev11 allows referencing extension methods defined on
         /// non-static classes, generic classes, structs, and delegates.
         /// </summary>
-        [WorkItem(546093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546093")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546093")]
         [Fact]
         public void NonStaticClasses()
         {
@@ -3262,7 +3262,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "MI").WithArguments("object", "MI").WithLocation(9, 11));
         }
 
-        [WorkItem(546093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546093")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546093")]
         [ClrOnlyFact]
         public void VBExtensionMethod()
         {
@@ -3286,7 +3286,7 @@ End Module";
             compilation2.VerifyDiagnostics();
         }
 
-        [WorkItem(602893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602893")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602893")]
         [ClrOnlyFact]
         public void Bug602893()
         {
@@ -3334,7 +3334,7 @@ namespace NA.NC
         /// <summary>
         /// As test above but with all classes defined in the same compilation.
         /// </summary>
-        [WorkItem(602893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602893")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602893")]
         [Fact]
         public void Bug602893_2()
         {
@@ -3410,7 +3410,7 @@ namespace NB
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using NB;"));
         }
 
-        [Fact, WorkItem(822125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/822125")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/822125")]
         public void ConsumeFSharpExtensionMethods()
         {
             var source =
@@ -3455,7 +3455,7 @@ internal static class Test
         }
 
         [ClrOnlyFact]
-        [WorkItem(1010648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010648")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010648")]
         public void ExtensionMethodFromUsingStatic()
         {
             const string source = @"
@@ -3483,7 +3483,7 @@ namespace N
             CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [Fact, WorkItem(1085744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085744")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085744")]
         public void ExtensionMethodsAreNotImportedAsSimpleNames()
         {
             const string source = @"
@@ -3517,7 +3517,7 @@ namespace N
         }
 
         [ClrOnlyFact]
-        [WorkItem(1010648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010648")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010648")]
         public void ExtensionMethodImportedTwiceNoErrors()
         {
             const string source = @"
@@ -3546,7 +3546,7 @@ namespace N
             CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [Fact, WorkItem(1010648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010648")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010648")]
         public void ExtensionMethodIsNotDisambiguatedByUsingStaticAtTheSameLevel()
         {
             const string source = @"
@@ -3585,7 +3585,7 @@ namespace N
         }
 
         [ClrOnlyFact]
-        [WorkItem(1010648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010648")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010648")]
         public void ExtensionMethodIsDisambiguatedByUsingStaticAtDeeperLevel()
         {
             const string source = @"
@@ -3626,7 +3626,7 @@ namespace N
             CompileAndVerify(source, expectedOutput: "S");
         }
 
-        [Fact, WorkItem(1010648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010648")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010648")]
         public void ExtensionMethodAmbiguousAcrossMultipleUsingStatic()
         {
             const string source = @"
@@ -3671,7 +3671,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("N.S.Goo(int)", "N.R.Goo(int)").WithLocation(13, 15));
         }
 
-        [Fact, WorkItem(1010648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010648")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010648")]
         public void ExtensionMethodsInTheContainingClassDoNotHaveHigherPrecedence()
         {
             const string source = @"
@@ -3708,7 +3708,7 @@ namespace N
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static Program;").WithLocation(4, 5));
         }
 
-        [Fact, WorkItem(1010648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010648")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010648")]
         public void UsingAliasDoesNotImportExtensionMethods()
         {
             const string source = @"
@@ -3743,7 +3743,7 @@ namespace N
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = N.S;").WithLocation(4, 5));
         }
 
-        [WorkItem(1094849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094849"), WorkItem(2288, "https://github.com/dotnet/roslyn/issues/2288")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094849"), WorkItem("https://github.com/dotnet/roslyn/issues/2288")]
         [Fact]
         public void LookupSymbolsWithPartialInference()
         {
@@ -3836,7 +3836,7 @@ o.G().F();";
         }
 
         [Fact]
-        [WorkItem(11166, "https://github.com/dotnet/roslyn/issues/11166")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11166")]
         public void SemanticModelLookup_01()
         {
             var source =
@@ -3880,7 +3880,7 @@ public class BaseClass<TMember>
         }
 
         [Fact]
-        [WorkItem(11166, "https://github.com/dotnet/roslyn/issues/11166")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11166")]
         public void SemanticModelLookup_02()
         {
             var source =
@@ -3926,7 +3926,7 @@ public class BaseClass<TMember>
         }
 
         [Fact]
-        [WorkItem(11166, "https://github.com/dotnet/roslyn/issues/11166")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11166")]
         public void SemanticModelLookup_03()
         {
             var source =
@@ -3972,7 +3972,7 @@ public class BaseClass<TMember> : I1<TMember>
         }
 
         [Fact]
-        [WorkItem(11166, "https://github.com/dotnet/roslyn/issues/11166")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11166")]
         public void SemanticModelLookup_04()
         {
             var source =
@@ -4081,7 +4081,7 @@ public static class C
         }
 
         [Fact]
-        [WorkItem(65020, "https://github.com/dotnet/roslyn/issues/65020")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/65020")]
         public void ReduceExtensionsMethodOnReceiverTypeSystemVoid()
         {
             var source =
