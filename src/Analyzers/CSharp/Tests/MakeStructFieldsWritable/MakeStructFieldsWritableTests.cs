@@ -702,7 +702,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
                 """);
         }
 
-        [Fact, WorkItem(57920, "https://github.com/dotnet/roslyn/issues/57920")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57920")]
         public async Task ReadonlyStaticField()
         {
             var test = """
@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
             await VerifyCS.VerifyCodeFixAsync(test, test);
         }
 
-        [Fact, WorkItem(57920, "https://github.com/dotnet/roslyn/issues/57920")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57920")]
         public async Task ConstField()
         {
             var test = """

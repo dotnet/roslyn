@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                 """);
         }
 
-        [Fact, WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
         public async Task TestMissingOnAmbiguity1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                 """);
         }
 
-        [Fact, WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
         public async Task TestWithConstraint1()
         {
             var code = """
@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
         public async Task TestWithConstraint2()
         {
             var code = """
@@ -833,7 +833,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
         public async Task TestMissingOnLambdaWithDynamic_1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -869,7 +869,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                 """);
         }
 
-        [Fact, WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
         public async Task TestWithLambdaWithDynamic()
         {
             await TestInRegularAndScriptAsync(
@@ -945,7 +945,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                 """);
         }
 
-        [Fact, WorkItem(544625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544625")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544625")]
         public async Task ParenthesizeIfParseChanges()
         {
             var code = """
@@ -985,7 +985,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, WorkItem(545856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545856")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545856")]
         public async Task TestNotWithSideEffects()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1002,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                 """);
         }
 
-        [Fact, WorkItem(545994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545994")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545994")]
         public async Task TestExpressionStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -1639,7 +1639,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                 """);
         }
 
-        [Fact, WorkItem(63465, "https://github.com/dotnet/roslyn/issues/63465")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63465")]
         public async Task TestNotWithPartialDefinition()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1661,7 +1661,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                 """);
         }
 
-        [Fact, WorkItem(63465, "https://github.com/dotnet/roslyn/issues/63465")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63465")]
         public async Task TestWithPartialDefinitionAndImplementation()
         {
             await TestInRegularAndScriptAsync(
@@ -1701,7 +1701,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                 """);
         }
 
-        [Fact, WorkItem(63464, "https://github.com/dotnet/roslyn/issues/63464")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63464")]
         public async Task TestNotWithConditionalAttribute()
         {
             await TestMissingInRegularAndScriptAsync("""

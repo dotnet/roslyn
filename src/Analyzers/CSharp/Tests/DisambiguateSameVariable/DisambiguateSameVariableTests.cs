@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisambiguateSameVariabl
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(28290, "https://github.com/dotnet/roslyn/issues/28290")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
         public async Task TestParamToParamWithSameNamedField()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisambiguateSameVariabl
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(28290, "https://github.com/dotnet/roslyn/issues/28290")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
         public async Task TestParamToParamWithUnderscoreNamedField()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisambiguateSameVariabl
                 """);
         }
 
-        [Fact, WorkItem(28290, "https://github.com/dotnet/roslyn/issues/28290")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
         public async Task TestParamToParamWithCapitalizedField()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisambiguateSameVariabl
                 """);
         }
 
-        [Fact, WorkItem(28290, "https://github.com/dotnet/roslyn/issues/28290")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
         public async Task TestParamToParamWithProperty()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisambiguateSameVariabl
                 """);
         }
 
-        [Fact, WorkItem(28290, "https://github.com/dotnet/roslyn/issues/28290")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
         public async Task TestParamToParamWithReadOnlyFieldInConstructor()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisambiguateSameVariabl
                 """);
         }
 
-        [Fact, WorkItem(28290, "https://github.com/dotnet/roslyn/issues/28290")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
         public async Task TestParamToParamWithReadOnlyFieldOutsideOfConstructor()
         {
             // Not legal, but is at least something they might want.
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisambiguateSameVariabl
                 """);
         }
 
-        [Fact, WorkItem(28290, "https://github.com/dotnet/roslyn/issues/28290")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
         public async Task TestParamToParamWithAccessibleFieldInBaseType()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisambiguateSameVariabl
                 """);
         }
 
-        [Fact, WorkItem(28290, "https://github.com/dotnet/roslyn/issues/28290")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
         public async Task TestParamToParamNotWithInaccessibleFieldInBaseType()
         {
             var code = """
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisambiguateSameVariabl
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(28290, "https://github.com/dotnet/roslyn/issues/28290")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
         public async Task TestParamToParamNotWithStaticField()
         {
             var code = """
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisambiguateSameVariabl
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(28290, "https://github.com/dotnet/roslyn/issues/28290")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
         public async Task TestParamToParamCompareWithSameNamedField()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisambiguateSameVariabl
                 """);
         }
 
-        [Fact, WorkItem(28290, "https://github.com/dotnet/roslyn/issues/28290")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
         public async Task TestFixAll1()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisambiguateSameVariabl
                 """);
         }
 
-        [Fact, WorkItem(28290, "https://github.com/dotnet/roslyn/issues/28290")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
         public async Task TestFieldToFieldWithPropAvailableOffOfThis()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisambiguateSameVariabl
                 """);
         }
 
-        [Fact, WorkItem(28290, "https://github.com/dotnet/roslyn/issues/28290")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
         public async Task TestFieldToFieldWithPropAvailableOffOfOtherInstance()
         {
             await VerifyCS.VerifyCodeFixAsync("""

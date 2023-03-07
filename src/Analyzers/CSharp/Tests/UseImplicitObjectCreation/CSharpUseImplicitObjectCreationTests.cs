@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseImplicitObjectCreati
             }.RunAsync();
         }
 
-        [Fact, WorkItem(49291, "https://github.com/dotnet/roslyn/issues/49291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49291")]
         public async Task TestListOfTuplesWithLabels()
         {
             await new VerifyCS.Test
@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseImplicitObjectCreati
             }.RunAsync();
         }
 
-        [Fact, WorkItem(49291, "https://github.com/dotnet/roslyn/issues/49291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49291")]
         public async Task TestListOfTuplesWithoutLabels()
         {
             await new VerifyCS.Test
@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseImplicitObjectCreati
             }.RunAsync();
         }
 
-        [Fact, WorkItem(49291, "https://github.com/dotnet/roslyn/issues/49291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49291")]
         public async Task TestListOfTuplesWithoutLabelsAsLocal()
         {
             await new VerifyCS.Test
@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseImplicitObjectCreati
             }.RunAsync();
         }
 
-        [Fact, WorkItem(57777, "https://github.com/dotnet/roslyn/issues/57777")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57777")]
         public async Task TestMissingOnNullableStruct()
         {
             var source = """
@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseImplicitObjectCreati
             }.RunAsync();
         }
 
-        [Fact, WorkItem(57777, "https://github.com/dotnet/roslyn/issues/57777")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57777")]
         public async Task TestOnNullableReferenceType()
         {
             await new VerifyCS.Test

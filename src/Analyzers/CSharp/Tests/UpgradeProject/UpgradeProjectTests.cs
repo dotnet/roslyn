@@ -1208,7 +1208,7 @@ enum Program[|;|]",
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [Fact, WorkItem(57154, "https://github.com/dotnet/roslyn/issues/57154")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57154")]
         public async Task UpgradeProjectForNewLinesInInterpolations()
         {
             await TestLanguageVersionUpgradedAsync("""
@@ -1226,7 +1226,7 @@ enum Program[|;|]",
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60167")]
         public async Task UpgradeProjectForStructAutoDefaultError_1()
         {
             await TestLanguageVersionUpgradedAsync("""
@@ -1240,7 +1240,7 @@ enum Program[|;|]",
                 new CSharpParseOptions(LanguageVersion.CSharp10));
         }
 
-        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60167")]
         public async Task UpgradeProjectForStructAutoDefaultError_2()
         {
             await TestLanguageVersionUpgradedAsync("""
@@ -1254,7 +1254,7 @@ enum Program[|;|]",
                 new CSharpParseOptions(LanguageVersion.CSharp10));
         }
 
-        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60167")]
         public async Task UpgradeProjectForStructAutoDefaultError_3()
         {
             await TestLanguageVersionUpgradedAsync("""

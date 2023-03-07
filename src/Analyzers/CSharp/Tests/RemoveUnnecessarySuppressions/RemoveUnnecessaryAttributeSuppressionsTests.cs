@@ -15,7 +15,7 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeF
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppressions
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessarySuppressions)]
-    [WorkItem(44176, "https://github.com/dotnet/roslyn/issues/44176")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/44176")]
     public class RemoveUnnecessaryAttributeSuppressionsTests
     {
         [Theory, CombinatorialData]
@@ -183,7 +183,7 @@ class C
             await VerifyCS.VerifyCodeFixAsync(input, input);
         }
 
-        [Fact, WorkItem(45465, "https://github.com/dotnet/roslyn/issues/45465")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45465")]
         public async Task LegacyModeGlobalSuppressionWithNamespaceAndDescendantsScope()
         {
             var target = "N:N.InvalidChild";

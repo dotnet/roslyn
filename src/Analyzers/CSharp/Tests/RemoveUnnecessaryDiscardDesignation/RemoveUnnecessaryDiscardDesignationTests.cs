@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryDiscar
             }.RunAsync();
         }
 
-        [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66841")]
         public async Task TestPropertyWithTheSameNameAsType()
         {
             await new VerifyCS.Test
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryDiscar
             }.RunAsync();
         }
 
-        [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66841")]
         public async Task TestNotWhenRemovingDiscardChangesMeaning1()
         {
             await new VerifyCS.Test
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryDiscar
             }.RunAsync();
         }
 
-        [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66841")]
         public async Task TestNotWhenRemovingDiscardChangesMeaning2()
         {
             await new VerifyCS.Test
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryDiscar
             }.RunAsync();
         }
 
-        [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66841")]
         public async Task TestNestedPropertyWithTheSameNameAsNestedType()
         {
             await new VerifyCS.Test
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryDiscar
             }.RunAsync();
         }
 
-        [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66841")]
         public async Task TestNotWhenRemovingDiscardChangesMeaning3()
         {
             await new VerifyCS.Test
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryDiscar
             }.RunAsync();
         }
 
-        [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66841")]
         public async Task TestNotWhenRemovingDiscardChangesMeaning4()
         {
             await new VerifyCS.Test
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryDiscar
             }.RunAsync();
         }
 
-        [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66841")]
         public async Task TestPropertyNamedGlobalAndAliasQualifiedName1()
         {
             await new VerifyCS.Test
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryDiscar
             }.RunAsync();
         }
 
-        [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66841")]
         public async Task TestPropertyNamedGlobalAndAliasQualifiedName2()
         {
             await new VerifyCS.Test
@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryDiscar
             }.RunAsync();
         }
 
-        [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66841")]
         public async Task TestPropertyNamedGlobalAndAliasQualifiedName3()
         {
             await new VerifyCS.Test
