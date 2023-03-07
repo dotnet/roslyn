@@ -2,20 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseAutoProperty;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAnalyzer<
+    internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAnalyzer<
         PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ExpressionSyntax>
     {
         protected override bool SupportsReadOnlyProperties(Compilation compilation)
@@ -83,17 +84,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                         // An argument will disqualify a field if that field is used in a ref/out position.  
                         // We can't change such field references to be property references in C#.
                         if (argument.RefKindKeyword.Kind() != SyntaxKind.None)
-                        {
                             AddIneligibleFields(semanticModel, argument.Expression, ineligibleFields, cancellationToken);
-                        }
                     }
 
                     foreach (var refExpression in typeDeclaration.DescendantNodesAndSelf().OfType<RefExpressionSyntax>())
-                    {
                         AddIneligibleFields(semanticModel, refExpression.Expression, ineligibleFields, cancellationToken);
+
+                    // Can't take the address of an auto-prop.  So disallow for fields that we do `&x` on.
+                    foreach (var addressOfExpression in typeDeclaration.DescendantNodesAndSelf().OfType<PrefixUnaryExpressionSyntax>())
+                    {
+                        if (addressOfExpression.Kind() == SyntaxKind.AddressOfExpression)
+                            AddIneligibleFields(semanticModel, addressOfExpression.Operand, ineligibleFields, cancellationToken);
                     }
+
+                    foreach (var memberAccess in typeDeclaration.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>())
+                        AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(semanticModel, memberAccess, ineligibleFields, cancellationToken);
                 }
             }
+        }
+
+        private static void AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(
+            SemanticModel semanticModel, MemberAccessExpressionSyntax memberAccess, HashSet<IFieldSymbol> ineligibleFields, CancellationToken cancellationToken)
+        {
+            // `c.x = ...` can't be converted to `c.X = ...` if `c` is a struct and isn't definitely assigned as that point.
+
+            // only care about writes.  if this was a read, then it must be def assigned and thus is safe to convert to a prop.
+            if (!memberAccess.IsOnlyWrittenTo())
+                return;
+
+            // this only matters for a field access off of a struct.  They can be declared unassigned and have their
+            // fields directly written into.
+            var symbolInfo = semanticModel.GetSymbolInfo(memberAccess, cancellationToken);
+            if (symbolInfo.GetAnySymbol() is not IFieldSymbol { ContainingType.TypeKind: TypeKind.Struct })
+                return;
+
+            var exprSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).GetAnySymbol();
+            if (exprSymbol is not IParameterSymbol and not ILocalSymbol)
+                return;
+
+            var dataFlow = semanticModel.AnalyzeDataFlow(memberAccess.Expression);
+            if (dataFlow != null && !dataFlow.DefinitelyAssignedOnEntry.Contains(exprSymbol))
+                AddIneligibleFields(ineligibleFields, symbolInfo);
         }
 
         protected override ExpressionSyntax? GetFieldInitializer(
@@ -103,22 +134,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
         }
 
         private static void AddIneligibleFields(
-            SemanticModel semanticModel, ExpressionSyntax expression,
-            HashSet<IFieldSymbol> ineligibleFields, CancellationToken cancellationToken)
+            SemanticModel semanticModel, ExpressionSyntax expression, HashSet<IFieldSymbol> ineligibleFields, CancellationToken cancellationToken)
         {
             var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
+            AddIneligibleFields(ineligibleFields, symbolInfo);
+        }
+
+        private static void AddIneligibleFields(HashSet<IFieldSymbol> ineligibleFields, SymbolInfo symbolInfo)
+        {
             AddIneligibleField(symbolInfo.Symbol);
             foreach (var symbol in symbolInfo.CandidateSymbols)
-            {
                 AddIneligibleField(symbol);
-            }
 
             void AddIneligibleField(ISymbol? symbol)
             {
                 if (symbol is IFieldSymbol field)
-                {
                     ineligibleFields.Add(field);
-                }
             }
         }
 

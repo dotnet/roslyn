@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public static unsafe MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadMethodDebugInfo(
             ISymUnmanagedReader3? symReader,
-            EESymbolProvider<TTypeSymbol, TLocalSymbol>? symbolProvider, // TODO: only null in DTEE case where we looking for default namesapace
+            EESymbolProvider<TTypeSymbol, TLocalSymbol>? symbolProvider, // TODO: only null in DTEE case where we looking for default namespace
             int methodToken,
             int methodVersion,
             int ilOffset,
@@ -170,20 +170,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 var reuseSpan = GetReuseSpan(allScopes, ilOffset, isVisualBasicMethod);
 
-                string? name = null;
-                if (symReader.GetMethod(methodToken) is ISymEncUnmanagedMethod and ISymUnmanagedMethod methodInfo)
-                {
-                    // We need a receiver of type `ISymUnmanagedMethod` to call the extension `GetDocumentsForMethod()` here.
-                    // We also need to ensure that the receiver implements `ISymEncUnmanagedMethod` to prevent the extension from throwing.
-                    var doc = methodInfo.GetDocumentsForMethod() switch
-                    {
-                        [var singleDocument] => singleDocument,
-                        var documents => throw ExceptionUtilities.UnexpectedValue(documents)
-                    };
-
-                    name = doc.GetName();
-                }
-
+                // containingDocumentName is not set since ISymUnmanagedMethod.GetDocumentsForMethod()
+                // may fail (see https://github.com/dotnet/roslyn/issues/66260). The result is that
+                // symbols from file-local types will not bind successfully in the EE.
                 return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                     hoistedLocalScopeRecords,
                     importRecordGroups,
@@ -194,7 +183,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     containingScopes.GetLocalNames(),
                     constantsBuilder.ToImmutableAndFree(),
                     reuseSpan,
-                    name);
+                    containingDocumentName: null);
             }
             catch (InvalidOperationException)
             {
@@ -551,7 +540,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 RoslynDebug.AssertNotNull(importString);
 
-                if (importString.Length > 0 && importString[0] == '*')
+                if (importString is ['*', ..])
                 {
                     string? alias = null;
                     string? target = null;

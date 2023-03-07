@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -21,7 +20,6 @@ using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
@@ -40,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Classification
         // We want to track text changes so that we can try to only reclassify a method body if
         // all edits were contained within one.
         protected sealed override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
-        protected sealed override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InternalFeatureOnOffOptions.SemanticColorizer);
+        protected sealed override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(SemanticColorizerOptionsStorage.SemanticColorizer);
 
         protected AbstractSemanticOrEmbeddedClassificationViewTaggerProvider(
             IThreadingContext threadingContext,
@@ -118,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 return Task.CompletedTask;
 
             // If the LSP semantic tokens feature flag is enabled, return nothing to prevent conflicts.
-            var isLspSemanticTokensEnabled = _globalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
+            var isLspSemanticTokensEnabled = _globalOptions.GetOption(LspOptionsStorage.LspSemanticTokensFeatureFlag);
             if (isLspSemanticTokensEnabled)
                 return Task.CompletedTask;
 

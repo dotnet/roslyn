@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
@@ -5928,6 +5929,43 @@ b""</StringToken>
 </Diagnostics>",
         @"<Diagnostics>
   <Diagnostic Message=""Property name must be a string"" Start=""11"" Length=""1"" />
+</Diagnostics>");
+        }
+
+        [Fact, WorkItem(1691963, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1691963")]
+        public void TestAllColons_BecomesNestedProperties()
+        {
+            Test(@"""::::::::""", expected: @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Property>
+        <TextToken>:</TextToken>
+        <ColonToken>:</ColonToken>
+        <Property>
+          <TextToken>:</TextToken>
+          <ColonToken>:</ColonToken>
+          <Property>
+            <TextToken>:</TextToken>
+            <ColonToken>:</ColonToken>
+            <Property>
+              <TextToken>:</TextToken>
+              <ColonToken>:</ColonToken>
+              <CommaValue>
+                <CommaToken />
+              </CommaValue>
+            </Property>
+          </Property>
+        </Property>
+      </Property>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid property name"" Start=""9"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""9"" Length=""1"" />
 </Diagnostics>");
         }
     }

@@ -1126,20 +1126,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(args.IsDefaultOrEmpty || (object)receiver != (object)args[0]);
 
-            if (!gotError)
-            {
-                CheckInvocationArgMixing(
-                    node,
-                    method,
-                    receiver,
-                    method.Parameters,
-                    args,
-                    argRefKinds,
-                    argsToParams,
-                    this.LocalScopeDepth,
-                    diagnostics);
-            }
-
             bool isDelegateCall = (object)delegateTypeOpt != null;
             if (!isDelegateCall)
             {
@@ -1561,6 +1547,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     return BindToNaturalType(receiver, diagnostics);
+            }
+        }
+
+        private static BoundExpression GetValueExpressionIfTypeOrValueReceiver(BoundExpression receiver)
+        {
+            if ((object)receiver == null)
+            {
+                return null;
+            }
+
+            switch (receiver)
+            {
+                case BoundTypeOrValueExpression typeOrValueExpression:
+                    return typeOrValueExpression.Data.ValueExpression;
+
+                case BoundQueryClause queryClause:
+                    // a query clause may wrap a TypeOrValueExpression.
+                    return GetValueExpressionIfTypeOrValueReceiver(queryClause.Value);
+
+                default:
+                    return null;
             }
         }
 
@@ -2051,20 +2058,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
 
             bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics);
-            if (!hasErrors)
-            {
-                hasErrors = !CheckInvocationArgMixing(
-                    node,
-                    funcPtr.Signature,
-                    receiverOpt: null,
-                    funcPtr.Signature.Parameters,
-                    args,
-                    refKinds,
-                    methodResult.Result.ArgsToParamsOpt,
-                    LocalScopeDepth,
-                    diagnostics);
-            }
-
             return new BoundFunctionPointerInvocation(
                 node,
                 boundExpression,

@@ -1888,6 +1888,59 @@ record B(int i) : A
 }", parseOptions: TestOptions.RegularPreview);
         }
 
+        [Fact]
+        public async Task TestWithClassWithParameters()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class A
+{
+    public abstract void AbstractMethod();
+}
+
+class [|B|](int i) : A
+{
+
+}",
+@"abstract class A
+{
+    public abstract void AbstractMethod();
+}
+
+class B(int i) : A
+{
+    public override void AbstractMethod()
+    {
+        throw new System.NotImplementedException();
+    }
+}", parseOptions: TestOptions.RegularPreview);
+        }
+
+        [Fact]
+        public async Task TestWithClassWithSemicolonBody()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class A
+{
+    public abstract void AbstractMethod();
+}
+
+class [|B|] : A;
+",
+@"abstract class A
+{
+    public abstract void AbstractMethod();
+}
+
+class B : A
+{
+    public override void AbstractMethod()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+", parseOptions: TestOptions.RegularPreview);
+        }
+
         [Fact, WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
         public async Task TestUnconstrainedGenericNullable()
         {
@@ -2033,6 +2086,43 @@ class D : C
     public override void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d)
         where T1 : default
         where T3 : default
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, WorkItem(62092, "https://github.com/dotnet/roslyn/issues/62092")]
+        public async Task TestNullableGenericType2()
+        {
+            await TestAllOptionsOffAsync(
+@"interface I<out T> { }
+
+abstract class C
+{
+    protected abstract void M1<T>(T? t);
+    protected abstract void M2<T>(I<T?> i);
+}
+
+class [|C2|] : C
+{
+}",
+@"interface I<out T> { }
+
+abstract class C
+{
+    protected abstract void M1<T>(T? t);
+    protected abstract void M2<T>(I<T?> i);
+}
+
+class C2 : C
+{
+    protected override void M1<T>(T? t) where T : default
+    {
+        throw new System.NotImplementedException();
+    }
+
+    protected override void M2<T>(I<T?> i) where T : default
     {
         throw new System.NotImplementedException();
     }

@@ -4,10 +4,8 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 
@@ -20,47 +18,33 @@ namespace Microsoft.CodeAnalysis.Options
     internal sealed class LegacyGlobalOptionsWorkspaceService : ILegacyGlobalOptionsWorkspaceService
     {
         private readonly IGlobalOptionService _globalOptions;
-        private readonly CodeActionOptionsStorage.Provider _provider;
 
         private static readonly Option2<bool> s_generateOverridesOption = new(
-            "GenerateOverridesOptions", "SelectAll", defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation($"TextEditor.Specific.GenerateOverridesOptions.SelectAll"));
+            "dotnet_generate_overrides_for_all_members", defaultValue: true);
 
         private static readonly PerLanguageOption2<bool> s_generateOperators = new(
-            "GenerateEqualsAndGetHashCodeFromMembersOptions",
-            "GenerateOperators", defaultValue: false,
-            storageLocation: new RoamingProfileStorageLocation(
-                "TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators"));
+            "dotnet_generate_equality_operators",
+            defaultValue: false);
 
         private static readonly PerLanguageOption2<bool> s_implementIEquatable = new(
-            "GenerateEqualsAndGetHashCodeFromMembersOptions",
-            "ImplementIEquatable", defaultValue: false,
-            storageLocation: new RoamingProfileStorageLocation(
-                "TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable"));
+            "dotnet_generate_iequatable_implementation",
+            defaultValue: false);
 
-        private static readonly PerLanguageOption2<bool> s_addNullChecks = new(
-            "GenerateConstructorFromMembersOptions",
-            "AddNullChecks", defaultValue: false,
-            storageLocation: new RoamingProfileStorageLocation(
-                $"TextEditor.%LANGUAGE%.Specific.GenerateConstructorFromMembersOptions.AddNullChecks"));
-
-        internal static readonly PerLanguageOption2<bool> AddNullChecksToConstructorsGeneratedFromMembers = new(
-            "GenerateConstructorFromMembersOptions",
-            "AddNullChecks", defaultValue: false,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.GenerateConstructorFromMembersOptions.AddNullChecks"));
+        internal static readonly PerLanguageOption2<bool> s_addNullChecks = new(
+            "dotnet_generate_constructor_parameter_null_checks",
+            defaultValue: false);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LegacyGlobalOptionsWorkspaceService(IGlobalOptionService globalOptions)
         {
             _globalOptions = globalOptions;
-            _provider = _globalOptions.CreateProvider();
         }
 
         public bool GenerateOverrides
         {
             get => _globalOptions.GetOption(s_generateOverridesOption);
-            set => _globalOptions.SetGlobalOption(new OptionKey(s_generateOverridesOption), value);
+            set => _globalOptions.SetGlobalOption(s_generateOverridesOption, value);
         }
 
         public bool RazorUseTabs
@@ -73,28 +57,25 @@ namespace Microsoft.CodeAnalysis.Options
         public bool InlineHintsOptionsDisplayAllOverride
         {
             get => _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
-            set => _globalOptions.SetGlobalOption(new OptionKey(InlineHintsGlobalStateOption.DisplayAllOverride), value);
+            set => _globalOptions.SetGlobalOption(InlineHintsGlobalStateOption.DisplayAllOverride, value);
         }
-
-        public CleanCodeGenerationOptionsProvider CleanCodeGenerationOptionsProvider
-            => _provider;
 
         public bool GetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(string language)
             => _globalOptions.GetOption(s_implementIEquatable, language);
 
         public void SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(string language, bool value)
-            => _globalOptions.SetGlobalOption(new OptionKey(s_generateOperators, language), value);
+            => _globalOptions.SetGlobalOption(s_generateOperators, language, value);
 
         public bool GetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(string language)
             => _globalOptions.GetOption(s_implementIEquatable, language);
 
         public void SetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(string language, bool value)
-            => _globalOptions.SetGlobalOption(new OptionKey(s_implementIEquatable, language), value);
+            => _globalOptions.SetGlobalOption(s_implementIEquatable, language, value);
 
         public bool GetGenerateConstructorFromMembersOptionsAddNullChecks(string language)
             => _globalOptions.GetOption(s_addNullChecks, language);
 
         public void SetGenerateConstructorFromMembersOptionsAddNullChecks(string language, bool value)
-            => _globalOptions.SetGlobalOption(new OptionKey(s_addNullChecks, language), value);
+            => _globalOptions.SetGlobalOption(s_addNullChecks, language, value);
     }
 }

@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.QuickInfo;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal interface ILspHoverResultCreationService : IWorkspaceService
     {
         Task<Hover> CreateHoverAsync(
-            SourceText text, string language, QuickInfoItem info, Document? document, ClientCapabilities? clientCapabilities, CancellationToken cancellationToken);
+            Document document, QuickInfoItem info, ClientCapabilities clientCapabilities, CancellationToken cancellationToken);
     }
 
     [ExportWorkspaceService(typeof(ILspHoverResultCreationService)), Shared]
@@ -31,17 +30,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public Task<Hover> CreateHoverAsync(SourceText text, string language, QuickInfoItem info, Document? document, ClientCapabilities? clientCapabilities, CancellationToken cancellationToken)
-            => Task.FromResult(CreateDefaultHover(text, language, info, clientCapabilities));
+        public Task<Hover> CreateHoverAsync(Document document, QuickInfoItem info, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => CreateDefaultHoverAsync(document, info, clientCapabilities, cancellationToken);
 
-        public static Hover CreateDefaultHover(SourceText text, string language, QuickInfoItem info, ClientCapabilities? clientCapabilities)
+        public static async Task<Hover> CreateDefaultHoverAsync(Document document, QuickInfoItem info, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            var clientSupportsMarkdown = clientCapabilities?.TextDocument?.Hover?.ContentFormat.Contains(MarkupKind.Markdown) == true;
+            var clientSupportsMarkdown = clientCapabilities?.TextDocument?.Hover?.ContentFormat?.Contains(MarkupKind.Markdown) == true;
 
             // Insert line breaks in between sections to ensure we get double spacing between sections.
             var tags = info.Sections
                 .SelectMany(section => section.TaggedParts.Add(new TaggedText(TextTags.LineBreak, Environment.NewLine)))
                 .ToImmutableArray();
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var language = document.Project.Language;
 
             return new Hover
             {

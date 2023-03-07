@@ -74,6 +74,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _testFaultInjector = testFaultInjector;
         }
 
+        private static TraceLog Log
+            => EditAndContinueWorkspaceService.AnalysisLog;
+
         internal abstract bool ExperimentalFeaturesEnabled(SyntaxTree tree);
 
         /// <summary>
@@ -512,8 +515,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(newDocument.SupportsSemanticModel);
             Debug.Assert(filePath != null);
 
-            DocumentAnalysisResults.Log.Write("Analyzing document '{0}'", filePath);
-
             // assume changes until we determine there are none so that EnC is blocked on unexpected exception:
             var hasChanges = true;
 
@@ -560,7 +561,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     // Bail, since we can't do syntax diffing on broken trees (it would not produce useful results anyways).
                     // If we needed to do so for some reason, we'd need to harden the syntax tree comparers.
-                    DocumentAnalysisResults.Log.Write("{0}: syntax errors", filePath);
+                    Log.Write("Syntax errors found in '{0}'", filePath);
                     return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray<RudeEditDiagnostic>.Empty, syntaxError, hasChanges);
                 }
 
@@ -571,7 +572,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // a) comparing texts is cheaper than diffing trees
                     // b) we need to ignore errors in unchanged documents
 
-                    DocumentAnalysisResults.Log.Write("{0}: unchanged", filePath);
+                    Log.Write("Document unchanged: '{0}'", filePath);
                     return DocumentAnalysisResults.Unchanged(newDocument.Id, filePath);
                 }
 
@@ -579,7 +580,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // These features may not be handled well by the analysis below.
                 if (ExperimentalFeaturesEnabled(newTree))
                 {
-                    DocumentAnalysisResults.Log.Write("{0}: experimental features enabled", filePath);
+                    Log.Write("Experimental features enabled in '{0}'", filePath);
 
                     return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray.Create(
                         new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)), syntaxError: null, hasChanges);
@@ -611,15 +612,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var topMatch = ComputeTopLevelMatch(oldRoot, newRoot);
                 var syntacticEdits = topMatch.GetTreeEdits();
                 var editMap = BuildEditMap(syntacticEdits);
-                var hasRudeEdits = false;
 
                 ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits, editMap);
-
-                if (diagnostics.Count > 0 && !hasRudeEdits)
-                {
-                    DocumentAnalysisResults.Log.Write("{0} syntactic rude edits, first: '{1}'", diagnostics.Count, filePath);
-                    hasRudeEdits = true;
-                }
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -666,10 +660,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 AnalyzeUnchangedActiveMemberBodies(diagnostics, syntacticEdits.Match, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions, cancellationToken);
                 Debug.Assert(newActiveStatements.All(a => a != null));
 
-                if (diagnostics.Count > 0 && !hasRudeEdits)
+                var hasRudeEdits = diagnostics.Count > 0;
+                if (hasRudeEdits)
                 {
-                    DocumentAnalysisResults.Log.Write("{0}@{1}: rude edit ({2} total)", filePath, diagnostics.First().Span.Start, diagnostics.Count);
-                    hasRudeEdits = true;
+                    LogRudeEdits(diagnostics, newText, filePath);
+                }
+                else
+                {
+                    Log.Write("Capabilities required by '{0}': {1}", filePath, capabilities.GrantedCapabilities);
                 }
 
                 return new DocumentAnalysisResults(
@@ -697,6 +695,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 // Report as "syntax error" - we can't analyze the document
                 return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray.Create(diagnostic), syntaxError: null, hasChanges);
+            }
+
+            static void LogRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SourceText text, string filePath)
+            {
+                foreach (var diagnostic in diagnostics)
+                {
+                    int lineNumber;
+                    string? lineText;
+                    try
+                    {
+                        var line = text.Lines.GetLineFromPosition(diagnostic.Span.Start);
+                        lineNumber = line.LineNumber;
+                        lineText = text.ToString(TextSpan.FromBounds(diagnostic.Span.Start, Math.Min(diagnostic.Span.Start + 120, line.End)));
+                    }
+                    catch
+                    {
+                        lineNumber = -1;
+                        lineText = null;
+                    }
+
+                    Log.Write("Rude edit {0}:{1} '{2}' line {3}: '{4}'", diagnostic.Kind, diagnostic.SyntaxKind, filePath, lineNumber, lineText);
+                }
             }
         }
 
@@ -810,7 +830,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             // Guard against invalid active statement spans (in case PDB was somehow out of sync with the source).
                             if (oldBody == null || newBody == null)
                             {
-                                DocumentAnalysisResults.Log.Write("Invalid active statement span: [{0}..{1})", oldStatementSpan.Start, oldStatementSpan.End);
+                                Log.Write("Invalid active statement span: [{0}..{1})", oldStatementSpan.Start, oldStatementSpan.End);
                                 continue;
                             }
 
@@ -860,7 +880,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                     else
                     {
-                        DocumentAnalysisResults.Log.Write("Invalid active statement span: [{0}..{1})", oldStatementSpan.Start, oldStatementSpan.End);
+                        Log.Write("Invalid active statement span: [{0}..{1})", oldStatementSpan.Start, oldStatementSpan.End);
                     }
 
                     // we were not able to determine the active statement location (PDB data might be invalid)
@@ -2374,6 +2394,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        protected virtual bool IsRudeEditDueToPrimaryConstructor(ISymbol symbol, CancellationToken cancellationToken)
+        {
+            return false;
+        }
+
         private async Task<ImmutableArray<SemanticEditInfo>> AnalyzeSemanticsAsync(
             EditScript<SyntaxNode> editScript,
             IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
@@ -2572,6 +2597,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     Contract.ThrowIfNull(oldSymbol);
                                     Contract.ThrowIfNull(oldDeclaration);
 
+                                    if (IsRudeEditDueToPrimaryConstructor(oldSymbol, cancellationToken))
+                                    {
+                                        // https://github.com/dotnet/roslyn/issues/67108: Disable edits for now
+                                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.Delete, GetDeletedNodeDiagnosticSpan(editScript.Match.Matches, oldDeclaration),
+                                                                               oldDeclaration, new[] { GetDisplayName(oldDeclaration, EditKind.Delete) }));
+                                        continue;
+                                    }
+
                                     var activeStatementIndices = GetOverlappingActiveStatements(oldDeclaration, oldActiveStatements);
                                     var hasActiveStatement = activeStatementIndices.Any();
 
@@ -2739,6 +2772,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     Contract.ThrowIfNull(newModel);
                                     Contract.ThrowIfNull(newSymbol);
                                     Contract.ThrowIfNull(newDeclaration);
+
+                                    if (IsRudeEditDueToPrimaryConstructor(newSymbol, cancellationToken))
+                                    {
+                                        // https://github.com/dotnet/roslyn/issues/67108: Disable edits for now
+                                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.Insert, GetDiagnosticSpan(newDeclaration, EditKind.Insert),
+                                                                               newDeclaration, new[] { GetDisplayName(newDeclaration, EditKind.Insert) }));
+                                        continue;
+                                    }
 
                                     syntaxMap = null;
 
@@ -3004,6 +3045,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                                     Contract.ThrowIfNull(oldDeclaration);
                                     Contract.ThrowIfNull(newDeclaration);
+
+                                    if (IsRudeEditDueToPrimaryConstructor(oldSymbol, cancellationToken) ||
+                                        IsRudeEditDueToPrimaryConstructor(newSymbol, cancellationToken))
+                                    {
+                                        // https://github.com/dotnet/roslyn/issues/67108: Disable edits for now
+                                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.Update, GetDiagnosticSpan(newDeclaration, EditKind.Update),
+                                                                               newDeclaration, new[] { GetDisplayName(newDeclaration, EditKind.Update) }));
+                                        continue;
+                                    }
 
                                     var oldBody = TryGetDeclarationBody(oldDeclaration);
                                     if (oldBody != null)
@@ -4808,7 +4858,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SemanticModel? oldModel,
             Compilation oldCompilation,
             Compilation newCompilation,
-            IReadOnlySet<ISymbol> processedSymbols,
+            Roslyn.Utilities.IReadOnlySet<ISymbol> processedSymbols,
             EditAndContinueCapabilitiesGrantor capabilities,
             bool isStatic,
             [Out] ArrayBuilder<SemanticEditInfo> semanticEdits,

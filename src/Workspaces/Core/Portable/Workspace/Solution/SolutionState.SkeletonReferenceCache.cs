@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Linq;
@@ -181,7 +182,7 @@ internal partial class SolutionState
             // implementation inside the compilation tracker does an async-wait on a an internal semaphore to ensure 
             // only one thread actually does the computation and the rest wait.
             var compilation = await compilationTracker.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
-            var workspace = solution.Workspace;
+            var services = solution.Services;
 
             // note: computing the assembly metadata is actually synchronous.  However, this ensures we don't have N
             // threads blocking on a lazy to compute the work.  Instead, we'll only occupy one thread, while any
@@ -189,15 +190,15 @@ internal partial class SolutionState
 
             var lazy = s_compilationToSkeletonSet.GetValue(compilation,
                 compilation => AsyncLazy.Create(
-                    cancellationToken => Task.FromResult(CreateSkeletonSet(workspace, compilation, cancellationToken))));
+                    cancellationToken => Task.FromResult(CreateSkeletonSet(services, compilation, cancellationToken))));
 
             return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private static SkeletonReferenceSet? CreateSkeletonSet(
-            Workspace workspace, Compilation compilation, CancellationToken cancellationToken)
+            SolutionServices services, Compilation compilation, CancellationToken cancellationToken)
         {
-            var storage = TryCreateMetadataStorage(workspace, compilation, cancellationToken);
+            var storage = TryCreateMetadataStorage(services, compilation, cancellationToken);
             if (storage == null)
                 return null;
 
@@ -228,29 +229,27 @@ internal partial class SolutionState
             return false;
         }
 
-        private static ITemporaryStreamStorageInternal? TryCreateMetadataStorage(Workspace workspace, Compilation compilation, CancellationToken cancellationToken)
+        private static ITemporaryStreamStorageInternal? TryCreateMetadataStorage(SolutionServices services, Compilation compilation, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            var logger = services.GetService<IWorkspaceTestLogger>();
+
             try
             {
-                workspace.LogTestMessage(static compilation => $"Beginning to create a skeleton assembly for {compilation.AssemblyName}...", compilation);
+                logger?.Log($"Beginning to create a skeleton assembly for {compilation.AssemblyName}...");
 
                 using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
                 {
                     using var stream = SerializableBytes.CreateWritableStream();
 
-                    var optionsService = workspace.Services.GetService<IWorkspaceConfigurationService>();
-                    var doNotClone = optionsService != null && optionsService.Options.DisableCloneWhenProducingSkeletonReferences;
-
-                    var compilationToEmit = doNotClone ? compilation : compilation.Clone();
-                    var emitResult = compilationToEmit.Emit(stream, options: s_metadataOnlyEmitOptions, cancellationToken: cancellationToken);
+                    var emitResult = compilation.Emit(stream, options: s_metadataOnlyEmitOptions, cancellationToken: cancellationToken);
 
                     if (emitResult.Success)
                     {
-                        workspace.LogTestMessage(static compilation => $"Successfully emitted a skeleton assembly for {compilation.AssemblyName}", compilation);
+                        logger?.Log($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
 
-                        var temporaryStorageService = workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>();
+                        var temporaryStorageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
                         var storage = temporaryStorageService.CreateTemporaryStreamStorage();
 
                         stream.Position = 0;
@@ -258,31 +257,32 @@ internal partial class SolutionState
 
                         return storage;
                     }
-                    else
+
+                    if (logger != null)
                     {
-                        workspace.LogTestMessage(static compilation => $"Failed to create a skeleton assembly for {compilation.AssemblyName}:", compilation);
+                        logger.Log($"Failed to create a skeleton assembly for {compilation.AssemblyName}:");
 
                         foreach (var diagnostic in emitResult.Diagnostics)
                         {
-                            workspace.LogTestMessage(static diagnostic => "  " + diagnostic.GetMessage(), diagnostic);
+                            logger.Log("  " + diagnostic.GetMessage());
                         }
-
-                        // log emit failures so that we can improve most common cases
-                        Logger.Log(FunctionId.MetadataOnlyImage_EmitFailure, KeyValueLogMessage.Create(m =>
-                        {
-                            // log errors in the format of
-                            // CS0001:1;CS002:10;...
-                            var groups = emitResult.Diagnostics.GroupBy(d => d.Id).Select(g => $"{g.Key}:{g.Count()}");
-                            m["Errors"] = string.Join(";", groups);
-                        }));
-
-                        return null;
                     }
+
+                    // log emit failures so that we can improve most common cases
+                    Logger.Log(FunctionId.MetadataOnlyImage_EmitFailure, KeyValueLogMessage.Create(m =>
+                    {
+                        // log errors in the format of
+                        // CS0001:1;CS002:10;...
+                        var groups = emitResult.Diagnostics.GroupBy(d => d.Id).Select(g => $"{g.Key}:{g.Count()}");
+                        m["Errors"] = string.Join(";", groups);
+                    }));
+
+                    return null;
                 }
             }
             finally
             {
-                workspace.LogTestMessage(static compilation => $"Done trying to create a skeleton assembly for {compilation.AssemblyName}", compilation);
+                logger?.Log($"Done trying to create a skeleton assembly for {compilation.AssemblyName}");
             }
         }
     }

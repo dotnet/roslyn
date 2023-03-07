@@ -1178,6 +1178,30 @@ End Class]]></a>
         End Function
 
         <Fact>
+        Public Async Function TestDirectCast() As Task
+            Dim text = <a><![CDATA[
+Class Program
+    Sub gooo()
+        Dim x = [|DirectCast|](1, Object)
+    End Sub
+End Class]]></a>
+
+            Await TestAsync(text.Value, "vb.DirectCast")
+        End Function
+
+        <Fact>
+        Public Async Function TestTryCast() As Task
+            Dim text = <a><![CDATA[
+Class Program
+    Sub gooo()
+        Dim x = [|TryCast|](1, Object)
+    End Sub
+End Class]]></a>
+
+            Await TestAsync(text.Value, "vb.TryCast")
+        End Function
+
+        <Fact>
         Public Async Function TestPreprocessorConst() As Task
             Dim text = <a><![CDATA[
 Class Program

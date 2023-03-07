@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            get { return ConstantValue?.IsNull == true ? MessageID.IDS_NULL.Localize() : base.Display; }
+            get { return ConstantValueOpt?.IsNull == true ? MessageID.IDS_NULL.Localize() : base.Display; }
         }
     }
 

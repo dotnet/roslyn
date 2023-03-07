@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             };
 
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, parseOptions: CSharpParseOptions.Default);
-            workspace.GlobalOptions.SetGlobalOption(
-                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
+            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace, analyzerMap);
 
@@ -79,8 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public async Task MultipleTaggersAndDispose(bool pull)
         {
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A {" }, parseOptions: CSharpParseOptions.Default);
-            workspace.GlobalOptions.SetGlobalOption(
-                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
+            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
 
@@ -104,8 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public async Task TaggerProviderCreatedAfterInitialDiagnosticsReported(bool pull)
         {
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class C {" }, parseOptions: CSharpParseOptions.Default);
-            workspace.GlobalOptions.SetGlobalOption(
-                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
+            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace, analyzerMap: null, createTaggerProvider: false);
             // First, make sure all diagnostics have been reported.

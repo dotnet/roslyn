@@ -207,6 +207,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null;
 
         /// <summary>
+        /// True when the "disable-length-based-switch" feature flag is set.
+        /// When this flag is set, the compiler will not emit length-based switch for string dispatches.
+        /// </summary>
+        internal bool FeatureDisableLengthBasedSwitch => Feature("disable-length-based-switch") != null;
+
+        /// <summary>
         /// Returns true if nullable analysis is enabled in the text span represented by the syntax node.
         /// </summary>
         /// <remarks>
@@ -2785,7 +2791,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                        cancellationToken: cancellationToken)
                                                 : null,
                 emittingPdb: false,
-                emitTestCoverageData: false,
                 hasDeclarationErrors: false,
                 emitMethodBodies: false,
                 diagnostics: diagnostics,
@@ -2899,7 +2904,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 compilation: this,
                                 moduleBeingBuiltOpt: null,
                                 emittingPdb: false,
-                                emitTestCoverageData: false,
                                 hasDeclarationErrors: false,
                                 emitMethodBodies: false,
                                 diagnostics: bindingDiagnostics,
@@ -3176,8 +3180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // testData is only passed when running tests.
             if (testData != null)
             {
-                moduleBeingBuilt.SetMethodTestData(testData.Methods);
-                testData.Module = moduleBeingBuilt;
+                moduleBeingBuilt.SetTestData(testData);
             }
 
             return moduleBeingBuilt;
@@ -3186,12 +3189,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override bool CompileMethods(
             CommonPEModuleBuilder moduleBuilder,
             bool emittingPdb,
-            bool emitMetadataOnly,
-            bool emitTestCoverageData,
             DiagnosticBag diagnostics,
             Predicate<ISymbolInternal>? filterOpt,
             CancellationToken cancellationToken)
         {
+            var emitMetadataOnly = moduleBuilder.EmitOptions.EmitMetadataOnly;
+
             // The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that the emitter
             // does not attempt to emit if there are declaration errors (but we do insert all errors from method body binding...)
             PooledHashSet<int>? excludeDiagnostics = null;
@@ -3228,7 +3231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if ((emittingPdb || emitTestCoverageData) &&
+                if ((emittingPdb || moduleBeingBuilt.EmitOptions.InstrumentationKinds.Contains(InstrumentationKind.TestCoverage)) &&
                     !CreateDebugDocuments(moduleBeingBuilt.DebugDocumentsBuilder, moduleBeingBuilt.EmbeddedTexts, diagnostics))
                 {
                     return false;
@@ -3246,7 +3249,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this,
                     moduleBeingBuilt,
                     emittingPdb,
-                    emitTestCoverageData,
                     hasDeclarationErrors,
                     emitMethodBodies: true,
                     diagnostics: new BindingDiagnosticBag(methodBodyDiagnosticBag),
@@ -3897,7 +3899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var name = memberNames[i];
                 var location = memberLocations.IsDefault ? Location.None : memberLocations[i];
                 var nullableAnnotation = memberNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : memberNullableAnnotations[i].ToInternalAnnotation();
-                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create(type, nullableAnnotation), RefKind.None, DeclarationScope.Unscoped));
+                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create(type, nullableAnnotation), RefKind.None, ScopedKind.None));
             }
 
             var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);
@@ -4511,6 +4513,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return sustainedLowLatency != null && sustainedLowLatency.ContainingAssembly == Assembly.CorLibrary;
             }
         }
+
+        private protected override bool SupportsRuntimeCapabilityCore(RuntimeCapability capability)
+            => this.Assembly.SupportsRuntimeCapability(capability);
 
         private abstract class AbstractSymbolSearcher
         {

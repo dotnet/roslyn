@@ -254,6 +254,48 @@ End Namespace
         End Sub
 
         <Fact>
+        Public Sub Diagnostics_Respect_SuppressMessageAttribute()
+            Dim gen001 = VBDiagnostic.Create("GEN001", "generators", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, True, 2)
+
+            ' reported diagnostics can have a location in source
+            VerifyDiagnosticsWithLocation("
+Class C
+    'comment
+End Class",
+                                          {(gen001, "com")},
+                                          Diagnostic("GEN001", "com").WithLocation(3, 6))
+
+            ' diagnostics are suppressed via SuppressMessageAttribute
+            VerifyDiagnosticsWithLocation("
+<System.Diagnostics.CodeAnalysis.SuppressMessage("""", ""GEN001"")>
+Class C
+    'comment
+End Class",
+                                          {(gen001, "com")},
+                                          Diagnostic("GEN001", "com", isSuppressed:=True).WithLocation(4, 6))
+
+            ' but not when they don't have a source location
+            VerifyDiagnosticsWithLocation("
+<System.Diagnostics.CodeAnalysis.SuppressMessage("""", ""GEN001"")>
+Class C
+    'comment
+End Class",
+                                          {(gen001, "")},
+                                          Diagnostic("GEN001").WithLocation(1, 1))
+
+            ' different ID suppressed + multiple diagnostics
+            VerifyDiagnosticsWithLocation("
+<System.Diagnostics.CodeAnalysis.SuppressMessage("""", ""GEN002"")>
+Class C
+    'comment
+    'another
+End Class",
+                                          {(gen001, "com"), (gen001, "ano")},
+                                          Diagnostic("GEN001", "com").WithLocation(4, 6),
+                                          Diagnostic("GEN001", "ano").WithLocation(5, 6))
+        End Sub
+
+        <Fact>
         Public Sub Enable_Incremental_Generators()
 
             Dim parseOptions = TestOptions.Regular
@@ -345,6 +387,40 @@ End Class
             driver.RunGeneratorsAndUpdateCompilation(compilation, outputCompilation, diagnostics)
             outputCompilation.VerifyDiagnostics()
 
+            diagnostics.Verify(expected)
+        End Sub
+
+        Shared Sub VerifyDiagnosticsWithLocation(source As String, reportDiagnostics As IReadOnlyList(Of (Diagnostic As Diagnostic, Location As String)), ParamArray expected As DiagnosticDescription())
+            Dim parseOptions = TestOptions.Regular
+            source = source.Replace(Environment.NewLine, vbCrLf)
+            Dim compilation = CreateCompilation(source, parseOptions:=parseOptions)
+            compilation.VerifyDiagnostics()
+            Dim syntaxTree = compilation.SyntaxTrees.Single()
+            Dim actualDiagnostics = reportDiagnostics.SelectAsArray(
+                Function(x)
+                    If String.IsNullOrEmpty(x.Location) Then
+                        Return x.Diagnostic
+                    End If
+                    Dim start = source.IndexOf(x.Location)
+                    Assert.True(start >= 0, $"Not found in source: '{x.Location}'")
+                    Dim endpoint = start + x.Location.Length
+                    Return x.Diagnostic.WithLocation(Location.Create(syntaxTree, TextSpan.FromBounds(start, endpoint)))
+                End Function)
+
+            Dim gen As ISourceGenerator = New CallbackGenerator(
+                Sub(c)
+                End Sub,
+                Sub(c)
+                    For Each d In actualDiagnostics
+                        c.ReportDiagnostic(d)
+                    Next
+                End Sub)
+
+            Dim driver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(gen), parseOptions:=parseOptions)
+            Dim outputCompilation As Compilation = Nothing
+            Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver.RunGeneratorsAndUpdateCompilation(compilation, outputCompilation, diagnostics)
+            outputCompilation.VerifyDiagnostics()
             diagnostics.Verify(expected)
         End Sub
     End Class

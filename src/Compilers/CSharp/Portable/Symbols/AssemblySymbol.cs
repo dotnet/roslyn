@@ -411,11 +411,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable();
         }
 
+        public bool SupportsRuntimeCapability(RuntimeCapability capability)
+        {
+            // Keep in sync with VB's AssemblySymbol.SupportsRuntimeCapability
+            switch (capability)
+            {
+                case RuntimeCapability.ByRefFields:
+                    return this.RuntimeSupportsByRefFields;
+                case RuntimeCapability.CovariantReturnsOfClasses:
+                    return this.RuntimeSupportsCovariantReturnsOfClasses;
+                case RuntimeCapability.DefaultImplementationsOfInterfaces:
+                    return this.RuntimeSupportsDefaultInterfaceImplementation;
+                case RuntimeCapability.NumericIntPtr:
+                    return this.RuntimeSupportsNumericIntPtr;
+                case RuntimeCapability.UnmanagedSignatureCallingConvention:
+                    return this.RuntimeSupportsUnmanagedSignatureCallingConvention;
+                case RuntimeCapability.VirtualStaticsInInterfaces:
+                    return this.RuntimeSupportsStaticAbstractMembersInInterfaces;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Figure out if the target runtime supports default interface implementation.
         /// </summary>
         internal bool RuntimeSupportsDefaultInterfaceImplementation
         {
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsDefaultInterfaceImplementation
             get => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces);
         }
 
@@ -424,6 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool RuntimeSupportsStaticAbstractMembersInInterfaces
         {
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsVirtualStaticsInInterfaces
             get => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces);
         }
 
@@ -432,6 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool RuntimeSupportsNumericIntPtr
         {
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsNumericIntPtr
             get
             {
                 // CorLibrary should never be null, but that invariant is broken in some cases for MissingAssemblySymbol.
@@ -443,14 +468,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected bool RuntimeSupportsFeature(SpecialMember feature)
         {
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsFeature
             Debug.Assert((SpecialType)SpecialMembers.GetDescriptor(feature).DeclaringTypeId == SpecialType.System_Runtime_CompilerServices_RuntimeFeature);
             return GetSpecialType(SpecialType.System_Runtime_CompilerServices_RuntimeFeature) is { TypeKind: TypeKind.Class, IsStatic: true } &&
                    GetSpecialTypeMember(feature) is object;
         }
 
+        // Keep in sync with VB's AssemblySymbol.RuntimeSupportsUnmanagedSignatureCallingConvention
         internal bool RuntimeSupportsUnmanagedSignatureCallingConvention
             => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention);
 
+        // Keep in sync with VB's AssemblySymbol.RuntimeSupportsByRefFields
         internal bool RuntimeSupportsByRefFields
             => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields);
 
@@ -459,6 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool RuntimeSupportsCovariantReturnsOfClasses
         {
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsCovariantReturnsOfClasses
             get
             {
                 // check for the runtime feature indicator and the required attribute.

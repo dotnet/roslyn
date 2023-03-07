@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -16,7 +17,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal class RoslynLanguageServer : AbstractLanguageServer<RequestContext>, IClientCapabilitiesProvider
+    internal sealed class RoslynLanguageServer : AbstractLanguageServer<RequestContext>, IClientCapabilitiesProvider, IOnInitialized
     {
         private readonly AbstractLspServiceProvider _lspServiceProvider;
         private readonly ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> _baseServices;
@@ -49,11 +50,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         protected override IRequestExecutionQueue<RequestContext> ConstructRequestExecutionQueue()
         {
-            var handlerProvider = GetHandlerProvider();
-            var queue = new RoslynRequestExecutionQueue(this, _logger, handlerProvider);
-
-            queue.Start();
-            return queue;
+            var provider = GetLspServices().GetRequiredService<IRequestExecutionQueueProvider<RequestContext>>();
+            return provider.CreateRequestExecutionQueue(this, _logger, GetHandlerProvider());
         }
 
         private ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> GetBaseServices(
@@ -82,6 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             AddBaseService<IClientCapabilitiesManager>(new ClientCapabilitiesManager());
             AddBaseService<IMethodHandler>(new InitializeHandler());
             AddBaseService<IMethodHandler>(new InitializedHandler());
+            AddBaseService<IOnInitialized>(this);
 
             return baseServices.ToImmutableDictionary();
 
@@ -104,6 +103,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var clientCapabilities = clientCapabilitiesManager.GetClientCapabilities();
 
             return clientCapabilities;
+        }
+
+        public Task OnInitializedAsync(ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        {
+            OnInitialized();
+            return Task.CompletedTask;
         }
     }
 }

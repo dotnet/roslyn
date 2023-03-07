@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.Razor</RootNamespace>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -13,10 +13,6 @@
       https://github.com/aspnet/AspNetCore-Tooling
     </PackageDescription>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="IsExternalInit.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />

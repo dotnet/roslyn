@@ -22,11 +22,6 @@
         <target state="translated">添加所需的单行控制语句的大括号</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">允许在此项目中使用不安全代码</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">在构造函数初始值设定项中的冒号后应用空白行(实验性)</target>
@@ -127,16 +122,6 @@
         <target state="translated">应用 \"var\" 首选项</target>
         <note />
       </trans-unit>
-      <trans-unit id="Assign_out_parameters">
-        <source>Assign 'out' parameters</source>
-        <target state="translated">为 "out" 参数赋值</target>
-        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Assign_out_parameters_at_start">
-        <source>Assign 'out' parameters (at start)</source>
-        <target state="translated">为 "out" 赋值 (在开始处)</target>
-        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
         <target state="translated">由于可能出现模式变量声明，已禁用自动选择。</target>
@@ -161,11 +146,6 @@
         <source>Convert to method</source>
         <target state="translated">转换为方法</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_positional_record">
-        <source>Convert to positional record</source>
-        <target state="translated">转换为位置 record</target>
-        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
@@ -197,6 +177,11 @@
         <target state="translated">在项目中启用可为 null 的引用类型</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_solution">
+        <source>Enable nullable reference types in solution</source>
+        <target state="translated">在解决方案中启用可为 null 的引用类型</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
         <target state="translated">全局 'using' 指令</target>
@@ -212,21 +197,6 @@
         <target state="translated">尽可能将私有字段设置为“只读”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_ref_struct">
-        <source>Make 'ref struct'</source>
-        <target state="translated">生成 "ref struct"</target>
-        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_in_keyword">
-        <source>Remove 'in' keyword</source>
-        <target state="translated">删除 "in" 关键字</target>
-        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_new_modifier">
-        <source>Remove 'new' modifier</source>
-        <target state="translated">删除 "new" 修饰符</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
         <target state="translated">反向“for”语句</target>
@@ -234,7 +204,7 @@
       </trans-unit>
       <trans-unit id="Selection_cannot_be_in_constructor_initializer">
         <source>Selection cannot be in constructor initializer</source>
-        <target state="new">Selection cannot be in constructor initializer</target>
+        <target state="translated">选择不能位于构造函数初始化表达式中</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
@@ -275,6 +245,11 @@
       <trans-unit id="extern_alias">
         <source>extern alias</source>
         <target state="translated">外部别名</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="init_only_property">
+        <source>init-only property</source>
+        <target state="new">init-only property</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -415,11 +390,6 @@
       <trans-unit id="Organize_Usings">
         <source>Organize Usings</source>
         <target state="translated">组织 Using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_0_return_Task_instead_of_void">
-        <source>Make {0} return Task instead of void.</source>
-        <target state="translated">使 {0} 返回 Task，而不是 void。</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_explicit_conversion_operator_in_0">
@@ -682,16 +652,6 @@
         <target state="translated">由于可能有析构声明，禁用了自动选择。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
-        <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="translated">将该项目升级为 C# 语言版本“{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
-        <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="translated">将所有 C# 项目升级为语言版本“{0}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
         <target state="translated">&lt;类名&gt;</target>
@@ -712,16 +672,6 @@
         <target state="translated">&lt;结构名称&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_async">
-        <source>Make method async</source>
-        <target state="translated">使方法异步</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_method_async_remain_void">
-        <source>Make method async (stay void)</source>
-        <target state="translated">使方法异步(保持 void)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;名称&gt;</target>
@@ -735,16 +685,6 @@
       <trans-unit id="Suggested_name">
         <source>(Suggested name)</source>
         <target state="translated">(建议名称)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_function">
-        <source>Remove unused function</source>
-        <target state="translated">删除未使用的函数</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
-        <source>Add parentheses</source>
-        <target state="translated">添加括号</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_foreach">
@@ -762,11 +702,6 @@
         <target state="translated">反转 if</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_0">
-        <source>Use '{0}'</source>
-        <target state="translated">使用 "{0}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
         <target state="translated">引入 'using' 语句</target>
@@ -774,7 +709,7 @@
       </trans-unit>
       <trans-unit id="without_leading_whitespace_may_change_semantics">
         <source>... without leading whitespace (may change semantics)</source>
-        <target state="translated">...不带前导空格（可能会更改语义）</target>
+        <target state="translated">...不带前导空格 (可能会更改语义)</target>
         <note>This clause is a follow up to the "Convert to raw string" loc string.
     The intent is that the user sees "Convert to raw string" as an option to select,
     and that is then followed with this clause.  This is so we don't have a huge string

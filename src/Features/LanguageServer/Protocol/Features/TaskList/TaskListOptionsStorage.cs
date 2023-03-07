@@ -9,17 +9,8 @@ namespace Microsoft.CodeAnalysis.TaskList
 {
     internal static class TaskListOptionsStorage
     {
-        public static readonly Option2<ImmutableArray<string>> Descriptors = new(
-            "TaskListOptionsStorage",
-            "Descriptors",
-            TaskListOptions.Default.Descriptors,
-            new RoamingProfileStorageLocation("Microsoft.VisualStudio.ErrorListPkg.Shims.TaskListOptions.CommentTokens"));
-
-        public static readonly Option2<bool> ComputeTaskListItemsForClosedFiles = new(
-            "TaskListOptionsStorage",
-            "ComputeTaskListItemsForClosedFiles",
-            defaultValue: true,
-            new RoamingProfileStorageLocation($"TextEditor.Specific.ComputeTaskListItemsForClosedFiles"));
+        public static readonly Option2<ImmutableArray<string>> Descriptors = new("dotnet_task_list_storage_descriptors", TaskListOptions.Default.Descriptors);
+        public static readonly Option2<bool> ComputeTaskListItemsForClosedFiles = new("dotnet_compute_task_list_items_for_closed_files", defaultValue: true);
 
         public static TaskListOptions GetTaskListOptions(this IGlobalOptionService globalOptions)
             => new()

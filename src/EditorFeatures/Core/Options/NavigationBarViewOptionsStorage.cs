@@ -8,8 +8,6 @@ namespace Microsoft.CodeAnalysis.Editor.Options;
 
 internal sealed class NavigationBarViewOptionsStorage
 {
-    private const string FeatureName = "NavigationBarOptions";
-
     public static readonly PerLanguageOption2<bool> ShowNavigationBar = new(
-        FeatureName, "ShowNavigationBar", defaultValue: true, new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Dropdown Bar"));
+        "dotnet_show_navigation_bar", defaultValue: true);
 }

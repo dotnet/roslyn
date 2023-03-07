@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -35,19 +34,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     /// Provides the support for opening files pointing to source generated documents, and keeping the content updated accordingly.
     /// </summary>
     [Export(typeof(SourceGeneratedFileManager))]
-    internal sealed class SourceGeneratedFileManager : IRunningDocumentTableEventListener
+    internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
-        private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffintizedObject;
+        private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffinitizedObject;
         private readonly IAsynchronousOperationListener _listener;
-        private readonly IVsRunningDocumentTable _runningDocumentTable;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
         private readonly VisualStudioDocumentNavigationService _visualStudioDocumentNavigationService;
-
-#pragma warning disable IDE0052 // Remove unread private members
-        private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
-#pragma warning restore IDE0052 // Remove unread private members
 
         /// <summary>
         /// The temporary directory that we'll create file names under to act as a prefix we can later recognize and use.
@@ -75,6 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public SourceGeneratedFileManager(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IThreadingContext threadingContext,
+            OpenTextBufferProvider openTextBufferProvider,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             ITextDocumentFactoryService textDocumentFactoryService,
             VisualStudioWorkspace visualStudioWorkspace,
@@ -83,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             _serviceProvider = serviceProvider;
             _threadingContext = threadingContext;
-            _foregroundThreadAffintizedObject = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
+            _foregroundThreadAffinitizedObject = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
             _textDocumentFactoryService = textDocumentFactoryService;
             _temporaryDirectory = Path.Combine(Path.GetTempPath(), "VSGeneratedDocuments");
             _visualStudioWorkspace = visualStudioWorkspace;
@@ -93,14 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             _listener = listenerProvider.GetListener(FeatureAttribute.SourceGenerators);
 
-            // The IVsRunningDocumentTable is a free-threaded VS service that allows fetching of the service and advising events
-            // to be done without implicitly marshalling to the UI thread.
-            _runningDocumentTable = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable>(_threadingContext.JoinableTaskFactory);
-            _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(
-                threadingContext,
-                editorAdaptersFactoryService,
-                _runningDocumentTable,
-                this);
+            openTextBufferProvider.AddListener(this);
         }
 
         public Func<CancellationToken, Task<bool>> GetNavigationCallback(SourceGeneratedDocument document, TextSpan sourceSpan)
@@ -157,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             string filePath,
             out SourceGeneratedDocumentIdentity identity)
         {
-            _foregroundThreadAffintizedObject.AssertIsForeground();
+            _foregroundThreadAffinitizedObject.AssertIsForeground();
 
             identity = default;
 
@@ -171,9 +159,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _directoryInfoOnDiskByContainingDirectoryId.TryGetValue(guid, out identity);
         }
 
-        void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? windowFrame)
+        void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy)
         {
-            _foregroundThreadAffintizedObject.AssertIsForeground();
+            _foregroundThreadAffinitizedObject.AssertIsForeground();
 
             if (TryGetGeneratedFileInformation(moniker, out var documentIdentity))
             {
@@ -186,20 +174,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     _threadingContext.JoinableTaskFactory.Run(() => openFile.RefreshFileAsync(CancellationToken.None).AsTask());
 
                     // Update the RDT flags to ensure the file can't be saved or appears in any MRUs as it's a temporary generated file name.
-                    var cookie = ((IVsRunningDocumentTable4)_runningDocumentTable).GetDocumentCookie(moniker);
-                    ErrorHandler.ThrowOnFailure(_runningDocumentTable.ModifyDocumentFlags(cookie, (uint)(_VSRDTFLAGS.RDT_CantSave | _VSRDTFLAGS.RDT_DontAddToMRU), fSet: 1));
-                }
-
-                if (windowFrame != null)
-                {
-                    openFile.SetWindowFrame(windowFrame, documentIdentity.HintName);
+                    var runningDocumentTable = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>(_threadingContext.JoinableTaskFactory);
+                    var cookie = runningDocumentTable.GetDocumentCookie(moniker);
+                    ErrorHandler.ThrowOnFailure(((IVsRunningDocumentTable)runningDocumentTable).ModifyDocumentFlags(cookie, (uint)(_VSRDTFLAGS.RDT_CantSave | _VSRDTFLAGS.RDT_DontAddToMRU), fSet: 1));
                 }
             }
         }
 
-        void IRunningDocumentTableEventListener.OnCloseDocument(string moniker)
+        void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame)
         {
-            _foregroundThreadAffintizedObject.AssertIsForeground();
+            if (_openFiles.TryGetValue(moniker, out var openFile))
+            {
+                openFile.SetWindowFrame(windowFrame);
+            }
+        }
+
+        void IOpenTextBufferEventListener.OnCloseDocument(string moniker)
+        {
+            _foregroundThreadAffinitizedObject.AssertIsForeground();
 
             if (_openFiles.TryGetValue(moniker, out var openFile))
             {
@@ -208,11 +200,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        void IRunningDocumentTableEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
+        void IOpenTextBufferEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
         {
         }
 
-        void IRunningDocumentTableEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer textBuffer)
+        void IOpenTextBufferEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer textBuffer)
         {
         }
 
@@ -441,7 +433,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            internal void SetWindowFrame(IVsWindowFrame windowFrame, string generatedSourceHintName)
+            internal void SetWindowFrame(IVsWindowFrame windowFrame)
             {
                 AssertIsForeground();
 
@@ -455,8 +447,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 // We'll override the window frame and never show it as dirty, even if there's an underlying edit
                 windowFrame.SetProperty((int)__VSFPROPID2.VSFPROPID_OverrideDirtyState, false);
-                windowFrame.SetProperty((int)__VSFPROPID5.VSFPROPID_OverrideCaption, generatedSourceHintName + " " + ServicesVSResources.generated_suffix);
-                windowFrame.SetProperty((int)__VSFPROPID5.VSFPROPID_OverrideToolTip, generatedSourceHintName + " " + string.Format(ServicesVSResources.generated_by_0_suffix, GeneratorDisplayName));
+                windowFrame.SetProperty((int)__VSFPROPID5.VSFPROPID_OverrideCaption, _documentIdentity.HintName + " " + ServicesVSResources.generated_suffix);
+                windowFrame.SetProperty((int)__VSFPROPID5.VSFPROPID_OverrideToolTip, _documentIdentity.HintName + " " + string.Format(ServicesVSResources.generated_by_0_suffix, GeneratorDisplayName));
 
                 EnsureWindowFrameInfoBarUpdated();
             }

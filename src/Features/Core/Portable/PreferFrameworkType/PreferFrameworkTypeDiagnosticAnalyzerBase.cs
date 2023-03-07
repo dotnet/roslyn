@@ -11,11 +11,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PreferFrameworkType
 {
-    internal abstract class PreferFrameworkTypeDiagnosticAnalyzerBase<TSyntaxKind, TExpressionSyntax, TPredefinedTypeSyntax> :
+    internal abstract class PreferFrameworkTypeDiagnosticAnalyzerBase<
+        TSyntaxKind,
+        TExpressionSyntax,
+        TTypeSyntax,
+        TIdentifierNameSyntax,
+        TPredefinedTypeSyntax> :
         AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
-        where TPredefinedTypeSyntax : TExpressionSyntax
+        where TTypeSyntax : TExpressionSyntax
+        where TPredefinedTypeSyntax : TTypeSyntax
+        where TIdentifierNameSyntax : TTypeSyntax
     {
         protected PreferFrameworkTypeDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
@@ -41,6 +48,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
 
         protected abstract ImmutableArray<TSyntaxKind> SyntaxKindsOfInterest { get; }
         protected abstract bool IsPredefinedTypeReplaceableWithFrameworkType(TPredefinedTypeSyntax node);
+        protected abstract bool IsIdentifierNameReplaceableWithFrameworkType(SemanticModel semanticModel, TIdentifierNameSyntax node);
         protected abstract bool IsInMemberAccessOrCrefReferenceContext(TExpressionSyntax node);
 
         protected sealed override void InitializeWorker(AnalysisContext context)
@@ -48,7 +56,9 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
 
         protected void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
+            var semanticModel = context.SemanticModel;
             var options = context.GetAnalyzerOptions();
+            var cancellationToken = context.CancellationToken;
 
             // if the user never prefers this style, do not analyze at all.
             // we don't know the context of the node yet, so check all predefined type option preferences and bail early.
@@ -58,30 +68,40 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
                 return;
             }
 
-            var predefinedTypeNode = (TPredefinedTypeSyntax)context.Node;
+            var typeNode = (TTypeSyntax)context.Node;
 
             // check if the predefined type is replaceable with an equivalent framework type.
-            if (!IsPredefinedTypeReplaceableWithFrameworkType(predefinedTypeNode))
+            switch (typeNode)
             {
-                return;
+                case TPredefinedTypeSyntax predefinedType:
+                    if (!IsPredefinedTypeReplaceableWithFrameworkType(predefinedType))
+                        return;
+                    break;
+                case TIdentifierNameSyntax identifierName:
+                    if (!IsIdentifierNameReplaceableWithFrameworkType(semanticModel, identifierName))
+                        return;
+                    break;
+                default:
+                    return;
             }
 
             // check we have a symbol so that the fixer can generate the right type syntax from it.
-            if (context.SemanticModel.GetSymbolInfo(predefinedTypeNode, context.CancellationToken).Symbol is not ITypeSymbol)
+            if (semanticModel.GetSymbolInfo(typeNode, cancellationToken).Symbol is not ITypeSymbol typeSymbol ||
+                typeSymbol.SpecialType is SpecialType.None)
             {
                 return;
             }
 
             // earlier we did a context insensitive check to see if this style was preferred in *any* context at all.
             // now, we have to make a context sensitive check to see if options settings for our context requires us to report a diagnostic.
-            var optionValue = IsInMemberAccessOrCrefReferenceContext(predefinedTypeNode)
+            var optionValue = IsInMemberAccessOrCrefReferenceContext(typeNode)
                 ? options.PreferPredefinedTypeKeywordInMemberAccess
                 : options.PreferPredefinedTypeKeywordInDeclaration;
 
             if (IsFrameworkTypePreferred(optionValue))
             {
                 context.ReportDiagnostic(DiagnosticHelper.Create(
-                    Descriptor, predefinedTypeNode.GetLocation(),
+                    Descriptor, typeNode.GetLocation(),
                     optionValue.Notification.Severity, additionalLocations: null,
                     PreferFrameworkTypeConstants.Properties));
             }

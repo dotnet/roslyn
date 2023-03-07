@@ -118,8 +118,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder)
             ' VB anonymous delegates are handled as anonymous types in the map above
             Dim anonymousDelegates = SpecializedCollections.EmptyReadOnlyDictionary(Of SynthesizedDelegateKey, SynthesizedDelegateValue)
-            Dim anonymousDelegatesWithFixedTypes = SpecializedCollections.EmptyReadOnlyDictionary(Of String, AnonymousTypeValue)
-            Dim metadataSymbols = New EmitBaseline.MetadataSymbols(metadataAnonymousTypes, anonymousDelegates, anonymousDelegatesWithFixedTypes, metadataDecoder, assemblyReferenceIdentityMap)
+            Dim anonymousDelegatesWithIndexedNames = SpecializedCollections.EmptyReadOnlyDictionary(Of String, AnonymousTypeValue)
+            Dim metadataSymbols = New EmitBaseline.MetadataSymbols(metadataAnonymousTypes, anonymousDelegates, anonymousDelegatesWithIndexedNames, metadataDecoder, assemblyReferenceIdentityMap)
 
             Return InterlockedOperations.Initialize(initialBaseline.LazyMetadataSymbols, metadataSymbols)
         End Function
@@ -242,13 +242,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return SpecializedCollections.EmptyReadOnlyDictionary(Of SynthesizedDelegateKey, SynthesizedDelegateValue)
         End Function
 
-        Friend Overloads Function GetAnonymousDelegatesWithFixedTypes() As IReadOnlyDictionary(Of String, AnonymousTypeValue) Implements IPEDeltaAssemblyBuilder.GetAnonymousDelegatesWithFixedTypes
+        Friend Overloads Function GetAnonymousDelegatesWithIndexedNames() As IReadOnlyDictionary(Of String, AnonymousTypeValue) Implements IPEDeltaAssemblyBuilder.GetAnonymousDelegatesWithIndexedNames
             ' VB anonymous delegates are handled as anonymous types in the method above
             Return SpecializedCollections.EmptyReadOnlyDictionary(Of String, AnonymousTypeValue)
         End Function
 
         Friend Overrides Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
             Return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, Compilation, method, topLevelMethod, diagnostics)
+        End Function
+
+        Friend Overrides Function GetMethodBodyInstrumentations(method As MethodSymbol) As MethodInstrumentation
+            Return _previousDefinitions.GetMethodBodyInstrumentations(method)
         End Function
 
         Friend Overrides Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)

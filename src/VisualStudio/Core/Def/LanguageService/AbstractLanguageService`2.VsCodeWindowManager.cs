@@ -236,6 +236,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // that ReleaseOutline will be called on the old window before GetOutline is called for the new window. 
             int IVsDocOutlineProvider.GetOutline(out IntPtr phwnd, out IOleCommandTarget? ppCmdTarget)
             {
+                var enabled = _globalOptions.GetOption(DocumentOutlineOptionsStorage.EnableDocumentOutline);
+                if (!enabled)
+                {
+                    phwnd = default;
+                    ppCmdTarget = null;
+                    return VSConstants.S_OK;
+                }
+
                 var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
                 var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
                 var asyncListenerProvider = _languageService.Package.ComponentModel.GetService<IAsynchronousOperationListenerProvider>();
@@ -270,17 +278,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
                 threadingContext.ThrowIfNotOnUIThread();
 
-                // Assert that we are not attempting to double free the Document Outline Control and host.
-                Contract.ThrowIfNull(_documentOutlineViewHost);
-                Contract.ThrowIfNull(_documentOutlineControl);
-
-                _documentOutlineViewHost.SuspendLayout();
-                _documentOutlineControl.Dispose();
-                _documentOutlineControl = null;
-                _documentOutlineViewHost.Child = null;
-                _documentOutlineViewHost.Parent = null;
-                _documentOutlineViewHost.Dispose();
-                _documentOutlineViewHost = null;
+                if (_documentOutlineControl is not null &&
+                    _documentOutlineViewHost is not null)
+                {
+                    _documentOutlineViewHost.SuspendLayout();
+                    _documentOutlineControl.Dispose();
+                    _documentOutlineControl = null;
+                    _documentOutlineViewHost.Child = null;
+                    _documentOutlineViewHost.Parent = null;
+                    _documentOutlineViewHost.Dispose();
+                    _documentOutlineViewHost = null;
+                }
 
                 return VSConstants.S_OK;
             }

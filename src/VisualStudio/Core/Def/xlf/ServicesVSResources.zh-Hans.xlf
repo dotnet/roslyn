@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Analyze_source_generated_files">
         <source>Analyze source generated files</source>
-        <target state="new">Analyze source generated files</target>
+        <target state="translated">分析源生成的文件</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzer_Defaults">
@@ -777,11 +777,6 @@
         <target state="translated">命名空间声明</target>
         <note />
       </trans-unit>
-      <trans-unit id="Namespaces_have_been_updated">
-        <source>Namespaces have been updated.</source>
-        <target state="translated">命名空间已更新。</target>
-        <note>"Namespaces" is the programming language concept</note>
-      </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
         <target state="new">class</target>
@@ -929,7 +924,7 @@
       </trans-unit>
       <trans-unit id="Navigate_asynchronously_exerimental">
         <source>Navigate asynchronously (experimental)</source>
-        <target state="translated">异步导航（实验性）</target>
+        <target state="translated">异步导航 (实验性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigate_to_0">
@@ -1150,6 +1145,11 @@
       <trans-unit id="Prefer_read_only_struct">
         <source>Prefer read-only struct</source>
         <target state="translated">首选只读结构</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_read_only_struct_member">
+        <source>Prefer read-only struct member</source>
+        <target state="new">Prefer read-only struct member</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
@@ -1491,6 +1491,11 @@
         <source>Sync Namespaces</source>
         <target state="translated">同步命名空间</target>
         <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Sync_namespaces_changes">
+        <source>Sync namespaces changes</source>
+        <target state="new">Sync namespaces changes</target>
+        <note />
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>

@@ -46,11 +46,53 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 // If we are extracting a local function and are within a local function, then we want the new function to be created within the
                 // existing local function instead of the overarching method.
-                var localFunctionNode = basePosition.GetAncestor<LocalFunctionStatementSyntax>(node => (node.Body != null && node.Body.Span.Contains(OriginalSelectionResult.OriginalSpan)) ||
-                                                                                                       (node.ExpressionBody != null && node.ExpressionBody.Span.Contains(OriginalSelectionResult.OriginalSpan)));
-                if (localFunctionNode is object)
+                SyntaxNode functionNode = null;
+
+                var currentNode = basePosition.Parent;
+                while (currentNode is not null)
                 {
-                    return await InsertionPoint.CreateAsync(document, localFunctionNode, cancellationToken).ConfigureAwait(false);
+                    if (currentNode is AnonymousFunctionExpressionSyntax anonymousFunction)
+                    {
+                        if (OriginalSelectionWithin(anonymousFunction.Body) || OriginalSelectionWithin(anonymousFunction.ExpressionBody))
+                        {
+                            functionNode = currentNode;
+                            break;
+                        }
+
+                        if (!OriginalSelectionResult.OriginalSpan.Contains(anonymousFunction.Span))
+                        {
+                            // If we encountered a function but the selection isn't within the body, it's likely the user
+                            // is attempting to move the function (which is behavior that is supported). Stop looking up the 
+                            // tree and assume the encapsulating member is the right place to put the local function. This is to help
+                            // maintain the behavior introduced with https://github.com/dotnet/roslyn/pull/41377
+                            break;
+                        }
+                    }
+
+                    if (currentNode is LocalFunctionStatementSyntax localFunction)
+                    {
+                        if (OriginalSelectionWithin(localFunction.ExpressionBody) || OriginalSelectionWithin(localFunction.Body))
+                        {
+                            functionNode = currentNode;
+                            break;
+                        }
+
+                        if (!OriginalSelectionResult.OriginalSpan.Contains(localFunction.Span))
+                        {
+                            // If we encountered a function but the selection isn't within the body, it's likely the user
+                            // is attempting to move the function (which is behavior that is supported). Stop looking up the 
+                            // tree and assume the encapsulating member is the right place to put the local function. This is to help
+                            // maintain the behavior introduced with https://github.com/dotnet/roslyn/pull/41377
+                            break;
+                        }
+                    }
+
+                    currentNode = currentNode.Parent;
+                }
+
+                if (functionNode is not null)
+                {
+                    return await InsertionPoint.CreateAsync(document, functionNode, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -86,6 +128,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             return await InsertionPoint.CreateAsync(document, memberNode, cancellationToken).ConfigureAwait(false);
+        }
+
+        private bool OriginalSelectionWithin(SyntaxNode node)
+        {
+            if (node is null)
+            {
+                return false;
+            }
+
+            return node.Span.Contains(OriginalSelectionResult.OriginalSpan);
         }
 
         protected override async Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
@@ -140,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var typeName = SyntaxFactory.ParseTypeName(typeParameter.Name);
                 var currentType = semanticModel.GetSpeculativeTypeInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
-                if (currentType == null || !SymbolEqualityComparer.Default.Equals(currentType, typeParameter))
+                if (currentType == null || !SymbolEqualityComparer.Default.Equals(currentType, semanticModel.ResolveType(typeParameter)))
                 {
                     return new OperationStatus(OperationStatusFlag.BestEffort,
                         string.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,

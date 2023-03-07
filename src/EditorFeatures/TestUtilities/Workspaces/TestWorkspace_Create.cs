@@ -53,7 +53,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string CommonReferencesPortableAttributeName = "CommonReferencesPortable";
         private const string CommonReferencesNetCoreAppName = "CommonReferencesNetCoreApp";
         private const string CommonReferencesNet6Name = "CommonReferencesNet6";
+        private const string CommonReferencesNet7Name = "CommonReferencesNet7";
         private const string CommonReferencesNetStandard20Name = "CommonReferencesNetStandard20";
+        private const string CommonReferencesMinCorlibName = "CommonReferencesMinCorlib";
         private const string ReferencesOnDiskAttributeName = "ReferencesOnDisk";
         private const string FilePathAttributeName = "FilePath";
         private const string FoldersAttributeName = "Folders";
@@ -66,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string LinkProjectNameAttributeName = "LinkProjectName";
         private const string LinkFilePathAttributeName = "LinkFilePath";
         private const string MarkupAttributeName = "Markup";
+        private const string NormalizeAttributeName = "Normalize";
         private const string PreprocessorSymbolsAttributeName = "PreprocessorSymbols";
         private const string AnalyzerDisplayAttributeName = "Name";
         private const string AnalyzerFullPathAttributeName = "FullPath";

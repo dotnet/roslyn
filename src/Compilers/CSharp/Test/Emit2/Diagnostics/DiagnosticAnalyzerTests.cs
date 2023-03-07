@@ -4010,19 +4010,40 @@ public record A(int X, int Y);";
                      Diagnostic("MyDiagnostic", @"public record A(int X, int Y);").WithLocation(2, 1));
         }
 
-        [Fact, WorkItem(64771, "https://github.com/dotnet/roslyn/issues/64771")]
-        public void TestDisabledByDefaultAnalyzerEnabledForSingleFile()
+        [Theory, CombinatorialData]
+        [WorkItem(64771, "https://github.com/dotnet/roslyn/issues/64771")]
+        [WorkItem(66085, "https://github.com/dotnet/roslyn/issues/66085")]
+        public void TestDisabledByDefaultAnalyzerEnabledForSingleFile(bool treeBasedOptions)
         {
             var source1 = "class C1 { }";
             var source2 = "class C2 { }";
             var source3 = "class C3 { }";
             var analyzer = new AnalyzerWithDisabledRules();
 
-            // Enable disabled by default analyzer for first source file with analyzer config options.
             var compilation = CreateCompilation(new[] { source1, source2, source3 });
-            var tree1 = compilation.SyntaxTrees[0];
-            var options = compilation.Options.WithSyntaxTreeOptionsProvider(
-                new TestSyntaxTreeOptionsProvider(tree1, (AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Warn)));
+
+            CSharpCompilationOptions options;
+            if (treeBasedOptions)
+            {
+                // Enable disabled by default analyzer for first source file with analyzer config options.
+                var tree1 = compilation.SyntaxTrees[0];
+                options = compilation.Options.WithSyntaxTreeOptionsProvider(
+                    new TestSyntaxTreeOptionsProvider(tree1, (AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Warn)));
+            }
+            else
+            {
+                // Enable disabled by default analyzer for entire compilation with SpecificDiagnosticOptions
+                // and disable the analyzer for second and third source file with analyzer config options.
+                // So, effectively the analyzer is enabled only for first source file.
+                var tree2 = compilation.SyntaxTrees[1];
+                var tree3 = compilation.SyntaxTrees[2];
+                options = compilation.Options
+                    .WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Warn))
+                    .WithSyntaxTreeOptionsProvider(new TestSyntaxTreeOptionsProvider(
+                        (tree2, new[] { (AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Suppress) }),
+                        (tree3, new[] { (AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Suppress) })));
+            }
+
             compilation = compilation.WithOptions(options);
 
             // Verify single analyzer diagnostic reported in the compilation.
@@ -4033,6 +4054,79 @@ public record A(int X, int Y);";
             // PERF: Verify no analyzer callbacks are made for source files where the analyzer was not enabled.
             var symbol = Assert.Single(analyzer.CallbackSymbols);
             Assert.Equal("C1", symbol.Name);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(67084, "https://github.com/dotnet/roslyn/issues/67084")]
+        internal async Task TestCancellationDuringDiagnosticComputation(AnalyzerRegisterActionKind actionKind)
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        int x = 0;
+    }
+}");
+            var options = compilation.Options.WithSyntaxTreeOptionsProvider(new CancellingSyntaxTreeOptionsProvider());
+            compilation = compilation.WithOptions(options);
+
+            var analyzer = new CancellationTestAnalyzer(actionKind);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+
+            // First invoke analysis with analyzer's cancellation token.
+            // Analyzer itself throws an OperationCanceledException to mimic cancellation during first callback.
+            // Verify canceled compilation and no reported diagnostics.
+            Assert.Empty(analyzer.CanceledCompilations);
+            try
+            {
+                _ = await getDiagnosticsAsync(analyzer.CancellationToken).ConfigureAwait(false);
+
+                throw ExceptionUtilities.Unreachable();
+            }
+            catch (OperationCanceledException ex) when (ex.CancellationToken == analyzer.CancellationToken)
+            {
+            }
+
+            Assert.Single(analyzer.CanceledCompilations);
+
+            // Then invoke analysis with a new cancellation token, and verify reported analyzer diagnostic.
+            var cancellationSource = new CancellationTokenSource();
+            var diagnostics = await getDiagnosticsAsync(cancellationSource.Token).ConfigureAwait(false);
+            var diagnostic = Assert.Single(diagnostics);
+            Assert.Equal(CancellationTestAnalyzer.DiagnosticId, diagnostic.Id);
+
+            async Task<ImmutableArray<Diagnostic>> getDiagnosticsAsync(CancellationToken cancellationToken)
+            {
+                var tree = compilation.SyntaxTrees[0];
+                var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+                return actionKind == AnalyzerRegisterActionKind.SyntaxTree ?
+                    await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(tree, cancellationToken).ConfigureAwait(false) :
+                    await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, filterSpan: null, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private sealed class CancellingSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
+        {
+            public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return GeneratedKind.NotGenerated;
+            }
+
+            public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                severity = ReportDiagnostic.Default;
+                return false;
+            }
+
+            public override bool TryGetGlobalDiagnosticValue(string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                severity = ReportDiagnostic.Default;
+                return false;
+            }
         }
     }
 }

@@ -7,13 +7,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -41,7 +42,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
 
         private readonly AbstractPushOrPullDiagnosticsTaggerProvider<TTag> _callback;
 
-        protected override ImmutableArray<IOption> Options => _callback.Options;
+        protected override ImmutableArray<IOption2> Options => _callback.Options;
 
         public SingleDiagnosticKindPullTaggerProvider(
             AbstractPushOrPullDiagnosticsTaggerProvider<TTag> callback,
@@ -96,7 +97,8 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
 
             var snapshot = documentSpanToTag.SnapshotSpan.Snapshot;
 
-            var workspace = document.Project.Solution.Workspace;
+            var project = document.Project;
+            var workspace = project.Solution.Workspace;
 
             // See if we've marked any spans as those we want to suppress diagnostics for.
             // This can happen for buffers used in the preview workspace where some feature
@@ -109,29 +111,18 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
 
             try
             {
+                var requestedSpan = documentSpanToTag.SnapshotSpan;
+
                 var diagnostics = await _analyzerService.GetDiagnosticsForSpanAsync(
                     document,
-                    documentSpanToTag.SnapshotSpan.Span.ToTextSpan(),
+                    requestedSpan.Span.ToTextSpan(),
                     diagnosticKind: _diagnosticKind,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                var requestedSpan = documentSpanToTag.SnapshotSpan;
 
                 foreach (var diagnosticData in diagnostics)
                 {
                     if (_callback.IncludeDiagnostic(diagnosticData))
                     {
-                        // We're going to be retrieving the diagnostics against the last time the engine
-                        // computed them against this document *id*.  That might have been a different
-                        // version of the document vs what we're looking at now.  But that's ok:
-                        // 
-                        // 1) GetExistingOrCalculatedTextSpan will ensure that the diagnostics spans are
-                        //    contained within 'editorSnapshot'.
-                        // 2) We'll eventually hear about an update to the diagnostics for this document
-                        //    for whatever edits happened between the last time and this current snapshot.
-                        //    So we'll eventually reach a point where the diagnostics exactly match the
-                        //    editorSnapshot.
-
                         var diagnosticSpans = _callback.GetLocationsToTag(diagnosticData)
                             .Select(loc => loc.UnmappedFileSpan.GetClampedTextSpan(sourceText).ToSnapshotSpan(snapshot));
                         foreach (var diagnosticSpan in diagnosticSpans)

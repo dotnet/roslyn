@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsLiteralNull(this BoundExpression node)
         {
-            return node is { Kind: BoundKind.Literal, ConstantValue: { Discriminator: ConstantValueTypeDiscriminator.Null } };
+            return node is { Kind: BoundKind.Literal, ConstantValueOpt: { Discriminator: ConstantValueTypeDiscriminator.Null } };
         }
 
         public static bool IsLiteralDefault(this BoundExpression node)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var constValue = node.ConstantValue;
+            var constValue = node.ConstantValueOpt;
             if (constValue != null)
             {
                 return constValue.IsDefaultValue;
@@ -145,28 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool MethodGroupReceiverIsDynamic(this BoundMethodGroup node)
         {
             return node.InstanceOpt != null && node.InstanceOpt.HasDynamicType();
-        }
-
-        public static bool HasExpressionSymbols(this BoundExpression node)
-        {
-            switch (node.Kind)
-            {
-                case BoundKind.Call:
-                case BoundKind.Local:
-                case BoundKind.FieldAccess:
-                case BoundKind.PropertyAccess:
-                case BoundKind.IndexerAccess:
-                case BoundKind.EventAccess:
-                case BoundKind.MethodGroup:
-                case BoundKind.ObjectCreationExpression:
-                case BoundKind.TypeExpression:
-                case BoundKind.NamespaceExpression:
-                    return true;
-                case BoundKind.BadExpression:
-                    return ((BoundBadExpression)node).Symbols.Length > 0;
-                default:
-                    return false;
-            }
         }
 
         public static void GetExpressionSymbols(this BoundExpression node, ArrayBuilder<Symbol> symbols, BoundNode parent, Binder binder)
@@ -267,6 +245,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol? receiverType = expressionOpt.Type;
             return receiverType is NamedTypeSymbol { Kind: SymbolKind.NamedType, IsComImport: true };
+        }
+
+        internal static bool IsDiscardExpression(this BoundExpression expr)
+        {
+            return expr switch
+            {
+                BoundDiscardExpression => true,
+                OutDeconstructVarPendingInference { IsDiscardExpression: true } => true,
+                BoundDeconstructValuePlaceholder { IsDiscardExpression: true } => true,
+                _ => false
+            };
         }
     }
 }

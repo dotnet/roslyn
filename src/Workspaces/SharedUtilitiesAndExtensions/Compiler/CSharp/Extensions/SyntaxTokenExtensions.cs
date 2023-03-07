@@ -178,24 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     token.TrailingTrivia.Concat(SyntaxNodeOrTokenExtensions.GetTrivia(trailingNodesOrTokens).Concat(trailingTrivia))).FilterComments(addElasticMarker: false));
 
         public static SyntaxToken KeepCommentsAndAddElasticMarkers(this SyntaxToken token)
-            => token
-                    .WithTrailingTrivia(token.TrailingTrivia.FilterComments(addElasticMarker: true))
+            => token.WithTrailingTrivia(token.TrailingTrivia.FilterComments(addElasticMarker: true))
                     .WithLeadingTrivia(token.LeadingTrivia.FilterComments(addElasticMarker: true));
-
-        public static bool IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine(this SyntaxToken token)
-        {
-            // If there's a string in the parenthesis in the code below, the parser would return
-            // a CastExpression instead of ParenthesizedExpression. However, some features like keyword completion
-            // might be able tolerate this and still want to treat it as a ParenthesizedExpression.
-            //
-            //         var data = (n$$)
-            //         M();
-
-            var node = token.Parent;
-            return node.IsKind(SyntaxKind.IdentifierName)
-                && node.Parent is CastExpressionSyntax castExpression
-                && castExpression.Type == node
-                && (castExpression.Expression.IsMissing || castExpression.CloseParenToken.TrailingTrivia.GetFirstNewLine().HasValue);
-        }
     }
 }

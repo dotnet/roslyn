@@ -3812,6 +3812,9 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadSpecialByRefLocal" xml:space="preserve">
     <value>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</value>
   </data>
+  <data name="ERR_BadSpecialByRefUsing" xml:space="preserve">
+    <value>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</value>
+  </data>
   <data name="ERR_BadSpecialByRefIterator" xml:space="preserve">
     <value>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</value>
   </data>
@@ -6587,10 +6590,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Unexpected argument list.</value>
   </data>
   <data name="ERR_UnexpectedOrMissingConstructorInitializerInRecord" xml:space="preserve">
-    <value>A constructor declared in a record with parameter list must have 'this' constructor initializer.</value>
+    <value>A constructor declared in a type with parameter list must have 'this' constructor initializer.</value>
   </data>
   <data name="ERR_MultipleRecordParameterLists" xml:space="preserve">
-    <value>Only a single record partial declaration may have a parameter list</value>
+    <value>Only a single partial type declaration may have a parameter list</value>
   </data>
   <data name="ERR_BadRecordBase" xml:space="preserve">
     <value>Records may only inherit from object or another record</value>
@@ -6845,7 +6848,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Do not compare function pointer values</value>
   </data>
   <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
-    <value>Using a function pointer type in a 'typeof' in an attribute is not supported.</value>
+    <value>Using a function pointer type in this context is not supported.</value>
   </data>
   <data name="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue" xml:space="preserve">
     <value>The CallerArgumentExpressionAttribute may only be applied to parameters with default values</value>
@@ -7176,7 +7179,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A lambda expression with attributes cannot be converted to an expression tree</value>
   </data>
   <data name="ERR_RecordStructConstructorCallsDefaultConstructor" xml:space="preserve">
-    <value>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</value>
+    <value>A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</value>
   </data>
   <data name="ERR_StructHasInitializersAndNoDeclaredConstructor" xml:space="preserve">
     <value>A 'struct' with field initializers must include an explicitly declared constructor.</value>
@@ -7365,7 +7368,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Types and aliases cannot be named 'scoped'.</value>
   </data>
   <data name="ERR_UnscopedRefAttributeUnsupportedTarget" xml:space="preserve">
-    <value>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</value>
+    <value>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</value>
+  </data>
+  <data name="ERR_UnscopedRefAttributeUnsupportedMemberTarget" xml:space="preserve">
+    <value>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</value>
+  </data>
+  <data name="ERR_UnscopedRefAttributeInterfaceImplementation" xml:space="preserve">
+    <value>UnscopedRefAttribute cannot be applied to an interface implementation.</value>
+  </data>
+  <data name="ERR_UnrecognizedRefSafetyRulesAttributeVersion" xml:space="preserve">
+    <value>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</value>
   </data>
   <data name="ERR_RuntimeDoesNotSupportRefFields" xml:space="preserve">
     <value>Target runtime doesn't support ref fields.</value>
@@ -7405,5 +7417,68 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_ParamsArrayInLambdaOnly_Title" xml:space="preserve">
     <value>Parameter has params modifier in lambda but not in target delegate type.</value>
+  </data>
+  <data name="IDS_FeaturePrimaryConstructors" xml:space="preserve">
+    <value>primary constructors</value>
+  </data>
+  <data name="ERR_InvalidPrimaryConstructorParameterReference" xml:space="preserve">
+    <value>Cannot use primary constructor parameter '{0}' in this context.</value>
+  </data>
+  <data name="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver" xml:space="preserve">
+    <value>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</value>
+  </data>
+  <data name="WRN_CapturedPrimaryConstructorParameterPassedToBase" xml:space="preserve">
+    <value>Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</value>
+  </data>
+  <data name="WRN_CapturedPrimaryConstructorParameterPassedToBase_Title" xml:space="preserve">
+    <value>Parameter is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</value>
+  </data>
+  <data name="ERR_AnonDelegateCantUseRefLike" xml:space="preserve">
+    <value>Cannot use parameter '{0}' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function</value>
+  </data>
+  <data name="ERR_UnsupportedPrimaryConstructorParameterCapturingRef" xml:space="preserve">
+    <value>Cannot use ref, out, or in primary constructor parameter '{0}' inside an instance member</value>
+  </data>
+  <data name="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike" xml:space="preserve">
+    <value>Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</value>
+  </data>
+  <data name="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember" xml:space="preserve">
+    <value>Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter</value>
+  </data>
+  <data name="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured" xml:space="preserve">
+    <value>Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member</value>
+  </data>
+  <data name="WRN_UnreadPrimaryConstructorParameter" xml:space="preserve">
+    <value>Parameter '{0}' is unread.</value>
+  </data>
+  <data name="WRN_UnreadPrimaryConstructorParameter_Title" xml:space="preserve">
+    <value>Parameter is unread.</value>
+  </data>
+  <data name="ERR_AssgReadonlyPrimaryConstructorParameter" xml:space="preserve">
+    <value>A primary constructor parameter of a readonly type cannot be assigned to (except in init-only setter of the type or a variable initializer)</value>
+  </data>
+  <data name="ERR_RefReturnReadonlyPrimaryConstructorParameter" xml:space="preserve">
+    <value>A primary constructor parameter of a readonly type cannot be returned by writable reference</value>
+  </data>
+  <data name="ERR_RefReadonlyPrimaryConstructorParameter" xml:space="preserve">
+    <value>A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</value>
+  </data>
+  <data name="ERR_AssgReadonlyPrimaryConstructorParameter2" xml:space="preserve">
+    <value>Members of primary constructor parameter '{0}' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)</value>
+  </data>
+  <data name="ERR_RefReturnReadonlyPrimaryConstructorParameter2" xml:space="preserve">
+    <value>Members of primary constructor parameter '{0}' of a readonly type cannot be returned by writable reference</value>
+  </data>
+  <data name="ERR_RefReadonlyPrimaryConstructorParameter2" xml:space="preserve">
+    <value>Members of primary constructor parameter '{0}' of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</value>
+  </data>
+  <data name="ERR_RefReturnPrimaryConstructorParameter" xml:space="preserve">
+    <value>Cannot return primary constructor parameter '{0}' by reference.</value>
+  </data>
+  <data name="ERR_StructLayoutCyclePrimaryConstructorParameter" xml:space="preserve">
+    <value>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</value>
+  </data>
+  <data name="ERR_UnexpectedParameterList" xml:space="preserve">
+    <value>Unexpected parameter list.</value>
   </data>
 </root>

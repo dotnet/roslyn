@@ -34,6 +34,5 @@ internal static class ExtractMethodOptionsStorage
         => document.GetExtractMethodGenerationOptionsAsync(globalOptions.GetExtractMethodGenerationOptions(document.Project.Services), cancellationToken);
 
     public static readonly PerLanguageOption2<bool> DontPutOutOrRefOnStruct = new(
-        "ExtractMethodOptions", "DontPutOutOrRefOnStruct", ExtractMethodOptions.Default.DontPutOutOrRefOnStruct,
-        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Don't Put Out Or Ref On Strcut")); // NOTE: the spelling error is what we've shipped and thus should not change
+        "dotnet_extract_method_no_ref_or_out_structs", ExtractMethodOptions.Default.DontPutOutOrRefOnStruct);
 }

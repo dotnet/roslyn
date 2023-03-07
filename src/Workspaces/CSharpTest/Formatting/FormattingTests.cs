@@ -960,7 +960,7 @@ label3:
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) },
             };
             await AssertFormatAsync(@"class Program
 {
@@ -1035,7 +1035,7 @@ class D
                 { IndentBlock, false },
                 { IndentSwitchSection, false },
                 { IndentSwitchCaseSection, false },
-                { NewLinesForBracesInLambdaExpressionBody, false },
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.LambdaExpressionBody, false) },
                 { LabelPositioning, LabelPositionOptions.LeftMost }
             };
 
@@ -1881,13 +1881,7 @@ public class goo : System.Object
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { NewLinesForBracesInTypes, false },
-                { NewLinesForBracesInMethods, false },
-                { NewLinesForBracesInAnonymousMethods, false },
-                { NewLinesForBracesInControlBlocks, false },
-                { NewLinesForBracesInAnonymousTypes, false },
-                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
-                { NewLinesForBracesInLambdaExpressionBody, false }
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBracePlacement.None }
             };
             await AssertFormatAsync(@"class f00 {
     void br() {
@@ -2137,7 +2131,7 @@ else
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { NewLineForElse, false },
-                { NewLinesForBracesInControlBlocks, false },
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ControlBlocks, false) }
             };
 
             await AssertFormatAsync(@"class Class
@@ -6123,7 +6117,11 @@ class Program
         { }
     }
 }";
-            var optionSet = new OptionsCollection(LanguageNames.CSharp) { { CSharpFormattingOptions2.SpaceWithinOtherParentheses, true } };
+            var optionSet = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBetweenParentheses, SpaceBetweenParentheses.DefaultValue.WithFlagValue( SpacePlacementWithinParentheses.ControlFlowStatements, true) },
+            };
+
             await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
         }
 
@@ -7267,7 +7265,7 @@ class Program
 
             var options = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, false }
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ControlBlocks, false) }
             };
 
             await AssertFormatAsync(expected, code, changedOptionSet: options);
@@ -7306,7 +7304,7 @@ class Program
 
             var options = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, false }
+                { NewLineBeforeOpenBrace , NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ControlBlocks, false) }
             };
 
             await AssertFormatAsync(expected, code, changedOptionSet: options);
@@ -8484,7 +8482,7 @@ class Program
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, false }
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ControlBlocks, false) }
             };
             var code = @"class Program
 {
@@ -8627,7 +8625,7 @@ class Program
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInProperties, false }
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.Properties, false) },
             };
             await AssertFormatAsync(@"class Class2
 {
@@ -8665,7 +8663,7 @@ class Program
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInAccessors, false }
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.Accessors, false) },
             };
             await AssertFormatAsync(@"class Class2
 {
@@ -8703,8 +8701,9 @@ class Program
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInProperties, false },
-                { CSharpFormattingOptions2.NewLinesForBracesInAccessors, false }
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue
+                    .WithFlagValue(NewLineBeforeOpenBracePlacement.Properties, false)
+                    .WithFlagValue(NewLineBeforeOpenBracePlacement.Accessors, false)},
             };
             await AssertFormatAsync(@"class Class2
 {
@@ -9755,7 +9754,7 @@ class A
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) },
             };
             await AssertFormatAsync(
                 @"
@@ -9815,7 +9814,7 @@ class C
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) },
             };
             await AssertFormatAsync(
                 @"
@@ -9925,7 +9924,7 @@ class A
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) },
             };
             await AssertFormatAsync(
                 @"
@@ -9961,7 +9960,7 @@ class A
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { NewLinesForBracesInObjectCollectionArrayInitializers, option },
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, option) },
             };
             var code = @"
 class A
@@ -9989,6 +9988,30 @@ record  class  R(int X);
         }
 
         [Fact]
+        public async Task Class()
+        {
+            await AssertFormatAsync(
+                @"
+class R(int X);
+",
+                @"
+class  R(int X)  ;
+");
+        }
+
+        [Fact]
+        public async Task Interface()
+        {
+            await AssertFormatAsync(
+                @"
+interface R(int X);
+",
+                @"
+interface  R(int X)  ;
+");
+        }
+
+        [Fact]
         public async Task RecordStruct()
         {
             await AssertFormatAsync(
@@ -9997,6 +10020,18 @@ record struct R(int X);
 ",
                 @"
 record  struct  R(int X);
+");
+        }
+
+        [Fact]
+        public async Task Struct()
+        {
+            await AssertFormatAsync(
+                @"
+struct R(int X);
+",
+                @"
+struct  R(int X)  ;
 ");
         }
 

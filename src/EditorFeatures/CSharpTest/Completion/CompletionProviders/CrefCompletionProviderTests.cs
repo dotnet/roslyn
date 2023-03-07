@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,6 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 
@@ -29,13 +28,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         internal override Type GetCompletionProviderType()
             => typeof(CrefCompletionProvider);
 
-        private protected override async Task VerifyWorkerAsync(
-            string code, int position,
-            string expectedItemOrNull, string expectedDescriptionOrNull,
-            SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
-            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null, CompletionOptions options = null, bool skipSpeculation = false)
+        private protected override async Task VerifyWorkerAsync(string code, int position, string expectedItemOrNull,
+            string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger,
+            bool checkForAbsence, int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
+            string displayTextPrefix, string? inlineDescription = null, bool? isComplexTextEdit = null,
+            List<CompletionFilter>? matchingFilters = null, CompletionItemFlags? flags = null,
+            CompletionOptions? options = null, bool skipSpeculation = false)
         {
             await VerifyAtPositionAsync(
                 code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
@@ -219,7 +217,7 @@ class C<T>
 }
 
 ";
-            await VerifyItemExistsAsync(text, "C");
+            await VerifyItemExistsAsync(text, "C()");
             await VerifyItemExistsAsync(text, "C(T)");
             await VerifyItemExistsAsync(text, "C(int)");
         }
@@ -431,7 +429,7 @@ class C
             var called = false;
 
             var hostDocument = workspace.DocumentWithCursor;
-            var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+            var document = workspace.CurrentSolution.GetRequiredDocument(hostDocument.Id);
             var service = GetCompletionService(document.Project);
             var provider = Assert.IsType<CrefCompletionProvider>(service.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet<string>.Empty).Single());
             provider.GetTestAccessor().SetSpeculativeNodeCallback(n =>
@@ -439,13 +437,13 @@ class C
                 // asserts that we aren't be asked speculate on nodes inside documentation trivia.
                 // This verifies that the provider is asking for a speculative SemanticModel
                 // by walking to the node the documentation is attached to. 
-
+                Contract.ThrowIfNull(n);
                 called = true;
                 var parent = n.GetAncestor<DocumentationCommentTriviaSyntax>();
                 Assert.Null(parent);
             });
 
-            var completionList = await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, RoslynTrigger.Invoke);
+            var completionList = await GetCompletionListAsync(service, document, hostDocument.CursorPosition!.Value, RoslynTrigger.Invoke);
 
             Assert.True(called);
         }
@@ -494,6 +492,114 @@ class C
 ";
 
             await VerifyItemExistsAsync(text, "MyMethod(in int)");
+        }
+
+        [Fact, WorkItem(22626, "https://github.com/dotnet/roslyn/issues/22626")]
+        public async Task ValueTuple1()
+        {
+            var text = """
+                class C
+                {
+                    /// <summary>
+                    /// <seealso cref="M$$"/>
+                    /// </summary>
+                    public void M((string, int) stringAndInt) { }
+                }
+                """;
+
+            await VerifyItemExistsAsync(text, "M(ValueTuple{string, int})");
+        }
+
+        [Fact, WorkItem(22626, "https://github.com/dotnet/roslyn/issues/22626")]
+        public async Task ValueTuple2()
+        {
+            var text = """
+                class C
+                {
+                    /// <summary>
+                    /// <seealso cref="M$$"/>
+                    /// </summary>
+                    public void M((string s, int i) stringAndInt) { }
+                }
+                """;
+
+            await VerifyItemExistsAsync(text, "M(ValueTuple{string, int})");
+        }
+
+        [Fact, WorkItem(43139, "https://github.com/dotnet/roslyn/issues/43139")]
+        public async Task TestNonOverload1()
+        {
+            var text = """
+                class C
+                {
+                    /// <summary>
+                    /// <seealso cref="C.$$"/>
+                    /// </summary>
+                    public void M() { }
+
+                    void Dispose() { }
+                }
+                """;
+
+            await VerifyItemExistsAsync(text, "Dispose");
+        }
+
+        [Fact, WorkItem(43139, "https://github.com/dotnet/roslyn/issues/43139")]
+        public async Task TestNonOverload2()
+        {
+            var text = """
+                class C
+                {
+                    /// <summary>
+                    /// <seealso cref="$$"/>
+                    /// </summary>
+                    public void M() { }
+
+                    void Dispose() { }
+                }
+                """;
+
+            await VerifyItemExistsAsync(text, "Dispose");
+        }
+
+        [Fact, WorkItem(43139, "https://github.com/dotnet/roslyn/issues/43139")]
+        public async Task TestOverload1()
+        {
+            var text = """
+                class C
+                {
+                    /// <summary>
+                    /// <seealso cref="C.$$"/>
+                    /// </summary>
+                    public void M() { }
+
+                    void Dispose() { }
+                    void Dispose(bool b) { }
+                }
+                """;
+
+            await VerifyItemExistsAsync(text, "Dispose()");
+            await VerifyItemExistsAsync(text, "Dispose(bool)");
+        }
+
+        [Fact, WorkItem(43139, "https://github.com/dotnet/roslyn/issues/43139")]
+        public async Task TestOverload2()
+        {
+            var text = """
+                class C
+                {
+                    /// <summary>
+                    /// <seealso cref="$$"/>
+                    /// </summary>
+                    public void M() { }
+
+                    void Dispose() { }
+                    void Dispose(bool b) { }
+                }
+                """;
+
+            await VerifyItemExistsAsync(text, "Dispose()");
+            await VerifyItemExistsAsync(text, "Dispose(bool)");
         }
     }
 }

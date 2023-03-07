@@ -1702,7 +1702,7 @@ class C
 
         return v;
     }
-}", new TestParameters(options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSuggestionEnforcement)));
+}", new TestParameters(options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOption2.TrueWithSuggestionEnforcement)));
         }
 
         [Fact, WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
@@ -1749,7 +1749,7 @@ class C
 
         return v;
     }
-}", new TestParameters(options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSuggestionEnforcement)));
+}", new TestParameters(options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSuggestionEnforcement)));
         }
 
         [Fact, WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
@@ -3410,7 +3410,7 @@ class C
         return x;
     }
 
-    private async Task<string> NewMethod()
+    private async Task<string?> NewMethod()
     {
         return await DoSomethingAsync();
     }
@@ -3440,7 +3440,7 @@ class C
     {
         return b != true;
     }
-}", new TestParameters(options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.FalseWithSuggestionEnforcement)));
+}", new TestParameters(options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOption2.FalseWithSuggestionEnforcement)));
         }
 
         [Fact, WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
@@ -4764,7 +4764,7 @@ class Program
             }
             """);
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/65221")]
+        [Fact]
         public Task ExtractMethod_InsideThisInitializer()
         => TestInRegularAndScript1Async(
             """
@@ -4788,7 +4788,7 @@ class Program
                 {
                 }
 
-                private static NewMethod(int y)
+                private static int NewMethod(int y)
                 {
                     return y + 1;
                 }

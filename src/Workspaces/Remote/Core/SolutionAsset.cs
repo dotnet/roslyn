@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class SolutionAsset
     {
-        public static readonly SolutionAsset Null = new SolutionAsset(value: null, Checksum.Null, WellKnownSynchronizationKind.Null);
+        public static readonly SolutionAsset Null = new(value: null, Checksum.Null, WellKnownSynchronizationKind.Null);
 
         /// <summary>
         /// Indicates what kind of object it.
         /// 
-        /// Used in tranportation framework and deserialization service
-        /// to hand shake how to send over data and deserialize serialized data.
+        /// Used in transportation framework and deserialization service to hand shake how to send over data and
+        /// deserialize serialized data.
         /// </summary>
         public readonly WellKnownSynchronizationKind Kind;
 

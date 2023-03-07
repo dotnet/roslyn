@@ -51,6 +51,8 @@ namespace Microsoft.CodeAnalysis.Remote
             return new AssetProvider(solutionChecksum, assetCache, assetSource, serializerService);
         }
 
+        protected internal override bool PartialSemanticsEnabled => true;
+
         /// <summary>
         /// Syncs over the solution corresponding to <paramref name="solutionChecksum"/> and sets it as the current
         /// solution for <see langword="this"/> workspace.  This will also end up updating <see
@@ -309,9 +311,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Ensure we update newSolution with the result of SetCurrentSolution.  It will be the one appropriately
                 // 'attached' to this workspace.
                 (_, newSolution) = this.SetCurrentSolution(
-                    (oldSolution, _) => newSolution,
-                    data: /*unused*/0,
-                    onBeforeUpdate: (oldSolution, newSolution, _) =>
+                    _ => newSolution,
+                    changeKind: static (oldSolution, newSolution) => IsAddingSolution(oldSolution, newSolution)
+                        ? WorkspaceChangeKind.SolutionAdded
+                        : WorkspaceChangeKind.SolutionChanged,
+                    onBeforeUpdate: (oldSolution, newSolution) =>
                     {
                         if (IsAddingSolution(oldSolution, newSolution))
                         {
@@ -320,12 +324,6 @@ namespace Microsoft.CodeAnalysis.Remote
                             // this seems suspect as the remote workspace should not be tracking any open document state.
                             this.ClearSolutionData();
                         }
-                    },
-                    onAfterUpdate: (oldSolution, newSolution, _) =>
-                    {
-                        RaiseWorkspaceChangedEventAsync(
-                            IsAddingSolution(oldSolution, newSolution) ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged,
-                            oldSolution, newSolution);
                     });
 
                 return (newSolution, updated: true);

@@ -78,7 +78,11 @@ namespace Microsoft.CodeAnalysis
 
         private static DiagnosticDescriptor GetOrCreateDescriptor(int errorCode, DiagnosticSeverity defaultSeverity, CommonMessageProvider messageProvider)
         {
-            return ImmutableInterlocked.GetOrAdd(ref s_errorCodeToDescriptorMap, errorCode, code => CreateDescriptor(code, defaultSeverity, messageProvider));
+            return ImmutableInterlocked.GetOrAdd(
+                ref s_errorCodeToDescriptorMap,
+                errorCode,
+                static (code, arg) => CreateDescriptor(code, arg.defaultSeverity, arg.messageProvider),
+                (defaultSeverity, messageProvider));
         }
 
         private static DiagnosticDescriptor CreateDescriptor(int errorCode, DiagnosticSeverity defaultSeverity, CommonMessageProvider messageProvider)
@@ -161,7 +165,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         // Create a copy of this instance with a explicit overridden severity
-        internal virtual DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        internal DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        {
+            if (Severity != severity)
+            {
+                var result = GetInstanceWithSeverityCore(severity);
+                // If this assert fails it means a subtype of DiagnosticInfo failed to override GetInstanceWithSeverityCore
+                Debug.Assert(this.GetType() == result.GetType());
+                Debug.Assert(severity == result.Severity);
+                return result;
+            }
+
+            return this;
+        }
+
+        protected virtual DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
         {
             return new DiagnosticInfo(this, severity);
         }

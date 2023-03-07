@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitExpression(conditional.Condition),
                     RewriteDeconstruction(lhsTargets, conversion, leftType, conditional.Consequence, isUsed: true)!,
                     RewriteDeconstruction(lhsTargets, conversion, leftType, conditional.Alternative, isUsed: true)!,
-                    conditional.ConstantValue,
+                    conditional.ConstantValueOpt,
                     leftType,
                     wasTargetTyped: true,
                     leftType);
@@ -169,6 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 symbol = localSymbol;
                                 break;
                             case BoundParameter { ParameterSymbol: { RefKind: RefKind.None } parameterSymbol }:
+                                Debug.Assert(!IsCapturedPrimaryConstructorParameter(single));
                                 symbol = parameterSymbol;
                                 break;
                             case BoundDiscardExpression:
@@ -251,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (leftTarget.Kind != BoundKind.DiscardExpression)
                     {
                         effects.assignments.Add(MakeAssignmentOperator(resultPart.Syntax, leftTarget, resultPart, leftTarget.Type,
-                            used: true, isChecked: false, isCompoundAssignment: false));
+                            used: false, isChecked: false, isCompoundAssignment: false));
                     }
                 }
                 Debug.Assert(builder is null || resultPart is { });

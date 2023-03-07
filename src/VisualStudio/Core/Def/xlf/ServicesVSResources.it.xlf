@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Analyze_source_generated_files">
         <source>Analyze source generated files</source>
-        <target state="new">Analyze source generated files</target>
+        <target state="translated">Analizza i file generati dall’origine</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzer_Defaults">
@@ -777,11 +777,6 @@
         <target state="translated">Dichiarazioni degli spazi dei nomi</target>
         <note />
       </trans-unit>
-      <trans-unit id="Namespaces_have_been_updated">
-        <source>Namespaces have been updated.</source>
-        <target state="translated">Gli spazi dei nomi sono stati aggiornati.</target>
-        <note>"Namespaces" is the programming language concept</note>
-      </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
         <target state="new">class</target>
@@ -1152,6 +1147,11 @@
         <target state="translated">Preferire struct di sola lettura</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_read_only_struct_member">
+        <source>Prefer read-only struct member</source>
+        <target state="new">Prefer read-only struct member</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
         <target state="translated">Preferisci campi readonly</target>
@@ -1491,6 +1491,11 @@
         <source>Sync Namespaces</source>
         <target state="translated">Sincronizza spazi dei nomi</target>
         <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Sync_namespaces_changes">
+        <source>Sync namespaces changes</source>
+        <target state="new">Sync namespaces changes</target>
+        <note />
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>
