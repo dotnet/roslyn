@@ -457,7 +457,7 @@ IL_0005:  ret
             ExpressionCompilerTestHelpers.VerifyAppDomainMetadataContext(appDomain.GetMetadataContext(), moduleVersionIds);
         }
 
-        [Fact, WorkItem(26159, "https://github.com/dotnet/roslyn/issues/26159")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26159")]
         public void TypeOutsideAssemblyReferences()
         {
             var sourceA =
@@ -507,7 +507,7 @@ class B : A
             }
         }
 
-        [Fact, WorkItem(1141029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1141029")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1141029")]
         public void AssemblyDuplicateReferences()
         {
             var sourceA =
@@ -970,7 +970,7 @@ IL_0006:  ret
         /// mscorlib.dll is not directly referenced from an assembly
         /// compiled against portable framework assemblies.
         /// </summary>
-        [Fact, WorkItem(1150981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1150981")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1150981")]
         public void MissingMscorlib()
         {
             var sourceA =
@@ -1045,7 +1045,7 @@ IL_0005:  ret
 }");
         }
 
-        [Fact, WorkItem(1170032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170032")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170032")]
         public void DuplicateTypesInMscorlib()
         {
             var sourceConsole =
@@ -1148,7 +1148,7 @@ IL_0005:  ret
         /// <summary>
         /// Intrinsic methods assembly should not be dropped.
         /// </summary>
-        [WorkItem(4140, "https://github.com/dotnet/roslyn/issues/4140")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4140")]
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void IntrinsicMethods()
         {
@@ -1246,8 +1246,8 @@ IL_0030:  ret
 
         // An assembly with the expected corlib name and with System.Object should
         // be considered the corlib, even with references to external assemblies.
-        [Fact, WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
-        [WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30030")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13275")]
         public void CorLibWithAssemblyReferences()
         {
             string sourceLib =
@@ -1364,7 +1364,7 @@ namespace System
         }
 
         // References to missing assembly from PDB custom debug info.
-        [Theory, WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/13275")]
         [MemberData(nameof(NonNullTypesTrueAndFalseReleaseDll))]
         public void CorLibWithAssemblyReferences_Pdb(CSharpCompilationOptions options)
         {

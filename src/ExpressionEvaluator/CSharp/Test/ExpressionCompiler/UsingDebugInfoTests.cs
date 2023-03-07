@@ -54,7 +54,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(21386, "https://github.com/dotnet/roslyn/issues/21386")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21386")]
         public void Gaps()
         {
             var source = @"
@@ -210,7 +210,7 @@ namespace A
             });
         }
 
-        [Fact, WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30030")]
         public void ImportKinds()
         {
             var source = @"
@@ -252,7 +252,7 @@ namespace B
             });
         }
 
-        [Fact, WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
         public void ImportKinds_StaticType()
         {
             var libSource = @"
@@ -302,7 +302,7 @@ namespace B
             });
         }
 
-        [Fact, WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30030")]
         public void ForwardToModule()
         {
             var source = @"
@@ -437,7 +437,7 @@ namespace D
             Assert.True(externAliasStrings.IsDefault);
         }
 
-        [Fact, WorkItem(999086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999086")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999086")]
         public void BadPdb_InvalidAliasSyntax()
         {
             var source = @"
@@ -468,7 +468,7 @@ public class C
             Assert.Equal(0, imports.ExternAliases.Length);
         }
 
-        [Fact, WorkItem(999086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999086")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999086")]
         public void BadPdb_DotInAlias()
         {
             var source = @"
@@ -499,7 +499,7 @@ public class C
             Assert.Equal(0, imports.ExternAliases.Length);
         }
 
-        [Fact, WorkItem(1007917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007917")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007917")]
         public void BadPdb_NestingLevel_TooMany()
         {
             var source = @"
@@ -536,7 +536,7 @@ public class C
             Assert.Equal(0, imports.ExternAliases.Length);
         }
 
-        [Fact, WorkItem(1007917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007917")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007917")]
         public void BadPdb_NestingLevel_TooFew()
         {
             var source = @"
@@ -576,7 +576,7 @@ namespace N
             Assert.Equal(0, imports.ExternAliases.Length);
         }
 
-        [Fact, WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
         public void BadPdb_NonStaticTypeImport()
         {
             var source = @"
@@ -779,7 +779,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
         public void ImportsForStaticType()
         {
             var source = @"
@@ -1164,7 +1164,7 @@ namespace N
             Assert.Null(error);
         }
 
-        [Fact, WorkItem(2441, "https://github.com/dotnet/roslyn/issues/2441")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2441")]
         public void AssemblyQualifiedNameResolutionWithUnification()
         {
             var source1 = @"
