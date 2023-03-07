@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             Assert.Equal(semanticResults.Single().ResultId, semanticResults2.Single().ResultId);
         }
 
-        [Fact, WorkItem(65172, "https://github.com/dotnet/roslyn/issues/65172")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65172")]
         public async Task TestDocumentDiagnosticsHasVSExpandedMessage()
         {
             var markup =
@@ -297,7 +297,7 @@ class A {
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1481208, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1481208")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1481208")]
         public async Task TestDocumentDiagnosticsWhenEnCVersionChanges(bool useVSDiagnostics)
         {
             var markup =
