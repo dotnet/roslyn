@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.True(fixer2.Called);
         }
 
-        [Fact, WorkItem(41116, "https://github.com/dotnet/roslyn/issues/41116")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41116")]
         public async Task TestGetFixesAsyncWithDuplicateDiagnostics()
         {
             var codeFix = new MockFixer();
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.Equal(2, codeFix.ContextDiagnosticsCount);
         }
 
-        [Fact, WorkItem(45779, "https://github.com/dotnet/roslyn/issues/45779")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45779")]
         public async Task TestGetFixesAsyncHasNoDuplicateConfigurationActions()
         {
             var codeFix = new MockFixer();
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             }
         }
 
-        [Fact, WorkItem(56843, "https://github.com/dotnet/roslyn/issues/56843")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56843")]
         public async Task TestGetFixesAsyncForFixableAndNonFixableAnalyzersAsync()
         {
             var codeFix = new MockFixer();
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.True(analyzerWithoutFix.ReceivedCallback);
         }
 
-        [Fact, WorkItem(1450689, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1450689")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1450689")]
         public async Task TestGetFixesAsyncForDocumentDiagnosticAnalyzerAsync()
         {
             // TS has special DocumentDiagnosticAnalyzer that report 0 SupportedDiagnostics.
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         public async Task TestGetCodeFixWithExceptionInGetFixAllProvider()
             => await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInGetFixAllProvider());
 
-        [Fact, WorkItem(45851, "https://github.com/dotnet/roslyn/issues/45851")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45851")]
         public async Task TestGetCodeFixWithExceptionOnCodeFixProviderCreation()
             => await GetAddedFixesAsync(
                 new MockFixer(),
@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 => exception.Message + Environment.NewLine + exception.StackTrace;
         }
 
-        [Fact, WorkItem(18818, "https://github.com/dotnet/roslyn/issues/18818")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18818")]
         public async Task TestNuGetAndVsixCodeFixersAsync()
         {
             // No NuGet or VSIX code fix provider
@@ -606,7 +606,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.Equal(expectedVsixFixerCodeActionWasRegistered, fixTitles.Contains(nameof(VsixCodeFixProvider)));
         }
 
-        [Fact, WorkItem(18818, "https://github.com/dotnet/roslyn/issues/18818")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18818")]
         public async Task TestNuGetAndVsixCodeFixersWithMultipleFixableDiagnosticIdsAsync()
         {
             const string id1 = "ID1";
@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             }
         }
 
-        [Theory, WorkItem(44553, "https://github.com/dotnet/roslyn/issues/44553")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/44553")]
         [InlineData(null)]
         [InlineData("CodeFixProviderWithDuplicateEquivalenceKeyActions")]
         public async Task TestRegisteredCodeActionsWithSameEquivalenceKey(string? equivalenceKey)
@@ -798,7 +798,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             }
         }
 
-        [Fact, WorkItem(62877, "https://github.com/dotnet/roslyn/issues/62877")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62877")]
         public async Task TestAdditionalDocumentCodeFixAsync()
         {
             var analyzer = new AdditionalFileAnalyzer();

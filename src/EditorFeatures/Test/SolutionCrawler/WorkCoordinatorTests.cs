@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
         [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
-        [Theory, WorkItem(747226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747226")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747226")]
         internal async Task SolutionAdded_Simple(BackgroundAnalysisScope analysisScope)
         {
             using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
-        [Theory, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         internal async Task Document_Change(BackgroundAnalysisScope analysisScope, bool changeActiveDocument)
         {
             using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
@@ -798,7 +798,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
-        [Theory, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         internal async Task Document_Cancellation(BackgroundAnalysisScope analysisScope, bool activeDocument)
         {
             using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderWaitNoBlock));
@@ -853,7 +853,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
-        [Theory, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         internal async Task Document_Cancellation_MultipleTimes(BackgroundAnalysisScope analysisScope, bool activeDocument)
         {
             using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderWaitNoBlock));
@@ -910,7 +910,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentSemanticEvents, analyzer.DocumentIds.Count);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21082"), WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21082"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         public async Task Document_InvocationReasons()
         {
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitBlock));
@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
-        [Theory, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         internal async Task Document_ActiveDocumentChanged(BackgroundAnalysisScope analysisScope, bool hasActiveDocumentBefore)
         {
             using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
@@ -1290,7 +1290,7 @@ class C
             await InsertText(code, textToInsert, expectDocumentAnalysis: true);
         }
 
-        [Fact, WorkItem(739943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739943")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739943")]
         public async Task SemanticChange_Propagation_Direct()
         {
             var solution = GetInitialSolutionInfoWithP2P();
@@ -1425,7 +1425,7 @@ class C
             registrationService.Unregister(workspace);
         }
 
-        [Fact, WorkItem(26244, "https://github.com/dotnet/roslyn/issues/26244")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26244")]
         public async Task FileFromSameProjectTogetherTest()
         {
             var projectId1 = ProjectId.CreateNewId();

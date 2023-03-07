@@ -85,7 +85,7 @@ End Class";
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            [WorkItem(530785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530785")]
+            [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530785")]
             public async Task AddConstructorWithXmlComment()
             {
                 var input = @"
@@ -162,7 +162,7 @@ End Class";
                     thisArguments: ImmutableArray.Create<SyntaxNode>(VB.SyntaxFactory.ParseExpression("42")));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544476")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544476")]
             public async Task AddClass()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -197,7 +197,7 @@ End Namespace";
                     name: "Class");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544477")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544477")]
             public async Task AddNotInheritableClass()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -209,7 +209,7 @@ End Namespace";
                     modifiers: new DeclarationModifiers(isSealed: true));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544477")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544477")]
             public async Task AddMustInheritClass()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -236,7 +236,7 @@ End Namespace";
                     typeKind: TypeKind.Struct);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(546224, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546224")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546224")]
             public async Task AddSealedStructure()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -264,7 +264,7 @@ End Namespace";
                     typeKind: TypeKind.Interface);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544528")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544528")]
             public async Task AddEnum()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -278,7 +278,7 @@ End Namespace";
                     members: Members(CreateEnumField("F1", null)));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544527")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544527")]
             public async Task AddEnumWithValues()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -319,7 +319,7 @@ End Enum";
                     name: "F3", hasConstantValue: true, constantValue: 3);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544529")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544529")]
             public async Task AddDelegateType()
             {
                 var input = "Class [|C|]\n End Class";
@@ -331,7 +331,7 @@ End Class";
                     parameters: Parameters(Parameter(typeof(string), "s")));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(546224, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546224")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546224")]
             public async Task AddSealedDelegateType()
             {
                 var input = "Class [|C|]\n End Class";
@@ -527,7 +527,7 @@ End Class";
                     returnType: typeof(void));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544477")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544477")]
             public async Task AddSharedMethodToStructure()
             {
                 var input = "Structure [|S|]\n End Structure";
@@ -938,7 +938,7 @@ $$ End Set
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
+            [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             public async Task AddParametersToPropertyBlock()
             {
                 var input = "Class C\n [|Public Property P As String\n Get\n Return String.Empty\n End Get\n Set(value As String)\n End Set\n End Property|]\n End Class";
@@ -956,7 +956,7 @@ $$ End Set
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
+            [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             public async Task AddParametersToPropertyStatement()
             {
                 var input = "Class C\n [|Public Property P As String|]\n Get\n Return String.Empty\n End Get\n Set(value As String)\n End Set\n End Property\n End Class";
@@ -974,7 +974,7 @@ $$ End Set
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
+            [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             public async Task AddParametersToPropertyGetter_ShouldNotSucceed()
             {
                 var input = "Class C\n Public Property P As String\n [|Get\n Return String.Empty\n End Get|]\n Set(value As String)\n End Set\n End Property\n End Class";
@@ -984,7 +984,7 @@ $$ End Set
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
+            [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             public async Task AddParametersToPropertySetter_ShouldNotSucceed()
             {
                 var input = "Class C\n Public Property P As String\n Get\n Return String.Empty\n End Get\n [|Set(value As String)\n End Set|]\n End Property\n End Class";
@@ -1681,7 +1681,7 @@ End Namespace";
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            [WorkItem(848357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
+            [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
             public async Task TestConstraints()
             {
                 var generationSource = @"

@@ -79,31 +79,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             VerifyBreakIntoCharacterParts("42Bar", "42", "Bar");
         }
 
-        [Fact, WorkItem(544296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544296")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544296")]
         public void BreakIntoWordParts_VerbatimIdentifier()
             => VerifyBreakIntoWordParts("@int:", "int");
 
-        [Fact, WorkItem(537875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537875")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537875")]
         public void BreakIntoWordParts_AllCapsConstant()
             => VerifyBreakIntoWordParts("C_STYLE_CONSTANT", "C", "_", "STYLE", "_", "CONSTANT");
 
-        [Fact, WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_SingleLetterPrefix1()
             => VerifyBreakIntoWordParts("UInteger", "U", "Integer");
 
-        [Fact, WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_SingleLetterPrefix2()
             => VerifyBreakIntoWordParts("IDisposable", "I", "Disposable");
 
-        [Fact, WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_TwoCharacterCapitalIdentifier()
             => VerifyBreakIntoWordParts("UIElement", "UI", "Element");
 
-        [Fact, WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_XDocument()
             => VerifyBreakIntoWordParts("XDocument", "X", "Document");
 
-        [Fact, WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_XMLDocument1()
             => VerifyBreakIntoWordParts("XMLDocument", "XML", "Document");
 
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("[|_|]my_[|b|]utton", "_B", PatternMatchKind.CamelCaseNonContiguousPrefix, CaseInsensitive)]
         [InlineData("Com[|bin|]e", "bin", PatternMatchKind.LowercaseSubstring, CaseSensitive)]
         [InlineData("Combine[|Bin|]ary", "bin", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
-        [WorkItem(51029, "https://github.com/dotnet/roslyn/issues/51029")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/51029")]
         internal void TestNonFuzzyMatch(
             string candidate, string pattern, PatternMatchKind matchKind, bool isCaseSensitive)
         {
@@ -382,11 +382,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.StartOfWordSubstring, PatternMatchKind.StartOfWordSubstring }));
         }
 
-        [Fact, WorkItem(544628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")]
         public void MatchMultiWordPattern_LowercaseSubstring1()
             => Assert.Null(TryMatchMultiWordPattern("Operator", "a"));
 
-        [Fact, WorkItem(544628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")]
         public void MatchMultiWordPattern_LowercaseSubstring2()
         {
             var match = TryMatchMultiWordPattern("Goo[|A|]ttribute", "a");

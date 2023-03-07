@@ -2071,8 +2071,8 @@ class C { int Y => 2; }
             Assert.Equal(1, generatorExecutionCount);
         }
 
-        [Fact, WorkItem(1204, "https://github.com/dotnet/roslyn/issues/1204")]
-        [WorkItem(1371694, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1371694")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1204")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1371694")]
         public async Task Project_Add()
         {
             var sourceA1 = "class A { void M() { System.Console.WriteLine(1); } }";
@@ -2252,7 +2252,7 @@ class C { int Y => 2; }
             }, _telemetryLog);
         }
 
-        [Fact, WorkItem(56431, "https://github.com/dotnet/roslyn/issues/56431")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56431")]
         public async Task Capabilities_NoTypesEmitted()
         {
             var sourceV1 = @"
@@ -3748,7 +3748,7 @@ class C { int Y => 1; }
             Assert.Empty(baseSpans.Single());
         }
 
-        [Fact, WorkItem(24320, "https://github.com/dotnet/roslyn/issues/24320")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24320")]
         public async Task ActiveStatements_LinkedDocuments()
         {
             var markedSources = new[]
@@ -4024,7 +4024,7 @@ class C
             EndDebuggingSession(debuggingSession);
         }
 
-        [Fact, WorkItem(54347, "https://github.com/dotnet/roslyn/issues/54347")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54347")]
         public async Task ActiveStatements_EncSessionFollowedByHotReload()
         {
             var markedSource1 = @"
@@ -4126,7 +4126,7 @@ class C
         ///    version executes.
         /// 3) Break and apply EnC edit. This edit is to F v3 (Hot Reload) of the method. We will produce remapping F v3 -> v4.
         /// </summary>
-        [Fact, WorkItem(52100, "https://github.com/dotnet/roslyn/issues/52100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52100")]
         public async Task BreakStateRemappingFollowedUpByRunStateUpdate()
         {
             var markedSourceV1 =
@@ -4374,7 +4374,7 @@ class C
         /// - edit and apply edit that deletes non-leaf active statement
         /// - break
         /// </summary>
-        [Fact, WorkItem(52100, "https://github.com/dotnet/roslyn/issues/52100")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52100")]
         public async Task BreakAfterRunModeChangeDeletesNonLeafActiveStatement()
         {
             var markedSource1 =
