@@ -1046,13 +1046,13 @@ class Driver
                 Diagnostic(ErrorCode.WRN_AddressOfInAsync, "local").WithLocation(16, 34),
                 // (19,26): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
                 //         int* innerPtr = &structLocal.F; // 5
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal").WithLocation(19, 26),
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal.F").WithLocation(19, 26),
                 // (20,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
                 Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&structLocal.F").WithLocation(20, 33),
                 // (20,34): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
                 //         fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal").WithLocation(20, 34),
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal.F").WithLocation(20, 34),
                 // (33,39): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
                 //             int* localFuncLocalPtr = &localFuncLocal; // 8
                 Diagnostic(ErrorCode.WRN_AddressOfInAsync, "localFuncLocal").WithLocation(33, 39));
