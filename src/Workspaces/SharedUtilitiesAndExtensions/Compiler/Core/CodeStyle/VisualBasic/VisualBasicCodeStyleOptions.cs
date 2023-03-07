@@ -25,37 +25,31 @@ internal sealed class VisualBasicCodeStyleOptions
     }
 
     public static readonly Option2<CodeStyleOption2<string>> PreferredModifierOrder = CreateOption(
-        VisualBasicCodeStyleOptionGroups.Modifier,
+        CodeStyleOptionGroups.Modifier,
         "visual_basic_preferred_modifier_order",
         VisualBasicIdeCodeStyleOptions.Default.PreferredModifierOrder);
 
     public static readonly Option2<CodeStyleOption2<bool>> PreferIsNotExpression = CreateOption(
-        VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences,
+        CodeStyleOptionGroups.ExpressionLevelPreferences,
         "visual_basic_style_prefer_isnot_expression",
         VisualBasicIdeCodeStyleOptions.Default.PreferIsNotExpression);
 
     public static readonly Option2<CodeStyleOption2<bool>> PreferSimplifiedObjectCreation = CreateOption(
-        VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences,
+        CodeStyleOptionGroups.ExpressionLevelPreferences,
         "visual_basic_style_prefer_simplified_object_creation",
         VisualBasicIdeCodeStyleOptions.Default.PreferSimplifiedObjectCreation);
 
     public static readonly Option2<CodeStyleOption2<UnusedValuePreference>> UnusedValueExpressionStatement = CreateOption(
-        VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences,
+        CodeStyleOptionGroups.ExpressionLevelPreferences,
         "visual_basic_style_unused_value_expression_statement_preference",
         VisualBasicIdeCodeStyleOptions.Default.UnusedValueExpressionStatement,
         CodeStyleHelpers.GetUnusedValuePreferenceSerializer);
 
     public static readonly Option2<CodeStyleOption2<UnusedValuePreference>> UnusedValueAssignment = CreateOption(
-        VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences,
+        CodeStyleOptionGroups.ExpressionLevelPreferences,
         "visual_basic_style_unused_value_assignment_preference",
         VisualBasicIdeCodeStyleOptions.Default.UnusedValueAssignment,
         CodeStyleHelpers.GetUnusedValuePreferenceSerializer);
 
     public static ImmutableArray<IOption2> AllOptions => s_allOptionsBuilder.ToImmutable();
-}
-
-internal static class VisualBasicCodeStyleOptionGroups
-{
-    public static readonly OptionGroup Modifier = new(name: "modifier", description: CompilerExtensionsResources.Modifier_preferences, priority: 1, parent: CodeStyleOptionGroups.CodeStyle);
-    public static readonly OptionGroup ExpressionLevelPreferences = new(name: "expression_level_preferences", description: CompilerExtensionsResources.Expression_level_preferences, priority: 2, parent: CodeStyleOptionGroups.CodeStyle);
 }

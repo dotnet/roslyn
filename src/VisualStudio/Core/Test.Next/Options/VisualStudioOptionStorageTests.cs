@@ -274,6 +274,9 @@ public class VisualStudioOptionStorageTests
 
         var allOptionsNames = allOptionGroups.Select(GetOptionGroupName);
 
+        // Each Option group, if combined its name with all the parents' name, should be unique.
+        // e.g. option group, code_style -> prefer_object_initializer.
+        // Its full name code_style.prefer_object_initializer should be unique.
         var set = new HashSet<string>();
         foreach (var optionName in allOptionsNames)
         {
