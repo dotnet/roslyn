@@ -35,10 +35,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     using Range = LanguageServer.Protocol.Range;
 
     /// <summary>
-    /// Responsible for updating data related to Document outline.
-    /// It is expected that all public methods on this type do not need to be on the UI thread.
-    /// Two properties: <see cref="SortOption"/> and <see cref="SearchText"/> are intended to be bound to a WPF view
-    /// and should only be set from the UI thread.
+    /// Responsible for updating data related to Document outline. It is expected that all public methods on this type
+    /// do not need to be on the UI thread. Two properties: <see cref="SortOption"/> and <see cref="SearchText"/> are
+    /// intended to be bound to a WPF view and should only be set from the UI thread.
     /// </summary>
     internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged, IDisposable
     {
@@ -60,6 +59,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private readonly AsyncBatchingWorkQueue<ViewModelStateDataChange> _updateViewModelStateQueue;
 
         private CancellationToken CancellationToken => _cancellationTokenSource.Token;
+
+        // Mutable state.  Should only update on UI thread.
+
+        private SortOption _sortOption = SortOption.Location;
+        private string? _searchText;
+        private ImmutableArray<DocumentSymbolDataViewModel> _documentSymbolViewModelItems = ImmutableArray<DocumentSymbolDataViewModel>.Empty;
 
         public DocumentOutlineViewModel(
             ILanguageServiceBroker2 languageServiceBroker,
@@ -103,7 +108,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _cancellationTokenSource.Dispose();
         }
 
-        private SortOption _sortOption = SortOption.Location;
         public SortOption SortOption
         {
             get => _sortOption;
@@ -114,7 +118,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
-        private string? _searchText;
         public string? SearchText
         {
             get => _searchText;
@@ -126,7 +129,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
-        private ImmutableArray<DocumentSymbolDataViewModel> _documentSymbolViewModelItems = ImmutableArray<DocumentSymbolDataViewModel>.Empty;
         public ImmutableArray<DocumentSymbolDataViewModel> DocumentSymbolViewModelItems
         {
             get => _documentSymbolViewModelItems;
@@ -137,16 +139,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 // Unselect any currently selected items or WPF will believe it needs to select the root node.
                 UnselectAll(_documentSymbolViewModelItems);
                 SetProperty(ref _documentSymbolViewModelItems, value);
-            }
-        }
-
-        public static void UnselectAll(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems)
-        {
-            foreach (var documentSymbolItem in documentSymbolItems)
-            {
-                // Setting a Boolean property on this item is allowed to happen on any thread.
-                documentSymbolItem.IsSelected = false;
-                UnselectAll(documentSymbolItem.Children);
             }
         }
 
@@ -481,6 +473,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
 
             return documentSymbolItems.ToImmutable();
+        }
+
+        public static void UnselectAll(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems)
+        {
+            foreach (var documentSymbolItem in documentSymbolItems)
+            {
+                // Setting a Boolean property on this item is allowed to happen on any thread.
+                documentSymbolItem.IsSelected = false;
+                UnselectAll(documentSymbolItem.Children);
+            }
         }
 
         public static void SetExpansionOption(
