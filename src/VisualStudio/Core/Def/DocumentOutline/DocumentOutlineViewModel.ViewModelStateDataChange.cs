@@ -12,9 +12,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// Represents the state machine of possible changes that we can encounter in our queue.
         /// </summary>
         private sealed record ViewModelStateDataChange(
-            string? SearchText, // symbol user is searching for, null if no search is active
-            CaretPosition? CaretPositionOfNodeToSelect, // position of a symbol we want to select, null if no selection is required.
-            bool? ShouldExpand, // asks to set the expand or collapse state for all items
-            bool DataUpdated); // indicates that data has been updated so we don't just filter/sort existing items.
+            // symbol user is searching for, null if no search is active
+            string? SearchText,
+            // position of a symbol we want to select, null if no selection is required.
+            CaretPosition? CaretPositionOfNodeToSelect,
+            // asks to set the expand or collapse state for all items
+            bool? ShouldExpand); // indicates that data has been updated so we don't just filter/sort existing items.
     }
 }

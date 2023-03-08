@@ -65,8 +65,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         // Mutable state.  Should only update on UI thread.
 
         private SortOption _sortOption_doNotAccessDirectly = SortOption.Location;
-        private string? _searchText_doNotAccessDirectly;
+        private string _searchText_doNotAccessDirectly = "";
         private ImmutableArray<DocumentSymbolDataViewModel> _documentSymbolViewModelItems_doNotAccessDirectly = ImmutableArray<DocumentSymbolDataViewModel>.Empty;
+
+        private (DocumentSymbolDataModel model, SortOption sortOption, string searchText, ImmutableArray<DocumentSymbolDataViewModel> _documentSymbolViewModelItems) _lastPresentedData_onlyAccessOnMainThread;
 
         public DocumentOutlineViewModel(
             ILanguageServiceBroker2 languageServiceBroker,
@@ -80,6 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _textBuffer = textBuffer;
             _threadingContext = threadingContext;
             _emptyModel = new DocumentSymbolDataModel(ImmutableArray<DocumentSymbolData>.Empty, _textBuffer.CurrentSnapshot);
+            _lastPresentedData_onlyAccessOnMainThread = (_emptyModel, this.SortOption, this.SearchText, this.DocumentSymbolViewModelItems);
 
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_threadingContext.DisposalToken);
 
@@ -127,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
-        public string? SearchText
+        public string SearchText
         {
             get
             {
@@ -366,12 +369,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         private async ValueTask UpdateViewModelStateAsync(ImmutableSegmentedList<ViewModelStateDataChange> viewModelStateData, CancellationToken cancellationToken)
         {
-            // We do not want this work running on a background thread
+            // just to UI thread to get the last UI state we presented.
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var lastPresentedData = _lastPresentedData_onlyAccessOnMainThread;
+
+            // Jump back to the BG to do all our work.
             await TaskScheduler.Default;
             cancellationToken.ThrowIfCancellationRequested();
 
-            var model = await _documentSymbolQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
-            model ??= _emptyModel;
+            var model = await _documentSymbolQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false) ?? _emptyModel;
 
             var searchText = FindLastPresentValue(viewModelStateData, static x => x.SearchText);
             var position = FindLastPresentValue(viewModelStateData, static x => x.CaretPositionOfNodeToSelect);
