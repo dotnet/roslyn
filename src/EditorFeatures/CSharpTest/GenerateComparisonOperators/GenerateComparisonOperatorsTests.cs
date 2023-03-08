@@ -22,40 +22,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateComparisonOpera
         public async Task TestClass()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-[||]class C : IComparable<C>
-{
-    public int CompareTo(C c) => 0;
-}",
-@"
-using System;
+                [||]class C : IComparable<C>
+                {
+                    public int CompareTo(C c) => 0;
+                }
+                """,
+                """
+                using System;
 
-class C : IComparable<C>
-{
-    public int CompareTo(C c) => 0;
+                class C : IComparable<C>
+                {
+                    public int CompareTo(C c) => 0;
 
-    public static bool operator <(C left, C right)
-    {
-        return left.CompareTo(right) < 0;
-    }
+                    public static bool operator <(C left, C right)
+                    {
+                        return left.CompareTo(right) < 0;
+                    }
 
-    public static bool operator >(C left, C right)
-    {
-        return left.CompareTo(right) > 0;
-    }
+                    public static bool operator >(C left, C right)
+                    {
+                        return left.CompareTo(right) > 0;
+                    }
 
-    public static bool operator <=(C left, C right)
-    {
-        return left.CompareTo(right) <= 0;
-    }
+                    public static bool operator <=(C left, C right)
+                    {
+                        return left.CompareTo(right) <= 0;
+                    }
 
-    public static bool operator >=(C left, C right)
-    {
-        return left.CompareTo(right) >= 0;
-    }
-}");
+                    public static bool operator >=(C left, C right)
+                    {
+                        return left.CompareTo(right) >= 0;
+                    }
+                }
+                """);
         }
 
         [Fact]
@@ -64,26 +66,28 @@ class C : IComparable<C>
             await new VerifyCS.Test
             {
                 TestCode =
-@"
-using System;
+                """
+                using System;
 
-[||]class C : IComparable<C>
-{
-    public int CompareTo(C c) => 0;
-}",
+                [||]class C : IComparable<C>
+                {
+                    public int CompareTo(C c) => 0;
+                }
+                """,
                 FixedCode =
-@"
-using System;
+                """
+                using System;
 
-class C : IComparable<C>
-{
-    public int CompareTo(C c) => 0;
+                class C : IComparable<C>
+                {
+                    public int CompareTo(C c) => 0;
 
-    public static bool operator <(C left, C right) => left.CompareTo(right) < 0;
-    public static bool operator >(C left, C right) => left.CompareTo(right) > 0;
-    public static bool operator <=(C left, C right) => left.CompareTo(right) <= 0;
-    public static bool operator >=(C left, C right) => left.CompareTo(right) >= 0;
-}",
+                    public static bool operator <(C left, C right) => left.CompareTo(right) < 0;
+                    public static bool operator >(C left, C right) => left.CompareTo(right) > 0;
+                    public static bool operator <=(C left, C right) => left.CompareTo(right) <= 0;
+                    public static bool operator >=(C left, C right) => left.CompareTo(right) >= 0;
+                }
+                """,
                 EditorConfig = CodeFixVerifierHelper.GetEditorConfigText(
                     new OptionsCollection(LanguageNames.CSharp)
                     {
@@ -96,174 +100,183 @@ class C : IComparable<C>
         public async Task TestExplicitImpl()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-[||]class C : IComparable<C>
-{
-    int IComparable<C>.CompareTo(C c) => 0;
-}",
-@"
-using System;
+                [||]class C : IComparable<C>
+                {
+                    int IComparable<C>.CompareTo(C c) => 0;
+                }
+                """,
+                """
+                using System;
 
-class C : IComparable<C>
-{
-    int IComparable<C>.CompareTo(C c) => 0;
+                class C : IComparable<C>
+                {
+                    int IComparable<C>.CompareTo(C c) => 0;
 
-    public static bool operator <(C left, C right)
-    {
-        return ((IComparable<C>)left).CompareTo(right) < 0;
-    }
+                    public static bool operator <(C left, C right)
+                    {
+                        return ((IComparable<C>)left).CompareTo(right) < 0;
+                    }
 
-    public static bool operator >(C left, C right)
-    {
-        return ((IComparable<C>)left).CompareTo(right) > 0;
-    }
+                    public static bool operator >(C left, C right)
+                    {
+                        return ((IComparable<C>)left).CompareTo(right) > 0;
+                    }
 
-    public static bool operator <=(C left, C right)
-    {
-        return ((IComparable<C>)left).CompareTo(right) <= 0;
-    }
+                    public static bool operator <=(C left, C right)
+                    {
+                        return ((IComparable<C>)left).CompareTo(right) <= 0;
+                    }
 
-    public static bool operator >=(C left, C right)
-    {
-        return ((IComparable<C>)left).CompareTo(right) >= 0;
-    }
-}");
+                    public static bool operator >=(C left, C right)
+                    {
+                        return ((IComparable<C>)left).CompareTo(right) >= 0;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestOnInterface()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C : [||]IComparable<C>
-{
-    public int CompareTo(C c) => 0;
-}",
-@"
-using System;
+                class C : [||]IComparable<C>
+                {
+                    public int CompareTo(C c) => 0;
+                }
+                """,
+                """
+                using System;
 
-class C : IComparable<C>
-{
-    public int CompareTo(C c) => 0;
+                class C : IComparable<C>
+                {
+                    public int CompareTo(C c) => 0;
 
-    public static bool operator <(C left, C right)
-    {
-        return left.CompareTo(right) < 0;
-    }
+                    public static bool operator <(C left, C right)
+                    {
+                        return left.CompareTo(right) < 0;
+                    }
 
-    public static bool operator >(C left, C right)
-    {
-        return left.CompareTo(right) > 0;
-    }
+                    public static bool operator >(C left, C right)
+                    {
+                        return left.CompareTo(right) > 0;
+                    }
 
-    public static bool operator <=(C left, C right)
-    {
-        return left.CompareTo(right) <= 0;
-    }
+                    public static bool operator <=(C left, C right)
+                    {
+                        return left.CompareTo(right) <= 0;
+                    }
 
-    public static bool operator >=(C left, C right)
-    {
-        return left.CompareTo(right) >= 0;
-    }
-}");
+                    public static bool operator >=(C left, C right)
+                    {
+                        return left.CompareTo(right) >= 0;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestAtEndOfInterface()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C : IComparable<C>[||]
-{
-    public int CompareTo(C c) => 0;
-}",
-@"
-using System;
+                class C : IComparable<C>[||]
+                {
+                    public int CompareTo(C c) => 0;
+                }
+                """,
+                """
+                using System;
 
-class C : IComparable<C>
-{
-    public int CompareTo(C c) => 0;
+                class C : IComparable<C>
+                {
+                    public int CompareTo(C c) => 0;
 
-    public static bool operator <(C left, C right)
-    {
-        return left.CompareTo(right) < 0;
-    }
+                    public static bool operator <(C left, C right)
+                    {
+                        return left.CompareTo(right) < 0;
+                    }
 
-    public static bool operator >(C left, C right)
-    {
-        return left.CompareTo(right) > 0;
-    }
+                    public static bool operator >(C left, C right)
+                    {
+                        return left.CompareTo(right) > 0;
+                    }
 
-    public static bool operator <=(C left, C right)
-    {
-        return left.CompareTo(right) <= 0;
-    }
+                    public static bool operator <=(C left, C right)
+                    {
+                        return left.CompareTo(right) <= 0;
+                    }
 
-    public static bool operator >=(C left, C right)
-    {
-        return left.CompareTo(right) >= 0;
-    }
-}");
+                    public static bool operator >=(C left, C right)
+                    {
+                        return left.CompareTo(right) >= 0;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestInBody()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C : IComparable<C>
-{
-    public int CompareTo(C c) => 0;
+                class C : IComparable<C>
+                {
+                    public int CompareTo(C c) => 0;
 
-[||]
-}",
-@"
-using System;
+                [||]
+                }
+                """,
+                """
+                using System;
 
-class C : IComparable<C>
-{
-    public int CompareTo(C c) => 0;
+                class C : IComparable<C>
+                {
+                    public int CompareTo(C c) => 0;
 
-    public static bool operator <(C left, C right)
-    {
-        return left.CompareTo(right) < 0;
-    }
+                    public static bool operator <(C left, C right)
+                    {
+                        return left.CompareTo(right) < 0;
+                    }
 
-    public static bool operator >(C left, C right)
-    {
-        return left.CompareTo(right) > 0;
-    }
+                    public static bool operator >(C left, C right)
+                    {
+                        return left.CompareTo(right) > 0;
+                    }
 
-    public static bool operator <=(C left, C right)
-    {
-        return left.CompareTo(right) <= 0;
-    }
+                    public static bool operator <=(C left, C right)
+                    {
+                        return left.CompareTo(right) <= 0;
+                    }
 
-    public static bool operator >=(C left, C right)
-    {
-        return left.CompareTo(right) >= 0;
-    }
-}");
+                    public static bool operator >=(C left, C right)
+                    {
+                        return left.CompareTo(right) >= 0;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMissingWithoutCompareMethod()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-class C : {|CS0535:IComparable<C>|}
-{
-[||]
-}";
+                class C : {|CS0535:IComparable<C>|}
+                {
+                [||]
+                }
+                """;
 
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
@@ -271,15 +284,16 @@ class C : {|CS0535:IComparable<C>|}
         [Fact]
         public async Task TestMissingWithUnknownType()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-class C : IComparable<{|CS0246:Goo|}>
-{
-    public int CompareTo({|CS0246:Goo|} g) => 0;
+                class C : IComparable<{|CS0246:Goo|}>
+                {
+                    public int CompareTo({|CS0246:Goo|} g) => 0;
 
-[||]
-}";
+                [||]
+                }
+                """;
 
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
@@ -288,35 +302,36 @@ class C : IComparable<{|CS0246:Goo|}>
         public async Task TestMissingWithAllExistingOperators()
         {
             var code =
-@"
-using System;
+                """
+                using System;
 
-class C : IComparable<C>
-{
-    public int CompareTo(C c) => 0;
+                class C : IComparable<C>
+                {
+                    public int CompareTo(C c) => 0;
 
-    public static bool operator <(C left, C right)
-    {
-        return left.CompareTo(right) < 0;
-    }
+                    public static bool operator <(C left, C right)
+                    {
+                        return left.CompareTo(right) < 0;
+                    }
 
-    public static bool operator >(C left, C right)
-    {
-        return left.CompareTo(right) > 0;
-    }
+                    public static bool operator >(C left, C right)
+                    {
+                        return left.CompareTo(right) > 0;
+                    }
 
-    public static bool operator <=(C left, C right)
-    {
-        return left.CompareTo(right) <= 0;
-    }
+                    public static bool operator <=(C left, C right)
+                    {
+                        return left.CompareTo(right) <= 0;
+                    }
 
-    public static bool operator >=(C left, C right)
-    {
-        return left.CompareTo(right) >= 0;
-    }
+                    public static bool operator >=(C left, C right)
+                    {
+                        return left.CompareTo(right) >= 0;
+                    }
 
-[||]
-}";
+                [||]
+                }
+                """;
 
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
@@ -325,63 +340,66 @@ class C : IComparable<C>
         public async Task TestWithExistingOperator()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C : IComparable<C>
-{
-    public int CompareTo(C c) => 0;
+                class C : IComparable<C>
+                {
+                    public int CompareTo(C c) => 0;
 
-    public static bool operator {|CS0216:<|}(C left, C right)
-    {
-        return left.CompareTo(right) < 0;
-    }
+                    public static bool operator {|CS0216:<|}(C left, C right)
+                    {
+                        return left.CompareTo(right) < 0;
+                    }
 
-[||]
-}",
-@"
-using System;
+                [||]
+                }
+                """,
+                """
+                using System;
 
-class C : IComparable<C>
-{
-    public int CompareTo(C c) => 0;
+                class C : IComparable<C>
+                {
+                    public int CompareTo(C c) => 0;
 
-    public static bool operator <(C left, C right)
-    {
-        return left.CompareTo(right) < 0;
-    }
+                    public static bool operator <(C left, C right)
+                    {
+                        return left.CompareTo(right) < 0;
+                    }
 
-    public static bool operator >(C left, C right)
-    {
-        return left.CompareTo(right) > 0;
-    }
+                    public static bool operator >(C left, C right)
+                    {
+                        return left.CompareTo(right) > 0;
+                    }
 
-    public static bool operator <=(C left, C right)
-    {
-        return left.CompareTo(right) <= 0;
-    }
+                    public static bool operator <=(C left, C right)
+                    {
+                        return left.CompareTo(right) <= 0;
+                    }
 
-    public static bool operator >=(C left, C right)
-    {
-        return left.CompareTo(right) >= 0;
-    }
-}");
+                    public static bool operator >=(C left, C right)
+                    {
+                        return left.CompareTo(right) >= 0;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMultipleInterfaces()
         {
             var code =
-@"
-using System;
+                """
+                using System;
 
-class C : IComparable<C>, IComparable<int>
-{
-    public int CompareTo(C c) => 0;
-    public int CompareTo(int c) => 0;
+                class C : IComparable<C>, IComparable<int>
+                {
+                    public int CompareTo(C c) => 0;
+                    public int CompareTo(int c) => 0;
 
-[||]
-}";
+                [||]
+                }
+                """;
             string GetFixedCode(string type)
 => $@"
 using System;
@@ -433,42 +451,44 @@ class C : IComparable<C>, IComparable<int>
         public async Task TestInInterfaceWithDefaultImpl()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-interface C : IComparable<C>
-{
-    int IComparable<C>.{|CS8701:CompareTo|}(C c) => 0;
+                interface C : IComparable<C>
+                {
+                    int IComparable<C>.{|CS8701:CompareTo|}(C c) => 0;
 
-[||]
-}",
-@"
-using System;
+                [||]
+                }
+                """,
+                """
+                using System;
 
-interface C : IComparable<C>
-{
-    int IComparable<C>.{|CS8701:CompareTo|}(C c) => 0;
+                interface C : IComparable<C>
+                {
+                    int IComparable<C>.{|CS8701:CompareTo|}(C c) => 0;
 
-    public static bool operator {|CS8701:<|}(C left, C right)
-    {
-        return left.CompareTo(right) < 0;
-    }
+                    public static bool operator {|CS8701:<|}(C left, C right)
+                    {
+                        return left.CompareTo(right) < 0;
+                    }
 
-    public static bool operator {|CS8701:>|}(C left, C right)
-    {
-        return left.CompareTo(right) > 0;
-    }
+                    public static bool operator {|CS8701:>|}(C left, C right)
+                    {
+                        return left.CompareTo(right) > 0;
+                    }
 
-    public static bool operator {|CS8701:<=|}(C left, C right)
-    {
-        return left.CompareTo(right) <= 0;
-    }
+                    public static bool operator {|CS8701:<=|}(C left, C right)
+                    {
+                        return left.CompareTo(right) <= 0;
+                    }
 
-    public static bool operator {|CS8701:>=|}(C left, C right)
-    {
-        return left.CompareTo(right) >= 0;
-    }
-}");
+                    public static bool operator {|CS8701:>=|}(C left, C right)
+                    {
+                        return left.CompareTo(right) >= 0;
+                    }
+                }
+                """);
         }
     }
 }
