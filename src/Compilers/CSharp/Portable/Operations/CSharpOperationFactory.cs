@@ -1220,6 +1220,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ArrayInitializerOperation(elementValues, _semanticModel, syntax, isImplicit);
         }
 
+        // PROTOTYPE: Decide public API shape.
         private IOperation CreateBoundArrayOrSpanCollectionLiteralExpression(BoundArrayOrSpanCollectionLiteralExpression boundCollectionLiteralExpression)
         {
             SyntaxNode syntax = boundCollectionLiteralExpression.Syntax;

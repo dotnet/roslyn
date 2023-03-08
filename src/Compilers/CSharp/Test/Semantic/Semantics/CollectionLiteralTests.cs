@@ -1892,7 +1892,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         // Ensure collection literal conversions are not standard implicit conversions
         // and, as a result, are ignored when determining user-defined conversions.
         [Fact]
-        public void UserDefinedConversion()
+        public void UserDefinedConversions_01()
         {
             string source = """
                 struct S
@@ -1905,6 +1905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         S s = [];
                         s = [1, 2];
+                        s = (S)[3, 4];
                     }
                 }
                 """;
@@ -1915,7 +1916,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(9, 15),
                 // (10,13): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         s = [1, 2];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(10, 13));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(10, 13),
+                // (11,16): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                //         s = (S)[3, 4];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[3, 4]").WithArguments("S").WithLocation(11, 16));
+        }
+
+        [Fact]
+        public void UserDefinedConversions_02()
+        {
+            string source = """
+                struct S
+                {
+                    public static explicit operator S(int[] a) => default;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        S s = [];
+                        s = [1, 2];
+                        s = (S)[3, 4];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,15): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                //         S s = [];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(9, 15),
+                // (10,13): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                //         s = [1, 2];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(10, 13),
+                // (11,16): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                //         s = (S)[3, 4];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[3, 4]").WithArguments("S").WithLocation(11, 16));
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
