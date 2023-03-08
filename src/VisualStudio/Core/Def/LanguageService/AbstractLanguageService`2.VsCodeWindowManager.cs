@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
@@ -11,7 +12,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -22,6 +25,7 @@ using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 
@@ -256,8 +260,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Contract.ThrowIfFalse(_documentOutlineView is null);
                 Contract.ThrowIfFalse(_documentOutlineViewHost is null);
 
-                _documentOutlineView = DocumentOutlineViewFactory.CreateView(
-                    languageServiceBroker, threadingContext, asyncListener, editorAdaptersFactoryService, _codeWindow);
+                if (!TryCreateEventSource(out var eventSource, out var textBuffer))
+                    return VSConstants.E_FAIL;
+
+                var viewModel = new DocumentOutlineViewModel(languageServiceBroker, asyncListener, eventSource, textBuffer, threadingContext);
+                _documentOutlineView = new DocumentOutlineView(viewModel, editorAdaptersFactoryService, _codeWindow, threadingContext);
 
                 _documentOutlineViewHost = new ElementHost
                 {
@@ -271,6 +278,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Logger.Log(FunctionId.DocumentOutline_WindowOpen, logLevel: LogLevel.Information);
 
                 return VSConstants.S_OK;
+
+                bool TryCreateEventSource(
+                    [NotNullWhen(true)] out ITaggerEventSource? eventSource,
+                    [NotNullWhen(true)] out ITextBuffer? subjectBuffer)
+                {
+                    eventSource = null;
+                    subjectBuffer = null;
+
+                    if (ErrorHandler.Failed(_codeWindow.GetLastActiveView(out var textView)))
+                    {
+                        Debug.Fail("Unable to get the last active text view. IVsCodeWindow implementation we are given is invalid.");
+                        return false;
+                    }
+
+                    var wpfTextView = editorAdaptersFactoryService.GetWpfTextView(textView);
+                    Assumes.NotNull(wpfTextView);
+
+                    // TODO: Hooking the text buffer seems wrong.  How would this work for projections?
+                    subjectBuffer = wpfTextView.TextBuffer;
+
+                    eventSource = TaggerEventSources.Compose(
+                        // Any time an edit happens, recompute as the document symbols may have changed.
+                        TaggerEventSources.OnTextChanged(subjectBuffer),
+                        // If the compilation options change we need to re-compute the document symbols
+                        TaggerEventSources.OnParseOptionChanged(subjectBuffer),
+                        // Many workspace changes may need us to change the document symbols (like options changing, or project renaming).
+                        TaggerEventSources.OnWorkspaceChanged(subjectBuffer, asyncListener),
+                        // Once we hook this buffer up to the workspace, then we can start computing the document symbols.
+                        TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer));
+                    return true;
+                }
             }
 
             int IVsDocOutlineProvider.ReleaseOutline(IntPtr hwnd, IOleCommandTarget pCmdTarget)
