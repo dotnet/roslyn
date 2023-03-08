@@ -257,11 +257,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
     internal static class CSharpCodeStyleOptionGroups
     {
-        public static readonly OptionGroup VarPreferences = new("csharp_var_preferences", CSharpCompilerExtensionsResources.var_preferences, priority: 1, parent: CodeStyleOptionGroups.CodeStyle);
+        public static readonly OptionGroup VarPreferences = new("csharp_var_keyword_usage", CSharpCompilerExtensionsResources.var_preferences, priority: 1, parent: CodeStyleOptionGroups.CodeStyle);
         public static readonly OptionGroup ExpressionBodiedMembers = new("csharp_expression_bodied_members", CSharpCompilerExtensionsResources.Expression_bodied_members, priority: 2, parent: CodeStyleOptionGroups.CodeStyle);
         public static readonly OptionGroup PatternMatching = new("csharp_pattern_matching", CSharpCompilerExtensionsResources.Pattern_matching_preferences, priority: 3, parent: CodeStyleOptionGroups.CodeStyle);
-        public static readonly OptionGroup NullCheckingPreferences = new("csharp_null_checking_preferences", CSharpCompilerExtensionsResources.Null_checking_preferences, priority: 4, parent: CodeStyleOptionGroups.CodeStyle);
-        public static readonly OptionGroup CodeBlockPreferences = new("csharp_code_block_preferences", CSharpCompilerExtensionsResources.Code_block_preferences, priority: 6, parent: CodeStyleOptionGroups.CodeStyle);
-        public static readonly OptionGroup UsingDirectivePreferences = new("csharp_using_directive_preferences", CSharpCompilerExtensionsResources.using_directive_preferences, priority: 8, parent: CodeStyleOptionGroups.CodeStyle);
+        public static readonly OptionGroup NullCheckingPreferences = new("csharp_null_checks", CSharpCompilerExtensionsResources.Null_checking_preferences, priority: 4, parent: CodeStyleOptionGroups.CodeStyle);
+        public static readonly OptionGroup CodeBlockPreferences = new("csharp_code_blocks", CSharpCompilerExtensionsResources.Code_block_preferences, priority: 6, parent: CodeStyleOptionGroups.CodeStyle);
+        public static readonly OptionGroup UsingDirectivePreferences = new("csharp_using_directives", CSharpCompilerExtensionsResources.using_directive_preferences, priority: 8, parent: CodeStyleOptionGroups.CodeStyle);
     }
 }
