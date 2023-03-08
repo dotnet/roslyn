@@ -188,11 +188,11 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             var updatedUIItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
 
             // Check that all updatedUIItems nodes are collapsed
-            DocumentOutlineHelper.SetExpansionOption(updatedUIItems, true);
+            DocumentOutlineViewModel.SetExpansionOption(updatedUIItems, true);
             CheckNodeExpansion(updatedUIItems, true);
 
             // Check that all updatedUIItems nodes are expanded
-            DocumentOutlineHelper.SetExpansionOption(updatedUIItems, false);
+            DocumentOutlineViewModel.SetExpansionOption(updatedUIItems, false);
             CheckNodeExpansion(updatedUIItems, false);
 
             // Collapse 3 nodes in originalUIItems
@@ -231,7 +231,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             var (mocks, model, uiItems) = await InitializeMocksAndDataModelAndUIItems(TestCode);
 
             // Collapse all nodes first
-            DocumentOutlineHelper.SetExpansionOption(uiItems, false);
+            DocumentOutlineViewModel.SetExpansionOption(uiItems, false);
 
             // Call ExpandAncestors on a child node
             var selectedNode = uiItems.Single(parent => parent.Data.Name.Equals("MyClass")).Children.Single(child => child.Data.Name.Equals("Method2"));
@@ -254,7 +254,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         public async Task TestUnselectAll()
         {
             var (_, _, uiItems) = await InitializeMocksAndDataModelAndUIItems(TestCode);
-            DocumentOutlineHelper.UnselectAll(uiItems);
+            DocumentOutlineViewModel.UnselectAll(uiItems);
             CheckNodesUnselected(uiItems);
 
             static void CheckNodesUnselected(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems)

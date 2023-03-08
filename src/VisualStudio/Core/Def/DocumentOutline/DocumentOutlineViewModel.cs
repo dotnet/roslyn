@@ -132,8 +132,18 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 _threadingContext.ThrowIfNotOnBackgroundThread();
 
                 // Unselect any currently selected items or WPF will believe it needs to select the root node.
-                DocumentOutlineHelper.UnselectAll(_documentSymbolViewModelItems);
+                UnselectAll(_documentSymbolViewModelItems);
                 SetProperty(ref _documentSymbolViewModelItems, value);
+            }
+        }
+
+        public static void UnselectAll(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems)
+        {
+            foreach (var documentSymbolItem in documentSymbolItems)
+            {
+                // Setting a Boolean property on this item is allowed to happen on any thread.
+                documentSymbolItem.IsSelected = false;
+                UnselectAll(documentSymbolItem.Children);
             }
         }
 
@@ -368,11 +378,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // If we aren't filtering to search results do expand/collapse
             if (expansion is { } expansionOption && string.IsNullOrEmpty(searchText))
             {
-                DocumentOutlineHelper.SetExpansionOption(DocumentSymbolViewModelItems, expansionOption);
+                SetExpansionOption(DocumentSymbolViewModelItems, expansionOption);
             }
             else if (expansion is { } shouldExpand)
             {
-                DocumentOutlineHelper.SetExpansionOption(DocumentSymbolViewModelItems, shouldExpand);
+                SetExpansionOption(DocumentSymbolViewModelItems, shouldExpand);
             }
 
             static void ApplyExpansionStateToNewItems(ImmutableArray<DocumentSymbolDataViewModel> oldItems, ImmutableArray<DocumentSymbolDataViewModel> newItems)
@@ -411,6 +421,17 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
                     return true;
                 }
+            }
+        }
+
+        public static void SetExpansionOption(
+            ImmutableArray<DocumentSymbolDataViewModel> currentDocumentSymbolItems,
+            bool expand)
+        {
+            foreach (var item in currentDocumentSymbolItems)
+            {
+                item.IsExpanded = expand;
+                SetExpansionOption(item.Children, expand);
             }
         }
 
