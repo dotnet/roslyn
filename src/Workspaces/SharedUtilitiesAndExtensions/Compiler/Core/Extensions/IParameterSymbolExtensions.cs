@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     } constructor,
                 })
             {
-                var constructorSyntax = constructor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                var constructorSyntax = constructorReference.GetSyntax(cancellationToken);
                 return containingType.DeclaringSyntaxReferences.Any(static (r, arg) => r.GetSyntax(arg.cancellationToken) == arg.constructorSyntax, (constructorSyntax, cancellationToken));
             }
 
