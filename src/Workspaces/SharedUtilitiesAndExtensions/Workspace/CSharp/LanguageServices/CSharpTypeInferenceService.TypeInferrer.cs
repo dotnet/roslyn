@@ -1982,10 +1982,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (inferredType.InferredType is IPointerTypeSymbol pointerType)
                     {
+                        // If the code is `int* x = &...` then we want to infer `int` for `...`
                         yield return new TypeInferenceInfo(pointerType.PointedAtType);
                     }
                     else if (inferredType.InferredType is IFunctionPointerTypeSymbol functionPointerType)
                     {
+                        // If the code is `delegate*<int, void> x = &...` then we want to infer a signature of `void
+                        // M(int)` here (which we encode as Action/Func as necessary). Higher layers (like
+                        // generate-method), then can figure out what to do with that signature.
                         yield return new TypeInferenceInfo(functionPointerType.Signature.ConvertToType(this.Compilation));
                     }
                 }
