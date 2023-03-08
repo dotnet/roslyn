@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void EnumerateWithManyChildren_Forward(bool trailingSeparator)
         {
-            const int n = 100000;
+            const int n = 200000;
             var builder = new StringBuilder();
             builder.Append("int[] values = new[] { ");
             for (int i = 0; i < n; i++) builder.Append("0, ");
@@ -329,12 +329,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        // Tests should timeout when using SeparatedWithManyChildren.GetChildPosition()
+        // instead of GetChildPositionFromEnd().
         [WorkItem(66475, "https://github.com/dotnet/roslyn/issues/66475")]
         [Theory]
         [CombinatorialData]
         public void EnumerateWithManyChildren_Reverse(bool trailingSeparator)
         {
-            const int n = 100000;
+            const int n = 200000;
             var builder = new StringBuilder();
             builder.Append("int[] values = new[] { ");
             for (int i = 0; i < n; i++) builder.Append("0, ");

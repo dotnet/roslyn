@@ -244,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub EnumerateWithManyChildren_Forward()
-            Const n = 100000
+            Const n = 200000
             Dim builder As New System.Text.StringBuilder()
             builder.AppendLine("Module M")
             builder.AppendLine("    Sub Main")
@@ -265,10 +265,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Next
         End Sub
 
+        ' Tests should timeout when using SeparatedWithManyChildren.GetChildPosition()
+        ' instead of GetChildPositionFromEnd().
         <WorkItem(66475, "https://github.com/dotnet/roslyn/issues/66475")>
         <Fact>
         Public Sub EnumerateWithManyChildren_Reverse()
-            Const n = 100000
+            Const n = 200000
             Dim builder As New System.Text.StringBuilder()
             builder.AppendLine("Module M")
             builder.AppendLine("    Sub Main")
