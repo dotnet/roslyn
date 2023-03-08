@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
             var test = new VerifyCS.Test
             {
                 TestCode = testCode,
-                FixedCode = testCode,
             };
 
             if (languageVersion != null)

@@ -29,7 +29,6 @@ $$
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 ExpectedDiagnostics =
@@ -57,7 +56,6 @@ class Program
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
             }.RunAsync();
@@ -106,7 +104,6 @@ class Program
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -131,7 +128,6 @@ class Program
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options =
@@ -163,7 +159,6 @@ class Program
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp8,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options =
@@ -188,7 +183,6 @@ class Program
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options =
@@ -213,7 +207,6 @@ class Program
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options =

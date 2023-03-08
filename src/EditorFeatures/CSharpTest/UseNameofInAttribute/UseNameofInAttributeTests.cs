@@ -179,7 +179,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameofInAttribute
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             }.RunAsync();
@@ -201,7 +200,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameofInAttribute
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp11,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             }.RunAsync();
@@ -223,7 +221,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameofInAttribute
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp11,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             }.RunAsync();
@@ -245,7 +242,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameofInAttribute
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp11,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             }.RunAsync();

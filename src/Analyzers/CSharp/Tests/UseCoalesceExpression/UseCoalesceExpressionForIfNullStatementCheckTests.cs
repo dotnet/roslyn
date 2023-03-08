@@ -201,7 +201,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpressio
             await new VerifyCS.Test
             {
                 TestCode = text,
-                FixedCode = text,
             }.RunAsync();
         }
 
@@ -225,7 +224,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpressio
             await new VerifyCS.Test
             {
                 TestCode = text,
-                FixedCode = text,
             }.RunAsync();
         }
 
@@ -249,7 +247,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpressio
             await new VerifyCS.Test
             {
                 TestCode = text,
-                FixedCode = text,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -274,7 +271,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpressio
             await new VerifyCS.Test
             {
                 TestCode = text,
-                FixedCode = text,
             }.RunAsync();
         }
 
@@ -300,7 +296,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpressio
             await new VerifyCS.Test
             {
                 TestCode = text,
-                FixedCode = text,
             }.RunAsync();
         }
 
@@ -327,7 +322,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpressio
             await new VerifyCS.Test
             {
                 TestCode = text,
-                FixedCode = text,
             }.RunAsync();
         }
 
@@ -352,7 +346,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpressio
             await new VerifyCS.Test
             {
                 TestCode = text,
-                FixedCode = text,
             }.RunAsync();
         }
 
@@ -382,7 +375,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpressio
             await new VerifyCS.Test
             {
                 TestCode = text,
-                FixedCode = text,
             }.RunAsync();
         }
 
@@ -406,7 +398,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpressio
             await new VerifyCS.Test
             {
                 TestCode = text,
-                FixedCode = text,
             }.RunAsync();
         }
 
@@ -430,7 +421,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpressio
             await new VerifyCS.Test
             {
                 TestCode = text,
-                FixedCode = text,
             }.RunAsync();
         }
 
@@ -454,7 +444,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpressio
             await new VerifyCS.Test
             {
                 TestCode = text,
-                FixedCode = text,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }

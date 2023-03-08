@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp7,
             }.RunAsync();
         }
@@ -98,7 +97,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp20,
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp8,
             }.RunAsync();
         }
@@ -399,7 +397,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp7,
             }.RunAsync();
         }
@@ -700,7 +697,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
                 TestCode = source,
-                FixedCode = source,
             }.RunAsync();
         }
         [Fact]
@@ -1309,7 +1305,6 @@ public class Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
                 TestCode = source,
-                FixedCode = source,
             }.RunAsync();
         }
     }

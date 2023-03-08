@@ -1832,7 +1832,6 @@ class C
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp11,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
@@ -2935,7 +2934,6 @@ class C
             {
                 LanguageVersion = version,
                 TestCode = code,
-                FixedCode = code,
             }.RunAsync();
         }
 
@@ -2949,7 +2947,6 @@ class C
             {
                 LanguageVersion = LanguageVersion.Preview,
                 TestCode = code,
-                FixedCode = code,
             }.RunAsync();
         }
 
@@ -2963,7 +2960,6 @@ class C
             {
                 LanguageVersion = LanguageVersion.Preview,
                 TestCode = code,
-                FixedCode = code,
             }.RunAsync();
         }
 

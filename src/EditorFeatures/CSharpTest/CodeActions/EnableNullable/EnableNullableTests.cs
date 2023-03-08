@@ -541,7 +541,6 @@ class Example
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 SolutionTransforms =
                 {
                     (solution, projectId) =>

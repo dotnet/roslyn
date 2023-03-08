@@ -5761,7 +5761,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
             }.RunAsync();
         }
 
@@ -5786,7 +5785,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp7_1,
             }.RunAsync();
         }
@@ -5812,7 +5810,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp7_1,
             }.RunAsync();
         }
@@ -5838,7 +5835,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp7_1,
             }.RunAsync();
         }
@@ -5930,7 +5926,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp7_1,
             }.RunAsync();
         }
@@ -5956,7 +5951,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp7_1,
             }.RunAsync();
         }
@@ -5982,7 +5976,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp7_1,
             }.RunAsync();
         }
@@ -6084,7 +6077,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp7_1,
             }.RunAsync();
         }
@@ -6106,7 +6098,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp7_1,
             }.RunAsync();
         }
@@ -6128,7 +6119,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp7_1,
             }.RunAsync();
         }
@@ -6184,7 +6174,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -6208,7 +6197,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -8258,7 +8246,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -8331,7 +8318,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp8
             }.RunAsync();
         }
@@ -8380,7 +8366,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp8
             }.RunAsync();
         }
@@ -8429,7 +8414,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp8,
             }.RunAsync();
         }
@@ -8529,7 +8513,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp8
             }.RunAsync();
         }
@@ -8578,7 +8561,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp8
             }.RunAsync();
         }
@@ -8627,7 +8609,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp8
             }.RunAsync();
         }
@@ -9679,7 +9660,6 @@ enum Sign
             var test = new VerifyCS.Test()
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp9
             };
 
@@ -9731,7 +9711,6 @@ enum Sign
             var test = new VerifyCS.Test()
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp9
             };
 
@@ -9753,7 +9732,6 @@ enum Sign
             var test = new VerifyCS.Test()
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp9
             };
 
@@ -9839,7 +9817,6 @@ enum Sign
             var test = new VerifyCS.Test()
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp9
             };
 
@@ -9863,7 +9840,6 @@ enum Sign
             var test = new VerifyCS.Test()
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp9
             };
 
@@ -9887,7 +9863,6 @@ enum Sign
             var test = new VerifyCS.Test()
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp9
             };
 
@@ -10024,7 +9999,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -10053,7 +10027,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -10077,7 +10050,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -10100,7 +10072,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -10938,7 +10909,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -12142,7 +12112,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = version,
             }.RunAsync();
         }
@@ -12173,7 +12142,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12193,7 +12161,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
             }.RunAsync();
         }
 
@@ -12211,7 +12178,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12236,7 +12202,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12259,7 +12224,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12281,7 +12245,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12303,7 +12266,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12327,7 +12289,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12350,7 +12311,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12367,7 +12327,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12390,7 +12349,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12415,7 +12373,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12435,7 +12392,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12455,7 +12411,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12480,7 +12435,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12504,7 +12458,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12536,7 +12489,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12587,7 +12539,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12629,7 +12580,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12657,7 +12607,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12705,7 +12654,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12751,7 +12699,6 @@ enum Sign
                     OutputKind = OutputKind.ConsoleApplication,
                 },
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12771,7 +12718,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -12977,7 +12923,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -13004,7 +12949,6 @@ enum Sign
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -13150,7 +13094,6 @@ class C
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }

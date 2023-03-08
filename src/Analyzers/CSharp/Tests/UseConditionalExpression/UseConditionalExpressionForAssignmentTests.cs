@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
             var test = new VerifyCS.Test
             {
                 TestCode = testCode,
-                FixedCode = testCode,
                 LanguageVersion = languageVersion,
                 Options = { options },
             };

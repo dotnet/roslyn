@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
             await new VerifyCS.Test()
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp7
             }.RunAsync();
         }
@@ -134,7 +133,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
             await new VerifyCS.Test()
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp7_1
             }.RunAsync();
         }
@@ -188,7 +186,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
             await new VerifyCS.Test()
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp7_1
             }.RunAsync();
         }
@@ -236,7 +233,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
             await new VerifyCS.Test()
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp7_1
             }.RunAsync();
         }
@@ -257,7 +253,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
             await new VerifyCS.Test()
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp7_1
             }.RunAsync();
         }
@@ -312,7 +307,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
             await new VerifyCS.Test()
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp7_1
             }.RunAsync();
         }
@@ -482,7 +476,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
             await new VerifyCS.Test()
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp7_1
             }.RunAsync();
         }
@@ -509,7 +502,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
             await new VerifyCS.Test()
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp7_1
             }.RunAsync();
         }
@@ -566,7 +558,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
             await new VerifyCS.Test()
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp7_1
             }.RunAsync();
         }
@@ -590,7 +581,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
             await new VerifyCS.Test()
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp7_1
             }.RunAsync();
         }
@@ -647,7 +637,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
             await new VerifyCS.Test()
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp7_1
             }.RunAsync();
         }
@@ -671,7 +660,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
             await new VerifyCS.Test()
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp7_1
             }.RunAsync();
         }
@@ -758,7 +746,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
             await new VerifyCS.Test()
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp7_1
             }.RunAsync();
         }
@@ -779,7 +766,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
             await new VerifyCS.Test()
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp7_1
             }.RunAsync();
         }

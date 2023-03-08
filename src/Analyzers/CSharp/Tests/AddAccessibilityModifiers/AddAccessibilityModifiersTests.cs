@@ -621,7 +621,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             var test = new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.Preview,
                 ReferenceAssemblies = Testing.ReferenceAssemblies.Net.Net60
             };
@@ -644,7 +643,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.Preview,
             }.RunAsync();
         }
@@ -657,7 +655,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.Preview,
             }.RunAsync();
         }

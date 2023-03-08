@@ -31,7 +31,6 @@ namespace $$N
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp9,
                 Options =
                 {
@@ -51,7 +50,6 @@ namespace $$N
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -114,7 +112,6 @@ namespace N
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -134,7 +131,6 @@ $${
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -158,7 +154,6 @@ namespace N2
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -181,7 +176,6 @@ namespace $$N
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -204,7 +198,6 @@ namespace N
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -226,7 +219,6 @@ namespace $$N
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 ExpectedDiagnostics =
                 {
@@ -253,7 +245,6 @@ int i = 0;
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 ExpectedDiagnostics =
                 {
@@ -626,7 +617,6 @@ namespace $$N;
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -685,7 +675,6 @@ namespace N;
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -704,7 +693,6 @@ $$
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -722,7 +710,6 @@ namespace N; $$
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {

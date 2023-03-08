@@ -29,7 +29,6 @@ System.Console.WriteLine(0);
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
@@ -52,7 +51,6 @@ class C
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp9,
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false } },
             }.RunAsync();
@@ -140,7 +138,6 @@ internal class Program
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp9,
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Silent } },
             }.RunAsync();
@@ -156,7 +153,6 @@ System.Console.WriteLine(0);
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.None } },

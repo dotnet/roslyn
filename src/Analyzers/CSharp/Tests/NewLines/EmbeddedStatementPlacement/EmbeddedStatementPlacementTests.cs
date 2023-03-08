@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.EmbeddedStatem
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
@@ -106,7 +105,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.EmbeddedStatem
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
@@ -202,7 +200,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.EmbeddedStatem
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }

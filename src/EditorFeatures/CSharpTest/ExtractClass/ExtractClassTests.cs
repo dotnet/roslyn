@@ -115,7 +115,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             await new Test
             {
                 TestCode = input,
-                FixedCode = input,
             }.RunAsync();
         }
 
@@ -135,7 +134,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             await new Test
             {
                 TestCode = input,
-                FixedCode = input,
                 WorkspaceKind = WorkspaceKind.MiscellaneousFiles
             }.RunAsync();
         }
@@ -432,7 +430,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             await new Test
             {
                 TestCode = input,
-                FixedCode = input,
                 LanguageVersion = LanguageVersion.CSharp9,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
@@ -450,7 +447,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             await new Test
             {
                 TestCode = input,
-                FixedCode = input,
                 LanguageVersion = LanguageVersion.Preview,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
@@ -466,7 +462,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             await new Test
             {
                 TestCode = input,
-                FixedCode = input,
                 LanguageVersion = LanguageVersion.Preview,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
@@ -484,7 +479,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             await new Test
             {
                 TestCode = input,
-                FixedCode = input,
                 LanguageVersion = LanguageVersion.Preview,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
@@ -500,7 +494,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             await new Test
             {
                 TestCode = input,
-                FixedCode = input,
                 LanguageVersion = LanguageVersion.Preview,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
@@ -521,7 +514,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             await new Test
             {
                 TestCode = input,
-                FixedCode = input,
                 LanguageVersion = LanguageVersion.CSharp10,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
@@ -542,7 +534,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             await new Test
             {
                 TestCode = input,
-                FixedCode = input,
                 LanguageVersion = LanguageVersion.Preview,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
@@ -2850,7 +2841,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             await new Test
             {
                 TestCode = input,
-                FixedCode = input,
                 LanguageVersion = LanguageVersion.CSharp10,
                 TestState =
                 {
@@ -2921,7 +2911,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             await new Test()
             {
                 TestCode = code,
-                FixedCode = code,
                 ExpectedDiagnostics =
                 {
                     // /0/Test0.cs(7,17): error CS0116: A namespace cannot directly contain members such as fields, methods or statements

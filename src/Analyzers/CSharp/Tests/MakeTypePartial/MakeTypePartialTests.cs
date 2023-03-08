@@ -376,7 +376,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeTypePartial
             await new VerifyCS.Test
             {
                 TestCode = markup,
-                FixedCode = markup,
                 LanguageVersion = LanguageVersion.CSharp10
             }.RunAsync();
         }

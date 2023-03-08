@@ -102,7 +102,6 @@ class Program
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
-                FixedCode = InitialMarkup,
                 OffersEmptyRefactoring = false,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
@@ -124,7 +123,6 @@ class Program
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
-                FixedCode = InitialMarkup,
                 OffersEmptyRefactoring = false,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
@@ -146,7 +144,6 @@ class Program
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
-                FixedCode = InitialMarkup,
                 OffersEmptyRefactoring = false,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();

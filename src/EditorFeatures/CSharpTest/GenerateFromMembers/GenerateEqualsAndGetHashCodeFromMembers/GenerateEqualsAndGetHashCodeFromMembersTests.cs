@@ -3969,7 +3969,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
             }.RunAsync();
         }
 

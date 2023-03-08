@@ -914,7 +914,6 @@ class C
             {
                 LanguageVersion = CSharpLanguageVersion.CSharp9,
                 TestCode = code,
-                FixedCode = code,
             }.RunAsync();
 
             await new VerifyCS.Test
@@ -951,7 +950,6 @@ class C
             {
                 LanguageVersion = CSharpLanguageVersion.CSharp9,
                 TestCode = code,
-                FixedCode = code,
             }.RunAsync();
 
             await new VerifyCS.Test

@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 Options =
                 {
                     { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable, NotificationOption2.None },
@@ -90,7 +89,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 Options =
                 {
                     { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable, NotificationOption2.None },
@@ -373,7 +371,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 Options =
                 {
                     { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.UnusedLocalVariable },
@@ -1204,7 +1201,6 @@ $@"class C
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 Options =
                 {
                     { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
@@ -1284,7 +1280,6 @@ $@"class C
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 Options =
                 {
                     { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
@@ -1401,7 +1396,6 @@ $@"class C
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 Options =
                 {
                     { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
@@ -1430,7 +1424,6 @@ $@"class C
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 Options =
                 {
                     { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
@@ -1460,7 +1453,6 @@ $@"class C
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 Options =
                 {
                     { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },

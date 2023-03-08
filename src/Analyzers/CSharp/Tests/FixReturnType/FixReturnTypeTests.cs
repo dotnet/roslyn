@@ -500,7 +500,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
             await new VerifyCS.Test
             {
                 TestCode = markup,
-                FixedCode = markup,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60
             }.RunAsync();
         }

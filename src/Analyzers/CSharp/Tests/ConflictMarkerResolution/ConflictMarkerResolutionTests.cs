@@ -717,7 +717,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolutio
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
             }.RunAsync();
         }
 
@@ -734,7 +733,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolutio
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
             }.RunAsync();
         }
 
@@ -751,7 +749,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolutio
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
             }.RunAsync();
         }
 
@@ -1457,7 +1454,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolutio
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
             }.RunAsync();
         }
 

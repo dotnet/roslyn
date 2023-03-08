@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.ConstructorIni
             await new Verify.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CodeStyleOption2.TrueWithSilentEnforcement } }
             }.RunAsync();
         }
@@ -88,7 +87,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.ConstructorIni
             await new Verify.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
@@ -110,7 +108,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.ConstructorIni
             await new Verify.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
@@ -132,7 +129,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.ConstructorIni
             await new Verify.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
@@ -258,7 +254,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.ConstructorIni
             await new Verify.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }

@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateDefaultConstruc
             await new VerifyRefactoring.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -69,7 +68,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateDefaultConstruc
             await new VerifyCodeFix.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }

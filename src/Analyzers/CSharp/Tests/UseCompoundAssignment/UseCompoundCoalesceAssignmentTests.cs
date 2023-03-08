@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
             await new VerifyCS.Test
             {
                 TestCode = testCode,
-                FixedCode = testCode,
                 LanguageVersion = languageVersion,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             }.RunAsync();

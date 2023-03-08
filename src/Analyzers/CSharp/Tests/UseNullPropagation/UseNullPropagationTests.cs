@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNullPropagation
             await new VerifyCS.Test
             {
                 TestCode = testCode,
-                FixedCode = testCode,
                 LanguageVersion = languageVersion,
             }.RunAsync();
         }

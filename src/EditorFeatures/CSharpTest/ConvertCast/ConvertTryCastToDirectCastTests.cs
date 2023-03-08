@@ -61,7 +61,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertConversionOperat
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
-                FixedCode = InitialMarkup,
                 CompilerDiagnostics = CompilerDiagnostics.None, // CS0077 is present, but we present the refactoring anyway (this may overlap with a diagnostic fixer)
                 OffersEmptyRefactoring = false,
                 CodeActionValidationMode = CodeActionValidationMode.Full,
@@ -83,7 +82,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertConversionOperat
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
-                FixedCode = InitialMarkup,
                 CompilerDiagnostics = CompilerDiagnostics.None,
                 OffersEmptyRefactoring = false,
                 CodeActionValidationMode = CodeActionValidationMode.None,

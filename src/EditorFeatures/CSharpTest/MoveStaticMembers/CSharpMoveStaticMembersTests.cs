@@ -3174,7 +3174,6 @@ namespace TestNs1
             await new Test("", ImmutableArray<string>.Empty, "")
             {
                 TestCode = initialMarkup,
-                FixedCode = initialMarkup,
             }.RunAsync().ConfigureAwait(false);
         }
 
@@ -3192,7 +3191,6 @@ namespace TestNs1
             await new Test("", ImmutableArray<string>.Empty, "")
             {
                 TestCode = initialMarkup,
-                FixedCode = initialMarkup,
             }.RunAsync().ConfigureAwait(false);
         }
 
@@ -3210,7 +3208,6 @@ namespace TestNs1
             await new Test("", ImmutableArray<string>.Empty, "")
             {
                 TestCode = initialMarkup,
-                FixedCode = initialMarkup,
             }.RunAsync().ConfigureAwait(false);
         }
 
@@ -3228,7 +3225,6 @@ namespace TestNs1
             await new Test("", ImmutableArray<string>.Empty, "")
             {
                 TestCode = initialMarkup,
-                FixedCode = initialMarkup,
             }.RunAsync().ConfigureAwait(false);
         }
 
@@ -3246,7 +3242,6 @@ namespace TestNs1
             await new Test("", ImmutableArray<string>.Empty, "")
             {
                 TestCode = initialMarkup,
-                FixedCode = initialMarkup,
             }.RunAsync().ConfigureAwait(false);
         }
 
@@ -3339,7 +3334,6 @@ using System;
             await new Test("", ImmutableArray<string>.Empty, "")
             {
                 TestCode = initialMarkup,
-                FixedCode = initialMarkup,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
                 TestState =
                 {
@@ -3360,7 +3354,6 @@ using System;
             await new Test("", ImmutableArray<string>.Empty, "")
             {
                 TestCode = initialMarkup,
-                FixedCode = initialMarkup,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
                 TestState =
                 {
@@ -3384,7 +3377,6 @@ static int Do[||]Something()
             await new Test("", ImmutableArray<string>.Empty, "")
             {
                 TestCode = initialMarkup,
-                FixedCode = initialMarkup,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
                 TestState =
                 {
@@ -3507,7 +3499,6 @@ static int Do[||]Something()
             await new Test("", ImmutableArray<string>.Empty, "")
             {
                 TestCode = initialMarkup,
-                FixedCode = initialMarkup,
             }.RunAsync().ConfigureAwait(false);
         }
     }

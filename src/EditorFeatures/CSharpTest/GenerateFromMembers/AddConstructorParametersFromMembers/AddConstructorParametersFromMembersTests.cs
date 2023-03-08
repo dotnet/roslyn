@@ -1834,7 +1834,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
             await new VerifyCS.Test
             {
                 TestCode = source,
-                FixedCode = source,
                 EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEndUnderscoreSuffixEditorConfig
             }.RunAsync();
         }

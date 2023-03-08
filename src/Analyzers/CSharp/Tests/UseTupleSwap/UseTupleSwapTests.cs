@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp6,
             }.RunAsync();
         }
@@ -62,7 +61,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 Options =
                 {
                     { CSharpCodeStyleOptions.PreferTupleSwap, false, CodeStyle.NotificationOption2.Silent }
@@ -114,7 +112,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
             }.RunAsync();
         }
 
@@ -216,7 +213,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
             }.RunAsync();
         }
 
@@ -238,7 +234,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
             }.RunAsync();
         }
 
@@ -260,7 +255,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
             }.RunAsync();
         }
 
@@ -282,7 +276,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
             }.RunAsync();
         }
 
@@ -304,7 +297,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
             }.RunAsync();
         }
 
@@ -326,7 +318,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
             }.RunAsync();
         }
 
@@ -348,7 +339,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
             }.RunAsync();
         }
 
@@ -442,7 +432,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
             }.RunAsync();
         }
 
@@ -495,7 +484,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
             }.RunAsync();
         }
 
@@ -555,7 +543,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
             }.RunAsync();
         }
     }

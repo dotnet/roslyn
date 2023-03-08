@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyPropertyPattern
             await new VerifyCS.Test
             {
                 TestCode = code,
-                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -109,7 +108,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyPropertyPattern
             await new VerifyCS.Test
             {
                 TestCode = testCode,
-                FixedCode = testCode,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -135,7 +133,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyPropertyPattern
             await new VerifyCS.Test
             {
                 TestCode = testCode,
-                FixedCode = testCode,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -161,7 +158,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyPropertyPattern
             await new VerifyCS.Test
             {
                 TestCode = testCode,
-                FixedCode = testCode,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -187,7 +183,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyPropertyPattern
             await new VerifyCS.Test
             {
                 TestCode = testCode,
-                FixedCode = testCode,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -213,7 +208,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyPropertyPattern
             await new VerifyCS.Test
             {
                 TestCode = testCode,
-                FixedCode = testCode,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -239,7 +233,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyPropertyPattern
             await new VerifyCS.Test
             {
                 TestCode = testCode,
-                FixedCode = testCode,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -751,7 +744,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyPropertyPattern
             await new VerifyCS.Test
             {
                 TestCode = testCode,
-                FixedCode = testCode,
                 LanguageVersion = LanguageVersion.CSharp10,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
@@ -774,7 +766,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyPropertyPattern
             await new VerifyCS.Test
             {
                 TestCode = testCode,
-                FixedCode = testCode,
                 LanguageVersion = LanguageVersion.CSharp10,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
