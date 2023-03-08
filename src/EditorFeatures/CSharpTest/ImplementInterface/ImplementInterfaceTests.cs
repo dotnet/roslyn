@@ -204,6 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                 class Class : {|CS0535:IInterface|}
                 {
                 }
+
                 """ + nativeIntegerAttributeDefinition,
                 FixedCode = """
                 interface IInterface
@@ -219,6 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                         throw new System.NotImplementedException();
                     }
                 }
+
                 """ + nativeIntegerAttributeDefinition,
                 Options = { AllOptionsOff },
             }.RunAsync();
@@ -590,6 +592,7 @@ codeAction: ("True;False;False:global::IInterface;TestProject;Microsoft.CodeAnal
                         throw new System.NotImplementedException();
                     }
                 }
+
                 """);
         }
 
@@ -2083,6 +2086,7 @@ codeAction: ("False;False;False:global::I;TestProject;Microsoft.CodeAnalysis.Imp
                         throw new NotImplementedException();
                     }
                 }
+
                 """);
         }
 
@@ -3084,7 +3088,7 @@ codeAction: ("False;False;False:global::I;TestProject;Microsoft.CodeAnalysis.Imp
         public async Task TestImplementEventThroughExplicitMember()
         {
             await TestInRegularAndScriptAsync(
-@"interface IGoo { event System . EventHandler E ; } class CanGoo : IGoo { event System.EventHandler IGoo.E { add { } remove { } } } class HasCanGoo : {|CS0535:IGoo|} { CanGoo canGoo; } ",
+@"interface IGoo { event System . EventHandler E ; } class CanGoo : IGoo { event System.EventHandler IGoo.E { add { } remove { } } } class HasCanGoo : {|CS0535:IGoo|} { CanGoo canGoo; }",
 """
 using System;
 
@@ -4825,7 +4829,7 @@ codeAction: ("True;False;False:global::IGoo;TestProject;Microsoft.CodeAnalysis.I
         public async Task TestStringLiteral()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
-@"interface IGoo { void Goo ( string s = ""\"""" ) ; } class B : {|CS0535:IGoo|} { } ",
+@"interface IGoo { void Goo ( string s = ""\"""" ) ; } class B : {|CS0535:IGoo|} { }",
 """
 interface IGoo { void Goo ( string s = "\"" ) ; }
 class B : IGoo
@@ -5847,6 +5851,7 @@ class B : IGoo
                         throw new System.NotImplementedException();
                     }
                 }
+
                 """);
         }
 
@@ -5940,6 +5945,7 @@ class B : IGoo
                         throw new NotImplementedException();
                     }
                 }
+
                 """);
         }
 
@@ -5977,6 +5983,7 @@ class B : IGoo
                 using System;
 
                 class C : {|CS0535:IServiceProvider|}{|CS1513:|}{|CS1514:|} // Implement interface
+
                 """,
                 """
                 using System;
@@ -5988,6 +5995,7 @@ class B : IGoo
                         throw new NotImplementedException();
                     }
                 }
+
                 """);
         }
 
@@ -6033,6 +6041,7 @@ class B : IGoo
                         throw new NotImplementedException();
                     }
                 }
+
                 """, codeAction: ("False;False;True:global::System.IDisposable;mscorlib;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 0));
         }
 
@@ -6073,6 +6082,7 @@ class C : IDisposable
                         throw new NotImplementedException();
                     }
                 }
+
                 """, codeAction: ("True;False;False:global::System.IDisposable;mscorlib;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 2));
         }
 
@@ -6118,6 +6128,7 @@ class C : System.IDisposable
                 {
                     public abstract void Dispose();
                 }
+
                 """, codeAction: ("False;True;True:global::System.IDisposable;mscorlib;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 2));
         }
 
@@ -6318,6 +6329,7 @@ class C : I
                         throw new NotImplementedException();
                     }
                 }
+
                 """);
         }
 
@@ -6338,6 +6350,7 @@ class C : I
                         throw new NotImplementedException();
                     }
                 }
+
                 """, codeAction: ("True;False;False:global::System.IDisposable;mscorlib;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
         }
 
@@ -6412,6 +6425,7 @@ class C : I
                         throw new NotImplementedException();
                     }
                 }
+
                 """);
         }
 
@@ -6433,6 +6447,7 @@ class C : I
                         throw new NotImplementedException();
                     }
                 }
+
                 """);
         }
 
@@ -6454,6 +6469,7 @@ class C : I
                         throw new NotImplementedException();
                     }
                 }
+
                 """);
         }
 
@@ -6475,6 +6491,7 @@ class C : I
                         throw new NotImplementedException();
                     }
                 }
+
                 """);
         }
 
@@ -10391,6 +10408,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                         throw new System.NotImplementedException();
                     }
                 }
+
                 """,
             }.RunAsync();
         }
@@ -10423,6 +10441,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                         throw new System.NotImplementedException();
                     }
                 }
+
                 """,
             }.RunAsync();
         }
@@ -10455,6 +10474,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                         throw new System.NotImplementedException();
                     }
                 }
+
                 """,
             }.RunAsync();
         }
