@@ -249,7 +249,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub ERR_UndefinedType1()
             Dim source = "
@@ -290,7 +290,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")>
         Public Sub ERR_NameNotMember2()
             Const source = "
 Imports System.Linq
@@ -341,7 +341,7 @@ End Class
         End Sub
 
         <Fact, WorkItem(597, "GitHub")>
-        <WorkItem(1124725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")>
         Public Sub PseudoVariableType()
             Const source = "
 Public Class C
@@ -381,7 +381,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub NotYetLoadedWinMds()
             Dim source = "
@@ -423,7 +423,7 @@ End Class
         ''' <remarks>
         ''' Windows.UI.Xaml is the only (win8) winmd with more than two parts.
         ''' </remarks>
-        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub NotYetLoadedWinMds_MultipleParts()
             Dim source = "
@@ -462,7 +462,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub NotYetLoadedWinMds_GetType()
             Dim source = "
@@ -502,7 +502,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1154988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")>
         Public Sub CompileWithRetrySameErrorReported()
             Dim source = " 
 Class C 
@@ -641,7 +641,7 @@ End Class"
 }", LanguageVersion.VisualBasic15_3)
         End Sub
 
-        <Fact, WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16879")>
         Public Sub NonTupleNoSystemRuntime()
             Const source =
 "Class C

@@ -97,21 +97,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"enum E : $$");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestNotInTypeParameterConstraint_TypeDeclaration1()
         {
             await VerifyAbsenceAsync(
 @"class C<T> where T : $$");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestInTypeParameterConstraint_TypeDeclaration_WhenNotDirectlyInConstraint1()
         {
             await VerifyKeywordAsync(
 @"class C<T> where T : IList<$$");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestNotInTypeParameterConstraint_TypeDeclaration2()
         {
             await VerifyAbsenceAsync(
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         where U : U");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestInTypeParameterConstraint_TypeDeclaration_WhenNotDirectlyInConstraint2()
         {
             await VerifyKeywordAsync(
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         where U : U");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestNotInTypeParameterConstraint_MethodDeclaration1()
         {
             await VerifyAbsenceAsync(
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public void M<T>() where T : $$");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestInTypeParameterConstraint_MethodDeclaration_WhenNotDirectlyInConstraint1()
         {
             await VerifyKeywordAsync(
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public void M<T>() where T : IList<$$");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestNotInTypeParameterConstraint_MethodDeclaration2()
         {
             await VerifyAbsenceAsync(
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         where U : T");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestNotInTypeParameterConstraint_MethodDeclaration_WhenNotDirectlyInConstraint2()
         {
             await VerifyKeywordAsync(
@@ -338,7 +338,7 @@ class C
     delegate*<ref $$");
         }
 
-        [Fact, WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
         public async Task TestNotAfterAsync()
         {
             await VerifyAbsenceAsync(@"
@@ -356,7 +356,7 @@ class C
     delegate*$$");
         }
 
-        [Theory, WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/53585")]
         [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithoutAsync))]
         public async Task TestAfterKeywordIndicatingLocalFunctionWithoutAsync(string keyword)
         {
@@ -364,7 +364,7 @@ class C
 {keyword} $$"));
         }
 
-        [Theory, WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
         [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithAsync))]
         public async Task TestNotAfterKeywordIndicatingLocalFunctionWithAsync(string keyword)
         {
@@ -372,14 +372,14 @@ class C
 {keyword} $$"));
         }
 
-        [Fact, WorkItem(49743, "https://github.com/dotnet/roslyn/issues/49743")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49743")]
         public async Task TestNotInPreprocessorDirective()
         {
             await VerifyAbsenceAsync(
 @"#$$");
         }
 
-        [Fact, WorkItem(64585, "https://github.com/dotnet/roslyn/issues/64585")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64585")]
         public async Task TestAfterRequired()
         {
             await VerifyKeywordAsync(@"

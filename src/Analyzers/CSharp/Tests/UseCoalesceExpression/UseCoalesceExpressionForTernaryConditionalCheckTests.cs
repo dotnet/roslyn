@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
                 """);
         }
 
-        [Fact, WorkItem(16025, "https://github.com/dotnet/roslyn/issues/16025")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16025")]
         public async Task TestTrivia1()
         {
             await TestInRegularAndScript1Async(
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
                 """);
         }
 
-        [Fact, WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17028")]
         public async Task TestInExpressionOfT()
         {
             await TestInRegularAndScript1Async(
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
                 """);
         }
 
-        [Fact, WorkItem(38066, "https://github.com/dotnet/roslyn/issues/38066")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38066")]
         public async Task TestSemicolonPlacement()
         {
             await TestInRegularAndScript1Async(
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
                 """);
         }
 
-        [Fact, WorkItem(38066, "https://github.com/dotnet/roslyn/issues/38066")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38066")]
         public async Task TestParenthesisPlacement()
         {
             await TestInRegularAndScript1Async(
@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
                 """);
         }
 
-        [Fact, WorkItem(38066, "https://github.com/dotnet/roslyn/issues/38066")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38066")]
         public async Task TestAnotherConditionalPlacement()
         {
             await TestInRegularAndScript1Async(
@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
                 """);
         }
 
-        [Fact, WorkItem(53190, "https://github.com/dotnet/roslyn/issues/53190")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53190")]
         public async Task TestNotWithTargetTyping()
         {
             await TestMissingAsync(
