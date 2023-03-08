@@ -404,8 +404,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         }
 
         [Theory]
-        [InlineData(LanguageVersion.CSharp8, "(int?)42")]
-        [InlineData(LanguageVersion.CSharp9, "42")] // In C# 9, target-typed conditionals makes this work
+        [InlineData(LanguageVersion.CSharp8, " (int?)42")]
+        [InlineData(LanguageVersion.CSharp9, " 42")] // In C# 9, target-typed conditionals makes this work
         public async Task Conversion_TargetTypedConditionalExpression(LanguageVersion languageVersion, string expectedSubstitution)
         {
             await TestInRegularAndScriptAsync(
