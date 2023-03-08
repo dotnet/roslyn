@@ -210,27 +210,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             CSharpIdeCodeStyleOptions.Default.PreferNullCheckOverTypeCheck);
 
         public static Option2<CodeStyleOption2<bool>> AllowEmbeddedStatementsOnSameLine { get; } = CreateOption(
-            CSharpCodeStyleOptionGroups.NewLinePreferences,
+            CodeStyleOptionGroups.NewLinePreferences,
             "csharp_style_allow_embedded_statements_on_same_line_experimental",
              CSharpSimplifierOptions.Default.AllowEmbeddedStatementsOnSameLine);
 
         public static Option2<CodeStyleOption2<bool>> AllowBlankLinesBetweenConsecutiveBraces { get; } = CreateOption(
-            CSharpCodeStyleOptionGroups.NewLinePreferences,
+            CodeStyleOptionGroups.NewLinePreferences,
             "csharp_style_allow_blank_lines_between_consecutive_braces_experimental",
             CSharpIdeCodeStyleOptions.Default.AllowBlankLinesBetweenConsecutiveBraces);
 
         public static Option2<CodeStyleOption2<bool>> AllowBlankLineAfterColonInConstructorInitializer { get; } = CreateOption(
-            CSharpCodeStyleOptionGroups.NewLinePreferences,
+            CodeStyleOptionGroups.NewLinePreferences,
             "csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental",
             CSharpIdeCodeStyleOptions.Default.AllowBlankLineAfterColonInConstructorInitializer);
 
         public static Option2<CodeStyleOption2<bool>> AllowBlankLineAfterTokenInConditionalExpression { get; } = CreateOption(
-            CSharpCodeStyleOptionGroups.NewLinePreferences,
+            CodeStyleOptionGroups.NewLinePreferences,
             "csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental",
             CSharpIdeCodeStyleOptions.Default.AllowBlankLineAfterTokenInConditionalExpression);
 
         public static Option2<CodeStyleOption2<bool>> AllowBlankLineAfterTokenInArrowExpressionClause { get; } = CreateOption(
-            CSharpCodeStyleOptionGroups.NewLinePreferences,
+            CodeStyleOptionGroups.NewLinePreferences,
             "csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental",
             CSharpIdeCodeStyleOptions.Default.AllowBlankLineAfterTokenInArrowExpressionClause);
 
@@ -264,6 +264,5 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly OptionGroup CodeBlockPreferences = new("csharp_code_block_preferences", CSharpCompilerExtensionsResources.Code_block_preferences, priority: 6, parent: CodeStyleOptionGroups.CodeStyle);
         public static readonly OptionGroup ExpressionLevelPreferences = new("csharp_expression_level_preferences", CompilerExtensionsResources.Expression_level_preferences, priority: 7, parent: CodeStyleOptionGroups.CodeStyle);
         public static readonly OptionGroup UsingDirectivePreferences = new("csharp_using_directive_preferences", CSharpCompilerExtensionsResources.using_directive_preferences, priority: 8, parent: CodeStyleOptionGroups.CodeStyle);
-        public static readonly OptionGroup NewLinePreferences = new("csharp_new_line_preferences", CompilerExtensionsResources.New_line_preferences, priority: 9, parent: CodeStyleOptionGroups.CodeStyle);
     }
 }
