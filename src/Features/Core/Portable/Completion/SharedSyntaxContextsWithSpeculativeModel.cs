@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion
             static AsyncLazy<SyntaxContext> GetLazySyntaxContextWithSpeculativeModel(Document document, SharedSyntaxContextsWithSpeculativeModel self)
             {
                 return self._cache.GetOrAdd(document, d => AsyncLazy.Create(
-                    c => CompletionHelper.CreateSyntaxContextWithExistingSpeculativeModelAsync(d, self._position, c)));
+                    cancellationToken => CompletionHelper.CreateSyntaxContextWithExistingSpeculativeModelAsync(d, self._position, cancellationToken)));
             }
         }
     }
