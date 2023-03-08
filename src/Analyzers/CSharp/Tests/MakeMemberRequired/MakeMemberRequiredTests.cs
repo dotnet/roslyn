@@ -605,5 +605,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.MakeMemberRequired
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net70
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TwoFieldDeclaratorsWithOneIssue()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    #nullable enable
+                    class MyClass
+                    {
+                        public string {|CS8618:_myField|}, _myField1 = "";
+                    }
+                    """,
+                FixedCode = """
+                    #nullable enable
+                    class MyClass
+                    {
+                        public required string _myField, _myField1 = "";
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+            }.RunAsync();
+        }
     }
 }
