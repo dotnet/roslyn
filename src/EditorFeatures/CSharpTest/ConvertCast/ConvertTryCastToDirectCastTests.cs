@@ -20,22 +20,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertConversionOperat
         [Fact]
         public async Task ConvertFromAsToExplicit()
         {
-            const string InitialMarkup = @"
-class Program
-{
-    public static void Main()
-    {
-        var x = 1 as[||] object;
-    }
-}";
-            const string ExpectedMarkup = @"
-class Program
-{
-    public static void Main()
-    {
-        var x = (object)1;
-    }
-}";
+            const string InitialMarkup = """
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = 1 as[||] object;
+                    }
+                }
+                """;
+            const string ExpectedMarkup = """
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = (object)1;
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
@@ -47,14 +49,15 @@ class Program
         [Fact]
         public async Task ConvertFromAsToExplicit_ValueType()
         {
-            const string InitialMarkup = @"
-class Program
-{
-    public static void Main()
-    {
-        var x = 1 as[||] byte;
-    }
-}";
+            const string InitialMarkup = """
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = 1 as[||] byte;
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
@@ -68,14 +71,15 @@ class Program
         [Fact]
         public async Task ConvertFromAsToExplicit_NoTypeSyntaxRightOfAs()
         {
-            const string InitialMarkup = @"
-class Program
-{
-    public static void Main()
-    {
-        var x = 1 as[||] 1;
-    }
-}";
+            const string InitialMarkup = """
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = 1 as[||] 1;
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
@@ -198,26 +202,28 @@ class Program
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64052")]
         public async Task ConvertFromAsToExplicit_NullableReferenceType_NullableEnable()
         {
-            var initialMarkup = @"
-#nullable enable
+            var initialMarkup = """
+                #nullable enable
 
-class Program
-{
-    public static void Main()
-    {
-        var x = null as[||] string;
-    }
-}";
-            var expectedMarkup = @"
-#nullable enable
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = null as[||] string;
+                    }
+                }
+                """;
+            var expectedMarkup = """
+                #nullable enable
 
-class Program
-{
-    public static void Main()
-    {
-        var x = (string?)null;
-    }
-}";
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = (string?)null;
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = initialMarkup,
@@ -229,26 +235,28 @@ class Program
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64052")]
         public async Task ConvertFromAsToExplicit_NullableReferenceType_NullableDisable()
         {
-            var initialMarkup = @"
-#nullable disable
+            var initialMarkup = """
+                #nullable disable
 
-class Program
-{
-    public static void Main()
-    {
-        var x = null as[||] string;
-    }
-}";
-            var expectedMarkup = @"
-#nullable disable
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = null as[||] string;
+                    }
+                }
+                """;
+            var expectedMarkup = """
+                #nullable disable
 
-class Program
-{
-    public static void Main()
-    {
-        var x = (string)null;
-    }
-}";
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = (string)null;
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = initialMarkup,
@@ -261,24 +269,24 @@ class Program
         [WorkItem("https://github.com/dotnet/roslyn/issues/64466")]
         public async Task ConvertFromExplicitToAs_NullableValueType()
         {
-            const string InitialMarkup = @"
-class Program
-{
-    public static void Main()
-    {
-        var x = null as[||] byte?;
-    }
-}
-";
-            const string FixedCode = @"
-class Program
-{
-    public static void Main()
-    {
-        var x = (byte?)null;
-    }
-}
-";
+            const string InitialMarkup = """
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = null as[||] byte?;
+                    }
+                }
+                """;
+            const string FixedCode = """
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = (byte?)null;
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
