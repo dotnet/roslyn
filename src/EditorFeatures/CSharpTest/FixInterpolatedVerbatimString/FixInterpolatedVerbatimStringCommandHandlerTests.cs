@@ -46,7 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
                 () =>
                 {
                     var editorOperations = workspace.GetService<IEditorOperationsFactoryService>().GetEditorOperations(view);
-                    editorOperations.InsertText("\"");
+                    editorOperations.InsertText("""
+                        "
+                        """);
 
                     quoteCharSnapshotText = view.TextBuffer.CurrentSnapshot.GetText();
                     quoteCharCaretPosition = view.Caret.Position.BufferPosition.Position;
@@ -101,59 +103,69 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         public void TestAfterAtSignDollarSign()
         {
             TestHandled(
-@"class C
-{
-    void M()
-    {
-        var v = @$[||]
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var v = $@""[||]
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = @$[||]
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = $@"[||]
+                    }
+                }
+                """);
         }
 
         [WpfFact]
         public void TestMissingAfterDollarSignAtSign()
         {
             TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $@[||]
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = $@[||]
+                    }
+                }
+                """);
         }
 
         [WpfFact]
         public void TestMissingAfterAtSign()
         {
             TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = @[||]
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = @[||]
+                    }
+                }
+                """);
         }
 
         [WpfFact]
         public void TestMissingAfterDollarSign()
         {
             TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $[||]
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = $[||]
+                    }
+                }
+                """);
         }
 
         [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
@@ -172,139 +184,163 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         public void TestAfterAtSignDollarSignEndOfFile()
         {
             TestHandled(
-@"class C
-{
-    void M()
-    {
-        var v = @$[||]",
-@"class C
-{
-    void M()
-    {
-        var v = $@""[||]");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = @$[||]
+                """,
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = $@"[||]
+                """);
         }
 
         [WpfFact]
         public void TestMissingInClassDeclaration()
         {
             TestNotHandled(
-@"class C
-{
-    @$[||]
-}");
+                """
+                class C
+                {
+                    @$[||]
+                }
+                """);
         }
 
         [WpfFact]
         public void TestMissingInComment1()
         {
             TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = // @$[||]
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = // @$[||]
+                    }
+                }
+                """);
         }
 
         [WpfFact]
         public void TestMissingInComment2()
         {
             TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = /* @$[||]
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = /* @$[||]
+                    }
+                }
+                """);
         }
 
         [WpfFact]
         public void TestMissingInString()
         {
             TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = ""@$[||]
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = "@$[||]
+                    }
+                }
+                """);
         }
 
         [WpfFact]
         public void TestMissingInVerbatimString()
         {
             TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = @""@$[||]
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = @"@$[||]
+                    }
+                }
+                """);
         }
 
         [WpfFact]
         public void TestMissingInInterpolatedString()
         {
             TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $""@$[||]
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = $"@$[||]
+                    }
+                }
+                """);
         }
 
         [WpfFact]
         public void TestMissingInInterpolatedVerbatimString1()
         {
             TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = $@""@$[||]
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = $@"@$[||]
+                    }
+                }
+                """);
         }
 
         [WpfFact]
         public void TestMissingInInterpolatedVerbatimString2()
         {
             TestNotHandled(
-@"class C
-{
-    void M()
-    {
-        var v = @$""@$[||]
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = @$"@$[||]
+                    }
+                }
+                """);
         }
 
         [WpfFact]
         public void TestTrivia()
         {
             TestHandled(
-@"class C
-{
-    void M()
-    {
-        var v = // a
-                /* b */ @$[||] // c
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var v = // a
-                /* b */ $@""[||] // c
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = // a
+                                /* b */ @$[||] // c
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = // a
+                                /* b */ $@"[||] // c
+                    }
+                }
+                """);
         }
     }
 }
