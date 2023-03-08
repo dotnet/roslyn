@@ -167,7 +167,7 @@ class C
                     modifiers: new Editing.DeclarationModifiers(isStatic: true));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544082")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544082")]
             public async Task AddClass()
             {
                 var input = "namespace [|N|] { }";
@@ -208,7 +208,7 @@ class C
                     name: "classæøå");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
             public async Task AddStaticClass()
             {
                 var input = "namespace [|N|] { }";
@@ -222,7 +222,7 @@ class C
                     modifiers: new Editing.DeclarationModifiers(isStatic: true));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
             public async Task AddStaticAbstractClass()
             {
                 var input = "namespace [|N|] { }";
@@ -237,7 +237,7 @@ class C
                     modifiers: new Editing.DeclarationModifiers(isStatic: true, isAbstract: true));
             }
 
-            [Theory, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
+            [Theory, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
             [InlineData(Accessibility.NotApplicable)]
             [InlineData(Accessibility.Internal)]
             [InlineData(Accessibility.Public)]
@@ -257,7 +257,7 @@ class C
                     modifiers: new Editing.DeclarationModifiers(isFile: true));
             }
 
-            [Theory, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
+            [Theory, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
             [InlineData("struct", TypeKind.Struct)]
             [InlineData("interface", TypeKind.Interface)]
             [InlineData("enum", TypeKind.Enum)]
@@ -275,7 +275,7 @@ class C
                     modifiers: new Editing.DeclarationModifiers(isFile: true));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
             public async Task AddSealedClass()
             {
                 var input = "namespace [|N|] { }";
@@ -290,7 +290,7 @@ class C
                     modifiers: new Editing.DeclarationModifiers(isSealed: true));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
             public async Task AddAbstractClass()
             {
                 var input = "namespace [|N|] { }";
@@ -321,7 +321,7 @@ class C
                     typeKind: TypeKind.Struct);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(546224, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546224")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546224")]
             public async Task AddSealedStruct()
             {
                 var input = "namespace [|N|] { }";
@@ -353,7 +353,7 @@ class C
                     typeKind: TypeKind.Interface);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544080")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544080")]
             public async Task AddEnum()
             {
                 var input = "namespace [|N|] { }";
@@ -367,7 +367,7 @@ class C
                     typeKind: TypeKind.Enum);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544527")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544527")]
             public async Task AddEnumWithValues()
             {
                 var input = "namespace [|N|] { }";
@@ -384,7 +384,7 @@ class C
                     members: Members(CreateEnumField("F1", 1), CreateEnumField("F2", 2)));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544080")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544080")]
             public async Task AddDelegateType()
             {
                 var input = "class [|C|] { }";
@@ -397,7 +397,7 @@ class C
                     parameters: Parameters(Parameter(typeof(string), "s")));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(546224, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546224")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546224")]
             public async Task AddSealedDelegateType()
             {
                 var input = "class [|C|] { }";
@@ -970,7 +970,7 @@ class C
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            [WorkItem(840265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840265")]
+            [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840265")]
             public async Task AddDefaultParameterWithNonDefaultValueToMethod()
             {
                 var input = "class C { public void [|M|]() { } }";
@@ -998,7 +998,7 @@ class C
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            [WorkItem(841365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/841365")]
+            [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/841365")]
             public async Task AddParamsParameterToMethod()
             {
                 var input = "class C { public void [|M|]() { } }";
@@ -1007,7 +1007,7 @@ class C
                     Parameters(Parameter(typeof(char[]), "characters", isParams: true)));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544015, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544015")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544015")]
             public async Task AddAutoProperty()
             {
                 var input = "class [|C|] { }";
@@ -1597,7 +1597,7 @@ namespace N
             }
         }
 
-        [Fact, WorkItem(665008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665008")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665008")]
         public async Task TestExtensionMethods()
         {
             var generationSource = @"
@@ -1615,7 +1615,7 @@ public static class [|C|]
                 onlyGenerateMembers: true);
         }
 
-        [Fact, WorkItem(530829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
         public async Task TestVBPropertiesWithParams()
         {
             var generationSource = @"
@@ -1645,7 +1645,7 @@ End Namespace
                 context: new CodeGenerationContext(generateMethodBodies: false));
         }
 
-        [Fact, WorkItem(812738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812738")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812738")]
         public async Task TestRefParamsWithDefaultValue()
         {
             var generationSource = @"
@@ -1663,7 +1663,7 @@ End Class";
                 onlyGenerateMembers: true);
         }
 
-        [Fact, WorkItem(848357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
         public async Task TestConstraints()
         {
             var generationSource = @"

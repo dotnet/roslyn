@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "Enum")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub EnumFollowsEnumTest()
             Dim code =
 <File>
@@ -23,7 +23,7 @@ End Enum
             VerifyRecommendationsContain(code, "Enum")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub EnumFollowsEnumWithinClassTest()
             Dim code =
 <File>
@@ -51,7 +51,7 @@ End Class
             VerifyRecommendationsContain(<InterfaceDeclaration>|</InterfaceDeclaration>, "Enum")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub EnumFollowsMismatchedEndTest()
             Dim code =
 <File>

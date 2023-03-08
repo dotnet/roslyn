@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
         public async Task TestWithExistingInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
         public async Task TestWithExistingInitializerWithComma()
         {
             await TestInRegularAndScriptAsync(
@@ -845,7 +845,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
-        [WorkItem(46670, "https://github.com/dotnet/roslyn/issues/46670")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46670")]
         public async Task TestTriviaRemoveLeadingBlankLinesForFirstElement()
         {
             await TestInRegularAndScriptAsync(
@@ -918,7 +918,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(16158, "https://github.com/dotnet/roslyn/issues/16158")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16158")]
         public async Task TestIncorrectAddName()
         {
             await TestInRegularAndScriptAsync(
@@ -958,7 +958,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(16241, "https://github.com/dotnet/roslyn/issues/16241")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16241")]
         public async Task TestNestedCollectionInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -978,7 +978,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(17823, "https://github.com/dotnet/roslyn/issues/17823")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17823")]
         public async Task TestMissingWhenReferencedInInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -996,7 +996,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(17823, "https://github.com/dotnet/roslyn/issues/17823")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17823")]
         public async Task TestWhenReferencedInInitializer_LocalVar()
         {
             await TestInRegularAndScriptAsync(
@@ -1030,7 +1030,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(17823, "https://github.com/dotnet/roslyn/issues/17823")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17823")]
         public async Task TestWhenReferencedInInitializer_LocalVar2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1049,7 +1049,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(18260, "https://github.com/dotnet/roslyn/issues/18260")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18260")]
         public async Task TestWhenReferencedInInitializer_Assignment()
         {
             await TestInRegularAndScriptAsync(
@@ -1085,7 +1085,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(18260, "https://github.com/dotnet/roslyn/issues/18260")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18260")]
         public async Task TestWhenReferencedInInitializer_Assignment2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1105,7 +1105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(18260, "https://github.com/dotnet/roslyn/issues/18260")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18260")]
         public async Task TestFieldReference()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1124,7 +1124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(17853, "https://github.com/dotnet/roslyn/issues/17853")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17853")]
         public async Task TestMissingForDynamic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1142,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17953")]
         public async Task TestMissingAcrossPreprocessorDirective()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1162,7 +1162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17953")]
         public async Task TestAvailableInsidePreprocessorDirective()
         {
             await TestInRegularAndScriptAsync(
@@ -1198,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18242")]
         public async Task TestObjectInitializerAssignmentAmbiguity()
         {
             await TestInRegularAndScriptAsync(
@@ -1232,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18242")]
         public async Task TestObjectInitializerCompoundAssignment()
         {
             await TestInRegularAndScriptAsync(
@@ -1266,7 +1266,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(19253, "https://github.com/dotnet/roslyn/issues/19253")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19253")]
         public async Task TestKeepBlankLinesAfter()
         {
             await TestInRegularAndScriptAsync(
@@ -1302,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(23672, "https://github.com/dotnet/roslyn/issues/23672")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23672")]
         public async Task TestMissingWithExplicitImplementedAddMethod()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1323,7 +1323,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(47632, "https://github.com/dotnet/roslyn/issues/47632")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47632")]
         public async Task TestWhenReferencedInInitializerLeft()
         {
             await TestInRegularAndScriptAsync(
@@ -1357,7 +1357,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(47632, "https://github.com/dotnet/roslyn/issues/47632")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47632")]
         public async Task TestWithIndexerInInitializerLeft()
         {
             await TestInRegularAndScriptAsync(
@@ -1391,7 +1391,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """);
         }
 
-        [Fact, WorkItem(47632, "https://github.com/dotnet/roslyn/issues/47632")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47632")]
         public async Task TestWithImplicitObjectCreation()
         {
             await TestInRegularAndScriptAsync(
@@ -1424,7 +1424,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
-        [WorkItem(61066, "https://github.com/dotnet/roslyn/issues/61066")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/61066")]
         public async Task TestInTopLevelStatements()
         {
             await TestInRegularAndScriptAsync(

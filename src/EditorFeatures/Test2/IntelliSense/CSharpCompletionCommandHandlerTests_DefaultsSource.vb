@@ -94,7 +94,7 @@ class C
         End Function
 
         <WpfFact>
-        <WorkItem(61120, "https://github.com/dotnet/roslyn/issues/61120")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/61120")>
         Public Async Function SelectFirstMatchingDefaultIfNoFilterText() As Task
             Using state = CreateTestStateWithAdditionalDocumentAndMockDefaultSource(
                               <Document>

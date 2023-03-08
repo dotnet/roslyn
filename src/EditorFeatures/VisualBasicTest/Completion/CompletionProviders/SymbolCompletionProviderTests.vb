@@ -47,62 +47,62 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Await VerifyNSATIsAbsentAsync(AddImportsStatement("Imports System", "$$"))
         End Function
 
-        <Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")>
         Public Async Function TestTypeConstraint1() As Task
             Await VerifyItemExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As $$"), "System")
         End Function
 
-        <Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")>
         Public Async Function TestTypeConstraint1_NotStaticClass() As Task
             Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As $$"), "Console")
         End Function
 
-        <Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")>
         Public Async Function TestTypeConstraint1_NotSealedClass() As Task
             Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As $$"), "String")
         End Function
 
-        <Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")>
         Public Async Function TestTypeConstraint2() As Task
             Await VerifyItemExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$"), "System")
         End Function
 
-        <Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")>
         Public Async Function TestTypeConstraint2_NotStaticClass() As Task
             Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$"), "Console")
         End Function
 
-        <Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")>
         Public Async Function TestTypeConstraint2_NotSealedClass() As Task
             Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$"), "String")
         End Function
 
-        <Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")>
         Public Async Function TestTypeConstraint3() As Task
             Await VerifyItemExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As $$)"), "System")
         End Function
 
-        <Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")>
         Public Async Function TestTypeConstraint3_NotStaticClass() As Task
             Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As $$)"), "Console")
         End Function
 
-        <Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")>
         Public Async Function TestTypeConstraint3_NotSealedClass() As Task
             Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As $$)"), "String")
         End Function
 
-        <Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")>
         Public Async Function TestTypeConstraint4() As Task
             Await VerifyItemExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$})"), "System")
         End Function
 
-        <Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")>
         Public Async Function TestTypeConstraint4_NotStaticClass() As Task
             Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$})"), "Console")
         End Function
 
-        <Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")>
         Public Async Function TestTypeConstraint4_NotSealedClass() As Task
             Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$})"), "String")
         End Function
@@ -692,14 +692,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Imports System, $$"), "String")
         End Function
 
-        <WorkItem(529191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529191")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529191")>
         <WpfFact(Skip:="529191")>
         Public Async Function TestAttributes1() As Task
             Await VerifyItemExistsAsync(AddImportsStatement("Imports System", CreateContent("<$$>")), "System")
             Await VerifyItemExistsAsync(AddImportsStatement("Imports System", CreateContent("<$$>")), "String")
         End Function
 
-        <WorkItem(529191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529191")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529191")>
         <WpfFact(Skip:="529191")>
         Public Async Function TestAttributes2() As Task
             Await VerifyItemExistsAsync(
@@ -712,7 +712,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                                   "Class Cl")), "String")
         End Function
 
-        <WorkItem(529191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529191")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529191")>
         <WpfFact(Skip:="529191")>
         Public Async Function TestAttributes3() As Task
             Await VerifyItemExistsAsync(
@@ -862,12 +862,12 @@ End Class"
                     AddInsideMethod("Call (Nothing).$$")), "Equals")
         End Function
 
-        <Fact, WorkItem(539243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539243")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539243")>
         Public Async Function TestSharedClassesInImports() As Task
             Await VerifyItemExistsAsync("Imports System.$$", "Console")
         End Function
 
-        <Fact, WorkItem(539332, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539332")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539332")>
         Public Async Function TestInstanceTypesAvailableInImportsAlias() As Task
             Await VerifyItemExistsAsync("Imports S = System.$$", "String")
         End Function
@@ -894,7 +894,7 @@ End Class"
             Await VerifyItemExistsAsync(<text>#r "$$"</text>.Value, "System.dll", sourceCodeKind:=SourceCodeKind.Script)
         End Function
 
-        <Fact, WorkItem(539300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539300")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539300")>
         Public Async Function TestSharedMembersAfterMe1() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -910,7 +910,7 @@ End Class
 </Text>.Value, "s")
         End Function
 
-        <Fact, WorkItem(539300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539300")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539300")>
         Public Async Function TestSharedMembersAfterMe2() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -926,7 +926,7 @@ End Class
 </Text>.Value, "Method")
         End Function
 
-        <Fact, WorkItem(539300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539300")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539300")>
         Public Async Function TestInstanceMembersAfterMe1() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -942,7 +942,7 @@ End Class
 </Text>.Value, "field")
         End Function
 
-        <Fact, WorkItem(539300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539300")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539300")>
         Public Async Function TestInstanceMembersAfterMe2() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -958,7 +958,7 @@ End Class
 </Text>.Value, "M")
         End Function
 
-        <Fact, WorkItem(530617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
         Public Async Function TestNoEventSymbolAfterMe() As Task
             Await VerifyItemIsAbsentAsync(
 <Text>
@@ -972,7 +972,7 @@ End Class
 </Text>.Value, "X")
         End Function
 
-        <Fact, WorkItem(530617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
         Public Async Function TestNoEventSymbolAfterMyClass() As Task
             Await VerifyItemIsAbsentAsync(
 <Text>
@@ -986,7 +986,7 @@ End Class
 </Text>.Value, "X")
         End Function
 
-        <Fact, WorkItem(530617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
         Public Async Function TestNoEventSymbolAfterMyBase() As Task
             Await VerifyItemIsAbsentAsync(
 <Text>
@@ -1003,7 +1003,7 @@ End Class
 </Text>.Value, "E")
         End Function
 
-        <Fact, WorkItem(530617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
         Public Async Function TestNoEventSymbolAfterInstanceMember() As Task
             Await VerifyItemIsAbsentAsync(
 <Text>
@@ -1018,7 +1018,7 @@ End Class
 </Text>.Value, "E")
         End Function
 
-        <Fact, WorkItem(530617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
         Public Async Function TestEventSymbolAfterMeInAddHandlerContext() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -1031,7 +1031,7 @@ End Class
 </Text>.Value, "X")
         End Function
 
-        <Fact, WorkItem(530617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
         Public Async Function TestEventSymbolAfterInstanceMemberInAddHandlerContext() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -1045,7 +1045,7 @@ End Class
 </Text>.Value, "X")
         End Function
 
-        <Fact, WorkItem(530617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
         Public Async Function TestEventSymbolAfterInstanceMemberInParenthesizedAddHandlerContext() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -1059,7 +1059,7 @@ End Class
 </Text>.Value, "X")
         End Function
 
-        <Fact, WorkItem(530617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
         Public Async Function TestEventSymbolAfterMeInRemoveHandlerContext() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -1072,7 +1072,7 @@ End Class
 </Text>.Value, "X")
         End Function
 
-        <Fact, WorkItem(530617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
         Public Async Function TestNoImplicitlyDeclaredMembersFromEventDeclarationAfterMe() As Task
             Dim source = <Text>
 Class EventClass
@@ -1089,7 +1089,7 @@ End Class
             Await VerifyItemIsAbsentAsync(source, "remove_X")
         End Function
 
-        <Fact, WorkItem(530617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530617")>
         Public Async Function TestNoImplicitlyDeclaredMembersFromEventDeclarationAfterInstance() As Task
             Dim source = <Text>
 Class EventClass
@@ -1119,7 +1119,7 @@ End Class
             Await VerifyItemExistsAsync(source, "XEventHandler")
         End Function
 
-        <Fact, WorkItem(529570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529570")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529570")>
         Public Async Function TestImplicitlyDeclaredFieldFromWithEvents() As Task
             Dim source = <Text>
 Public Class C1
@@ -1133,7 +1133,7 @@ End Class
             Await VerifyItemIsAbsentAsync(source, "_w")
         End Function
 
-        <Fact, WorkItem(529147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529147")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529147")>
         Public Async Function TestImplicitlyDeclaredFieldFromAutoProperty() As Task
             Dim source = <Text>
 Class C1
@@ -1160,7 +1160,7 @@ End Module
             Await VerifyItemIsAbsentAsync(code, "Main")
         End Function
 
-        <Fact, WorkItem(539276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539276")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539276")>
         Public Async Function TestSharedMembersAfterWithMe1() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -1178,7 +1178,7 @@ End Class
 </Text>.Value, "s")
         End Function
 
-        <Fact, WorkItem(539276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539276")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539276")>
         Public Async Function TestSharedMembersAfterWithMe2() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -1196,7 +1196,7 @@ End Class
 </Text>.Value, "Method")
         End Function
 
-        <Fact, WorkItem(539276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539276")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539276")>
         Public Async Function TestInstanceMembersAfterWithMe1() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -1214,7 +1214,7 @@ End Class
 </Text>.Value, "field")
         End Function
 
-        <Fact, WorkItem(539276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539276")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539276")>
         Public Async Function TestInstanceMembersAfterWithMe2() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -1369,7 +1369,7 @@ Class C
                 displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, matchingFilters:=Nothing)
         End Function
 
-        <Fact, WorkItem(541235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
         Public Async Function TestAfterAlias1() As Task
             Dim test = <Text>
 Imports N = NS1.NS2
@@ -1386,7 +1386,7 @@ End Namespace
             Await VerifyItemExistsAsync(test, "A")
         End Function
 
-        <Fact, WorkItem(541235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
         Public Async Function TestAfterAlias2() As Task
             Dim test = <Text>
 Imports N = NS1.NS2
@@ -1403,7 +1403,7 @@ End Namespace
             Await VerifyItemExistsAsync(test, "M")
         End Function
 
-        <Fact, WorkItem(541235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
         Public Async Function TestAfterAlias3() As Task
             Dim test = <Text>
 Imports System
@@ -1428,7 +1428,7 @@ End Namespace
             Await VerifyItemExistsAsync(test, "A")
         End Function
 
-        <Fact, WorkItem(541235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
         Public Async Function TestAfterAlias4() As Task
             Dim test = <Text>
 Imports System
@@ -1453,8 +1453,8 @@ End Namespace
             Await VerifyItemExistsAsync(test, "M")
         End Function
 
-        <WorkItem(541399, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541399")>
-        <WorkItem(529190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529190")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541399")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529190")>
         <WpfFact(Skip:="529190")>
         Public Async Function TestAfterSingleLineIf() As Task
             Dim test = <Text>
@@ -1469,7 +1469,7 @@ End Module
             Await VerifyItemExistsAsync(test, "x1")
         End Function
 
-        <Fact, WorkItem(540442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540442")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540442")>
         Public Async Function TestOnlyInterfacesInImplementsStatements() As Task
             Dim test = <Text>
 Interface IOuter
@@ -1490,7 +1490,7 @@ Class nested
             Await VerifyItemIsAbsentAsync(test.Value, "Del")
         End Function
 
-        <Fact, WorkItem(540442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540442")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540442")>
         Public Async Function TestNestedInterfaceInImplementsClause() As Task
             Dim test = <Text>
 Interface IOuter
@@ -1549,7 +1549,7 @@ End Class
             Await VerifyItemExistsAsync(test.Value, "T", $"T {FeaturesResources.in_} SomeClass(Of T)")
         End Function
 
-        <Fact, WorkItem(542225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")>
         Public Async Function TestAttributeName() As Task
             Dim test = <Text><![CDATA[
 Imports System
@@ -1560,7 +1560,7 @@ Imports System
             Await VerifyItemIsAbsentAsync(test.Value, "CLSCompliantAttribute")
         End Function
 
-        <Fact, WorkItem(542225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")>
         Public Async Function TestAttributeNameAfterSpecifier() As Task
             Dim test = <Text><![CDATA[
 Imports System
@@ -1571,7 +1571,7 @@ Imports System
             Await VerifyItemIsAbsentAsync(test.Value, "CLSCompliantAttribute")
         End Function
 
-        <Fact, WorkItem(542225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")>
         Public Async Function TestAttributeNameInAttributeList() As Task
             Dim test = <Text><![CDATA[
 Imports System
@@ -1582,7 +1582,7 @@ Imports System
             Await VerifyItemIsAbsentAsync(test.Value, "CLSCompliantAttribute")
         End Function
 
-        <Fact, WorkItem(542225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")>
         Public Async Function TestAttributeNameInAttributeListAfterSpecifier() As Task
             Dim test = <Text><![CDATA[
 Imports System
@@ -1593,7 +1593,7 @@ Imports System
             Await VerifyItemIsAbsentAsync(test.Value, "CLSCompliantAttribute")
         End Function
 
-        <Fact, WorkItem(542225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")>
         Public Async Function TestAttributeNameBeforeClass() As Task
             Dim test = <Text><![CDATA[
 Imports System
@@ -1606,7 +1606,7 @@ End Class
             Await VerifyItemIsAbsentAsync(test.Value, "CLSCompliantAttribute")
         End Function
 
-        <Fact, WorkItem(542225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")>
         Public Async Function TestAttributeNameAfterSpecifierBeforeClass() As Task
             Dim test = <Text><![CDATA[
 Imports System
@@ -1619,7 +1619,7 @@ End Class
             Await VerifyItemIsAbsentAsync(test.Value, "CLSCompliantAttribute")
         End Function
 
-        <Fact, WorkItem(542225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")>
         Public Async Function TestAttributeNameInAttributeArgumentList() As Task
             Dim test = <Text><![CDATA[
 Imports System
@@ -1632,7 +1632,7 @@ End Class
             Await VerifyItemIsAbsentAsync(test.Value, "CLSCompliant")
         End Function
 
-        <Fact, WorkItem(542225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")>
         Public Async Function TestAttributeNameInsideClass() As Task
             Dim test = <Text><![CDATA[
 Imports System
@@ -1645,7 +1645,7 @@ End Class
             Await VerifyItemIsAbsentAsync(test.Value, "CLSCompliant")
         End Function
 
-        <Fact, WorkItem(542441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542441")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542441")>
         Public Async Function TestNewAfterMeWhenFirstStatementInCtor() As Task
             Dim test = <Text><![CDATA[
 Class C1
@@ -1664,7 +1664,7 @@ End Class
             Await VerifyItemExistsAsync(test.Value, "New")
         End Function
 
-        <Fact, WorkItem(542441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542441")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542441")>
         Public Async Function TestNoNewAfterMeWhenNotFirstStatementInCtor() As Task
             Dim test = <Text><![CDATA[
 Class C1
@@ -1684,8 +1684,8 @@ End Class
             Await VerifyItemIsAbsentAsync(test.Value, "New")
         End Function
 
-        <Fact, WorkItem(542441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542441")>
-        <WorkItem(759729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/759729")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542441")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/759729")>
         Public Async Function TestNoNewAfterMeWhenFirstStatementInSingleCtor() As Task
             ' This is different from Dev10, where we lead users to call the same .ctor, which is illegal.
             Dim test = <Text><![CDATA[
@@ -1699,8 +1699,8 @@ End Class
             Await VerifyItemIsAbsentAsync(test.Value, "New")
         End Function
 
-        <Fact, WorkItem(542441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542441")>
-        <WorkItem(759729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/759729")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542441")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/759729")>
         Public Async Function TestNewAfterMyClassWhenFirstStatementInCtor() As Task
             Dim test = <Text><![CDATA[
 Class C1
@@ -1719,7 +1719,7 @@ End Class
             Await VerifyItemExistsAsync(test.Value, "New")
         End Function
 
-        <Fact, WorkItem(542441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542441")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542441")>
         Public Async Function TestNoNewAfterMyClassWhenNotFirstStatementInCtor() As Task
             Dim test = <Text><![CDATA[
 Class C1
@@ -1739,8 +1739,8 @@ End Class
             Await VerifyItemIsAbsentAsync(test.Value, "New")
         End Function
 
-        <Fact, WorkItem(542441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542441")>
-        <WorkItem(759729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/759729")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542441")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/759729")>
         Public Async Function TestNoNewAfterMyClassWhenFirstStatementInSingleCtor() As Task
             ' This is different from Dev10, where we lead users to call the same .ctor, which is illegal.
             Dim test = <Text><![CDATA[
@@ -1754,7 +1754,7 @@ End Class
             Await VerifyItemIsAbsentAsync(test.Value, "New")
         End Function
 
-        <Fact, WorkItem(542242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542242")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542242")>
         Public Async Function TestOnlyShowAttributesInAttributeNameContext1() As Task
             ' This is different from Dev10, where we lead users to call the same .ctor, which is illegal.
             Dim markup = <Text><![CDATA[
@@ -1787,7 +1787,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "D")
         End Function
 
-        <Fact, WorkItem(542242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542242")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542242")>
         Public Async Function TestOnlyShowAttributesInAttributeNameContext2() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -1819,7 +1819,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "C1")
         End Function
 
-        <Fact, WorkItem(542242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542242")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542242")>
         Public Async Function TestOnlyShowAttributesInAttributeNameContext3() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -1851,7 +1851,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "C2")
         End Function
 
-        <Fact, WorkItem(25589, "https://github.com/dotnet/roslyn/issues/25589")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25589")>
         Public Async Function AttributeSearch_NamespaceWithNestedAttribute1() As Task
             Dim markup = <Text><![CDATA[
 Namespace Namespace1
@@ -1986,7 +1986,7 @@ End Namespace
             Await VerifyItemIsAbsentAsync(markup, "Namespace1")
         End Function
 
-        <Fact, WorkItem(542737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542737")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542737")>
         Public Async Function TestQueryVariableAfterSelectClause() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2001,7 +2001,7 @@ Module Program
             Await VerifyItemExistsAsync(markup, "num")
         End Function
 
-        <Fact, WorkItem(542683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542683")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542683")>
         Public Async Function TestImplementsClassesWithNestedInterfaces() As Task
             Dim markup = <Text><![CDATA[
 Interface MyInterface1
@@ -2024,7 +2024,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "MyClass3")
         End Function
 
-        <Fact, WorkItem(542683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542683")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542683")>
         Public Async Function TestImplementsClassesWithNestedInterfacesClassOutermost() As Task
             Dim markup = <Text><![CDATA[
 Class MyClass1
@@ -2042,7 +2042,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "MyClass1")
         End Function
 
-        <Fact, WorkItem(542876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542876")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542876")>
         Public Async Function TestInQuerySelect1() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2060,7 +2060,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "j")
         End Function
 
-        <Fact, WorkItem(542876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542876")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542876")>
         Public Async Function TestInQuerySelect2() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2078,7 +2078,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "j")
         End Function
 
-        <Fact, WorkItem(542876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542876")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542876")>
         Public Async Function TestInQuerySelect3() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2096,7 +2096,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "j")
         End Function
 
-        <Fact, WorkItem(542927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542927")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542927")>
         Public Async Function TestInQueryGroupByInto1() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2113,7 +2113,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "Count")
         End Function
 
-        <Fact, WorkItem(542927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542927")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542927")>
         Public Async Function TestInQueryGroupByInto2() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2138,7 +2138,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "LongestString")
         End Function
 
-        <Fact, WorkItem(542927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542927")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542927")>
         Public Async Function TestInQueryGroupByInto3() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2163,7 +2163,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "LongestString")
         End Function
 
-        <Fact, WorkItem(542927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542927")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542927")>
         Public Async Function TestInQueryGroupByInto4() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2188,7 +2188,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "LongestString")
         End Function
 
-        <Fact, WorkItem(542929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542929")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542929")>
         Public Async Function TestInQueryAggregateInto1() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2203,7 +2203,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "Distinct")
         End Function
 
-        <Fact, WorkItem(542929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542929")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542929")>
         Public Async Function TestInQueryAggregateInto2() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2218,7 +2218,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "Distinct")
         End Function
 
-        <Fact, WorkItem(542929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542929")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542929")>
         Public Async Function TestInQueryAggregateInto3() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2233,7 +2233,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "Sum")
         End Function
 
-        <Fact, WorkItem(543137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543137")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543137")>
         Public Async Function TestAfterAndKeywordInComplexJoin() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2251,7 +2251,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "num")
         End Function
 
-        <Fact, WorkItem(543181, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543181")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543181")>
         Public Async Function TestAfterGroupKeywordInGroupByClause() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2268,7 +2268,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "i1")
         End Function
 
-        <Fact, WorkItem(543182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543182")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543182")>
         Public Async Function TestAfterByInGroupByClause() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2285,7 +2285,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "i1")
         End Function
 
-        <Fact, WorkItem(543210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543210")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543210")>
         Public Async Function TestAfterByInsideExprVarDeclGroupByClause() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2305,7 +2305,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "args")
         End Function
 
-        <Fact, WorkItem(543213, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543213")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543213")>
         Public Async Function TestAfterGroupInsideExprVarDeclGroupByClause() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2325,7 +2325,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "args")
         End Function
 
-        <Fact, WorkItem(543246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543246")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543246")>
         Public Async Function TestAfterAggregateKeyword() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2339,7 +2339,7 @@ Module Program
             Await VerifyNoItemsExistAsync(markup)
         End Function
 
-        <Fact, WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         Public Async Function TestAfterDelegateCreationExpression1() As Task
             Dim markup =
 <Text>
@@ -2360,7 +2360,7 @@ End Module
             Await VerifyItemIsAbsentAsync(markup, "Bar2")
         End Function
 
-        <Fact, WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         Public Async Function TestAfterDelegateCreationExpression2() As Task
             Dim markup =
 <Text>
@@ -2381,7 +2381,7 @@ End Module
             Await VerifyItemIsAbsentAsync(markup, "Bar2")
         End Function
 
-        <WorkItem(619388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619388")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619388")>
         <WpfFact(Skip:="619388")>
         Public Async Function TestOverloadsHiding() As Task
             Dim markup = <Text><![CDATA[
@@ -2402,7 +2402,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "Configure", "Sub Base.Configure()")
         End Function
 
-        <Fact, WorkItem(543580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543580")>
         Public Async Function TestAfterMyBaseDot1() As Task
             Dim markup = <Text><![CDATA[
 Public Class Base
@@ -2422,12 +2422,12 @@ End Class
             Await VerifyItemExistsAsync(markup, "Configure")
         End Function
 
-        <Fact, WorkItem(7648, "http://github.com/dotnet/roslyn/issues/7648")>
+        <Fact, WorkItem("http://github.com/dotnet/roslyn/issues/7648")>
         Public Async Function TestNothingMyBaseDotInScriptContext() As Task
             Await VerifyItemIsAbsentAsync("MyBase.$$", "ToString", sourceCodeKind:=SourceCodeKind.Script)
         End Function
 
-        <Fact, WorkItem(543580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543580")>
         Public Async Function TestAfterMyBaseDot2() As Task
             Dim markup = <Text>
 Public Class Base
@@ -2449,7 +2449,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "Bar")
         End Function
 
-        <Fact, WorkItem(543547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543547")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543547")>
         Public Async Function TestAfterRaiseEvent() As Task
             Dim markup = <Text>
 Module Program
@@ -2464,7 +2464,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "NewRegistrations")
         End Function
 
-        <Fact, WorkItem(543730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543730")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543730")>
         Public Async Function TestNoInheritedEventsAfterRaiseEvent() As Task
             Dim markup = <Text>
 Class C1
@@ -2483,7 +2483,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "baseEvent")
         End Function
 
-        <Fact, WorkItem(529116, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529116")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529116")>
         Public Async Function TestInSingleLineLambda1() As Task
             Dim markup = <Text><![CDATA[
 Module Program
@@ -2497,7 +2497,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "x5")
         End Function
 
-        <Fact, WorkItem(529116, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529116")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529116")>
         Public Async Function TestInSingleLineLambda2() As Task
             Dim markup = <Text><![CDATA[
 Module Program
@@ -2511,8 +2511,8 @@ End Module
             Await VerifyItemExistsAsync(markup, "x5")
         End Function
 
-        <Fact, WorkItem(543601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")>
-        <WorkItem(530595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530595")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530595")>
         Public Async Function TestNoInstanceFieldsInSharedMethod() As Task
             Dim markup = <Text>
 Class C
@@ -2526,7 +2526,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "x")
         End Function
 
-        <Fact, WorkItem(543601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")>
         Public Async Function TestNoInstanceFieldsInSharedFieldInitializer() As Task
             Dim markup = <Text>
 Class C
@@ -2538,7 +2538,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "x")
         End Function
 
-        <Fact, WorkItem(543601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")>
         Public Async Function TestSharedFieldsInSharedMethod() As Task
             Dim markup = <Text>
 Class C
@@ -2552,7 +2552,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "x")
         End Function
 
-        <Fact, WorkItem(543601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")>
         Public Async Function TestSharedFieldsInSharedFieldInitializer() As Task
             Dim markup = <Text>
 Class C
@@ -2564,7 +2564,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "x")
         End Function
 
-        <Fact, WorkItem(543680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543680")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543680")>
         Public Async Function TestNoInstanceFieldsFromOuterClassInInstanceMethod() As Task
             Dim markup = <Text>
 Class outer
@@ -2580,7 +2580,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "i")
         End Function
 
-        <Fact, WorkItem(543680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543680")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543680")>
         Public Async Function TestSharedFieldsFromOuterClassInInstanceMethod() As Task
             Dim markup = <Text>
 Class outer
@@ -2596,7 +2596,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "i")
         End Function
 
-        <Fact, WorkItem(543104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543104")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543104")>
         Public Async Function TestOnlyEnumMembersInEnumTypeMemberAccess() As Task
             Dim markup = <Text>
 Class C
@@ -2618,7 +2618,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "Equals")
         End Function
 
-        <Fact, WorkItem(539450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539450")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539450")>
         Public Async Function TestKeywordEscaping1() As Task
             Dim markup = <Text>
 Module [Structure]
@@ -2635,7 +2635,7 @@ End Module
             Await VerifyItemIsAbsentAsync(markup, "[Structure]")
         End Function
 
-        <WorkItem(539450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539450")> <Fact>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539450")> <Fact>
         Public Async Function TestKeywordEscaping2() As Task
             Dim markup = <Text>
 Module [Structure]
@@ -2657,7 +2657,7 @@ End Module
             Await VerifyItemIsAbsentAsync(markup, "[rem]")
         End Function
 
-        <WorkItem(539450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539450")> <Fact>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539450")> <Fact>
         Public Async Function TestKeywordEscaping3() As Task
             Dim markup = <Text>
 Namespace Goo
@@ -2673,7 +2673,7 @@ End Namespace
             Await VerifyItemIsAbsentAsync(markup, "[Structure]")
         End Function
 
-        <Fact, WorkItem(539450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539450")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539450")>
         Public Async Function TestAttributeKeywordEscaping() As Task
             Dim markup = <Text>
 Imports System
@@ -2688,7 +2688,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "[class]")
         End Function
 
-        <Fact, WorkItem(645898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645898")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645898")>
         Public Async Function EscapedKeywordAttributeCommit() As Task
             Dim markup = <Text>
 Imports System
@@ -2711,7 +2711,7 @@ End Class
             Await VerifyProviderCommitAsync(markup, "class", expected, "("c)
         End Function
 
-        <Fact, WorkItem(543104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543104")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543104")>
         Public Async Function TestAllMembersInEnumLocalAccess() As Task
             Dim markup = <Text>
 Class C
@@ -2783,7 +2783,7 @@ End Class</Text>.Value
             Await VerifyItemIsAbsentAsync(text, "goo")
         End Function
 
-        <Fact, WorkItem(530595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530595")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530595")>
         <WorkItem(10572, "DevDiv_Projects/Roslyn")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestLocalVariableBeforeImplicitDeclaration() As Task
@@ -2856,7 +2856,7 @@ End Class</Text>.Value
             Await VerifyItemExistsAsync(text, "goo")
         End Function
 
-        <Fact, WorkItem(545439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545439")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545439")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestArrayAfterReDim() As Task
             Dim text = <Text>
@@ -2870,7 +2870,7 @@ End Class</Text>.Value
             Await VerifyItemExistsAsync(text, "goo")
         End Function
 
-        <Fact, WorkItem(545439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545439")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545439")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestArrayAfterReDimPreserve() As Task
             Dim text = <Text>
@@ -2884,7 +2884,7 @@ End Class</Text>.Value
             Await VerifyItemExistsAsync(text, "goo")
         End Function
 
-        <Fact, WorkItem(546353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546353")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546353")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoNamespaceDeclarationIntellisense() As Task
             Dim text = <Text>
@@ -2895,7 +2895,7 @@ End Class</Text>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, WorkItem(531258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531258")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531258")>
         Public Async Function TestLabelsAfterOnErrorGoTo() As Task
             Dim code =
 <Code>
@@ -2932,7 +2932,7 @@ Doc Comment!"
             Await VerifyItemWithMscorlib45Async(code, "Goo", description, LanguageNames.VisualBasic)
         End Function
 
-        <Fact, WorkItem(550760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/550760")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/550760")>
         Public Async Function TestAfterAwait() As Task
             Dim code =
 <Code>
@@ -2980,7 +2980,7 @@ End Class
             Await VerifyItemExistsAsync(code, "x")
         End Function
 
-        <Fact, WorkItem(568986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568986")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568986")>
         Public Async Function TestNoMembersOnDottingIntoUnboundType() As Task
             Dim code =
 <Code>
@@ -2996,13 +2996,13 @@ End Module
             Await VerifyNoItemsExistAsync(code)
         End Function
 
-        <Fact, WorkItem(611154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611154")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611154")>
         Public Async Function TestNoOperators() As Task
             Await VerifyItemIsAbsentAsync(
                     AddInsideMethod("String.$$"), "op_Equality")
         End Function
 
-        <Fact, WorkItem(736891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736891")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736891")>
         Public Async Function TestInBinaryConditionalExpression() As Task
             Dim code =
 <Code>
@@ -3016,7 +3016,7 @@ End Module
             Await VerifyItemExistsAsync(code, "args")
         End Function
 
-        <Fact, WorkItem(5069, "https://github.com/dotnet/roslyn/issues/5069")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5069")>
         Public Async Function TestInTopLevelFieldInitializer() As Task
             Dim code =
 <Code>
@@ -5063,7 +5063,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "IGoo")
         End Function
 
-        <Fact, WorkItem(995986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
         Public Async Function TestImplements_AliasedInterfaceAfterImplements() As Task
             Const markup = "
 Imports IAlias = IGoo
@@ -5078,7 +5078,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "IAlias")
         End Function
 
-        <Fact, WorkItem(995986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
         Public Async Function TestImplements_AliasedNamespaceAfterImplements() As Task
             Const markup = "
 Imports AliasedNS = NS1
@@ -5095,7 +5095,7 @@ End Namespace
             Await VerifyItemExistsAsync(markup, "AliasedNS")
         End Function
 
-        <Fact, WorkItem(995986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
         Public Async Function TestInherits_AliasedClassAfterInherits() As Task
             Const markup = "
 Imports AliasedClass = Base
@@ -5110,7 +5110,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "AliasedClass")
         End Function
 
-        <Fact, WorkItem(995986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
         Public Async Function TestInherits_AliasedNamespaceAfterInherits() As Task
             Const markup = "
 Imports AliasedNS = NS1
@@ -5127,7 +5127,7 @@ End Namespace
             Await VerifyItemExistsAsync(markup, "AliasedNS")
         End Function
 
-        <Fact, WorkItem(995986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
         Public Async Function TestInherits_AliasedClassAfterInherits2() As Task
             Const markup = "
 Imports AliasedClass = NS1.Base
@@ -5221,7 +5221,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "IGoo", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
-        <Fact, WorkItem(546610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546610")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546610")>
         Public Async Function TestImplements_IncompleteClassDeclaration() As Task
             Const markup = "
 Public Interface IGoo
@@ -5235,7 +5235,7 @@ Class C
             Await VerifyItemExistsAsync(markup, "IBar")
         End Function
 
-        <Fact, WorkItem(546611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546611")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546611")>
         Public Async Function TestInherits_NotNotInheritable() As Task
             Const markup = "
 Public NotInheritable Class D
@@ -5247,7 +5247,7 @@ Class C
             Await VerifyItemIsAbsentAsync(markup, "D")
         End Function
 
-        <Fact, WorkItem(546802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546802")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546802")>
         Public Async Function TestInherits_KeywordIdentifiersShownUnescaped() As Task
             Const markup = "
 Public Class [Inherits]
@@ -5259,7 +5259,7 @@ Class C
             Await VerifyItemExistsAsync(markup, "Inherits")
         End Function
 
-        <Fact, WorkItem(546802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546802")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546802")>
         Public Async Function Inherits_KeywordIdentifiersCommitEscaped() As Task
             Const markup = "
 Public Class [Inherits]
@@ -5278,7 +5278,7 @@ Class C
             Await VerifyProviderCommitAsync(markup, "Inherits", expected, "."c)
         End Function
 
-        <Fact, WorkItem(546801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546801")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546801")>
         Public Async Function TestInherits_Modules() As Task
             Const markup = "
 Module Module1
@@ -5306,7 +5306,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "Module1")
         End Function
 
-        <Fact, WorkItem(530726, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530726")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530726")>
         Public Async Function TestInherits_DoNotShowNamespaceWithNoApplicableClasses() As Task
             Const markup = "
 Namespace N
@@ -5321,7 +5321,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "N")
         End Function
 
-        <Fact, WorkItem(530725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530725")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530725")>
         Public Async Function TestInherits_CheckStructContents() As Task
             Const markup = "
 Namespace N
@@ -5340,7 +5340,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "S1")
         End Function
 
-        <Fact, WorkItem(530724, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530724")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530724")>
         Public Async Function TestImplements_NamespaceContainingInterface() As Task
             Const markup = "
 Namespace N
@@ -5355,7 +5355,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "N")
         End Function
 
-        <Fact, WorkItem(531256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531256")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531256")>
         Public Async Function TestInherits_OnlyInterfacesForInterfaceInherits1() As Task
             Const markup = "
 Interface ITestInterface
@@ -5372,7 +5372,7 @@ Interface IGoo
             Await VerifyItemIsAbsentAsync(markup, "TestClass")
         End Function
 
-        <Fact, WorkItem(1036374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036374")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036374")>
         Public Async Function TestInherits_InterfaceCircularInheritance() As Task
             Const markup = "
 Interface ITestInterface
@@ -5393,7 +5393,7 @@ End Interface
             Await VerifyItemIsAbsentAsync(markup, "TestClass")
         End Function
 
-        <Fact, WorkItem(531256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531256")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531256")>
         Public Async Function TestImplements_OnlyInterfacesForInterfaceInherits2() As Task
             Const markup = "
 Interface ITestInterface
@@ -5410,7 +5410,7 @@ Interface IGoo
             Await VerifyItemIsAbsentAsync(markup, "TestClass")
         End Function
 
-        <Fact, WorkItem(547291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547291")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547291")>
         Public Async Function Inherits_CommitGenericOnParen() As Task
             Const markup = "
 Class G(Of T)
@@ -5433,7 +5433,7 @@ End Class
             Await VerifyProviderCommitAsync(markup, "G(Of " & s_unicodeEllipsis & ")", expected, "("c)
         End Function
 
-        <Fact, WorkItem(579186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579186")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579186")>
         Public Async Function TestImplements_AfterImplementsWithCircularInheritance() As Task
             Const markup = "
 Interface I(Of T)
@@ -5450,7 +5450,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "I", displayTextSuffix:="(Of …)")
         End Function
 
-        <Fact, WorkItem(622563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622563")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622563")>
         Public Async Function Inherits_CommitNonGenericOnParen() As Task
             Const markup = "
 Class G
@@ -5507,7 +5507,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "G")
         End Function
 
-        <Fact, WorkItem(638762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638762")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638762")>
         Public Async Function TestInherits_ClassWithinNestedStructs() As Task
             Const markup = "
 Structure somestruct
@@ -5528,7 +5528,7 @@ End
 
 #End Region
 
-        <Fact, WorkItem(715146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715146")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715146")>
         Public Async Function TestExtensionMethodsOffered() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -5547,7 +5547,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "Goo")
         End Function
 
-        <Fact, WorkItem(715146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715146")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715146")>
         Public Async Function TestExtensionMethodsOffered2() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -5567,7 +5567,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "Goo")
         End Function
 
-        <Fact, WorkItem(715146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715146")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715146")>
         Public Async Function TestLinqExtensionMethodsOffered() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -5585,7 +5585,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "Average")
         End Function
 
-        <Fact, WorkItem(884060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884060")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884060")>
         Public Async Function TestNoCompletionOffTypeParameter() As Task
             Dim markup = <Text><![CDATA[
 Module Program
@@ -5644,7 +5644,7 @@ Class C
             Await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription)
         End Function
 
-        <Fact, WorkItem(13161, "https://github.com/dotnet/roslyn/issues/13161")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13161")>
         Public Async Function CommitGenericOnTab() As Task
             Dim text =
 <code>
@@ -5667,8 +5667,8 @@ End Class</code>.Value
             Await VerifyProviderCommitAsync(text, "G(Of …)", expected, Nothing)
         End Function
 
-        <Fact, WorkItem(909121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909121")>
-        <WorkItem(2048, "https://github.com/dotnet/roslyn/issues/2048")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909121")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2048")>
         Public Async Function CommitGenericOnParen() As Task
             Dim text =
 <code>
@@ -5691,7 +5691,7 @@ End Class</code>.Value
             Await VerifyProviderCommitAsync(text, "G(Of …)", expected, "("c)
         End Function
 
-        <Fact, WorkItem(668159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/668159")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/668159")>
         Public Async Function TestAttributesShownWithBraceCompletionActive() As Task
             Dim text =
 <code><![CDATA[
@@ -5708,7 +5708,7 @@ End Class
             Await VerifyItemExistsAsync(text, "Goo")
         End Function
 
-        <Fact, WorkItem(991466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")>
         Public Async Function TestDescriptionInAliasedType() As Task
             Dim text =
 <code><![CDATA[
@@ -5728,7 +5728,7 @@ End Interface
             Await VerifyItemExistsAsync(text, "IAlias", expectedDescriptionOrNull:="Interface IGoo" + vbCrLf + "summary for interface IGoo")
         End Function
 
-        <Fact, WorkItem(842049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842049")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842049")>
         Public Async Function TestMergedNamespace1() As Task
             Dim text =
 <code><![CDATA[
@@ -5757,7 +5757,7 @@ End Module
             Await VerifyItemExistsAsync(text, "D")
         End Function
 
-        <Fact, WorkItem(842049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842049")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842049")>
         Public Async Function TestMergedNamespace2() As Task
             Dim text =
 <code><![CDATA[
@@ -5789,7 +5789,7 @@ End Module
             Await VerifyItemExistsAsync(text, "D")
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_EmptyNameSpan_TopLevel() As Task
             Dim source = <code><![CDATA[
 Namespace $$
@@ -5798,7 +5798,7 @@ End Namespace
             Await VerifyItemExistsAsync(source, "System")
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_EmptyNameSpan_Nested() As Task
             Dim source = <code><![CDATA[
 Namespace System
@@ -5809,7 +5809,7 @@ End Namespace
             Await VerifyItemExistsAsync(source, "Runtime")
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_Unqualified_TopLevelNoPeers() As Task
             Dim source = <code><![CDATA[
 Imports System;
@@ -5821,7 +5821,7 @@ Namespace $$
             Await VerifyItemIsAbsentAsync(source, "String")
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_Unqualified_TopLevelWithPeer() As Task
             Dim source = <code><![CDATA[
 Namespace A
@@ -5834,7 +5834,7 @@ Namespace $$
             Await VerifyItemExistsAsync(source, "A")
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_Unqualified_NestedWithNoPeers() As Task
             Dim source = <code><![CDATA[
 Namespace A
@@ -5848,7 +5848,7 @@ End Namespace
             Await VerifyNoItemsExistAsync(source)
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_Unqualified_NestedWithPeer() As Task
             Dim source = <code><![CDATA[
 Namespace A
@@ -5866,14 +5866,14 @@ End Namespace
             Await VerifyItemExistsAsync(source, "B")
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_Unqualified_ExcludesCurrentDeclaration() As Task
             Dim source = <code><![CDATA[Namespace N$$S]]></code>.Value
 
             Await VerifyItemIsAbsentAsync(source, "NS")
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_Unqualified_WithNested() As Task
             Dim source = <code><![CDATA[
 Namespace A
@@ -5893,7 +5893,7 @@ End Namespace
             Await VerifyItemIsAbsentAsync(source, "B")
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_Unqualified_WithNestedAndMatchingPeer() As Task
             Dim source = <code><![CDATA[
 Namespace A.B
@@ -5916,7 +5916,7 @@ End Namespace
             Await VerifyItemExistsAsync(source, "B")
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_Unqualified_InnerCompletionPosition() As Task
             Dim source = <code><![CDATA[
 Namespace Sys$$tem
@@ -5928,7 +5928,7 @@ End Namespace
             Await VerifyItemIsAbsentAsync(source, "Runtime")
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_Unqualified_IncompleteDeclaration() As Task
             Dim source = <code><![CDATA[
 Namespace A
@@ -5971,7 +5971,7 @@ End Namespace
             Await VerifyItemExistsAsync(source, "B")
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_Qualified_NoPeers() As Task
 
             Dim source = <code><![CDATA[Namespace A.$$]]></code>.Value
@@ -5979,7 +5979,7 @@ End Namespace
 
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_Qualified_TopLevelWithPeer() As Task
 
             Dim source = <code><![CDATA[
@@ -5992,7 +5992,7 @@ Namespace A.$$
             Await VerifyItemExistsAsync(source, "B")
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_Qualified_NestedWithPeer() As Task
 
             Dim source = <code><![CDATA[
@@ -6012,7 +6012,7 @@ End Namespace
             Await VerifyItemExistsAsync(source, "C")
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_Qualified_WithNested() As Task
 
             Dim source = <code><![CDATA[
@@ -6029,7 +6029,7 @@ End Namespace
             Await VerifyItemIsAbsentAsync(source, "B")
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_Qualified_WithNestedAndMatchingPeer() As Task
 
             Dim source = <code><![CDATA[
@@ -6049,7 +6049,7 @@ End Namespace
             Await VerifyItemExistsAsync(source, "B")
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_Qualified_InnerCompletionPosition() As Task
             Dim source = <code><![CDATA[
 Namespace Sys$$tem.Runtime
@@ -6061,7 +6061,7 @@ End Namespace
             Await VerifyItemIsAbsentAsync(source, "Runtime")
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_Qualified_IncompleteDeclaration() As Task
 
             Dim source = <code><![CDATA[
@@ -6103,7 +6103,7 @@ End Namespace
             Await VerifyItemIsAbsentAsync(source, "D3")
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_OnKeyword() As Task
             Dim source = <code><![CDATA[
 Name$$space System
@@ -6114,7 +6114,7 @@ End Namespace
             Await VerifyItemIsAbsentAsync(source, "System")
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceName_OnNestedKeyword() As Task
             Dim source = <code><![CDATA[
 Namespace System
@@ -6128,7 +6128,7 @@ End Namespace
             Await VerifyItemIsAbsentAsync(source, "Runtime")
         End Function
 
-        <Fact, WorkItem(925469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925469")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925469")>
         Public Async Function CommitWithCloseBracketLeaveOpeningBracket1() As Task
             Dim text =
 <code><![CDATA[
@@ -6149,7 +6149,7 @@ End Class]]></code>.Value
             Await VerifyProviderCommitAsync(text, "Await", expected, "]"c)
         End Function
 
-        <Fact, WorkItem(925469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925469")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925469")>
         Public Async Function CommitWithCloseBracketLeavesOpeningBracket2() As Task
             Dim text =
 <code><![CDATA[
@@ -6198,7 +6198,7 @@ End Class]]></code>.Value
             Await VerifyItemExistsAsync(text, "ToString")
         End Function
 
-        <Fact, WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54361")>
         Public Async Function TestConditionalOperatorCompletionForNullableParameterSymbols_1() As Task
             Dim text =
 <code><![CDATA[
@@ -6211,7 +6211,7 @@ End Class]]></code>.Value
             Await VerifyItemIsAbsentAsync(text, "Value")
         End Function
 
-        <Fact, WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54361")>
         Public Async Function TestConditionalOperatorCompletionForNullableParameterSymbols_2() As Task
             Dim text =
 <code><![CDATA[
@@ -6224,7 +6224,7 @@ End Class]]></code>.Value
             Await VerifyItemIsAbsentAsync(text, "Day")
         End Function
 
-        <Fact, WorkItem(1041269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041269")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041269")>
         Public Async Function TestHidePropertyBackingFieldAndEventsAtExpressionLevel() As Task
             Dim text =
 <code><![CDATA[
@@ -6242,7 +6242,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "e")
         End Function
 
-        <Fact, WorkItem(1041269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041269")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041269")>
         Public Async Function TestNullableForConditionalAccess() As Task
             Dim text =
 <code><![CDATA[
@@ -6258,7 +6258,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "HasValue")
         End Function
 
-        <Fact, WorkItem(1079694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079694")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079694")>
         Public Async Function TestDontThrowForNullPropagatingOperatorInErase() As Task
             Dim text =
 <code><![CDATA[
@@ -6273,7 +6273,7 @@ End Module
             Await VerifyItemExistsAsync(text, "ToString")
         End Function
 
-        <Fact, WorkItem(1109319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")>
         Public Async Function TestUnwrapNullableForConditionalFromStructure() As Task
             Dim text =
 <code><![CDATA[
@@ -6300,7 +6300,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "c")
         End Function
 
-        <Fact, WorkItem(1109319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")>
         Public Async Function TestWithinChainOfConditionalAccess() As Task
             Dim text =
 <code><![CDATA[
@@ -6327,7 +6327,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "c")
         End Function
 
-        <Fact, WorkItem(1079694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079694")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079694")>
         Public Async Function TestDontThrowForNullPropagatingOperatorOnTypeParameter() As Task
             Dim text =
 <code><![CDATA[
@@ -6341,7 +6341,7 @@ End Module
             Await VerifyItemExistsAsync(text, "ToString")
         End Function
 
-        <Fact, WorkItem(1079723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079723")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079723")>
         Public Async Function TestAllowCompletionAfterNullPropagatingOperatingInWithBlock() As Task
             Dim text =
 <code><![CDATA[
@@ -6687,7 +6687,7 @@ End Class
             Await VerifyItemExistsAsync(text, "Bar")
         End Function
 
-        <Fact, WorkItem(46472, "https://github.com/dotnet/roslyn/issues/46472")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46472")>
         Public Async Function TestAllowCompletionInNameOfArgumentContext17() As Task
             Dim text =
 <code><![CDATA[
@@ -6760,7 +6760,7 @@ End Class
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, WorkItem(1293, "https://github.com/dotnet/roslyn/issues/1293")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1293")>
         Public Async Function TestTriggeredAfterDotInWithAfterNumericLiteral() As Task
             Dim text =
 <code><![CDATA[
@@ -6779,7 +6779,7 @@ End Class
             Await VerifyItemExistsAsync(text, "M", usePreviousCharAsTrigger:=True)
         End Function
 
-        <Fact, WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33")>
         Public Async Function TestNoCompletionForConditionalAccessOnTypes1() As Task
             Dim text =
 <code><![CDATA[
@@ -6793,7 +6793,7 @@ End Module
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33")>
         Public Async Function TestNoCompletionForConditionalAccessOnTypes2() As Task
             Dim text =
 <code><![CDATA[
@@ -6807,7 +6807,7 @@ End Module
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33")>
         Public Async Function TestNoCompletionForConditionalAccessOnTypes3() As Task
             Dim text =
 <code><![CDATA[
@@ -6822,7 +6822,7 @@ End Module
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, WorkItem(3086, "https://github.com/dotnet/roslyn/issues/3086")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3086")>
         Public Async Function TestSharedMembersOffInstanceInColorColor() As Task
             Dim text =
 <code><![CDATA[
@@ -6844,7 +6844,7 @@ End Class
             Await VerifyItemExistsAsync(text, "Y")
         End Function
 
-        <Fact, WorkItem(3086, "https://github.com/dotnet/roslyn/issues/3086")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3086")>
         Public Async Function TestNotSharedMembersOffAliasInColorColor() As Task
             Dim text =
 <code><![CDATA[
@@ -7032,7 +7032,7 @@ End Class
             Await VerifyItemExistsAsync(text, "y")
         End Function
 
-        <Fact, WorkItem(4136, "https://github.com/dotnet/roslyn/issues/4136")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4136")>
         Public Async Function TestNoValue__WhenDottingIntoEnum() As Task
             Dim text =
 <code><![CDATA[
@@ -7050,7 +7050,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "value__")
         End Function
 
-        <Fact, WorkItem(4136, "https://github.com/dotnet/roslyn/issues/4136")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4136")>
         Public Async Function TestNoValue__WhenDottingIntoLocalOfEnumType() As Task
             Dim text =
 <code><![CDATA[
@@ -7122,7 +7122,7 @@ End Class]]>
             Await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription)
         End Function
 
-        <Fact, WorkItem(4405, "https://github.com/dotnet/roslyn/issues/4405")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4405")>
         Public Async Function VerifyDelegateEscapedWhenCommitted() As Task
             Dim text =
 <code><![CDATA[
@@ -7140,7 +7140,7 @@ End Module
                                  commitChar:=Nothing)
         End Function
 
-        <Fact, WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4428")>
         Public Async Function TestSystemFuncExcludedInExpressionContext1() As Task
             Dim text =
 <code><![CDATA[
@@ -7157,7 +7157,7 @@ End Module
             Await VerifyItemIsAbsentAsync(text, "Func", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
-        <Fact, WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4428")>
         Public Async Function TestSystemFuncExcludedInExpressionContext2() As Task
             Dim text =
 <code><![CDATA[
@@ -7174,7 +7174,7 @@ End Module
             Await VerifyItemIsAbsentAsync(text, "Func", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
-        <Fact, WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4428")>
         Public Async Function TestSystemFuncExcludedInStatementContext() As Task
             Dim text =
 <code><![CDATA[
@@ -7191,7 +7191,7 @@ End Module
             Await VerifyItemIsAbsentAsync(text, "Func", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
-        <Fact, WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4428")>
         Public Async Function TestSystemFuncIncludedInGetType() As Task
             Dim text =
 <code><![CDATA[
@@ -7208,7 +7208,7 @@ End Module
             Await VerifyItemExistsAsync(text, "Func", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
-        <Fact, WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4428")>
         Public Async Function TestSystemFuncIncludedInTypeOf() As Task
             Dim text =
 <code><![CDATA[
@@ -7225,7 +7225,7 @@ End Module
             Await VerifyItemExistsAsync(text, "Func", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
-        <Fact, WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4428")>
         Public Async Function TestSystemFuncIncludedInReturnTypeContext() As Task
             Dim text =
 <code><![CDATA[
@@ -7241,7 +7241,7 @@ End Module
             Await VerifyItemExistsAsync(text, "Func", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
-        <Fact, WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4428")>
         Public Async Function TestSystemFuncIncludedInFieldTypeContext() As Task
             Dim text =
 <code><![CDATA[
@@ -7256,7 +7256,7 @@ End Module
             Await VerifyItemExistsAsync(text, "Func", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
-        <Fact, WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4428")>
         Public Async Function TestSystemDelegateInStatementContext() As Task
             Dim text =
 <code><![CDATA[
@@ -7273,7 +7273,7 @@ End Module
             Await VerifyItemExistsAsync(text, "Delegate")
         End Function
 
-        <Fact, WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4428")>
         Public Async Function TestSystemActionExcludedInExpressionContext1() As Task
             Dim text =
 <code><![CDATA[
@@ -7290,7 +7290,7 @@ End Module
             Await VerifyItemIsAbsentAsync(text, "Action", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
-        <Fact, WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4428")>
         Public Async Function TestSystemActionExcludedInExpressionContext2() As Task
             Dim text =
 <code><![CDATA[
@@ -7307,7 +7307,7 @@ End Module
             Await VerifyItemIsAbsentAsync(text, "Action", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
-        <Fact, WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4428")>
         Public Async Function TestSystemActionExcludedInStatementContext() As Task
             Dim text =
 <code><![CDATA[
@@ -7324,7 +7324,7 @@ End Module
             Await VerifyItemIsAbsentAsync(text, "Action", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
-        <Fact, WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4428")>
         Public Async Function TestSystemActionIncludedInGetType() As Task
             Dim text =
 <code><![CDATA[
@@ -7341,7 +7341,7 @@ End Module
             Await VerifyItemExistsAsync(text, "Action", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
-        <Fact, WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4428")>
         Public Async Function TestSystemActionIncludedInTypeOf() As Task
             Dim text =
 <code><![CDATA[
@@ -7358,7 +7358,7 @@ End Module
             Await VerifyItemExistsAsync(text, "Action", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
-        <Fact, WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4428")>
         Public Async Function TestSystemActionIncludedInReturnTypeContext() As Task
             Dim text =
 <code><![CDATA[
@@ -7374,7 +7374,7 @@ End Module
             Await VerifyItemExistsAsync(text, "Action", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
-        <Fact, WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4428")>
         Public Async Function TestSystemActionIncludedInFieldTypeContext() As Task
             Dim text =
 <code><![CDATA[
@@ -7389,7 +7389,7 @@ End Module
             Await VerifyItemExistsAsync(text, "Action", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
-        <Fact, WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4428")>
         Public Async Function TestSystemDelegateInExpressionContext() As Task
             Dim text =
 <code><![CDATA[
@@ -7406,7 +7406,7 @@ End Module
             Await VerifyItemExistsAsync(text, "Delegate")
         End Function
 
-        <Fact, WorkItem(4750, "https://github.com/dotnet/roslyn/issues/4750")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4750")>
         Public Async Function TestConditionalAccessInWith1() As Task
             Dim text =
 <code><![CDATA[
@@ -7424,7 +7424,7 @@ End Module
             Await VerifyItemExistsAsync(text, "Length")
         End Function
 
-        <Fact, WorkItem(4750, "https://github.com/dotnet/roslyn/issues/4750")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4750")>
         Public Async Function TestConditionalAccessInWith2() As Task
             Dim text =
 <code><![CDATA[
@@ -7443,7 +7443,7 @@ End Module
             Await VerifyItemExistsAsync(text, "Length")
         End Function
 
-        <Fact, WorkItem(3290, "https://github.com/dotnet/roslyn/issues/3290")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3290")>
         Public Async Function TestDotAfterArray() As Task
             Dim text =
 <code><![CDATA[
@@ -7456,7 +7456,7 @@ End Module
             Await VerifyItemExistsAsync(text, "Length")
         End Function
 
-        <Fact, WorkItem(153633, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/153633")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/153633")>
         Public Async Function LocalInForLoop() As Task
             Dim text =
 <code><![CDATA[
@@ -7470,7 +7470,7 @@ End Module
             Await VerifyItemExistsAsync(text, "x")
         End Function
 
-        <Fact, WorkItem(153633, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/153633")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/153633")>
         Public Async Function ExcludeConstLocalInForLoop() As Task
             Dim text =
 <code><![CDATA[
@@ -7484,7 +7484,7 @@ End Module
             Await VerifyItemIsAbsentAsync(text, "x")
         End Function
 
-        <Fact, WorkItem(153633, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/153633")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/153633")>
         Public Async Function ExcludeConstFieldInForLoop() As Task
             Dim text =
 <code><![CDATA[
@@ -7498,7 +7498,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "x")
         End Function
 
-        <Fact, WorkItem(153633, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/153633")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/153633")>
         Public Async Function ExcludeReadOnlyFieldInForLoop() As Task
             Dim text =
 <code><![CDATA[
@@ -7512,7 +7512,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "x")
         End Function
 
-        <Fact, WorkItem(153633, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/153633")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/153633")>
         Public Async Function FieldInForLoop() As Task
             Dim text =
 <code><![CDATA[
@@ -7526,7 +7526,7 @@ End Class
             Await VerifyItemExistsAsync(text, "x")
         End Function
 
-        <Fact, WorkItem(153633, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/153633")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/153633")>
         Public Async Function EnumMembers() As Task
             Dim text =
 <code><![CDATA[
@@ -7664,7 +7664,7 @@ End Namespace
 
         End Function
 
-        <Fact, WorkItem(22002, "https://github.com/dotnet/roslyn/issues/22002")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22002")>
         Public Async Function DoNotCrashInTupleAlias() As Task
             Dim text =
 <code><![CDATA[
@@ -7958,7 +7958,7 @@ End Namespace
             Await VerifyItemExistsAsync(source, "B")
         End Function
 
-        <Fact, WorkItem(1056325, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")>
+        <Fact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")>
         Public Async Function CompletionForLambdaWithOverloads2() As Task
             Dim source =
                 <code><![CDATA[
@@ -7983,7 +7983,7 @@ End Class
             Await VerifyItemExistsAsync(source, "GetTypeCode")
         End Function
 
-        <Fact, WorkItem(1056325, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")>
+        <Fact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")>
         Public Async Function CompletionForLambdaWithOverloads3() As Task
             Dim source =
                 <code><![CDATA[
@@ -8008,7 +8008,7 @@ End Class
             Await VerifyItemExistsAsync(source, "GetTypeCode")
         End Function
 
-        <Fact, WorkItem(1056325, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")>
+        <Fact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")>
         Public Async Function CompletionForLambdaWithOverloads4() As Task
             Dim source =
                 <code><![CDATA[
@@ -8033,7 +8033,7 @@ End Class
             Await VerifyItemExistsAsync(source, "GetTypeCode")
         End Function
 
-        <Fact, WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40216")>
         Public Async Function CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter1() As Task
             Dim source =
                 <code><![CDATA[
@@ -8054,7 +8054,7 @@ End Class
             Await VerifyItemExistsAsync(source, "Length")
         End Function
 
-        <Fact, WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40216")>
         Public Async Function CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter2() As Task
             Dim source =
                 <code><![CDATA[
@@ -8075,7 +8075,7 @@ End Class
             Await VerifyItemExistsAsync(source, "Length")
         End Function
 
-        <Fact, WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40216")>
         Public Async Function CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameterWithDifferentCasing() As Task
             Dim source =
                 <code><![CDATA[
@@ -8203,7 +8203,7 @@ End Module
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
-        <WorkItem(36029, "https://github.com/dotnet/roslyn/issues/36029")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/36029")>
         Public Async Function CompletionInsideMethodWithParamsBeforeParams() As Task
             Dim source =
 <code><![CDATA[
@@ -8232,7 +8232,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
-        <WorkItem(36029, "https://github.com/dotnet/roslyn/issues/36029")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/36029")>
         Public Async Function CompletionInsideMethodWithParamsInParams() As Task
             Dim source =
 <code><![CDATA[

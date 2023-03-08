@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class VisualBasicCompletionCommandHandlerTests
 
-        <WorkItem(546208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546208")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546208")>
         <WpfFact>
         Public Async Function MultiWordKeywordCommitBehavior() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -43,7 +43,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(546208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546208")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546208")>
         <WpfFact>
         Public Async Function MultiWordKeywordCommitBehavior2() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -78,7 +78,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact, WorkItem(541032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541032")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541032")>
         Public Async Function CompletionNotShownWhenBackspacingThroughNewline() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <Document>
@@ -133,7 +133,7 @@ End Module
             End Using
         End Function
 
-        <WorkItem(546432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546432")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546432")>
         <WpfFact>
         Public Sub ImplementsCompletionFaultTolerance()
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -148,7 +148,7 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(5487, "https://github.com/dotnet/roslyn/issues/5487")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5487")>
         <WpfFact>
         Public Async Function TestCommitCharTypedAtTheBeginingOfTheFilterSpan() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -191,7 +191,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(543497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543497")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543497")>
         <WpfFact>
         Public Async Function CompletionDismissedAfterEscape1() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -211,7 +211,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(543497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543497")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543497")>
         <WpfFact>
         Public Async Function TestEnterOnSoftSelection1() As Task
             ' Code must be left-aligned because of https://github.com/dotnet/roslyn/issues/27988
@@ -659,7 +659,7 @@ End Module]]></Document>)
             End Using
         End Function
 
-        <WorkItem(287, "https://github.com/dotnet/roslyn/issues/287")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/287")>
         <WpfFact> Public Async Function NotEnumPreselectionAfterBackspace() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                   <Document><![CDATA[
@@ -679,7 +679,7 @@ End Class]]></Document>)
             End Using
         End Function
 
-        <WorkItem(543496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543496")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543496")>
         <WpfFact>
         Public Async Function TestNumericLiteralWithNoMatch() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -708,7 +708,7 @@ End Module</Document>.NormalizedValue, state.GetDocumentText())
             End Using
         End Function
 
-        <WorkItem(543496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543496")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543496")>
         <WpfFact>
         Public Async Function TestNumericLiteralWithPartialMatch() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -739,7 +739,7 @@ End Module</Document>.NormalizedValue, state.GetDocumentText())
             End Using
         End Function
 
-        <WorkItem(543496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543496")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543496")>
         <WpfFact>
         Public Async Function TestNumbersAfterLetters() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -802,7 +802,7 @@ end class
             End Using
         End Function
 
-        <WorkItem(543669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543669")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543669")>
         <WpfFact>
         Public Async Function TestDeleteWordToLeft() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -820,7 +820,7 @@ end class
             End Using
         End Function
 
-        <WorkItem(543617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543617")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543617")>
         <WpfFact>
         Public Async Function TestCompletionGenericWithOpenParen() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -838,7 +838,7 @@ end class
             End Using
         End Function
 
-        <WorkItem(543617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543617")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543617")>
         <WpfFact>
         Public Async Function TestCompletionGenericWithSpace() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -900,7 +900,7 @@ end class
             End Using
         End Function
 
-        <WorkItem(544190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544190")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544190")>
         <WpfFact>
         Public Async Function DoNotInsertEqualsForNamedParameterCommitWithColon() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -921,7 +921,7 @@ end class
             End Using
         End Function
 
-        <WorkItem(544190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544190")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544190")>
         <WpfFact>
         Public Async Function DoInsertEqualsForNamedParameterCommitWithSpace() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -943,7 +943,7 @@ end class
             End Using
         End Function
 
-        <WorkItem(544150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544150")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544150")>
         <WpfFact>
         Public Async Function ConsumeHashForPreprocessorCompletion() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1009,7 +1009,7 @@ End Class
             End Function
         End Class
 
-        <WorkItem(544297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544297")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544297")>
         <WpfFact>
         Public Async Function TestVerbatimNamedIdentifierFiltering() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1030,7 +1030,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(544299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544299")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544299")>
         <WpfFact>
         Public Async Function TestExclusiveNamedParameterCompletion() As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
@@ -1059,7 +1059,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(544299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544299")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544299")>
         <WpfFact>
         Public Async Function TestExclusiveNamedParameterCompletion2() As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
@@ -1095,7 +1095,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(544471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544471")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544471")>
         <WpfFact>
         Public Async Function TestDontCrashOnEmptyParameterList() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1108,7 +1108,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(544628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")>
         <WpfFact>
         Public Async Function OnlyMatchOnLowercaseIfPrefixWordMatch() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1124,7 +1124,7 @@ End Module
             End Using
         End Function
 
-        <WorkItem(544989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544989")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544989")>
         <WpfFact>
         Public Async Function MyBaseFinalize() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1142,7 +1142,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(551117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551117")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551117")>
         <WpfFact>
         Public Async Function TestNamedParameterSortOrder() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1163,7 +1163,7 @@ End Module
             End Using
         End Function
 
-        <WorkItem(546810, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546810")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546810")>
         <WpfFact>
         Public Async Function TestLineContinuationCharacter() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1182,7 +1182,7 @@ End Module
             End Using
         End Function
 
-        <WorkItem(547287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547287")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547287")>
         <WpfFact>
         Public Async Function TestNumberDismissesCompletion() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1301,7 +1301,7 @@ End Module          </text>.NormalizedValue, state.GetDocumentText(), StringComp
             End Using
         End Function
 
-        <WorkItem(622957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622957")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622957")>
         <WpfFact>
         Public Async Function TestBangFiltersInDocComment() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1569,7 +1569,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(674422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674422")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674422")>
         <WpfFact>
         Public Async Function BackspaceInvokeCompletionComesUpEvenIfNoMatches() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1588,7 +1588,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(674366, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674366")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674366")>
         <WpfFact>
         Public Async Function BackspaceCompletionSelects() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1606,7 +1606,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(675555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/675555")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/675555")>
         <WpfFact>
         Public Async Function BackspaceCompletionNeverFilters() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1659,7 +1659,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(669942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/669942")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/669942")>
         <WpfFact>
         Public Async Function DistinguishItemsWithDifferentGlyphs() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1682,7 +1682,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(670149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670149")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670149")>
         <WpfFact()>
         Public Sub TabAfterNullableFollowedByQuestionMark()
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1697,7 +1697,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(672474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672474")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672474")>
         <WpfFact>
         Public Async Function TestInvokeSnippetCommandDismissesCompletion() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1710,7 +1710,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(672474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672474")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672474")>
         <WpfFact>
         Public Async Function TestSurroundWithCommandDismissesCompletion() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1723,7 +1723,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(716117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716117")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716117")>
         <WpfFact>
         Public Async Function XmlCompletionNotTriggeredOnBackspaceInText() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1740,7 +1740,7 @@ End Class]]></Document>)
             End Using
         End Function
 
-        <WorkItem(716117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716117")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716117")>
         <WpfFact>
         Public Async Function XmlCompletionNotTriggeredOnBackspaceInTag() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1758,7 +1758,7 @@ End Class]]></Document>)
             End Using
         End Function
 
-        <WorkItem(674415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674415")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674415")>
         <WpfFact>
         Public Async Function BackspacingLastCharacterDismisses() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1771,7 +1771,7 @@ End Class]]></Document>)
             End Using
         End Function
 
-        <WorkItem(719977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/719977")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/719977")>
         <WpfFact>
         Public Async Function HardSelectionWithBuilderAndOneExactMatch() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1786,7 +1786,7 @@ End Module</Document>)
             End Using
         End Function
 
-        <WorkItem(828603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828603")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828603")>
         <WpfFact>
         Public Async Function SoftSelectionWithBuilderAndNoExactMatch() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1803,7 +1803,7 @@ End Module</Document>)
 
         ' The test verifies the CommitCommandHandler isolated behavior which does not add '()' after 'Main'.
         ' The integrated VS behavior for the case is to get 'Main()'.
-        <WorkItem(792569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792569")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792569")>
         <WpfFact>
         Public Sub CommitOnEnter()
             Dim expected = <Document>Module M
@@ -1877,7 +1877,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(546208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546208")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546208")>
         <WpfFact>
         Public Async Function SelectKeywordFirst() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1902,7 +1902,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(828392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828392")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828392")>
         <WpfFact>
         Public Async Function ConstructorFiltersAsNew() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1963,7 +1963,7 @@ End Class</Document>)
             End Using
         End Function
 
-        <WorkItem(883295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883295")>
         <WpfFact>
         Public Async Function InsertOfOnSpace() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1983,7 +1983,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(883295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883295")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883295")>
         <WpfFact>
         Public Sub DoNotInsertOfOnTab()
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2002,7 +2002,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(899414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899414")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899414")>
         <WpfFact>
         Public Async Function NotInPartialMethodDeclaration() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2066,7 +2066,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(916452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916452")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916452")>
         <WpfFact>
         Public Async Function SoftSelectedWithNoFilterText() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2102,7 +2102,7 @@ End Class</Document>)
             End Using
         End Function
 
-        <WorkItem(951726, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951726")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951726")>
         <WpfFact>
         Public Async Function DismissUponSave() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2119,7 +2119,7 @@ End Class]]></Document>)
             End Using
         End Function
 
-        <WorkItem(969794, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969794")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969794")>
         <WpfFact>
         Public Async Function DeleteCompletionInvokedSelectedAndUnfiltered() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2136,8 +2136,8 @@ End Class
             End Using
         End Function
 
-        <WorkItem(871755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/871755")>
-        <WorkItem(954556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954556")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/871755")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954556")>
         <WpfFact>
         Public Async Function FilterPrefixOnlyOnBackspace1() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2154,7 +2154,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(969040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969040")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969040")>
         <WpfFact>
         Public Async Function BackspaceTriggerOnlyIfOptionEnabled() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2172,7 +2172,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(957450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957450")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957450")>
         <WpfFact>
         Public Async Function KeywordsForIntrinsicsDeduplicated() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2192,7 +2192,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(957450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957450")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957450")>
         <WpfFact>
         Public Async Function KeywordDeduplicationLeavesEscapedIdentifiers() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2214,7 +2214,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(957450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957450")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957450")>
         <WpfFact>
         Public Async Function TestEscapedItemCommittedWithCloseBracket() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2233,7 +2233,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(1075298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075298")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075298")>
         <WpfFact>
         Public Sub CommitOnQuestionMarkForConditionalAccess()
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2250,7 +2250,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(1659, "https://github.com/dotnet/roslyn/issues/1659")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1659")>
         <WpfFact>
         Public Async Function DismissOnSelectAllCommand() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2268,7 +2268,7 @@ Class C
             End Using
         End Function
 
-        <WorkItem(3088, "https://github.com/dotnet/roslyn/issues/3088")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3088")>
         <WpfFact>
         Public Async Function DoNotPreferParameterNames() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2288,7 +2288,7 @@ End Module]]></Document>)
             End Using
         End Function
 
-        <WorkItem(4892, "https://github.com/dotnet/roslyn/issues/4892")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4892")>
         <WpfFact>
         Public Async Function BooleanPreselection1() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2306,7 +2306,7 @@ End Module]]></Document>)
             End Using
         End Function
 
-        <WorkItem(4892, "https://github.com/dotnet/roslyn/issues/4892")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4892")>
         <WpfFact>
         Public Async Function BooleanPreselection2() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2327,7 +2327,7 @@ End Module]]></Document>)
             End Using
         End Function
 
-        <WorkItem(4892, "https://github.com/dotnet/roslyn/issues/4892")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4892")>
         <WpfFact>
         Public Async Function BooleanPreselection3() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2486,7 +2486,7 @@ End Class]]></Document>)
             End Using
         End Function
 
-        <WpfFact, WorkItem(12530, "https://github.com/dotnet/roslyn/issues/12530")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/12530")>
         Public Async Function TestAnonymousTypeDescription() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                            <Document><![CDATA[
@@ -2507,7 +2507,7 @@ $"<{ VBFeaturesResources.Extension }> Function IEnumerable(Of 'a).ToArray() As '
             End Using
         End Function
 
-        <WpfFact, WorkItem(12530, "https://github.com/dotnet/roslyn/issues/12530")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/12530")>
         Public Async Function TestAnonymousTypeDescription2() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                            <Document><![CDATA[
@@ -2528,7 +2528,7 @@ $"<{ VBFeaturesResources.Extension }> Function IEnumerable(Of 'a).ToArray() As '
             End Using
         End Function
 
-        <WorkItem(11812, "https://github.com/dotnet/roslyn/issues/11812")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11812")>
         <WpfFact>
         Public Async Function TestObjectCreationQualifiedName() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2827,7 +2827,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(13161, "https://github.com/dotnet/roslyn/issues/13161")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13161")>
         <WpfFact>
         Public Sub CommitGenericDoesNotInsertEllipsis()
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2847,7 +2847,7 @@ End Class]]></Document>)
             End Using
         End Sub
 
-        <WorkItem(13161, "https://github.com/dotnet/roslyn/issues/13161")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13161")>
         <WpfFact>
         Public Sub CommitGenericDoesNotInsertEllipsisCommitOnParen()
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2866,7 +2866,7 @@ End Class]]></Document>)
             End Using
         End Sub
 
-        <WorkItem(13161, "https://github.com/dotnet/roslyn/issues/13161")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13161")>
         <WpfFact>
         Public Sub CommitGenericItemDoesNotInsertEllipsisCommitOnTab()
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2886,7 +2886,7 @@ End Class]]></Document>)
             End Using
         End Sub
 
-        <WorkItem(15011, "https://github.com/dotnet/roslyn/issues/15011")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/15011")>
         <WpfFact>
         Public Async Function SymbolAndObjectPreselectionUnification() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2907,7 +2907,7 @@ End Module
             End Using
         End Function
 
-        <WorkItem(394863, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=394863&triage=true")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=394863&triage=true")>
         <WpfFact>
         Public Async Function ImplementsClause() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2929,7 +2929,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(18785, "https://github.com/dotnet/roslyn/issues/18785")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/18785")>
         <WpfFact>
         Public Async Function BackspaceSoftSelectionIfNotPrefixMatch() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2949,7 +2949,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(28767, "https://github.com/dotnet/roslyn/issues/28767")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/28767")>
         <WpfFact>
         Public Async Function CompletionDoesNotRemoveBracketsOnEnum() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2969,7 +2969,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(30097, "https://github.com/dotnet/roslyn/issues/30097")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/30097")>
         <WpfFact>
         Public Async Function TestMRUKeepsTwoRecentlyUsedItems() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -2990,7 +2990,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(36546, "https://github.com/dotnet/roslyn/issues/36546")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/36546")>
         <WpfFact>
         Public Async Function TestDoNotDismissIfEmptyOnBackspaceIfStartedWithBackspace() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -3009,7 +3009,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(36546, "https://github.com/dotnet/roslyn/issues/36546")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/36546")>
         <WpfFact>
         Public Async Function TestDoNotDismissIfEmptyOnMultipleBackspaceIfStartedInvoke() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -3031,7 +3031,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/588")>
         <WpfFact>
         Public Async Function TestMatchWithTurkishIWorkaround1() As Task
             Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
@@ -3049,7 +3049,7 @@ Class C
 
         End Function
 
-        <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/588")>
         <WpfFact>
         Public Async Function TestMatchWithTurkishIWorkaround2() As Task
             Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
@@ -3066,7 +3066,7 @@ Class C
 
         End Function
 
-        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         <WpfFact>
         Public Async Function TestMatchWithTurkishIWorkaround3() As Task
             Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
@@ -3087,7 +3087,7 @@ Class C
 
         End Function
 
-        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         <WpfFact>
         Public Async Function TestMatchWithTurkishIWorkaround4() As Task
             Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
@@ -3112,7 +3112,7 @@ Class C
 
         End Function
 
-        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         <WpfFact>
         Public Async Function TestMatchWithTurkishIWorkaround5() As Task
             Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
@@ -3138,7 +3138,7 @@ Class C
 
         End Function
 
-        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         <WpfFact>
         Public Async Function TestMatchWithTurkishIWorkaround6() As Task
             Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
@@ -3159,7 +3159,7 @@ Class C
 
         End Function
 
-        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         <WpfFact>
         Public Async Function TestMatchWithTurkishIWorkaround7() As Task
             Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
@@ -3184,7 +3184,7 @@ Class C
 
         End Function
 
-        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         <WpfFact>
         Public Async Function TestMatchWithTurkishIWorkaround8() As Task
             Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
@@ -3209,7 +3209,7 @@ Class C
 
         End Function
 
-        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         <WpfFact>
         Public Async Function TestMatchWithTurkishIWorkaround9() As Task
             Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
@@ -3234,7 +3234,7 @@ Class C
 
         End Function
 
-        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         <WpfFact>
         Public Async Function TestMatchWithTurkishIWorkaround10() As Task
             Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
@@ -3534,7 +3534,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact, WorkItem(815963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815963")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815963")>
         Public Async Function TestEnumMemberContainsLocal() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <Document>
@@ -3598,7 +3598,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact, WorkItem(64531, "https://github.com/dotnet/roslyn/issues/64531")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/64531")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AttributeCompletionNoColonsIfAlreadyPresent() As Task
             Dim documentContent = "

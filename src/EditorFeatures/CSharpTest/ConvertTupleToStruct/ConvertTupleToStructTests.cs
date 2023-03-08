@@ -244,7 +244,7 @@ internal record struct NewStruct(int A, int B)
             await TestAsync(text, expected, languageVersion: LanguageVersion.Preview, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, WorkItem(45451, "https://github.com/dotnet/roslyn/issues/45451"), CombinatorialData]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/45451"), CombinatorialData]
         public async Task ConvertSingleTupleType_ChangeArgumentNameCase(TestHost host)
         {
             var text = @"
@@ -310,7 +310,7 @@ internal struct NewStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, WorkItem(45451, "https://github.com/dotnet/roslyn/issues/45451"), CombinatorialData]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/45451"), CombinatorialData]
         public async Task ConvertSingleTupleType_ChangeArgumentNameCase_Uppercase(TestHost host)
         {
             var text = @"
@@ -406,7 +406,7 @@ internal struct NewStruct
             await TestAsync(text, expected, options: options, testHost: host);
         }
 
-        [Theory, WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916"), CombinatorialData]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/39916"), CombinatorialData]
         public async Task ConvertSingleTupleType_Explicit(TestHost host)
         {
             var text = @"

@@ -33,7 +33,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25830")>
         Public Async Function PickCorrectOverload_PickString() As Task
 
             Dim markup = <Text><![CDATA[
@@ -59,7 +59,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25830")>
         Public Async Function PickCorrectOverload_PickInteger() As Task
 
             Dim markup = <Text><![CDATA[
@@ -151,7 +151,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(545931, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545931")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545931")>
         Public Async Function TestUnsupportedParameters() As Task
             Dim markup = <a><![CDATA[
 Class C

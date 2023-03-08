@@ -144,7 +144,7 @@ class Goo { }
 
 #Region "CodeTypeFromFullName"
 
-        <WorkItem(1107453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107453")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107453")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeTypeFromFullName_NonGenerated()
 
@@ -181,7 +181,7 @@ namespace N
 
         End Sub
 
-        <WorkItem(1107453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107453")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107453")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeTypeFromFullName_Generated()
 
@@ -218,7 +218,7 @@ namespace N
 
         End Sub
 
-        <WorkItem(1107453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107453")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107453")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeTypeFromFullName_NonGenerated_Generated()
 
@@ -263,7 +263,7 @@ namespace N
 
         End Sub
 
-        <WorkItem(1107453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107453")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107453")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeTypeFromFullName_Generated_NonGenerated()
 

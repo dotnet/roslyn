@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "Structure")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub StructureFollowsStructureTest()
             Dim code =
 <File>
@@ -23,7 +23,7 @@ End Structure
             VerifyRecommendationsContain(code, "Structure")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub StructureFollowsStructureWithinClassTest()
             Dim code =
 <File>
@@ -51,7 +51,7 @@ End Class
             VerifyRecommendationsContain(<InterfaceDeclaration>|</InterfaceDeclaration>, "Structure")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub StructureFollowsMismatchedEndTest()
             Dim code =
 <File>
@@ -226,12 +226,12 @@ End Namespace</File>, "Structure")
             VerifyRecommendationsMissing(<ClassDeclaration>Shared |</ClassDeclaration>, "Structure")
         End Sub
 
-        <Fact, WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
         Public Sub NotAfterAsyncTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Async |</ClassDeclaration>, "Structure")
         End Sub
 
-        <Fact, WorkItem(20837, "https://github.com/dotnet/roslyn/issues/20837")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20837")>
         Public Sub AfterAttribute()
             VerifyRecommendationsContain(<File>&lt;AttributeApplication&gt; |</File>, "Structure")
         End Sub

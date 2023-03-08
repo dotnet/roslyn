@@ -116,7 +116,7 @@ Loop Until |</MethodBody>, "Not")
             VerifyRecommendationsContain(<MethodBody>While |</MethodBody>, "Not")
         End Sub
 
-        <Fact, WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         Public Sub NoNotInDelegateCreationTest()
             Dim code =
 <File>

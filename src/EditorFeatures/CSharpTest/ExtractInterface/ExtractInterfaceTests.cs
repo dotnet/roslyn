@@ -873,7 +873,7 @@ public class Class<A, B, C, D, E, F, G, H, NO1> where E : F
             await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
         }
 
-        [WorkItem(706894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/706894")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/706894")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public async Task ExtractInterface_CodeGen_TypeParameters2()
         {
@@ -918,7 +918,7 @@ class $$Class1<A, B>
             await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
         }
 
-        [WorkItem(706894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/706894")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/706894")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public async Task ExtractInterface_CodeGen_TypeParameters4()
         {
@@ -1487,7 +1487,7 @@ class $$TestClass
 }");
         }
 
-        [WorkItem(23855, "https://github.com/dotnet/roslyn/issues/23855")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23855")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public async Task TestExtractInterface_WithCopyright1()
         {
@@ -1526,7 +1526,7 @@ public interface IGoo
                 expectedInterfaceCode: expectedInterfaceCode);
         }
 
-        [WorkItem(23855, "https://github.com/dotnet/roslyn/issues/23855")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23855")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public async Task TestExtractInterface_WithCopyright2()
         {
@@ -1571,7 +1571,7 @@ public interface IA
                 expectedInterfaceCode: expectedInterfaceCode);
         }
 
-        [WorkItem(49739, "https://github.com/dotnet/roslyn/issues/49739")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49739")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public async Task TestRecord1()
         {
@@ -1638,7 +1638,7 @@ public interface IA
                 expectedSuccess: false);
         }
 
-        [WorkItem(49739, "https://github.com/dotnet/roslyn/issues/49739")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49739")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public async Task TestRecord2()
         {
@@ -1705,7 +1705,7 @@ public interface IA
                 expectedSuccess: false);
         }
 
-        [WorkItem(49739, "https://github.com/dotnet/roslyn/issues/49739")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49739")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public async Task TestRecord3()
         {

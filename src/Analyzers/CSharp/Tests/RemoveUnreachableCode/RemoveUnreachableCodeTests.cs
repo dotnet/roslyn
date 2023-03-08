@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnreachableCode
                 """);
         }
 
-        [Fact, WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61810")]
         public async Task TestTopLevel_EndingWithNewLine()
         {
             var code = """
@@ -920,7 +920,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnreachableCode
             }.RunAsync();
         }
 
-        [Fact, WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61810")]
         public async Task TestTopLevel_NotEndingWithNewLine()
         {
             var code = """
@@ -943,7 +943,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnreachableCode
             }.RunAsync();
         }
 
-        [Fact, WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61810")]
         public async Task TestTopLevel_MultipleUnreachableStatements()
         {
             var code = """
@@ -968,7 +968,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnreachableCode
             }.RunAsync();
         }
 
-        [Fact, WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61810")]
         public async Task TestTopLevel_MultipleUnreachableStatements_HasClassDeclarationInBetween()
         {
             var code = """
@@ -999,7 +999,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnreachableCode
             }.RunAsync();
         }
 
-        [Fact, WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61810")]
         public async Task TestTopLevel_MultipleUnreachableStatements_AfterClassDeclaration1()
         {
             var code = """
@@ -1027,7 +1027,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnreachableCode
             }.RunAsync();
         }
 
-        [Fact, WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61810")]
         public async Task TestTopLevel_MultipleUnreachableStatements_AfterClassDeclaration2()
         {
             var code = """

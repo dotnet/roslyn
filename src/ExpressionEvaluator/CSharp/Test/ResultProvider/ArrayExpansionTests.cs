@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 EvalResult("[1]", "2", "int", "((int[])(new C()).o)[1]"));
         }
 
-        [Fact, WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
         public void BaseElementType()
         {
             var source =
@@ -187,7 +187,7 @@ class B : A
                 EvalResult("P", "2", "object {int}", "((B)o[1]).P", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
         }
 
-        [Fact, WorkItem(1022157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022157")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022157")]
         public void Covariance()
         {
             var source =
@@ -228,7 +228,7 @@ class C
                 EvalResult("[0]", "{B}", "I {B}", "((B[])o.H)[0]", DkmEvaluationResultFlags.Expandable));
         }
 
-        [Fact, WorkItem(1001844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1001844")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1001844")]
         public void Interface()
         {
             var source =

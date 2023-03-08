@@ -96,7 +96,7 @@ End Class"
             End Using
         End Sub
 
-        <Fact, WorkItem(13625, "https://github.com/dotnet/roslyn/issues/13625")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13625")>
         Public Sub Names_LongTuple()
             Const source =
 "class C

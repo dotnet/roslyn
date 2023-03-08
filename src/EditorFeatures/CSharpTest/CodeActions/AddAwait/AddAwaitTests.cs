@@ -262,7 +262,7 @@ class Program
 }", index: 1);
         }
 
-        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task OnSemiColon()
         {
             await TestInRegularAndScriptAsync(@"
@@ -284,7 +284,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task Selection()
         {
             await TestInRegularAndScriptAsync(@"
@@ -306,7 +306,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task Selection2()
         {
             await TestInRegularAndScriptAsync(@"
@@ -1447,7 +1447,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(1345322, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1345322")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1345322")]
         public async Task TestOnTaskTypeItself()
         {
             await TestMissingAsync(

@@ -502,7 +502,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestCaretPositon()
         {
             await TestAsync("C [||]LocalFunction(C c)");
@@ -560,7 +560,7 @@ $@"class C
             }
         }
 
-        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection1()
         {
             await TestInRegularAndScriptAsync(
@@ -587,7 +587,7 @@ $@"class C
 }");
         }
 
-        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection2()
         {
 
@@ -604,7 +604,7 @@ $@"class C
 }");
         }
 
-        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection3()
         {
             await TestInRegularAndScriptAsync(
@@ -635,7 +635,7 @@ $@"class C
 }");
         }
 
-        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection4()
         {
 
@@ -655,7 +655,7 @@ $@"class C
 }");
         }
 
-        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection5()
         {
 
@@ -676,7 +676,7 @@ $@"class C
 }");
         }
 
-        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection6()
         {
 
@@ -698,7 +698,7 @@ $@"class C
 }");
         }
 
-        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection7()
         {
             await TestMissingAsync(
@@ -714,7 +714,7 @@ $@"class C
 }");
         }
 
-        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection8()
         {
             await TestInRegularAndScriptAsync(
@@ -741,7 +741,7 @@ $@"class C
 }");
         }
 
-        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection9()
         {
             await TestInRegularAndScriptAsync(
@@ -768,7 +768,7 @@ $@"class C
 }");
         }
 
-        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection10()
         {
             await TestInRegularAndScriptAsync(
@@ -795,7 +795,7 @@ $@"class C
 }");
         }
 
-        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection11()
         {
             await TestMissingAsync(
@@ -812,7 +812,7 @@ $@"class C
 }");
         }
 
-        [Fact, WorkItem(32976, "https://github.com/dotnet/roslyn/issues/32976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32976")]
         public async Task TestUnsafeLocalFunction()
         {
             await TestInRegularAndScriptAsync(
@@ -843,7 +843,7 @@ $@"class C
 }");
         }
 
-        [Fact, WorkItem(32976, "https://github.com/dotnet/roslyn/issues/32976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32976")]
         public async Task TestUnsafeLocalFunctionInUnsafeMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -874,7 +874,7 @@ $@"class C
 }");
         }
 
-        [Fact, WorkItem(32976, "https://github.com/dotnet/roslyn/issues/32976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32976")]
         public async Task TestLocalFunctionInUnsafeMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -918,7 +918,7 @@ Console.WriteLine(""Hello"");
 }");
         }
 
-        [Fact, WorkItem(32975, "https://github.com/dotnet/roslyn/issues/32975")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32975")]
         public async Task TestRefReturn()
         {
             await TestInRegularAndScript1Async(@"
@@ -951,7 +951,7 @@ class ClassA
 }");
         }
 
-        [Fact, WorkItem(32975, "https://github.com/dotnet/roslyn/issues/32975")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32975")]
         public async Task TestAttributes()
         {
             await TestInRegularAndScript1Async(@"

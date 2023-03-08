@@ -746,7 +746,7 @@ assertCaretPosition: true);
 
         [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         [Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        [WorkItem(18104, "https://github.com/dotnet/roslyn/issues/18104")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18104")]
         public void CompleteStatementTriggersCompletion(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"

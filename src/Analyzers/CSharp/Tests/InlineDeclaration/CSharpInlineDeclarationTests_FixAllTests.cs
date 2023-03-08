@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, WorkItem(29935, "https://github.com/dotnet/roslyn/issues/29935")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29935")]
         public async Task FixAllInDocumentSymbolResolution()
         {
             await TestInRegularAndScriptAsync(
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, WorkItem(28323, "https://github.com/dotnet/roslyn/issues/28323")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28323")]
         public async Task FixAllInDocument4()
         {
             await TestInRegularAndScriptAsync(
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, WorkItem(28323, "https://github.com/dotnet/roslyn/issues/28323")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28323")]
         public async Task FixAllInDocument5()
         {
             await TestInRegularAndScriptAsync(
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, WorkItem(28323, "https://github.com/dotnet/roslyn/issues/28323")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28323")]
         public async Task FixAllInDocument6()
         {
             await TestInRegularAndScriptAsync(
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, WorkItem(28323, "https://github.com/dotnet/roslyn/issues/28323")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28323")]
         public async Task FixAllInDocument7()
         {
             await TestInRegularAndScriptAsync(
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, WorkItem(28323, "https://github.com/dotnet/roslyn/issues/28323")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28323")]
         public async Task FixAllInDocumentComments1()
         {
             await TestInRegularAndScriptAsync(
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, WorkItem(28323, "https://github.com/dotnet/roslyn/issues/28323")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28323")]
         public async Task FixAllInDocumentComments2()
         {
             await TestInRegularAndScriptAsync(
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, WorkItem(28323, "https://github.com/dotnet/roslyn/issues/28323")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28323")]
         public async Task FixAllInDocumentComments3()
         {
             await TestInRegularAndScriptAsync(

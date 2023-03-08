@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, WorkItem(545474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545474")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545474")>
         Public Async Function SearchForNestedType() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>

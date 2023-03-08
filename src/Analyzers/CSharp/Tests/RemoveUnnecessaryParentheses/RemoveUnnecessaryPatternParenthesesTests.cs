@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
                 """, offeredWhenRequireForClarityIsEnabled: false);
         }
 
-        [Fact, WorkItem(52589, "https://github.com/dotnet/roslyn/issues/52589")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52589")]
         public async Task TestAlwaysNecessaryForDiscard()
         {
             await TestDiagnosticMissingAsync(

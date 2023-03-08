@@ -591,7 +591,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, WorkItem(47696, "https://github.com/dotnet/roslyn/issues/47696")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47696")>
         Public Async Function TestRecordBaseType() As Task
             Dim input =
             <Workspace>
@@ -641,7 +641,7 @@ class Derived(int Other) : Base(Alice: 2, Bob: 2);
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, WorkItem(47696, "https://github.com/dotnet/roslyn/issues/47696")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47696")>
         Public Async Function TestClassBaseType() As Task
             Dim input =
             <Workspace>
@@ -678,7 +678,7 @@ class Derived : Base
             Await VerifyParamHints(input, output)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestNotOnEnableDisableBoolean1() As Task
             Dim input =
@@ -703,7 +703,7 @@ class A
             Await VerifyParamHints(input, input)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestNotOnEnableDisableBoolean2() As Task
             Dim input =
@@ -753,7 +753,7 @@ class A
             Await VerifyParamHints(input, input)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestOnEnableDisableNonBoolean1() As Task
             Dim input =
@@ -797,7 +797,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestOnEnableDisableNonBoolean2() As Task
             Dim input =
@@ -841,7 +841,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestOnSetMethodWithClearContext() As Task
             Dim input =
@@ -866,7 +866,7 @@ class A
             Await VerifyParamHints(input, input)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestOnSetMethodWithUnclearContext() As Task
             Dim input =
@@ -910,7 +910,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestMethodWithAlphaSuffix1() As Task
             Dim input =
@@ -935,7 +935,7 @@ class A
             Await VerifyParamHints(input, input)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestMethodWithNonAlphaSuffix1() As Task
             Dim input =
@@ -979,7 +979,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestMethodWithNumericSuffix1() As Task
             Dim input =
@@ -1004,7 +1004,7 @@ class A
             Await VerifyParamHints(input, input)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestMethodWithNonNumericSuffix1() As Task
             Dim input =
@@ -1048,7 +1048,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, WorkItem(48910, "https://github.com/dotnet/roslyn/issues/48910")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/48910")>
         Public Async Function TestNullableSuppression() As Task
             Dim input =
             <Workspace>
@@ -1095,7 +1095,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, WorkItem(46614, "https://github.com/dotnet/roslyn/issues/46614")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/46614")>
         Public Async Function TestIndexerParameter() As Task
             Dim input =
             <Workspace>

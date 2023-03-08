@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
 
         [Theory]
         [InlineData("set"), InlineData("init")]
-        [WorkItem(48133, "https://github.com/dotnet/roslyn/issues/48133")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48133")]
         public async Task SimpleAutoPropertyTest(string setter)
         {
             var text = $@"
@@ -863,7 +863,7 @@ class TestClass
             await TestMissingAsync(text);
         }
 
-        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
         public async Task CursorInType()
         {
             var text = @"
@@ -893,7 +893,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
         public async Task SelectionWhole()
         {
             var text = @"
@@ -1039,7 +1039,7 @@ class TestClass
 
         [Fact]
         [WorkItem(28013, "https://github.com/dotnet/roslyn/issues/26992")]
-        [WorkItem(30208, "https://github.com/dotnet/roslyn/issues/30208")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30208")]
         public async Task PropertyNameEqualsToClassNameExceptFirstCharCasingWhichCausesFieldNameCollisionByDefault()
         {
             var text = @"
@@ -1161,7 +1161,7 @@ struct goo
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, WorkItem(22146, "https://github.com/dotnet/roslyn/issues/22146")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22146")]
         public async Task PartialClasses()
         {
             var text = @"
@@ -1191,7 +1191,7 @@ partial class Program
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, WorkItem(22146, "https://github.com/dotnet/roslyn/issues/22146")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22146")]
         public async Task PartialClassInSeparateFiles1()
         {
             var file1 = @"
@@ -1234,7 +1234,7 @@ partial class Program
                 parameters: null);
         }
 
-        [Fact, WorkItem(22146, "https://github.com/dotnet/roslyn/issues/22146")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22146")]
         public async Task PartialClassInSeparateFiles2()
         {
             var file1 = @"
@@ -1310,7 +1310,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(29021, "https://github.com/dotnet/roslyn/issues/29021")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29021")]
         public async Task ConstructorInitializerIndentation()
         {
             await TestInRegularAndScriptAsync(

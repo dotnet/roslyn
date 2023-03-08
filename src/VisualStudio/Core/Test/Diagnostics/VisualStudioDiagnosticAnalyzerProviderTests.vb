@@ -46,7 +46,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             references.Select(Function(referenceAndId) referenceAndId.reference.FullPath))
         End Sub
 
-        <Fact, WorkItem(6285, "https://github.com/dotnet/roslyn/issues/6285")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6285")>
         Public Sub TestHostAnalyzerAssemblyLoader()
             Using tempRoot = New TempRoot
                 Dim dir = tempRoot.CreateDirectory

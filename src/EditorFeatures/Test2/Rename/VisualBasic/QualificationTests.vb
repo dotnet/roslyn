@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
 
         <Theory>
         <CombinatorialData>
-        <WorkItem(545576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545576")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545576")>
         Public Sub QualifyBackingField(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -43,7 +43,7 @@ End Class
 
         <Theory>
         <CombinatorialData>
-        <WorkItem(992721, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992721")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992721")>
         Public Sub ConflictingLocalWithFieldWithExtensionMethodInvolved(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
             <Workspace>

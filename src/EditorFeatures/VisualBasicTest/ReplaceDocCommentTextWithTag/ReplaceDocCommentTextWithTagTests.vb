@@ -320,8 +320,8 @@ end interface")
         End Function
 
         <Fact>
-        <WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
-        <WorkItem(31208, "https://github.com/dotnet/roslyn/issues/31208")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/22278")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/31208")>
         Public Async Function TestApplicableKeyword() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -334,7 +334,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <Fact, WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22278")>
         Public Async Function TestInXMLAttribute() As Task
             Await TestMissingAsync(
 "
@@ -345,7 +345,7 @@ class C
 end class")
         End Function
 
-        <Fact, WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22278")>
         Public Async Function TestInXMLAttribute2() As Task
             Await TestMissingAsync(
 "
@@ -356,7 +356,7 @@ class C
 end class")
         End Function
 
-        <Fact, WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38370")>
         Public Async Function TestMyBase() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -369,7 +369,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <Fact, WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38370")>
         Public Async Function TestMyClass() As Task
             Await TestInRegularAndScriptAsync(
 "

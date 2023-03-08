@@ -805,7 +805,7 @@ namespace N
             edits.VerifySemantics();
         }
 
-        [Fact, WorkItem(48628, "https://github.com/dotnet/roslyn/issues/48628")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48628")]
         public void Type_Modifiers_Unsafe_Add()
         {
             var src1 = "public class C { }";
@@ -819,7 +819,7 @@ namespace N
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact, WorkItem(48628, "https://github.com/dotnet/roslyn/issues/48628")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48628")]
         public void Type_Modifiers_Unsafe_Remove()
         {
             var src1 = @"
@@ -866,7 +866,7 @@ class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact, WorkItem(48628, "https://github.com/dotnet/roslyn/issues/48628")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48628")]
         public void Type_Modifiers_Unsafe_DeleteInsert()
         {
             var srcA1 = "partial class C { unsafe void F() { } }";
@@ -1269,7 +1269,7 @@ public class A3 : System.Attribute { }
                 Diagnostic(RudeEditKind.Renamed, "class D", FeaturesResources.class_));
         }
 
-        [Fact, WorkItem(54886, "https://github.com/dotnet/roslyn/issues/54886")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54886")]
         public void Type_Rename_Reloadable()
         {
             var src1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]class C { }";
@@ -1285,7 +1285,7 @@ public class A3 : System.Attribute { }
                 Diagnostic(RudeEditKind.Renamed, "class D", FeaturesResources.class_));
         }
 
-        [Fact, WorkItem(54886, "https://github.com/dotnet/roslyn/issues/54886")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54886")]
         public void Type_Rename_Reloadable_AddAndDeleteMember()
         {
             var src1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]class C { int x = 1; }";
@@ -1881,7 +1881,7 @@ public class SubClass : BaseClass, IConflict
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
-        [Fact, WorkItem(37128, "https://github.com/dotnet/roslyn/issues/37128")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37128")]
         public void Interface_InsertMembers()
         {
             var src1 = @"
@@ -2114,7 +2114,7 @@ interface I<T> { void F() {} }
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/54881")]
-        [WorkItem(54881, "https://github.com/dotnet/roslyn/issues/54881")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54881")]
         public void Type_TypeParameter_Insert_Reloadable()
         {
             var src1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]public class C<T> { void F() { } }";
@@ -4097,7 +4097,7 @@ record C(int X)
                  Diagnostic(RudeEditKind.InitializerUpdate, "Red", FeaturesResources.enum_value));
         }
 
-        [Fact, WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916")]
         public void EnumMemberAdd()
         {
             var src1 = "enum Color { Red }";
@@ -4127,7 +4127,7 @@ record C(int X)
                  Diagnostic(RudeEditKind.Insert, "Blue", FeaturesResources.enum_value));
         }
 
-        [Fact, WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916")]
         public void EnumMemberAdd3()
         {
             var src1 = "enum Color { Red, }";
@@ -4157,7 +4157,7 @@ record C(int X)
                  Diagnostic(RudeEditKind.Renamed, "Orange", FeaturesResources.enum_value));
         }
 
-        [Fact, WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916")]
         public void EnumMemberDelete()
         {
             var src1 = "enum Color { Red, Blue}";
@@ -4187,7 +4187,7 @@ record C(int X)
                  Diagnostic(RudeEditKind.Delete, "enum Color", DeletedSymbolDisplay(FeaturesResources.enum_value, "Blue")));
         }
 
-        [Fact, WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916"), WorkItem(793197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/793197")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/793197")]
         public void EnumTrailingCommaAdd()
         {
             var src1 = "enum Color { Red }";
@@ -4201,7 +4201,7 @@ record C(int X)
             edits.VerifySemantics(ActiveStatementsDescription.Empty, NoSemanticEdits);
         }
 
-        [Fact, WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916"), WorkItem(793197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/793197")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/793197")]
         public void EnumTrailingCommaAdd_WithInitializer()
         {
             var src1 = "enum Color { Red = 1 }";
@@ -4215,7 +4215,7 @@ record C(int X)
             edits.VerifySemantics(ActiveStatementsDescription.Empty, NoSemanticEdits);
         }
 
-        [Fact, WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916"), WorkItem(793197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/793197")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/793197")]
         public void EnumTrailingCommaDelete()
         {
             var src1 = "enum Color { Red, }";
@@ -4228,7 +4228,7 @@ record C(int X)
             edits.VerifySemantics(ActiveStatementsDescription.Empty, NoSemanticEdits);
         }
 
-        [Fact, WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916"), WorkItem(793197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/793197")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/793197")]
         public void EnumTrailingCommaDelete_WithInitializer()
         {
             var src1 = "enum Color { Red = 1, }";
@@ -4539,7 +4539,7 @@ record C(int X)
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/54881")]
-        [WorkItem(54881, "https://github.com/dotnet/roslyn/issues/54881")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54881")]
         public void Delegate_TypeParameter_Insert_Reloadable()
         {
             var src1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]public delegate int D<out T>();";
@@ -5054,7 +5054,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
         public void NestedType_Insert_PInvoke()
         {
             var src1 = @"
@@ -5098,7 +5098,7 @@ class C
                 Diagnostic(RudeEditKind.InsertExtern, "public static extern explicit operator int (D d)", CSharpFeaturesResources.conversion_operator));
         }
 
-        [Fact, WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
         public void NestedType_Insert_VirtualAbstract()
         {
             var src1 = @"
@@ -5234,7 +5234,7 @@ class D<T>
                 Diagnostic(RudeEditKind.Insert, "B = 2", FeaturesResources.enum_value));
         }
 
-        [Fact, WorkItem(50876, "https://github.com/dotnet/roslyn/issues/50876")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50876")]
         public void NestedEnumInPartialType_InsertDelete()
         {
             var srcA1 = "partial struct S { }";
@@ -5251,7 +5251,7 @@ class D<T>
                 });
         }
 
-        [Fact, WorkItem(50876, "https://github.com/dotnet/roslyn/issues/50876")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50876")]
         public void NestedEnumInPartialType_InsertDeleteAndUpdateMember()
         {
             var srcA1 = "partial struct S { }";
@@ -5273,7 +5273,7 @@ class D<T>
                 });
         }
 
-        [Fact, WorkItem(50876, "https://github.com/dotnet/roslyn/issues/50876")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50876")]
         public void NestedEnumInPartialType_InsertDeleteAndUpdateBase()
         {
             var srcA1 = "partial struct S { }";
@@ -5295,7 +5295,7 @@ class D<T>
                 });
         }
 
-        [Fact, WorkItem(50876, "https://github.com/dotnet/roslyn/issues/50876")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50876")]
         public void NestedEnumInPartialType_InsertDeleteAndInsertMember()
         {
             var srcA1 = "partial struct S { }";
@@ -6514,7 +6514,7 @@ partial class C
                 });
         }
 
-        [Fact, WorkItem(51011, "https://github.com/dotnet/roslyn/issues/51011")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51011")]
         public void PartialMember_RenameInsertDelete()
         {
             var srcA1 = "partial class C { void F1() {} }";
@@ -7106,7 +7106,7 @@ class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"), preserveLocalVariables: false) });
         }
 
-        [Fact, WorkItem(51297, "https://github.com/dotnet/roslyn/issues/51297")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
         public void MethodWithExpressionBody_Update_LiftedParameter()
         {
             var src1 = @"
@@ -7324,7 +7324,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Fact, WorkItem(754853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
         public void MethodDelete_WithParameterAndAttribute()
         {
             var src1 = @"
@@ -7351,7 +7351,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Fact, WorkItem(754853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
         public void MethodDelete_PInvoke()
         {
             var src1 = @"
@@ -7429,7 +7429,7 @@ class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Fact, WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784")]
         public void PrivateMethodInsert_WithParameters()
         {
             var src1 = @"
@@ -7467,7 +7467,7 @@ class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Fact, WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784")]
         public void PrivateMethodInsert_WithAttribute()
         {
             var src1 = @"
@@ -7559,7 +7559,7 @@ class C
                 Diagnostic(RudeEditKind.InsertVirtual, "public override void F()", FeaturesResources.method));
         }
 
-        [Fact, WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
         public void ExternMethodInsert()
         {
             var src1 = @"
@@ -7592,7 +7592,7 @@ class C
                 Diagnostic(RudeEditKind.InsertExtern, "private static extern int puts(string c)", FeaturesResources.method));
         }
 
-        [Fact, WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
         public void ExternMethodDeleteInsert()
         {
             var srcA1 = @"
@@ -7636,7 +7636,7 @@ class C
                 });
         }
 
-        [Fact, WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
         public void ExternMethod_Attribute_DeleteInsert()
         {
             var srcA1 = @"
@@ -8518,7 +8518,7 @@ class Test
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Fact, WorkItem(754853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
         public void MethodUpdate_DeleteAttribute()
         {
             var src1 = @"
@@ -8662,7 +8662,7 @@ class C : I, J
                 Diagnostic(RudeEditKind.Renamed, "void Goo()", FeaturesResources.method));
         }
 
-        [Fact, WorkItem(754255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754255")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754255")]
         public void MethodUpdate_UpdateStackAlloc()
         {
             var src1 = @"
@@ -8949,7 +8949,7 @@ class C
             VerifyPreserveLocalVariables(edits, preserveLocalVariables: false);
         }
 
-        [Fact, WorkItem(1087305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087305")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087305")]
         public void MethodUpdate_LabeledStatement()
         {
             var src1 = @"
@@ -9207,7 +9207,7 @@ public class SubClass : BaseClass, IConflict
                 });
         }
 
-        [Fact, WorkItem(51011, "https://github.com/dotnet/roslyn/issues/51011")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51011")]
         public void Method_Partial_Swap_ImplementationAndDefinitionParts()
         {
             var srcA1 = "partial class C { partial void F(); }";
@@ -9778,7 +9778,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Fact, WorkItem(2068, "https://github.com/dotnet/roslyn/issues/2068")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2068")]
         public void Constructor_ExternModifier_Add()
         {
             var src1 = "class C { }";
@@ -9881,7 +9881,7 @@ class C<T>
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "public C(int a)"));
         }
 
-        [Fact, WorkItem(743552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743552")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743552")]
         public void ConstructorUpdate_AddParameter()
         {
             var src1 = @"
@@ -9947,7 +9947,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "class B", DeletedSymbolDisplay(CSharpFeaturesResources.destructor, "~B()")));
         }
 
-        [Fact, WorkItem(789577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789577")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789577")]
         public void ConstructorUpdate_AnonymousTypeInFieldInitializer()
         {
             var src1 = "class C { int a = F(new { A = 1, B = 2 }); C() { x = 1; } }";
@@ -10675,7 +10675,7 @@ partial class C : I, J
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
         }
 
-        [Fact, WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2504")]
         public void InstanceCtor_Partial_Insert_Parameterless_LambdaInInitializer1()
         {
             var src1 = @"
@@ -10726,7 +10726,7 @@ partial class C
             //    new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
         }
 
-        [Fact, WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2504")]
         public void InstanceCtor_Partial_Insert_WithParameters_LambdaInInitializer1()
         {
             var src1 = @"
@@ -11121,7 +11121,7 @@ partial class C
                 });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Constructor_BlockBodyToExpressionBody()
         {
             var src1 = @"
@@ -11152,7 +11152,7 @@ public class C
                 });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void ConstructorWithInitializer_BlockBodyToExpressionBody()
         {
             var src1 = @"
@@ -11183,7 +11183,7 @@ public class C : B
                 });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Constructor_ExpressionBodyToBlockBody()
         {
             var src1 = @"
@@ -11214,7 +11214,7 @@ public class C
                 });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void ConstructorWithInitializer_ExpressionBodyToBlockBody()
         {
             var src1 = @"
@@ -11245,7 +11245,7 @@ public class C : B
                 });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Destructor_BlockBodyToExpressionBody()
         {
             var src1 = @"
@@ -11272,7 +11272,7 @@ public class C
                 });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Destructor_ExpressionBodyToBlockBody()
         {
             var src1 = @"
@@ -11889,8 +11889,8 @@ public class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
         }
 
-        [Fact, WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43099")]
         public void FieldInitializerUpdate_SwitchExpressionInConstructor()
         {
             var src1 = "class C { int a = 1; public C() { var b = a switch { 0 => 0, _ => 1 }; } }";
@@ -11938,8 +11938,8 @@ public class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
         }
 
-        [Fact, WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43099")]
         public void PropertyInitializerUpdate_SwitchExpressionInConstructor1()
         {
             var src1 = "class C { int a { get; } = 1; public C() { var b = a switch { 0 => 0, _ => 1 }; } }";
@@ -11950,8 +11950,8 @@ public class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact, WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43099")]
         public void PropertyInitializerUpdate_SwitchExpressionInConstructor2()
         {
             var src1 = "class C { int a { get; } = 1; public C() : this(1) { var b = a switch { 0 => 0, _ => 1 }; } public C(int a) { } }";
@@ -11962,8 +11962,8 @@ public class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact, WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43099")]
         public void PropertyInitializerUpdate_SwitchExpressionInConstructor3()
         {
             var src1 = "class C { int a { get; } = 1; public C() { } public C(int b) { var b = a switch { 0 => 0, _ => 1 }; } }";
@@ -13071,7 +13071,7 @@ partial class C
                 Diagnostic(RudeEditKind.FixedSizeFieldUpdate, "b[3]", FeaturesResources.field));
         }
 
-        [Fact, WorkItem(1120407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120407")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120407")]
         public void Field_Const_Update()
         {
             var src1 = "class C { const int x = 0; }";
@@ -13365,7 +13365,7 @@ class C
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Fact, WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2504")]
         public void Field_Insert_ParameterlessConstructorInsert_WithInitializersAndLambdas()
         {
             var src1 = @"
@@ -13411,7 +13411,7 @@ class C
             //    });
         }
 
-        [Fact, WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2504")]
         public void Field_Insert_ConstructorInsert_WithInitializersAndLambdas1()
         {
             var src1 = @"
@@ -13456,7 +13456,7 @@ class C
             //    });
         }
 
-        [Fact, WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2504")]
         public void Field_Insert_ConstructorInsert_WithInitializersButNoExistingLambdas1()
         {
             var src1 = @"
@@ -13958,7 +13958,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(48628, "https://github.com/dotnet/roslyn/issues/48628")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48628")]
         public void Property_ExpressionBody_ModifierUpdate()
         {
             var src1 = "class C { int P => 1; }";
@@ -14059,7 +14059,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Property_ExpressionBodyToGetterExpressionBody()
         {
             var src1 = "class C { int P => 1; }";
@@ -14078,7 +14078,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Property_GetterExpressionBodyToExpressionBody()
         {
             var src1 = "class C { int P { get => 2; } }";
@@ -14097,7 +14097,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Property_GetterBlockBodyToGetterExpressionBody()
         {
             var src1 = "class C { int P { get { return 2; } } }";
@@ -14113,7 +14113,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Property_SetterBlockBodyToSetterExpressionBody()
         {
             var src1 = "class C { int P { set { } } }";
@@ -14129,7 +14129,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Property_InitBlockBodyToInitExpressionBody()
         {
             var src1 = "class C { int P { init { } } }";
@@ -14145,7 +14145,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Property_GetterExpressionBodyToGetterBlockBody()
         {
             var src1 = "class C { int P { get => 2; } }";
@@ -14161,7 +14161,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Property_GetterBlockBodyWithSetterToGetterExpressionBodyWithSetter()
         {
             var src1 = "class C { int P { get => 2;         set { Console.WriteLine(0); } } }";
@@ -14177,7 +14177,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Property_GetterExpressionBodyWithSetterToGetterBlockBodyWithSetter()
         {
             var src1 = "class C { int P { get { return 2; } set { Console.WriteLine(0); } } }";
@@ -14581,7 +14581,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Fact, WorkItem(992578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992578")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992578")]
         public void Property_Insert_Incomplete()
         {
             var src1 = "class C { }";
@@ -14595,7 +14595,7 @@ class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Fact, WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
         public void Property_Insert_PInvoke()
         {
             var src1 = @"
@@ -14748,7 +14748,7 @@ class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Fact, WorkItem(755975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755975")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755975")]
         public void Property_Private_AccessorDelete()
         {
             var src1 = "class C { int _p; int P { get { return 1; } set { _p = value; } } }";
@@ -14850,7 +14850,7 @@ class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Fact, WorkItem(755975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755975")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755975")]
         public void Property_Auto_Private_AccessorDelete_Get()
         {
             var src1 = "class C { int P { get; set; } }";
@@ -15292,7 +15292,7 @@ readonly struct S
             });
         }
 
-        [Fact, WorkItem(51297, "https://github.com/dotnet/roslyn/issues/51297")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
         public void IndexerWithExpressionBody_Update_LiftedParameter()
         {
             var src1 = @"
@@ -15321,7 +15321,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
         }
 
-        [Fact, WorkItem(51297, "https://github.com/dotnet/roslyn/issues/51297")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
         public void IndexerWithExpressionBody_Update_LiftedParameter_2()
         {
             var src1 = @"
@@ -15350,7 +15350,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
         }
 
-        [Fact, WorkItem(51297, "https://github.com/dotnet/roslyn/issues/51297")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
         public void IndexerWithExpressionBody_Update_LiftedParameter_3()
         {
             var src1 = @"
@@ -15379,7 +15379,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
         }
 
-        [Fact, WorkItem(51297, "https://github.com/dotnet/roslyn/issues/51297")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
         public void IndexerWithExpressionBody_Update_LiftedParameter_4()
         {
             var src1 = @"
@@ -15408,7 +15408,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Indexer_ExpressionBodyToBlockBody()
         {
             var src1 = "class C { int this[int a] => 1; }";
@@ -15428,7 +15428,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Indexer_BlockBodyToExpressionBody()
         {
             var src1 = "class C { int this[int a] { get { return 1; } } }";
@@ -15448,7 +15448,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Indexer_GetterExpressionBodyToBlockBody()
         {
             var src1 = "class C { int this[int a] { get => 1; } }";
@@ -15464,7 +15464,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Indexer_BlockBodyToGetterExpressionBody()
         {
             var src1 = "class C { int this[int a] { get { return 1; } } }";
@@ -15475,7 +15475,7 @@ class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Indexer_GetterExpressionBodyToExpressionBody()
         {
             var src1 = "class C { int this[int a] { get => 1; } }";
@@ -15495,7 +15495,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Indexer_ExpressionBodyToGetterExpressionBody()
         {
             var src1 = "class C { int this[int a] => 1; }";
@@ -15514,7 +15514,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Indexer_GetterBlockBodyToGetterExpressionBody()
         {
             var src1 = "class C { int this[int a] { get { return 1; } set { Console.WriteLine(0); } } }";
@@ -15530,7 +15530,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Indexer_SetterBlockBodyToSetterExpressionBody()
         {
             var src1 = "class C { int this[int a] { set { } } void F() { } }";
@@ -15547,7 +15547,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Indexer_InitBlockBodyToInitExpressionBody()
         {
             var src1 = "class C { int this[int a] { init { } } void F() { } }";
@@ -15564,7 +15564,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Indexer_GetterExpressionBodyToGetterBlockBody()
         {
             var src1 = "class C { int this[int a] { get => 1; set { Console.WriteLine(0); } } }";
@@ -15581,7 +15581,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Indexer_GetterAndSetterBlockBodiesToExpressionBody()
         {
             var src1 = "class C { int this[int a] { get { return 1; } set { Console.WriteLine(0); } } }";
@@ -15604,7 +15604,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Indexer_ExpressionBodyToGetterAndSetterBlockBodies()
         {
             var src1 = "class C { int this[int a] => 1; }";
@@ -15948,7 +15948,7 @@ class C<T>
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Fact, WorkItem(750109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750109")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750109")]
         public void Indexer_DeleteGetAccessor()
         {
             var src1 = @"
@@ -16001,7 +16001,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Fact, WorkItem(1174850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174850")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174850")]
         public void Indexer_Insert()
         {
             var src1 = "struct C { }";
@@ -16160,7 +16160,7 @@ class C
                 });
         }
 
-        [Fact, WorkItem(51297, "https://github.com/dotnet/roslyn/issues/51297")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
         public void IndexerWithExpressionBody_Partial_InsertDeleteUpdate_LiftedParameter()
         {
             var srcA1 = @"
@@ -16423,7 +16423,7 @@ class C
             edits.VerifySemanticDiagnostics(capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Event_ExpressionBodyToBlockBody()
         {
             var src1 = @"
@@ -16450,7 +16450,7 @@ public class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
         public void Event_BlockBodyToExpressionBody()
         {
             var src1 = @"

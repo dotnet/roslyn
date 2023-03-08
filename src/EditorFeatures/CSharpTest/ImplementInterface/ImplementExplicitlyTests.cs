@@ -563,7 +563,7 @@ class C : IGoo, IBar
 }", index: SingleMember);
         }
 
-        [Fact, WorkItem(52020, "https://github.com/dotnet/roslyn/issues/52020")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
         public async Task TestWithContraints()
         {
             await TestInRegularAndScriptAsync(
@@ -593,7 +593,7 @@ class Repro : IRepro
 }");
         }
 
-        [Fact, WorkItem(52020, "https://github.com/dotnet/roslyn/issues/52020")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
         public async Task TestWithDefaultParameterValues()
         {
             await TestInRegularAndScriptAsync(
@@ -623,7 +623,7 @@ class Repro : IRepro
 }");
         }
 
-        [Fact, WorkItem(52020, "https://github.com/dotnet/roslyn/issues/52020")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
         public async Task TestWithMismatchedDefaultParameterValues()
         {
             await TestInRegularAndScriptAsync(
@@ -653,7 +653,7 @@ class Repro : IRepro
 }");
         }
 
-        [Fact, WorkItem(52020, "https://github.com/dotnet/roslyn/issues/52020")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
         public async Task TestWithMismatchedDefault1()
         {
             await TestInRegularAndScriptAsync(
@@ -683,7 +683,7 @@ class Repro : IRepro
 }");
         }
 
-        [Fact, WorkItem(52020, "https://github.com/dotnet/roslyn/issues/52020")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
         public async Task TestWithMismatchedDefault2()
         {
             await TestInRegularAndScriptAsync(

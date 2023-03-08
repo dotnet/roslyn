@@ -1148,7 +1148,7 @@ internal class MyBase
             }.RunAsync();
         }
 
-        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
         public async Task TestUsingsInsideNamespace()
         {
             var input = @"// this is my document header
@@ -1214,7 +1214,7 @@ internal class MyBase
             }.RunAsync();
         }
 
-        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
         public async Task TestUsingsInsideNamespace_FileScopedNamespace()
         {
             var input = @"// this is my document header
@@ -1281,7 +1281,7 @@ namespace ConsoleApp185
             }.RunAsync();
         }
 
-        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
         public async Task TestUsingsInsideNamespace_NoNamespace()
         {
             var input = @"
@@ -1334,7 +1334,7 @@ internal class MyBase
             }.RunAsync();
         }
 
-        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
         public async Task TestUsingsInsideNamespace_MultipleNamespaces()
         {
             var input = @"
@@ -2561,7 +2561,7 @@ class Test : MyBase
             }.RunAsync();
         }
 
-        [Fact, WorkItem(55871, "https://github.com/dotnet/roslyn/issues/55871")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55871")]
         public async Task TestGenericClass()
         {
             var input = @"using System.Collections.Generic;
@@ -2703,7 +2703,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(63315, "https://github.com/dotnet/roslyn/issues/63315")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63315")]
         public async Task TestMethodInsideNamespace_NoException()
         {
             var code = """
@@ -2736,7 +2736,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(55610, "https://github.com/dotnet/roslyn/issues/55610")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55610")]
         public async Task TestMultipleMethodsSelected_WithTypeContainingBaseClass()
         {
             var code = """
@@ -2759,7 +2759,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(55610, "https://github.com/dotnet/roslyn/issues/55610")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55610")]
         public async Task TestClassSelected_WithTypeContainingBaseClass()
         {
             var code = """
@@ -2824,7 +2824,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(55402, "https://github.com/dotnet/roslyn/issues/55402")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55402")]
         public async Task TestMemberKeyword()
         {
             var code = """

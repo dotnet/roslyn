@@ -62,7 +62,7 @@ using System.Collections;
             await VerifyItemExistsAsync(markup, "IList");
         }
 
-        [Fact, WorkItem(459044, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=459044")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=459044")]
         public async Task TestInMisplacedUsing()
         {
             var markup = @"

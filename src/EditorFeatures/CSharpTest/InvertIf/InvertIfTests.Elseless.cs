@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, WorkItem(40909, "https://github.com/dotnet/roslyn/issues/40909")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40909")]
         public async Task IfWithoutElse_MoveIfBodyToElseClause8()
         {
             await TestInRegularAndScriptAsync(

@@ -593,7 +593,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29746")>
         Public Async Function FieldReturnedInMethod() As Task
             Await TestInRegularAndScript1Async(
 "Class C
@@ -616,7 +616,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29746")>
         Public Async Function FieldReadInMethod() As Task
             Await TestInRegularAndScript1Async(
 "Class C
@@ -751,7 +751,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, WorkItem(26262, "https://github.com/dotnet/roslyn/issues/26262")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26262")>
         Public Async Function CopyPassedAsByRefParameter() As Task
             Await TestInRegularAndScript1Async(
 "Class C
@@ -910,7 +910,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(26850, "https://github.com/dotnet/roslyn/issues/26850")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26850")>
         Public Async Function FieldNotAssigned_FieldPartiallyDeclaredWithDim() As Task
             Await TestInRegularAndScript1Async(
 "Class C
@@ -921,7 +921,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(29373, "https://github.com/dotnet/roslyn/issues/29373")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29373")>
         Public Async Function FieldIsReDimOperand() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -932,7 +932,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, WorkItem(29373, "https://github.com/dotnet/roslyn/issues/29373")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29373")>
         Public Async Function FieldIsReDimPreserveOperand() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -943,7 +943,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, WorkItem(29373, "https://github.com/dotnet/roslyn/issues/29373")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29373")>
         Public Async Function FieldIsRedimIndex() As Task
             Await TestInRegularAndScript1Async(
 "Class C
@@ -960,7 +960,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(42760, "https://github.com/dotnet/roslyn/issues/42760")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42760")>
         Public Async Function WithThreadStaticAttribute_NoDiagnostic() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -971,7 +971,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")>
         Public Async Function ShouldNotWarnForDataMemberFieldsInDataContractClasses() As Task
             Dim initialMarkup =
                 <Workspace>
@@ -989,7 +989,7 @@ End Class
             Await TestMissingAsync(initialMarkup)
         End Function
 
-        <Fact, WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")>
         Public Async Function ShouldWarnForDataMemberFieldsInNonDataContractClasses() As Task
             Dim initialMarkup =
                 <Workspace>
@@ -1017,7 +1017,7 @@ End Class
             Await TestInRegularAndScript1Async(initialMarkup, expectedMarkup)
         End Function
 
-        <Fact, WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")>
         Public Async Function ShouldWarnForPrivateNonDataMemberFieldsInDataContractClasses() As Task
             Dim initialMarkup =
                 <Workspace>
@@ -1051,7 +1051,7 @@ End Class
             Await TestInRegularAndScript1Async(initialMarkup, expectedMarkup)
         End Function
 
-        <Fact, WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")>
         Public Async Function ShouldNotWarnForPublicImplicitDataMemberFieldsInDataContractClasses() As Task
             Dim initialMarkup =
                 <Workspace>
@@ -1068,7 +1068,7 @@ End Class
             Await TestMissingAsync(initialMarkup)
         End Function
 
-        <Fact, WorkItem(59720, "https://github.com/dotnet/roslyn/issues/59720")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59720")>
         Public Async Function TestForToLoop() As Task
             Dim initialMarkup =
                 <Workspace>
@@ -1088,7 +1088,7 @@ End Module
             Await TestMissingAsync(initialMarkup)
         End Function
 
-        <Fact, WorkItem(59720, "https://github.com/dotnet/roslyn/issues/59720")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59720")>
         Public Async Function TestForToLoop_ReadAsInitialValue() As Task
             Dim initialMarkup =
                 <Workspace>

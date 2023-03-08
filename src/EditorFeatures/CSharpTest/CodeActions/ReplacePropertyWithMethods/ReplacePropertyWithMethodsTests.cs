@@ -584,7 +584,7 @@ class D
 }");
         }
 
-        [Fact, WorkItem(41159, "https://github.com/dotnet/roslyn/issues/41159")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41159")]
         public async Task TestCompoundAssign3()
         {
             await TestInRegularAndScriptAsync(
@@ -626,7 +626,7 @@ class D
 }");
         }
 
-        [Fact, WorkItem(41159, "https://github.com/dotnet/roslyn/issues/41159")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41159")]
         public async Task TestCompoundAssign4()
         {
             await TestInRegularAndScriptAsync(
@@ -668,7 +668,7 @@ class D
 }");
         }
 
-        [Fact, WorkItem(41159, "https://github.com/dotnet/roslyn/issues/41159")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41159")]
         public async Task TestCompoundAssign5()
         {
             await TestInRegularAndScriptAsync(
@@ -1275,7 +1275,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(16157, "https://github.com/dotnet/roslyn/issues/16157")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16157")]
         public async Task TestWithConditionalBinding1()
         {
             await TestInRegularAndScriptAsync(
@@ -1307,7 +1307,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle1()
         {
             await TestInRegularAndScriptAsync(
@@ -1328,7 +1328,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle2()
         {
             await TestInRegularAndScriptAsync(
@@ -1355,7 +1355,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle3()
         {
             await TestInRegularAndScriptAsync(
@@ -1376,7 +1376,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle4()
         {
             await TestInRegularAndScriptAsync(
@@ -1391,7 +1391,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle5()
         {
             await TestInRegularAndScriptAsync(
@@ -1408,7 +1408,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle6()
         {
             await TestInRegularAndScriptAsync(
@@ -1426,7 +1426,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle7()
         {
             await TestInRegularAndScriptAsync(
@@ -1452,7 +1452,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
         public async Task TestDocumentationComment1()
         {
             await TestInRegularAndScriptAsync(
@@ -1482,7 +1482,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
         public async Task TestDocumentationComment2()
         {
             await TestInRegularAndScriptAsync(
@@ -1512,7 +1512,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
         public async Task TestDocumentationComment3()
         {
             await TestInRegularAndScriptAsync(
@@ -1550,7 +1550,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
         public async Task TestDocumentationComment4()
         {
             await TestInRegularAndScriptAsync(
@@ -1586,7 +1586,7 @@ internal struct AStruct
         }
 
         [Fact]
-        [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
         public async Task TestDocumentationComment5()
         {
             await TestInRegularAndScriptAsync(
@@ -1628,7 +1628,7 @@ internal struct AStruct
         }
 
         [Fact]
-        [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
         public async Task TestDocumentationComment6()
         {
             await TestInRegularAndScriptAsync(
@@ -1658,7 +1658,7 @@ internal struct AStruct
         }
 
         [Fact]
-        [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
         public async Task TestWithDirectives1()
         {
             await TestInRegularAndScriptAsync(
@@ -1690,7 +1690,7 @@ internal struct AStruct
         }
 
         [Fact]
-        [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
         public async Task TestWithDirectives2()
         {
             await TestInRegularAndScriptAsync(
@@ -1721,7 +1721,7 @@ internal struct AStruct
         }
 
         [Fact]
-        [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
         public async Task TestWithDirectives3()
         {
             await TestInRegularAndScriptAsync(
@@ -1746,7 +1746,7 @@ internal struct AStruct
         }
 
         [Fact]
-        [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
         public async Task TestWithDirectives4()
         {
             await TestInRegularAndScriptAsync(
@@ -1772,7 +1772,7 @@ internal struct AStruct
         }
 
         [Fact]
-        [WorkItem(440371, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")]
         public async Task TestExplicitInterfaceImplementation()
         {
             await TestInRegularAndScriptAsync(
@@ -1816,7 +1816,7 @@ class C : IGoo
         }
 
         [Fact]
-        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
         public async Task TestUnsafeExpressionBody()
         {
             await TestInRegularAndScriptAsync(
@@ -1834,7 +1834,7 @@ class C : IGoo
         }
 
         [Fact]
-        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
         public async Task TestUnsafeAutoProperty()
         {
             await TestInRegularAndScriptAsync(
@@ -1859,7 +1859,7 @@ class C : IGoo
         }
 
         [Fact]
-        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
         public async Task TestUnsafeSafeType()
         {
             await TestInRegularAndScriptAsync(
@@ -1884,7 +1884,7 @@ class C : IGoo
         }
 
         [Fact]
-        [WorkItem(22760, "https://github.com/dotnet/roslyn/issues/22760")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22760")]
         public async Task QualifyFieldAccessWhenNecessary1()
         {
             await TestInRegularAndScriptAsync(
@@ -1914,7 +1914,7 @@ class C : IGoo
         }
 
         [Fact]
-        [WorkItem(22760, "https://github.com/dotnet/roslyn/issues/22760")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22760")]
         public async Task QualifyFieldAccessWhenNecessary2()
         {
             await TestInRegularAndScriptAsync(
@@ -1944,7 +1944,7 @@ class C : IGoo
         }
 
         [Fact]
-        [WorkItem(22760, "https://github.com/dotnet/roslyn/issues/22760")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22760")]
         public async Task QualifyFieldAccessWhenNecessary3()
         {
             await TestInRegularAndScriptAsync(
@@ -1974,7 +1974,7 @@ class C : IGoo
         }
 
         [Fact]
-        [WorkItem(45171, "https://github.com/dotnet/roslyn/issues/45171")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45171")]
         public async Task TestReferenceInObjectInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -2018,7 +2018,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(45171, "https://github.com/dotnet/roslyn/issues/45171")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45171")]
         public async Task TestReferenceInImplicitObjectInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -2062,7 +2062,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(45171, "https://github.com/dotnet/roslyn/issues/45171")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45171")]
         public async Task TestReferenceInWithInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -2106,7 +2106,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(57376, "https://github.com/dotnet/roslyn/issues/57376")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57376")]
         public async Task TestInLinkedFile()
         {
             await TestInRegularAndScriptAsync(
@@ -2157,7 +2157,7 @@ class C
 </Workspace>");
         }
 
-        [Fact, WorkItem(25367, "https://github.com/dotnet/roslyn/issues/25367")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25367")]
         public async Task TestAccessorAttributes1()
         {
             await TestInRegularAndScriptAsync(
@@ -2193,7 +2193,7 @@ class Program
 ");
         }
 
-        [Fact, WorkItem(25367, "https://github.com/dotnet/roslyn/issues/25367")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25367")]
         public async Task TestAccessorAttributes2()
         {
             await TestInRegularAndScriptAsync(

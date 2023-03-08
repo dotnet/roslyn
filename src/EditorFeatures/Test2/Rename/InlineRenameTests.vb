@@ -112,7 +112,7 @@ class C
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(46208, "https://github.com/dotnet/roslyn/issues/46208")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/46208")>
         Public Async Function RenameWithInvalidIdentifier(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -143,7 +143,7 @@ class [|Test1$$|]
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(22495, "https://github.com/dotnet/roslyn/issues/22495")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/22495")>
         Public Async Function RenameDeconstructionForeachCollection(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -200,7 +200,7 @@ class Deconstructable
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(540120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540120")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540120")>
         Public Async Function SimpleEditAndVerifyTagsPropagatedAndCommit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -277,7 +277,7 @@ class Deconstructable
 
         <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/13186")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(700921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700921")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700921")>
         Public Async Function RenameOverloadsCSharp(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -311,7 +311,7 @@ class Program
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(700921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700921")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700921")>
         Public Async Function RenameOverloadsVisualBasic(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -353,7 +353,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(960955, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960955")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960955")>
         Public Async Function RenameParameterShouldNotAffectCommentsInOtherDocuments(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -379,7 +379,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(1040098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
         Public Async Function RenameInLinkedFilesDoesNotCrash(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -402,7 +402,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(1040098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
         Public Async Function RenameInLinkedFilesHandlesBothProjects(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -429,7 +429,7 @@ public partial class C { }
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(1040098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
         Public Async Function RenameInLinkedFilesWithPrivateAccessibility(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -461,7 +461,7 @@ public partial class C { }
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(1040098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
         Public Async Function RenameInLinkedFilesWithPublicAccessibility(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -493,7 +493,7 @@ public partial class C { }
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(3623, "https://github.com/dotnet/roslyn/issues/3623")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3623")>
         Public Async Function RenameTypeInLinkedFiles(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -515,8 +515,8 @@ public class [|$$C|] { }
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925"), WorkItem(1486, "https://github.com/dotnet/roslyn/issues/1486")>
-        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925"), WorkItem("https://github.com/dotnet/roslyn/issues/1486")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44288")>
         Public Async Function RenameInCommentsAndStringsCSharp(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -623,8 +623,8 @@ class Program
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925"), WorkItem(1486, "https://github.com/dotnet/roslyn/issues/1486")>
-        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925"), WorkItem("https://github.com/dotnet/roslyn/issues/1486")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44288")>
         Public Async Function RenameInCommentsAndStringsVisualBasic(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -760,7 +760,7 @@ End Class
             End Using
         End Sub
 
-        <WpfTheory, WorkItem(539513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539513")>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539513")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function CanRenameTypeNamedDynamic(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -829,7 +829,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(543018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543018")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543018")>
         Public Sub ReadOnlyRegionsCreatedWhichHandleBeginningOfFileEdgeCase(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -888,7 +888,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(530467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530467")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530467")>
         Public Async Function VerifyNoRenameTrackingAfterInlineRenameTyping(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -960,7 +960,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(579210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579210")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579210")>
         Public Async Function VerifyNoRenameTrackingAfterInlineRenameCommit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -998,7 +998,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(530765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530765")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530765")>
         Public Async Function VerifyNoRenameTrackingAfterInlineRenameCancel(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -1074,7 +1074,7 @@ End Class
             End Using
         End Function
 
-        <WpfTheory, WorkItem(978099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/978099")>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/978099")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function VerifyPreviewChangesCalled(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1247,7 +1247,7 @@ End Class
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
-        <WorkItem(554, "https://github.com/dotnet/roslyn/issues/554")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/554")>
         Public Async Function CodeActionCannotCommitDuringInlineRename(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -1484,7 +1484,7 @@ class C
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(3316, "https://github.com/dotnet/roslyn/issues/3316")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3316")>
         Public Async Function InvalidInvocationExpression(host As RenameTestHost) As Task
             ' Everything on the last line of main is parsed as a single invocation expression
             ' with CType(...) as the receiver and everything else as arguments.
@@ -1519,7 +1519,7 @@ End Module
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(2445, "https://github.com/dotnet/roslyn/issues/2445")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2445")>
         Public Async Function InvalidExpansionTarget(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -1549,7 +1549,7 @@ End Module
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(9117, "https://github.com/dotnet/roslyn/issues/9117")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/9117")>
         Public Async Function VerifyVBRenameCrashDoesNotRepro(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -1593,7 +1593,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(14554, "https://github.com/dotnet/roslyn/issues/14554")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14554")>
         Public Sub VerifyVBRenameDoesNotCrashOnAsNewClause(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                                 <Workspace>
@@ -1858,7 +1858,7 @@ class [|$$Test1|]
             End Using
         End Sub
 
-        <WpfTheory, WorkItem(36063, "https://github.com/dotnet/roslyn/issues/36063")>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/36063")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function EditBackToOriginalNameThenCommit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1892,7 +1892,7 @@ class [|$$Test1|]
             End Using
         End Function
 
-        <WpfTheory, WorkItem(44576, "https://github.com/dotnet/roslyn/issues/44576")>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/44576")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameFromOtherFile(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1922,7 +1922,7 @@ class [|$$Test1|]
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44288")>
         Public Async Function RenameConstructorReferencedInGlobalSuppression(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -2344,7 +2344,7 @@ class [|C|]
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(66208, "https://github.com/dotnet/roslyn/issues/66208")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66208")>
         Public Async Function RenameWithGeneratedFile(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>

@@ -44,7 +44,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, WorkItem(527481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527481")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527481")>
         Public Sub VerifyIndexMatchedInner1()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
@@ -57,7 +57,7 @@ End Class",
                  caret:={3, -1})
         End Sub
 
-        <WpfFact, WorkItem(527481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527481")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527481")>
         Public Sub TestVerifyIndexMatchedInner2()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -80,7 +80,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, WorkItem(527481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527481")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527481")>
         Public Sub VerifyIndexSharedNext()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1

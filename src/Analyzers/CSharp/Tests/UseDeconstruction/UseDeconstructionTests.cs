@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
                 """);
         }
 
-        [Fact, WorkItem(25260, "https://github.com/dotnet/roslyn/issues/25260")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25260")]
         public async Task TestNotWithDefaultLiteralInitializer()
         {
             await new VerifyCS.Test()
@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
                 """);
         }
 
-        [Fact, WorkItem(27251, "https://github.com/dotnet/roslyn/issues/27251")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27251")]
         public async Task TestEscapedContextualKeywordAsTupleName()
         {
             await new VerifyCS.Test()
@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
             }.RunAsync();
         }
 
-        [Fact, WorkItem(42770, "https://github.com/dotnet/roslyn/issues/42770")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42770")]
         public async Task TestPreserveAwait()
         {
             await new VerifyCS.Test
@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
             }.RunAsync();
         }
 
-        [Fact, WorkItem(66994, "https://github.com/dotnet/roslyn/issues/66994")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66994")]
         public async Task TestTopLevelDeconstruct1()
         {
             await new VerifyCS.Test()
@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
             }.RunAsync();
         }
 
-        [Fact, WorkItem(66994, "https://github.com/dotnet/roslyn/issues/66994")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66994")]
         public async Task TestTopLevelDeconstruct2()
         {
             await new VerifyCS.Test

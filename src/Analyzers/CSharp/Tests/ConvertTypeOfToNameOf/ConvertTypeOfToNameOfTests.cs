@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
             await VerifyCS.VerifyCodeFixAsync(text, text);
         }
 
-        [Fact, WorkItem(47129, "https://github.com/dotnet/roslyn/issues/47129")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
         public async Task NestedInGenericType()
         {
             var text = """
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
             await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
-        [Fact, WorkItem(47129, "https://github.com/dotnet/roslyn/issues/47129")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
         public async Task NestedInGenericType2()
         {
             var text = """
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
             await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
-        [Fact, WorkItem(54233, "https://github.com/dotnet/roslyn/issues/54233")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54233")]
         public async Task NotOnVoid()
         {
             var text = """
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
             await VerifyCS.VerifyCodeFixAsync(text, text);
         }
 
-        [Fact, WorkItem(47128, "https://github.com/dotnet/roslyn/issues/47128")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47128")]
         public async Task TestNint()
         {
             await new VerifyCS.Test

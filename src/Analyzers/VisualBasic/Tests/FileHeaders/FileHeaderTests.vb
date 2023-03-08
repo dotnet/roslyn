@@ -51,7 +51,7 @@ End Namespace
         <Theory>
         <InlineData(vbLf)>
         <InlineData(vbCrLf)>
-        <WorkItem(1414432, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1414432")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1414432")>
         Public Async Function TestNoFileHeaderAsync(lineEnding As String) As Task
             Dim testCode = "[||]Namespace N
 End Namespace

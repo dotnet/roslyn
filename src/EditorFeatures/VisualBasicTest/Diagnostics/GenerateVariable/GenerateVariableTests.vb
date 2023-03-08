@@ -74,7 +74,7 @@ End Module",
 index:=2)
         End Function
 
-        <Fact, WorkItem(539692, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539692")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539692")>
         Public Async Function TestGenerateFromAssignment() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -92,7 +92,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(539694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539694")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539694")>
         Public Async Function TestGenerateReadOnlyProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -114,7 +114,7 @@ Interface IGoo
 End Interface")
         End Function
 
-        <Fact, WorkItem(539694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539694")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539694")>
         Public Async Function TestGenerateReadWriteProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -137,7 +137,7 @@ End Interface",
 index:=1)
         End Function
 
-        <Fact, WorkItem(539695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539695")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539695")>
         Public Async Function TestGenerateProtectedSharedFieldIntoBase() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Class Base
@@ -237,7 +237,7 @@ Class C
 End Class", index:=1)
         End Function
 
-        <Fact, WorkItem(539796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539796")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539796")>
         Public Async Function TestGeneratePropertyIntoModule() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -262,7 +262,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(539796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539796")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539796")>
         Public Async Function TestFieldPropertyIntoModule() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -288,7 +288,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(539848, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539848")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539848")>
         Public Async Function TestOnLeftOfMemberAccess() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -306,7 +306,7 @@ End Module",
 index:=1)
         End Function
 
-        <Fact, WorkItem(539725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539725")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539725")>
         Public Async Function TestMissingWhenInterfacePropertyAlreadyExists() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Interface IGoo
@@ -320,7 +320,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(540013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540013")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540013")>
         Public Async Function TestMissingInAddressOf() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Delegate Sub D(x As Integer)
@@ -331,7 +331,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(540578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540578")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540578")>
         Public Async Function TestInferProperReturnType() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -348,7 +348,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, WorkItem(540576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540576")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540576")>
         Public Async Function TestAssignment() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -608,7 +608,7 @@ Class C(Of T)
 End Class")
         End Function
 
-        <Fact, WorkItem(540693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540693")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540693")>
         Public Async Function TestErrorType() As Task
             Await TestInRegularAndScriptAsync(
 "Class A
@@ -718,7 +718,7 @@ End Class",
 index:=1)
         End Function
 
-        <WorkItem(528229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528229")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528229")>
         <WpfFact(Skip:="528229")>
         Public Async Function TestRefLambda() As Task
             Await TestInRegularAndScriptAsync(
@@ -876,7 +876,7 @@ Interface IGoo
 End Interface")
         End Function
 
-        <Fact, WorkItem(540703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540703")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540703")>
         Public Async Function TestDefaultProperty2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -920,7 +920,7 @@ Interface IGoo
 End Interface")
         End Function
 
-        <Fact, WorkItem(540737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540737")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540737")>
         Public Async Function TestErrorInGenericType() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Collections.Generic
@@ -946,7 +946,7 @@ Class C(Of T)
 End Class")
         End Function
 
-        <Fact, WorkItem(542241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542241")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542241")>
         Public Async Function TestFieldWithAnonymousTypeType() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -969,7 +969,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(542395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542395")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542395")>
         Public Async Function TestUnqualifiedModuleMethod1() As Task
             Await TestAsync(
 "Imports System.Runtime.CompilerServices
@@ -999,7 +999,7 @@ End Module",
 parseOptions:=Nothing) ' TODO (tomat): Modules nested in Script class not supported yet
         End Function
 
-        <Fact, WorkItem(542395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542395")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542395")>
         Public Async Function TestUnqualifiedModuleMethod2() As Task
             Await TestAsync(
 "Imports System.Runtime.CompilerServices
@@ -1031,7 +1031,7 @@ End Module",
 parseOptions:=Nothing) ' TODO (tomat): Modules nested in Script class not supported yet)
         End Function
 
-        <Fact, WorkItem(542942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542942")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542942")>
         Public Async Function TestInsideLambda() As Task
             Await TestInRegularAndScriptAsync(
 "Module P
@@ -1052,7 +1052,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, WorkItem(544632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544632")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544632")>
         Public Async Function TestMissingOnForEachExpression() As Task
             Await TestMissingInRegularAndScriptAsync(
 <Text>
@@ -1134,7 +1134,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, WorkItem(809542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")>
         Public Async Function TestGenerateLocalBeforeComment() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1160,7 +1160,7 @@ Module Program
 End Module", index:=2)
         End Function
 
-        <Fact, WorkItem(809542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")>
         Public Async Function TestGenerateLocalAfterComment() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1188,7 +1188,7 @@ Module Program
 End Module", index:=2)
         End Function
 
-        <Fact, WorkItem(545218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545218")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545218")>
         Public Async Function TestTypeForLocal() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -1230,7 +1230,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(545400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545400")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545400")>
         Public Async Function TestGenerateLocalInIfPart() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -1250,7 +1250,7 @@ End Module",
 index:=3)
         End Function
 
-        <Fact, WorkItem(545672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545672")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545672")>
         Public Async Function TestCrashOnAggregateSelect() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -1261,7 +1261,7 @@ index:=3)
 End Module")
         End Function
 
-        <Fact, WorkItem(546753, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546753")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546753")>
         Public Async Function TestAddressOf() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -1286,7 +1286,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(530756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530756")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530756")>
         Public Async Function TestMissingOnDictionaryAccess1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.Collections
@@ -1298,7 +1298,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(530756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530756")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530756")>
         Public Async Function TestMissingOnDictionaryAccess2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.Collections
@@ -1310,7 +1310,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(530756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530756")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530756")>
         Public Async Function TestMissingOnDictionaryAccess3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.Collections
@@ -1342,7 +1342,7 @@ End Module</Text>.Value.Replace(vbLf, vbCrLf),
 index:=2)
         End Function
 
-        <Fact, WorkItem(666189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666189")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666189")>
         Public Async Function TestGeneratePropertyInScript() As Task
             Await TestAsync(
 <Text>Dim x As Integer
@@ -1352,7 +1352,7 @@ Public Property Goo As Integer
 x = Goo</Text>.Value.Replace(vbLf, vbCrLf),
 parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
         End Function
-        <Fact, WorkItem(666189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666189")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666189")>
         Public Async Function TestGenerateFieldInScript() As Task
             Await TestAsync(
 <Text>Dim x As Integer
@@ -1364,7 +1364,7 @@ parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script),
 index:=1)
         End Function
 
-        <Fact, WorkItem(977580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/977580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/977580")>
         Public Async Function TestWithThrow() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1383,7 +1383,7 @@ Public Class A
 End Class", index:=1)
         End Function
 
-        <Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
         Public Async Function TestInsideNameOfProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1402,7 +1402,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
         Public Async Function TestInsideNameOfField() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1421,7 +1421,7 @@ Class C
 End Class", index:=1)
         End Function
 
-        <Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
         Public Async Function TestInsideNameOfReadonlyField() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1440,7 +1440,7 @@ Class C
 End Class", index:=2)
         End Function
 
-        <Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
         Public Async Function TestInsideNameOfLocal() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1458,7 +1458,7 @@ Class C
 End Class", index:=3)
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1475,7 +1475,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessProperty2() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1492,7 +1492,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessProperty3() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1509,7 +1509,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessProperty4() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1526,7 +1526,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessField() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1544,7 +1544,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessField2() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1562,7 +1562,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessField3() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1580,7 +1580,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessField4() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1598,7 +1598,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessReadOnlyField() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1616,7 +1616,7 @@ End Class",
 index:=2)
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessReadOnlyField2() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1634,7 +1634,7 @@ End Class",
 index:=2)
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessReadOnlyField3() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1652,7 +1652,7 @@ End Class",
 index:=2)
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessReadOnlyField4() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1670,7 +1670,7 @@ End Class",
 index:=2)
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessPropertyInsideReferencedClass() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1698,7 +1698,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessPropertyInsideReferencedClass2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1726,7 +1726,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessPropertyInsideReferencedClass3() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1754,7 +1754,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessPropertyInsideReferencedClass4() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1782,7 +1782,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessFieldInsideReferencedClass() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1811,7 +1811,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessFieldInsideReferencedClass2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1840,7 +1840,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessFieldInsideReferencedClass3() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1869,7 +1869,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessFieldInsideReferencedClass4() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1898,7 +1898,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessReadOnlyFieldInsideReferencedClass() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1927,7 +1927,7 @@ End Class",
 index:=2)
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessReadOnlyFieldInsideReferencedClass2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1956,7 +1956,7 @@ End Class",
 index:=2)
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessReadOnlyFieldInsideReferencedClass3() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1985,7 +1985,7 @@ End Class",
 index:=2)
         End Function
 
-        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessReadOnlyFieldInsideReferencedClass4() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2323,7 +2323,7 @@ index:=3)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        <WorkItem(1130960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
         Public Async Function TestGeneratePropertyInTypeOfIsNot() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2348,7 +2348,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(1130960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
         Public Async Function TestGenerateFieldInTypeOfIsNot() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2374,7 +2374,7 @@ End Module",
 index:=1)
         End Function
 
-        <Fact, WorkItem(1130960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
         Public Async Function TestGenerateReadOnlyFieldInTypeOfIsNot() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2400,7 +2400,7 @@ End Module",
 index:=2)
         End Function
 
-        <Fact, WorkItem(1130960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
         Public Async Function TestGenerateLocalInTypeOfIsNot() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2658,7 +2658,7 @@ end class",
 end class")
         End Function
 
-        <Fact, WorkItem(18988, "https://github.com/dotnet/roslyn/issues/18988")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18988")>
         Public Async Function GroupNonReadonlyFieldsTogether() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -2685,7 +2685,7 @@ class C
 end class")
         End Function
 
-        <Fact, WorkItem(18988, "https://github.com/dotnet/roslyn/issues/18988")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18988")>
         Public Async Function GroupReadonlyFieldsTogether() As Task
             Await TestInRegularAndScriptAsync("
 class C
@@ -2915,7 +2915,7 @@ End Class",
 count:=5)
         End Function
 
-        <Fact, WorkItem(45367, "https://github.com/dotnet/roslyn/issues/45367")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45367")>
         Public Async Function TestCrashInNamespace() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Namespace ConsoleApp5
@@ -2927,7 +2927,7 @@ count:=5)
 End Namespace")
         End Function
 
-        <Fact, WorkItem(60842, "https://github.com/dotnet/roslyn/issues/60842")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60842")>
         Public Async Function TestGenerateParameterBeforeCancellationToken_OneParameter() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading
@@ -2948,7 +2948,7 @@ Class Test
 End Class", index:=4)
         End Function
 
-        <Fact, WorkItem(60842, "https://github.com/dotnet/roslyn/issues/60842")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60842")>
         Public Async Function TestGenerateParameterBeforeCancellationToken_SeveralParameters() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading

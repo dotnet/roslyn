@@ -1154,7 +1154,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(58161, "https://github.com/dotnet/roslyn/issues/58161")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58161")]
         public async Task TestRefToSuppression1()
         {
             await TestAsync(

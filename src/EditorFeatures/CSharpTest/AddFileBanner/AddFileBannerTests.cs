@@ -117,7 +117,7 @@ class Program2
 </Workspace>");
         }
 
-        [Fact, WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33251")]
         public async Task TestSingleLineDocCommentBanner()
         {
             await TestInRegularAndScriptAsync(
@@ -168,7 +168,7 @@ class Program2
 </Workspace>");
         }
 
-        [Fact, WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33251")]
         public async Task TestMultiLineDocCommentBanner()
         {
             await TestInRegularAndScriptAsync(
@@ -344,7 +344,7 @@ class Program2
 </Workspace>");
         }
 
-        [Fact, WorkItem(32792, "https://github.com/dotnet/roslyn/issues/32792")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32792")]
         public async Task TestUpdateFileNameInComment()
         {
             await TestInRegularAndScriptAsync(
@@ -398,7 +398,7 @@ class Program2
 </Workspace>");
         }
 
-        [Fact, WorkItem(32792, "https://github.com/dotnet/roslyn/issues/32792")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32792")]
         public async Task TestUpdateFileNameInComment2()
         {
             await TestInRegularAndScriptAsync(
@@ -452,7 +452,7 @@ class Program2
 </Workspace>");
         }
 
-        [Fact, WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33251")]
         public async Task TestUpdateFileNameInComment3()
         {
             await TestInRegularAndScriptAsync(
@@ -506,7 +506,7 @@ class Program2
 </Workspace>");
         }
 
-        [Fact, WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33251")]
         public async Task TestUpdateFileNameInComment4()
         {
             await TestInRegularAndScriptAsync(

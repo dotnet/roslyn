@@ -260,7 +260,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(52397, "https://github.com/dotnet/roslyn/issues/52397")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52397")]
         public async Task TestMissingInPropertyAccess_NullCheckOnLeftSide()
         {
             await TestMissingAsync(
@@ -281,7 +281,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(52397, "https://github.com/dotnet/roslyn/issues/52397")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52397")]
         public async Task TestMissingInPropertyAccess_NullCheckOnRightSide()
         {
             await TestMissingAsync(
@@ -302,7 +302,7 @@ public class C
 }");
         }
 
-        [Theory, WorkItem(51691, "https://github.com/dotnet/roslyn/issues/51691")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/51691")]
         [InlineData("&&")]
         [InlineData("||")]
         public async Task TestMissingInPropertyAccess_EnumCheckAndNullCheck(string logicalOperator)
@@ -322,7 +322,7 @@ public class C
 }}");
         }
 
-        [Theory, WorkItem(51691, "https://github.com/dotnet/roslyn/issues/51691")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/51691")]
         [InlineData("&&")]
         [InlineData("||")]
         public async Task TestMissingInPropertyAccess_EnumCheckAndNullCheckOnOtherType(string logicalOperator)
@@ -342,7 +342,7 @@ public class C
 }}");
         }
 
-        [Theory, WorkItem(51693, "https://github.com/dotnet/roslyn/issues/51693")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/51693")]
         [InlineData("&&")]
         [InlineData("||")]
         public async Task TestMissingInPropertyAccess_IsCheckAndNullCheck(string logicalOperator)
@@ -362,7 +362,7 @@ public class C
 }}");
         }
 
-        [Theory, WorkItem(52573, "https://github.com/dotnet/roslyn/issues/52573")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/52573")]
         [InlineData("&&")]
         [InlineData("||")]
         public async Task TestMissingIntegerAndStringIndex(string logicalOperator)
@@ -477,7 +477,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57199")]
         public async Task TestMissingInNonConvertibleTypePattern1()
         {
             await TestMissingAsync(
@@ -497,7 +497,7 @@ class Test<T>
 ");
         }
 
-        [Fact, WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57199")]
         public async Task TestMissingInNonConvertibleTypePattern2()
         {
             await TestMissingAsync(
@@ -520,7 +520,7 @@ class Test<T>
 ");
         }
 
-        [Fact, WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57199")]
         public async Task TestMissingInNonConvertibleTypePattern3()
         {
             await TestMissingAsync(
@@ -541,7 +541,7 @@ class Test<T>
 ");
         }
 
-        [Fact, WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57199")]
         public async Task TestInConvertibleTypePattern()
         {
             await TestInRegularAndScriptAsync(
@@ -574,7 +574,7 @@ class Test<T>
 ");
         }
 
-        [Fact, WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57199")]
         public async Task TestInConvertibleTypePattern2()
         {
             await TestInRegularAndScriptAsync(

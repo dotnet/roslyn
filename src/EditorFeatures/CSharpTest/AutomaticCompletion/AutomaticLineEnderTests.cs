@@ -202,7 +202,7 @@ $$", "class {$$}");
 }");
         }
 
-        [WpfFact, WorkItem(57323, "https://github.com/dotnet/roslyn/issues/57323")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57323")]
         public void EmbededStatementFollowedByStatement()
         {
             Test(@"class C
@@ -273,7 +273,7 @@ $$", "class {$$}");
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedMethod()
         {
@@ -287,7 +287,7 @@ $$", "class {$$}");
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedOperator()
         {
@@ -305,7 +305,7 @@ $$", "class {$$}");
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedConversionOperator()
         {
@@ -337,7 +337,7 @@ public struct DBBool
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedProperty()
         {
@@ -351,7 +351,7 @@ public struct DBBool
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedIndexer()
         {
@@ -369,7 +369,7 @@ class SampleCollection<T>
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpression()
         {
@@ -391,7 +391,7 @@ class TestClass
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedMethodWithSingleLineBlockBodiedAnonymousMethodExpression()
         {
@@ -407,7 +407,7 @@ class TestClass
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedMethodWithBlockBodiedSimpleLambdaExpression()
         {
@@ -429,7 +429,7 @@ class TestClass
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedMethodWithExpressionBodiedSimpleLambdaExpression()
         {
@@ -445,7 +445,7 @@ class TestClass
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpressionInMethodArgs()
         {
@@ -471,7 +471,7 @@ class TestClass
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void Format_SimpleExpressionBodiedMember()
         {
@@ -485,7 +485,7 @@ class TestClass
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void Format_ExpressionBodiedMemberWithSingleLineBlock()
         {
@@ -501,7 +501,7 @@ class TestClass
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void Format_ExpressionBodiedMemberWithMultiLineBlock()
         {
@@ -622,7 +622,7 @@ $$", @"         using
 }", completionActive: true);
         }
 
-        [WorkItem(530352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530352")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530352")]
         [WpfFact]
         public void EmbededStatement3()
         {
@@ -644,7 +644,7 @@ $$", @"         using
 }");
         }
 
-        [WorkItem(530716, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530716")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530716")]
         [WpfFact]
         public void DontAssertOnMultilineToken()
         {
@@ -658,7 +658,7 @@ $$
 }");
         }
 
-        [WorkItem(530718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530718")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530718")]
         [WpfFact]
         public void AutomaticLineFormat()
         {
@@ -743,7 +743,7 @@ $$
 }");
         }
 
-        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact]
         public void DelegatedInEmptyBlock()
         {
@@ -762,7 +762,7 @@ $$
 }", assertNextHandlerInvoked: true);
         }
 
-        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact]
         public void DelegatedInEmptyBlock2()
         {
@@ -781,7 +781,7 @@ $$
 }", assertNextHandlerInvoked: true);
         }
 
-        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact]
         public void NotDelegatedOutsideEmptyBlock()
         {
@@ -801,7 +801,7 @@ $$
 }");
         }
 
-        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact]
         public void NotDelegatedAfterOpenBraceAndMissingCloseBrace()
         {
@@ -821,7 +821,7 @@ $$
 }");
         }
 
-        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact]
         public void NotDelegatedInNonEmptyBlock()
         {
@@ -841,7 +841,7 @@ $$
 }");
         }
 
-        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact]
         public void NotDelegatedAfterOpenBraceInAnonymousObjectCreationExpression()
         {
@@ -861,7 +861,7 @@ $$
 }");
         }
 
-        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact]
         public void NotDelegatedAfterOpenBraceObjectCreationExpression()
         {

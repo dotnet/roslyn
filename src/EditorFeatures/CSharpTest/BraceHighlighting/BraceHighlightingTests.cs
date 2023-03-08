@@ -532,7 +532,7 @@ class C
             await TestBraceHighlightingAsync(input);
         }
 
-        [WpfTheory, WorkItem(32791, "https://github.com/dotnet/roslyn/issues/32791")]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/32791")]
         [InlineData(@"$$ /* goo */ public class C { }")]
         [InlineData(@" $$[|/*|] goo [|*/|] public class C { }")]
         [InlineData(@" [|/$$*|] goo [|*/|] public class C { }")]
@@ -548,7 +548,7 @@ class C
             await TestBraceHighlightingAsync(input);
         }
 
-        [WpfTheory, WorkItem(32791, "https://github.com/dotnet/roslyn/issues/32791")]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/32791")]
         [InlineData(@"$$ /** goo */ public class C { }")]
         [InlineData(@" $$[|/**|] goo [|*/|] public class C { }")]
         [InlineData(@" [|/$$**|] goo [|*/|] public class C { }")]

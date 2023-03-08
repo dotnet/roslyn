@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(14391, "https://github.com/dotnet/roslyn/issues/14391")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14391")>
         Public Sub TestCommitLineWithTupleType()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -59,7 +59,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact, WorkItem(1944, "https://github.com/dotnet/roslyn/issues/1944")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/1944")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestDontCommitOnMultiLinePasteWithPrettyListingOff()
             Using testData = CommitTestData.Create(
@@ -83,7 +83,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(545493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545493")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545493")>
         Public Sub TestNoCommitOnSingleLinePaste()
             Using testData = CommitTestData.Create(<Workspace>
                                                        <Project Language="Visual Basic" CommonReferences="true">
@@ -115,7 +115,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact, WorkItem(1944, "https://github.com/dotnet/roslyn/issues/1944")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/1944")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestDontCommitOnSavePrettyListingOff()
             Using testData = CommitTestData.Create(<Workspace>
@@ -141,7 +141,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
-        <WorkItem(545493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545493")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545493")>
         Public Sub TestPerformAddMissingTokenOnFormatDocument()
             Using testData = CommitTestData.Create(<Workspace>
                                                        <Project Language="Visual Basic" CommonReferences="true">
@@ -164,7 +164,7 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
-        <WorkItem(867153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867153")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867153")>
         Public Sub TestFormatDocumentWithPrettyListingDisabled()
             Using testData = CommitTestData.Create(<Workspace>
                                                        <Project Language="Visual Basic" CommonReferences="true">

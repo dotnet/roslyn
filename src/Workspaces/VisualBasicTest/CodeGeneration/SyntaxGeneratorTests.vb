@@ -787,7 +787,7 @@ End Sub")
                 "Sub(x As y, a As b) z")
         End Sub
 
-        <Fact, WorkItem(31720, "https://github.com/dotnet/roslyn/issues/31720")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31720")>
         Public Sub TestGetAttributeOnMethodBodies()
             Dim compilation = Compile("
 Imports System
@@ -1060,7 +1060,7 @@ End Operator")
 End Operator")
         End Sub
 
-        <Fact, WorkItem(65833, "https://github.com/dotnet/roslyn/issues/65833")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65833")>
         Public Sub TestConversionOperatorDeclaration()
             Dim gcHandleType = _emptyCompilation.GetTypeByMetadataName(GetType(GCHandle).FullName)
             Dim Conversion = gcHandleType.GetMembers().OfType(Of IMethodSymbol)().Single(
@@ -1561,7 +1561,7 @@ End Interface")
 End Interface")
         End Sub
 
-        <Fact, WorkItem(66377, "https://github.com/dotnet/roslyn/issues/66377")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66377")>
         Public Sub TestInterfaceVariance()
             Dim compilation = Compile("
 interface I(of in X, out Y)
@@ -2240,7 +2240,7 @@ Delegate Sub d()")
 
         End Sub
 
-        <Fact, WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5066")>
         Public Sub TestAddAttributesOnAccessors()
             Dim prop = Generator.PropertyDeclaration("P", Generator.IdentifierName("T"))
 
@@ -2340,14 +2340,14 @@ End Enum")
 End Enum")
         End Sub
 
-        <Fact, WorkItem(66381, "https://github.com/dotnet/roslyn/issues/66381")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66381")>
         Public Sub TestDelegateDeclarationFromSymbol()
             Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("Public Delegate Sub D()"))
             Dim type = compilation.GetTypeByMetadataName("D")
             VerifySyntax(Of DelegateStatementSyntax)(Generator.Declaration(type), "Public Delegate Sub D()")
         End Sub
 
-        <Fact, WorkItem(65835, "https://github.com/dotnet/roslyn/issues/65835")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65835")>
         Public Sub TestMethodDeclarationFromSymbol()
             Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
 "Class C
@@ -2363,7 +2363,7 @@ End Class"))
 End Sub")
         End Sub
 
-        <Fact, WorkItem(66379, "https://github.com/dotnet/roslyn/issues/66379")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66379")>
         Public Sub TestPropertyDeclarationFromSymbol1()
             Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
 "Class C
@@ -2389,7 +2389,7 @@ End Class"))
 End Property")
         End Sub
 
-        <Fact, WorkItem(66379, "https://github.com/dotnet/roslyn/issues/66379")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66379")>
         Public Sub TestPropertyDeclarationFromSymbol2()
             Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
 "Class C
@@ -2415,7 +2415,7 @@ End Class"))
 End Property")
         End Sub
 
-        <Fact, WorkItem(66374, "https://github.com/dotnet/roslyn/issues/66374")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66374")>
         Public Sub TestDestructor1()
             Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
 "Class C
@@ -2704,7 +2704,7 @@ End Class")
             VerifySyntax(Of ClassStatementSyntax)(classStatementWithModifiers, "NotInheritable Class C")
         End Sub
 
-        <Fact, WorkItem(23410, "https://github.com/dotnet/roslyn/issues/23410")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23410")>
         Public Sub TestWithModifiers_Sealed_Member()
             Dim classBlock = DirectCast(Generator.ClassDeclaration("C"), ClassBlockSyntax)
             classBlock = DirectCast(Generator.AddMembers(classBlock, Generator.WithModifiers(Generator.MethodDeclaration("Goo"), DeclarationModifiers.Sealed)), ClassBlockSyntax)
@@ -3344,7 +3344,7 @@ End Interface")
 
         End Sub
 
-        <Fact, WorkItem(5097, "https://github.com/dotnet/roslyn/issues/5097")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5097")>
         Public Sub TestAddInterfaceWithEOLs()
             Dim classC = SyntaxFactory.ParseCompilationUnit("
 Public Class C

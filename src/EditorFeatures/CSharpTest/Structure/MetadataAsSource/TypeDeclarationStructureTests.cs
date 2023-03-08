@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
                 Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, WorkItem(47889, "https://github.com/dotnet/roslyn/issues/47889")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47889")]
         public async Task RecordWithCommentsAndAttributes()
         {
             const string code = @"

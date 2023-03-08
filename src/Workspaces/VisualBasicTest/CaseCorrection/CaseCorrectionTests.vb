@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CaseCorrection
         Inherits VisualBasicCaseCorrectionTestBase
 
         <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
-        <WorkItem(45508, "https://github.com/dotnet/roslyn/issues/45508")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/45508")>
         Public Async Function NamedTupleIdentifier() As Task
             Dim code = <Code>Class C
     Sub NamedTupleCasing(value1 As Integer)

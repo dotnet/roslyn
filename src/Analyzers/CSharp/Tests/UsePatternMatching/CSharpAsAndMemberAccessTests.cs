@@ -949,7 +949,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             }.RunAsync();
         }
 
-        [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67010")]
         public async Task TestIsTypePattern()
         {
             await new VerifyCS.Test
@@ -981,7 +981,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             }.RunAsync();
         }
 
-        [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67010")]
         public async Task TestIsNotTypePattern()
         {
             await new VerifyCS.Test
@@ -1002,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             }.RunAsync();
         }
 
-        [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67010")]
         public async Task TestIsVarPattern()
         {
             await new VerifyCS.Test
@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             }.RunAsync();
         }
 
-        [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67010")]
         public async Task TestIsNotVarPattern()
         {
             await new VerifyCS.Test
@@ -1055,7 +1055,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             }.RunAsync();
         }
 
-        [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67010")]
         public async Task TestIsRecursivePattern1()
         {
             await new VerifyCS.Test
@@ -1087,7 +1087,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             }.RunAsync();
         }
 
-        [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67010")]
         public async Task TestIsRecursivePattern2()
         {
             await new VerifyCS.Test
@@ -1119,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             }.RunAsync();
         }
 
-        [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67010")]
         public async Task TestIsNotRecursivePattern1()
         {
             await new VerifyCS.Test
@@ -1152,7 +1152,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             }.RunAsync();
         }
 
-        [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67010")]
         public async Task TestIsNotRecursivePattern2()
         {
             await new VerifyCS.Test

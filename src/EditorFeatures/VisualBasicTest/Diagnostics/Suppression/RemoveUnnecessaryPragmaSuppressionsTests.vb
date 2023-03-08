@@ -17,7 +17,7 @@ Imports Xunit.Abstractions
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.RemoveUnnecessarySuppressions
 
     <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessarySuppressions)>
-    <WorkItem(44177, "https://github.com/dotnet/roslyn/issues/44177")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/44177")>
     Public NotInheritable Class RemoveUnnecessaryInlineSuppressionsTests
         Inherits AbstractUnncessarySuppressionDiagnosticTest
 

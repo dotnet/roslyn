@@ -195,7 +195,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_PickFirst()
         {
             var markup = @"
@@ -241,7 +241,7 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_PickSecond()
         {
             var markup = @"
@@ -674,7 +674,7 @@ class C
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
-        [Fact, WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
         public async Task InvokedWithNoToken()
         {
             var markup = @"
@@ -683,7 +683,7 @@ class C
             await TestAsync(markup);
         }
 
-        [Fact, WorkItem(1078993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078993")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078993")]
         public async Task TestSigHelpInIncorrectObjectCreationExpression()
         {
             var markup = @"
@@ -792,7 +792,7 @@ class C
         [InlineData("$$, ", 0, 0)]
         [InlineData(",$$", 1, 0)]
         [InlineData("$$, s: string.Empty", 0, 0)]
-        [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/6713")]
         public async Task PickCorrectOverload_Incomplete(string arguments, int expectedParameterIndex, int expecteSelectedIndex)
         {
             var markup = @"
@@ -821,7 +821,7 @@ class Program
         [InlineData("s2: string.Empty$$", 1)]
         [InlineData("s2: string.Empty$$,", 1)]
         [InlineData("s2: string.Empty,$$", 0)]
-        [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/6713")]
         public async Task PickCorrectOverload_Incomplete_WithNames(string arguments, int expectedParameterIndex)
         {
             var markup = @"

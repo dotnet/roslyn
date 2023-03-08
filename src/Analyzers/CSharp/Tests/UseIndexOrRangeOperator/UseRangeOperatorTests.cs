@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
             }.RunAsync();
         }
 
-        [Fact, WorkItem(36909, "https://github.com/dotnet/roslyn/issues/36909")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36909")]
         public async Task TestNotWithoutSystemRange()
         {
             var source =
@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
             }.RunAsync();
         }
 
-        [Fact, WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43202")]
         public async Task TestWritableType()
         {
             var source =
@@ -736,7 +736,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
             }.RunAsync();
         }
 
-        [Fact, WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43202")]
         public async Task TestIntWritableType()
         {
             var source =
@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
             }.RunAsync();
         }
 
-        [Fact, WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43202")]
         public async Task TestReadWriteProperty()
         {
             var source =
@@ -860,7 +860,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
             }.RunAsync();
         }
 
-        [Fact, WorkItem(36997, "https://github.com/dotnet/roslyn/issues/36997")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36997")]
         public async Task TestExpressionWithAddOperatorArgument()
         {
             var source =
@@ -924,7 +924,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
             }.RunAsync();
         }
 
-        [Fact, WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47183")]
         public async Task TestExpressionWithNullConditionalAccess()
         {
             var source =
@@ -953,7 +953,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
             }.RunAsync();
         }
 
-        [Fact, WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47183")]
         public async Task TestExpressionWithNullConditionalAccessWithPropertyAccess()
         {
             var source =
@@ -980,7 +980,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
             }.RunAsync();
         }
 
-        [Theory, WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47183")]
         [InlineData(
             "c.Prop.Substring([|42|])",
             "c.Prop[42..]")]
@@ -1028,7 +1028,7 @@ public class Test
             }.RunAsync();
         }
 
-        [Fact, WorkItem(38055, "https://github.com/dotnet/roslyn/issues/38055")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38055")]
         public async Task TestStringMethod()
         {
             var source =
@@ -1096,7 +1096,7 @@ public class Test
             }.RunAsync();
         }
 
-        [Fact, WorkItem(38055, "https://github.com/dotnet/roslyn/issues/38055")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38055")]
         public async Task TestSliceOnThis()
         {
             var source =
@@ -1128,7 +1128,7 @@ public class Test
             }.RunAsync();
         }
 
-        [Fact, WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56269")]
         public async Task TestStartingFromZero()
         {
             var source =
@@ -1160,7 +1160,7 @@ public class Test
             }.RunAsync();
         }
 
-        [Fact, WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56269")]
         public async Task TestStartingFromAribtraryPosition()
         {
             var source =
@@ -1192,7 +1192,7 @@ public class Test
             }.RunAsync();
         }
 
-        [Fact, WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56269")]
         public async Task TestStartingFromZeroToArbitraryEnd()
         {
             var source =
@@ -1224,7 +1224,7 @@ public class Test
             }.RunAsync();
         }
 
-        [Fact, WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56269")]
         public async Task TestStartingFromZeroGoingToLength()
         {
             var source =
@@ -1256,7 +1256,7 @@ public class Test
             }.RunAsync();
         }
 
-        [Fact, WorkItem(40438, "https://github.com/dotnet/roslyn/issues/40438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40438")]
         public async Task TestStartingFromZeroGoingToLengthMinus1()
         {
             var source =
@@ -1288,7 +1288,7 @@ public class Test
             }.RunAsync();
         }
 
-        [Fact, WorkItem(49347, "https://github.com/dotnet/roslyn/issues/49347")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49347")]
         public async Task TestNotInExpressionTree()
         {
             var source =

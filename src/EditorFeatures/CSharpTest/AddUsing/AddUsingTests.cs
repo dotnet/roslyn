@@ -110,7 +110,7 @@ class Class
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(11241, "https://github.com/dotnet/roslyn/issues/11241")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11241")]
         public async Task TestAddImportWithCaseChange(TestHost testHost)
         {
             await TestAsync(
@@ -398,7 +398,7 @@ class Class
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(541730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
         public async Task TestAddUsingForGenericExtensionMethod(TestHost testHost)
         {
             await TestAsync(
@@ -421,7 +421,7 @@ class Class
 }", testHost);
         }
 
-        [Fact, WorkItem(541730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
         public async Task TestAddUsingForNormalExtensionMethod()
         {
             await TestAsync(
@@ -676,7 +676,7 @@ class Class
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(538018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538018")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538018")]
         public async Task TestAfterNew(TestHost testHost)
         {
             await TestAsync(
@@ -821,7 +821,7 @@ namespace C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(541730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
         public async Task TestExtensionMethods(TestHost testHost)
         {
             await TestAsync(
@@ -849,7 +849,7 @@ class Goo
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(541730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
         public async Task TestQueryPatterns(TestHost testHost)
         {
             await TestAsync(
@@ -1780,8 +1780,8 @@ class Class
 testHost, options: Option(GenerationOptions.PlaceSystemNamespaceFirst, false));
         }
 
-        [Fact, WorkItem(538136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
-        [WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
         public async Task TestAddUsingForNamespace()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1805,7 +1805,7 @@ namespace B
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(538220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538220")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538220")]
         public async Task TestAddUsingForFieldWithFormatting(TestHost testHost)
         {
             await TestAsync(
@@ -1816,7 +1816,7 @@ class C { DateTime t; }", testHost);
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(539657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539657")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539657")]
         public async Task BugFix5688(TestHost testHost)
         {
             await TestAsync(
@@ -1826,7 +1826,7 @@ class C { DateTime t; }", testHost);
 class Program { static void Main ( string [ ] args ) { Console . Out . NewLine = ""\r\n\r\n"" ; } } ", testHost);
         }
 
-        [Fact, WorkItem(539853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
         public async Task BugFix5950()
         {
             await TestAsync(
@@ -1839,7 +1839,7 @@ parseOptions: GetScriptOptions());
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(540339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540339")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540339")]
         public async Task TestAddAfterDefineDirective1(TestHost testHost)
         {
             await TestAsync(
@@ -1871,7 +1871,7 @@ class Program
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(540339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540339")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540339")]
         public async Task TestAddAfterDefineDirective2(TestHost testHost)
         {
             await TestAsync(
@@ -2063,7 +2063,7 @@ TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(542643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
         public async Task TestAssemblyAttribute(TestHost testHost)
         {
             await TestAsync(
@@ -2125,7 +2125,7 @@ class Program
 #line default", testHost);
         }
 
-        [Fact, WorkItem(545248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545248")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545248")]
         public async Task TestVenusGeneration1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2142,7 +2142,7 @@ class Program
     }");
         }
 
-        [Fact, WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
         public async Task TestAttribute_ActionCount()
         {
             var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
@@ -2150,7 +2150,7 @@ class Program
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
         public async Task TestAttribute(TestHost testHost)
         {
             var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
@@ -2162,7 +2162,7 @@ input,
 [ assembly : Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", testHost);
         }
 
-        [Fact, WorkItem(546833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546833")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546833")]
         public async Task TestNotOnOverloadResolutionError()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2226,7 +2226,7 @@ namespace ConsoleApplication10
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")]
         public async Task ShouldTriggerOnCS0308(TestHost testHost)
         {
             // CS0308: The non-generic type 'A' cannot be used with type arguments
@@ -2253,7 +2253,7 @@ class Test
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(838253, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838253")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838253")]
         public async Task TestConflictedInaccessibleType(TestHost testHost)
         {
             await TestAsync(
@@ -2292,7 +2292,7 @@ testHost);
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(858085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858085")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858085")]
         public async Task TestConflictedAttributeName(TestHost testHost)
         {
             await TestAsync(
@@ -2309,7 +2309,7 @@ class Description
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(872908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872908")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872908")]
         public async Task TestConflictedGenericName(TestHost testHost)
         {
             await TestAsync(
@@ -2328,7 +2328,7 @@ class X
 }", testHost);
         }
 
-        [Fact, WorkItem(913300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913300")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913300")]
         public async Task TestNoDuplicateReport_ActionCount()
         {
             await TestActionCountInAllFixesAsync(
@@ -2346,7 +2346,7 @@ class X
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(913300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913300")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913300")]
         public async Task TestNoDuplicateReport(TestHost testHost)
         {
             await TestAsync(
@@ -2374,7 +2374,7 @@ class C
 }", testHost);
         }
 
-        [Fact, WorkItem(938296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938296")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938296")]
         public async Task TestNullParentInNode()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2389,7 +2389,7 @@ class MultiDictionary<K, V> : Dictionary<K, HashSet<V>>
 }");
         }
 
-        [Fact, WorkItem(968303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968303")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968303")]
         public async Task TestMalformedUsingSection()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2399,7 +2399,7 @@ class MultiDictionary<K, V> : Dictionary<K, HashSet<V>>
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
         public async Task TestAddUsingsWithExternAlias(TestHost testHost)
         {
             const string InitialWorkspace = @"
@@ -2450,7 +2450,7 @@ namespace ExternAliases
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
         public async Task TestAddUsingsWithPreExistingExternAlias(TestHost testHost)
         {
             const string InitialWorkspace = @"
@@ -2513,7 +2513,7 @@ namespace ExternAliases
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
         public async Task TestAddUsingsWithPreExistingExternAlias_FileScopedNamespace(TestHost testHost)
         {
             const string InitialWorkspace = @"
@@ -2574,7 +2574,7 @@ class Program
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
         public async Task TestAddUsingsNoExtern(TestHost testHost)
         {
             const string InitialWorkspace = @"
@@ -2625,7 +2625,7 @@ namespace ExternAliases
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
         public async Task TestAddUsingsNoExtern_FileScopedNamespace(TestHost testHost)
         {
             const string InitialWorkspace = @"
@@ -2673,7 +2673,7 @@ class Program
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
         public async Task TestAddUsingsNoExternFilterGlobalAlias(TestHost testHost)
         {
             await TestAsync(
@@ -2695,7 +2695,7 @@ class Program
 }", testHost);
         }
 
-        [Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
         public async Task TestAddUsingForCref()
         {
             var initialText =
@@ -2716,7 +2716,7 @@ interface MyNotifyPropertyChanged { }";
             await TestAsync(initialText, expectedText, parseOptions: options);
         }
 
-        [Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
         public async Task TestAddUsingForCref2()
         {
             var initialText =
@@ -2737,7 +2737,7 @@ interface MyNotifyPropertyChanged { }";
             await TestAsync(initialText, expectedText, parseOptions: options);
         }
 
-        [Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
         public async Task TestAddUsingForCref3()
         {
             var initialText =
@@ -2785,7 +2785,7 @@ public class MyClass2
             await TestAsync(initialText, expectedText, parseOptions: options);
         }
 
-        [Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
         public async Task TestAddUsingForCref4()
         {
             var initialText =
@@ -2824,7 +2824,7 @@ public class MyClass
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
         public async Task TestAddStaticType(TestHost testHost)
         {
             var initialText =
@@ -2864,7 +2864,7 @@ class Test
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
         public async Task TestAddStaticType2(TestHost testHost)
         {
             var initialText =
@@ -2908,7 +2908,7 @@ class Test
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
         public async Task TestAddStaticType3(TestHost testHost)
         {
             await TestAsync(
@@ -2950,7 +2950,7 @@ class Test
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
         public async Task TestAddStaticType4(TestHost testHost)
         {
             var initialText =
@@ -2996,7 +2996,7 @@ class Test
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
         public async Task TestAddInsideUsingDirective1(TestHost testHost)
         {
             await TestAsync(
@@ -3013,7 +3013,7 @@ namespace ns
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
         public async Task TestAddInsideUsingDirective2(TestHost testHost)
         {
             await TestAsync(
@@ -3033,7 +3033,7 @@ namespace ns
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
         public async Task TestAddInsideUsingDirective3(TestHost testHost)
         {
             await TestAsync(
@@ -3070,7 +3070,7 @@ namespace ns2
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
         public async Task TestAddInsideUsingDirective4(TestHost testHost)
         {
             await TestAsync(
@@ -3104,7 +3104,7 @@ namespace ns2
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
         public async Task TestAddInsideUsingDirective5(TestHost testHost)
         {
             await TestAsync(
@@ -3143,7 +3143,7 @@ namespace ns2
 }", testHost);
         }
 
-        [Fact, WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
         public async Task TestAddInsideUsingDirective6()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3151,7 +3151,7 @@ namespace ns2
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         public async Task TestAddConditionalAccessExpression(TestHost testHost)
         {
             var initialText =
@@ -3194,7 +3194,7 @@ public class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         public async Task TestAddConditionalAccessExpression2(TestHost testHost)
         {
             var initialText =
@@ -3249,7 +3249,7 @@ public class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1089138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089138")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089138")]
         public async Task TestAmbiguousUsingName(TestHost testHost)
         {
             await TestAsync(
@@ -3453,7 +3453,7 @@ namespace N2
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1116011, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116011")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116011")]
         public async Task TestAddUsingForProperty(TestHost testHost)
         {
             await TestAsync(
@@ -3491,7 +3491,7 @@ class Program
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1116011, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116011")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116011")]
         public async Task TestAddUsingForField(TestHost testHost)
         {
             await TestAsync(
@@ -3545,7 +3545,7 @@ namespace A
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1893, "https://github.com/dotnet/roslyn/issues/1893")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1893")]
         public async Task TestNameSimplification(TestHost testHost)
         {
             // Generated using directive must be simplified from "using A.B;" to "using B;" below.
@@ -3594,7 +3594,7 @@ namespace A.C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/935")]
         public async Task TestAddUsingWithOtherExtensionsInScope(TestHost testHost)
         {
             await TestAsync(
@@ -3666,7 +3666,7 @@ public class B
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/935")]
         public async Task TestAddUsingWithOtherExtensionsInScope2(TestHost testHost)
         {
             await TestAsync(
@@ -3738,7 +3738,7 @@ public class B
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(562, "https://github.com/dotnet/roslyn/issues/562")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/562")]
         public async Task TestAddUsingWithOtherExtensionsInScope3(TestHost testHost)
         {
             await TestAsync(
@@ -3774,7 +3774,7 @@ namespace X
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(562, "https://github.com/dotnet/roslyn/issues/562")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/562")]
         public async Task TestAddUsingWithOtherExtensionsInScope4(TestHost testHost)
         {
             await TestAsync(
@@ -3818,7 +3818,7 @@ namespace X
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3080")]
         public async Task TestNestedNamespaceSimplified(TestHost testHost)
         {
             await TestAsync(
@@ -3850,7 +3850,7 @@ namespace X
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3080")]
         public async Task TestNestedNamespaceSimplified2(TestHost testHost)
         {
             await TestAsync(
@@ -3882,7 +3882,7 @@ namespace X
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3080")]
         public async Task TestNestedNamespaceSimplified3(TestHost testHost)
         {
             await TestAsync(
@@ -3916,7 +3916,7 @@ namespace X
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3080")]
         public async Task TestNestedNamespaceSimplified4(TestHost testHost)
         {
             await TestAsync(
@@ -3950,7 +3950,7 @@ namespace X
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3080")]
         public async Task TestNestedNamespaceSimplified5(TestHost testHost)
         {
             await TestAsync(
@@ -3988,7 +3988,7 @@ namespace X
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3080")]
         public async Task TestNestedNamespaceSimplified6(TestHost testHost)
         {
             await TestAsync(
@@ -4140,7 +4140,7 @@ namespace Uppercase
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(7443, "https://github.com/dotnet/roslyn/issues/7443")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7443")]
         public async Task TestWithExistingIncompatibleExtension(TestHost testHost)
         {
             await TestAsync(
@@ -4211,7 +4211,7 @@ class A
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1033612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
         public async Task TestAddInsideLambda(TestHost testHost)
         {
             var initialText =
@@ -4234,7 +4234,7 @@ static void Main(string[] args)
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1033612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
         public async Task TestAddInsideLambda2(TestHost testHost)
         {
             var initialText =
@@ -4257,7 +4257,7 @@ static void Main(string[] args)
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1033612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
         public async Task TestAddInsideLambda3(TestHost testHost)
         {
             var initialText =
@@ -4288,7 +4288,7 @@ static void Main(string[] args)
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1033612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
         public async Task TestAddInsideLambda4(TestHost testHost)
         {
             var initialText =
@@ -4318,9 +4318,9 @@ static void Main(string[] args)
             await TestAsync(initialText, expectedText, testHost);
         }
 
-        [Theory, WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
         [CombinatorialData]
-        [WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
         public async Task TestIncompleteParenthesizedLambdaExpression(TestHost testHost)
         {
             await TestAsync(
@@ -4350,7 +4350,7 @@ class Test
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(7461, "https://github.com/dotnet/roslyn/issues/7461")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7461")]
         public async Task TestExtensionWithIncompatibleInstance(TestHost testHost)
         {
             await TestAsync(
@@ -4404,7 +4404,7 @@ namespace Namespace2
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(5499, "https://github.com/dotnet/roslyn/issues/5499")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/5499")]
         public async Task TestFormattingForNamespaceUsings(TestHost testHost)
         {
             await TestAsync(
@@ -4495,7 +4495,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
         public async Task TestAddUsingWithLeadingDocCommentInFrontOfUsing1(TestHost testHost)
         {
             await TestAsync(
@@ -4523,7 +4523,7 @@ class C : IEnumerable<int>
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
         public async Task TestAddUsingWithLeadingDocCommentInFrontOfUsing2(TestHost testHost)
         {
             await TestAsync(
@@ -4553,7 +4553,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
         public async Task TestAddUsingWithLeadingDocCommentInFrontOfClass1(TestHost testHost)
         {
             await TestAsync(
@@ -4614,7 +4614,7 @@ namespace N
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(15025, "https://github.com/dotnet/roslyn/issues/15025")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15025")]
         public async Task TestPreferSystemNamespaceFirst(TestHost testHost)
         {
             await TestAsync(
@@ -4659,7 +4659,7 @@ namespace N
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(15025, "https://github.com/dotnet/roslyn/issues/15025")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15025")]
         public async Task TestPreferSystemNamespaceFirst2(TestHost testHost)
         {
             await TestAsync(
@@ -4703,7 +4703,7 @@ namespace N
 }", testHost, index: 1);
         }
 
-        [Fact, WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18275")]
         public async Task TestContextualKeyword1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4725,7 +4725,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(19218, "https://github.com/dotnet/roslyn/issues/19218")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19218")]
         public async Task TestChangeCaseWithUsingsInNestedNamespace(TestHost testHost)
         {
             await TestAsync(
@@ -4774,7 +4774,7 @@ namespace Outer
 ", testHost);
         }
 
-        [Fact, WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19575")]
         public async Task TestNoNonGenericsWithGenericCodeParsedAsExpression()
         {
             var code = @"
@@ -4804,7 +4804,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(19796, "https://github.com/dotnet/roslyn/issues/19796")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19796")]
         public async Task TestWhenInRome1(TestHost testHost)
         {
             // System is set to be sorted first, but the actual file shows it at the end.
@@ -4857,7 +4857,7 @@ testHost);
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(19796, "https://github.com/dotnet/roslyn/issues/19796")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19796")]
         public async Task TestWhenInRome2(TestHost testHost)
         {
             // System is set to not be sorted first, but the actual file shows it sorted first.
@@ -4951,7 +4951,7 @@ class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(29313, "https://github.com/dotnet/roslyn/issues/29313")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29313")]
         public async Task TestGetAwaiterExtensionMethod1(TestHost testHost)
         {
             await TestAsync(
@@ -5031,7 +5031,7 @@ namespace B
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(29313, "https://github.com/dotnet/roslyn/issues/29313")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29313")]
         public async Task TestGetAwaiterExtensionMethod2(TestHost testHost)
         {
             await TestAsync(
@@ -5111,7 +5111,7 @@ namespace B
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(745490, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/745490")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/745490")]
         public async Task TestAddUsingForAwaitableReturningExtensionMethod(TestHost testHost)
         {
             await TestAsync(
@@ -5667,7 +5667,7 @@ namespace B
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithStaticUsingInNamespace_WhenNoExistingUsings(TestHost testHost)
         {
             await TestAsync(
@@ -5697,7 +5697,7 @@ namespace N
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithStaticUsingInInnerNestedNamespace_WhenNoExistingUsings(TestHost testHost)
         {
             await TestAsync(
@@ -5733,7 +5733,7 @@ namespace N
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithStaticUsingInOuterNestedNamespace_WhenNoExistingUsings(TestHost testHost)
         {
             await TestAsync(
@@ -5769,7 +5769,7 @@ namespace N
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithExistingUsingInCompilationUnit_WhenStaticUsingInNamespace(TestHost testHost)
         {
             await TestAsync(
@@ -5803,7 +5803,7 @@ namespace N
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithExistingUsing_WhenStaticUsingInInnerNestedNamespace(TestHost testHost)
         {
             await TestAsync(
@@ -5843,7 +5843,7 @@ namespace N
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithExistingUsing_WhenStaticUsingInOuterNestedNamespace(TestHost testHost)
         {
             await TestAsync(
@@ -5883,7 +5883,7 @@ namespace N
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithUsingAliasInNamespace_WhenNoExistingUsing(TestHost testHost)
         {
             await TestAsync(
@@ -5913,7 +5913,7 @@ namespace N
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithUsingAliasInInnerNestedNamespace_WhenNoExistingUsing(TestHost testHost)
         {
             await TestAsync(
@@ -5949,7 +5949,7 @@ namespace N
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithUsingAliasInOuterNestedNamespace_WhenNoExistingUsing(TestHost testHost)
         {
             await TestAsync(
@@ -5985,7 +5985,7 @@ namespace N
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithExistingUsingInCompilationUnit_WhenUsingAliasInNamespace(TestHost testHost)
         {
             await TestAsync(
@@ -6019,7 +6019,7 @@ namespace N
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithExistingUsing_WhenUsingAliasInInnerNestedNamespace(TestHost testHost)
         {
             await TestAsync(
@@ -6059,7 +6059,7 @@ namespace N
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithExistingUsing_WhenUsingAliasInOuterNestedNamespace(TestHost testHost)
         {
             await TestAsync(
@@ -6099,7 +6099,7 @@ namespace N
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
         public async Task KeepUsingsGrouped1(TestHost testHost)
         {
             await TestAsync(
@@ -6186,8 +6186,8 @@ class C
             new Byte() }");
         }
 
-        [Fact, WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
-        [WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
         public async Task TestIncompleteSimpleLambdaExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -6215,7 +6215,7 @@ class Program
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1266354, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
         public async Task TestAddUsingsEditorBrowsableNeverSameProject(TestHost testHost)
         {
             const string InitialWorkspace = @"
@@ -6259,7 +6259,7 @@ class Program
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1266354, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
         public async Task TestAddUsingsEditorBrowsableNeverDifferentProject(TestHost testHost)
         {
             const string InitialWorkspace = @"
@@ -6291,7 +6291,7 @@ class Program
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1266354, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
         public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOn(TestHost testHost)
         {
             const string InitialWorkspace = @"
@@ -6335,7 +6335,7 @@ class Program
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1266354, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
         public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff(TestHost testHost)
         {
             var initialWorkspace = @"

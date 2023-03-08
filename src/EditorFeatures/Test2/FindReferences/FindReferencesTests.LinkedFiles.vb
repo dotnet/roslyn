@@ -190,7 +190,7 @@ public class D : [|$$C|]
             Return TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(53067, "https://github.com/dotnet/roslyn/issues/53067")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/53067")>
         <WpfFact>
         Public Async Function TestLinkedFiles_NamespaceInMetadataAndSource() As Task
             Dim definition =
@@ -229,7 +229,7 @@ namespace {|Definition:System|}
             End Using
         End Function
 
-        <WorkItem(53067, "https://github.com/dotnet/roslyn/issues/53067")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/53067")>
         <WpfFact>
         Public Async Function TestLinkedFiles_LocalSymbol() As Task
             Dim definition =
@@ -269,7 +269,7 @@ namespace {|Definition:System|}
             End Using
         End Function
 
-        <WorkItem(57235, "https://github.com/dotnet/roslyn/issues/57235")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/57235")>
         <WpfFact>
         Public Async Function TestLinkedFiles_OverrideMethods_DirectCall_MultiTargetting1() As Task
             Dim definition =
@@ -312,7 +312,7 @@ class D
             End Using
         End Function
 
-        <WorkItem(57235, "https://github.com/dotnet/roslyn/issues/57235")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/57235")>
         <WpfFact>
         Public Async Function TestLinkedFiles_OverrideMethods_DirectCall_MultiTargetting2() As Task
             Dim definition =
@@ -355,7 +355,7 @@ class D
             End Using
         End Function
 
-        <WorkItem(57235, "https://github.com/dotnet/roslyn/issues/57235")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/57235")>
         <WpfFact>
         Public Async Function TestLinkedFiles_OverrideMethods_IndirectCall_MultiTargetting1() As Task
             Dim definition =
@@ -398,7 +398,7 @@ class D
             End Using
         End Function
 
-        <WorkItem(57235, "https://github.com/dotnet/roslyn/issues/57235")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/57235")>
         <WpfFact>
         Public Async Function TestLinkedFiles_OverrideMethods_IndirectCall_MultiTargetting2() As Task
             Dim definition =

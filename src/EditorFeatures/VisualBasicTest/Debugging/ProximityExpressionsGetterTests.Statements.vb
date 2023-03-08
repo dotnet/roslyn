@@ -4537,7 +4537,7 @@ End Class
             AssertEx.Equal({"s", "x", "y", "Me"}, terms)
         End Sub
 
-        <Fact, WorkItem(903546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/903546")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/903546")>
         Public Sub Repro903546()
             Const source = "
 Module Module1

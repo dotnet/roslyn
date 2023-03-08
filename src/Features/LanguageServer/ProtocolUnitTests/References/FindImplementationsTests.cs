@@ -115,7 +115,7 @@ class A : IA
             Assert.Empty(results);
         }
 
-        [Fact, WorkItem(44846, "https://github.com/dotnet/roslyn/issues/44846")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44846")]
         public async Task TestFindImplementationAsync_MultipleLocations()
         {
             var markup =

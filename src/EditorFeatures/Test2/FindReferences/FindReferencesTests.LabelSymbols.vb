@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(529060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529060")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529060")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestNumericLabel1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -69,7 +69,7 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(529060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529060")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529060")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestNumericLabel2(kind As TestKind, host As TestHost) As Task
             Dim input =

@@ -134,7 +134,7 @@ namespace B
             Assert.Equal(span, actual);
         }
 
-        [Fact, WorkItem(46377, "https://github.com/dotnet/roslyn/issues/46377")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46377")]
         public async Task DiagnosticData_ExternalAdditionalLocationIsPreserved()
         {
             using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures);
@@ -218,7 +218,7 @@ namespace B
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1676229, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/1676229")]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/1676229")]
         public async Task DiagnosticData_SourceFileAdditionalLocationIsPreserved(bool testDifferentProject, bool testRemovedDocument)
         {
             using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures);

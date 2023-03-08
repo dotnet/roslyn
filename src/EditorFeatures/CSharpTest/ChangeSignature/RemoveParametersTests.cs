@@ -186,8 +186,8 @@ public class DP20<T>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        [WorkItem(1102830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102830")]
-        [WorkItem(784, "https://github.com/dotnet/roslyn/issues/784")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102830")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/784")]
         public async Task RemoveParameters_ExtensionMethodInAnotherFile()
         {
             var workspaceXml = @"
@@ -267,8 +267,8 @@ class C{i}
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        [WorkItem(1102830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102830")]
-        [WorkItem(784, "https://github.com/dotnet/roslyn/issues/784")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102830")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/784")]
         public async Task AddRemoveParameters_ExtensionMethodInAnotherFile()
         {
             var workspaceXml = @"
@@ -381,7 +381,7 @@ class C{i}
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        [WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44126")]
         public async Task RemoveParameters_ImplicitObjectCreation()
         {
             var markup = @"
@@ -410,7 +410,7 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        [WorkItem(66547, "https://github.com/dotnet/roslyn/issues/66547")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66547")]
         public async Task RemoveParameters_SpecialSymbolNamedParameter()
         {
             var markup = @"

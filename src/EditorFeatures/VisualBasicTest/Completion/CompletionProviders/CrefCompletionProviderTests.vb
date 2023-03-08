@@ -452,7 +452,7 @@ End Class
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, WorkItem(22626, "https://github.com/dotnet/roslyn/issues/22626")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22626")>
         Public Async Function ValueTuple1() As Task
             Dim text = "
 Class C
@@ -465,7 +465,7 @@ End Class
             Await VerifyItemExistsAsync(text, "Goo(ValueTuple(Of String, Integer))")
         End Function
 
-        <Fact, WorkItem(22626, "https://github.com/dotnet/roslyn/issues/22626")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22626")>
         Public Async Function ValueTuple2() As Task
             Dim text = "
 Class C

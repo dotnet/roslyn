@@ -34,22 +34,22 @@ Dim x = Sub() |
 </MethodBody>, "Const")
         End Sub
 
-        <Fact, WorkItem(544912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544912")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544912")>
         Public Sub ConstAfterDimInClassTest()
             VerifyRecommendationsContain(<ClassDeclaration>Dim |</ClassDeclaration>, "Const")
         End Sub
 
-        <Fact, WorkItem(644881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/644881")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/644881")>
         Public Sub ConstAfterFriendInClassTest()
             VerifyRecommendationsContain(<ClassDeclaration>Friend |</ClassDeclaration>, "Const")
         End Sub
 
-        <Fact, WorkItem(644881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/644881")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/644881")>
         Public Sub ConstAfterFriendInModuleTest()
             VerifyRecommendationsContain(<ModuleDeclaration>Friend |</ModuleDeclaration>, "Const")
         End Sub
 
-        <Fact, WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         Public Sub NotAfterHashTest()
             VerifyRecommendationsMissing(<File>
 Imports System

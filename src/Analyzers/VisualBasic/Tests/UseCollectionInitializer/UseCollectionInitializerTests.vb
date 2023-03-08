@@ -208,7 +208,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")>
         Public Async Function TestWithExistingInitializer() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -294,7 +294,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(15528, "https://github.com/dotnet/roslyn/pull/15528")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/pull/15528")>
         Public Async Function TestTrivia2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -322,7 +322,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23672, "https://github.com/dotnet/roslyn/pull/23672")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/pull/23672")>
         Public Async Function TestMissingWithExplicitImplementedAddMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "

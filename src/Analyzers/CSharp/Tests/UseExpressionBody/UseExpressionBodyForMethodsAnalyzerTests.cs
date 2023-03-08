@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseExpressionBody(code, fixedCode);
         }
 
-        [Fact, WorkItem(17120, "https://github.com/dotnet/roslyn/issues/17120")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
         public async Task TestDirectives1()
         {
             var code = """
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseExpressionBody(code, fixedCode);
         }
 
-        [Fact, WorkItem(17120, "https://github.com/dotnet/roslyn/issues/17120")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
         public async Task TestDirectives2()
         {
             var code = """
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseExpressionBody(code, fixedCode);
         }
 
-        [Fact, WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20362")]
         public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp6()
         {
             var code = """
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp5);
         }
 
-        [Fact, WorkItem(20352, "https://github.com/dotnet/roslyn/issues/20352")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20352")]
         public async Task TestDoNotOfferToConvertToBlockIfExpressionBodyPreferredIfCSharp6()
         {
             var code = """
@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseExpressionBody(code, code, LanguageVersion.CSharp6);
         }
 
-        [Fact, WorkItem(20352, "https://github.com/dotnet/roslyn/issues/20352")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20352")]
         public async Task TestOfferToConvertToExpressionIfCSharp6()
         {
             var code = """
@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp6);
         }
 
-        [Fact, WorkItem(20352, "https://github.com/dotnet/roslyn/issues/20352")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20352")]
         public async Task TestDoNotOfferToConvertToExpressionInCSharp6IfThrowExpression()
         {
             var code = """
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseExpressionBody(code, code, LanguageVersion.CSharp6);
         }
 
-        [Fact, WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20362")]
         public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp6_FixAll()
         {
             var code = """
@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp6);
         }
 
-        [Fact, WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25202")]
         public async Task TestUseBlockBodyAsync1()
         {
             var code = """
@@ -648,7 +648,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseBlockBody(code, fixedCode);
         }
 
-        [Fact, WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25202")]
         public async Task TestUseBlockBodyAsync2()
         {
             var code = """
@@ -677,7 +677,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseBlockBody(code, fixedCode);
         }
 
-        [Fact, WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25202")]
         public async Task TestUseBlockBodyAsync3()
         {
             var code = """
@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseBlockBody(code, fixedCode);
         }
 
-        [Fact, WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25202")]
         public async Task TestUseBlockBodyAsync4()
         {
             var code = """
@@ -735,7 +735,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseBlockBody(code, fixedCode, ReferenceAssemblies.NetStandard.NetStandard21);
         }
 
-        [Fact, WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25202")]
         public async Task TestUseBlockBodyAsync5()
         {
             var code = """
@@ -764,7 +764,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseBlockBody(code, fixedCode);
         }
 
-        [Fact, WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25202")]
         public async Task TestUseBlockBodyAsync6()
         {
             var code = """
@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseBlockBody(code, fixedCode);
         }
 
-        [Fact, WorkItem(53532, "https://github.com/dotnet/roslyn/issues/53532")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53532")]
         public async Task TestUseBlockBodyTrivia1()
         {
             var code = """

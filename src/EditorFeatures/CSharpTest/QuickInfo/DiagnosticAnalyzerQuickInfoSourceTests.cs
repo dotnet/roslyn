@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     [Trait(Traits.Feature, Traits.Features.QuickInfo)]
     public class DiagnosticAnalyzerQuickInfoSourceTests
     {
-        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
         [WpfFact]
         public async Task ErrorTitleIsShownOnDisablePragma()
         {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 ", GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
         }
 
-        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
         [WpfFact]
         public async Task ErrorTitleIsShownOnRestorePragma()
         {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 ", GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
         }
 
-        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
         [WpfFact]
         public async Task DisabledWarningNotExistingInCodeIsDisplayedByTitleWithoutCodeDetails()
         {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 ", GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
         }
 
-        [WorkItem(49102, "https://github.com/dotnet/roslyn/issues/49102")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49102")]
         [WpfTheory]
         [InlineData("CS0219$$")]
         [InlineData("219$$")]
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 ", GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
         }
 
-        [WorkItem(49102, "https://github.com/dotnet/roslyn/issues/49102")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49102")]
         [WpfTheory]
         [InlineData("#pragma warning $$CS0219", null)]
         [InlineData("#pragma warning disable$$", null)]
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 ", expectedDescription);
         }
 
-        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
         [WpfTheory]
         [InlineData("#pragma warning disable $$CS0162", (int)ErrorCode.WRN_UnreachableCode)]
         [InlineData("#pragma warning disable $$CS0162, CS0219", (int)ErrorCode.WRN_UnreachableCode)]
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 ", GetFormattedErrorTitle((ErrorCode)errorCode));
         }
 
-        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
         [WpfFact]
         public async Task ErrorTitleIsShwonInSupressMessageAttribute()
         {
@@ -136,7 +136,7 @@ namespace T
 ", GetFormattedIDEAnalyzerTitle(51, nameof(AnalyzersResources.Remove_unused_private_members)), ImmutableArray<TextSpan>.Empty);
         }
 
-        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
         [WpfTheory]
         [InlineData(@"[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute(""CodeQuality"", ""IDE0051$$"")]", true)]
         [InlineData(@"[System.Diagnostics.CodeAnalysis.SuppressMessage(""CodeQuality"", ""IDE0051$$"")]", true)]

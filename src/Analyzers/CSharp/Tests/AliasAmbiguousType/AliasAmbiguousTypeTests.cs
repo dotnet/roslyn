@@ -577,7 +577,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, WorkItem(30838, "https://github.com/dotnet/roslyn/issues/30838")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30838")]
         public async Task TestSortSystemFirst1()
         {
             var classDef = GetAmbiguousDefinition("public class Ambiguous { }", "Microsoft", "System");
@@ -628,7 +628,7 @@ namespace Test
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup1, index: 1);
         }
 
-        [Fact, WorkItem(30838, "https://github.com/dotnet/roslyn/issues/30838")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30838")]
         public async Task TestSortSystemFirst2()
         {
             var classDef = GetAmbiguousDefinition("public class Ambiguous { }", "Microsoft", "System");

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     [UseExportProvider]
     public class ActiveStatementTrackingServiceTests : EditingTestBase
     {
-        [Fact, WorkItem(846042, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846042")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846042")]
         public void MovedOutsideOfMethod1()
         {
             var src1 = @"

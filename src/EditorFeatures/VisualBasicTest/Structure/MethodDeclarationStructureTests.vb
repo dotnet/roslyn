@@ -161,7 +161,7 @@ End Class
                 Region("span2", "Sub Goo() Implements Bar.Baz ...", autoCollapse:=True))
         End Function
 
-        <Fact, WorkItem(27462, "https://github.com/dotnet/roslyn/issues/27462")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27462")>
         Public Async Function TestSubWithAttribute() As Task
             Const code = "
 Imports System.Runtime.CompilerServices

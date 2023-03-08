@@ -35,7 +35,7 @@ Dim x
             VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "End")
         End Sub
 
-        <Fact, WorkItem(530599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530599")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530599")>
         Public Sub EndNotOutsideOfMethodBodyTest()
             VerifyRecommendationsMissing(<MethodBody>Class C
  |</MethodBody>, "End")

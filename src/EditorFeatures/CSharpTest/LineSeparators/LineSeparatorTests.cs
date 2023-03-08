@@ -431,7 +431,7 @@ class Program
             await AssertTagsOnBracesOrSemicolonsAsync(file, 2, 4);
         }
 
-        [Fact, WorkItem(1297, "https://github.com/dotnet/roslyn/issues/1297")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1297")]
         public async Task ExpressionBodiedProperty()
         {
             await AssertTagsOnBracesOrSemicolonsAsync(@"class C
@@ -444,7 +444,7 @@ class Program
 }", 0, 2);
         }
 
-        [Fact, WorkItem(1297, "https://github.com/dotnet/roslyn/issues/1297")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1297")]
         public async Task ExpressionBodiedIndexer()
         {
             await AssertTagsOnBracesOrSemicolonsAsync(@"class C
@@ -457,7 +457,7 @@ class Program
 }", 0, 2);
         }
 
-        [Fact, WorkItem(1297, "https://github.com/dotnet/roslyn/issues/1297")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1297")]
         public async Task ExpressionBodiedEvent()
         {
             // This is not valid code, and parses all wrong, but just in case a user writes it.  Note

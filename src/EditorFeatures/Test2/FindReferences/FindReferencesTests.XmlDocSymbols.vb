@@ -261,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(769369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769369")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769369")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCrefConstructor1_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -322,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/34104"), CombinatorialData>
-        <WorkItem(34104, "https://github.com/dotnet/roslyn/issues/34104")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34104")>
         Public Async Function TestCrefConstructor2_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -898,7 +898,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(640502, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640502")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640502")>
         Public Async Function TestInterfaceInCref1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -928,7 +928,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(640502, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640502")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640502")>
         Public Async Function TestInterfaceInCref1_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1104,7 +1104,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(769369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769369")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769369")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestInheritanceInCref1_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -1247,7 +1247,7 @@ End Class]]>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(769369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769369")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769369")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestConstructorInCref_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -1585,7 +1585,7 @@ End Class]]>
         End Function
 
         <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/7288"), CombinatorialData>
-        <WorkItem(7288, "https://github.com/dotnet/roslyn/issues/7288")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/7288")>
         Public Async Function TestIndexInCref3_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

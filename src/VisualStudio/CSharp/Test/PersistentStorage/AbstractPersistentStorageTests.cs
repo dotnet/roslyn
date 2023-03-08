@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Null(await storage.ReadStreamAsync(document, streamName));
         }
 
-        [Theory, CombinatorialData, WorkItem(1436188, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1436188")]
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1436188")]
         public async Task CacheDirectoryInPathWithSingleQuote(Size size, bool withChecksum, [CombinatorialRange(0, Iterations)] int iteration)
         {
             _ = iteration;
@@ -841,7 +841,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        [Fact, WorkItem(1174219, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1174219")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1174219")]
         public void CacheDirectoryShouldNotBeAtRoot()
         {
             var workspace = new AdhocWorkspace(FeaturesTestCompositions.Features.GetHostServices());

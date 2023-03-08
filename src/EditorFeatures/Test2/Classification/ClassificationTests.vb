@@ -24,7 +24,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
     <UseExportProvider>
     Public Class ClassificationTests
-        <Fact, WorkItem(66245, "https://github.com/dotnet/roslyn/pull/66245")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/pull/66245")>
         Public Async Function TestClassificationAndHighlight1() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             End Using
         End Function
 
-        <Fact, WorkItem(65926, "https://github.com/dotnet/roslyn/issues/65926")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65926")>
         Public Async Function TestEmbeddedClassifications1() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             End Using
         End Function
 
-        <Fact, WorkItem(63702, "https://github.com/dotnet/roslyn/issues/63702")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63702")>
         Public Async Function TestEmbeddedClassifications2() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             End Using
         End Function
 
-        <Fact, WorkItem(66507, "https://github.com/dotnet/roslyn/issues/66507")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66507")>
         Public Async Function TestUtf8StringSuffix() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 subText)}', {span.TextSpan})"
         End Function
 
-        <WpfFact, WorkItem(13753, "https://github.com/dotnet/roslyn/issues/13753")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/13753")>
         Public Async Function TestSemanticClassificationWithoutSyntaxTree() As Task
             Dim workspaceDefinition =
             <Workspace>
@@ -302,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             Assert.NotNull(run)
         End Sub
 
-        <WpfFact, WorkItem(13753, "https://github.com/dotnet/roslyn/issues/13753")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/13753")>
         Public Async Function TestWrongDocument() As Task
             Dim workspaceDefinition =
             <Workspace>

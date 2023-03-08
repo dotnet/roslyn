@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructo
                 DirectCast(parameters.fixProviderData, IPickMembersService))
         End Function
 
-        <Fact, WorkItem(541991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>
         Public Async Function TestEqualsOnSingleField() As Task
             Await TestInRegularAndScriptAsync(
 "Class Z
@@ -37,7 +37,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(541991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>
         Public Async Function TestGetHashCodeOnSingleField() As Task
             Await TestInRegularAndScriptAsync(
 "Class Z
@@ -61,7 +61,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(541991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>
         Public Async Function TestBothOnSingleField() As Task
             Await TestInRegularAndScriptAsync(
 "Class Z
@@ -85,7 +85,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(30396, "https://github.com/dotnet/roslyn/issues/30396")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30396")>
         Public Async Function TestStructure() As Task
             Await TestInRegularAndScriptAsync(
 "Structure Z
@@ -116,7 +116,7 @@ Structure Z
 End Structure")
         End Function
 
-        <Fact, WorkItem(30396, "https://github.com/dotnet/roslyn/issues/30396")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30396")>
         Public Async Function TestStructureThatAlreadyImplementsInterface1() As Task
             Await TestInRegularAndScriptAsync(
 "Structure Z
@@ -147,7 +147,7 @@ End Structure",
 End Structure")
         End Function
 
-        <Fact, WorkItem(30396, "https://github.com/dotnet/roslyn/issues/30396")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30396")>
         Public Async Function TestStructureThatAlreadyImplementsInterface2() As Task
             Await TestInRegularAndScriptAsync(
 "Structure Z
@@ -179,7 +179,7 @@ End Structure",
 End Structure")
         End Function
 
-        <Fact, WorkItem(30396, "https://github.com/dotnet/roslyn/issues/30396")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30396")>
         Public Async Function TestStructureThatAlreadyHasOperators() As Task
             Await TestInRegularAndScriptAsync(
 "Structure Z
@@ -218,7 +218,7 @@ Structure Z
 End Structure")
         End Function
 
-        <Fact, WorkItem(545205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545205")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545205")>
         Public Async Function TestTypeWithNumberInName() As Task
             Await TestInRegularAndScriptAsync(
 "Partial Class c1(Of V As {New}, U)
@@ -237,7 +237,7 @@ Partial Class c1(Of V As {New}, U)
 End Class")
         End Function
 
-        <Fact, WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17643")>
         Public Async Function TestWithDialogNoBackingField() As Task
             Await TestWithPickMembersDialogAsync(
 "
@@ -258,7 +258,7 @@ End Class",
 chosenSymbols:=Nothing)
         End Function
 
-        <Fact, WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25690")>
         Public Async Function TestWithDialogNoParameterizedProperty() As Task
             Await TestWithPickMembersDialogAsync(
 "
@@ -297,7 +297,7 @@ End Class",
 chosenSymbols:=Nothing)
         End Function
 
-        <Fact, WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25690")>
         Public Async Function TestWithDialogNoIndexer() As Task
             Await TestWithPickMembersDialogAsync(
 "
@@ -336,7 +336,7 @@ End Class",
 chosenSymbols:=Nothing)
         End Function
 
-        <Fact, WorkItem(25707, "https://github.com/dotnet/roslyn/issues/25707")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25707")>
         Public Async Function TestWithDialogNoSetterOnlyProperty() As Task
             Await TestWithPickMembersDialogAsync(
 "
@@ -373,7 +373,7 @@ End Class",
 chosenSymbols:=Nothing)
         End Function
 
-        <Fact, WorkItem(41958, "https://github.com/dotnet/roslyn/issues/41958")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41958")>
         Public Async Function TestWithDialogInheritedMembers() As Task
             Await TestWithPickMembersDialogAsync(
 "
@@ -745,7 +745,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")>
         Public Async Function TestPartialSelection() As Task
             Await TestMissingAsync(
 "Class Z
@@ -753,7 +753,7 @@ index:=1)
 End Class")
         End Function
 
-        <Fact, WorkItem(43290, "https://github.com/dotnet/roslyn/issues/43290")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43290")>
         Public Async Function TestAbstractBase() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -805,7 +805,7 @@ End Class
 index:=1)
         End Function
 
-        <Fact, WorkItem(45919, "https://github.com/dotnet/roslyn/issues/45919")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45919")>
         Public Async Function TestWithDialogOnClassHeader() As Task
             Await TestWithPickMembersDialogAsync(
 "
