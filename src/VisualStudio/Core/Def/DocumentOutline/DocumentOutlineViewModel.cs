@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _taggerEventSource.Connect();
 
             // queue initial model update
-            _documentSymbolQueue.AddWork(cancelExistingWork: true);
+            _documentSymbolQueue.AddWork();
         }
 
         public void Dispose()
