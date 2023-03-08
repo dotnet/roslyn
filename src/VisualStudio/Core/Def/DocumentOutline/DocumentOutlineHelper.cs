@@ -62,25 +62,5 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // the document symbol request for that language.
             return requestSnapshot is null || response is null ? null : (response, requestSnapshot);
         }
-
-        /// <summary>
-        /// Converts an immutable array of DocumentSymbolData to an immutable array of <see cref="DocumentSymbolDataViewModel"/>.
-        /// </summary>
-        public static ImmutableArray<DocumentSymbolDataViewModel> GetDocumentSymbolItemViewModels(ImmutableArray<DocumentSymbolData> documentSymbolData)
-        {
-            using var _ = ArrayBuilder<DocumentSymbolDataViewModel>.GetInstance(out var documentSymbolItems);
-            foreach (var documentSymbol in documentSymbolData)
-            {
-                var children = GetDocumentSymbolItemViewModels(documentSymbol.Children);
-                var documentSymbolItem = new DocumentSymbolDataViewModel(
-                    documentSymbol,
-                    children,
-                    isExpanded: true,
-                    isSelected: false);
-                documentSymbolItems.Add(documentSymbolItem);
-            }
-
-            return documentSymbolItems.ToImmutable();
-        }
     }
 }

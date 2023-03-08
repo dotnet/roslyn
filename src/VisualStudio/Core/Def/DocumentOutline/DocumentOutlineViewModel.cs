@@ -332,7 +332,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 if (string.IsNullOrEmpty(searchText) && dataUpdated)
                 {
-                    var documentSymbolViewModelItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
+                    var documentSymbolViewModelItems = GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
                     ApplyExpansionStateToNewItems(documentSymbolViewModelItems, DocumentSymbolViewModelItems);
                     DocumentSymbolViewModelItems = documentSymbolViewModelItems;
                 }
@@ -343,7 +343,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     if (currentQuery == string.Empty)
                     {
                         // search was cleared, show all data.
-                        documentSymbolViewModelItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
+                        documentSymbolViewModelItems = GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
                         ApplyExpansionStateToNewItems(documentSymbolViewModelItems, DocumentSymbolViewModelItems);
                     }
                     else
@@ -351,7 +351,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                         // We are going to show results so we unset any expand / collapse state
                         // If we are in the middle of searching the developer should always be able to see the results
                         // so we don't want to collapse (and therefore hide) data here.
-                        documentSymbolViewModelItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(
+                        documentSymbolViewModelItems = GetDocumentSymbolItemViewModels(
                              SearchDocumentSymbolData(model.DocumentSymbolData, currentQuery, cancellationToken));
                     }
 
@@ -422,6 +422,26 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     return true;
                 }
             }
+        }
+
+        /// <summary>
+        /// Converts an immutable array of DocumentSymbolData to an immutable array of <see cref="DocumentSymbolDataViewModel"/>.
+        /// </summary>
+        public static ImmutableArray<DocumentSymbolDataViewModel> GetDocumentSymbolItemViewModels(ImmutableArray<DocumentSymbolData> documentSymbolData)
+        {
+            using var _ = ArrayBuilder<DocumentSymbolDataViewModel>.GetInstance(out var documentSymbolItems);
+            foreach (var documentSymbol in documentSymbolData)
+            {
+                var children = GetDocumentSymbolItemViewModels(documentSymbol.Children);
+                var documentSymbolItem = new DocumentSymbolDataViewModel(
+                    documentSymbol,
+                    children,
+                    isExpanded: true,
+                    isSelected: false);
+                documentSymbolItems.Add(documentSymbolItem);
+            }
+
+            return documentSymbolItems.ToImmutable();
         }
 
         public static void SetExpansionOption(
