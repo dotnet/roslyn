@@ -79,26 +79,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
         public async Task TestEqualsSingleField()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    [|int a;|]
-}";
+                class Program
+                {
+                    [|int a;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    int a;
+                class Program
+                {
+                    int a;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               a == program.a;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               a == program.a;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -113,25 +117,29 @@ class Program
         public async Task TestEqualsSingleField_CSharp7()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    [|int a;|]
-}";
+                class Program
+                {
+                    [|int a;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    int a;
+                class Program
+                {
+                    int a;
 
-    public override bool Equals(object obj)
-    {
-        return obj is Program program &&
-               a == program.a;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        return obj is Program program &&
+                               a == program.a;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -146,26 +154,30 @@ class Program
         public async Task TestEqualsSingleField_PreferExplicitType()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    [|int a;|]
-}";
+                class Program
+                {
+                    [|int a;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    int a;
+                class Program
+                {
+                    int a;
 
-    public override bool Equals(object obj)
-    {
-        Program program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               a == program.a;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        Program program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               a == program.a;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -180,34 +192,36 @@ class Program
         public async Task TestReferenceIEquatable()
         {
             var code =
-@"
-using System;
-using System.Collections.Generic;
+                """
+                using System;
+                using System.Collections.Generic;
 
-class S : {|CS0535:IEquatable<S>|} { }
+                class S : {|CS0535:IEquatable<S>|} { }
 
-class Program
-{
-    [|S a;|]
-}";
+                class Program
+                {
+                    [|S a;|]
+                }
+                """;
             var fixedCode =
-@"
-using System;
-using System.Collections.Generic;
+                """
+                using System;
+                using System.Collections.Generic;
 
-class S : {|CS0535:IEquatable<S>|} { }
+                class S : {|CS0535:IEquatable<S>|} { }
 
-class Program
-{
-    S a;
+                class Program
+                {
+                    S a;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               EqualityComparer<S>.Default.Equals(a, program.a);
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               EqualityComparer<S>.Default.Equals(a, program.a);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -222,40 +236,44 @@ class Program
         public async Task TestNullableReferenceIEquatable()
         {
             var code =
-@"#nullable enable
+                """
+                #nullable enable
 
-using System;
-using System.Collections.Generic;
+                using System;
+                using System.Collections.Generic;
 
-class S : {|CS0535:IEquatable<S>|} { }
+                class S : {|CS0535:IEquatable<S>|} { }
 
-class Program
-{
-    [|S? a;|]
-}";
+                class Program
+                {
+                    [|S? a;|]
+                }
+                """;
             var fixedCode =
-@"#nullable enable
+                """
+                #nullable enable
 
-using System;
-using System.Collections.Generic;
+                using System;
+                using System.Collections.Generic;
 
-class S : {|CS0535:IEquatable<S>|} { }
+                class S : {|CS0535:IEquatable<S>|} { }
 
-class Program
-{
-    S? a;
+                class Program
+                {
+                    S? a;
 
-    public override bool Equals(object? obj)
-    {
-        return obj is Program program &&
-               EqualityComparer<S?>.Default.Equals(a, program.a);
-    }
+                    public override bool Equals(object? obj)
+                    {
+                        return obj is Program program &&
+                               EqualityComparer<S?>.Default.Equals(a, program.a);
+                    }
 
-    public override int GetHashCode()
-    {
-        return -1757793268 + EqualityComparer<S?>.Default.GetHashCode(a);
-    }
-}";
+                    public override int GetHashCode()
+                    {
+                        return -1757793268 + EqualityComparer<S?>.Default.GetHashCode(a);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -270,34 +288,36 @@ class Program
         public async Task TestValueIEquatable()
         {
             var code =
-@"
-using System;
-using System.Collections.Generic;
+                """
+                using System;
+                using System.Collections.Generic;
 
-struct S : {|CS0535:IEquatable<S>|} { }
+                struct S : {|CS0535:IEquatable<S>|} { }
 
-class Program
-{
-    [|S a;|]
-}";
+                class Program
+                {
+                    [|S a;|]
+                }
+                """;
             var fixedCode =
-@"
-using System;
-using System.Collections.Generic;
+                """
+                using System;
+                using System.Collections.Generic;
 
-struct S : {|CS0535:IEquatable<S>|} { }
+                struct S : {|CS0535:IEquatable<S>|} { }
 
-class Program
-{
-    S a;
+                class Program
+                {
+                    S a;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               a.Equals(program.a);
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               a.Equals(program.a);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -312,26 +332,30 @@ class Program
         public async Task TestEqualsLongName()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class ReallyLongName
-{
-    [|int a;|]
-}";
+                class ReallyLongName
+                {
+                    [|int a;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class ReallyLongName
-{
-    int a;
+                class ReallyLongName
+                {
+                    int a;
 
-    public override bool Equals(object obj)
-    {
-        var name = obj as ReallyLongName;
-        return !ReferenceEquals(name, null) &&
-               a == name.a;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        var name = obj as ReallyLongName;
+                        return !ReferenceEquals(name, null) &&
+                               a == name.a;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -346,26 +370,30 @@ class ReallyLongName
         public async Task TestEqualsKeywordName()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class ReallyLongLong
-{
-    [|long a;|]
-}";
+                class ReallyLongLong
+                {
+                    [|long a;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class ReallyLongLong
-{
-    long a;
+                class ReallyLongLong
+                {
+                    long a;
 
-    public override bool Equals(object obj)
-    {
-        var @long = obj as ReallyLongLong;
-        return !ReferenceEquals(@long, null) &&
-               a == @long.a;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        var @long = obj as ReallyLongLong;
+                        return !ReferenceEquals(@long, null) &&
+                               a == @long.a;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -380,31 +408,35 @@ class ReallyLongLong
         public async Task TestEqualsProperty()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class ReallyLongName
-{
-    [|int a;
+                class ReallyLongName
+                {
+                    [|int a;
 
-    string B { get; }|]
-}";
+                    string B { get; }|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class ReallyLongName
-{
-    int a;
+                class ReallyLongName
+                {
+                    int a;
 
-    string B { get; }
+                    string B { get; }
 
-    public override bool Equals(object obj)
-    {
-        var name = obj as ReallyLongName;
-        return !ReferenceEquals(name, null) &&
-               a == name.a &&
-               B == name.B;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        var name = obj as ReallyLongName;
+                        return !ReferenceEquals(name, null) &&
+                               a == name.a &&
+                               B == name.B;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -419,30 +451,34 @@ class ReallyLongName
         public async Task TestEqualsBaseTypeWithNoEquals()
         {
             var code =
-@"class Base
-{
-}
+                """
+                class Base
+                {
+                }
 
-class Program : Base
-{
-    [|int i;|]
-}";
+                class Program : Base
+                {
+                    [|int i;|]
+                }
+                """;
             var fixedCode =
-@"class Base
-{
-}
+                """
+                class Base
+                {
+                }
 
-class Program : Base
-{
-    int i;
+                class Program : Base
+                {
+                    int i;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               i == program.i;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               i == program.i;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -457,48 +493,52 @@ class Program : Base
         public async Task TestEqualsBaseWithOverriddenEquals()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Base
-{
-    public override bool Equals(object o)
-    {
-        return false;
-    }
-}
+                class Base
+                {
+                    public override bool Equals(object o)
+                    {
+                        return false;
+                    }
+                }
 
-class Program : Base
-{
-    [|int i;
+                class Program : Base
+                {
+                    [|int i;
 
-    string S { get; }|]
-}";
+                    string S { get; }|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Base
-{
-    public override bool Equals(object o)
-    {
-        return false;
-    }
-}
+                class Base
+                {
+                    public override bool Equals(object o)
+                    {
+                        return false;
+                    }
+                }
 
-class Program : Base
-{
-    int i;
+                class Program : Base
+                {
+                    int i;
 
-    string S { get; }
+                    string S { get; }
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               base.Equals(obj) &&
-               i == program.i &&
-               S == program.S;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               base.Equals(obj) &&
+                               i == program.i &&
+                               S == program.S;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -514,56 +554,60 @@ class Program : Base
         public async Task TestEqualsOverriddenDeepBase()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Base
-{
-    public override bool Equals(object o)
-    {
-        return false;
-    }
-}
+                class Base
+                {
+                    public override bool Equals(object o)
+                    {
+                        return false;
+                    }
+                }
 
-class Middle : Base
-{
-}
+                class Middle : Base
+                {
+                }
 
-class Program : Middle
-{
-    [|int i;
+                class Program : Middle
+                {
+                    [|int i;
 
-    string S { get; }|]
-}";
+                    string S { get; }|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Base
-{
-    public override bool Equals(object o)
-    {
-        return false;
-    }
-}
+                class Base
+                {
+                    public override bool Equals(object o)
+                    {
+                        return false;
+                    }
+                }
 
-class Middle : Base
-{
-}
+                class Middle : Base
+                {
+                }
 
-class Program : Middle
-{
-    int i;
+                class Program : Middle
+                {
+                    int i;
 
-    string S { get; }
+                    string S { get; }
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               base.Equals(obj) &&
-               i == program.i &&
-               S == program.S;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               base.Equals(obj) &&
+                               i == program.i &&
+                               S == program.S;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -578,234 +622,254 @@ class Program : Middle
         public async Task TestEqualsStruct()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-struct ReallyLongName
-{
-    [|int i;
+                struct ReallyLongName
+                {
+                    [|int i;
 
-    string S { get; }|]
-}",
-@"using System;
-using System.Collections.Generic;
+                    string S { get; }|]
+                }
+                """,
+                """
+                using System;
+                using System.Collections.Generic;
 
-struct ReallyLongName : IEquatable<ReallyLongName>
-{
-    int i;
+                struct ReallyLongName : IEquatable<ReallyLongName>
+                {
+                    int i;
 
-    string S { get; }
+                    string S { get; }
 
-    public override bool Equals(object obj)
-    {
-        return obj is ReallyLongName name && Equals(name);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return obj is ReallyLongName name && Equals(name);
+                    }
 
-    public bool Equals(ReallyLongName other)
-    {
-        return i == other.i &&
-               S == other.S;
-    }
+                    public bool Equals(ReallyLongName other)
+                    {
+                        return i == other.i &&
+                               S == other.S;
+                    }
 
-    public static bool operator ==(ReallyLongName left, ReallyLongName right)
-    {
-        return left.Equals(right);
-    }
+                    public static bool operator ==(ReallyLongName left, ReallyLongName right)
+                    {
+                        return left.Equals(right);
+                    }
 
-    public static bool operator !=(ReallyLongName left, ReallyLongName right)
-    {
-        return !(left == right);
-    }
-}");
+                    public static bool operator !=(ReallyLongName left, ReallyLongName right)
+                    {
+                        return !(left == right);
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestEqualsStructCSharpLatest()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-struct ReallyLongName
-{
-    [|int i;
+                struct ReallyLongName
+                {
+                    [|int i;
 
-    string S { get; }|]
-}",
-@"using System;
-using System.Collections.Generic;
+                    string S { get; }|]
+                }
+                """,
+                """
+                using System;
+                using System.Collections.Generic;
 
-struct ReallyLongName : IEquatable<ReallyLongName>
-{
-    int i;
+                struct ReallyLongName : IEquatable<ReallyLongName>
+                {
+                    int i;
 
-    string S { get; }
+                    string S { get; }
 
-    public override bool Equals(object obj)
-    {
-        return obj is ReallyLongName name && Equals(name);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return obj is ReallyLongName name && Equals(name);
+                    }
 
-    public bool Equals(ReallyLongName other)
-    {
-        return i == other.i &&
-               S == other.S;
-    }
+                    public bool Equals(ReallyLongName other)
+                    {
+                        return i == other.i &&
+                               S == other.S;
+                    }
 
-    public static bool operator ==(ReallyLongName left, ReallyLongName right)
-    {
-        return left.Equals(right);
-    }
+                    public static bool operator ==(ReallyLongName left, ReallyLongName right)
+                    {
+                        return left.Equals(right);
+                    }
 
-    public static bool operator !=(ReallyLongName left, ReallyLongName right)
-    {
-        return !(left == right);
-    }
-}");
+                    public static bool operator !=(ReallyLongName left, ReallyLongName right)
+                    {
+                        return !(left == right);
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestEqualsStructAlreadyImplementsIEquatable()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"using System;
-using System.Collections.Generic;
+                """
+                using System;
+                using System.Collections.Generic;
 
-struct ReallyLongName : {|CS0535:IEquatable<ReallyLongName>|}
-{
-    [|int i;
+                struct ReallyLongName : {|CS0535:IEquatable<ReallyLongName>|}
+                {
+                    [|int i;
 
-    string S { get; }|]
-}",
-@"using System;
-using System.Collections.Generic;
+                    string S { get; }|]
+                }
+                """,
+                """
+                using System;
+                using System.Collections.Generic;
 
-struct ReallyLongName : {|CS0535:IEquatable<ReallyLongName>|}
-{
-    int i;
+                struct ReallyLongName : {|CS0535:IEquatable<ReallyLongName>|}
+                {
+                    int i;
 
-    string S { get; }
+                    string S { get; }
 
-    public override bool Equals(object obj)
-    {
-        return obj is ReallyLongName name &&
-               i == name.i &&
-               S == name.S;
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return obj is ReallyLongName name &&
+                               i == name.i &&
+                               S == name.S;
+                    }
 
-    public static bool operator ==(ReallyLongName left, ReallyLongName right)
-    {
-        return left.Equals(right);
-    }
+                    public static bool operator ==(ReallyLongName left, ReallyLongName right)
+                    {
+                        return left.Equals(right);
+                    }
 
-    public static bool operator !=(ReallyLongName left, ReallyLongName right)
-    {
-        return !(left == right);
-    }
-}");
+                    public static bool operator !=(ReallyLongName left, ReallyLongName right)
+                    {
+                        return !(left == right);
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestEqualsStructAlreadyHasOperators()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"using System;
-using System.Collections.Generic;
+                """
+                using System;
+                using System.Collections.Generic;
 
-struct ReallyLongName
-{
-    [|int i;
+                struct ReallyLongName
+                {
+                    [|int i;
 
-    string S { get; }|]
+                    string S { get; }|]
 
-    public static bool operator ==(ReallyLongName left, ReallyLongName right) => false;
-    public static bool operator !=(ReallyLongName left, ReallyLongName right) => false;
-}",
-@"using System;
-using System.Collections.Generic;
+                    public static bool operator ==(ReallyLongName left, ReallyLongName right) => false;
+                    public static bool operator !=(ReallyLongName left, ReallyLongName right) => false;
+                }
+                """,
+                """
+                using System;
+                using System.Collections.Generic;
 
-struct ReallyLongName : IEquatable<ReallyLongName>
-{
-    int i;
+                struct ReallyLongName : IEquatable<ReallyLongName>
+                {
+                    int i;
 
-    string S { get; }
+                    string S { get; }
 
-    public override bool Equals(object obj)
-    {
-        return obj is ReallyLongName name && Equals(name);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return obj is ReallyLongName name && Equals(name);
+                    }
 
-    public bool Equals(ReallyLongName other)
-    {
-        return i == other.i &&
-               S == other.S;
-    }
+                    public bool Equals(ReallyLongName other)
+                    {
+                        return i == other.i &&
+                               S == other.S;
+                    }
 
-    public static bool operator ==(ReallyLongName left, ReallyLongName right) => false;
-    public static bool operator !=(ReallyLongName left, ReallyLongName right) => false;
-}");
+                    public static bool operator ==(ReallyLongName left, ReallyLongName right) => false;
+                    public static bool operator !=(ReallyLongName left, ReallyLongName right) => false;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestEqualsStructAlreadyImplementsIEquatableAndHasOperators()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"using System;
-using System.Collections.Generic;
+                """
+                using System;
+                using System.Collections.Generic;
 
-struct ReallyLongName : {|CS0535:IEquatable<ReallyLongName>|}
-{
-    [|int i;
+                struct ReallyLongName : {|CS0535:IEquatable<ReallyLongName>|}
+                {
+                    [|int i;
 
-    string S { get; }|]
+                    string S { get; }|]
 
-    public static bool operator ==(ReallyLongName left, ReallyLongName right) => false;
-    public static bool operator !=(ReallyLongName left, ReallyLongName right) => false;
-}",
-@"using System;
-using System.Collections.Generic;
+                    public static bool operator ==(ReallyLongName left, ReallyLongName right) => false;
+                    public static bool operator !=(ReallyLongName left, ReallyLongName right) => false;
+                }
+                """,
+                """
+                using System;
+                using System.Collections.Generic;
 
-struct ReallyLongName : {|CS0535:IEquatable<ReallyLongName>|}
-{
-    int i;
+                struct ReallyLongName : {|CS0535:IEquatable<ReallyLongName>|}
+                {
+                    int i;
 
-    string S { get; }
+                    string S { get; }
 
-    public override bool Equals(object obj)
-    {
-        return obj is ReallyLongName name &&
-               i == name.i &&
-               S == name.S;
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return obj is ReallyLongName name &&
+                               i == name.i &&
+                               S == name.S;
+                    }
 
-    public static bool operator ==(ReallyLongName left, ReallyLongName right) => false;
-    public static bool operator !=(ReallyLongName left, ReallyLongName right) => false;
-}");
+                    public static bool operator ==(ReallyLongName left, ReallyLongName right) => false;
+                    public static bool operator !=(ReallyLongName left, ReallyLongName right) => false;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestEqualsGenericType()
         {
-            var code = @"
-using System.Collections.Generic;
-class Program<T>
-{
-    [|int i;|]
-}
-";
+            var code = """
+                using System.Collections.Generic;
+                class Program<T>
+                {
+                    [|int i;|]
+                }
+                """;
 
-            var expected = @"
-using System.Collections.Generic;
-class Program<T>
-{
-    int i;
+            var expected = """
+                using System.Collections.Generic;
+                class Program<T>
+                {
+                    int i;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program<T>;
-        return !ReferenceEquals(program, null) &&
-               i == program.i;
-    }
-}
-";
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program<T>;
+                        return !ReferenceEquals(program, null) &&
+                               i == program.i;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -820,55 +884,63 @@ class Program<T>
         public async Task TestEqualsNullableContext()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"#nullable enable
+                """
+                #nullable enable
 
-class Program
-{
-    [|int a;|]
-}",
-@"#nullable enable
+                class Program
+                {
+                    [|int a;|]
+                }
+                """,
+                """
+                #nullable enable
 
-class Program
-{
-    int a;
+                class Program
+                {
+                    int a;
 
-    public override bool Equals(object? obj)
-    {
-        return obj is Program program &&
-               a == program.a;
-    }
-}");
+                    public override bool Equals(object? obj)
+                    {
+                        return obj is Program program &&
+                               a == program.a;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestGetHashCodeSingleField1()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    [|int i;|]
-}";
+                class Program
+                {
+                    [|int i;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    int i;
+                class Program
+                {
+                    int i;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               i == program.i;
-    }
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               i == program.i;
+                    }
 
-    public override int GetHashCode()
-    {
-        return 165851236 + i.GetHashCode();
-    }
-}";
+                    public override int GetHashCode()
+                    {
+                        return 165851236 + i.GetHashCode();
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -884,31 +956,35 @@ class Program
         public async Task TestGetHashCodeSingleField2()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    [|int j;|]
-}";
+                class Program
+                {
+                    [|int j;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    int j;
+                class Program
+                {
+                    int j;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               j == program.j;
-    }
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               j == program.j;
+                    }
 
-    public override int GetHashCode()
-    {
-        return 1424088837 + j.GetHashCode();
-    }
-}";
+                    public override int GetHashCode()
+                    {
+                        return 1424088837 + j.GetHashCode();
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -924,42 +1000,46 @@ class Program
         public async Task TestGetHashCodeWithBaseHashCode1()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Base {
-    public override int GetHashCode() => 0;
-}
+                class Base {
+                    public override int GetHashCode() => 0;
+                }
 
-class Program : Base
-{
-    [|int j;|]
-}";
+                class Program : Base
+                {
+                    [|int j;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Base {
-    public override int GetHashCode() => 0;
-}
+                class Base {
+                    public override int GetHashCode() => 0;
+                }
 
-class Program : Base
-{
-    int j;
+                class Program : Base
+                {
+                    int j;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               j == program.j;
-    }
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               j == program.j;
+                    }
 
-    public override int GetHashCode()
-    {
-        var hashCode = 339610899;
-        hashCode = hashCode * -1521134295 + base.GetHashCode();
-        hashCode = hashCode * -1521134295 + j.GetHashCode();
-        return hashCode;
-    }
-}";
+                    public override int GetHashCode()
+                    {
+                        var hashCode = 339610899;
+                        hashCode = hashCode * -1521134295 + base.GetHashCode();
+                        hashCode = hashCode * -1521134295 + j.GetHashCode();
+                        return hashCode;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -975,39 +1055,43 @@ class Program : Base
         public async Task TestGetHashCodeWithBaseHashCode2()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Base {
-    public override int GetHashCode() => 0;
-}
+                class Base {
+                    public override int GetHashCode() => 0;
+                }
 
-class Program : Base
-{
-    int j;
-    [||]
-}";
+                class Program : Base
+                {
+                    int j;
+                    [||]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Base {
-    public override int GetHashCode() => 0;
-}
+                class Base {
+                    public override int GetHashCode() => 0;
+                }
 
-class Program : Base
-{
-    int j;
+                class Program : Base
+                {
+                    int j;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null);
+                    }
 
-    public override int GetHashCode()
-    {
-        return 624022166 + base.GetHashCode();
-    }
-}";
+                    public override int GetHashCode()
+                    {
+                        return 624022166 + base.GetHashCode();
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -1024,28 +1108,32 @@ class Program : Base
         public async Task TestGetHashCodeSingleField_CodeStyle1()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    [|int i;|]
-}";
+                class Program
+                {
+                    [|int i;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    int i;
+                class Program
+                {
+                    int i;
 
-    public override bool Equals(object obj)
-    {
-        Program program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               i == program.i;
-    }
+                    public override bool Equals(object obj)
+                    {
+                        Program program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               i == program.i;
+                    }
 
-    public override int GetHashCode() => 165851236 + i.GetHashCode();
-}";
+                    public override int GetHashCode() => 165851236 + i.GetHashCode();
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1064,31 +1152,35 @@ class Program
         public async Task TestGetHashCodeTypeParameter()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program<T>
-{
-    [|T i;|]
-}";
+                class Program<T>
+                {
+                    [|T i;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program<T>
-{
-    T i;
+                class Program<T>
+                {
+                    T i;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program<T>;
-        return !ReferenceEquals(program, null) &&
-               EqualityComparer<T>.Default.Equals(i, program.i);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program<T>;
+                        return !ReferenceEquals(program, null) &&
+                               EqualityComparer<T>.Default.Equals(i, program.i);
+                    }
 
-    public override int GetHashCode()
-    {
-        return 165851236 + EqualityComparer<T>.Default.GetHashCode(i);
-    }
-}";
+                    public override int GetHashCode()
+                    {
+                        return 165851236 + EqualityComparer<T>.Default.GetHashCode(i);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1104,31 +1196,35 @@ class Program<T>
         public async Task TestGetHashCodeGenericType()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program<T>
-{
-    [|Program<T> i;|]
-}";
+                class Program<T>
+                {
+                    [|Program<T> i;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program<T>
-{
-    Program<T> i;
+                class Program<T>
+                {
+                    Program<T> i;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program<T>;
-        return !ReferenceEquals(program, null) &&
-               EqualityComparer<Program<T>>.Default.Equals(i, program.i);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program<T>;
+                        return !ReferenceEquals(program, null) &&
+                               EqualityComparer<Program<T>>.Default.Equals(i, program.i);
+                    }
 
-    public override int GetHashCode()
-    {
-        return 165851236 + EqualityComparer<Program<T>>.Default.GetHashCode(i);
-    }
-}";
+                    public override int GetHashCode()
+                    {
+                        return 165851236 + EqualityComparer<Program<T>>.Default.GetHashCode(i);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1144,39 +1240,43 @@ class Program<T>
         public async Task TestGetHashCodeMultipleMembers()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    [|int i;
+                class Program
+                {
+                    [|int i;
 
-    string S { get; }|]
-}";
+                    string S { get; }|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    int i;
+                class Program
+                {
+                    int i;
 
-    string S { get; }
+                    string S { get; }
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               i == program.i &&
-               S == program.S;
-    }
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               i == program.i &&
+                               S == program.S;
+                    }
 
-    public override int GetHashCode()
-    {
-        var hashCode = -538000506;
-        hashCode = hashCode * -1521134295 + i.GetHashCode();
-        hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
-        return hashCode;
-    }
-}";
+                    public override int GetHashCode()
+                    {
+                        var hashCode = -538000506;
+                        hashCode = hashCode * -1521134295 + i.GetHashCode();
+                        hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
+                        return hashCode;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1192,38 +1292,42 @@ class Program
         public async Task TestSmartTagText1()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    [|bool b;
-    HashSet<string> s;|]
+                class Program
+                {
+                    [|bool b;
+                    HashSet<string> s;|]
 
-    public Program(bool b)
-    {
-        this.b = b;
-    }
-}";
+                    public Program(bool b)
+                    {
+                        this.b = b;
+                    }
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    bool b;
-    HashSet<string> s;
+                class Program
+                {
+                    bool b;
+                    HashSet<string> s;
 
-    public Program(bool b)
-    {
-        this.b = b;
-    }
+                    public Program(bool b)
+                    {
+                        this.b = b;
+                    }
 
-    public override bool Equals(object obj)
-    {
-        return obj is Program program &&
-               b == program.b &&
-               EqualityComparer<HashSet<string>>.Default.Equals(s, program.s);
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        return obj is Program program &&
+                               b == program.b &&
+                               EqualityComparer<HashSet<string>>.Default.Equals(s, program.s);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1239,46 +1343,50 @@ class Program
         public async Task TestSmartTagText2()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    [|bool b;
-    HashSet<string> s;|]
+                class Program
+                {
+                    [|bool b;
+                    HashSet<string> s;|]
 
-    public Program(bool b)
-    {
-        this.b = b;
-    }
-}";
+                    public Program(bool b)
+                    {
+                        this.b = b;
+                    }
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    bool b;
-    HashSet<string> s;
+                class Program
+                {
+                    bool b;
+                    HashSet<string> s;
 
-    public Program(bool b)
-    {
-        this.b = b;
-    }
+                    public Program(bool b)
+                    {
+                        this.b = b;
+                    }
 
-    public override bool Equals(object obj)
-    {
-        return obj is Program program &&
-               b == program.b &&
-               EqualityComparer<HashSet<string>>.Default.Equals(s, program.s);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return obj is Program program &&
+                               b == program.b &&
+                               EqualityComparer<HashSet<string>>.Default.Equals(s, program.s);
+                    }
 
-    public override int GetHashCode()
-    {
-        int hashCode = -666523601;
-        hashCode = hashCode * -1521134295 + b.GetHashCode();
-        hashCode = hashCode * -1521134295 + EqualityComparer<HashSet<string>>.Default.GetHashCode(s);
-        return hashCode;
-    }
-}";
+                    public override int GetHashCode()
+                    {
+                        int hashCode = -666523601;
+                        hashCode = hashCode * -1521134295 + b.GetHashCode();
+                        hashCode = hashCode * -1521134295 + EqualityComparer<HashSet<string>>.Default.GetHashCode(s);
+                        return hashCode;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1294,46 +1402,50 @@ class Program
         public async Task TestSmartTagText3()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    [|bool b;
-    HashSet<string> s;|]
+                class Program
+                {
+                    [|bool b;
+                    HashSet<string> s;|]
 
-    public Program(bool b)
-    {
-        this.b = b;
-    }
-}";
+                    public Program(bool b)
+                    {
+                        this.b = b;
+                    }
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    bool b;
-    HashSet<string> s;
+                class Program
+                {
+                    bool b;
+                    HashSet<string> s;
 
-    public Program(bool b)
-    {
-        this.b = b;
-    }
+                    public Program(bool b)
+                    {
+                        this.b = b;
+                    }
 
-    public override bool Equals(object obj)
-    {
-        return obj is Program program &&
-               b == program.b &&
-               EqualityComparer<HashSet<string>>.Default.Equals(s, program.s);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return obj is Program program &&
+                               b == program.b &&
+                               EqualityComparer<HashSet<string>>.Default.Equals(s, program.s);
+                    }
 
-    public override int GetHashCode()
-    {
-        int hashCode = -666523601;
-        hashCode = hashCode * -1521134295 + b.GetHashCode();
-        hashCode = hashCode * -1521134295 + EqualityComparer<HashSet<string>>.Default.GetHashCode(s);
-        return hashCode;
-    }
-}";
+                    public override int GetHashCode()
+                    {
+                        int hashCode = -666523601;
+                        hashCode = hashCode * -1521134295 + b.GetHashCode();
+                        hashCode = hashCode * -1521134295 + EqualityComparer<HashSet<string>>.Default.GetHashCode(s);
+                        return hashCode;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1349,26 +1461,30 @@ class Program
         public async Task Tuple_Disabled()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class C
-{
-    [|{|CS8059:(int, string)|} a;|]
-}";
+                class C
+                {
+                    [|{|CS8059:(int, string)|} a;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class C
-{
-    {|CS8059:(int, string)|} a;
+                class C
+                {
+                    {|CS8059:(int, string)|} a;
 
-    public override bool Equals(object obj)
-    {
-        var c = obj as C;
-        return !ReferenceEquals(c, null) &&
-               a.Equals(c.a);
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        var c = obj as C;
+                        return !ReferenceEquals(c, null) &&
+                               a.Equals(c.a);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1384,26 +1500,30 @@ class C
         public async Task Tuples_Equals()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class C
-{
-    [|{|CS8059:(int, string)|} a;|]
-}";
+                class C
+                {
+                    [|{|CS8059:(int, string)|} a;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class C
-{
-    {|CS8059:(int, string)|} a;
+                class C
+                {
+                    {|CS8059:(int, string)|} a;
 
-    public override bool Equals(object obj)
-    {
-        var c = obj as C;
-        return !ReferenceEquals(c, null) &&
-               a.Equals(c.a);
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        var c = obj as C;
+                        return !ReferenceEquals(c, null) &&
+                               a.Equals(c.a);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1418,26 +1538,30 @@ class C
         public async Task TupleWithNames_Equals()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class C
-{
-    [|{|CS8059:(int x, string y)|} a;|]
-}";
+                class C
+                {
+                    [|{|CS8059:(int x, string y)|} a;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class C
-{
-    {|CS8059:(int x, string y)|} a;
+                class C
+                {
+                    {|CS8059:(int x, string y)|} a;
 
-    public override bool Equals(object obj)
-    {
-        var c = obj as C;
-        return !ReferenceEquals(c, null) &&
-               a.Equals(c.a);
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        var c = obj as C;
+                        return !ReferenceEquals(c, null) &&
+                               a.Equals(c.a);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1452,31 +1576,35 @@ class C
         public async Task Tuple_HashCode()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    [|{|CS8059:(int, string)|} i;|]
-}";
+                class Program
+                {
+                    [|{|CS8059:(int, string)|} i;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    {|CS8059:(int, string)|} i;
+                class Program
+                {
+                    {|CS8059:(int, string)|} i;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               i.Equals(program.i);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               i.Equals(program.i);
+                    }
 
-    public override int GetHashCode()
-    {
-        return 165851236 + i.GetHashCode();
-    }
-}";
+                    public override int GetHashCode()
+                    {
+                        return 165851236 + i.GetHashCode();
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1492,31 +1620,35 @@ class Program
         public async Task TupleWithNames_HashCode()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    [|{|CS8059:(int x, string y)|} i;|]
-}";
+                class Program
+                {
+                    [|{|CS8059:(int x, string y)|} i;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    {|CS8059:(int x, string y)|} i;
+                class Program
+                {
+                    {|CS8059:(int x, string y)|} i;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               i.Equals(program.i);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               i.Equals(program.i);
+                    }
 
-    public override int GetHashCode()
-    {
-        return 165851236 + i.GetHashCode();
-    }
-}";
+                    public override int GetHashCode()
+                    {
+                        return 165851236 + i.GetHashCode();
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1532,39 +1664,43 @@ class Program
         public async Task StructWithoutGetHashCodeOverride_ShouldCallGetHashCodeDirectly()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Foo
-{
-    [|Bar bar;|]
-}
+                class Foo
+                {
+                    [|Bar bar;|]
+                }
 
-struct Bar
-{
-}";
+                struct Bar
+                {
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Foo
-{
-    Bar bar;
+                class Foo
+                {
+                    Bar bar;
 
-    public override bool Equals(object obj)
-    {
-        var foo = obj as Foo;
-        return !ReferenceEquals(foo, null) &&
-               EqualityComparer<Bar>.Default.Equals(bar, foo.bar);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        var foo = obj as Foo;
+                        return !ReferenceEquals(foo, null) &&
+                               EqualityComparer<Bar>.Default.Equals(bar, foo.bar);
+                    }
 
-    public override int GetHashCode()
-    {
-        return 999205674 + bar.GetHashCode();
-    }
-}
+                    public override int GetHashCode()
+                    {
+                        return 999205674 + bar.GetHashCode();
+                    }
+                }
 
-struct Bar
-{
-}";
+                struct Bar
+                {
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1580,41 +1716,45 @@ struct Bar
         public async Task StructWithGetHashCodeOverride_ShouldCallGetHashCodeDirectly()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Foo
-{
-    [|Bar bar;|]
-}
+                class Foo
+                {
+                    [|Bar bar;|]
+                }
 
-struct Bar
-{
-    public override int GetHashCode() => 0;
-}";
+                struct Bar
+                {
+                    public override int GetHashCode() => 0;
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Foo
-{
-    Bar bar;
+                class Foo
+                {
+                    Bar bar;
 
-    public override bool Equals(object obj)
-    {
-        var foo = obj as Foo;
-        return !ReferenceEquals(foo, null) &&
-               EqualityComparer<Bar>.Default.Equals(bar, foo.bar);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        var foo = obj as Foo;
+                        return !ReferenceEquals(foo, null) &&
+                               EqualityComparer<Bar>.Default.Equals(bar, foo.bar);
+                    }
 
-    public override int GetHashCode()
-    {
-        return 999205674 + bar.GetHashCode();
-    }
-}
+                    public override int GetHashCode()
+                    {
+                        return 999205674 + bar.GetHashCode();
+                    }
+                }
 
-struct Bar
-{
-    public override int GetHashCode() => 0;
-}";
+                struct Bar
+                {
+                    public override int GetHashCode() => 0;
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1630,39 +1770,43 @@ struct Bar
         public async Task NullableStructWithoutGetHashCodeOverride_ShouldCallGetHashCodeDirectly()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Foo
-{
-    [|Bar? bar;|]
-}
+                class Foo
+                {
+                    [|Bar? bar;|]
+                }
 
-struct Bar
-{
-}";
+                struct Bar
+                {
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Foo
-{
-    Bar? bar;
+                class Foo
+                {
+                    Bar? bar;
 
-    public override bool Equals(object obj)
-    {
-        var foo = obj as Foo;
-        return !ReferenceEquals(foo, null) &&
-               EqualityComparer<Bar?>.Default.Equals(bar, foo.bar);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        var foo = obj as Foo;
+                        return !ReferenceEquals(foo, null) &&
+                               EqualityComparer<Bar?>.Default.Equals(bar, foo.bar);
+                    }
 
-    public override int GetHashCode()
-    {
-        return 999205674 + bar.GetHashCode();
-    }
-}
+                    public override int GetHashCode()
+                    {
+                        return 999205674 + bar.GetHashCode();
+                    }
+                }
 
-struct Bar
-{
-}";
+                struct Bar
+                {
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1678,31 +1822,35 @@ struct Bar
         public async Task StructTypeParameter_ShouldCallGetHashCodeDirectly()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Foo<TBar> where TBar : struct
-{
-    [|TBar bar;|]
-}";
+                class Foo<TBar> where TBar : struct
+                {
+                    [|TBar bar;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Foo<TBar> where TBar : struct
-{
-    TBar bar;
+                class Foo<TBar> where TBar : struct
+                {
+                    TBar bar;
 
-    public override bool Equals(object obj)
-    {
-        var foo = obj as Foo<TBar>;
-        return !ReferenceEquals(foo, null) &&
-               EqualityComparer<TBar>.Default.Equals(bar, foo.bar);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        var foo = obj as Foo<TBar>;
+                        return !ReferenceEquals(foo, null) &&
+                               EqualityComparer<TBar>.Default.Equals(bar, foo.bar);
+                    }
 
-    public override int GetHashCode()
-    {
-        return 999205674 + bar.GetHashCode();
-    }
-}";
+                    public override int GetHashCode()
+                    {
+                        return 999205674 + bar.GetHashCode();
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1718,31 +1866,35 @@ class Foo<TBar> where TBar : struct
         public async Task NullableStructTypeParameter_ShouldCallGetHashCodeDirectly()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Foo<TBar> where TBar : struct
-{
-    [|TBar? bar;|]
-}";
+                class Foo<TBar> where TBar : struct
+                {
+                    [|TBar? bar;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Foo<TBar> where TBar : struct
-{
-    TBar? bar;
+                class Foo<TBar> where TBar : struct
+                {
+                    TBar? bar;
 
-    public override bool Equals(object obj)
-    {
-        var foo = obj as Foo<TBar>;
-        return !ReferenceEquals(foo, null) &&
-               EqualityComparer<TBar?>.Default.Equals(bar, foo.bar);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        var foo = obj as Foo<TBar>;
+                        return !ReferenceEquals(foo, null) &&
+                               EqualityComparer<TBar?>.Default.Equals(bar, foo.bar);
+                    }
 
-    public override int GetHashCode()
-    {
-        return 999205674 + bar.GetHashCode();
-    }
-}";
+                    public override int GetHashCode()
+                    {
+                        return 999205674 + bar.GetHashCode();
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1758,39 +1910,43 @@ class Foo<TBar> where TBar : struct
         public async Task Enum_ShouldCallGetHashCodeDirectly()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Foo
-{
-    [|Bar bar;|]
-}
+                class Foo
+                {
+                    [|Bar bar;|]
+                }
 
-enum Bar
-{
-}";
+                enum Bar
+                {
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Foo
-{
-    Bar bar;
+                class Foo
+                {
+                    Bar bar;
 
-    public override bool Equals(object obj)
-    {
-        var foo = obj as Foo;
-        return !ReferenceEquals(foo, null) &&
-               bar == foo.bar;
-    }
+                    public override bool Equals(object obj)
+                    {
+                        var foo = obj as Foo;
+                        return !ReferenceEquals(foo, null) &&
+                               bar == foo.bar;
+                    }
 
-    public override int GetHashCode()
-    {
-        return 999205674 + bar.GetHashCode();
-    }
-}
+                    public override int GetHashCode()
+                    {
+                        return 999205674 + bar.GetHashCode();
+                    }
+                }
 
-enum Bar
-{
-}";
+                enum Bar
+                {
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1806,31 +1962,35 @@ enum Bar
         public async Task PrimitiveValueType_ShouldCallGetHashCodeDirectly()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Foo
-{
-    [|ulong bar;|]
-}";
+                class Foo
+                {
+                    [|ulong bar;|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Foo
-{
-    ulong bar;
+                class Foo
+                {
+                    ulong bar;
 
-    public override bool Equals(object obj)
-    {
-        var foo = obj as Foo;
-        return !ReferenceEquals(foo, null) &&
-               bar == foo.bar;
-    }
+                    public override bool Equals(object obj)
+                    {
+                        var foo = obj as Foo;
+                        return !ReferenceEquals(foo, null) &&
+                               bar == foo.bar;
+                    }
 
-    public override int GetHashCode()
-    {
-        return 999205674 + bar.GetHashCode();
-    }
-}";
+                    public override int GetHashCode()
+                    {
+                        return 999205674 + bar.GetHashCode();
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1846,30 +2006,34 @@ class Foo
         public async Task TestWithDialog1()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    int a;
-    string b;
-    [||]
-}";
+                class Program
+                {
+                    int a;
+                    string b;
+                    [||]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    int a;
-    string b;
+                class Program
+                {
+                    int a;
+                    string b;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               a == program.a &&
-               b == program.b;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               a == program.a &&
+                               b == program.b;
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -1885,32 +2049,36 @@ class Program
         public async Task TestWithDialog2()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    int a;
-    string b;
-    bool c;
-    [||]
-}";
+                class Program
+                {
+                    int a;
+                    string b;
+                    bool c;
+                    [||]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    int a;
-    string b;
-    bool c;
+                class Program
+                {
+                    int a;
+                    string b;
+                    bool c;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               c == program.c &&
-               b == program.b;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               c == program.c &&
+                               b == program.b;
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -1926,30 +2094,34 @@ class Program
         public async Task TestWithDialog3()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    int a;
-    string b;
-    bool c;
-    [||]
-}";
+                class Program
+                {
+                    int a;
+                    string b;
+                    bool c;
+                    [||]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    int a;
-    string b;
-    bool c;
+                class Program
+                {
+                    int a;
+                    string b;
+                    bool c;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null);
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null);
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -1965,25 +2137,27 @@ class Program
         public async Task TestWithDialogNoBackingField()
         {
             var code =
-@"
-class Program
-{
-    public int F { get; set; }
-    [||]
-}";
+                """
+                class Program
+                {
+                    public int F { get; set; }
+                    [||]
+                }
+                """;
             var fixedCode =
-@"
-class Program
-{
-    public int F { get; set; }
+                """
+                class Program
+                {
+                    public int F { get; set; }
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               F == program.F;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               F == program.F;
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -1998,26 +2172,28 @@ class Program
         public async Task TestWithDialogNoIndexer()
         {
             var code =
-@"
-class Program
-{
-    public int P => 0;
-    public int this[int index] => 0;
-    [||]
-}";
+                """
+                class Program
+                {
+                    public int P => 0;
+                    public int this[int index] => 0;
+                    [||]
+                }
+                """;
             var fixedCode =
-@"
-class Program
-{
-    public int P => 0;
-    public int this[int index] => 0;
+                """
+                class Program
+                {
+                    public int P => 0;
+                    public int this[int index] => 0;
 
-    public override bool Equals(object obj)
-    {
-        return obj is Program program &&
-               P == program.P;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        return obj is Program program &&
+                               P == program.P;
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2030,26 +2206,28 @@ class Program
         public async Task TestWithDialogNoSetterOnlyProperty()
         {
             var code =
-@"
-class Program
-{
-    public int P => 0;
-    public int S { set { } }
-    [||]
-}";
+                """
+                class Program
+                {
+                    public int P => 0;
+                    public int S { set { } }
+                    [||]
+                }
+                """;
             var fixedCode =
-@"
-class Program
-{
-    public int P => 0;
-    public int S { set { } }
+                """
+                class Program
+                {
+                    public int P => 0;
+                    public int S { set { } }
 
-    public override bool Equals(object obj)
-    {
-        return obj is Program program &&
-               P == program.P;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        return obj is Program program &&
+                               P == program.P;
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2062,46 +2240,48 @@ class Program
         public async Task TestWithDialogInheritedMembers()
         {
             var code =
-@"
-class Base
-{
-    public int C { get; set; }
-}
+                """
+                class Base
+                {
+                    public int C { get; set; }
+                }
 
-class Middle : Base
-{
-    public int B { get; set; }
-}
+                class Middle : Base
+                {
+                    public int B { get; set; }
+                }
 
-class Derived : Middle
-{
-    public int A { get; set; }
-    [||]
-}";
+                class Derived : Middle
+                {
+                    public int A { get; set; }
+                    [||]
+                }
+                """;
             var fixedCode =
-@"
-class Base
-{
-    public int C { get; set; }
-}
+                """
+                class Base
+                {
+                    public int C { get; set; }
+                }
 
-class Middle : Base
-{
-    public int B { get; set; }
-}
+                class Middle : Base
+                {
+                    public int B { get; set; }
+                }
 
-class Derived : Middle
-{
-    public int A { get; set; }
+                class Derived : Middle
+                {
+                    public int A { get; set; }
 
-    public override bool Equals(object obj)
-    {
-        return obj is Derived derived &&
-               C == derived.C &&
-               B == derived.B &&
-               A == derived.A;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        return obj is Derived derived &&
+                               C == derived.C &&
+                               B == derived.B &&
+                               A == derived.A;
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2114,39 +2294,41 @@ class Derived : Middle
         public async Task TestGenerateOperators1()
         {
             var code =
-@"
-using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    public string s;
-    [||]
-}";
+                class Program
+                {
+                    public string s;
+                    [||]
+                }
+                """;
             var fixedCode =
-@"
-using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    public string s;
+                class Program
+                {
+                    public string s;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               s == program.s;
-    }
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               s == program.s;
+                    }
 
-    public static bool operator ==(Program left, Program right)
-    {
-        return EqualityComparer<Program>.Default.Equals(left, right);
-    }
+                    public static bool operator ==(Program left, Program right)
+                    {
+                        return EqualityComparer<Program>.Default.Equals(left, right);
+                    }
 
-    public static bool operator !=(Program left, Program right)
-    {
-        return !(left == right);
-    }
-}";
+                    public static bool operator !=(Program left, Program right)
+                    {
+                        return !(left == right);
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2163,32 +2345,34 @@ class Program
         public async Task TestGenerateOperators2()
         {
             var code =
-@"
-using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    public string s;
-    [||]
-}";
+                class Program
+                {
+                    public string s;
+                    [||]
+                }
+                """;
             var fixedCode =
-@"
-using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    public string s;
+                class Program
+                {
+                    public string s;
 
-    public override bool Equals(object obj)
-    {
-        Program program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               s == program.s;
-    }
+                    public override bool Equals(object obj)
+                    {
+                        Program program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               s == program.s;
+                    }
 
-    public static bool operator ==(Program left, Program right) => EqualityComparer<Program>.Default.Equals(left, right);
-    public static bool operator !=(Program left, Program right) => !(left == right);
-}";
+                    public static bool operator ==(Program left, Program right) => EqualityComparer<Program>.Default.Equals(left, right);
+                    public static bool operator !=(Program left, Program right) => !(left == right);
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2208,33 +2392,35 @@ class Program
         public async Task TestGenerateOperators3()
         {
             var code =
-@"
-using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    public string s;
-    [||]
+                class Program
+                {
+                    public string s;
+                    [||]
 
-    public static bool operator {|CS0216:==|}(Program left, Program right) => true;
-}";
+                    public static bool operator {|CS0216:==|}(Program left, Program right) => true;
+                }
+                """;
             var fixedCode =
-@"
-using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    public string s;
+                class Program
+                {
+                    public string s;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               s == program.s;
-    }
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               s == program.s;
+                    }
 
-    public static bool operator {|CS0216:==|}(Program left, Program right) => true;
-}";
+                    public static bool operator {|CS0216:==|}(Program left, Program right) => true;
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2251,43 +2437,45 @@ class Program
         public async Task TestGenerateOperators4()
         {
             var code =
-@"
-using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-struct Program
-{
-    public string s;
-    [||]
-}";
+                struct Program
+                {
+                    public string s;
+                    [||]
+                }
+                """;
             var fixedCode =
-@"
-using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-struct Program
-{
-    public string s;
+                struct Program
+                {
+                    public string s;
 
-    public override bool Equals(object obj)
-    {
-        if (!(obj is Program))
-        {
-            return false;
-        }
+                    public override bool Equals(object obj)
+                    {
+                        if (!(obj is Program))
+                        {
+                            return false;
+                        }
 
-        var program = (Program)obj;
-        return s == program.s;
-    }
+                        var program = (Program)obj;
+                        return s == program.s;
+                    }
 
-    public static bool operator ==(Program left, Program right)
-    {
-        return left.Equals(right);
-    }
+                    public static bool operator ==(Program left, Program right)
+                    {
+                        return left.Equals(right);
+                    }
 
-    public static bool operator !=(Program left, Program right)
-    {
-        return !(left == right);
-    }
-}";
+                    public static bool operator !=(Program left, Program right)
+                    {
+                        return !(left == right);
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2304,47 +2492,49 @@ struct Program
         public async Task TestGenerateLiftedOperators()
         {
             var code =
-@"
-using System;
-using System.Collections.Generic;
+                """
+                using System;
+                using System.Collections.Generic;
 
-class Foo
-{
-    [|public bool? BooleanValue { get; }
-    public decimal? DecimalValue { get; }
-    public Bar? EnumValue { get; }
-    public DateTime? DateTimeValue { get; }|]
-}
+                class Foo
+                {
+                    [|public bool? BooleanValue { get; }
+                    public decimal? DecimalValue { get; }
+                    public Bar? EnumValue { get; }
+                    public DateTime? DateTimeValue { get; }|]
+                }
 
-enum Bar
-{
-}";
+                enum Bar
+                {
+                }
+                """;
             var fixedCode =
-@"
-using System;
-using System.Collections.Generic;
+                """
+                using System;
+                using System.Collections.Generic;
 
-class Foo
-{
-    public bool? BooleanValue { get; }
-    public decimal? DecimalValue { get; }
-    public Bar? EnumValue { get; }
-    public DateTime? DateTimeValue { get; }
+                class Foo
+                {
+                    public bool? BooleanValue { get; }
+                    public decimal? DecimalValue { get; }
+                    public Bar? EnumValue { get; }
+                    public DateTime? DateTimeValue { get; }
 
-    public override bool Equals(object obj)
-    {
-        var foo = obj as Foo;
-        return !ReferenceEquals(foo, null) &&
-               BooleanValue == foo.BooleanValue &&
-               DecimalValue == foo.DecimalValue &&
-               EnumValue == foo.EnumValue &&
-               DateTimeValue == foo.DateTimeValue;
-    }
-}
+                    public override bool Equals(object obj)
+                    {
+                        var foo = obj as Foo;
+                        return !ReferenceEquals(foo, null) &&
+                               BooleanValue == foo.BooleanValue &&
+                               DecimalValue == foo.DecimalValue &&
+                               EnumValue == foo.EnumValue &&
+                               DateTimeValue == foo.DateTimeValue;
+                    }
+                }
 
-enum Bar
-{
-}";
+                enum Bar
+                {
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -2360,63 +2550,65 @@ enum Bar
         public async Task LiftedOperatorIsNotUsedWhenDirectOperatorWouldNotBeUsed()
         {
             var code =
-@"
-using System;
-using System.Collections.Generic;
+                """
+                using System;
+                using System.Collections.Generic;
 
-class Foo
-{
-    [|public Bar Value { get; }
-    public Bar? NullableValue { get; }|]
-}
+                class Foo
+                {
+                    [|public Bar Value { get; }
+                    public Bar? NullableValue { get; }|]
+                }
 
-struct Bar : IEquatable<Bar>
-{
-    private readonly int value;
+                struct Bar : IEquatable<Bar>
+                {
+                    private readonly int value;
 
-    public override bool Equals(object obj) => false;
+                    public override bool Equals(object obj) => false;
 
-    public bool Equals(Bar other) => value == other.value;
+                    public bool Equals(Bar other) => value == other.value;
 
-    public override int GetHashCode() => -1584136870 + value.GetHashCode();
+                    public override int GetHashCode() => -1584136870 + value.GetHashCode();
 
-    public static bool operator ==(Bar left, Bar right) => left.Equals(right);
+                    public static bool operator ==(Bar left, Bar right) => left.Equals(right);
 
-    public static bool operator !=(Bar left, Bar right) => !(left == right);
-}";
+                    public static bool operator !=(Bar left, Bar right) => !(left == right);
+                }
+                """;
             var fixedCode =
-@"
-using System;
-using System.Collections.Generic;
+                """
+                using System;
+                using System.Collections.Generic;
 
-class Foo
-{
-    public Bar Value { get; }
-    public Bar? NullableValue { get; }
+                class Foo
+                {
+                    public Bar Value { get; }
+                    public Bar? NullableValue { get; }
 
-    public override bool Equals(object obj)
-    {
-        var foo = obj as Foo;
-        return !ReferenceEquals(foo, null) &&
-               Value.Equals(foo.Value) &&
-               EqualityComparer<Bar?>.Default.Equals(NullableValue, foo.NullableValue);
-    }
-}
+                    public override bool Equals(object obj)
+                    {
+                        var foo = obj as Foo;
+                        return !ReferenceEquals(foo, null) &&
+                               Value.Equals(foo.Value) &&
+                               EqualityComparer<Bar?>.Default.Equals(NullableValue, foo.NullableValue);
+                    }
+                }
 
-struct Bar : IEquatable<Bar>
-{
-    private readonly int value;
+                struct Bar : IEquatable<Bar>
+                {
+                    private readonly int value;
 
-    public override bool Equals(object obj) => false;
+                    public override bool Equals(object obj) => false;
 
-    public bool Equals(Bar other) => value == other.value;
+                    public bool Equals(Bar other) => value == other.value;
 
-    public override int GetHashCode() => -1584136870 + value.GetHashCode();
+                    public override int GetHashCode() => -1584136870 + value.GetHashCode();
 
-    public static bool operator ==(Bar left, Bar right) => left.Equals(right);
+                    public static bool operator ==(Bar left, Bar right) => left.Equals(right);
 
-    public static bool operator !=(Bar left, Bar right) => !(left == right);
-}";
+                    public static bool operator !=(Bar left, Bar right) => !(left == right);
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -2432,33 +2624,35 @@ struct Bar : IEquatable<Bar>
         public async Task TestImplementIEquatableOnStruct()
         {
             var code =
-@"
-using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-struct Program
-{
-    public string s;
-    [||]
-}";
+                struct Program
+                {
+                    public string s;
+                    [||]
+                }
+                """;
             var fixedCode =
-@"
-using System;
-using System.Collections.Generic;
+                """
+                using System;
+                using System.Collections.Generic;
 
-struct Program : IEquatable<Program>
-{
-    public string s;
+                struct Program : IEquatable<Program>
+                {
+                    public string s;
 
-    public override bool Equals(object obj)
-    {
-        return obj is Program && Equals((Program)obj);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return obj is Program && Equals((Program)obj);
+                    }
 
-    public bool Equals(Program other)
-    {
-        return s == other.s;
-    }
-}";
+                    public bool Equals(Program other)
+                    {
+                        return s == other.s;
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2475,23 +2669,25 @@ struct Program : IEquatable<Program>
         public async Task TestOverrideEqualsOnRefStructReturnsFalse()
         {
             var code =
-@"
-ref struct Program
-{
-    public string s;
-    [||]
-}";
+                """
+                ref struct Program
+                {
+                    public string s;
+                    [||]
+                }
+                """;
             var fixedCode =
-@"
-ref struct Program
-{
-    public string s;
+                """
+                ref struct Program
+                {
+                    public string s;
 
-    public override bool Equals(object obj)
-    {
-        return false;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        return false;
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2504,23 +2700,25 @@ ref struct Program
         public async Task TestImplementIEquatableOnRefStructSkipsIEquatable()
         {
             var code =
-@"
-ref struct Program
-{
-    public string s;
-    [||]
-}";
+                """
+                ref struct Program
+                {
+                    public string s;
+                    [||]
+                }
+                """;
             var fixedCode =
-@"
-ref struct Program
-{
-    public string s;
+                """
+                ref struct Program
+                {
+                    public string s;
 
-    public override bool Equals(object obj)
-    {
-        return false;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        return false;
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2538,32 +2736,36 @@ ref struct Program
         public async Task TestImplementIEquatableOnStructInNullableContextWithUnannotatedMetadata()
         {
             var code =
-@"#nullable enable
+                """
+                #nullable enable
 
-struct Foo
-{
-    public int Bar { get; }
-    [||]
-}";
+                struct Foo
+                {
+                    public int Bar { get; }
+                    [||]
+                }
+                """;
             var fixedCode =
-@"#nullable enable
+                """
+                #nullable enable
 
-using System;
+                using System;
 
-struct Foo : IEquatable<Foo>
-{
-    public int Bar { get; }
+                struct Foo : IEquatable<Foo>
+                {
+                    public int Bar { get; }
 
-    public override bool Equals(object? obj)
-    {
-        return obj is Foo foo && Equals(foo);
-    }
+                    public override bool Equals(object? obj)
+                    {
+                        return obj is Foo foo && Equals(foo);
+                    }
 
-    public bool Equals(Foo other)
-    {
-        return Bar == other.Bar;
-    }
-}";
+                    public bool Equals(Foo other)
+                    {
+                        return Bar == other.Bar;
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2579,40 +2781,40 @@ struct Foo : IEquatable<Foo>
         public async Task TestImplementIEquatableOnStructInNullableContextWithAnnotatedMetadata()
         {
             var code =
-@"
-#nullable enable
+                """
+                #nullable enable
 
-using System;
-using System.Diagnostics.CodeAnalysis;
+                using System;
+                using System.Diagnostics.CodeAnalysis;
 
-struct Foo
-{
-    public bool Bar { get; }
-    [||]
-}
-";
+                struct Foo
+                {
+                    public bool Bar { get; }
+                    [||]
+                }
+                """;
             var fixedCode =
-@"
-#nullable enable
+                """
+                #nullable enable
 
-using System;
-using System.Diagnostics.CodeAnalysis;
+                using System;
+                using System.Diagnostics.CodeAnalysis;
 
-struct Foo : IEquatable<Foo>
-{
-    public bool Bar { get; }
+                struct Foo : IEquatable<Foo>
+                {
+                    public bool Bar { get; }
 
-    public override bool Equals(object? obj)
-    {
-        return obj is Foo foo && Equals(foo);
-    }
+                    public override bool Equals(object? obj)
+                    {
+                        return obj is Foo foo && Equals(foo);
+                    }
 
-    public bool Equals(Foo other)
-    {
-        return Bar == other.Bar;
-    }
-}
-";
+                    public bool Equals(Foo other)
+                    {
+                        return Bar == other.Bar;
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2628,34 +2830,36 @@ struct Foo : IEquatable<Foo>
         public async Task TestImplementIEquatableOnClass_CSharp6()
         {
             var code =
-@"
-using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    public string s;
-    [||]
-}";
+                class Program
+                {
+                    public string s;
+                    [||]
+                }
+                """;
             var fixedCode =
-@"
-using System;
-using System.Collections.Generic;
+                """
+                using System;
+                using System.Collections.Generic;
 
-class Program : IEquatable<Program>
-{
-    public string s;
+                class Program : IEquatable<Program>
+                {
+                    public string s;
 
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as Program);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return Equals(obj as Program);
+                    }
 
-    public bool Equals(Program other)
-    {
-        return !ReferenceEquals(other, null) &&
-               s == other.s;
-    }
-}";
+                    public bool Equals(Program other)
+                    {
+                        return !ReferenceEquals(other, null) &&
+                               s == other.s;
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2672,34 +2876,36 @@ class Program : IEquatable<Program>
         public async Task TestImplementIEquatableOnClass_CSharp7()
         {
             var code =
-@"
-using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    public string s;
-    [||]
-}";
+                class Program
+                {
+                    public string s;
+                    [||]
+                }
+                """;
             var fixedCode =
-@"
-using System;
-using System.Collections.Generic;
+                """
+                using System;
+                using System.Collections.Generic;
 
-class Program : IEquatable<Program>
-{
-    public string s;
+                class Program : IEquatable<Program>
+                {
+                    public string s;
 
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as Program);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return Equals(obj as Program);
+                    }
 
-    public bool Equals(Program other)
-    {
-        return !(other is null) &&
-               s == other.s;
-    }
-}";
+                    public bool Equals(Program other)
+                    {
+                        return !(other is null) &&
+                               s == other.s;
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2716,34 +2922,36 @@ class Program : IEquatable<Program>
         public async Task TestImplementIEquatableOnClass_CSharp8()
         {
             var code =
-@"
-using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    public string s;
-    [||]
-}";
+                class Program
+                {
+                    public string s;
+                    [||]
+                }
+                """;
             var fixedCode =
-@"
-using System;
-using System.Collections.Generic;
+                """
+                using System;
+                using System.Collections.Generic;
 
-class Program : IEquatable<Program>
-{
-    public string s;
+                class Program : IEquatable<Program>
+                {
+                    public string s;
 
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as Program);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return Equals(obj as Program);
+                    }
 
-    public bool Equals(Program other)
-    {
-        return !(other is null) &&
-               s == other.s;
-    }
-}";
+                    public bool Equals(Program other)
+                    {
+                        return !(other is null) &&
+                               s == other.s;
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2760,34 +2968,36 @@ class Program : IEquatable<Program>
         public async Task TestImplementIEquatableOnClass_CSharp9()
         {
             var code =
-@"
-using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    public string s;
-    [||]
-}";
+                class Program
+                {
+                    public string s;
+                    [||]
+                }
+                """;
             var fixedCode =
-@"
-using System;
-using System.Collections.Generic;
+                """
+                using System;
+                using System.Collections.Generic;
 
-class Program : IEquatable<Program>
-{
-    public string s;
+                class Program : IEquatable<Program>
+                {
+                    public string s;
 
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as Program);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return Equals(obj as Program);
+                    }
 
-    public bool Equals(Program other)
-    {
-        return other is not null &&
-               s == other.s;
-    }
-}";
+                    public bool Equals(Program other)
+                    {
+                        return other is not null &&
+                               s == other.s;
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2804,33 +3014,37 @@ class Program : IEquatable<Program>
         public async Task TestImplementIEquatableOnClassInNullableContextWithUnannotatedMetadata()
         {
             var code =
-@"#nullable enable
+                """
+                #nullable enable
 
-class Foo
-{
-    public int Bar { get; }
-    [||]
-}";
+                class Foo
+                {
+                    public int Bar { get; }
+                    [||]
+                }
+                """;
             var fixedCode =
-@"#nullable enable
+                """
+                #nullable enable
 
-using System;
+                using System;
 
-class Foo : IEquatable<Foo?>
-{
-    public int Bar { get; }
+                class Foo : IEquatable<Foo?>
+                {
+                    public int Bar { get; }
 
-    public override bool Equals(object? obj)
-    {
-        return Equals(obj as Foo);
-    }
+                    public override bool Equals(object? obj)
+                    {
+                        return Equals(obj as Foo);
+                    }
 
-    public bool Equals(Foo? other)
-    {
-        return !(other is null) &&
-               Bar == other.Bar;
-    }
-}";
+                    public bool Equals(Foo? other)
+                    {
+                        return !(other is null) &&
+                               Bar == other.Bar;
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2846,41 +3060,41 @@ class Foo : IEquatable<Foo?>
         public async Task TestImplementIEquatableOnClassInNullableContextWithAnnotatedMetadata()
         {
             var code =
-@"
-#nullable enable
+                """
+                #nullable enable
 
-using System;
-using System.Diagnostics.CodeAnalysis;
+                using System;
+                using System.Diagnostics.CodeAnalysis;
 
-class Foo
-{
-    public bool Bar { get; }
-    [||]
-}
-";
+                class Foo
+                {
+                    public bool Bar { get; }
+                    [||]
+                }
+                """;
             var fixedCode =
-@"
-#nullable enable
+                """
+                #nullable enable
 
-using System;
-using System.Diagnostics.CodeAnalysis;
+                using System;
+                using System.Diagnostics.CodeAnalysis;
 
-class Foo : IEquatable<Foo?>
-{
-    public bool Bar { get; }
+                class Foo : IEquatable<Foo?>
+                {
+                    public bool Bar { get; }
 
-    public override bool Equals(object? obj)
-    {
-        return Equals(obj as Foo);
-    }
+                    public override bool Equals(object? obj)
+                    {
+                        return Equals(obj as Foo);
+                    }
 
-    public bool Equals(Foo? other)
-    {
-        return !(other is null) &&
-               Bar == other.Bar;
-    }
-}
-";
+                    public bool Equals(Foo? other)
+                    {
+                        return !(other is null) &&
+                               Bar == other.Bar;
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2896,29 +3110,31 @@ class Foo : IEquatable<Foo?>
         public async Task TestDoNotOfferIEquatableIfTypeAlreadyImplementsIt()
         {
             var code =
-@"
-using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program : {|CS0535:System.IEquatable<Program>|}
-{
-    public string s;
-    [||]
-}";
+                class Program : {|CS0535:System.IEquatable<Program>|}
+                {
+                    public string s;
+                    [||]
+                }
+                """;
             var fixedCode =
-@"
-using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program : {|CS0535:System.IEquatable<Program>|}
-{
-    public string s;
+                class Program : {|CS0535:System.IEquatable<Program>|}
+                {
+                    public string s;
 
-    public override bool Equals(object obj)
-    {
-        var program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               s == program.s;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        var program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               s == program.s;
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -2942,14 +3158,16 @@ class Program : {|CS0535:System.IEquatable<Program>|}
                 {
                     Sources =
                     {
-@"public class Class1
-{
-    [|int i;|]
+                        """
+                        public class Class1
+                        {
+                            [|int i;|]
 
-    public void F()
-    {
-    }
-}",
+                            public void F()
+                            {
+                            }
+                        }
+                        """,
                     },
                     ExpectedDiagnostics =
                     {
@@ -2966,26 +3184,28 @@ class Program : {|CS0535:System.IEquatable<Program>|}
                 FixedState =
                 {
                     Sources = {
-@"public class Class1
-{
-    int i;
+                        """
+                        public class Class1
+                        {
+                            int i;
 
-    public override System.Boolean Equals(System.Object obj)
-    {
-        Class1 @class = obj as Class1;
-        return !ReferenceEquals(@class, null) &&
-               i == @class.i;
-    }
+                            public override System.Boolean Equals(System.Object obj)
+                            {
+                                Class1 @class = obj as Class1;
+                                return !ReferenceEquals(@class, null) &&
+                                       i == @class.i;
+                            }
 
-    public void F()
-    {
-    }
+                            public void F()
+                            {
+                            }
 
-    public override System.Int32 GetHashCode()
-    {
-        return 165851236 + EqualityComparer<System.Int32>.Default.GetHashCode(i);
-    }
-}",
+                            public override System.Int32 GetHashCode()
+                            {
+                                return 165851236 + EqualityComparer<System.Int32>.Default.GetHashCode(i);
+                            }
+                        }
+                        """,
                     },
                     ExpectedDiagnostics =
                     {
@@ -3039,42 +3259,46 @@ class Program : {|CS0535:System.IEquatable<Program>|}
         public async Task TestGetHashCodeInCheckedContext()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    [|int i;
+                class Program
+                {
+                    [|int i;
 
-    string S { get; }|]
-}";
+                    string S { get; }|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    int i;
+                class Program
+                {
+                    int i;
 
-    string S { get; }
+                    string S { get; }
 
-    public override bool Equals(object obj)
-    {
-        Program program = obj as Program;
-        return !ReferenceEquals(program, null) &&
-               i == program.i &&
-               S == program.S;
-    }
+                    public override bool Equals(object obj)
+                    {
+                        Program program = obj as Program;
+                        return !ReferenceEquals(program, null) &&
+                               i == program.i &&
+                               S == program.S;
+                    }
 
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            int hashCode = -538000506;
-            hashCode = hashCode * -1521134295 + i.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
-            return hashCode;
-        }
-    }
-}";
+                    public override int GetHashCode()
+                    {
+                        unchecked
+                        {
+                            int hashCode = -538000506;
+                            hashCode = hashCode * -1521134295 + i.GetHashCode();
+                            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
+                            return hashCode;
+                        }
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -3097,45 +3321,49 @@ class Program
         public async Task TestGetHashCodeStruct()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-struct S
-{
-    [|int j;|]
-}";
+                struct S
+                {
+                    [|int j;|]
+                }
+                """;
             var fixedCode =
-@"using System;
-using System.Collections.Generic;
+                """
+                using System;
+                using System.Collections.Generic;
 
-struct S : IEquatable<S>
-{
-    int j;
+                struct S : IEquatable<S>
+                {
+                    int j;
 
-    public override bool Equals(object obj)
-    {
-        return obj is S && Equals((S)obj);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return obj is S && Equals((S)obj);
+                    }
 
-    public bool Equals(S other)
-    {
-        return j == other.j;
-    }
+                    public bool Equals(S other)
+                    {
+                        return j == other.j;
+                    }
 
-    public override int GetHashCode()
-    {
-        return 1424088837 + j.GetHashCode();
-    }
+                    public override int GetHashCode()
+                    {
+                        return 1424088837 + j.GetHashCode();
+                    }
 
-    public static bool operator ==(S left, S right)
-    {
-        return left.Equals(right);
-    }
+                    public static bool operator ==(S left, S right)
+                    {
+                        return left.Equals(right);
+                    }
 
-    public static bool operator !=(S left, S right)
-    {
-        return !(left == right);
-    }
-}";
+                    public static bool operator !=(S left, S right)
+                    {
+                        return !(left == right);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -3151,47 +3379,51 @@ struct S : IEquatable<S>
         public async Task TestGetHashCodeSystemHashCodeOneMember()
         {
             var code =
-@"using System.Collections.Generic;
-namespace System { public struct HashCode { } }
+                """
+                using System.Collections.Generic;
+                namespace System { public struct HashCode { } }
 
-struct S
-{
-    [|int j;|]
-}";
+                struct S
+                {
+                    [|int j;|]
+                }
+                """;
             var fixedCode =
-@"using System;
-using System.Collections.Generic;
-namespace System { public struct HashCode { } }
+                """
+                using System;
+                using System.Collections.Generic;
+                namespace System { public struct HashCode { } }
 
-struct S : IEquatable<S>
-{
-    int j;
+                struct S : IEquatable<S>
+                {
+                    int j;
 
-    public override bool Equals(object obj)
-    {
-        return obj is S && Equals((S)obj);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return obj is S && Equals((S)obj);
+                    }
 
-    public bool Equals(S other)
-    {
-        return j == other.j;
-    }
+                    public bool Equals(S other)
+                    {
+                        return j == other.j;
+                    }
 
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(j);
-    }
+                    public override int GetHashCode()
+                    {
+                        return HashCode.Combine(j);
+                    }
 
-    public static bool operator ==(S left, S right)
-    {
-        return left.Equals(right);
-    }
+                    public static bool operator ==(S left, S right)
+                    {
+                        return left.Equals(right);
+                    }
 
-    public static bool operator !=(S left, S right)
-    {
-        return !(left == right);
-    }
-}";
+                    public static bool operator !=(S left, S right)
+                    {
+                        return !(left == right);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -3215,45 +3447,51 @@ struct S : IEquatable<S>
         public async Task TestPublicSystemHashCodeOtherProject()
         {
             var publicHashCode =
-@"using System.Collections.Generic;
-namespace System { public struct HashCode { } }";
+                """
+                using System.Collections.Generic;
+                namespace System { public struct HashCode { } }
+                """;
             var code =
-@"struct S
-{
-    [|int j;|]
-}";
+                """
+                struct S
+                {
+                    [|int j;|]
+                }
+                """;
             var fixedCode =
-@"using System;
+                """
+                using System;
 
-struct S : IEquatable<S>
-{
-    int j;
+                struct S : IEquatable<S>
+                {
+                    int j;
 
-    public override bool Equals(object obj)
-    {
-        return obj is S && Equals((S)obj);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return obj is S && Equals((S)obj);
+                    }
 
-    public bool Equals(S other)
-    {
-        return j == other.j;
-    }
+                    public bool Equals(S other)
+                    {
+                        return j == other.j;
+                    }
 
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(j);
-    }
+                    public override int GetHashCode()
+                    {
+                        return HashCode.Combine(j);
+                    }
 
-    public static bool operator ==(S left, S right)
-    {
-        return left.Equals(right);
-    }
+                    public static bool operator ==(S left, S right)
+                    {
+                        return left.Equals(right);
+                    }
 
-    public static bool operator !=(S left, S right)
-    {
-        return !(left == right);
-    }
-}";
+                    public static bool operator !=(S left, S right)
+                    {
+                        return !(left == right);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -3288,45 +3526,51 @@ struct S : IEquatable<S>
         public async Task TestInternalSystemHashCode()
         {
             var internalHashCode =
-@"using System.Collections.Generic;
-namespace System { internal struct HashCode { } }";
+                """
+                using System.Collections.Generic;
+                namespace System { internal struct HashCode { } }
+                """;
             var code =
-@"struct S
-{
-    [|int j;|]
-}";
+                """
+                struct S
+                {
+                    [|int j;|]
+                }
+                """;
             var fixedCode =
-@"using System;
+                """
+                using System;
 
-struct S : IEquatable<S>
-{
-    int j;
+                struct S : IEquatable<S>
+                {
+                    int j;
 
-    public override bool Equals(object obj)
-    {
-        return obj is S && Equals((S)obj);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return obj is S && Equals((S)obj);
+                    }
 
-    public bool Equals(S other)
-    {
-        return j == other.j;
-    }
+                    public bool Equals(S other)
+                    {
+                        return j == other.j;
+                    }
 
-    public override int GetHashCode()
-    {
-        return 1424088837 + j.GetHashCode();
-    }
+                    public override int GetHashCode()
+                    {
+                        return 1424088837 + j.GetHashCode();
+                    }
 
-    public static bool operator ==(S left, S right)
-    {
-        return left.Equals(right);
-    }
+                    public static bool operator ==(S left, S right)
+                    {
+                        return left.Equals(right);
+                    }
 
-    public static bool operator !=(S left, S right)
-    {
-        return !(left == right);
-    }
-}";
+                    public static bool operator !=(S left, S right)
+                    {
+                        return !(left == right);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -3353,54 +3597,58 @@ struct S : IEquatable<S>
         public async Task TestGetHashCodeSystemHashCodeEightMembers()
         {
             var code =
-@"using System.Collections.Generic;
-namespace System { public struct HashCode { } }
+                """
+                using System.Collections.Generic;
+                namespace System { public struct HashCode { } }
 
-struct S
-{
-    [|int j, k, l, m, n, o, p, q;|]
-}";
+                struct S
+                {
+                    [|int j, k, l, m, n, o, p, q;|]
+                }
+                """;
             var fixedCode =
-@"using System;
-using System.Collections.Generic;
-namespace System { public struct HashCode { } }
+                """
+                using System;
+                using System.Collections.Generic;
+                namespace System { public struct HashCode { } }
 
-struct S : IEquatable<S>
-{
-    int j, k, l, m, n, o, p, q;
+                struct S : IEquatable<S>
+                {
+                    int j, k, l, m, n, o, p, q;
 
-    public override bool Equals(object obj)
-    {
-        return obj is S && Equals((S)obj);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return obj is S && Equals((S)obj);
+                    }
 
-    public bool Equals(S other)
-    {
-        return j == other.j &&
-               k == other.k &&
-               l == other.l &&
-               m == other.m &&
-               n == other.n &&
-               o == other.o &&
-               p == other.p &&
-               q == other.q;
-    }
+                    public bool Equals(S other)
+                    {
+                        return j == other.j &&
+                               k == other.k &&
+                               l == other.l &&
+                               m == other.m &&
+                               n == other.n &&
+                               o == other.o &&
+                               p == other.p &&
+                               q == other.q;
+                    }
 
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(j, k, l, m, n, o, p, q);
-    }
+                    public override int GetHashCode()
+                    {
+                        return HashCode.Combine(j, k, l, m, n, o, p, q);
+                    }
 
-    public static bool operator ==(S left, S right)
-    {
-        return left.Equals(right);
-    }
+                    public static bool operator ==(S left, S right)
+                    {
+                        return left.Equals(right);
+                    }
 
-    public static bool operator !=(S left, S right)
-    {
-        return !(left == right);
-    }
-}";
+                    public static bool operator !=(S left, S right)
+                    {
+                        return !(left == right);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -3424,65 +3672,69 @@ struct S : IEquatable<S>
         public async Task TestGetHashCodeSystemHashCodeNineMembers()
         {
             var code =
-@"using System.Collections.Generic;
-namespace System { public struct HashCode { public void Add<T>(T value) { } public int ToHashCode() => 0; } }
+                """
+                using System.Collections.Generic;
+                namespace System { public struct HashCode { public void Add<T>(T value) { } public int ToHashCode() => 0; } }
 
-struct S
-{
-    [|int j, k, l, m, n, o, p, q, r;|]
-}";
+                struct S
+                {
+                    [|int j, k, l, m, n, o, p, q, r;|]
+                }
+                """;
             var fixedCode =
-@"using System;
-using System.Collections.Generic;
-namespace System { public struct HashCode { public void Add<T>(T value) { } public int ToHashCode() => 0; } }
+                """
+                using System;
+                using System.Collections.Generic;
+                namespace System { public struct HashCode { public void Add<T>(T value) { } public int ToHashCode() => 0; } }
 
-struct S : IEquatable<S>
-{
-    int j, k, l, m, n, o, p, q, r;
+                struct S : IEquatable<S>
+                {
+                    int j, k, l, m, n, o, p, q, r;
 
-    public override bool Equals(object obj)
-    {
-        return obj is S && Equals((S)obj);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return obj is S && Equals((S)obj);
+                    }
 
-    public bool Equals(S other)
-    {
-        return j == other.j &&
-               k == other.k &&
-               l == other.l &&
-               m == other.m &&
-               n == other.n &&
-               o == other.o &&
-               p == other.p &&
-               q == other.q &&
-               r == other.r;
-    }
+                    public bool Equals(S other)
+                    {
+                        return j == other.j &&
+                               k == other.k &&
+                               l == other.l &&
+                               m == other.m &&
+                               n == other.n &&
+                               o == other.o &&
+                               p == other.p &&
+                               q == other.q &&
+                               r == other.r;
+                    }
 
-    public override int GetHashCode()
-    {
-        var hash = new HashCode();
-        hash.Add(j);
-        hash.Add(k);
-        hash.Add(l);
-        hash.Add(m);
-        hash.Add(n);
-        hash.Add(o);
-        hash.Add(p);
-        hash.Add(q);
-        hash.Add(r);
-        return hash.ToHashCode();
-    }
+                    public override int GetHashCode()
+                    {
+                        var hash = new HashCode();
+                        hash.Add(j);
+                        hash.Add(k);
+                        hash.Add(l);
+                        hash.Add(m);
+                        hash.Add(n);
+                        hash.Add(o);
+                        hash.Add(p);
+                        hash.Add(q);
+                        hash.Add(r);
+                        return hash.ToHashCode();
+                    }
 
-    public static bool operator ==(S left, S right)
-    {
-        return left.Equals(right);
-    }
+                    public static bool operator ==(S left, S right)
+                    {
+                        return left.Equals(right);
+                    }
 
-    public static bool operator !=(S left, S right)
-    {
-        return !(left == right);
-    }
-}";
+                    public static bool operator !=(S left, S right)
+                    {
+                        return !(left == right);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -3498,65 +3750,69 @@ struct S : IEquatable<S>
         public async Task TestGetHashCodeSystemHashCodeNineMembers_Explicit()
         {
             var code =
-@"using System.Collections.Generic;
-namespace System { public struct HashCode { public void Add<T>(T value) { } public int ToHashCode() => 0; } }
+                """
+                using System.Collections.Generic;
+                namespace System { public struct HashCode { public void Add<T>(T value) { } public int ToHashCode() => 0; } }
 
-struct S
-{
-    [|int j, k, l, m, n, o, p, q, r;|]
-}";
+                struct S
+                {
+                    [|int j, k, l, m, n, o, p, q, r;|]
+                }
+                """;
             var fixedCode =
-@"using System;
-using System.Collections.Generic;
-namespace System { public struct HashCode { public void Add<T>(T value) { } public int ToHashCode() => 0; } }
+                """
+                using System;
+                using System.Collections.Generic;
+                namespace System { public struct HashCode { public void Add<T>(T value) { } public int ToHashCode() => 0; } }
 
-struct S : IEquatable<S>
-{
-    int j, k, l, m, n, o, p, q, r;
+                struct S : IEquatable<S>
+                {
+                    int j, k, l, m, n, o, p, q, r;
 
-    public override bool Equals(object obj)
-    {
-        return obj is S && Equals((S)obj);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return obj is S && Equals((S)obj);
+                    }
 
-    public bool Equals(S other)
-    {
-        return j == other.j &&
-               k == other.k &&
-               l == other.l &&
-               m == other.m &&
-               n == other.n &&
-               o == other.o &&
-               p == other.p &&
-               q == other.q &&
-               r == other.r;
-    }
+                    public bool Equals(S other)
+                    {
+                        return j == other.j &&
+                               k == other.k &&
+                               l == other.l &&
+                               m == other.m &&
+                               n == other.n &&
+                               o == other.o &&
+                               p == other.p &&
+                               q == other.q &&
+                               r == other.r;
+                    }
 
-    public override int GetHashCode()
-    {
-        HashCode hash = new HashCode();
-        hash.Add(j);
-        hash.Add(k);
-        hash.Add(l);
-        hash.Add(m);
-        hash.Add(n);
-        hash.Add(o);
-        hash.Add(p);
-        hash.Add(q);
-        hash.Add(r);
-        return hash.ToHashCode();
-    }
+                    public override int GetHashCode()
+                    {
+                        HashCode hash = new HashCode();
+                        hash.Add(j);
+                        hash.Add(k);
+                        hash.Add(l);
+                        hash.Add(m);
+                        hash.Add(n);
+                        hash.Add(o);
+                        hash.Add(p);
+                        hash.Add(q);
+                        hash.Add(r);
+                        return hash.ToHashCode();
+                    }
 
-    public static bool operator ==(S left, S right)
-    {
-        return left.Equals(right);
-    }
+                    public static bool operator ==(S left, S right)
+                    {
+                        return left.Equals(right);
+                    }
 
-    public static bool operator !=(S left, S right)
-    {
-        return !(left == right);
-    }
-}";
+                    public static bool operator !=(S left, S right)
+                    {
+                        return !(left == right);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -3572,110 +3828,122 @@ struct S : IEquatable<S>
         public async Task TestEqualsSingleField_Patterns()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    [|int a;|]
-}",
-@"using System.Collections.Generic;
+                class Program
+                {
+                    [|int a;|]
+                }
+                """,
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    int a;
+                class Program
+                {
+                    int a;
 
-    public override bool Equals(object obj)
-    {
-        return obj is Program program &&
-               a == program.a;
-    }
-}");
+                    public override bool Equals(object obj)
+                    {
+                        return obj is Program program &&
+                               a == program.a;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestEqualsSingleFieldInStruct_Patterns()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-struct Program
-{
-    [|int a;|]
-}",
-@"using System;
-using System.Collections.Generic;
+                struct Program
+                {
+                    [|int a;|]
+                }
+                """,
+                """
+                using System;
+                using System.Collections.Generic;
 
-struct Program : IEquatable<Program>
-{
-    int a;
+                struct Program : IEquatable<Program>
+                {
+                    int a;
 
-    public override bool Equals(object obj)
-    {
-        return obj is Program program && Equals(program);
-    }
+                    public override bool Equals(object obj)
+                    {
+                        return obj is Program program && Equals(program);
+                    }
 
-    public bool Equals(Program other)
-    {
-        return a == other.a;
-    }
+                    public bool Equals(Program other)
+                    {
+                        return a == other.a;
+                    }
 
-    public static bool operator ==(Program left, Program right)
-    {
-        return left.Equals(right);
-    }
+                    public static bool operator ==(Program left, Program right)
+                    {
+                        return left.Equals(right);
+                    }
 
-    public static bool operator !=(Program left, Program right)
-    {
-        return !(left == right);
-    }
-}");
+                    public static bool operator !=(Program left, Program right)
+                    {
+                        return !(left == right);
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestEqualsBaseWithOverriddenEquals_Patterns()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Base
-{
-    public override bool Equals(object o)
-    {
-        return false;
-    }
-}
+                class Base
+                {
+                    public override bool Equals(object o)
+                    {
+                        return false;
+                    }
+                }
 
-class Program : Base
-{
-    [|int i;
+                class Program : Base
+                {
+                    [|int i;
 
-    string S { get; }|]
-}";
+                    string S { get; }|]
+                }
+                """;
             var fixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Base
-{
-    public override bool Equals(object o)
-    {
-        return false;
-    }
-}
+                class Base
+                {
+                    public override bool Equals(object o)
+                    {
+                        return false;
+                    }
+                }
 
-class Program : Base
-{
-    int i;
+                class Program : Base
+                {
+                    int i;
 
-    string S { get; }
+                    string S { get; }
 
-    public override bool Equals(object obj)
-    {
-        return obj is Program program &&
-               base.Equals(obj) &&
-               i == program.i &&
-               S == program.S;
-    }
-}";
+                    public override bool Equals(object obj)
+                    {
+                        return obj is Program program &&
+                               base.Equals(obj) &&
+                               i == program.i &&
+                               S == program.S;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -3689,12 +3957,14 @@ class Program : Base
         public async Task TestPartialSelection()
         {
             var code =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    int [|a|];
-}";
+                class Program
+                {
+                    int [|a|];
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -3707,46 +3977,48 @@ class Program
         public async Task TestEqualityOperatorsNullableAnnotationWithReferenceType()
         {
             var code =
-@"
-#nullable enable
-using System;
+                """
+                #nullable enable
+                using System;
 
-namespace N
-{
-    public class C[||]
-    {
-        public int X;
-    }
-}";
+                namespace N
+                {
+                    public class C[||]
+                    {
+                        public int X;
+                    }
+                }
+                """;
             var fixedCode =
-@"
-#nullable enable
-using System;
-using System.Collections.Generic;
+                """
+                #nullable enable
+                using System;
+                using System.Collections.Generic;
 
-namespace N
-{
-    public class C
-    {
-        public int X;
+                namespace N
+                {
+                    public class C
+                    {
+                        public int X;
 
-        public override bool Equals(object? obj)
-        {
-            return obj is C c &&
-                   X == c.X;
-        }
+                        public override bool Equals(object? obj)
+                        {
+                            return obj is C c &&
+                                   X == c.X;
+                        }
 
-        public static bool operator ==(C? left, C? right)
-        {
-            return EqualityComparer<C>.Default.Equals(left, right);
-        }
+                        public static bool operator ==(C? left, C? right)
+                        {
+                            return EqualityComparer<C>.Default.Equals(left, right);
+                        }
 
-        public static bool operator !=(C? left, C? right)
-        {
-            return !(left == right);
-        }
-    }
-}";
+                        public static bool operator !=(C? left, C? right)
+                        {
+                            return !(left == right);
+                        }
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -3773,45 +4045,47 @@ namespace N
         public async Task TestEqualityOperatorsNullableAnnotationWithValueType()
         {
             var code =
-@"
-#nullable enable
-using System;
+                """
+                #nullable enable
+                using System;
 
-namespace N
-{
-    public struct C[||]
-    {
-        public int X;
-    }
-}";
+                namespace N
+                {
+                    public struct C[||]
+                    {
+                        public int X;
+                    }
+                }
+                """;
             var fixedCode =
-@"
-#nullable enable
-using System;
+                """
+                #nullable enable
+                using System;
 
-namespace N
-{
-    public struct C
-    {
-        public int X;
+                namespace N
+                {
+                    public struct C
+                    {
+                        public int X;
 
-        public override bool Equals(object? obj)
-        {
-            return obj is C c &&
-                   X == c.X;
-        }
+                        public override bool Equals(object? obj)
+                        {
+                            return obj is C c &&
+                                   X == c.X;
+                        }
 
-        public static bool operator ==(C left, C right)
-        {
-            return left.Equals(right);
-        }
+                        public static bool operator ==(C left, C right)
+                        {
+                            return left.Equals(right);
+                        }
 
-        public static bool operator !=(C left, C right)
-        {
-            return !(left == right);
-        }
-    }
-}";
+                        public static bool operator !=(C left, C right)
+                        {
+                            return !(left == right);
+                        }
+                    }
+                }
+                """;
 
             await new TestWithDialog
             {
@@ -3833,42 +4107,50 @@ namespace N
                 {
                     Sources =
                     {
-@"partial class Goo
-{
-    int bar;
-    [||]
-}",
-@"partial class Goo
-{
+                        """
+                        partial class Goo
+                        {
+                            int bar;
+                            [||]
+                        }
+                        """,
+                        """
+                        partial class Goo
+                        {
 
 
-}",
+                        }
+                        """,
                     },
                 },
                 FixedState =
                 {
                     Sources =
                     {
-@"partial class Goo
-{
-    int bar;
+                        """
+                        partial class Goo
+                        {
+                            int bar;
 
-    public override bool Equals(object obj)
-    {
-        return obj is Goo goo &&
-               bar == goo.bar;
-    }
+                            public override bool Equals(object obj)
+                            {
+                                return obj is Goo goo &&
+                                       bar == goo.bar;
+                            }
 
-    public override int GetHashCode()
-    {
-        return 999205674 + bar.GetHashCode();
-    }
-}",
-@"partial class Goo
-{
+                            public override int GetHashCode()
+                            {
+                                return 999205674 + bar.GetHashCode();
+                            }
+                        }
+                        """,
+                        """
+                        partial class Goo
+                        {
 
 
-}",
+                        }
+                        """,
                     },
                 },
                 MemberNames = ImmutableArray.Create("bar"),
@@ -3885,40 +4167,48 @@ namespace N
                 {
                     Sources =
                     {
-@"partial class Goo
-{
-    int bar;
+                        """
+                        partial class Goo
+                        {
+                            int bar;
 
-}",
-@"partial class Goo
-{
+                        }
+                        """,
+                        """
+                        partial class Goo
+                        {
 
-[||]
-}",
+                        [||]
+                        }
+                        """,
                     },
                 },
                 FixedState =
                 {
                     Sources =
                     {
-@"partial class Goo
-{
-    int bar;
+                        """
+                        partial class Goo
+                        {
+                            int bar;
 
-}",
-@"partial class Goo
-{
-    public override bool Equals(object obj)
-    {
-        return obj is Goo goo &&
-               bar == goo.bar;
-    }
+                        }
+                        """,
+                        """
+                        partial class Goo
+                        {
+                            public override bool Equals(object obj)
+                            {
+                                return obj is Goo goo &&
+                                       bar == goo.bar;
+                            }
 
-    public override int GetHashCode()
-    {
-        return 999205674 + bar.GetHashCode();
-    }
-}",
+                            public override int GetHashCode()
+                            {
+                                return 999205674 + bar.GetHashCode();
+                            }
+                        }
+                        """,
                     },
                 },
                 MemberNames = ImmutableArray.Create("bar"),
@@ -3935,40 +4225,48 @@ namespace N
                 {
                     Sources =
                     {
-@"partial class Goo
-{
+                        """
+                        partial class Goo
+                        {
 
-[||]
-}",
-@"partial class Goo
-{
-    int bar;
+                        [||]
+                        }
+                        """,
+                        """
+                        partial class Goo
+                        {
+                            int bar;
 
-}",
+                        }
+                        """,
                     },
                 },
                 FixedState =
                 {
                     Sources =
                     {
-@"partial class Goo
-{
-    public override bool Equals(object obj)
-    {
-        return obj is Goo goo &&
-               bar == goo.bar;
-    }
+                        """
+                        partial class Goo
+                        {
+                            public override bool Equals(object obj)
+                            {
+                                return obj is Goo goo &&
+                                       bar == goo.bar;
+                            }
 
-    public override int GetHashCode()
-    {
-        return 999205674 + bar.GetHashCode();
-    }
-}",
-@"partial class Goo
-{
-    int bar;
+                            public override int GetHashCode()
+                            {
+                                return 999205674 + bar.GetHashCode();
+                            }
+                        }
+                        """,
+                        """
+                        partial class Goo
+                        {
+                            int bar;
 
-}",
+                        }
+                        """,
                     },
                 },
                 MemberNames = ImmutableArray.Create("bar"),
@@ -3985,42 +4283,50 @@ namespace N
                 {
                     Sources =
                     {
-@"partial class Goo
-{
+                        """
+                        partial class Goo
+                        {
 
 
-}",
-@"partial class Goo
-{
-    int bar;
-[||]
-}",
+                        }
+                        """,
+                        """
+                        partial class Goo
+                        {
+                            int bar;
+                        [||]
+                        }
+                        """,
                     },
                 },
                 FixedState =
                 {
                     Sources =
                     {
-@"partial class Goo
-{
+                        """
+                        partial class Goo
+                        {
 
 
-}",
-@"partial class Goo
-{
-    int bar;
+                        }
+                        """,
+                        """
+                        partial class Goo
+                        {
+                            int bar;
 
-    public override bool Equals(object obj)
-    {
-        return obj is Goo goo &&
-               bar == goo.bar;
-    }
+                            public override bool Equals(object obj)
+                            {
+                                return obj is Goo goo &&
+                                       bar == goo.bar;
+                            }
 
-    public override int GetHashCode()
-    {
-        return 999205674 + bar.GetHashCode();
-    }
-}",
+                            public override int GetHashCode()
+                            {
+                                return 999205674 + bar.GetHashCode();
+                            }
+                        }
+                        """,
                     },
                 },
                 MemberNames = ImmutableArray.Create("bar"),
@@ -4032,50 +4338,52 @@ namespace N
         public async Task TestAbstractBase()
         {
             var code =
-@"
-#nullable enable
+                """
+                #nullable enable
 
-namespace System { public struct HashCode { } }
+                namespace System { public struct HashCode { } }
 
-abstract class Base
-{
-    public abstract override bool Equals(object? obj);
-    public abstract override int GetHashCode();
-}
+                abstract class Base
+                {
+                    public abstract override bool Equals(object? obj);
+                    public abstract override int GetHashCode();
+                }
 
-class {|CS0534:{|CS0534:Derived|}|} : Base
-{
-    [|public int P { get; }|]
-}";
+                class {|CS0534:{|CS0534:Derived|}|} : Base
+                {
+                    [|public int P { get; }|]
+                }
+                """;
             var fixedCode =
-@"
-#nullable enable
+                """
+                #nullable enable
 
-using System;
+                using System;
 
-namespace System { public struct HashCode { } }
+                namespace System { public struct HashCode { } }
 
-abstract class Base
-{
-    public abstract override bool Equals(object? obj);
-    public abstract override int GetHashCode();
-}
+                abstract class Base
+                {
+                    public abstract override bool Equals(object? obj);
+                    public abstract override int GetHashCode();
+                }
 
-class Derived : Base
-{
-    public int P { get; }
+                class Derived : Base
+                {
+                    public int P { get; }
 
-    public override bool Equals(object? obj)
-    {
-        return obj is Derived derived &&
-               P == derived.P;
-    }
+                    public override bool Equals(object? obj)
+                    {
+                        return obj is Derived derived &&
+                               P == derived.P;
+                    }
 
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(P);
-    }
-}";
+                    public override int GetHashCode()
+                    {
+                        return HashCode.Combine(P);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
