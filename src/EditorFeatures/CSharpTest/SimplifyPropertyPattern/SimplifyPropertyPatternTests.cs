@@ -724,8 +724,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyPropertyPattern
                     },
                     ExpectedDiagnostics =
                     {
-                        // /0/Test0.cs(9,20): info IDE0170: Simplify property pattern
-                        VerifyCS.Diagnostic().WithSpan(9, 20, 9, 29).WithSpan(9, 20, 9, 86).WithSeverity(DiagnosticSeverity.Info),
+                        // /0/Test0.cs(8,20): info IDE0170: Simplify property pattern
+                        VerifyCS.Diagnostic("IDE0170").WithSpan(8, 20, 8, 29).WithSpan(8, 20, 8, 86).WithSeverity(DiagnosticSeverity.Info),
                     }
                 },
                 LanguageVersion = LanguageVersion.CSharp10,
