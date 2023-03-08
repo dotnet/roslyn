@@ -11060,5 +11060,20 @@ $@"class Program
                 }
                 """, index: 4);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50764")]
+        public async Task TestMissingWhenGeneratingFunctionPointer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+public unsafe class Bar
+{
+    public static ZZZ()
+    {
+         delegate*<void> i = &[|Goo|];
+    }
+}");
+        }
     }
 }
