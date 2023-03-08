@@ -179,12 +179,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames
                     {
                         [|System.IO.File|] c;
                     }
-                }
-                </Document>
+                }</Document>
                     </Project>
                 </Workspace>
                 """,
                 """
+
                 namespace Root
                 {
                     class A
