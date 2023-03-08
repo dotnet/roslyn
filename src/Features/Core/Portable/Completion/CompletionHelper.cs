@@ -3,28 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Tags;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
     internal sealed class CompletionHelper
     {
-        private readonly object _gate = new();
-        private readonly Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> _patternMatcherMap =
-             new();
+        private static CompletionHelper CaseSensitiveInstance { get; } = new CompletionHelper(isCaseSensitive: true);
+        private static CompletionHelper CaseInsensitiveInstance { get; } = new CompletionHelper(isCaseSensitive: false);
 
-        private static readonly CultureInfo EnUSCultureInfo = new("en-US");
         private readonly bool _isCaseSensitive;
 
         public CompletionHelper(bool isCaseSensitive)
@@ -32,105 +23,12 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public static CompletionHelper GetHelper(Document document)
         {
-            return document.Project.Solution.Services.GetRequiredService<ICompletionHelperService>()
-                .GetCompletionHelper(document);
-        }
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var caseSensitive = syntaxFacts?.IsCaseSensitive ?? true;
 
-        public ImmutableArray<TextSpan> GetHighlightedSpans(
-                CompletionItem item, string pattern, CultureInfo culture)
-        {
-            var match = GetMatch(item.GetEntireDisplayText(), pattern, includeMatchSpans: true, culture: culture);
-            return match == null ? ImmutableArray<TextSpan>.Empty : match.Value.MatchedSpans;
-        }
-
-        /// <summary>
-        /// Returns true if the completion item matches the pattern so far.  Returns 'true'
-        /// if and only if the completion item matches and should be included in the filtered completion
-        /// results, or false if it should not be.
-        /// </summary>
-        public bool MatchesPattern(CompletionItem item, string pattern, CultureInfo culture)
-            => GetMatchResult(item, pattern, includeMatchSpans: false, culture).ShouldBeConsideredMatchingFilterText;
-
-        public MatchResult GetMatchResult(
-            CompletionItem item,
-            string pattern,
-            bool includeMatchSpans,
-            CultureInfo culture)
-        {
-            var match = GetMatch(item.FilterText, pattern, includeMatchSpans, culture);
-            string? matchedAdditionalFilterText = null;
-
-            if (item.HasAdditionalFilterTexts)
-            {
-                foreach (var additionalFilterText in item.AdditionalFilterTexts)
-                {
-                    var additionalMatch = GetMatch(additionalFilterText, pattern, includeMatchSpans, culture);
-                    if (additionalMatch.HasValue && additionalMatch.Value.CompareTo(match, ignoreCase: false) < 0)
-                    {
-                        match = additionalMatch;
-                        matchedAdditionalFilterText = additionalFilterText;
-                    }
-                }
-            }
-
-            return new MatchResult(
-                item,
-                shouldBeConsideredMatchingFilterText: match is not null,
-                match,
-                index: -1,
-                matchedAdditionalFilterText);
-        }
-
-        private PatternMatch? GetMatch(string text, string pattern, bool includeMatchSpans, CultureInfo culture)
-        {
-            var patternMatcher = GetPatternMatcher(pattern, culture, includeMatchSpans, _patternMatcherMap);
-            var match = patternMatcher.GetFirstMatch(text);
-
-            // We still have making checks for language having different to English capitalization,
-            // for example, for Turkish with dotted and dotless i capitalization totally diferent from English.
-            // Now we escaping from the second check for English languages.
-            // Maybe we can escape as well for more similar languages in case if we meet performance issues.
-            if (culture.ThreeLetterWindowsLanguageName.Equals(EnUSCultureInfo.ThreeLetterWindowsLanguageName))
-            {
-                return match;
-            }
-
-            // Keywords in .NET are always in En-US.
-            // Identifiers can be in user language.
-            // Try to get matches for both and return the best of them.
-            patternMatcher = GetPatternMatcher(pattern, EnUSCultureInfo, includeMatchSpans, _patternMatcherMap);
-            var enUSCultureMatch = patternMatcher.GetFirstMatch(text);
-
-            if (match == null)
-            {
-                return enUSCultureMatch;
-            }
-
-            if (enUSCultureMatch == null)
-            {
-                return match;
-            }
-
-            return match.Value.CompareTo(enUSCultureMatch.Value) < 0 ? match.Value : enUSCultureMatch.Value;
-        }
-
-        private PatternMatcher GetPatternMatcher(
-            string pattern, CultureInfo culture, bool includeMatchedSpans,
-            Dictionary<(string, CultureInfo, bool), PatternMatcher> map)
-        {
-            lock (_gate)
-            {
-                var key = (pattern, culture, includeMatchedSpans);
-                if (!map.TryGetValue(key, out var patternMatcher))
-                {
-                    patternMatcher = PatternMatcher.CreatePatternMatcher(
-                        pattern, culture, includeMatchedSpans,
-                        allowFuzzyMatching: false);
-                    map.Add(key, patternMatcher);
-                }
-
-                return patternMatcher;
-            }
+            return caseSensitive
+                ? CaseSensitiveInstance
+                : CaseInsensitiveInstance;
         }
 
         public int CompareMatchResults(MatchResult matchResult1, MatchResult matchResult2, bool filterTextHasNoUpperCase)
@@ -377,123 +275,6 @@ namespace Microsoft.CodeAnalysis.Completion
             Debug.Assert(isItem1Expanded && match1.Kind == PatternMatchKind.Exact && !isItem2Expanded && match2.Kind > PatternMatchKind.Prefix ||
                          isItem2Expanded && match2.Kind == PatternMatchKind.Exact && !isItem1Expanded && match1.Kind > PatternMatchKind.Prefix);
             return isItem1Expanded ? -1 : 1;
-        }
-
-        internal static bool TryCreateMatchResult(
-            CompletionHelper completionHelper,
-            CompletionItem item,
-            string pattern,
-            CompletionTriggerKind initialTriggerKind,
-            CompletionFilterReason filterReason,
-            int recentItemIndex,
-            bool includeMatchSpans,
-            int currentIndex,
-            out MatchResult matchResult)
-        {
-            // Get the match of the given completion item for the pattern provided so far. 
-            // A completion item is checked against the pattern by see if it's 
-            // CompletionItem.FilterText matches the item. That way, the pattern it checked 
-            // against terms like "IList" and not IList<>.
-            // Note that the check on filter text length is purely for efficiency, we should 
-            // get the same result with or without it.
-            var patternMatch = pattern.Length > 0
-                ? completionHelper.GetMatch(item.FilterText, pattern, includeMatchSpans, CultureInfo.CurrentCulture)
-                : null;
-
-            string? matchedAdditionalFilterText = null;
-            var shouldBeConsideredMatchingFilterText = ShouldBeConsideredMatchingFilterText(
-                item.FilterText,
-                pattern,
-                item.Rules.MatchPriority,
-                initialTriggerKind,
-                filterReason,
-                recentItemIndex,
-                patternMatch);
-
-            if (pattern.Length > 0 && item.HasAdditionalFilterTexts)
-            {
-                foreach (var additionalFilterText in item.AdditionalFilterTexts)
-                {
-                    var additionalMatch = completionHelper.GetMatch(additionalFilterText, pattern, includeMatchSpans, CultureInfo.CurrentCulture);
-                    var additionalFlag = ShouldBeConsideredMatchingFilterText(
-                        additionalFilterText,
-                        pattern,
-                        item.Rules.MatchPriority,
-                        initialTriggerKind,
-                        filterReason,
-                        recentItemIndex,
-                        additionalMatch);
-
-                    if (!shouldBeConsideredMatchingFilterText ||
-                        additionalFlag && additionalMatch.HasValue && additionalMatch.Value.CompareTo(patternMatch, ignoreCase: false) < 0)
-                    {
-                        matchedAdditionalFilterText = additionalFilterText;
-                        shouldBeConsideredMatchingFilterText = additionalFlag;
-                        patternMatch = additionalMatch;
-                    }
-                }
-            }
-
-            if (shouldBeConsideredMatchingFilterText || KeepAllItemsInTheList(initialTriggerKind, pattern))
-            {
-                matchResult = new MatchResult(
-                    item, shouldBeConsideredMatchingFilterText,
-                    patternMatch, currentIndex, matchedAdditionalFilterText, recentItemIndex);
-
-                return true;
-            }
-
-            matchResult = default;
-            return false;
-
-            static bool ShouldBeConsideredMatchingFilterText(
-                string filterText,
-                string pattern,
-                int matchPriority,
-                CompletionTriggerKind initialTriggerKind,
-                CompletionFilterReason filterReason,
-                int recentItemIndex,
-                PatternMatch? patternMatch)
-            {
-                // For the deletion we bake in the core logic for how matching should work.
-                // This way deletion feels the same across all languages that opt into deletion 
-                // as a completion trigger.
-
-                // Specifically, to avoid being too aggressive when matching an item during 
-                // completion, we require that the current filter text be a prefix of the 
-                // item in the list.
-                if (filterReason == CompletionFilterReason.Deletion &&
-                    initialTriggerKind == CompletionTriggerKind.Deletion)
-                {
-                    return filterText.GetCaseInsensitivePrefixLength(pattern) > 0;
-                }
-
-                // If the user hasn't typed anything, and this item was preselected, or was in the
-                // MRU list, then we definitely want to include it.
-                if (pattern.Length == 0)
-                {
-                    if (recentItemIndex >= 0 || matchPriority > MatchPriority.Default)
-                        return true;
-                }
-
-                // Otherwise, the item matches filter text if a pattern match is returned.
-                return patternMatch != null;
-            }
-
-            // If the item didn't match the filter text, we still keep it in the list
-            // if one of two things is true:
-            //  1. The user has typed nothing or only typed a single character.  In this case they might
-            //     have just typed the character to get completion.  Filtering out items
-            //     here is not desirable.
-            //
-            //  2. They brought up completion with ctrl-j or through deletion.  In these
-            //     cases we just always keep all the items in the list.
-            static bool KeepAllItemsInTheList(CompletionTriggerKind initialTriggerKind, string filterText)
-            {
-                return filterText.Length <= 1 ||
-                    initialTriggerKind == CompletionTriggerKind.Invoke ||
-                    initialTriggerKind == CompletionTriggerKind.Deletion;
-            }
         }
     }
 }
