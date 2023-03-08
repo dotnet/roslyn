@@ -238,7 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             // GetOutline is called every time a new code window is created. Whenever we switch to a different window, it is guaranteed
             // that ReleaseOutline will be called on the old window before GetOutline is called for the new window. 
-            int IVsDocOutlineProvider.GetOutline(out IntPtr phwnd, out IOleCommandTarget pCmdTarget)
+            int IVsDocOutlineProvider.GetOutline(out IntPtr phwnd, out IOleCommandTarget? pCmdTarget)
             {
                 pCmdTarget = null;
                 GetOutline(out phwnd);
