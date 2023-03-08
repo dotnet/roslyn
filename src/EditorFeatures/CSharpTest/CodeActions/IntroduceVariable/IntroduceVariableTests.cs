@@ -8666,8 +8666,7 @@ $@"a b c"
                     <Project Language="C#" AssemblyName="Assembly3" Name="P3" CommonReferences="true">
                         <ProjectReference>P1</ProjectReference>
                         <ProjectReference>P2</ProjectReference>
-                        <Document>
-                public class P
+                        <Document>public class P
                 {
                     public void M(string s)
                     {
