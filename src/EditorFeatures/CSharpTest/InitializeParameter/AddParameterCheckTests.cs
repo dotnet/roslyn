@@ -526,8 +526,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                     }
                 }
                 """,
-                FixedCode = @$"
-using System;
+                FixedCode = @$"using System;
 
 class C
 {{
@@ -583,8 +582,7 @@ class C
                     }
                 }
                 """,
-                FixedCode = @$"
-#nullable enable
+                FixedCode = @$"#nullable enable
 
 using System;
 
@@ -647,8 +645,7 @@ class C
                     }
                 }
                 """,
-                FixedCode = @$"
-using System;
+                FixedCode = @$"using System;
 
 class C
 {{
@@ -693,8 +690,7 @@ class C
                     }
                 }
                 """,
-                FixedCode = @$"
-using System;
+                FixedCode = @$"using System;
 
 class C
 {{
@@ -739,8 +735,7 @@ class C
                     }
                 }
                 """,
-                FixedCode = @$"
-using System;
+                FixedCode = @$"using System;
 
 class C
 {{
@@ -1877,8 +1872,7 @@ class C
                     }
                 }
                 """,
-                FixedCode = $@"
-using System;
+                FixedCode = $@"using System;
 
 class C
 {{
@@ -1914,8 +1908,7 @@ class C
                     }
                 }
                 """,
-                FixedCode = $@"
-using System;
+                FixedCode = $@"using System;
 
 class C
 {{
@@ -1952,8 +1945,7 @@ class C
                     }
                 }
                 """,
-                FixedCode = $@"
-using System;
+                FixedCode = $@"using System;
 
 class C
 {{
@@ -2007,8 +1999,7 @@ class C
                     }
                 }
                 """,
-                FixedCode = @$"
-using System;
+                FixedCode = @$"using System;
 
 class Program
 {{
@@ -2083,9 +2074,9 @@ class Program
                 """,
                 ExpectedDiagnostics = {
                     // /0/Test0.cs(6,12): error CS0501: 'C.C(string)' must declare a body because it is not marked abstract, extern, or partial
-                    DiagnosticResult.CompilerError("CS0501").WithLocation(6, 12).WithArguments("C.C(string)"),
+                    DiagnosticResult.CompilerError("CS0501").WithLocation(5, 12).WithArguments("C.C(string)"),
                     // /0/Test0.cs(6,23): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithLocation(6, 23),
+                    DiagnosticResult.CompilerError("CS1002").WithLocation(5, 23),
                 },
                 FixedState =
                 {
@@ -2310,14 +2301,14 @@ class Program
             await VerifyCS.VerifyRefactoringAsync(code,
                 new[]
                 {
-                    // /0/Test0.cs(8,12): error CS0103: The name 'x' does not exist in the current context
-                    DiagnosticResult.CompilerError("CS0103").WithLocation(8, 12).WithArguments("x"),
-                    // /0/Test0.cs(8,13): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithLocation(8, 13),
-                    // /0/Test0.cs(8,13): error CS1026: ) expected
-                    DiagnosticResult.CompilerError("CS1026").WithLocation(8, 13),
-                    // /0/Test0.cs(8,13): error CS1026: ) expected
-                    DiagnosticResult.CompilerError("CS1026").WithLocation(8, 13),
+                    // /0/Test0.cs(7,12): error CS0103: The name 'x' does not exist in the current context
+                    DiagnosticResult.CompilerError("CS0103").WithSpan(7, 12, 7, 13).WithArguments("x"),
+                    // /0/Test0.cs(7,13): error CS1002: ; expected
+                    DiagnosticResult.CompilerError("CS1002").WithSpan(7, 13, 7, 13),
+                    // /0/Test0.cs(7,13): error CS1026: ) expected
+                    DiagnosticResult.CompilerError("CS1026").WithSpan(7, 13, 7, 13),
+                    // /0/Test0.cs(7,13): error CS1026: ) expected
+                    DiagnosticResult.CompilerError("CS1026").WithSpan(7, 13, 7, 13),
                 }, code);
         }
 
@@ -2601,8 +2592,7 @@ class Program
                     }
                 }
                 """,
-                FixedCode = $@"
-using System;
+                FixedCode = $@"using System;
 
 class C
 {{
@@ -2642,8 +2632,7 @@ class C
                     }
                 }
                 """,
-                FixedCode = @$"
-using System;
+                FixedCode = @$"using System;
 
 class C
 {{
@@ -2683,8 +2672,7 @@ class C
                     }
                 }
                 """,
-                FixedCode = @$"
-using System;
+                FixedCode = @$"using System;
 
 class C
 {{
@@ -2726,8 +2714,7 @@ class C
                     }
                 }
                 """,
-                FixedCode = @$"
-using System;
+                FixedCode = @$"using System;
 
 class C
 {{
@@ -2766,8 +2753,7 @@ class C
                     }
                 }
                 """,
-                FixedCode = @$"
-using System;
+                FixedCode = @$"using System;
 
 class C
 {{
@@ -2806,8 +2792,7 @@ class C
                     }
                 }
                 """,
-                FixedCode = @$"
-using System;
+                FixedCode = @$"using System;
 
 class C
 {{
