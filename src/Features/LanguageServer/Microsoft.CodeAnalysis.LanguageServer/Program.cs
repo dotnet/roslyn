@@ -98,22 +98,22 @@ static async Task RunAsync(bool launchDebugger, string? solutionPath, string? br
         StarredCompletionAssemblyHelper.InitializeInstance(starredCompletionPath, loggerFactory, serviceBroker);
     }
 
-    // Create the project system first, since right now the language server will assume there's at least one Workspace
-    var projectSystem = exportProvider.GetExportedValue<LanguageServerProjectSystem>();
+    // Create the workspace first, since right now the language server will assume there's at least one Workspace
+    var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
 
     var analyzerPaths = new DirectoryInfo(AppContext.BaseDirectory).GetFiles("*.dll")
         .Where(f => f.Name.StartsWith("Microsoft.CodeAnalysis.", StringComparison.Ordinal) && !f.Name.Contains("LanguageServer", StringComparison.Ordinal))
         .Select(f => f.FullName)
         .ToImmutableArray();
 
-    await projectSystem.InitializeSolutionLevelAnalyzersAsync(analyzerPaths);
+    await workspaceFactory.InitializeSolutionLevelAnalyzersAsync(analyzerPaths);
 
     var server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
     server.Start();
 
     if (solutionPath != null)
     {
-        projectSystem.OpenSolution(solutionPath);
+        exportProvider.GetExportedValue<LanguageServerProjectSystem>().OpenSolution(solutionPath);
     }
 
     if (brokeredServicePipeName != null)
@@ -122,6 +122,7 @@ static async Task RunAsync(bool launchDebugger, string? solutionPath, string? br
     }
 
     await server.WaitForExitAsync();
+
     // Server has exited, cancel our token.
     cancellationTokenSource.Cancel();
 

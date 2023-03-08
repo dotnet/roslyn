@@ -7,10 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.VSCode.API;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
@@ -26,10 +23,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [Export(typeof(LanguageServerProjectSystem)), Shared]
 internal sealed class LanguageServerProjectSystem
 {
-    private readonly ILogger _logger;
     private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
     private readonly AsyncBatchingWorkQueue<string> _projectsToLoadAndReload;
+
+    private readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly IFileChangeWatcher _fileChangeWatcher;
+    private readonly ILogger _logger;
 
     /// <summary>
     /// The list of loaded projects in the workspace, keyed by project file path. The outer dictionary is a concurrent dictionary since we may be loading
@@ -40,24 +39,17 @@ internal sealed class LanguageServerProjectSystem
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public LanguageServerProjectSystem(
-        HostServicesProvider hostServicesProvider,
-        VSCodeAnalyzerLoader analyzerLoader,
+        LanguageServerWorkspaceFactory workspaceFactory,
         IFileChangeWatcher fileChangeWatcher,
-        [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, Host.Mef.FileExtensionsMetadata>> dynamicFileInfoProviders,
-        ProjectTargetFrameworkManager projectTargetFrameworkManager,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
+        _workspaceFactory = workspaceFactory;
+        _fileChangeWatcher = fileChangeWatcher;
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
-        var workspace = new LanguageServerWorkspace(hostServicesProvider.HostServices);
-        Workspace = workspace;
-        ProjectSystemProjectFactory = new ProjectSystemProjectFactory(Workspace, new FileChangeWatcher(), static (_, _) => Task.CompletedTask, _ => { });
-        workspace.ProjectSystemProjectFactory = ProjectSystemProjectFactory;
-
-        analyzerLoader.InitializeDiagnosticsServices(Workspace);
 
         // TODO: remove the DiagnosticReporter that's coupled to the Workspace here
-        _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(Workspace.Services.SolutionServices, new DiagnosticReporter(Workspace));
+        _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(workspaceFactory.Workspace.Services.SolutionServices, new DiagnosticReporter(workspaceFactory.Workspace));
 
         _projectsToLoadAndReload = new AsyncBatchingWorkQueue<string>(
             TimeSpan.FromMilliseconds(100),
@@ -65,40 +57,6 @@ internal sealed class LanguageServerProjectSystem
             StringComparer.Ordinal,
             listenerProvider.GetListener(FeatureAttribute.Workspace),
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
-
-        ProjectSystemHostInfo = new ProjectSystemHostInfo(
-            DynamicFileInfoProviders: dynamicFileInfoProviders.ToImmutableArray(),
-            new ProjectSystemDiagnosticSource(),
-            new HostDiagnosticAnalyzerProvider());
-        _fileChangeWatcher = fileChangeWatcher;
-        TargetFrameworkManager = projectTargetFrameworkManager;
-    }
-
-    public Workspace Workspace { get; }
-
-    public ProjectSystemProjectFactory ProjectSystemProjectFactory { get; }
-    public ProjectSystemHostInfo ProjectSystemHostInfo { get; }
-    public ProjectTargetFrameworkManager TargetFrameworkManager { get; }
-
-    public async Task InitializeSolutionLevelAnalyzersAsync(ImmutableArray<string> analyzerPaths)
-    {
-        var references = new List<AnalyzerFileReference>();
-        var analyzerLoader = VSCodeAnalyzerLoader.CreateAnalyzerAssemblyLoader();
-
-        foreach (var analyzerPath in analyzerPaths)
-        {
-            if (File.Exists(analyzerPath))
-            {
-                references.Add(new AnalyzerFileReference(analyzerPath, analyzerLoader));
-                _logger.LogInformation($"Solution-level analyzer at {analyzerPath} added to workspace.");
-            }
-            else
-            {
-                _logger.LogWarning($"Solution-level analyzer at {analyzerPath} could not be found.");
-            }
-        }
-
-        await ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(w => w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged));
     }
 
     public void OpenSolution(string solutionFilePath)
@@ -171,13 +129,13 @@ internal sealed class LanguageServerProjectSystem
                         var projectSystemName = $"{projectPath} (${loadedProjectInfo.TargetFramework})";
                         var projectCreationInfo = new ProjectSystemProjectCreationInfo { AssemblyName = projectSystemName, FilePath = projectPath };
 
-                        var projectSystemProject = await ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(
+                        var projectSystemProject = await _workspaceFactory.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(
                             projectSystemName,
                             loadedProjectInfo.Language,
                             projectCreationInfo,
-                            ProjectSystemHostInfo);
+                            _workspaceFactory.ProjectSystemHostInfo);
 
-                        var loadedProject = new LoadedProject(projectSystemProject, Workspace.Services.SolutionServices, _fileChangeWatcher, TargetFrameworkManager);
+                        var loadedProject = new LoadedProject(projectSystemProject, _workspaceFactory.Workspace.Services.SolutionServices, _fileChangeWatcher, _workspaceFactory.TargetFrameworkManager);
                         loadedProject.NeedsReload += (_, _) => _projectsToLoadAndReload.AddWork(projectPath);
                         existingProjects.Add(loadedProject);
 
