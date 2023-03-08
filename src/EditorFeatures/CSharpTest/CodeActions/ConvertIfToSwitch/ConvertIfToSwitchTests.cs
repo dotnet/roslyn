@@ -2797,19 +2797,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 }
                 """;
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = source,
                 FixedCode = fixedSource,
                 LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionValidationMode = CodeActionValidationMode.None,
-            };
-
-            test.ExpectedDiagnostics.Add(
-                // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
-                DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 19));
-
-            await test.RunAsync();
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
+                    DiagnosticResult.CompilerError("CS8805").WithSpan(1, 1, 1, 19)
+                },
+            }.RunAsync();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46863")]
