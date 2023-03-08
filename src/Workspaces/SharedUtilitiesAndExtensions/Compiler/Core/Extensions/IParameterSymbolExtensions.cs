@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     {
                         MethodKind: MethodKind.Constructor,
                         DeclaringSyntaxReferences: [var constructorReference, ..],
-                        ContainingType: {} containingType,
+                        ContainingType: { } containingType,
                     } constructor,
                 })
             {
