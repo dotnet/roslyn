@@ -61,7 +61,7 @@ unsafe class C
         }
 
         [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
-        [WorkItem(23342, "https://github.com/dotnet/roslyn/issues/23342")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23342")]
         public async Task LegacyProject_MultiplePlatforms_AllConfigurationsUpdated()
         {
             var project = ProjectName;

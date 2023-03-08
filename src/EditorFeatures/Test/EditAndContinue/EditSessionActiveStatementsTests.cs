@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }, activeStatementsInUpdatedMethods.Select(InspectActiveStatementUpdate));
         }
 
-        [Fact, WorkItem(24439, "https://github.com/dotnet/roslyn/issues/24439")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24439")]
         public async Task BaseActiveStatementsAndExceptionRegions2()
         {
             var baseSource =

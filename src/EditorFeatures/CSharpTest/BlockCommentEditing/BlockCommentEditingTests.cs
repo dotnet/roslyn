@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
     [Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
     public class BlockCommentEditingTests : AbstractTypingCommandHandlerTest<ReturnKeyCommandArgs>
     {
-        [WorkItem(11057, "https://github.com/dotnet/roslyn/issues/11057")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11057")]
         [WpfFact]
         public void EdgeCase0()
         {
@@ -34,7 +34,7 @@ $$/**/
             Verify(code, expected);
         }
 
-        [WorkItem(11057, "https://github.com/dotnet/roslyn/issues/11057")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11057")]
         [WpfFact]
         public void EdgeCase1()
         {
@@ -48,7 +48,7 @@ $$
             Verify(code, expected);
         }
 
-        [WorkItem(11056, "https://github.com/dotnet/roslyn/issues/11056")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11056")]
         [WpfFact]
         public void EdgeCase2()
         {
@@ -62,7 +62,7 @@ $$/* */
             Verify(code, expected);
         }
 
-        [WorkItem(11056, "https://github.com/dotnet/roslyn/issues/11056")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/11056")]
         [WpfFact]
         public void EdgeCase3()
         {
@@ -76,7 +76,7 @@ $$
             Verify(code, expected);
         }
 
-        [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16128")]
         [WpfFact]
         public void EofCase0()
         {
@@ -88,7 +88,7 @@ $$";
             Verify(code, expected);
         }
 
-        [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16128")]
         [WpfFact]
         public void EofCase1()
         {
@@ -100,7 +100,7 @@ $$";
             Verify(code, expected);
         }
 
-        [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16128")]
         [WpfFact]
         public void EofCase2()
         {

@@ -142,7 +142,7 @@ Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17043")]
-        [WorkItem(7133, "http://github.com/dotnet/roslyn/issues/7133")]
+        [WorkItem("http://github.com/dotnet/roslyn/issues/7133")]
         public void TestDisplayResultsWithCurrentUICulture1()
         {
             // logoOutput needs to be retrieved before the runner is started, because the runner changes the culture to de-DE. 
@@ -174,8 +174,8 @@ $@"{logoOutput}
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30924")]
-        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
-        [WorkItem(7133, "http://github.com/dotnet/roslyn/issues/7133")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem("http://github.com/dotnet/roslyn/issues/7133")]
         public void TestDisplayResultsWithCurrentUICulture2()
         {
             // logoOutput needs to be retrieved before the runner is started, because the runner changes the culture to de-DE. 
@@ -228,7 +228,7 @@ $@"{LogoAndHelpPrompt}
 > ", runner.Console.Out.ToString());
         }
 
-        [Fact, WorkItem(18479, "https://github.com/dotnet/roslyn/issues/18479")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18479")]
         public void Tuples()
         {
             var runner = CreateRunner(input: "(1,2)");
@@ -329,7 +329,7 @@ $@"{LogoAndHelpPrompt}
             AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Error.ToString());
         }
 
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         public void Args_InteractiveWithScript1()
         {
             var script = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
@@ -362,7 +362,7 @@ $@"""@arg1""
 > ", runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         public void Args_Script1()
         {
             var script = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
@@ -379,7 +379,7 @@ $@"""@arg1""
 ", runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         public void Args_Script2()
         {
             var script = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
@@ -396,7 +396,7 @@ $@"""@arg1""
 ", runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         public void Args_Script3()
         {
             var script = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
@@ -924,7 +924,7 @@ $@"{LogoAndHelpPrompt}
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
-        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/6580")]
         public void PreservingDeclarationsOnException()
         {
             var runner = CreateRunner(input:
@@ -954,7 +954,7 @@ System.Exception: Bang!",
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
-        [WorkItem(21327, "https://github.com/dotnet/roslyn/issues/21327")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21327")]
         public void DefaultLiteral()
         {
             var runner = CreateRunner(input:
@@ -972,7 +972,7 @@ $@"{LogoAndHelpPrompt}
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
-        [WorkItem(21327, "https://github.com/dotnet/roslyn/issues/21327")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21327")]
         public void InferredTupleNames()
         {
             var runner = CreateRunner(input:

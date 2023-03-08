@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class ParamKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [Fact, WorkItem(529127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529127")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529127")]
         public async Task TestNotOfferedInsideArgumentList()
             => await VerifyAbsenceAsync("class C { void M([$$");
 
-        [Fact, WorkItem(529127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529127")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529127")]
         public async Task TestNotOfferedInsideArgumentList2()
             => await VerifyAbsenceAsync("delegate void M([$$");
 
