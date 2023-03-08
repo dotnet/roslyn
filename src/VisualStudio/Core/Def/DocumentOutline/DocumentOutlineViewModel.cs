@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             set
             {
-                // setting this happens from wpf itself.  So once this changes, kick off the work to actually filter down our modesl.
+                // setting this happens from wpf itself.  So once this changes, kick off the work to actually filter down our models.
 
                 _threadingContext.ThrowIfNotOnUIThread();
                 _searchText_doNotAccessDirectly = value;
@@ -441,8 +441,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (expansion != null)
                 SetExpansionOption(currentViewModelItems, expansion.Value);
 
-            // Let WPF know about this change so it can update the UI.
-            this.DocumentSymbolViewModelItems = currentViewModelItems;
+            // If we produced new items, then let wpf know so it can update hte UI.
+            if (currentViewModelItems != lastViewModelItems)
+                this.DocumentSymbolViewModelItems = currentViewModelItems;
 
             // Now that we've made all our changes, record that we've done so so we can see what has changed when future requests come in.
             // note: we are safe to record this on the BG as we are called serially and are the only place to read/write it.
