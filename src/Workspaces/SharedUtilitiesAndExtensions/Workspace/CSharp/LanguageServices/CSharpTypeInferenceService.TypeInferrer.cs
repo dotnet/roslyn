@@ -1968,9 +1968,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.LogicalNotExpression:
                         // !Goo()
                         return CreateResult(SpecialType.System_Boolean);
+
+                    case SyntaxKind.AddressOfExpression:
+                        return InferTypeInAddressOfExpression(prefixUnaryExpression);
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInAddressOfExpression(PrefixUnaryExpressionSyntax prefixUnaryExpression)
+            {
+                foreach (var inferredType in InferTypes(prefixUnaryExpression))
+                {
+                    if (inferredType.InferredType is IPointerTypeSymbol pointerType)
+                    {
+                        yield return new TypeInferenceInfo(pointerType.PointedAtType);
+                    }
+                    else if (inferredType.InferredType is IFunctionPointerTypeSymbol functionPointerType)
+                    {
+                        yield return new TypeInferenceInfo(functionPointerType.Signature.ConvertToType(this.Compilation));
+                    }
+                }
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAwaitExpression(AwaitExpressionSyntax awaitExpression, SyntaxToken? previousToken = null)
