@@ -1647,6 +1647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ContainingSymbol?.Kind == SymbolKind.Namespace &&
                 ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true &&
                 Name == ValueTupleTypeName &&
+                TypeKind != TypeKind.Extension &&
                 ContainingNamespace.Name == MetadataHelpers.SystemString)
             {
                 int arity = Arity;

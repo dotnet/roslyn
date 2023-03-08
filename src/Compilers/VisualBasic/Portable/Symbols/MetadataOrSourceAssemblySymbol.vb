@@ -38,7 +38,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <returns></returns>
         ''' <remarks></remarks>
         Friend Overrides Function GetDeclaredSpecialType(type As SpecialType) As NamedTypeSymbol
-            ' PROTOTYPE do not return a result if the type that is found is an extension type
 #If DEBUG Then
             For Each [module] In Me.Modules
                 Debug.Assert([module].GetReferencedAssemblies().Length = 0)
@@ -68,6 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <param name="corType"></param>
         Friend Overrides Sub RegisterDeclaredSpecialType(corType As NamedTypeSymbol)
+            ' PROTOTYPE do not consider extension types to be special types
             Dim typeId As SpecialType = corType.SpecialType
             Debug.Assert(typeId <> SpecialType.None)
             Debug.Assert(corType.ContainingAssembly Is Me)

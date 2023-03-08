@@ -25,7 +25,7 @@ public class ExtensionTypeTests : CompilingTestBase
     }
 
     // Verify things that are common for all extension types
-    private static void VerifyExtension<T>(TypeSymbol type) where T : TypeSymbol
+    private static void VerifyExtension<T>(TypeSymbol type, SpecialType specialType = SpecialType.None) where T : TypeSymbol
     {
         Assert.True(type is T);
         Assert.True(type.IsExtension);
@@ -39,7 +39,7 @@ public class ExtensionTypeTests : CompilingTestBase
         Assert.False(type.IsAnonymousType);
         Assert.False(type.IsEnumType());
         Assert.False(type.IsErrorType());
-        Assert.Equal(SpecialType.None, type.SpecialType);
+        Assert.Equal(specialType, type.SpecialType);
         Assert.False(type.IsObjectType());
         Assert.False(type.IsTupleType);
         Assert.True(type.TupleElements.IsDefault);
@@ -4629,28 +4629,10 @@ class C
             );
         var m = comp.GetMember<MethodSymbol>("C.M");
         VerifyNotExtension<MissingMetadataTypeSymbol.TopLevel>(m.ReturnType);
-    }
+        Assert.True(comp.GetSpecialType(SpecialType.System_IntPtr).IsErrorType());
 
-    [Fact]
-    public void NotExtension_NativeIntegerTypeSymbol_Custom_Class()
-    {
-        var src = $$"""
-namespace System
-{
-    public class Object { }
-    public struct Void { }
-    public class Exception { }
-    public class ValueType { }
-    public class IntPtr { }
-}
-class C
-{
-    nint M() => throw null;
-}
-""";
-        var comp = CreateEmptyCompilation(src);
-        comp.VerifyDiagnostics();
-        // TODO2
+        var intPtr = comp.GetTypeByMetadataName("System.IntPtr");
+        VerifyExtension<SourceExtensionTypeSymbol>(intPtr, SpecialType.System_IntPtr);
     }
 
     [Fact]
@@ -4678,6 +4660,10 @@ class C
             );
         var m = comp.GetMember<MethodSymbol>("C.M");
         VerifyNotExtension<ConstructedErrorTypeSymbol>(m.ReturnType);
+        Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).IsErrorType());
+
+        var valueTuple = comp.GetTypeByMetadataName("System.ValueTuple`2");
+        VerifyExtension<SourceExtensionTypeSymbol>(valueTuple);
     }
 
     [Fact]

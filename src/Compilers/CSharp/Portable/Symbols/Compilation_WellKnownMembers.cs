@@ -117,7 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal NamedTypeSymbol GetWellKnownType(WellKnownType type)
         {
-            // TODO2 do not return a result if the type that is found is an extension type
             Debug.Assert(type.IsValid());
 
             bool ignoreCorLibraryDuplicatedTypes = this.Options.TopLevelBinderFlags.Includes(BinderFlags.IgnoreCorLibraryDuplicatedTypes);
