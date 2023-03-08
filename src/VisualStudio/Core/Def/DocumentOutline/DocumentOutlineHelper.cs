@@ -83,30 +83,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             return documentSymbolItems.ToImmutable();
         }
 
-        /// <summary>
-        /// Updates the IsExpanded property for the Document Symbol ViewModel based on the given Expansion Option. The parameter
-        /// <param name="currentDocumentSymbolItems"/> is used to reference the current node expansion in the view.
-        /// </summary>
-        public static void SetIsExpandedOnNewItems(
-            ImmutableArray<DocumentSymbolDataViewModel> newDocumentSymbolItems,
-            ImmutableArray<DocumentSymbolDataViewModel> currentDocumentSymbolItems)
-        {
-            using var _ = PooledHashSet<DocumentSymbolDataViewModel>.GetInstance(out var hashSet);
-            hashSet.AddRange(newDocumentSymbolItems);
-
-            foreach (var item in currentDocumentSymbolItems)
-            {
-                if (!hashSet.TryGetValue(item, out var newItem))
-                {
-                    continue;
-                }
-
-                // Setting a boolean property on this View Model is allowed to happen on any thread.
-                newItem.IsExpanded = item.IsExpanded;
-                SetIsExpandedOnNewItems(newItem.Children, item.Children);
-            }
-        }
-
         public static void SetExpansionOption(
             ImmutableArray<DocumentSymbolDataViewModel> currentDocumentSymbolItems,
             bool expand)

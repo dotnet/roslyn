@@ -201,7 +201,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             originalUIItems.Single(parent => parent.Data.Name.Equals("foo")).Children.Single(child => child.Data.Name.Equals("r")).IsExpanded = false;
 
             // Apply same expansion as originalUIItems to updatedUIItems
-            DocumentOutlineHelper.SetIsExpandedOnNewItems(updatedUIItems, originalUIItems);
+            DocumentOutlineViewModel.SetIsExpandedOnNewItems(updatedUIItems, originalUIItems);
 
             // Confirm that matching expanded/collapsed node states have been applied
             CheckNodeExpansionMatches(updatedUIItems, originalUIItems);
