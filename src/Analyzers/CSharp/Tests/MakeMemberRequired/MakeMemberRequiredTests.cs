@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeMemberRequired;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -18,6 +19,106 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.MakeMemberRequired
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberRequired)]
     public sealed class MakeMemberRequiredTests
     {
+        public static IEnumerable<object[]> MemberAccessibilityModifierCombinationsWhereShouldProvideFix()
+        {
+            yield return new[] { "public", "public", "public" };
+            yield return new[] { "public", "private", "public" };
+            yield return new[] { "public", "private", "internal" };
+            yield return new[] { "public", "private", "protected internal" };
+            yield return new[] { "public", "protected", "public" };
+            yield return new[] { "public", "internal", "public" };
+            yield return new[] { "public", "internal", "internal" };
+            yield return new[] { "public", "internal", "protected internal" };
+            yield return new[] { "public", "private protected", "public" };
+            yield return new[] { "public", "private protected", "internal" };
+            yield return new[] { "public", "private protected", "protected internal" };
+            yield return new[] { "public", "protected internal", "public" };
+            yield return new[] { "internal", "public", "public" };
+            yield return new[] { "internal", "public", "internal" };
+            yield return new[] { "internal", "public", "protected internal" };
+            yield return new[] { "internal", "private", "public" };
+            yield return new[] { "internal", "private", "internal" };
+            yield return new[] { "internal", "private", "protected internal" };
+            yield return new[] { "internal", "protected", "public" };
+            yield return new[] { "internal", "protected", "internal" };
+            yield return new[] { "internal", "protected", "protected internal" };
+            yield return new[] { "internal", "internal", "public" };
+            yield return new[] { "internal", "internal", "internal" };
+            yield return new[] { "internal", "internal", "protected internal" };
+            yield return new[] { "internal", "private protected", "public" };
+            yield return new[] { "internal", "private protected", "internal" };
+            yield return new[] { "internal", "private protected", "protected internal" };
+            yield return new[] { "internal", "protected internal", "public" };
+            yield return new[] { "internal", "protected internal", "internal" };
+            yield return new[] { "internal", "protected internal", "protected internal" };
+        }
+
+        public static IEnumerable<object[]> MemberAccessibilityModifierCombinationsWhereShouldNotProvideFix()
+        {
+            yield return new[] { "public", "public", "private" };
+            yield return new[] { "public", "public", "protected" };
+            yield return new[] { "public", "public", "internal" };
+            yield return new[] { "public", "public", "private protected" };
+            yield return new[] { "public", "public", "protected internal" };
+            yield return new[] { "public", "private", "private" };
+            yield return new[] { "public", "private", "protected" };
+            yield return new[] { "public", "private", "private protected" };
+            yield return new[] { "public", "protected", "private" };
+            yield return new[] { "public", "protected", "protected" };
+            yield return new[] { "public", "protected", "internal" };
+            yield return new[] { "public", "protected", "private protected" };
+            yield return new[] { "public", "protected", "protected internal" };
+            yield return new[] { "public", "internal", "private" };
+            yield return new[] { "public", "internal", "protected" };
+            yield return new[] { "public", "internal", "private protected" };
+            yield return new[] { "public", "private protected", "private" };
+            yield return new[] { "public", "private protected", "protected" };
+            yield return new[] { "public", "private protected", "private protected" };
+            yield return new[] { "public", "protected internal", "private" };
+            yield return new[] { "public", "protected internal", "protected" };
+            yield return new[] { "public", "protected internal", "internal" };
+            yield return new[] { "public", "protected internal", "private protected" };
+            yield return new[] { "public", "protected internal", "protected internal" };
+            yield return new[] { "internal", "public", "private" };
+            yield return new[] { "internal", "public", "protected" };
+            yield return new[] { "internal", "public", "private protected" };
+            yield return new[] { "internal", "private", "private" };
+            yield return new[] { "internal", "private", "protected" };
+            yield return new[] { "internal", "private", "private protected" };
+            yield return new[] { "internal", "protected", "private" };
+            yield return new[] { "internal", "protected", "protected" };
+            yield return new[] { "internal", "protected", "private protected" };
+            yield return new[] { "internal", "internal", "private" };
+            yield return new[] { "internal", "internal", "protected" };
+            yield return new[] { "internal", "internal", "private protected" };
+            yield return new[] { "internal", "private protected", "private" };
+            yield return new[] { "internal", "private protected", "protected" };
+            yield return new[] { "internal", "private protected", "private protected" };
+            yield return new[] { "internal", "protected internal", "private" };
+            yield return new[] { "internal", "protected internal", "protected" };
+            yield return new[] { "internal", "protected internal", "private protected" };
+        }
+
+        public static IEnumerable<object[]> AccessorAccessibilityModifierCombinationsWhereShouldProvideFix()
+        {
+            yield return new[] { "public", "" };
+            yield return new[] { "internal", "" };
+            yield return new[] { "internal", "internal" };
+            yield return new[] { "internal", "protected internal" };
+        }
+
+        public static IEnumerable<object[]> AccessorAccessibilityModifierCombinationsWhereShouldNotProvideFix()
+        {
+            yield return new[] { "public", "internal" };
+            yield return new[] { "public", "protected" };
+            yield return new[] { "public", "private" };
+            yield return new[] { "public", "private protected" };
+            yield return new[] { "public", "protected internal" };
+            yield return new[] { "internal", "protected" };
+            yield return new[] { "internal", "private" };
+            yield return new[] { "internal", "private protected" };
+        }
+
         [Fact]
         public async Task SimpleSetProperty()
         {
@@ -88,192 +189,147 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.MakeMemberRequired
         }
 
         [Theory]
-        [InlineData("public", "public", "public", true)]
-        [InlineData("public", "public", "private", false)]
-        [InlineData("public", "public", "protected", false)]
-        [InlineData("public", "public", "internal", false)]
-        [InlineData("public", "public", "private protected", false)]
-        [InlineData("public", "public", "protected internal", false)]
-        [InlineData("public", "private", "public", true)]
-        [InlineData("public", "private", "private", false)]
-        [InlineData("public", "private", "protected", false)]
-        [InlineData("public", "private", "internal", true)]
-        [InlineData("public", "private", "private protected", false)]
-        [InlineData("public", "private", "protected internal", true)]
-        [InlineData("public", "protected", "public", true)]
-        [InlineData("public", "protected", "private", false)]
-        [InlineData("public", "protected", "protected", false)]
-        [InlineData("public", "protected", "internal", false)]
-        [InlineData("public", "protected", "private protected", false)]
-        [InlineData("public", "protected", "protected internal", false)]
-        [InlineData("public", "internal", "public", true)]
-        [InlineData("public", "internal", "private", false)]
-        [InlineData("public", "internal", "protected", false)]
-        [InlineData("public", "internal", "internal", true)]
-        [InlineData("public", "internal", "private protected", false)]
-        [InlineData("public", "internal", "protected internal", true)]
-        [InlineData("public", "private protected", "public", true)]
-        [InlineData("public", "private protected", "private", false)]
-        [InlineData("public", "private protected", "protected", false)]
-        [InlineData("public", "private protected", "internal", true)]
-        [InlineData("public", "private protected", "private protected", false)]
-        [InlineData("public", "private protected", "protected internal", true)]
-        [InlineData("public", "protected internal", "public", true)]
-        [InlineData("public", "protected internal", "private", false)]
-        [InlineData("public", "protected internal", "protected", false)]
-        [InlineData("public", "protected internal", "internal", false)]
-        [InlineData("public", "protected internal", "private protected", false)]
-        [InlineData("public", "protected internal", "protected internal", false)]
-        [InlineData("internal", "public", "public", true)]
-        [InlineData("internal", "public", "private", false)]
-        [InlineData("internal", "public", "protected", false)]
-        [InlineData("internal", "public", "internal", true)]
-        [InlineData("internal", "public", "private protected", false)]
-        [InlineData("internal", "public", "protected internal", true)]
-        [InlineData("internal", "private", "public", true)]
-        [InlineData("internal", "private", "private", false)]
-        [InlineData("internal", "private", "protected", false)]
-        [InlineData("internal", "private", "internal", true)]
-        [InlineData("internal", "private", "private protected", false)]
-        [InlineData("internal", "private", "protected internal", true)]
-        [InlineData("internal", "protected", "public", true)]
-        [InlineData("internal", "protected", "private", false)]
-        [InlineData("internal", "protected", "protected", false)]
-        [InlineData("internal", "protected", "internal", true)]
-        [InlineData("internal", "protected", "private protected", false)]
-        [InlineData("internal", "protected", "protected internal", true)]
-        [InlineData("internal", "internal", "public", true)]
-        [InlineData("internal", "internal", "private", false)]
-        [InlineData("internal", "internal", "protected", false)]
-        [InlineData("internal", "internal", "internal", true)]
-        [InlineData("internal", "internal", "private protected", false)]
-        [InlineData("internal", "internal", "protected internal", true)]
-        [InlineData("internal", "private protected", "public", true)]
-        [InlineData("internal", "private protected", "private", false)]
-        [InlineData("internal", "private protected", "protected", false)]
-        [InlineData("internal", "private protected", "internal", true)]
-        [InlineData("internal", "private protected", "private protected", false)]
-        [InlineData("internal", "private protected", "protected internal", true)]
-        [InlineData("internal", "protected internal", "public", true)]
-        [InlineData("internal", "protected internal", "private", false)]
-        [InlineData("internal", "protected internal", "protected", false)]
-        [InlineData("internal", "protected internal", "internal", true)]
-        [InlineData("internal", "protected internal", "private protected", false)]
-        [InlineData("internal", "protected internal", "protected internal", true)]
-        public async Task TestEffectivePropertyAccessibility(string outerClassAccessibility, string containingTypeAccessibility, string propertyAccessibility, bool shouldOfferFix)
+        [MemberData(nameof(MemberAccessibilityModifierCombinationsWhereShouldProvideFix))]
+        public async Task TestEffectivePropertyAccessibilityWhereShouldProvideFix(string outerClassAccessibility, string containingTypeAccessibility, string propertyAccessibility)
         {
-            var code = $$"""
-                #nullable enable
-                
-                {{outerClassAccessibility}} class C
-                {
-                    {{containingTypeAccessibility}} class MyClass
-                    {
-                        {{propertyAccessibility}} string {|CS8618:MyProperty|} { get; set; }
-                    }
-                }
-                """;
-
-            var fixedCode = $$"""
-                #nullable enable
-                
-                {{outerClassAccessibility}} class C
-                {
-                    {{containingTypeAccessibility}} class MyClass
-                    {
-                        {{propertyAccessibility}} required string MyProperty { get; set; }
-                    }
-                }
-                """;
-
             await new VerifyCS.Test
             {
-                TestCode = code,
-                FixedCode = shouldOfferFix ? fixedCode : code,
+                TestCode = $$"""
+                    #nullable enable
+                
+                    {{outerClassAccessibility}} class C
+                    {
+                        {{containingTypeAccessibility}} class MyClass
+                        {
+                            {{propertyAccessibility}} string {|CS8618:MyProperty|} { get; set; }
+                        }
+                    }
+                    """,
+                FixedCode = $$"""
+                    #nullable enable
+                
+                    {{outerClassAccessibility}} class C
+                    {
+                        {{containingTypeAccessibility}} class MyClass
+                        {
+                            {{propertyAccessibility}} required string MyProperty { get; set; }
+                        }
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp11,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net70
             }.RunAsync();
         }
 
         [Theory]
-        [InlineData("public", "", true)]
-        [InlineData("public", "internal", false)]
-        [InlineData("public", "protected", false)]
-        [InlineData("public", "private", false)]
-        [InlineData("public", "private protected", false)]
-        [InlineData("public", "protected internal", false)]
-        [InlineData("internal", "", true)]
-        [InlineData("internal", "internal", true)]
-        [InlineData("internal", "protected", false)]
-        [InlineData("internal", "private", false)]
-        [InlineData("internal", "private protected", false)]
-        [InlineData("internal", "protected internal", true)]
-        public async Task TestSetAccessorAccessibility(string containingTypeAccessibility, string setAccessorAccessibility, bool shouldOfferFix)
+        [MemberData(nameof(MemberAccessibilityModifierCombinationsWhereShouldNotProvideFix))]
+        public async Task TestEffectivePropertyAccessibilityWhereShouldNotProvideFix(string outerClassAccessibility, string containingTypeAccessibility, string propertyAccessibility)
         {
-            var code = $$"""
-                #nullable enable
-                
-                {{containingTypeAccessibility}} class MyClass
-                {
-                    public string {|CS8618:MyProperty|} { get; {{setAccessorAccessibility}} set; }
-                }
-                """;
-
-            var fixedCode = $$"""
-                #nullable enable
-                
-                {{containingTypeAccessibility}} class MyClass
-                {
-                    public required string MyProperty { get; {{setAccessorAccessibility}} set; }
-                }
-                """;
-
             await new VerifyCS.Test
             {
-                TestCode = code,
-                FixedCode = shouldOfferFix ? fixedCode : code,
+                TestCode = $$"""
+                    #nullable enable
+                
+                    {{outerClassAccessibility}} class C
+                    {
+                        {{containingTypeAccessibility}} class MyClass
+                        {
+                            {{propertyAccessibility}} string {|CS8618:MyProperty|} { get; set; }
+                        }
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp11,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net70
             }.RunAsync();
         }
 
         [Theory]
-        [InlineData("public", "", true)]
-        [InlineData("public", "internal", false)]
-        [InlineData("public", "protected", false)]
-        [InlineData("public", "private", false)]
-        [InlineData("public", "private protected", false)]
-        [InlineData("public", "protected internal", false)]
-        [InlineData("internal", "", true)]
-        [InlineData("internal", "internal", true)]
-        [InlineData("internal", "protected", false)]
-        [InlineData("internal", "private", false)]
-        [InlineData("internal", "private protected", false)]
-        [InlineData("internal", "protected internal", true)]
-        public async Task TestInitAccessorAccessibility(string containingTypeAccessibility, string setAccessorAccessibility, bool shouldOfferFix)
+        [MemberData(nameof(AccessorAccessibilityModifierCombinationsWhereShouldProvideFix))]
+        public async Task TestSetAccessorAccessibilityWhereShouldProvideFix(string containingTypeAccessibility, string setAccessorAccessibility)
         {
-            var code = $$"""
-                #nullable enable
-                
-                {{containingTypeAccessibility}} class MyClass
-                {
-                    public string {|CS8618:MyProperty|} { get; {{setAccessorAccessibility}} init; }
-                }
-                """;
-
-            var fixedCode = $$"""
-                #nullable enable
-                
-                {{containingTypeAccessibility}} class MyClass
-                {
-                    public required string MyProperty { get; {{setAccessorAccessibility}} init; }
-                }
-                """;
-
             await new VerifyCS.Test
             {
-                TestCode = code,
-                FixedCode = shouldOfferFix ? fixedCode : code,
+                TestCode = $$"""
+                    #nullable enable
+                
+                    {{containingTypeAccessibility}} class MyClass
+                    {
+                        public string {|CS8618:MyProperty|} { get; {{setAccessorAccessibility}} set; }
+                    }
+                    """,
+                FixedCode = $$"""
+                    #nullable enable
+                
+                    {{containingTypeAccessibility}} class MyClass
+                    {
+                        public required string MyProperty { get; {{setAccessorAccessibility}} set; }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+            }.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(AccessorAccessibilityModifierCombinationsWhereShouldNotProvideFix))]
+        public async Task TestSetAccessorAccessibilityWhereShouldNotProvideFix(string containingTypeAccessibility, string setAccessorAccessibility)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = $$"""
+                    #nullable enable
+                
+                    {{containingTypeAccessibility}} class MyClass
+                    {
+                        public string {|CS8618:MyProperty|} { get; {{setAccessorAccessibility}} set; }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+            }.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(AccessorAccessibilityModifierCombinationsWhereShouldProvideFix))]
+        public async Task TestInitAccessorAccessibilityWhereShouldProvideFix(string containingTypeAccessibility, string setAccessorAccessibility)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = $$"""
+                    #nullable enable
+                
+                    {{containingTypeAccessibility}} class MyClass
+                    {
+                        public string {|CS8618:MyProperty|} { get; {{setAccessorAccessibility}} init; }
+                    }
+                    """,
+                FixedCode = $$"""
+                    #nullable enable
+                
+                    {{containingTypeAccessibility}} class MyClass
+                    {
+                        public required string MyProperty { get; {{setAccessorAccessibility}} init; }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+            }.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(AccessorAccessibilityModifierCombinationsWhereShouldNotProvideFix))]
+        public async Task TestInitAccessorAccessibilityWhereShouldNotProvideFix(string containingTypeAccessibility, string setAccessorAccessibility)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = $$"""
+                    #nullable enable
+                
+                    {{containingTypeAccessibility}} class MyClass
+                    {
+                        public string {|CS8618:MyProperty|} { get; {{setAccessorAccessibility}} init; }
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp11,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net70
             }.RunAsync();
@@ -306,108 +362,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.MakeMemberRequired
         }
 
         [Theory]
-        [InlineData("public", "public", "public", true)]
-        [InlineData("public", "public", "private", false)]
-        [InlineData("public", "public", "protected", false)]
-        [InlineData("public", "public", "internal", false)]
-        [InlineData("public", "public", "private protected", false)]
-        [InlineData("public", "public", "protected internal", false)]
-        [InlineData("public", "private", "public", true)]
-        [InlineData("public", "private", "private", false)]
-        [InlineData("public", "private", "protected", false)]
-        [InlineData("public", "private", "internal", true)]
-        [InlineData("public", "private", "private protected", false)]
-        [InlineData("public", "private", "protected internal", true)]
-        [InlineData("public", "protected", "public", true)]
-        [InlineData("public", "protected", "private", false)]
-        [InlineData("public", "protected", "protected", false)]
-        [InlineData("public", "protected", "internal", false)]
-        [InlineData("public", "protected", "private protected", false)]
-        [InlineData("public", "protected", "protected internal", false)]
-        [InlineData("public", "internal", "public", true)]
-        [InlineData("public", "internal", "private", false)]
-        [InlineData("public", "internal", "protected", false)]
-        [InlineData("public", "internal", "internal", true)]
-        [InlineData("public", "internal", "private protected", false)]
-        [InlineData("public", "internal", "protected internal", true)]
-        [InlineData("public", "private protected", "public", true)]
-        [InlineData("public", "private protected", "private", false)]
-        [InlineData("public", "private protected", "protected", false)]
-        [InlineData("public", "private protected", "internal", true)]
-        [InlineData("public", "private protected", "private protected", false)]
-        [InlineData("public", "private protected", "protected internal", true)]
-        [InlineData("public", "protected internal", "public", true)]
-        [InlineData("public", "protected internal", "private", false)]
-        [InlineData("public", "protected internal", "protected", false)]
-        [InlineData("public", "protected internal", "internal", false)]
-        [InlineData("public", "protected internal", "private protected", false)]
-        [InlineData("public", "protected internal", "protected internal", false)]
-        [InlineData("internal", "public", "public", true)]
-        [InlineData("internal", "public", "private", false)]
-        [InlineData("internal", "public", "protected", false)]
-        [InlineData("internal", "public", "internal", true)]
-        [InlineData("internal", "public", "private protected", false)]
-        [InlineData("internal", "public", "protected internal", true)]
-        [InlineData("internal", "private", "public", true)]
-        [InlineData("internal", "private", "private", false)]
-        [InlineData("internal", "private", "protected", false)]
-        [InlineData("internal", "private", "internal", true)]
-        [InlineData("internal", "private", "private protected", false)]
-        [InlineData("internal", "private", "protected internal", true)]
-        [InlineData("internal", "protected", "public", true)]
-        [InlineData("internal", "protected", "private", false)]
-        [InlineData("internal", "protected", "protected", false)]
-        [InlineData("internal", "protected", "internal", true)]
-        [InlineData("internal", "protected", "private protected", false)]
-        [InlineData("internal", "protected", "protected internal", true)]
-        [InlineData("internal", "internal", "public", true)]
-        [InlineData("internal", "internal", "private", false)]
-        [InlineData("internal", "internal", "protected", false)]
-        [InlineData("internal", "internal", "internal", true)]
-        [InlineData("internal", "internal", "private protected", false)]
-        [InlineData("internal", "internal", "protected internal", true)]
-        [InlineData("internal", "private protected", "public", true)]
-        [InlineData("internal", "private protected", "private", false)]
-        [InlineData("internal", "private protected", "protected", false)]
-        [InlineData("internal", "private protected", "internal", true)]
-        [InlineData("internal", "private protected", "private protected", false)]
-        [InlineData("internal", "private protected", "protected internal", true)]
-        [InlineData("internal", "protected internal", "public", true)]
-        [InlineData("internal", "protected internal", "private", false)]
-        [InlineData("internal", "protected internal", "protected", false)]
-        [InlineData("internal", "protected internal", "internal", true)]
-        [InlineData("internal", "protected internal", "private protected", false)]
-        [InlineData("internal", "protected internal", "protected internal", true)]
-        public async Task TestEffectiveFieldAccessibility(string outerClassAccessibility, string containingTypeAccessibility, string fieldAccessibility, bool shouldOfferFix)
+        [MemberData(nameof(MemberAccessibilityModifierCombinationsWhereShouldProvideFix))]
+        public async Task TestEffectiveFieldAccessibilityWhereShouldProvideFix(string outerClassAccessibility, string containingTypeAccessibility, string fieldAccessibility)
         {
-            var code = $$"""
-                #nullable enable
-                
-                {{outerClassAccessibility}} class C
-                {
-                    {{containingTypeAccessibility}} class MyClass
-                    {
-                        {{fieldAccessibility}} string {|CS8618:_myField|};
-                    }
-                }
-                """;
-
-            var fixedCode = $$"""
-                #nullable enable
-                
-                {{outerClassAccessibility}} class C
-                {
-                    {{containingTypeAccessibility}} class MyClass
-                    {
-                        {{fieldAccessibility}} required string _myField;
-                    }
-                }
-                """;
-
             await new VerifyCS.Test
             {
-                TestCode = code,
-                FixedCode = shouldOfferFix ? fixedCode : code,
+                TestCode = $$"""
+                    #nullable enable
+                
+                    {{outerClassAccessibility}} class C
+                    {
+                        {{containingTypeAccessibility}} class MyClass
+                        {
+                            {{fieldAccessibility}} string {|CS8618:_myField|};
+                        }
+                    }
+                    """,
+                FixedCode = $$"""
+                    #nullable enable
+                
+                    {{outerClassAccessibility}} class C
+                    {
+                        {{containingTypeAccessibility}} class MyClass
+                        {
+                            {{fieldAccessibility}} required string _myField;
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+            }.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(MemberAccessibilityModifierCombinationsWhereShouldNotProvideFix))]
+        public async Task TestEffectiveFieldAccessibilityWhereShouldNotProvideFix(string outerClassAccessibility, string containingTypeAccessibility, string fieldAccessibility)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = $$"""
+                    #nullable enable
+                
+                    {{outerClassAccessibility}} class C
+                    {
+                        {{containingTypeAccessibility}} class MyClass
+                        {
+                            {{fieldAccessibility}} string {|CS8618:_myField|};
+                        }
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp11,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net70
             }.RunAsync();
