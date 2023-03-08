@@ -20,22 +20,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertConversionOperat
         [Fact]
         public async Task ConvertFromExplicitToAs()
         {
-            const string InitialMarkup = @"
-class Program
-{
-    public static void Main()
-    {
-        var x = ([||]object)1;
-    }
-}";
-            const string ExpectedMarkup = @"
-class Program
-{
-    public static void Main()
-    {
-        var x = 1 as object;
-    }
-}";
+            const string InitialMarkup = """
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = ([||]object)1;
+                    }
+                }
+                """;
+            const string ExpectedMarkup = """
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = 1 as object;
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
@@ -88,14 +90,15 @@ class Program
         [Fact]
         public async Task ConvertFromExplicitToAs_ValueType()
         {
-            const string InitialMarkup = @"
-class Program
-{
-    public static void Main()
-    {
-        var x = ([||]byte)1;
-    }
-}";
+            const string InitialMarkup = """
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = ([||]byte)1;
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
@@ -108,16 +111,16 @@ class Program
         [Fact]
         public async Task ConvertFromExplicitToAs_ValueTypeConstraint()
         {
-            const string InitialMarkup = @"
-public class C
-{
-    public void M<T>() where T: struct
-    {
-        var o = new object();
-        var t = (T[||])o;
-    }
-}
-";
+            const string InitialMarkup = """
+                public class C
+                {
+                    public void M<T>() where T: struct
+                    {
+                        var o = new object();
+                        var t = (T[||])o;
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
@@ -130,16 +133,16 @@ public class C
         [Fact]
         public async Task ConvertFromExplicitToAs_Unconstraint()
         {
-            const string InitialMarkup = @"
-public class C
-{
-    public void M<T>()
-    {
-        var o = new object();
-        var t = (T[||])o;
-    }
-}
-";
+            const string InitialMarkup = """
+                public class C
+                {
+                    public void M<T>()
+                    {
+                        var o = new object();
+                        var t = (T[||])o;
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
@@ -152,26 +155,26 @@ public class C
         [Fact]
         public async Task ConvertFromExplicitToAs_ClassConstraint()
         {
-            const string InitialMarkup = @"
-public class C
-{
-    public void M<T>() where T: class
-    {
-        var o = new object();
-        var t = (T[||])o;
-    }
-}
-";
-            const string FixedCode = @"
-public class C
-{
-    public void M<T>() where T: class
-    {
-        var o = new object();
-        var t = o as T;
-    }
-}
-";
+            const string InitialMarkup = """
+                public class C
+                {
+                    public void M<T>() where T: class
+                    {
+                        var o = new object();
+                        var t = (T[||])o;
+                    }
+                }
+                """;
+            const string FixedCode = """
+                public class C
+                {
+                    public void M<T>() where T: class
+                    {
+                        var o = new object();
+                        var t = o as T;
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
@@ -221,34 +224,34 @@ public class C
         [Fact]
         public async Task ConvertFromExplicitToAs_NestedTypeParameters()
         {
-            var initialMarkup = @"
-public class Target { }
+            var initialMarkup = """
+                public class Target { }
 
-public class C
-{
-    public void M<T, U>()
-        where T: Target
-        where U: T
-    {
-        var o = new object();
-        var u = (U[||])o;
-    }
-}
-";
-            var fixedCode = @"
-public class Target { }
+                public class C
+                {
+                    public void M<T, U>()
+                        where T: Target
+                        where U: T
+                    {
+                        var o = new object();
+                        var u = (U[||])o;
+                    }
+                }
+                """;
+            var fixedCode = """
+                public class Target { }
 
-public class C
-{
-    public void M<T, U>()
-        where T: Target
-        where U: T
-    {
-        var o = new object();
-        var u = o as U;
-    }
-}
-";
+                public class C
+                {
+                    public void M<T, U>()
+                        where T: Target
+                        where U: T
+                    {
+                        var o = new object();
+                        var u = o as U;
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = initialMarkup,
@@ -261,16 +264,16 @@ public class C
         [Fact]
         public async Task ConvertFromExplicitToAs_MissingType()
         {
-            const string InitialMarkup = @"
-public class C
-{
-    public void M()
-    {
-        var o = new object();
-        var t = ({|#0:MissingType|})$$o;
-    }
-}
-";
+            const string InitialMarkup = """
+                public class C
+                {
+                    public void M()
+                    {
+                        var o = new object();
+                        var t = ({|#0:MissingType|})$$o;
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestState = {
@@ -329,21 +332,28 @@ class Program
         [InlineData("(obj$$ect)1; // Trailing",
                     "1 as object; // Trailing")]
         [InlineData("(/* Middle1 */ obj$$ect)1",
-                    "1 as\r\n/* Middle1 */ object")]
+                    """
+                    1 as
+                    /* Middle1 */ object
+                    """)]
         [InlineData("(obj$$ect /* Middle2 */ )1",
                     "1 as object /* Middle2 */ ")]
         [InlineData("(obj$$ect) /* Middle3 */ 1",
                     "/* Middle3 */ 1 as object")]
         [InlineData("/* Leading */ (/* Middle1 */ obj$$ect /* Middle2 */ ) /* Middle3 */ 1 /* Trailing */",
-                    "/* Leading */ /* Middle3 */ 1 as\r\n/* Middle1 */ object /* Middle2 */  /* Trailing */")]
-        [InlineData(@"
-($$
-object
-)
-1", @"
-
-1 as
-object")]
+                    """
+                    /* Leading */ /* Middle3 */ 1 as
+                    /* Middle1 */ object /* Middle2 */  /* Trailing */
+                    """)]
+        [InlineData("""
+            ($$
+            object
+            )
+            1
+            """, """
+            1 as
+            object
+            """)]
         public async Task ConvertFromExplicitToAs_Trivia(string cast, string asExpression)
         {
             var initialMarkup = @$"
@@ -375,26 +385,28 @@ class Program
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64052")]
         public async Task ConvertFromExplicitToAs_NullableReferenceType_NullableEnable()
         {
-            var initialMarkup = @"
-#nullable enable
+            var initialMarkup = """
+                #nullable enable
 
-class Program
-{
-    public static void Main()
-    {
-        var x = ([||]string?)null;
-    }
-}";
-            var expectedMarkup = @"
-#nullable enable
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = ([||]string?)null;
+                    }
+                }
+                """;
+            var expectedMarkup = """
+                #nullable enable
 
-class Program
-{
-    public static void Main()
-    {
-        var x = null as string;
-    }
-}";
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = null as string;
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = initialMarkup,
@@ -406,26 +418,28 @@ class Program
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64052")]
         public async Task ConvertFromExplicitToAs_NullableReferenceType_NullableDisable()
         {
-            var initialMarkup = @"
-#nullable disable
+            var initialMarkup = """
+                #nullable disable
 
-class Program
-{
-    public static void Main()
-    {
-        var x = ([||]string?)null;
-    }
-}";
-            var expectedMarkup = @"
-#nullable disable
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = ([||]string?)null;
+                    }
+                }
+                """;
+            var expectedMarkup = """
+                #nullable disable
 
-class Program
-{
-    public static void Main()
-    {
-        var x = null as string;
-    }
-}";
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = null as string;
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = initialMarkup,
@@ -439,24 +453,24 @@ class Program
         [WorkItem("https://github.com/dotnet/roslyn/issues/64466")]
         public async Task ConvertFromExplicitToAs_NullableValueType()
         {
-            const string InitialMarkup = @"
-class Program
-{
-    public static void Main()
-    {
-        var x = ([||]byte?)null;
-    }
-}
-";
-            const string FixedCode = @"
-class Program
-{
-    public static void Main()
-    {
-        var x = null as byte?;
-    }
-}
-";
+            const string InitialMarkup = """
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = ([||]byte?)null;
+                    }
+                }
+                """;
+            const string FixedCode = """
+                class Program
+                {
+                    public static void Main()
+                    {
+                        var x = null as byte?;
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
