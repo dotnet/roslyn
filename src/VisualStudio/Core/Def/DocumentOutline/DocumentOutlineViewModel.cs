@@ -47,6 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private readonly ITextBuffer _textBuffer;
         private readonly IThreadingContext _threadingContext;
 
+        private readonly DocumentSymbolDataModel _emptyModel;
+
         /// <summary>
         /// Queue that uses the language-server-protocol to get document symbol information.
         /// This queue can return null if it is called before and LSP server is registered for our document.
@@ -77,6 +79,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _taggerEventSource = taggerEventSource;
             _textBuffer = textBuffer;
             _threadingContext = threadingContext;
+            _emptyModel = new DocumentSymbolDataModel(ImmutableArray<DocumentSymbolData>.Empty, _textBuffer.CurrentSnapshot);
+
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_threadingContext.DisposalToken);
 
             // work queue for refreshing LSP data
@@ -174,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 // text buffer is not saved to disk. LSP does not support calls without URIs. and Visual Studio does not
                 // have a URI concept other than the file path.
-                return new DocumentSymbolDataModel(ImmutableArray<DocumentSymbolData>.Empty, currentSnapshot);
+                return _emptyModel;
             }
 
             // Obtain the LSP response and text snapshot used.
@@ -188,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // "Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient.AlwaysActivateInProcLanguageClient" for the
             // list of content types we register for. At this time the expected list is C#, Visual Basic, and F#
             if (response is null)
-                return new DocumentSymbolDataModel(ImmutableArray<DocumentSymbolData>.Empty, currentSnapshot);
+                return _emptyModel;
 
             var responseBody = response.Value.response.ToObject<LspDocumentSymbol[]>();
             // It would be a bug in the LSP server implementation if we get back a null result here.
@@ -352,9 +356,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             cancellationToken.ThrowIfCancellationRequested();
 
             var model = await _documentSymbolQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
-            var searchText = viewModelStateData.SelectLastNonNullOrDefault(static x => x.SearchText);
-            var position = viewModelStateData.SelectLastNonNullOrDefault(static x => x.CaretPositionOfNodeToSelect);
-            var expansion = viewModelStateData.SelectLastNonNullOrDefault(static x => x.ShouldExpand);
+            model ??= _emptyModel;
+
+            var searchText = FindLastPresentValue(viewModelStateData, static x => x.SearchText);
+            var position = FindLastPresentValue(viewModelStateData, static x => x.CaretPositionOfNodeToSelect);
+            var expansion = FindLastPresentValue(viewModelStateData, static x => x.ShouldExpand);
             var dataUpdated = viewModelStateData.Any(static x => x.DataUpdated);
 
             // These updates always require a valid model to perform
@@ -448,6 +454,18 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
                     return true;
                 }
+            }
+
+            static TResult? FindLastPresentValue<TSource, TResult>(ImmutableSegmentedList<TSource> source, Func<TSource, TResult?> selector)
+            {
+                for (var i = source.Count - 1; i >= 0; i--)
+                {
+                    var item = selector(source[i]);
+                    if (item is not null)
+                        return item;
+                }
+
+                return default;
             }
         }
 
