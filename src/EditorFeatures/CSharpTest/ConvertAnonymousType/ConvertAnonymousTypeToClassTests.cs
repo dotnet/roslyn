@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAnonymousType
                 }
 
                 internal record NewRecord(int A, int B);
+
                 """;
             await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
         }
@@ -267,6 +268,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAnonymousType
                 }
 
                 internal record NewRecord();
+
                 """);
         }
 
@@ -336,6 +338,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAnonymousType
                 }
 
                 internal record NewRecord(int A);
+
                 """);
         }
 
@@ -412,6 +415,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAnonymousType
                 }
 
                 internal record NewRecord(int A, int B);
+
                 """;
             await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
         }
@@ -493,6 +497,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAnonymousType
                 }
 
                 internal record NewRecord(int A, int B);
+
                 """;
             await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
         }
@@ -1097,6 +1102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAnonymousType
                 internal record NewRecord<X, Y>(List<X> A, Y[] B)
                     where X : struct
                     where Y : class, new();
+
                 """;
             await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
         }
@@ -1233,6 +1239,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAnonymousType
                 }
 
                 internal record NewRecord(int A, int Item);
+
                 """;
             await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
         }
