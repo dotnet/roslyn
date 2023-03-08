@@ -32,19 +32,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
         [Fact]
         public async Task TestSimpleReferenceType_AlreadyNullChecked()
         {
-            var testCode = @"
-using System;
+            var testCode = """
+                using System;
 
-class C
-{
-    public C([||]string s)
-    {
-        if (s is null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
-    }
-}";
+                class C
+                {
+                    public C([||]string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp11,
@@ -57,28 +58,30 @@ class C
         public async Task TestSimpleReferenceType()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    public C([||]string s)
-    {
-    }
-}",
-@"
-using System;
+                class C
+                {
+                    public C([||]string s)
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public C(string s)
-    {
-        if (s is null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
-    }
-}");
+                class C
+                {
+                    public C(string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
@@ -87,28 +90,30 @@ class C
             await new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp6,
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C([||]string s)
-    {
-    }
-}",
-                FixedCode = @"
-using System;
+                class C
+                {
+                    public C([||]string s)
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    public C(string s)
-    {
-        if (s == null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
-    }
-}"
+                class C
+                {
+                    public C(string s)
+                    {
+                        if (s == null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                    }
+                }
+                """
             }.RunAsync();
         }
 
@@ -116,56 +121,60 @@ class C
         public async Task TestNullable()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    public C([||]int? i)
-    {
-    }
-}",
-@"
-using System;
+                class C
+                {
+                    public C([||]int? i)
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public C(int? i)
-    {
-        if (i is null)
-        {
-            throw new ArgumentNullException(nameof(i));
-        }
-    }
-}");
+                class C
+                {
+                    public C(int? i)
+                    {
+                        if (i is null)
+                        {
+                            throw new ArgumentNullException(nameof(i));
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47030")]
         public async Task TestNotOnOutParameter()
         {
-            var code = @"
-class C
-{
-    public C([||]out string s)
-    {
-        s = """";
-    }
-}";
+            var code = """
+                class C
+                {
+                    public C([||]out string s)
+                    {
+                        s = "";
+                    }
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact]
         public async Task TestNotOnValueType()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-class C
-{
-    public C([||]int i)
-    {
-    }
-}";
+                class C
+                {
+                    public C([||]int i)
+                    {
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
@@ -173,13 +182,14 @@ class C
         [Fact]
         public async Task TestNotOnInterfaceParameter()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-interface I
-{
-    void M([||]string s);
-}";
+                interface I
+                {
+                    void M([||]string s);
+                }
+                """;
 
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
@@ -187,17 +197,18 @@ interface I
         [Fact]
         public async Task TestNotOnNullableParameter()
         {
-            var code = @"
-#nullable enable
+            var code = """
+                #nullable enable
 
-using System;
+                using System;
 
-class C
-{
-    void M([||]string? s)
-    {
-    }
-}";
+                class C
+                {
+                    void M([||]string? s)
+                    {
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
@@ -205,26 +216,28 @@ class C
         [Fact]
         public async Task TestNotOnAbstractParameter()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-abstract class C
-{
-    public abstract void M([||]string s);
-}";
+                abstract class C
+                {
+                    public abstract void M([||]string s);
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact]
         public async Task TestNotOnExternParameter()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-class C
-{
-    extern void M([||]string s);
-}";
+                class C
+                {
+                    extern void M([||]string s);
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
@@ -233,17 +246,18 @@ class C
         [InlineData(LanguageVersion.CSharp8)]
         public async Task TestNotOnPartialMethodDefinition1(LanguageVersion languageVersion)
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-partial class C
-{
-    partial void M([||]string s);
+                partial class C
+                {
+                    partial void M([||]string s);
 
-    partial void M(string s)
-    {
-    }
-}";
+                    partial void M(string s)
+                    {
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 LanguageVersion = languageVersion,
@@ -255,17 +269,18 @@ partial class C
         [Fact]
         public async Task TestNotOnExtendedPartialMethodDefinition1()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-partial class C
-{
-    public partial void M([||]string s);
+                partial class C
+                {
+                    public partial void M([||]string s);
 
-    public partial void M(string s)
-    {
-    }
-}";
+                    public partial void M(string s)
+                    {
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp9,
@@ -279,17 +294,18 @@ partial class C
         [InlineData(LanguageVersion.CSharp8)]
         public async Task TestNotOnPartialMethodDefinition2(LanguageVersion languageVersion)
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-partial class C
-{
-    partial void M(string s)
-    {
-    }
+                partial class C
+                {
+                    partial void M(string s)
+                    {
+                    }
 
-    partial void M([||]string s);
-}";
+                    partial void M([||]string s);
+                }
+                """;
             await new VerifyCS.Test
             {
                 LanguageVersion = languageVersion,
@@ -301,17 +317,18 @@ partial class C
         [Fact]
         public async Task TestNotOnExtendedPartialMethodDefinition2()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-partial class C
-{
-    public partial void M(string s)
-    {
-    }
+                partial class C
+                {
+                    public partial void M(string s)
+                    {
+                    }
 
-    public partial void M([||]string s);
-}";
+                    public partial void M([||]string s);
+                }
+                """;
             await new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp9,
@@ -324,32 +341,34 @@ partial class C
         public async Task TestOnPartialMethodImplementation1()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-partial class C
-{
-    partial void M(string s);
+                partial class C
+                {
+                    partial void M(string s);
 
-    partial void M([||]string s)
-    {
-    }
-}",
-@"
-using System;
+                    partial void M([||]string s)
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
 
-partial class C
-{
-    partial void M(string s);
+                partial class C
+                {
+                    partial void M(string s);
 
-    partial void M(string s)
-    {
-        if (s is null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
-    }
-}");
+                    partial void M(string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
@@ -358,32 +377,34 @@ partial class C
             await new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp9,
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-partial class C
-{
-    public partial void M(string s);
+                partial class C
+                {
+                    public partial void M(string s);
 
-    public partial void M([||]string s)
-    {
-    }
-}",
-                FixedCode = @"
-using System;
+                    public partial void M([||]string s)
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-partial class C
-{
-    public partial void M(string s);
+                partial class C
+                {
+                    public partial void M(string s);
 
-    public partial void M(string s)
-    {
-        if (s is null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
-    }
-}"
+                    public partial void M(string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                    }
+                }
+                """
             }.RunAsync();
         }
 
@@ -391,32 +412,34 @@ partial class C
         public async Task TestOnPartialMethodImplementation2()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-partial class C
-{
-    partial void M([||]string s)
-    {
-    }
+                partial class C
+                {
+                    partial void M([||]string s)
+                    {
+                    }
 
-    partial void M(string s);
-}",
-@"
-using System;
+                    partial void M(string s);
+                }
+                """,
+                """
+                using System;
 
-partial class C
-{
-    partial void M(string s)
-    {
-        if (s is null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
-    }
+                partial class C
+                {
+                    partial void M(string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                    }
 
-    partial void M(string s);
-}");
+                    partial void M(string s);
+                }
+                """);
         }
 
         [Fact]
@@ -425,32 +448,34 @@ partial class C
             await new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp9,
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-partial class C
-{
-    public partial void M([||]string s)
-    {
-    }
+                partial class C
+                {
+                    public partial void M([||]string s)
+                    {
+                    }
 
-    public partial void M(string s);
-}",
-                FixedCode = @"
-using System;
+                    public partial void M(string s);
+                }
+                """,
+                FixedCode = """
+                using System;
 
-partial class C
-{
-    public partial void M(string s)
-    {
-        if (s is null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
-    }
+                partial class C
+                {
+                    public partial void M(string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                    }
 
-    public partial void M(string s);
-}"
+                    public partial void M(string s);
+                }
+                """
             }.RunAsync();
         }
 
@@ -458,30 +483,32 @@ partial class C
         public async Task TestUpdateExistingFieldAssignment()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    private string _s;
+                class C
+                {
+                    private string _s;
 
-    public C([||]string s)
-    {
-        _s = s;
-    }
-}",
-@"
-using System;
+                    public C([||]string s)
+                    {
+                        _s = s;
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    private string _s;
+                class C
+                {
+                    private string _s;
 
-    public C(string s)
-    {
-        _s = s ?? throw new ArgumentNullException(nameof(s));
-    }
-}");
+                    public C(string s)
+                    {
+                        _s = s ?? throw new ArgumentNullException(nameof(s));
+                    }
+                }
+                """);
         }
 
         [Fact]
@@ -489,15 +516,16 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C([||]string a, string b, string c)
-    {
-    }
-}",
+                class C
+                {
+                    public C([||]string a, string b, string c)
+                    {
+                    }
+                }
+                """,
                 FixedCode = @$"
 using System;
 
@@ -507,17 +535,29 @@ class C
     {{
         if (string.IsNullOrEmpty(a))
         {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("\"", "\\\"")}"", nameof(a));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
+                                   "
+                                   """, """
+                                   \"
+                                   """)}"", nameof(a));
         }}
 
         if (string.IsNullOrEmpty(b))
         {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(b)}").Replace("\"", "\\\"")}"", nameof(b));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(b)}").Replace("""
+                                            "
+                                            """, """
+                                            \"
+                                            """)}"", nameof(b));
         }}
 
         if (string.IsNullOrEmpty(c))
         {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("\"", "\\\"")}"", nameof(c));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
+                                                     "
+                                                     """, """
+                                                     \"
+                                                     """)}"", nameof(c));
         }}
     }}
 }}",
@@ -531,17 +571,18 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-#nullable enable
+                TestCode = """
+                #nullable enable
 
-using System;
+                using System;
 
-class C
-{
-    public C([||]string a, string b, string? c)
-    {
-    }
-}",
+                class C
+                {
+                    public C([||]string a, string b, string? c)
+                    {
+                    }
+                }
+                """,
                 FixedCode = @$"
 #nullable enable
 
@@ -553,12 +594,20 @@ class C
     {{
         if (string.IsNullOrEmpty(a))
         {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("\"", "\\\"")}"", nameof(a));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
+                                   "
+                                   """, """
+                                   \"
+                                   """)}"", nameof(a));
         }}
 
         if (string.IsNullOrEmpty(b))
         {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(b)}").Replace("\"", "\\\"")}"", nameof(b));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(b)}").Replace("""
+                                            "
+                                            """, """
+                                            \"
+                                            """)}"", nameof(b));
         }}
     }}
 }}",
@@ -570,15 +619,16 @@ class C
         [Fact]
         public async Task TestCursorNotOnParameters()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-class C
-{
-    public C(string a[|,|] string b, string c)
-    {
-    }
-}";
+                class C
+                {
+                    public C(string a[|,|] string b, string c)
+                    {
+                    }
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
@@ -587,15 +637,16 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C(string a, [||]bool b, string c)
-    {
-    }
-}",
+                class C
+                {
+                    public C(string a, [||]bool b, string c)
+                    {
+                    }
+                }
+                """,
                 FixedCode = @$"
 using System;
 
@@ -605,12 +656,20 @@ class C
     {{
         if (string.IsNullOrEmpty(a))
         {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("\"", "\\\"")}"", nameof(a));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
+                                   "
+                                   """, """
+                                   \"
+                                   """)}"", nameof(a));
         }}
 
         if (string.IsNullOrEmpty(c))
         {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("\"", "\\\"")}"", nameof(c));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
+                                            "
+                                            """, """
+                                            \"
+                                            """)}"", nameof(c));
         }}
     }}
 }}",
@@ -624,15 +683,16 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C([||]string a, bool b, string c)
-    {
-    }
-}",
+                class C
+                {
+                    public C([||]string a, bool b, string c)
+                    {
+                    }
+                }
+                """,
                 FixedCode = @$"
 using System;
 
@@ -642,12 +702,20 @@ class C
     {{
         if (string.IsNullOrEmpty(a))
         {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("\"", "\\\"")}"", nameof(a));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
+                                   "
+                                   """, """
+                                   \"
+                                   """)}"", nameof(a));
         }}
 
         if (string.IsNullOrEmpty(c))
         {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("\"", "\\\"")}"", nameof(c));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
+                                            "
+                                            """, """
+                                            \"
+                                            """)}"", nameof(c));
         }}
     }}
 }}",
@@ -661,15 +729,16 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C([||]string a, object b, string c)
-    {
-    }
-}",
+                class C
+                {
+                    public C([||]string a, object b, string c)
+                    {
+                    }
+                }
+                """,
                 FixedCode = @$"
 using System;
 
@@ -679,7 +748,11 @@ class C
     {{
         if (string.IsNullOrEmpty(a))
         {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("\"", "\\\"")}"", nameof(a));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
+                                   "
+                                   """, """
+                                   \"
+                                   """)}"", nameof(a));
         }}
 
         if (b is null)
@@ -689,7 +762,11 @@ class C
 
         if (string.IsNullOrEmpty(c))
         {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("\"", "\\\"")}"", nameof(c));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
+                                            "
+                                            """, """
+                                            \"
+                                            """)}"", nameof(c));
         }}
     }}
 }}",
@@ -703,38 +780,40 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C([||]object a, object b, object c)
-    {
-    }
-}",
-                FixedCode = @"
-using System;
+                class C
+                {
+                    public C([||]object a, object b, object c)
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    public C(object a, object b, object c)
-    {
-        if (a is null)
-        {
-            throw new ArgumentNullException(nameof(a));
-        }
+                class C
+                {
+                    public C(object a, object b, object c)
+                    {
+                        if (a is null)
+                        {
+                            throw new ArgumentNullException(nameof(a));
+                        }
 
-        if (b is null)
-        {
-            throw new ArgumentNullException(nameof(b));
-        }
+                        if (b is null)
+                        {
+                            throw new ArgumentNullException(nameof(b));
+                        }
 
-        if (c is null)
-        {
-            throw new ArgumentNullException(nameof(c));
-        }
-    }
-}",
+                        if (c is null)
+                        {
+                            throw new ArgumentNullException(nameof(c));
+                        }
+                    }
+                }
+                """,
                 CodeActionIndex = 1,
                 CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
             }.RunAsync();
@@ -745,38 +824,40 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C([||]int ? a, bool ? b, double ? c)
-    {
-    }
-}",
-                FixedCode = @"
-using System;
+                class C
+                {
+                    public C([||]int ? a, bool ? b, double ? c)
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    public C(int ? a, bool ? b, double ? c)
-    {
-        if (a is null)
-        {
-            throw new ArgumentNullException(nameof(a));
-        }
+                class C
+                {
+                    public C(int ? a, bool ? b, double ? c)
+                    {
+                        if (a is null)
+                        {
+                            throw new ArgumentNullException(nameof(a));
+                        }
 
-        if (b is null)
-        {
-            throw new ArgumentNullException(nameof(b));
-        }
+                        if (b is null)
+                        {
+                            throw new ArgumentNullException(nameof(b));
+                        }
 
-        if (c is null)
-        {
-            throw new ArgumentNullException(nameof(c));
-        }
-    }
-}",
+                        if (c is null)
+                        {
+                            throw new ArgumentNullException(nameof(c));
+                        }
+                    }
+                }
+                """,
                 CodeActionIndex = 1,
                 CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
             }.RunAsync();
@@ -786,30 +867,32 @@ class C
         public async Task TestUpdateExistingPropertyAssignment()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    private string S;
+                class C
+                {
+                    private string S;
 
-    public C([||]string s)
-    {
-        S = s;
-    }
-}",
-@"
-using System;
+                    public C([||]string s)
+                    {
+                        S = s;
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    private string S;
+                class C
+                {
+                    private string S;
 
-    public C(string s)
-    {
-        S = s ?? throw new ArgumentNullException(nameof(s));
-    }
-}");
+                    public C(string s)
+                    {
+                        S = s ?? throw new ArgumentNullException(nameof(s));
+                    }
+                }
+                """);
         }
 
         [Fact]
@@ -818,35 +901,37 @@ class C
             await new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp6,
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    private string S;
+                class C
+                {
+                    private string S;
 
-    public C([||]string s)
-    {
-        S = s;
-    }
-}",
-                FixedCode = @"
-using System;
+                    public C([||]string s)
+                    {
+                        S = s;
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    private string S;
+                class C
+                {
+                    private string S;
 
-    public C(string s)
-    {
-        if (s == null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
+                    public C(string s)
+                    {
+                        if (s == null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
 
-        S = s;
-    }
-}"
+                        S = s;
+                    }
+                }
+                """
             }.RunAsync();
         }
 
@@ -855,35 +940,37 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    private string S;
+                class C
+                {
+                    private string S;
 
-    public C([||]string s)
-    {
-        S = s;
-    }
-}",
-                FixedCode = @"
-using System;
+                    public C([||]string s)
+                    {
+                        S = s;
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    private string S;
+                class C
+                {
+                    private string S;
 
-    public C(string s)
-    {
-        if (s is null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
+                    public C(string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
 
-        S = s;
-    }
-}",
+                        S = s;
+                    }
+                }
+                """,
                 Options =
                 {
                     { CSharpCodeStyleOptions.PreferThrowExpression, false, NotificationOption2.Silent }
@@ -895,63 +982,67 @@ class C
         public async Task TestUpdateExpressionBody1()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    private string S;
+                class C
+                {
+                    private string S;
 
-    public C([||]string s)
-        => S = s;
-}",
-@"
-using System;
+                    public C([||]string s)
+                        => S = s;
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    private string S;
+                class C
+                {
+                    private string S;
 
-    public C(string s)
-        => S = s ?? throw new ArgumentNullException(nameof(s));
-}");
+                    public C(string s)
+                        => S = s ?? throw new ArgumentNullException(nameof(s));
+                }
+                """);
         }
 
         [Fact]
         public async Task TestUpdateExpressionBody2()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    public C([||]string s)
-        => Init();
+                class C
+                {
+                    public C([||]string s)
+                        => Init();
 
-    private void Init()
-    {
-    }
-}",
-@"
-using System;
+                    private void Init()
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public C(string s)
-    {
-        if (s is null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
+                class C
+                {
+                    public C(string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
 
-        Init();
-    }
+                        Init();
+                    }
 
-    private void Init()
-    {
-    }
-}");
+                    private void Init()
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact]
@@ -959,37 +1050,39 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C([||]string s)
-        => Init();
+                class C
+                {
+                    public C([||]string s)
+                        => Init();
 
-    private void Init()
-    {
-    }
-}",
-                FixedCode = @"
-using System;
+                    private void Init()
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    public C(string s)
-    {
-        if (s is null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
+                class C
+                {
+                    public C(string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
 
-        Init();
-    }
+                        Init();
+                    }
 
-    private void Init()
-    {
-    }
-}",
+                    private void Init()
+                    {
+                    }
+                }
+                """,
                 Options =
                 {
                     { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement }
@@ -1001,385 +1094,406 @@ class C
         public async Task TestUpdateLocalFunctionExpressionBody_NonVoid()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    void M()
-    {
-        int F([||]string s) => Init();
-    }
+                class C
+                {
+                    void M()
+                    {
+                        int F([||]string s) => Init();
+                    }
 
-    private int Init() => 1;
-}",
-@"
-using System;
+                    private int Init() => 1;
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void M()
-    {
-        int F(string s)
-        {
-            if (s is null)
-            {
-                throw new ArgumentNullException(nameof(s));
-            }
+                class C
+                {
+                    void M()
+                    {
+                        int F(string s)
+                        {
+                            if (s is null)
+                            {
+                                throw new ArgumentNullException(nameof(s));
+                            }
 
-            return Init();
-        }
-    }
+                            return Init();
+                        }
+                    }
 
-    private int Init() => 1;
-}");
+                    private int Init() => 1;
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
         public async Task TestUpdateLocalFunctionExpressionBody_Void()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    void M()
-    {
-        void F([||]string s) => Init();
-    }
+                class C
+                {
+                    void M()
+                    {
+                        void F([||]string s) => Init();
+                    }
 
-    private int Init() => 1;
-}",
-@"
-using System;
+                    private int Init() => 1;
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void M()
-    {
-        void F(string s)
-        {
-            if (s is null)
-            {
-                throw new ArgumentNullException(nameof(s));
-            }
+                class C
+                {
+                    void M()
+                    {
+                        void F(string s)
+                        {
+                            if (s is null)
+                            {
+                                throw new ArgumentNullException(nameof(s));
+                            }
 
-            Init();
-        }
-    }
+                            Init();
+                        }
+                    }
 
-    private int Init() => 1;
-}");
+                    private int Init() => 1;
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
         public async Task TestUpdateLambdaExpressionBody_NonVoid()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    void M()
-    {
-        Func<string, int> f = [||]s => GetValue();
+                class C
+                {
+                    void M()
+                    {
+                        Func<string, int> f = [||]s => GetValue();
 
-        int GetValue() => 0;
-    }
-}",
-@"
-using System;
+                        int GetValue() => 0;
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void M()
-    {
-        Func<string, int> f = s =>
-        {
-            if (s is null)
-            {
-                throw new ArgumentNullException(nameof(s));
-            }
+                class C
+                {
+                    void M()
+                    {
+                        Func<string, int> f = s =>
+                        {
+                            if (s is null)
+                            {
+                                throw new ArgumentNullException(nameof(s));
+                            }
 
-            return GetValue();
-        };
+                            return GetValue();
+                        };
 
-        int GetValue() => 0;
-    }
-}");
+                        int GetValue() => 0;
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
         public async Task TestUpdateLambdaExpressionBody_Void()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    void M()
-    {
-        Action<string> f = [||]s => NoValue();
+                class C
+                {
+                    void M()
+                    {
+                        Action<string> f = [||]s => NoValue();
 
-        void NoValue() { }
-    }
-}",
-@"
-using System;
+                        void NoValue() { }
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void M()
-    {
-        Action<string> f = s =>
-        {
-            if (s is null)
-            {
-                throw new ArgumentNullException(nameof(s));
-            }
+                class C
+                {
+                    void M()
+                    {
+                        Action<string> f = s =>
+                        {
+                            if (s is null)
+                            {
+                                throw new ArgumentNullException(nameof(s));
+                            }
 
-            NoValue();
-        };
+                            NoValue();
+                        };
 
-        void NoValue() { }
-    }
-}");
+                        void NoValue() { }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestInsertAfterExistingNullCheck1()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    public C(string a, [||]string s)
-    {
-        if (a == null)
-        {
-        }
-    }
-}",
-@"
-using System;
+                class C
+                {
+                    public C(string a, [||]string s)
+                    {
+                        if (a == null)
+                        {
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public C(string a, string s)
-    {
-        if (a == null)
-        {
-        }
+                class C
+                {
+                    public C(string a, string s)
+                    {
+                        if (a == null)
+                        {
+                        }
 
-        if (s is null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
-    }
-}");
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestInsertBeforeExistingNullCheck1()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    public C(string [||]a, string s)
-    {
-        if (s == null)
-        {
-        }
-    }
-}",
-@"
-using System;
+                class C
+                {
+                    public C(string [||]a, string s)
+                    {
+                        if (s == null)
+                        {
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public C(string a, string s)
-    {
-        if (a is null)
-        {
-            throw new ArgumentNullException(nameof(a));
-        }
+                class C
+                {
+                    public C(string a, string s)
+                    {
+                        if (a is null)
+                        {
+                            throw new ArgumentNullException(nameof(a));
+                        }
 
-        if (s == null)
-        {
-        }
-    }
-}");
+                        if (s == null)
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMissingWithExistingNullCheck1()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-class C
-{
-    public C([||]string s)
-    {
-        if (s == null)
-        {
-            throw new ArgumentNullException();
-        }
-    }
-}";
+                class C
+                {
+                    public C([||]string s)
+                    {
+                        if (s == null)
+                        {
+                            throw new ArgumentNullException();
+                        }
+                    }
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact]
         public async Task TestMissingWithExistingNullCheck2()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-class C
-{
-    private string _s;
+                class C
+                {
+                    private string _s;
 
-    public C([||]string s)
-    {
-        _s = s ?? throw new ArgumentNullException();
-    }
-}";
+                    public C([||]string s)
+                    {
+                        _s = s ?? throw new ArgumentNullException();
+                    }
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact]
         public async Task TestMissingWithExistingNullCheck3()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-class C
-{
-    public C([||]string s)
-    {
-        if (string.IsNullOrEmpty(s))
-        {
-        }
-    }
-}";
+                class C
+                {
+                    public C([||]string s)
+                    {
+                        if (string.IsNullOrEmpty(s))
+                        {
+                        }
+                    }
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact]
         public async Task TestMissingWithExistingNullCheck4()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-class C
-{
-    public C([||]string s)
-    {
-        if (string.IsNullOrWhiteSpace(s))
-        {
-        }
-    }
-}";
+                class C
+                {
+                    public C([||]string s)
+                    {
+                        if (string.IsNullOrWhiteSpace(s))
+                        {
+                        }
+                    }
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact]
         public async Task TestMissingWithExistingNullCheck5()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-class C
-{
-    public C([||]string s)
-    {
-        if (null == s)
-        {
-            throw new ArgumentNullException();
-        }
-    }
-}";
+                class C
+                {
+                    public C([||]string s)
+                    {
+                        if (null == s)
+                        {
+                            throw new ArgumentNullException();
+                        }
+                    }
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact]
         public async Task TestMissingWithExistingNullCheck6()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-class C
-{
-    public C([||]string s)
-    {
-        if (s is null)
-        {
-            throw new ArgumentNullException();
-        }
-    }
-}";
+                class C
+                {
+                    public C([||]string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException();
+                        }
+                    }
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
         public async Task TestMissingWithExistingNullCheckInLocalFunction()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-class C
-{
-    public C()
-    {
-        void F([||]string s)
-        {
-            if (s == null)
-            {
-                throw new ArgumentNullException();
-            }
-        }
-    }
-}";
+                class C
+                {
+                    public C()
+                    {
+                        void F([||]string s)
+                        {
+                            if (s == null)
+                            {
+                                throw new ArgumentNullException();
+                            }
+                        }
+                    }
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
         public async Task TestMissingWithExistingNullCheckInLambda()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-class C
-{
-    public C()
-    {
-        Action<string> f = ([||]string s) => { if (s == null) { throw new ArgumentNullException(nameof(s)); } };
-    }
-}";
+                class C
+                {
+                    public C()
+                    {
+                        Action<string> f = ([||]string s) => { if (s == null) { throw new ArgumentNullException(nameof(s)); } };
+                    }
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact]
         public async Task TestMissingWithoutParameterName()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-class C
-{
-    public C([||]string{|CS1001:)|}
-    {
-    }
-}";
+                class C
+                {
+                    public C([||]string{|CS1001:)|}
+                    {
+                    }
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
@@ -1387,159 +1501,169 @@ class C
         public async Task TestInMethod()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    void F([||]string s)
-    {
-    }
-}",
-@"
-using System;
+                class C
+                {
+                    void F([||]string s)
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void F(string s)
-    {
-        if (s is null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
-    }
-}");
+                class C
+                {
+                    void F(string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestInOperator()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    public static C operator +(C c1, [||]string s)
-    {
-        return null;
-    }
-}",
-@"
-using System;
+                class C
+                {
+                    public static C operator +(C c1, [||]string s)
+                    {
+                        return null;
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public static C operator +(C c1, [||]string s)
-    {
-        if (s is null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
+                class C
+                {
+                    public static C operator +(C c1, [||]string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
 
-        return null;
-    }
-}");
+                        return null;
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
         public async Task TestOnSimpleLambdaParameter()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    public C()
-    {
-        Func<string, int> f = [||]s => { return 0; };
-    }
-}",
-@"
-using System;
+                class C
+                {
+                    public C()
+                    {
+                        Func<string, int> f = [||]s => { return 0; };
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public C()
-    {
-        Func<string, int> f = s =>
-        {
-            if (s is null)
-            {
-                throw new ArgumentNullException(nameof(s));
-            }
+                class C
+                {
+                    public C()
+                    {
+                        Func<string, int> f = s =>
+                        {
+                            if (s is null)
+                            {
+                                throw new ArgumentNullException(nameof(s));
+                            }
 
-            return 0;
-        };
-    }
-}");
+                            return 0;
+                        };
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
         public async Task TestOnSimpleLambdaParameter_EmptyBlock()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    public C()
-    {
-        Action<string> f = [||]s => { };
-    }
-}",
-@"
-using System;
+                class C
+                {
+                    public C()
+                    {
+                        Action<string> f = [||]s => { };
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public C()
-    {
-        Action<string> f = s =>
-        {
-            if (s is null)
-            {
-                throw new ArgumentNullException(nameof(s));
-            }
-        };
-    }
-}");
+                class C
+                {
+                    public C()
+                    {
+                        Action<string> f = s =>
+                        {
+                            if (s is null)
+                            {
+                                throw new ArgumentNullException(nameof(s));
+                            }
+                        };
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
         public async Task TestOnParenthesizedLambdaParameter()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    public C()
-    {
-        Func<string, int> f = ([||]string s) => { return 0; };
-    }
-}",
-@"
-using System;
+                class C
+                {
+                    public C()
+                    {
+                        Func<string, int> f = ([||]string s) => { return 0; };
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public C()
-    {
-        Func<string, int> f = (string s) =>
-        {
-            if (s is null)
-            {
-                throw new ArgumentNullException(nameof(s));
-            }
+                class C
+                {
+                    public C()
+                    {
+                        Func<string, int> f = (string s) =>
+                        {
+                            if (s is null)
+                            {
+                                throw new ArgumentNullException(nameof(s));
+                            }
 
-            return 0;
-        };
-    }
-}");
+                            return 0;
+                        };
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
@@ -1548,50 +1672,53 @@ class C
             await new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp11,
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C()
-    {
-        Func<string, int> f = ([||]_) => { return 0; };
-    }
-}",
-                FixedCode = @"
-using System;
+                class C
+                {
+                    public C()
+                    {
+                        Func<string, int> f = ([||]_) => { return 0; };
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    public C()
-    {
-        Func<string, int> f = (_) =>
-        {
-            if (_ is null)
-            {
-                throw new ArgumentNullException(nameof(_));
-            }
+                class C
+                {
+                    public C()
+                    {
+                        Func<string, int> f = (_) =>
+                        {
+                            if (_ is null)
+                            {
+                                throw new ArgumentNullException(nameof(_));
+                            }
 
-            return 0;
-        };
-    }
-}"
+                            return 0;
+                        };
+                    }
+                }
+                """
             }.RunAsync();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
         public async Task TestOnDiscardLambdaParameter2()
         {
-            var testCode = @"
-using System;
+            var testCode = """
+                using System;
 
-class C
-{
-    public C()
-    {
-        Func<string, string, int> f = ([||]_, _) => { return 0; };
-    }
-}";
+                class C
+                {
+                    public C()
+                    {
+                        Func<string, string, int> f = ([||]_, _) => { return 0; };
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp11,
@@ -1604,84 +1731,89 @@ class C
         public async Task TestOnAnonymousMethodParameter()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    public C()
-    {
-        Func<string, int> f = delegate ([||]string s) { return 0; };
-    }
-}",
-@"
-using System;
+                class C
+                {
+                    public C()
+                    {
+                        Func<string, int> f = delegate ([||]string s) { return 0; };
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public C()
-    {
-        Func<string, int> f = delegate (string s)
-        {
-            if (s is null)
-            {
-                throw new ArgumentNullException(nameof(s));
-            }
+                class C
+                {
+                    public C()
+                    {
+                        Func<string, int> f = delegate (string s)
+                        {
+                            if (s is null)
+                            {
+                                throw new ArgumentNullException(nameof(s));
+                            }
 
-            return 0;
-        };
-    }
-}");
+                            return 0;
+                        };
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
         public async Task TestOnLocalFunctionParameter()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    public C()
-    {
-        void F([||]string s)
-        {
-        }
-    }
-}",
-@"
-using System;
+                class C
+                {
+                    public C()
+                    {
+                        void F([||]string s)
+                        {
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public C()
-    {
-        void F(string s)
-        {
-            if (s is null)
-            {
-                throw new ArgumentNullException(nameof(s));
-            }
-        }
-    }
-}");
+                class C
+                {
+                    public C()
+                    {
+                        void F(string s)
+                        {
+                            if (s is null)
+                            {
+                                throw new ArgumentNullException(nameof(s));
+                            }
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestNotOnIndexerParameter()
         {
-            var code = @"
-class C
-{
-    int this[[||]string s]
-    {
-        get
-        {
-            return 0;
-        }
-    }
-}";
+            var code = """
+                class C
+                {
+                    int this[[||]string s]
+                    {
+                        get
+                        {
+                            return 0;
+                        }
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
@@ -1690,17 +1822,18 @@ class C
         [WorkItem("https://github.com/dotnet/roslyn/issues/63307")]
         public async Task TestNotOnIndexerParameterInRecordWithParameter()
         {
-            var code = @"
-record R(string S)
-{
-    int this[[||]string s]
-    {
-        get
-        {
-            return 0;
-        }
-    }
-}";
+            var code = """
+                record R(string S)
+                {
+                    int this[[||]string s]
+                    {
+                        get
+                        {
+                            return 0;
+                        }
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = code,
@@ -1713,17 +1846,18 @@ record R(string S)
         [Fact]
         public async Task TestNotOnIndexerParameters()
         {
-            var code = @"
-class C
-{
-    int this[[|object a|], object b, object c]
-    {
-        get
-        {
-            return 0;
-        }
-    }
-}";
+            var code = """
+                class C
+                {
+                    int this[[|object a|], object b, object c]
+                    {
+                        get
+                        {
+                            return 0;
+                        }
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
@@ -1733,15 +1867,16 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C([||]string s)
-    {
-    }
-}",
+                class C
+                {
+                    public C([||]string s)
+                    {
+                    }
+                }
+                """,
                 FixedCode = $@"
 using System;
 
@@ -1751,7 +1886,11 @@ class C
     {{
         if (string.IsNullOrEmpty(s))
         {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+                                   "
+                                   """, """
+                                   \"
+                                   """)}"", nameof(s));
         }}
     }}
 }}",
@@ -1765,15 +1904,16 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C([||]string s)
-    {
-    }
-}",
+                class C
+                {
+                    public C([||]string s)
+                    {
+                    }
+                }
+                """,
                 FixedCode = $@"
 using System;
 
@@ -1783,7 +1923,11 @@ class C
     {{
         if (string.IsNullOrWhiteSpace(s))
         {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_whitespace, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_whitespace, "{nameof(s)}").Replace("""
+                                   "
+                                   """, """
+                                   \"
+                                   """)}"", nameof(s));
         }}
     }}
 }}",
@@ -1798,15 +1942,16 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C([||]string s)
-    {
-    }
-}",
+                class C
+                {
+                    public C([||]string s)
+                    {
+                    }
+                }
+                """,
                 FixedCode = $@"
 using System;
 
@@ -1816,7 +1961,11 @@ class C
     {{
         if (string.IsNullOrEmpty(s))
         {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+                                   "
+                                   """, """
+                                   \"
+                                   """)}"", nameof(s));
         }}
     }}
 }}",
@@ -1828,17 +1977,18 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19173")]
         public async Task TestMissingOnUnboundTypeWithExistingNullCheck()
         {
-            var code = @"
-class C
-{
-    public C(string [||]s)
-    {
-        if (s == null)
-        {
-            throw new System.Exception();
-        }
-    }
-}";
+            var code = """
+                class C
+                {
+                    public C(string [||]s)
+                    {
+                        if (s == null)
+                        {
+                            throw new System.Exception();
+                        }
+                    }
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
@@ -1847,15 +1997,16 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class Program
-{
-    static void Main([||]String bar)
-    {
-    }
-}",
+                class Program
+                {
+                    static void Main([||]String bar)
+                    {
+                    }
+                }
+                """,
                 FixedCode = @$"
 using System;
 
@@ -1865,7 +2016,11 @@ class Program
     {{
         if (String.IsNullOrEmpty(bar))
         {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(bar)}").Replace("\"", "\\\"")}"", nameof(bar));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(bar)}").Replace("""
+                                   "
+                                   """, """
+                                   \"
+                                   """)}"", nameof(bar));
         }}
     }}
 }}",
@@ -1885,25 +2040,27 @@ class Program
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C([||]string s)
-    {
-    }
-}",
-                FixedCode = @"
-using System;
+                class C
+                {
+                    public C([||]string s)
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    public C(string s)
-    {
-        if (s is null) throw new ArgumentNullException(nameof(s));
-    }
-}",
+                class C
+                {
+                    public C(string s)
+                    {
+                        if (s is null) throw new ArgumentNullException(nameof(s));
+                    }
+                }
+                """,
                 Options =
                 {
                     { CSharpCodeStyleOptions.PreferBraces, new CodeStyleOption2<PreferBracesPreference>((PreferBracesPreference)preferBraces, NotificationOption2.Silent) },
@@ -1916,13 +2073,14 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C(string s[||])
-}",
+                class C
+                {
+                    public C(string s[||])
+                }
+                """,
                 ExpectedDiagnostics = {
                     // /0/Test0.cs(6,12): error CS0501: 'C.C(string)' must declare a body because it is not marked abstract, extern, or partial
                     DiagnosticResult.CompilerError("CS0501").WithLocation(6, 12).WithArguments("C.C(string)"),
@@ -1931,19 +2089,20 @@ class C
                 },
                 FixedState =
                 {
-                    Sources = { @"
-using System;
+                    Sources = { """
+                        using System;
 
-class C
-{
-    public C(string s)
-    {
-        if (s is null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
-    }
-}" },
+                        class C
+                        {
+                            public C(string s)
+                            {
+                                if (s is null)
+                                {
+                                    throw new ArgumentNullException(nameof(s));
+                                }
+                            }
+                        }
+                        """ },
                     InheritanceMode = StateInheritanceMode.Explicit
                 }
             }.RunAsync();
@@ -1953,111 +2112,117 @@ class C
         public async Task TestInArrowExpression1()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
-using System.Linq;
+                """
+                using System;
+                using System.Linq;
 
-class C
-{
-    public int Foo(int[] array[||]) =>
-        array.Where(x => x > 3)
-            .OrderBy(x => x)
-            .Count();
-}",
-@"
-using System;
-using System.Linq;
+                class C
+                {
+                    public int Foo(int[] array[||]) =>
+                        array.Where(x => x > 3)
+                            .OrderBy(x => x)
+                            .Count();
+                }
+                """,
+                """
+                using System;
+                using System.Linq;
 
-class C
-{
-    public int Foo(int[] array)
-    {
-        if (array is null)
-        {
-            throw new ArgumentNullException(nameof(array));
-        }
+                class C
+                {
+                    public int Foo(int[] array)
+                    {
+                        if (array is null)
+                        {
+                            throw new ArgumentNullException(nameof(array));
+                        }
 
-        return array.Where(x => x > 3)
-            .OrderBy(x => x)
-            .Count();
-    }
-}");
+                        return array.Where(x => x > 3)
+                            .OrderBy(x => x)
+                            .Count();
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21501")]
         public async Task TestInArrowExpression2()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
-using System.Linq;
+                """
+                using System;
+                using System.Linq;
 
-class C
-{
-    public int Foo(int[] array[||]) /* Bar */ => /* Bar */
-        array.Where(x => x > 3)
-            .OrderBy(x => x)
-            .Count(); /* Bar */
-}",
-@"
-using System;
-using System.Linq;
+                class C
+                {
+                    public int Foo(int[] array[||]) /* Bar */ => /* Bar */
+                        array.Where(x => x > 3)
+                            .OrderBy(x => x)
+                            .Count(); /* Bar */
+                }
+                """,
+                """
+                using System;
+                using System.Linq;
 
-class C
-{
-    public int Foo(int[] array) /* Bar */
-    {
-        if (array is null)
-        {
-            throw new ArgumentNullException(nameof(array));
-        }
-        /* Bar */
-        return array.Where(x => x > 3)
-            .OrderBy(x => x)
-            .Count(); /* Bar */
-    }
-}");
+                class C
+                {
+                    public int Foo(int[] array) /* Bar */
+                    {
+                        if (array is null)
+                        {
+                            throw new ArgumentNullException(nameof(array));
+                        }
+                        /* Bar */
+                        return array.Where(x => x > 3)
+                            .OrderBy(x => x)
+                            .Count(); /* Bar */
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21501")]
         public async Task TestMissingInArrowExpression1()
         {
-            var code = @"
-using System;
-using System.Linq;
+            var code = """
+                using System;
+                using System.Linq;
 
-class C
-{
-    public void Foo(string bar[||]) =>
-#if DEBUG
-        Console.WriteLine(""debug"" + bar);
-#else
-        Console.WriteLine(""release"" + bar);
-#endif
-}";
+                class C
+                {
+                    public void Foo(string bar[||]) =>
+                #if DEBUG
+                        Console.WriteLine("debug" + bar);
+                #else
+                        Console.WriteLine("release" + bar);
+                #endif
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21501")]
         public async Task TestMissingInArrowExpression2()
         {
-            var code = @"
-using System;
-using System.Linq;
+            var code = """
+                using System;
+                using System.Linq;
 
-class C
-{
-    public int Foo(int[] array[||]) =>
-#if DEBUG
-        array.Where(x => x > 3)
-            .OrderBy(x => x)
-            .Count();
-#else
-        array.Where(x => x > 3)
-            .OrderBy(x => x)
-            .Count();
-#endif
-}";
+                class C
+                {
+                    public int Foo(int[] array[||]) =>
+                #if DEBUG
+                        array.Where(x => x > 3)
+                            .OrderBy(x => x)
+                            .Count();
+                #else
+                        array.Where(x => x > 3)
+                            .OrderBy(x => x)
+                            .Count();
+                #endif
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
@@ -2065,78 +2230,83 @@ class C
         public async Task TestInArrowExpression3()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
-using System.Linq;
+                """
+                using System;
+                using System.Linq;
 
-class C
-{
-    public void Foo(int[] array[||]) =>
-        array.Where(x => x > 3)
-            .OrderBy(x => x)
-            .Count();
-}",
-@"
-using System;
-using System.Linq;
+                class C
+                {
+                    public void Foo(int[] array[||]) =>
+                        array.Where(x => x > 3)
+                            .OrderBy(x => x)
+                            .Count();
+                }
+                """,
+                """
+                using System;
+                using System.Linq;
 
-class C
-{
-    public void Foo(int[] array)
-    {
-        if (array is null)
-        {
-            throw new ArgumentNullException(nameof(array));
-        }
+                class C
+                {
+                    public void Foo(int[] array)
+                    {
+                        if (array is null)
+                        {
+                            throw new ArgumentNullException(nameof(array));
+                        }
 
-        array.Where(x => x > 3)
-            .OrderBy(x => x)
-            .Count();
-    }
-}");
+                        array.Where(x => x > 3)
+                            .OrderBy(x => x)
+                            .Count();
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29190")]
         public async Task TestSimpleReferenceTypeWithParameterNameSelected1()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    public C(string [|s|])
-    {
-    }
-}",
-@"
-using System;
+                class C
+                {
+                    public C(string [|s|])
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public C(string s)
-    {
-        if (s is null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
-    }
-}");
+                class C
+                {
+                    public C(string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29333")]
         public async Task TestLambdaWithIncorrectNumberOfParameters()
         {
-            var code = @"
-using System;
+            var code = """
+                using System;
 
-class C
-{
-    void M(Action<int, int> a)
-    {
-        M((x[||]
-    }
-}";
+                class C
+                {
+                    void M(Action<int, int> a)
+                    {
+                        M((x[||]
+                    }
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(code,
                 new[]
                 {
@@ -2154,18 +2324,19 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41824")]
         public async Task TestMissingInArgList()
         {
-            var code = @"
-class C
-{
-    private static void M()
-    {
-        M2(__arglist(1, 2, 3, 5, 6));
-    }
+            var code = """
+                class C
+                {
+                    private static void M()
+                    {
+                        M2(__arglist(1, 2, 3, 5, 6));
+                    }
 
-    public static void M2([||]__arglist)
-    {
-    }
-}";
+                    public static void M2([||]__arglist)
+                    {
+                    }
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
@@ -2173,26 +2344,28 @@ class C
         public async Task TestImportSystem()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"
-class C
-{
-    public C([||]string s)
-    {
-    }
-}",
-@"
-using System;
+                """
+                class C
+                {
+                    public C([||]string s)
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public C(string s)
-    {
-        if (s is null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
-    }
-}");
+                class C
+                {
+                    public C(string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52385")]
@@ -2200,26 +2373,28 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C($$object o)
-    {
-    }
-}",
-                FixedCode = @"
-using System;
+                class C
+                {
+                    public C($$object o)
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    public C(object o)
-    {
-        if (o is null)
-            throw new ArgumentNullException(nameof(o));
-    }
-}",
+                class C
+                {
+                    public C(object o)
+                    {
+                        if (o is null)
+                            throw new ArgumentNullException(nameof(o));
+                    }
+                }
+                """,
                 Options =
                 {
                     { CSharpCodeStyleOptions.PreferThrowExpression, false },
@@ -2234,26 +2409,28 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C($$object o)
-    {
-    }
-}",
-                FixedCode = @"
-using System;
+                class C
+                {
+                    public C($$object o)
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    public C(object o)
-    {
-        if (o is null)
-            throw new ArgumentNullException(nameof(o));
-    }
-}",
+                class C
+                {
+                    public C(object o)
+                    {
+                        if (o is null)
+                            throw new ArgumentNullException(nameof(o));
+                    }
+                }
+                """,
                 Options =
                 {
                     { CSharpCodeStyleOptions.PreferThrowExpression, false },
@@ -2268,28 +2445,30 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C($$object o)
-    {
-    }
-}",
-                FixedCode = @"
-using System;
+                class C
+                {
+                    public C($$object o)
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    public C(object o)
-    {
-        if (o is null)
-        {
-            throw new ArgumentNullException(nameof(o));
-        }
-    }
-}",
+                class C
+                {
+                    public C(object o)
+                    {
+                        if (o is null)
+                        {
+                            throw new ArgumentNullException(nameof(o));
+                        }
+                    }
+                }
+                """,
                 Options =
                 {
                     { CSharpCodeStyleOptions.PreferThrowExpression, false },
@@ -2304,25 +2483,27 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C($$object o)
-    {
-    }
-}",
-                FixedCode = @"
-using System;
+                class C
+                {
+                    public C($$object o)
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    public C(object o)
-    {
-        if (o is null) throw new ArgumentNullException(nameof(o));
-    }
-}",
+                class C
+                {
+                    public C(object o)
+                    {
+                        if (o is null) throw new ArgumentNullException(nameof(o));
+                    }
+                }
+                """,
                 Options =
                 {
                     { CSharpCodeStyleOptions.PreferThrowExpression, false },
@@ -2337,25 +2518,27 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C($$object o)
-    {
-    }
-}",
-                FixedCode = @"
-using System;
+                class C
+                {
+                    public C($$object o)
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    public C(object o)
-    {
-        if (o is null) throw new ArgumentNullException(nameof(o));
-    }
-}",
+                class C
+                {
+                    public C(object o)
+                    {
+                        if (o is null) throw new ArgumentNullException(nameof(o));
+                    }
+                }
+                """,
                 Options =
                 {
                     { CSharpCodeStyleOptions.PreferThrowExpression, false },
@@ -2370,28 +2553,30 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C($$object o)
-    {
-    }
-}",
-                FixedCode = @"
-using System;
+                class C
+                {
+                    public C($$object o)
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    public C(object o)
-    {
-        if (o is null)
-        {
-            throw new ArgumentNullException(nameof(o));
-        }
-    }
-}",
+                class C
+                {
+                    public C(object o)
+                    {
+                        if (o is null)
+                        {
+                            throw new ArgumentNullException(nameof(o));
+                        }
+                    }
+                }
+                """,
                 Options =
                 {
                     { CSharpCodeStyleOptions.PreferThrowExpression, false },
@@ -2406,15 +2591,16 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C($$string s)
-    {
-    }
-}",
+                class C
+                {
+                    public C($$string s)
+                    {
+                    }
+                }
+                """,
                 FixedCode = $@"
 using System;
 
@@ -2423,7 +2609,11 @@ class C
     public C(string s)
     {{
         if (string.IsNullOrEmpty(s))
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+                                   "
+                                   """, """
+                                   \"
+                                   """)}"", nameof(s));
     }}
 }}",
                 Options =
@@ -2442,15 +2632,16 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C($$string s)
-    {
-    }
-}",
+                class C
+                {
+                    public C($$string s)
+                    {
+                    }
+                }
+                """,
                 FixedCode = @$"
 using System;
 
@@ -2459,7 +2650,11 @@ class C
     public C(string s)
     {{
         if (string.IsNullOrEmpty(s))
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+                                   "
+                                   """, """
+                                   \"
+                                   """)}"", nameof(s));
     }}
 }}",
                 Options =
@@ -2478,15 +2673,16 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C($$string s)
-    {
-    }
-}",
+                class C
+                {
+                    public C($$string s)
+                    {
+                    }
+                }
+                """,
                 FixedCode = @$"
 using System;
 
@@ -2496,7 +2692,11 @@ class C
     {{
         if (string.IsNullOrEmpty(s))
         {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+                                   "
+                                   """, """
+                                   \"
+                                   """)}"", nameof(s));
         }}
     }}
 }}",
@@ -2516,15 +2716,16 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C($$string s)
-    {
-    }
-}",
+                class C
+                {
+                    public C($$string s)
+                    {
+                    }
+                }
+                """,
                 FixedCode = @$"
 using System;
 
@@ -2532,7 +2733,11 @@ class C
 {{
     public C(string s)
     {{
-        if (string.IsNullOrEmpty(s)) throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+        if (string.IsNullOrEmpty(s)) throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+                                   "
+                                   """, """
+                                   \"
+                                   """)}"", nameof(s));
     }}
 }}",
                 Options =
@@ -2551,15 +2756,16 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C($$string s)
-    {
-    }
-}",
+                class C
+                {
+                    public C($$string s)
+                    {
+                    }
+                }
+                """,
                 FixedCode = @$"
 using System;
 
@@ -2567,7 +2773,11 @@ class C
 {{
     public C(string s)
     {{
-        if (string.IsNullOrEmpty(s)) throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+        if (string.IsNullOrEmpty(s)) throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+                                   "
+                                   """, """
+                                   \"
+                                   """)}"", nameof(s));
     }}
 }}",
                 Options =
@@ -2586,15 +2796,16 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C($$string s)
-    {
-    }
-}",
+                class C
+                {
+                    public C($$string s)
+                    {
+                    }
+                }
+                """,
                 FixedCode = @$"
 using System;
 
@@ -2604,7 +2815,11 @@ class C
     {{
         if (string.IsNullOrEmpty(s))
         {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+                                   "
+                                   """, """
+                                   \"
+                                   """)}"", nameof(s));
         }}
     }}
 }}",
@@ -2624,27 +2839,29 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    public C([||]object a, object b, object c)
-    {
-    }
-}",
-                FixedCode = @"
-using System;
+                class C
+                {
+                    public C([||]object a, object b, object c)
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    public C(object a, object b, object c)
-    {
-        if (a is null) throw new ArgumentNullException(nameof(a));
-        if (b is null) throw new ArgumentNullException(nameof(b));
-        if (c is null) throw new ArgumentNullException(nameof(c));
-    }
-}",
+                class C
+                {
+                    public C(object a, object b, object c)
+                    {
+                        if (a is null) throw new ArgumentNullException(nameof(a));
+                        if (b is null) throw new ArgumentNullException(nameof(b));
+                        if (c is null) throw new ArgumentNullException(nameof(c));
+                    }
+                }
+                """,
                 Options =
                 {
                     { CSharpCodeStyleOptions.PreferThrowExpression, false },
@@ -2659,60 +2876,64 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58811")]
         public async Task TestMissingParameter1()
         {
-            var source = @"
-using System;
+            var source = """
+                using System;
 
-class C
-{
-    public C(string s,[||]{|CS1031:{|CS1001:)|}|}
-    {
-    }
-}";
+                class C
+                {
+                    public C(string s,[||]{|CS1031:{|CS1001:)|}|}
+                    {
+                    }
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58811")]
         public async Task TestMissingParameter2()
         {
-            var source = @"
-using System;
+            var source = """
+                using System;
 
-class C
-{
-    public C(string s,[||] {|CS1031:{|CS1001:)|}|}
-    {
-    }
-}";
+                class C
+                {
+                    public C(string s,[||] {|CS1031:{|CS1001:)|}|}
+                    {
+                    }
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58811")]
         public async Task TestMissingParameter3()
         {
-            var source = @"
-using System;
+            var source = """
+                using System;
 
-class C
-{
-    public C(string s, [||]{|CS1031:{|CS1001:)|}|}
-    {
-    }
-}";
+                class C
+                {
+                    public C(string s, [||]{|CS1031:{|CS1001:)|}|}
+                    {
+                    }
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58811")]
         public async Task TestMissingParameter4()
         {
-            var source = @"
-using System;
+            var source = """
+                using System;
 
-class C
-{
-    public C(string s, [||] {|CS1031:{|CS1001:)|}|}
-    {
-    }
-}";
+                class C
+                {
+                    public C(string s, [||] {|CS1031:{|CS1001:)|}|}
+                    {
+                    }
+                }
+                """;
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
 
@@ -2722,8 +2943,9 @@ class C
         [InlineData(LanguageVersion.CSharp11)]
         public async Task TestNotInRecord(LanguageVersion version)
         {
-            var code = @"
-record C([||]string s) { public string s; }";
+            var code = """
+                record C([||]string s) { public string s; }
+                """;
             await new VerifyCS.Test
             {
                 LanguageVersion = version,
@@ -2735,8 +2957,9 @@ record C([||]string s) { public string s; }";
         [Fact]
         public async Task TestNotInClass()
         {
-            var code = @"
-class C([||]string s) { public string s; }";
+            var code = """
+                class C([||]string s) { public string s; }
+                """;
             await new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.Preview,
@@ -2748,8 +2971,9 @@ class C([||]string s) { public string s; }";
         [Fact]
         public async Task TestNotInStruct()
         {
-            var code = @"
-struct C([||]string s) { public string s; }";
+            var code = """
+                struct C([||]string s) { public string s; }
+                """;
             await new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.Preview,
