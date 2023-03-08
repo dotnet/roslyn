@@ -351,6 +351,7 @@ class Program
             )
             1
             """, """
+
             1 as
             object
             """)]
