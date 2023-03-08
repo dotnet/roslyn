@@ -57,12 +57,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (parameter is
                 {
-                    DeclaringSyntaxReferences.Length: > 0,
                     ContainingSymbol: IMethodSymbol
                     {
                         MethodKind: MethodKind.Constructor,
-                        DeclaringSyntaxReferences.Length: > 0,
-                        ContainingType: { IsType: true } containingType,
+                        DeclaringSyntaxReferences: [var constructorReference, ..],
+                        ContainingType: {} containingType,
                     } constructor,
                 })
             {
