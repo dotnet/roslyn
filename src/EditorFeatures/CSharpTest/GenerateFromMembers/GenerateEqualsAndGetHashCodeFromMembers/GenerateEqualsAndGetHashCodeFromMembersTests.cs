@@ -4029,9 +4029,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
                     ExpectedDiagnostics =
                     {
                         // /0/Test0.cs(20,55): error CS8604: Possible null reference argument for parameter 'x' in 'bool EqualityComparer<C>.Equals(C x, C y)'.
-                        DiagnosticResult.CompilerError("CS8604").WithSpan(20, 55, 20, 59).WithArguments("x", "bool EqualityComparer<C>.Equals(C x, C y)"),
+                        DiagnosticResult.CompilerError("CS8604").WithSpan(19, 55, 19, 59).WithArguments("x", "bool EqualityComparer<C>.Equals(C x, C y)"),
                         // /0/Test0.cs(20,61): error CS8604: Possible null reference argument for parameter 'y' in 'bool EqualityComparer<C>.Equals(C x, C y)'.
-                        DiagnosticResult.CompilerError("CS8604").WithSpan(20, 61, 20, 66).WithArguments("y", "bool EqualityComparer<C>.Equals(C x, C y)"),
+                        DiagnosticResult.CompilerError("CS8604").WithSpan(19, 61, 19, 66).WithArguments("y", "bool EqualityComparer<C>.Equals(C x, C y)"),
                     },
                 },
                 MemberNames = default,
@@ -4394,7 +4394,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
                     ExpectedDiagnostics =
                     {
                         // /0/Test0.cs(23,25): error CS0117: 'HashCode' does not contain a definition for 'Combine'
-                        DiagnosticResult.CompilerError("CS0117").WithSpan(26, 25, 26, 32).WithArguments("System.HashCode", "Combine"),
+                        DiagnosticResult.CompilerError("CS0117").WithSpan(25, 25, 25, 32).WithArguments("System.HashCode", "Combine"),
                     },
                 },
                 CodeActionIndex = 1,
