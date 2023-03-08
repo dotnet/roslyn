@@ -127,6 +127,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 _threadingContext.ThrowIfNotOnUIThread();
                 SetProperty(ref _sortOption_doNotAccessDirectly, value);
+
+                // We do not need to update our views here.  Sorting is handled entirely by WPF using
+                // DocumentSymbolDataViewModelSorter.
             }
         }
 
@@ -218,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             var model = CreateDocumentSymbolDataModel(responseBody, response.Value.snapshot);
 
-            _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(SearchText, CaretPositionOfNodeToSelect: null, ShouldExpand: null, DataUpdated: true));
+            _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(SearchText: null, ShouldExpand: null));
 
             return model;
         }
@@ -359,13 +362,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         private void EnqueueFilter(string? newText)
-            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(newText, CaretPositionOfNodeToSelect: null, ShouldExpand: null, DataUpdated: false));
+            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(newText, ShouldExpand: null));
 
-        public void EnqueueSelectTreeNode(CaretPosition caretPoint)
-            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(SearchText, caretPoint, ShouldExpand: null, DataUpdated: false));
+        public void EnqueueSelectTreeNode()
+            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(SearchText: null, ShouldExpand: null));
 
         public void EnqueueExpandOrCollapse(bool shouldExpand)
-            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(SearchText, CaretPositionOfNodeToSelect: null, ShouldExpand: shouldExpand, DataUpdated: false));
+            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(SearchText: null, CaretPositionOfNodeToSelect: null, ShouldExpand: shouldExpand, DataUpdated: false));
 
         private async ValueTask UpdateViewModelStateAsync(ImmutableSegmentedList<ViewModelStateDataChange> viewModelStateData, CancellationToken cancellationToken)
         {

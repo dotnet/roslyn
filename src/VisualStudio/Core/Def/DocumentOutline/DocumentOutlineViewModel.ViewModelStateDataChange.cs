@@ -14,9 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private sealed record ViewModelStateDataChange(
             // symbol user is searching for, null if no search is active
             string? SearchText,
-            // position of a symbol we want to select, null if no selection is required.
-            CaretPosition? CaretPositionOfNodeToSelect,
             // asks to set the expand or collapse state for all items
-            bool? ShouldExpand); // indicates that data has been updated so we don't just filter/sort existing items.
+            bool? ShouldExpand);
     }
 }
