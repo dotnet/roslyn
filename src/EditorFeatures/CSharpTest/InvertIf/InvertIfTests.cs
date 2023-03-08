@@ -29,18 +29,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
         private static string CreateTreeText(string initial)
         {
             return
-@"class A
-{
-    bool a = true;
-    bool b = true;
-    bool c = true;
-    bool d = true;
+                """
+                class A
+                {
+                    bool a = true;
+                    bool b = true;
+                    bool c = true;
+                    bool d = true;
 
-    void Goo()
-    {
-" + initial + @"
-    }
-}";
+                    void Goo()
+                    {
+                """ + initial + """
+                    }
+                }
+                """;
         }
 
         [Fact]
@@ -351,568 +353,616 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
         public async Task TestKeepTriviaWithinExpression_BrokenCode()
         {
             await TestInRegularAndScriptAsync(
-@"class A
-{
-    void Goo()
-    {
-        [||]if (a ||
-        b &&
-        c < // comment
-        d)
-        {
-            a();
-        }
-        else
-        {
-            b();
-        }
-    }
-}",
-@"class A
-{
-    void Goo()
-    {
-        if (!a &&
-        (!b ||
-        c >= // comment
-        d))
-        {
-            b();
-        }
-        else
-        {
-            a();
-        }
-    }
-}");
+                """
+                class A
+                {
+                    void Goo()
+                    {
+                        [||]if (a ||
+                        b &&
+                        c < // comment
+                        d)
+                        {
+                            a();
+                        }
+                        else
+                        {
+                            b();
+                        }
+                    }
+                }
+                """,
+                """
+                class A
+                {
+                    void Goo()
+                    {
+                        if (!a &&
+                        (!b ||
+                        c >= // comment
+                        d))
+                        {
+                            b();
+                        }
+                        else
+                        {
+                            a();
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestKeepTriviaWithinExpression()
         {
             await TestInRegularAndScriptAsync(
-@"class A
-{
-    void Goo()
-    {
-        bool a = true;
-        bool b = true;
-        bool c = true;
-        bool d = true;
+                """
+                class A
+                {
+                    void Goo()
+                    {
+                        bool a = true;
+                        bool b = true;
+                        bool c = true;
+                        bool d = true;
 
-        [||]if (a ||
-        b &&
-        c < // comment
-        d)
-        {
-            a();
-        }
-        else
-        {
-            b();
-        }
-    }
-}",
-@"class A
-{
-    void Goo()
-    {
-        bool a = true;
-        bool b = true;
-        bool c = true;
-        bool d = true;
+                        [||]if (a ||
+                        b &&
+                        c < // comment
+                        d)
+                        {
+                            a();
+                        }
+                        else
+                        {
+                            b();
+                        }
+                    }
+                }
+                """,
+                """
+                class A
+                {
+                    void Goo()
+                    {
+                        bool a = true;
+                        bool b = true;
+                        bool c = true;
+                        bool d = true;
 
-        if (!a &&
-        (!b ||
-        c >= // comment
-        d))
-        {
-            b();
-        }
-        else
-        {
-            a();
-        }
-    }
-}");
+                        if (!a &&
+                        (!b ||
+                        c >= // comment
+                        d))
+                        {
+                            b();
+                        }
+                        else
+                        {
+                            a();
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMultiline_IfElseIfElse()
         {
             await TestInRegularAndScriptAsync(
-@"class A
-{
-    void Goo()
-    {
-        [||]if (a)
-        {
-            a();
-        }
-        else if (b)
-        {
-            b();
-        }
-        else
-        {
-            c();
-        }
-    }
-}",
-@"class A
-{
-    void Goo()
-    {
-        if (!a)
-        {
-            if (b)
-            {
-                b();
-            }
-            else
-            {
-                c();
-            }
-        }
-        else
-        {
-            a();
-        }
-    }
-}");
+                """
+                class A
+                {
+                    void Goo()
+                    {
+                        [||]if (a)
+                        {
+                            a();
+                        }
+                        else if (b)
+                        {
+                            b();
+                        }
+                        else
+                        {
+                            c();
+                        }
+                    }
+                }
+                """,
+                """
+                class A
+                {
+                    void Goo()
+                    {
+                        if (!a)
+                        {
+                            if (b)
+                            {
+                                b();
+                            }
+                            else
+                            {
+                                c();
+                            }
+                        }
+                        else
+                        {
+                            a();
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMultiline_IfElseIfElseSelection1()
         {
             await TestInRegularAndScriptAsync(
-@"class A
-{
-    void Goo()
-    {
-        [|if (a)
-        {
-            a();
-        }
-        else if (b)
-        {
-            b();
-        }
-        else
-        {
-            c();
-        }|]
-    }
-}",
-@"class A
-{
-    void Goo()
-    {
-        if (!a)
-        {
-            if (b)
-            {
-                b();
-            }
-            else
-            {
-                c();
-            }
-        }
-        else
-        {
-            a();
-        }
-    }
-}");
+                """
+                class A
+                {
+                    void Goo()
+                    {
+                        [|if (a)
+                        {
+                            a();
+                        }
+                        else if (b)
+                        {
+                            b();
+                        }
+                        else
+                        {
+                            c();
+                        }|]
+                    }
+                }
+                """,
+                """
+                class A
+                {
+                    void Goo()
+                    {
+                        if (!a)
+                        {
+                            if (b)
+                            {
+                                b();
+                            }
+                            else
+                            {
+                                c();
+                            }
+                        }
+                        else
+                        {
+                            a();
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMultiline_IfElseIfElseSelection2()
         {
             await TestInRegularAndScriptAsync(
-@"class A
-{
-    void Goo()
-    {
-        [|if (a)
-        {
-            a();
-        }|]
-        else if (b)
-        {
-            b();
-        }
-        else
-        {
-            c();
-        }
-    }
-}",
-@"class A
-{
-    void Goo()
-    {
-        if (!a)
-        {
-            if (b)
-            {
-                b();
-            }
-            else
-            {
-                c();
-            }
-        }
-        else
-        {
-            a();
-        }
-    }
-}");
+                """
+                class A
+                {
+                    void Goo()
+                    {
+                        [|if (a)
+                        {
+                            a();
+                        }|]
+                        else if (b)
+                        {
+                            b();
+                        }
+                        else
+                        {
+                            c();
+                        }
+                    }
+                }
+                """,
+                """
+                class A
+                {
+                    void Goo()
+                    {
+                        if (!a)
+                        {
+                            if (b)
+                            {
+                                b();
+                            }
+                            else
+                            {
+                                c();
+                            }
+                        }
+                        else
+                        {
+                            a();
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMultilineMissing_IfElseIfElseSubSelection()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class A
-{
-    void Goo()
-    {
-        if (a)
-        {
-            a();
-        }
-        [|else if (b)
-        {
-            b();
-        }
-        else
-        {
-            c();
-        }|]
-    }
-}");
+                """
+                class A
+                {
+                    void Goo()
+                    {
+                        if (a)
+                        {
+                            a();
+                        }
+                        [|else if (b)
+                        {
+                            b();
+                        }
+                        else
+                        {
+                            c();
+                        }|]
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMultiline_IfElse()
         {
             await TestInRegularAndScriptAsync(
-@"class A
-{
-    void Goo()
-    {
-        [||]if (foo) 
-            bar();
-        else
-            if (baz)
-                Quux();
-    }
-}",
-@"class A
-{
-    void Goo()
-    {
-        if (!foo)
-        {
-            if (baz)
-                Quux();
-        }
-        else
-            bar();
-    }
-}");
+                """
+                class A
+                {
+                    void Goo()
+                    {
+                        [||]if (foo) 
+                            bar();
+                        else
+                            if (baz)
+                                Quux();
+                    }
+                }
+                """,
+                """
+                class A
+                {
+                    void Goo()
+                    {
+                        if (!foo)
+                        {
+                            if (baz)
+                                Quux();
+                        }
+                        else
+                            bar();
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMultiline_OpenCloseBracesSameLine()
         {
             await TestInRegularAndScriptAsync(
-@"class A
-{
-    void Goo()
-    {
-        [||]if (foo) {
-           x();
-           x();
-        } else {
-           y();
-           y();
-        }
-    }
-}",
-@"class A
-{
-    void Goo()
-    {
-        if (!foo)
-        {
-            y();
-            y();
-        }
-        else
-        {
-            x();
-            x();
-        }
-    }
-}");
+                """
+                class A
+                {
+                    void Goo()
+                    {
+                        [||]if (foo) {
+                           x();
+                           x();
+                        } else {
+                           y();
+                           y();
+                        }
+                    }
+                }
+                """,
+                """
+                class A
+                {
+                    void Goo()
+                    {
+                        if (!foo)
+                        {
+                            y();
+                            y();
+                        }
+                        else
+                        {
+                            x();
+                            x();
+                        }
+                    }
+                }
+                """);
         }
         [Fact]
         public async Task TestMultiline_Trivia()
         {
             await TestInRegularAndScriptAsync(
-@"class A
-{
-    void Goo()
-    { /*1*/
-        [||]if (a) /*2*/
-        { /*3*/
-            /*4*/
-            goo(); /*5*/
-            /*6*/
-        } /*7*/
-        else if (b) /*8*/
-        { /*9*/
-            /*10*/
-            goo(); /*11*/
-            /*12*/
-        } /*13*/
-        else /*14*/
-        { /*15*/
-            /*16*/
-            goo(); /*17*/
-            /*18*/
-        } /*19*/
-        /*20*/
-    }
-}",
-@"class A
-{
-    void Goo()
-    { /*1*/
-        if (!a) /*2*/
-        {
-            if (b) /*8*/
-            { /*9*/
-                /*10*/
-                goo(); /*11*/
-                /*12*/
-            } /*13*/
-            else /*14*/
-            { /*15*/
-                /*16*/
-                goo(); /*17*/
-                /*18*/
-            } /*19*/
-        }
-        else
-        { /*3*/
-            /*4*/
-            goo(); /*5*/
-            /*6*/
-        } /*7*/
-        /*20*/
-    }
-}");
+                """
+                class A
+                {
+                    void Goo()
+                    { /*1*/
+                        [||]if (a) /*2*/
+                        { /*3*/
+                            /*4*/
+                            goo(); /*5*/
+                            /*6*/
+                        } /*7*/
+                        else if (b) /*8*/
+                        { /*9*/
+                            /*10*/
+                            goo(); /*11*/
+                            /*12*/
+                        } /*13*/
+                        else /*14*/
+                        { /*15*/
+                            /*16*/
+                            goo(); /*17*/
+                            /*18*/
+                        } /*19*/
+                        /*20*/
+                    }
+                }
+                """,
+                """
+                class A
+                {
+                    void Goo()
+                    { /*1*/
+                        if (!a) /*2*/
+                        {
+                            if (b) /*8*/
+                            { /*9*/
+                                /*10*/
+                                goo(); /*11*/
+                                /*12*/
+                            } /*13*/
+                            else /*14*/
+                            { /*15*/
+                                /*16*/
+                                goo(); /*17*/
+                                /*18*/
+                            } /*19*/
+                        }
+                        else
+                        { /*3*/
+                            /*4*/
+                            goo(); /*5*/
+                            /*6*/
+                        } /*7*/
+                        /*20*/
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestOverlapsHiddenPosition1()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void F()
-    {
-#line hidden
-        [||]if (a)
-        {
-            a();
-        }
-        else
-        {
-            b();
-        }
-#line default
-    }
-}");
+                """
+                class C
+                {
+                    void F()
+                    {
+                #line hidden
+                        [||]if (a)
+                        {
+                            a();
+                        }
+                        else
+                        {
+                            b();
+                        }
+                #line default
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestOverlapsHiddenPosition2()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void F()
-    {
-        [||]if (a)
-        {
-#line hidden
-            a();
-#line default
-        }
-        else
-        {
-            b();
-        }
-    }
-}");
+                """
+                class C
+                {
+                    void F()
+                    {
+                        [||]if (a)
+                        {
+                #line hidden
+                            a();
+                #line default
+                        }
+                        else
+                        {
+                            b();
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestOverlapsHiddenPosition3()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void F()
-    {
-        [||]if (a)
-        {
-            a();
-        }
-        else
-        {
-#line hidden
-            b();
-#line default
-        }
-    }
-}");
+                """
+                class C
+                {
+                    void F()
+                    {
+                        [||]if (a)
+                        {
+                            a();
+                        }
+                        else
+                        {
+                #line hidden
+                            b();
+                #line default
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestOverlapsHiddenPosition4()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void F()
-    {
-        [||]if (a)
-        {
-#line hidden
-            a();
-        }
-        else
-        {
-            b();
-#line default
-        }
-    }
-}");
+                """
+                class C
+                {
+                    void F()
+                    {
+                        [||]if (a)
+                        {
+                #line hidden
+                            a();
+                        }
+                        else
+                        {
+                            b();
+                #line default
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestOverlapsHiddenPosition5()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void F()
-    {
-        [||]if (a)
-        {
-            a();
-#line hidden
-        }
-        else
-        {
-#line default
-            b();
-        }
-    }
-}");
+                """
+                class C
+                {
+                    void F()
+                    {
+                        [||]if (a)
+                        {
+                            a();
+                #line hidden
+                        }
+                        else
+                        {
+                #line default
+                            b();
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestOverlapsHiddenPosition6()
         {
             await TestInRegularAndScriptAsync(
-@"
-#line hidden
-class C 
-{
-    void F()
-    {
-#line default
-        [||]if (a)
-        {
-            a();
-        }
-        else
-        {
-            b();
-        }
-    }
-}",
+                """
+                #line hidden
+                class C 
+                {
+                    void F()
+                    {
+                #line default
+                        [||]if (a)
+                        {
+                            a();
+                        }
+                        else
+                        {
+                            b();
+                        }
+                    }
+                }
+                """,
 
-@"
-#line hidden
-class C 
-{
-    void F()
-    {
-#line default
-        if (!a)
-        {
-            b();
-        }
-        else
-        {
-            a();
-        }
-    }
-}");
+                """
+                #line hidden
+                class C 
+                {
+                    void F()
+                    {
+                #line default
+                        if (!a)
+                        {
+                            b();
+                        }
+                        else
+                        {
+                            a();
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestOverlapsHiddenPosition7()
         {
             await TestInRegularAndScriptAsync(
-@"
-#line hidden
-class C 
-{
-    void F()
-    {
-#line default
-        [||]if (a)
-        {
-            a();
-        }
-        else
-        {
-            b();
-        }
-#line hidden
-    }
-}
-#line default",
+                """
+                #line hidden
+                class C 
+                {
+                    void F()
+                    {
+                #line default
+                        [||]if (a)
+                        {
+                            a();
+                        }
+                        else
+                        {
+                            b();
+                        }
+                #line hidden
+                    }
+                }
+                #line default
+                """,
 
-@"
-#line hidden
-class C 
-{
-    void F()
-    {
-#line default
-        if (!a)
-        {
-            b();
-        }
-        else
-        {
-            a();
-        }
-#line hidden
-    }
-}
-#line default");
+                """
+                #line hidden
+                class C 
+                {
+                    void F()
+                    {
+                #line default
+                        if (!a)
+                        {
+                            b();
+                        }
+                        else
+                        {
+                            a();
+                        }
+                #line hidden
+                    }
+                }
+                #line default
+                """);
         }
 
         [Fact]
@@ -1039,186 +1089,202 @@ class C
         public async Task TestOnlySingleLineCommentIf()
         {
             await TestInRegularAndScriptAsync(
-                @"
-class C 
-{
-    void M(string s)
-    {
-        [||]if (s == ""a"")
-        {
-            // A single line comment
-        }
-        else
-        {
-            s = ""b""
-        }
-    }
-}",
-                @"
-class C 
-{
-    void M(string s)
-    {
-        if (s != ""a"")
-        {
-            s = ""b""
-        }
-        else
-        {
-            // A single line comment
-        }
-    }
-}");
+                """
+                class C 
+                {
+                    void M(string s)
+                    {
+                        [||]if (s == "a")
+                        {
+                            // A single line comment
+                        }
+                        else
+                        {
+                            s = "b"
+                        }
+                    }
+                }
+                """,
+                """
+                class C 
+                {
+                    void M(string s)
+                    {
+                        if (s != "a")
+                        {
+                            s = "b"
+                        }
+                        else
+                        {
+                            // A single line comment
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43224")]
         public async Task TestOnlyMultilineLineCommentIf()
         {
             await TestInRegularAndScriptAsync(
-                @"
-class C 
-{ 
-    void M(string s)
-    {
-        [||]if (s == ""a"")
-        {
-            /*
-            * This is
-            * a multiline
-            * comment with
-            * two words
-            * per line.
-            */
-        }
-        else
-        {
-            s = ""b""
-        }
-    }
-}",
-                @"
-class C 
-{ 
-    void M(string s)
-    {
-        if (s != ""a"")
-        {
-            s = ""b""
-        }
-        else
-        {
-            /*
-            * This is
-            * a multiline
-            * comment with
-            * two words
-            * per line.
-            */
-        }
-    }
-}");
+                """
+                class C 
+                { 
+                    void M(string s)
+                    {
+                        [||]if (s == "a")
+                        {
+                            /*
+                            * This is
+                            * a multiline
+                            * comment with
+                            * two words
+                            * per line.
+                            */
+                        }
+                        else
+                        {
+                            s = "b"
+                        }
+                    }
+                }
+                """,
+                """
+                class C 
+                { 
+                    void M(string s)
+                    {
+                        if (s != "a")
+                        {
+                            s = "b"
+                        }
+                        else
+                        {
+                            /*
+                            * This is
+                            * a multiline
+                            * comment with
+                            * two words
+                            * per line.
+                            */
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51359")]
         public async Task TestIsCheck_CSharp6()
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    int M()
-    {
-        [||]if (c is object)
-        {
-            return 1;
-        }
-        else
-        {
-            return 2;
-        }
-    }
-}",
-@"class C
-{
-    int M()
-    {
-        if (!(c is object))
-        {
-            return 2;
-        }
-        else
-        {
-            return 1;
-        }
-    }
-}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+                """
+                class C
+                {
+                    int M()
+                    {
+                        [||]if (c is object)
+                        {
+                            return 1;
+                        }
+                        else
+                        {
+                            return 2;
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    int M()
+                    {
+                        if (!(c is object))
+                        {
+                            return 2;
+                        }
+                        else
+                        {
+                            return 1;
+                        }
+                    }
+                }
+                """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51359")]
         public async Task TestIsCheck_CSharp8()
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    int M()
-    {
-        [||]if (c is object)
-        {
-            return 1;
-        }
-        else
-        {
-            return 2;
-        }
-    }
-}",
-@"class C
-{
-    int M()
-    {
-        if (c is null)
-        {
-            return 2;
-        }
-        else
-        {
-            return 1;
-        }
-    }
-}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+                """
+                class C
+                {
+                    int M()
+                    {
+                        [||]if (c is object)
+                        {
+                            return 1;
+                        }
+                        else
+                        {
+                            return 2;
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    int M()
+                    {
+                        if (c is null)
+                        {
+                            return 2;
+                        }
+                        else
+                        {
+                            return 1;
+                        }
+                    }
+                }
+                """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51359")]
         public async Task TestIsCheck_CSharp9()
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    int M()
-    {
-        [||]if (c is object)
-        {
-            return 1;
-        }
-        else
-        {
-            return 2;
-        }
-    }
-}",
-@"class C
-{
-    int M()
-    {
-        if (c is null)
-        {
-            return 2;
-        }
-        else
-        {
-            return 1;
-        }
-    }
-}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+                """
+                class C
+                {
+                    int M()
+                    {
+                        [||]if (c is object)
+                        {
+                            return 1;
+                        }
+                        else
+                        {
+                            return 2;
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    int M()
+                    {
+                        if (c is null)
+                        {
+                            return 2;
+                        }
+                        else
+                        {
+                            return 1;
+                        }
+                    }
+                }
+                """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51359")]
@@ -1228,68 +1294,76 @@ class C
             // 'not' patterns wee dont' bother diving into the pattern to negate it, and we instead just negate the
             // expression.
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    int M()
-    {
-        [||]if (c is not object)
-        {
-            return 1;
-        }
-        else
-        {
-            return 2;
-        }
-    }
-}",
-@"class C
-{
-    int M()
-    {
-        if (c is object)
-        {
-            return 2;
-        }
-        else
-        {
-            return 1;
-        }
-    }
-}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+                """
+                class C
+                {
+                    int M()
+                    {
+                        [||]if (c is not object)
+                        {
+                            return 1;
+                        }
+                        else
+                        {
+                            return 2;
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    int M()
+                    {
+                        if (c is object)
+                        {
+                            return 2;
+                        }
+                        else
+                        {
+                            return 1;
+                        }
+                    }
+                }
+                """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51359")]
         public async Task TestIsNotObjectCheck_CSharp9()
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    int M()
-    {
-        [||]if (c is not object)
-        {
-            return 1;
-        }
-        else
-        {
-            return 2;
-        }
-    }
-}",
-@"class C
-{
-    int M()
-    {
-        if (c is not null)
-        {
-            return 2;
-        }
-        else
-        {
-            return 1;
-        }
-    }
-}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+                """
+                class C
+                {
+                    int M()
+                    {
+                        [||]if (c is not object)
+                        {
+                            return 1;
+                        }
+                        else
+                        {
+                            return 2;
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    int M()
+                    {
+                        if (c is not null)
+                        {
+                            return 2;
+                        }
+                        else
+                        {
+                            return 1;
+                        }
+                    }
+                }
+                """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63311")]
@@ -1465,31 +1539,35 @@ class C
         public async Task TestYieldBreak()
         {
             await TestInRegularAndScriptAsync(
-@"using System.Collections;
+                """
+                using System.Collections;
 
-class Program
-{
-    public static IEnumerable Method(bool condition)
-    {
-        [||]if (condition)
-        {
-            yield return 1;
-        }
-    }
-}",
-@"using System.Collections;
+                class Program
+                {
+                    public static IEnumerable Method(bool condition)
+                    {
+                        [||]if (condition)
+                        {
+                            yield return 1;
+                        }
+                    }
+                }
+                """,
+                """
+                using System.Collections;
 
-class Program
-{
-    public static IEnumerable Method(bool condition)
-    {
-        if (!condition)
-        {
-            yield break;
-        }
-        yield return 1;
-    }
-}");
+                class Program
+                {
+                    public static IEnumerable Method(bool condition)
+                    {
+                        if (!condition)
+                        {
+                            yield break;
+                        }
+                        yield return 1;
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42715")]

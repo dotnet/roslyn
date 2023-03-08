@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         [Fact]
         public async Task TestMissingOnSimpleString()
         {
-            var code = @"public class C
+            var code = @"
+public class C
 {
     void M()
     {

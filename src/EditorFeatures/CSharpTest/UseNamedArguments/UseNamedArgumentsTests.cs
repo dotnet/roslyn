@@ -231,20 +231,24 @@ index: 1);
         public async Task TestPreserveTrivia()
         {
             await TestWithCSharp7(
-@"class C { void M(int arg1, ref int arg2) => M(
+                """
+                class C { void M(int arg1, ref int arg2) => M(
 
-    [||]1,
+                    [||]1,
 
-    ref arg1
+                    ref arg1
 
-    ); }",
-@"class C { void M(int arg1, ref int arg2) => M(
+                    ); }
+                """,
+                """
+                class C { void M(int arg1, ref int arg2) => M(
 
-    arg1: 1,
+                    arg1: 1,
 
-    arg2: ref arg1
+                    arg2: ref arg1
 
-    ); }");
+                    ); }
+                """);
         }
 
         [Fact]
@@ -258,266 +262,322 @@ index: 1);
         public async Task TestAttribute()
         {
             await TestWithCSharp7(
-@"[C([||]1, 2)]
-class C : System.Attribute { public C(int arg1, int arg2) {} }",
-@"[C(arg1: 1, arg2: 2)]
-class C : System.Attribute { public C(int arg1, int arg2) {} }");
+                """
+                [C([||]1, 2)]
+                class C : System.Attribute { public C(int arg1, int arg2) {} }
+                """,
+                """
+                [C(arg1: 1, arg2: 2)]
+                class C : System.Attribute { public C(int arg1, int arg2) {} }
+                """);
         }
 
         [Fact]
         public async Task TestAttributeWithNamedProperties()
         {
             await TestWithCSharp7(
-@"[C([||]1, P = 2)]
-class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }",
-@"[C(arg1: 1, P = 2)]
-class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }");
+                """
+                [C([||]1, P = 2)]
+                class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }
+                """,
+                """
+                [C(arg1: 1, P = 2)]
+                class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestAvailableOnSelectionOfArgument1()
         {
             await TestWithCSharp7(
-@"class C
-{
-    void M(int arg1, int arg2) 
-        => M([|1 + 2|], 2);
-}",
-@"class C
-{
-    void M(int arg1, int arg2) 
-        => M(arg1: 1 + 2, arg2: 2);
-}");
+                """
+                class C
+                {
+                    void M(int arg1, int arg2) 
+                        => M([|1 + 2|], 2);
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int arg1, int arg2) 
+                        => M(arg1: 1 + 2, arg2: 2);
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestAvailableOnFirstTokenOfArgument1()
         {
             await TestWithCSharp7(
-@"class C
-{
-    void M(int arg1, int arg2) 
-        => M([||]1 + 2, 2);
-}",
-@"class C
-{
-    void M(int arg1, int arg2) 
-        => M(arg1: 1 + 2, arg2: 2);
-}");
+                """
+                class C
+                {
+                    void M(int arg1, int arg2) 
+                        => M([||]1 + 2, 2);
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int arg1, int arg2) 
+                        => M(arg1: 1 + 2, arg2: 2);
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestAvailableOnFirstTokenOfArgument2()
         {
             await TestWithCSharp7(
-@"class C
-{
-    void M(int arg1, int arg2) 
-        => M(1[||] + 2, 2);
-}",
-@"class C
-{
-    void M(int arg1, int arg2) 
-        => M(arg1: 1 + 2, arg2: 2);
-}");
+                """
+                class C
+                {
+                    void M(int arg1, int arg2) 
+                        => M(1[||] + 2, 2);
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int arg1, int arg2) 
+                        => M(arg1: 1 + 2, arg2: 2);
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument1()
         {
             await TestWithCSharp7(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    void M(Action arg1, int arg2) 
-        => M([||]() => { }, 2);
-}",
-@"
-using System;
+                class C
+                {
+                    void M(Action arg1, int arg2) 
+                        => M([||]() => { }, 2);
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void M(Action arg1, int arg2) 
-        => M(arg1: () => { }, arg2: 2);
-}");
+                class C
+                {
+                    void M(Action arg1, int arg2) 
+                        => M(arg1: () => { }, arg2: 2);
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument2_CSharp7()
         {
             await TestWithCSharp7(
-@"class C
-{
-    void M(int arg1, int arg2) 
-        => M(1 [||]+ 2, 2);
-}",
-@"class C
-{
-    void M(int arg1, int arg2) 
-        => M(arg1: 1 + 2, arg2: 2);
-}");
+                """
+                class C
+                {
+                    void M(int arg1, int arg2) 
+                        => M(1 [||]+ 2, 2);
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int arg1, int arg2) 
+                        => M(arg1: 1 + 2, arg2: 2);
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument2()
         {
             await TestWithCSharp7_3(
-@"class C
-{
-    void M(int arg1, int arg2)
-        => M(1 [||]+ 2, 2);
-}",
-@"class C
-{
-    void M(int arg1, int arg2)
-        => M(arg1: 1 + 2, 2);
-}");
+                """
+                class C
+                {
+                    void M(int arg1, int arg2)
+                        => M(1 [||]+ 2, 2);
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int arg1, int arg2)
+                        => M(arg1: 1 + 2, 2);
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument3()
         {
             await TestWithCSharp7(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    void M(Action arg1, int arg2) 
-        => M(() => { [||] }, 2);
-}",
-@"
-using System;
+                class C
+                {
+                    void M(Action arg1, int arg2) 
+                        => M(() => { [||] }, 2);
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void M(Action arg1, int arg2) 
-        => M(arg1: () => {  }, arg2: 2);
-}");
+                class C
+                {
+                    void M(Action arg1, int arg2) 
+                        => M(arg1: () => {  }, arg2: 2);
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument4()
         {
             await TestWithCSharp7(
-@"class C
-{
-    void M(int arg1, int arg2) 
-        => M(1 [||]+ 2, 2);
-}",
-@"class C
-{
-    void M(int arg1, int arg2) 
-        => M(arg1: 1 + 2, arg2: 2);
-}");
+                """
+                class C
+                {
+                    void M(int arg1, int arg2) 
+                        => M(1 [||]+ 2, 2);
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int arg1, int arg2) 
+                        => M(arg1: 1 + 2, arg2: 2);
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestMissingNotOnStartingLineOfArgument1()
         {
             await TestMissingInRegularAndScriptAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    void M(Action arg1, int arg2) 
-        => M(() => {
-             [||]
-           }, 2);
-}");
+                class C
+                {
+                    void M(Action arg1, int arg2) 
+                        => M(() => {
+                             [||]
+                           }, 2);
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestMissingWithSelection()
         {
             await TestMissingInRegularAndScriptAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    void M(Action arg1, int arg2) 
-        => M([|{|CS1503:1 + 2|}|], 3);
-}");
+                class C
+                {
+                    void M(Action arg1, int arg2) 
+                        => M([|{|CS1503:1 + 2|}|], 3);
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19175")]
         public async Task TestCaretPositionAtTheEnd1()
         {
             await TestWithCSharp7(
-@"class C
-{
-    void M(int arg1) => M(arg1[||]);
-}",
-@"class C
-{
-    void M(int arg1) => M(arg1: arg1);
-}");
+                """
+                class C
+                {
+                    void M(int arg1) => M(arg1[||]);
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int arg1) => M(arg1: arg1);
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19175")]
         public async Task TestCaretPositionAtTheEnd2()
         {
             await TestWithCSharp7(
-@"class C
-{
-    void M(int arg1, int arg2) => M(arg1[||], arg2);
-}",
-@"class C
-{
-    void M(int arg1, int arg2) => M(arg1: arg1, arg2: arg2);
-}");
+                """
+                class C
+                {
+                    void M(int arg1, int arg2) => M(arg1[||], arg2);
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int arg1, int arg2) => M(arg1: arg1, arg2: arg2);
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19758")]
         public async Task TestOnTuple()
         {
             await VerifyCS.VerifyRefactoringAsync(
-@"using System.Linq;
-class C
-{
-    void M(int[] arr) => arr.Zip(arr, (p1, p2) => ([||]p1, p2));
-}
-",
-@"using System.Linq;
-class C
-{
-    void M(int[] arr) => arr.Zip(arr, resultSelector: (p1, p2) => (p1, p2));
-}
-");
+                """
+                using System.Linq;
+                class C
+                {
+                    void M(int[] arr) => arr.Zip(arr, (p1, p2) => ([||]p1, p2));
+                }
+                """,
+                """
+                using System.Linq;
+                class C
+                {
+                    void M(int[] arr) => arr.Zip(arr, resultSelector: (p1, p2) => (p1, p2));
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23269")]
         public async Task TestCharacterEscape1()
         {
             await TestWithCSharp7(
-@"class C
-{
-    void M(int @default, int @params) => M([||]1, 2);
-}",
-@"class C
-{
-    void M(int @default, int @params) => M(@default: 1, @params: 2);
-}");
+                """
+                class C
+                {
+                    void M(int @default, int @params) => M([||]1, 2);
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int @default, int @params) => M(@default: 1, @params: 2);
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23269")]
         public async Task TestCharacterEscape2()
         {
             await TestWithCSharp7(
-@"[C([||]1, 2)]
-class C : System.Attribute
-{
-    public C(int @default, int @params) {}
-}",
-@"[C(@default: 1, @params: 2)]
-class C : System.Attribute
-{
-    public C(int @default, int @params) {}
-}");
+                """
+                [C([||]1, 2)]
+                class C : System.Attribute
+                {
+                    public C(int @default, int @params) {}
+                }
+                """,
+                """
+                [C(@default: 1, @params: 2)]
+                class C : System.Attribute
+                {
+                    public C(int @default, int @params) {}
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39852")]
@@ -538,32 +598,40 @@ class C : System.Attribute
         public async Task TestForRealRangeIndexer()
         {
             await VerifyCS.VerifyRefactoringAsync(
-                @"using System; 
-class C { 
-    int this[Range range] => default; 
-    int M(C arg1) => arg1[[||]1..^1]; 
-}" + TestSources.Range + TestSources.Index,
-                @"using System; 
-class C { 
-    int this[Range range] => default; 
-    int M(C arg1) => arg1[range: 1..^1]; 
-}" + TestSources.Range + TestSources.Index);
+                """
+                using System; 
+                class C { 
+                    int this[Range range] => default; 
+                    int M(C arg1) => arg1[[||]1..^1]; 
+                }
+                """ + TestSources.Range + TestSources.Index,
+                """
+                using System; 
+                class C { 
+                    int this[Range range] => default; 
+                    int M(C arg1) => arg1[range: 1..^1]; 
+                }
+                """ + TestSources.Range + TestSources.Index);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39852")]
         public async Task TestForRealIndexIndexer()
         {
             await VerifyCS.VerifyRefactoringAsync(
-                @"using System; 
-class C { 
-    int this[Index index] => default; 
-    int M(C arg1) => arg1[[||]^1]; 
-}" + TestSources.Index,
-                @"using System; 
-class C { 
-    int this[Index index] => default; 
-    int M(C arg1) => arg1[index: ^1]; 
-}" + TestSources.Index);
+                """
+                using System; 
+                class C { 
+                    int this[Index index] => default; 
+                    int M(C arg1) => arg1[[||]^1]; 
+                }
+                """ + TestSources.Index,
+                """
+                using System; 
+                class C { 
+                    int this[Index index] => default; 
+                    int M(C arg1) => arg1[index: ^1]; 
+                }
+                """ + TestSources.Index);
         }
 
         [Fact]
@@ -582,57 +650,57 @@ class C {
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63362")]
         public async Task TestTrivia()
         {
-            await VerifyCS.VerifyRefactoringAsync(@"
-class C
-{
-    static void F(string x, string y)
-    {
-        F(
-                // TODO: 1
-                nu[||]ll
-                // TODO: 2
-            ,   null
-            );
-    }
-}
-", @"
-class C
-{
-    static void F(string x, string y)
-    {
-        F(
-                // TODO: 1
-                x: null
-                // TODO: 2
-            ,   null
-            );
-    }
-}
-");
+            await VerifyCS.VerifyRefactoringAsync("""
+                class C
+                {
+                    static void F(string x, string y)
+                    {
+                        F(
+                                // TODO: 1
+                                nu[||]ll
+                                // TODO: 2
+                            ,   null
+                            );
+                    }
+                }
+                """, """
+                class C
+                {
+                    static void F(string x, string y)
+                    {
+                        F(
+                                // TODO: 1
+                                x: null
+                                // TODO: 2
+                            ,   null
+                            );
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63362")]
         public async Task TestTrivia_Attribute()
         {
-            await VerifyCS.VerifyRefactoringAsync(@"
-[My(
-    // Comment
-    [||]null/*comment2*/,
-    null)]
-class MyAttribute : System.Attribute
-{
-    public MyAttribute(string x, string y) { }
-}
-", @"
-[My(
-    // Comment
-    x: null/*comment2*/,
-    null)]
-class MyAttribute : System.Attribute
-{
-    public MyAttribute(string x, string y) { }
-}
-");
+            await VerifyCS.VerifyRefactoringAsync("""
+                [My(
+                    // Comment
+                    [||]null/*comment2*/,
+                    null)]
+                class MyAttribute : System.Attribute
+                {
+                    public MyAttribute(string x, string y) { }
+                }
+                """, """
+                [My(
+                    // Comment
+                    x: null/*comment2*/,
+                    null)]
+                class MyAttribute : System.Attribute
+                {
+                    public MyAttribute(string x, string y) { }
+                }
+                """);
         }
     }
 }
