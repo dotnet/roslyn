@@ -903,8 +903,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReassignedVariable
         {
             await TestAsync(
                 """
+
                 [|args|] = null
                 Console.WriteLine([|args|]);
+
                 """);
         }
 
