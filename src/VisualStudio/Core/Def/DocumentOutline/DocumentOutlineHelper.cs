@@ -84,40 +84,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// Returns the Document Symbol node that is currently selected by the caret in the editor if it exists.
-        /// </summary>
-        public static DocumentSymbolDataViewModel? GetDocumentNodeToSelect(
-            ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems,
-            ITextSnapshot originalSnapshot,
-            SnapshotPoint currentCaretPoint)
-        {
-            var originalCaretPoint = currentCaretPoint.TranslateTo(originalSnapshot, PointTrackingMode.Negative);
-            return GetNodeToSelect(documentSymbolItems, null);
-
-            DocumentSymbolDataViewModel? GetNodeToSelect(ImmutableArray<DocumentSymbolDataViewModel> documentSymbols, DocumentSymbolDataViewModel? parent)
-            {
-                var selectedSymbol = GetNodeSelectedByCaret(documentSymbols);
-
-                if (selectedSymbol is null)
-                    return parent;
-
-                return GetNodeToSelect(selectedSymbol.Children, selectedSymbol);
-            }
-
-            // Returns a DocumentSymbolItem if the current caret position is in its range and null otherwise.
-            DocumentSymbolDataViewModel? GetNodeSelectedByCaret(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems)
-            {
-                foreach (var symbol in documentSymbolItems)
-                {
-                    if (symbol.Data.RangeSpan.IntersectsWith(originalCaretPoint))
-                        return symbol;
-                }
-
-                return null;
-            }
-        }
-
-        /// <summary>
         /// Updates the IsExpanded property for the Document Symbol ViewModel based on the given Expansion Option. The parameter
         /// <param name="currentDocumentSymbolItems"/> is used to reference the current node expansion in the view.
         /// </summary>

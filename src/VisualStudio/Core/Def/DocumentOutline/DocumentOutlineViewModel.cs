@@ -231,7 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         ///         ]
         ///     }
         /// ]
-        private static DocumentSymbolDataModel CreateDocumentSymbolDataModel(LspDocumentSymbol[] documentSymbols, ITextSnapshot originalSnapshot)
+        public static DocumentSymbolDataModel CreateDocumentSymbolDataModel(LspDocumentSymbol[] documentSymbols, ITextSnapshot originalSnapshot)
         {
             // Obtain a flat list of all the document symbols sorted by location in the document.
             var allSymbols = documentSymbols
@@ -354,7 +354,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     // If the we can't find the caret then the document has changed since we were queued to the point that we can't find this position.
                     if (caretPoint.HasValue)
                     {
-                        var symbolToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(DocumentSymbolViewModelItems, model.OriginalSnapshot, caretPoint.Value);
+                        var symbolToSelect = GetDocumentNodeToSelect(DocumentSymbolViewModelItems, model.OriginalSnapshot, caretPoint.Value);
                         // If null this means we can't find the symbol to select. The document has changed enough since we are queued that we can't find anything applicable.
                         if (symbolToSelect is not null)
                         {
@@ -411,6 +411,40 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
                     return true;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Returns the Document Symbol node that is currently selected by the caret in the editor if it exists.
+        /// </summary>
+        public static DocumentSymbolDataViewModel? GetDocumentNodeToSelect(
+            ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems,
+            ITextSnapshot originalSnapshot,
+            SnapshotPoint currentCaretPoint)
+        {
+            var originalCaretPoint = currentCaretPoint.TranslateTo(originalSnapshot, PointTrackingMode.Negative);
+            return GetNodeToSelect(documentSymbolItems, null);
+
+            DocumentSymbolDataViewModel? GetNodeToSelect(ImmutableArray<DocumentSymbolDataViewModel> documentSymbols, DocumentSymbolDataViewModel? parent)
+            {
+                var selectedSymbol = GetNodeSelectedByCaret(documentSymbols);
+
+                if (selectedSymbol is null)
+                    return parent;
+
+                return GetNodeToSelect(selectedSymbol.Children, selectedSymbol);
+            }
+
+            // Returns a DocumentSymbolItem if the current caret position is in its range and null otherwise.
+            DocumentSymbolDataViewModel? GetNodeSelectedByCaret(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems)
+            {
+                foreach (var symbol in documentSymbolItems)
+                {
+                    if (symbol.Data.RangeSpan.IntersectsWith(originalCaretPoint))
+                        return symbol;
+                }
+
+                return null;
             }
         }
 
