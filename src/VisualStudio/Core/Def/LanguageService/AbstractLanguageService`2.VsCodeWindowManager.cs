@@ -238,15 +238,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             // GetOutline is called every time a new code window is created. Whenever we switch to a different window, it is guaranteed
             // that ReleaseOutline will be called on the old window before GetOutline is called for the new window. 
-            int IVsDocOutlineProvider.GetOutline(out IntPtr phwnd, out IOleCommandTarget? ppCmdTarget)
+            int IVsDocOutlineProvider.GetOutline(out IntPtr phwnd, out IOleCommandTarget pCmdTarget)
             {
+                pCmdTarget = null;
+                GetOutline(out phwnd);
+                return VSConstants.S_OK;
+            }
+
+            private void GetOutline(out IntPtr phwnd)
+            {
+                phwnd = default;
+
                 var enabled = _globalOptions.GetOption(DocumentOutlineOptionsStorage.EnableDocumentOutline);
                 if (!enabled)
-                {
-                    phwnd = default;
-                    ppCmdTarget = null;
-                    return VSConstants.S_OK;
-                }
+                    return;
 
                 var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
                 threadingContext.ThrowIfNotOnUIThread();
@@ -260,10 +265,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Contract.ThrowIfFalse(_documentOutlineView is null);
                 Contract.ThrowIfFalse(_documentOutlineViewHost is null);
 
-                if (!TryCreateEventSource(out var eventSource, out var textBuffer))
-                    return VSConstants.E_FAIL;
+                if (ErrorHandler.Failed(_codeWindow.GetLastActiveView(out var textView)))
+                {
+                    Debug.Fail("Unable to get the last active text view. IVsCodeWindow implementation we are given is invalid.");
+                    return;
+                }
+                var wpfTextView = editorAdaptersFactoryService.GetWpfTextView(textView);
+                Assumes.NotNull(wpfTextView);
 
-                var viewModel = new DocumentOutlineViewModel(languageServiceBroker, asyncListener, eventSource, textBuffer, threadingContext);
+                // TODO: Hooking the text buffer seems wrong.  How would this work for projections?
+                var subjectBuffer = wpfTextView.TextBuffer;
+
+                var eventSource = TaggerEventSources.Compose(
+                    // Any time an edit happens, recompute as the document symbols may have changed.
+                    TaggerEventSources.OnTextChanged(subjectBuffer),
+                    // If the compilation options change we need to re-compute the document symbols
+                    TaggerEventSources.OnParseOptionChanged(subjectBuffer),
+                    // Many workspace changes may need us to change the document symbols (like options changing, or project renaming).
+                    TaggerEventSources.OnWorkspaceChanged(subjectBuffer, asyncListener),
+                    // Once we hook this buffer up to the workspace, then we can start computing the document symbols.
+                    TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer));
+
+                var viewModel = new DocumentOutlineViewModel(languageServiceBroker, asyncListener, eventSource, wpfTextView, subjectBuffer, threadingContext);
                 _documentOutlineView = new DocumentOutlineView(viewModel, editorAdaptersFactoryService, _codeWindow, threadingContext);
 
                 _documentOutlineViewHost = new ElementHost
@@ -273,42 +296,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 };
 
                 phwnd = _documentOutlineViewHost.Handle;
-                ppCmdTarget = null;
 
                 Logger.Log(FunctionId.DocumentOutline_WindowOpen, logLevel: LogLevel.Information);
-
-                return VSConstants.S_OK;
-
-                bool TryCreateEventSource(
-                    [NotNullWhen(true)] out ITaggerEventSource? eventSource,
-                    [NotNullWhen(true)] out ITextBuffer? subjectBuffer)
-                {
-                    eventSource = null;
-                    subjectBuffer = null;
-
-                    if (ErrorHandler.Failed(_codeWindow.GetLastActiveView(out var textView)))
-                    {
-                        Debug.Fail("Unable to get the last active text view. IVsCodeWindow implementation we are given is invalid.");
-                        return false;
-                    }
-
-                    var wpfTextView = editorAdaptersFactoryService.GetWpfTextView(textView);
-                    Assumes.NotNull(wpfTextView);
-
-                    // TODO: Hooking the text buffer seems wrong.  How would this work for projections?
-                    subjectBuffer = wpfTextView.TextBuffer;
-
-                    eventSource = TaggerEventSources.Compose(
-                        // Any time an edit happens, recompute as the document symbols may have changed.
-                        TaggerEventSources.OnTextChanged(subjectBuffer),
-                        // If the compilation options change we need to re-compute the document symbols
-                        TaggerEventSources.OnParseOptionChanged(subjectBuffer),
-                        // Many workspace changes may need us to change the document symbols (like options changing, or project renaming).
-                        TaggerEventSources.OnWorkspaceChanged(subjectBuffer, asyncListener),
-                        // Once we hook this buffer up to the workspace, then we can start computing the document symbols.
-                        TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer));
-                    return true;
-                }
             }
 
             int IVsDocOutlineProvider.ReleaseOutline(IntPtr hwnd, IOleCommandTarget pCmdTarget)
