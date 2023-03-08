@@ -43,9 +43,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     {
         private readonly ILanguageServiceBroker2 _languageServiceBroker;
         private readonly ITaggerEventSource _taggerEventSource;
-        private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly ITextView _textView;
         private readonly ITextBuffer _textBuffer;
         private readonly IThreadingContext _threadingContext;
+        private readonly CancellationTokenSource _cancellationTokenSource;
 
         private readonly DocumentSymbolDataModel _emptyModel;
 
@@ -56,9 +57,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private readonly AsyncBatchingResultQueue<DocumentSymbolDataModel> _documentSymbolQueue;
 
         /// <summary>
-        /// Queue for updating the state of the view model
+        /// Queue for updating the state of the view model.  The boolean indicates if we should expand/collapse all
+        /// items.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<ViewModelStateDataChange> _updateViewModelStateQueue;
+        private readonly AsyncBatchingWorkQueue<bool?> _updateViewModelStateQueue;
 
         private CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
@@ -68,21 +70,26 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private string _searchText_doNotAccessDirectly = "";
         private ImmutableArray<DocumentSymbolDataViewModel> _documentSymbolViewModelItems_doNotAccessDirectly = ImmutableArray<DocumentSymbolDataViewModel>.Empty;
 
-        private (DocumentSymbolDataModel model, SortOption sortOption, string searchText, ImmutableArray<DocumentSymbolDataViewModel> _documentSymbolViewModelItems) _lastPresentedData_onlyAccessOnMainThread;
+        /// <summary>
+        /// Mutable state.  only accessed from UpdateViewModelStateAsync though.  Since that executes serially, it does not need locking.
+        /// </summary>
+        private (DocumentSymbolDataModel model, string searchText, ImmutableArray<DocumentSymbolDataViewModel> viewModelItems) _lastPresentedData_onlyAccessSerially;
 
         public DocumentOutlineViewModel(
             ILanguageServiceBroker2 languageServiceBroker,
             IAsynchronousOperationListener asyncListener,
             ITaggerEventSource taggerEventSource,
+            ITextView textView,
             ITextBuffer textBuffer,
             IThreadingContext threadingContext)
         {
             _languageServiceBroker = languageServiceBroker;
             _taggerEventSource = taggerEventSource;
+            _textView = textView;
             _textBuffer = textBuffer;
             _threadingContext = threadingContext;
             _emptyModel = new DocumentSymbolDataModel(ImmutableArray<DocumentSymbolData>.Empty, _textBuffer.CurrentSnapshot);
-            _lastPresentedData_onlyAccessOnMainThread = (_emptyModel, this.SortOption, this.SearchText, this.DocumentSymbolViewModelItems);
+            _lastPresentedData_onlyAccessSerially = (_emptyModel, this.SearchText, this.DocumentSymbolViewModelItems);
 
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_threadingContext.DisposalToken);
 
@@ -94,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 CancellationToken);
 
             // work queue for updating UI state
-            _updateViewModelStateQueue = new AsyncBatchingWorkQueue<ViewModelStateDataChange>(
+            _updateViewModelStateQueue = new AsyncBatchingWorkQueue<bool?>(
                 DelayTimeSpan.Short,
                 UpdateViewModelStateAsync,
                 asyncListener,
@@ -125,6 +132,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             set
             {
+                // Called from WPF.
+
                 _threadingContext.ThrowIfNotOnUIThread();
                 SetProperty(ref _sortOption_doNotAccessDirectly, value);
 
@@ -143,9 +152,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             set
             {
+                // setting this happens from wpf itself.  So once this changes, kick off the work to actually filter down our modesl.
+
                 _threadingContext.ThrowIfNotOnUIThread();
                 _searchText_doNotAccessDirectly = value;
-                EnqueueFilter(_searchText_doNotAccessDirectly);
+                _updateViewModelStateQueue.AddWork(item: null);
             }
         }
 
@@ -157,6 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 return _documentSymbolViewModelItems_doNotAccessDirectly;
             }
 
+            // Setting this only happens from within this type once we've computed new items or filtered down the existing set.
             private set
             {
                 _threadingContext.ThrowIfNotOnBackgroundThread();
@@ -221,7 +233,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             var model = CreateDocumentSymbolDataModel(responseBody, response.Value.snapshot);
 
-            _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(SearchText: null, ShouldExpand: null));
+            // Now that we produced a new model, kick off the work to present it to the UI.
+            _updateViewModelStateQueue.AddWork(item: null);
 
             return model;
         }
@@ -361,87 +374,81 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
-        private void EnqueueFilter(string? newText)
-            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(newText, ShouldExpand: null));
-
         public void EnqueueSelectTreeNode()
-            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(SearchText: null, ShouldExpand: null));
+            => _updateViewModelStateQueue.AddWork(item: null);
 
         public void EnqueueExpandOrCollapse(bool shouldExpand)
-            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(SearchText: null, CaretPositionOfNodeToSelect: null, ShouldExpand: shouldExpand, DataUpdated: false));
+            => _updateViewModelStateQueue.AddWork(shouldExpand);
 
-        private async ValueTask UpdateViewModelStateAsync(ImmutableSegmentedList<ViewModelStateDataChange> viewModelStateData, CancellationToken cancellationToken)
+        private async ValueTask UpdateViewModelStateAsync(ImmutableSegmentedList<bool?> viewModelStateData, CancellationToken cancellationToken)
         {
             // just to UI thread to get the last UI state we presented.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var lastPresentedData = _lastPresentedData_onlyAccessOnMainThread;
+            var searchText = this.SearchText;
+            var caretPoint = _textView.Caret.Position.BufferPosition;
+            var lastPresentedData = _lastPresentedData_onlyAccessSerially;
 
             // Jump back to the BG to do all our work.
             await TaskScheduler.Default;
             cancellationToken.ThrowIfCancellationRequested();
 
+            // Grab the last computed model.  We can compare it to what we previously presented to see if it's changed.
             var model = await _documentSymbolQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false) ?? _emptyModel;
 
-            var searchText = FindLastPresentValue(viewModelStateData, static x => x.SearchText);
-            var position = FindLastPresentValue(viewModelStateData, static x => x.CaretPositionOfNodeToSelect);
-            var expansion = FindLastPresentValue(viewModelStateData, static x => x.ShouldExpand);
-            var dataUpdated = viewModelStateData.Any(static x => x.DataUpdated);
+            var expansion = viewModelStateData.LastOrDefault(b => b != null);
 
-            // These updates always require a valid model to perform
-            if (string.IsNullOrEmpty(searchText) && dataUpdated)
-            {
-                var documentSymbolViewModelItems = GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
-                ApplyExpansionStateToNewItems(documentSymbolViewModelItems, DocumentSymbolViewModelItems);
-                DocumentSymbolViewModelItems = documentSymbolViewModelItems;
-            }
+            var modelChanged = model != lastPresentedData.model;
+            var searchTextChanged = searchText != lastPresentedData.searchText;
+            var lastViewModelItems = lastPresentedData.viewModelItems;
 
-            if (searchText is { } currentQuery)
+            ImmutableArray<DocumentSymbolDataViewModel> currentViewModelItems;
+
+            // if we got new data or the user changed the search text, recompute our items to correspond to this new state.
+            if (modelChanged || searchTextChanged)
             {
-                ImmutableArray<DocumentSymbolDataViewModel> documentSymbolViewModelItems;
-                if (currentQuery == string.Empty)
+                // Apply whatever the current search text is to what the model returned.  If no search text, show
+                // everything.  If some search text, the set of items that match that filter.
+                if (searchText == "")
                 {
-                    // search was cleared, show all data.
-                    documentSymbolViewModelItems = GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
-                    ApplyExpansionStateToNewItems(documentSymbolViewModelItems, DocumentSymbolViewModelItems);
+                    // in the case of no search text, attempt to keep the same open/close expansion state from before.
+                    currentViewModelItems = GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
+                    ApplyExpansionStateToNewItems(currentViewModelItems, lastViewModelItems);
                 }
                 else
                 {
-                    // We are going to show results so we unset any expand / collapse state
-                    // If we are in the middle of searching the developer should always be able to see the results
-                    // so we don't want to collapse (and therefore hide) data here.
-                    documentSymbolViewModelItems = GetDocumentSymbolItemViewModels(
-                         SearchDocumentSymbolData(model.DocumentSymbolData, currentQuery, cancellationToken));
+                    // We are going to show results so we unset any expand / collapse state If we are in the middle of
+                    // searching the developer should always be able to see the results so we don't want to collapse
+                    // (and therefore hide) data here.
+                    currentViewModelItems = GetDocumentSymbolItemViewModels(
+                        SearchDocumentSymbolData(model.DocumentSymbolData, searchText, cancellationToken));
                 }
-
-                DocumentSymbolViewModelItems = documentSymbolViewModelItems;
+            }
+            else
+            {
+                // Model didn't change and search text didn't change.  Keep what we have.
+                currentViewModelItems = lastViewModelItems;
             }
 
-            if (position is { } currentPosition)
+            var symbolToSelect = GetDocumentNodeToSelect(currentViewModelItems, model.OriginalSnapshot, caretPoint);
+            if (symbolToSelect is not null)
             {
-                var caretPoint = currentPosition.Point.GetPoint(_textBuffer, PositionAffinity.Predecessor);
-                // If the we can't find the caret then the document has changed since we were queued to the point that we can't find this position.
-                if (caretPoint.HasValue)
-                {
-                    var symbolToSelect = GetDocumentNodeToSelect(DocumentSymbolViewModelItems, model.OriginalSnapshot, caretPoint.Value);
-                    // If null this means we can't find the symbol to select. The document has changed enough since we are queued that we can't find anything applicable.
-                    if (symbolToSelect is not null)
-                    {
-                        ExpandAncestors(DocumentSymbolViewModelItems, symbolToSelect.Data.SelectionRangeSpan);
-                        symbolToSelect.IsSelected = true;
-                    }
-                }
+                ExpandAncestors(currentViewModelItems, symbolToSelect.Data.SelectionRangeSpan);
+                symbolToSelect.IsSelected = true;
             }
 
             // If we aren't filtering to search results do expand/collapse
-            if (expansion is { } expansionOption && string.IsNullOrEmpty(searchText))
-            {
-                SetExpansionOption(DocumentSymbolViewModelItems, expansionOption);
-            }
-            else if (expansion is { } shouldExpand)
-            {
-                SetExpansionOption(DocumentSymbolViewModelItems, shouldExpand);
-            }
+            if (expansion != null)
+                SetExpansionOption(currentViewModelItems, expansion.Value);
+
+            // Let WPF know about this change so it can update the UI.
+            this.DocumentSymbolViewModelItems = currentViewModelItems;
+
+            // Now that we've made all our changes, record that we've done so so we can see what has changed when future requests come in.
+            // note: we are safe to record this on the BG as we are called serially and are the only place to read/write it.
+            _lastPresentedData_onlyAccessSerially = (model, searchText, currentViewModelItems);
+
+            return;
 
             static void ApplyExpansionStateToNewItems(ImmutableArray<DocumentSymbolDataViewModel> oldItems, ImmutableArray<DocumentSymbolDataViewModel> newItems)
             {
@@ -479,18 +486,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
                     return true;
                 }
-            }
-
-            static TResult? FindLastPresentValue<TSource, TResult>(ImmutableSegmentedList<TSource> source, Func<TSource, TResult?> selector)
-            {
-                for (var i = source.Count - 1; i >= 0; i--)
-                {
-                    var item = selector(source[i]);
-                    if (item is not null)
-                        return item;
-                }
-
-                return default;
             }
         }
 
@@ -626,6 +621,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             string pattern,
             CancellationToken cancellationToken)
         {
+            if (pattern == "")
+                return documentSymbolData;
+
             cancellationToken.ThrowIfCancellationRequested();
 
             using var _ = ArrayBuilder<DocumentSymbolData>.GetInstance(out var filteredDocumentSymbols);

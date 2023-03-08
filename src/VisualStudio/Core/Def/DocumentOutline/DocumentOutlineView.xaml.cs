@@ -179,7 +179,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 // indicate that we are about to programmatically set focus
                 _isNavigating = true;
-                _viewModel.EnqueueSelectTreeNode(e.NewPosition);
+                _viewModel.EnqueueSelectTreeNode();
             }
         }
 
