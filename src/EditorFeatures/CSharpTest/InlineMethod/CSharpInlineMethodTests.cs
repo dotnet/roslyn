@@ -1914,7 +1914,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
             var diagnostic = new List<DiagnosticResult>()
             {
                 // Await can't be used in non-async method.
-                DiagnosticResult.CompilerError("CS4032").WithSpan(7, 33, 7, 56).WithArguments("int")
+                DiagnosticResult.CompilerError("CS4032").WithSpan(6, 33, 6, 56).WithArguments("int")
             };
             return TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                            """
@@ -3540,7 +3540,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
             var diagnostic = new List<DiagnosticResult>()
             {
                 // User is inlining method in arrow function, there is no place to put the declaration of 'i'
-                DiagnosticResult.CompilerError("CS0103").WithSpan(4, 29, 4, 30).WithArguments("i")
+                DiagnosticResult.CompilerError("CS0103").WithSpan(3, 29, 3, 30).WithArguments("i")
             };
             return TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync("""
                 public class TestClass
@@ -3605,7 +3605,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
             var diagnostic = new List<DiagnosticResult>()
             {
                 // User is inlining method in arrow function, there is no place to put the declaration of 'i'
-                DiagnosticResult.CompilerError("CS0103").WithSpan(7, 26, 7, 27).WithArguments("i")
+                DiagnosticResult.CompilerError("CS0103").WithSpan(6, 26, 6, 27).WithArguments("i")
             };
             return TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync("""
                 using System;
