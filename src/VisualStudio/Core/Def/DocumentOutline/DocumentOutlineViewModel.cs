@@ -358,49 +358,46 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var dataUpdated = viewModelStateData.Any(static x => x.DataUpdated);
 
             // These updates always require a valid model to perform
-            if (model is not null)
+            if (string.IsNullOrEmpty(searchText) && dataUpdated)
             {
-                if (string.IsNullOrEmpty(searchText) && dataUpdated)
+                var documentSymbolViewModelItems = GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
+                ApplyExpansionStateToNewItems(documentSymbolViewModelItems, DocumentSymbolViewModelItems);
+                DocumentSymbolViewModelItems = documentSymbolViewModelItems;
+            }
+
+            if (searchText is { } currentQuery)
+            {
+                ImmutableArray<DocumentSymbolDataViewModel> documentSymbolViewModelItems;
+                if (currentQuery == string.Empty)
                 {
-                    var documentSymbolViewModelItems = GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
+                    // search was cleared, show all data.
+                    documentSymbolViewModelItems = GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
                     ApplyExpansionStateToNewItems(documentSymbolViewModelItems, DocumentSymbolViewModelItems);
-                    DocumentSymbolViewModelItems = documentSymbolViewModelItems;
+                }
+                else
+                {
+                    // We are going to show results so we unset any expand / collapse state
+                    // If we are in the middle of searching the developer should always be able to see the results
+                    // so we don't want to collapse (and therefore hide) data here.
+                    documentSymbolViewModelItems = GetDocumentSymbolItemViewModels(
+                         SearchDocumentSymbolData(model.DocumentSymbolData, currentQuery, cancellationToken));
                 }
 
-                if (searchText is { } currentQuery)
-                {
-                    ImmutableArray<DocumentSymbolDataViewModel> documentSymbolViewModelItems;
-                    if (currentQuery == string.Empty)
-                    {
-                        // search was cleared, show all data.
-                        documentSymbolViewModelItems = GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
-                        ApplyExpansionStateToNewItems(documentSymbolViewModelItems, DocumentSymbolViewModelItems);
-                    }
-                    else
-                    {
-                        // We are going to show results so we unset any expand / collapse state
-                        // If we are in the middle of searching the developer should always be able to see the results
-                        // so we don't want to collapse (and therefore hide) data here.
-                        documentSymbolViewModelItems = GetDocumentSymbolItemViewModels(
-                             SearchDocumentSymbolData(model.DocumentSymbolData, currentQuery, cancellationToken));
-                    }
+                DocumentSymbolViewModelItems = documentSymbolViewModelItems;
+            }
 
-                    DocumentSymbolViewModelItems = documentSymbolViewModelItems;
-                }
-
-                if (position is { } currentPosition)
+            if (position is { } currentPosition)
+            {
+                var caretPoint = currentPosition.Point.GetPoint(_textBuffer, PositionAffinity.Predecessor);
+                // If the we can't find the caret then the document has changed since we were queued to the point that we can't find this position.
+                if (caretPoint.HasValue)
                 {
-                    var caretPoint = currentPosition.Point.GetPoint(_textBuffer, PositionAffinity.Predecessor);
-                    // If the we can't find the caret then the document has changed since we were queued to the point that we can't find this position.
-                    if (caretPoint.HasValue)
+                    var symbolToSelect = GetDocumentNodeToSelect(DocumentSymbolViewModelItems, model.OriginalSnapshot, caretPoint.Value);
+                    // If null this means we can't find the symbol to select. The document has changed enough since we are queued that we can't find anything applicable.
+                    if (symbolToSelect is not null)
                     {
-                        var symbolToSelect = GetDocumentNodeToSelect(DocumentSymbolViewModelItems, model.OriginalSnapshot, caretPoint.Value);
-                        // If null this means we can't find the symbol to select. The document has changed enough since we are queued that we can't find anything applicable.
-                        if (symbolToSelect is not null)
-                        {
-                            ExpandAncestors(DocumentSymbolViewModelItems, symbolToSelect.Data.SelectionRangeSpan);
-                            symbolToSelect.IsSelected = true;
-                        }
+                        ExpandAncestors(DocumentSymbolViewModelItems, symbolToSelect.Data.SelectionRangeSpan);
+                        symbolToSelect.IsSelected = true;
                     }
                 }
             }
