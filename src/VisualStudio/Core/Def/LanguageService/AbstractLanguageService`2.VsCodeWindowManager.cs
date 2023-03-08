@@ -271,7 +271,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     return;
                 }
                 var wpfTextView = editorAdaptersFactoryService.GetWpfTextView(textView);
-                Assumes.NotNull(wpfTextView);
+                if (wpfTextView is null)
+                    return;
 
                 // TODO: Hooking the text buffer seems wrong.  How would this work for projections?
                 var subjectBuffer = wpfTextView.TextBuffer;
@@ -286,8 +287,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     // Once we hook this buffer up to the workspace, then we can start computing the document symbols.
                     TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer));
 
-                var viewModel = new DocumentOutlineViewModel(languageServiceBroker, asyncListener, eventSource, wpfTextView, subjectBuffer, threadingContext);
-                _documentOutlineView = new DocumentOutlineView(viewModel, editorAdaptersFactoryService, _codeWindow, threadingContext);
+                _documentOutlineView = new DocumentOutlineView(
+                    new DocumentOutlineViewModel(languageServiceBroker, asyncListener, eventSource, wpfTextView, subjectBuffer, threadingContext),
+                    editorAdaptersFactoryService,
+                    _codeWindow,
+                    threadingContext);
 
                 _documentOutlineViewHost = new ElementHost
                 {
