@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return analysis.results;
             }
 
-            var lazyResults = new AsyncLazy<DocumentAnalysisResults>(
+            var lazyResults = AsyncLazy.Create(
                 asynchronousComputeFunction: async cancellationToken =>
                 {
                     try
