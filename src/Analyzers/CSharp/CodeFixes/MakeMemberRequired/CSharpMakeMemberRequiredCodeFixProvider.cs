@@ -49,6 +49,13 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider : SyntaxEditorBase
 
         var node = root.FindNode(span);
 
+        // Supported cases:
+        // public string [|MyProperty|] { get; set; }
+        // piblic string [|_myField|];
+        // public string [|_myField1|], [|_myField2|];
+        if (node is not (PropertyDeclarationSyntax or VariableDeclaratorSyntax { Parent.Parent: FieldDeclarationSyntax }))
+            return;
+
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var fieldOrPropertySymbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
