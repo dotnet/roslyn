@@ -235,7 +235,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 
             // Call ExpandAncestors on a child node
             var selectedNode = uiItems.Single(parent => parent.Data.Name.Equals("MyClass")).Children.Single(child => child.Data.Name.Equals("Method2"));
-            DocumentOutlineHelper.ExpandAncestors(uiItems, selectedNode.Data.RangeSpan);
+            DocumentOutlineViewModel.ExpandAncestors(uiItems, selectedNode.Data.RangeSpan);
 
             // Confirm that only the child node and its ancestors are expanded
             CheckAncestorNodeExpansion(uiItems);

@@ -94,31 +94,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
-        /// <summary>
-        /// Expands all the ancestors of a <see cref="DocumentSymbolDataViewModel"/>.
-        /// </summary>
-        public static void ExpandAncestors(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems, SnapshotSpan documentSymbolRangeSpan)
-        {
-            var symbol = GetSymbolInRange(documentSymbolItems, documentSymbolRangeSpan);
-            if (symbol is not null)
-            {
-                // Setting a boolean property on this View Model can happen on any thread.
-                symbol.IsExpanded = true;
-                ExpandAncestors(symbol.Children, documentSymbolRangeSpan);
-            }
-
-            static DocumentSymbolDataViewModel? GetSymbolInRange(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems, SnapshotSpan rangeSpan)
-            {
-                foreach (var symbol in documentSymbolItems)
-                {
-                    if (symbol.Data.RangeSpan.Contains(rangeSpan))
-                        return symbol;
-                }
-
-                return null;
-            }
-        }
-
         internal static void UnselectAll(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems)
         {
             foreach (var documentSymbolItem in documentSymbolItems)

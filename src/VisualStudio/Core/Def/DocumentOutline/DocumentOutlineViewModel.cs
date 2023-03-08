@@ -358,7 +358,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                         // If null this means we can't find the symbol to select. The document has changed enough since we are queued that we can't find anything applicable.
                         if (symbolToSelect is not null)
                         {
-                            DocumentOutlineHelper.ExpandAncestors(DocumentSymbolViewModelItems, symbolToSelect.Data.SelectionRangeSpan);
+                            ExpandAncestors(DocumentSymbolViewModelItems, symbolToSelect.Data.SelectionRangeSpan);
                             symbolToSelect.IsSelected = true;
                         }
                     }
@@ -411,6 +411,31 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
                     return true;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Expands all the ancestors of a <see cref="DocumentSymbolDataViewModel"/>.
+        /// </summary>
+        public static void ExpandAncestors(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems, SnapshotSpan documentSymbolRangeSpan)
+        {
+            var symbol = GetSymbolInRange(documentSymbolItems, documentSymbolRangeSpan);
+            if (symbol is not null)
+            {
+                // Setting a boolean property on this View Model can happen on any thread.
+                symbol.IsExpanded = true;
+                ExpandAncestors(symbol.Children, documentSymbolRangeSpan);
+            }
+
+            static DocumentSymbolDataViewModel? GetSymbolInRange(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems, SnapshotSpan rangeSpan)
+            {
+                foreach (var symbol in documentSymbolItems)
+                {
+                    if (symbol.Data.RangeSpan.Contains(rangeSpan))
+                        return symbol;
+                }
+
+                return null;
             }
         }
 
