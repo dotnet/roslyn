@@ -2172,6 +2172,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                         throw new System.NotImplementedException();
                     }
                 }
+
                 """, parseOptions: TestOptions.RegularPreview);
         }
 
