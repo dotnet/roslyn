@@ -692,7 +692,7 @@ $@"class C
                 {
                     void M()
                     {
-
+                        
                     }
 
                     private static C LocalFunction(C c)
