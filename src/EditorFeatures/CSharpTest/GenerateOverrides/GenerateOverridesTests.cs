@@ -24,29 +24,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateOverrides
         public async Task Test1()
         {
             await TestWithPickMembersDialogAsync(
-@"
-class C
-{
-    [||]
-}",
-@"
-class C
-{
-    public override bool Equals(object obj)
-    {
-        return base.Equals(obj);
-    }
+                """
+                class C
+                {
+                    [||]
+                }
+                """,
+                """
+                class C
+                {
+                    public override bool Equals(object obj)
+                    {
+                        return base.Equals(obj);
+                    }
 
-    public override int GetHashCode()
-    {
-        return base.GetHashCode();
-    }
+                    public override int GetHashCode()
+                    {
+                        return base.GetHashCode();
+                    }
 
-    public override string ToString()
-    {
-        return base.ToString();
-    }
-}", new[] { "Equals", "GetHashCode", "ToString" });
+                    public override string ToString()
+                    {
+                        return base.ToString();
+                    }
+                }
+                """, new[] { "Equals", "GetHashCode", "ToString" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
@@ -54,49 +56,50 @@ class C
         public async Task TestAtEndOfFile()
         {
             await TestWithPickMembersDialogAsync(
-@"
-class C[||]",
-@"
-class C
-{
-    public override bool Equals(object obj)
-    {
-        return base.Equals(obj);
-    }
+                """
+                class C[||]
+                """,
+                """
+                class C
+                {
+                    public override bool Equals(object obj)
+                    {
+                        return base.Equals(obj);
+                    }
 
-    public override int GetHashCode()
-    {
-        return base.GetHashCode();
-    }
+                    public override int GetHashCode()
+                    {
+                        return base.GetHashCode();
+                    }
 
-    public override string ToString()
-    {
-        return base.ToString();
-    }
-}
-", new[] { "Equals", "GetHashCode", "ToString" });
+                    public override string ToString()
+                    {
+                        return base.ToString();
+                    }
+                }
+                """, new[] { "Equals", "GetHashCode", "ToString" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/48295")]
         public async Task TestOnRecordWithSemiColon()
         {
-            await TestWithPickMembersDialogAsync(@"
-record C[||];
-", @"
-record C
-{
-    public override int GetHashCode()
-    {
-        return base.GetHashCode();
-    }
+            await TestWithPickMembersDialogAsync("""
+                record C[||];
+                """, """
+                record C
+                {
+                    public override int GetHashCode()
+                    {
+                        return base.GetHashCode();
+                    }
 
-    public override string ToString()
-    {
-        return base.ToString();
-    }
-}
-", new[] { "GetHashCode", "ToString" });
+                    public override string ToString()
+                    {
+                        return base.ToString();
+                    }
+                }
+                """, new[] { "GetHashCode", "ToString" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
@@ -104,97 +107,103 @@ record C
         public async Task TestRefReturns()
         {
             await TestWithPickMembersDialogAsync(
-@"
-using System;
+                """
+                using System;
 
-class Base
-{
-    public virtual ref int X() => throw new NotImplementedException();
+                class Base
+                {
+                    public virtual ref int X() => throw new NotImplementedException();
 
-    public virtual ref int Y => throw new NotImplementedException();
+                    public virtual ref int Y => throw new NotImplementedException();
 
-    public virtual ref int this[int i] => throw new NotImplementedException();
-}
+                    public virtual ref int this[int i] => throw new NotImplementedException();
+                }
 
-class Derived : Base
-{
-     [||]
-}",
-@"
-using System;
+                class Derived : Base
+                {
+                     [||]
+                }
+                """,
+                """
+                using System;
 
-class Base
-{
-    public virtual ref int X() => throw new NotImplementedException();
+                class Base
+                {
+                    public virtual ref int X() => throw new NotImplementedException();
 
-    public virtual ref int Y => throw new NotImplementedException();
+                    public virtual ref int Y => throw new NotImplementedException();
 
-    public virtual ref int this[int i] => throw new NotImplementedException();
-}
+                    public virtual ref int this[int i] => throw new NotImplementedException();
+                }
 
-class Derived : Base
-{
-    public override ref int this[int i] => ref base[i];
+                class Derived : Base
+                {
+                    public override ref int this[int i] => ref base[i];
 
-    public override ref int Y => ref base.Y;
+                    public override ref int Y => ref base.Y;
 
-    public override ref int X()
-    {
-        return ref base.X();
-    }
-}", new[] { "X", "Y", "this[]" });
+                    public override ref int X()
+                    {
+                        return ref base.X();
+                    }
+                }
+                """, new[] { "X", "Y", "this[]" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
         public async Task TestInitOnlyProperty()
         {
             await TestWithPickMembersDialogAsync(
-@"
-class Base
-{
-    public virtual int Property { init => throw new NotImplementedException(); }
-}
+                """
+                class Base
+                {
+                    public virtual int Property { init => throw new NotImplementedException(); }
+                }
 
-class Derived : Base
-{
-     [||]
-}",
-@"
-class Base
-{
-    public virtual int Property { init => throw new NotImplementedException(); }
-}
+                class Derived : Base
+                {
+                     [||]
+                }
+                """,
+                """
+                class Base
+                {
+                    public virtual int Property { init => throw new NotImplementedException(); }
+                }
 
-class Derived : Base
-{
-    public override int Property { init => base.Property = value; }
-}", new[] { "Property" });
+                class Derived : Base
+                {
+                    public override int Property { init => base.Property = value; }
+                }
+                """, new[] { "Property" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
         public async Task TestInitOnlyIndexer()
         {
             await TestWithPickMembersDialogAsync(
-@"
-class Base
-{
-    public virtual int this[int i] { init => throw new NotImplementedException(); }
-}
+                """
+                class Base
+                {
+                    public virtual int this[int i] { init => throw new NotImplementedException(); }
+                }
 
-class Derived : Base
-{
-     [||]
-}",
-@"
-class Base
-{
-    public virtual int this[int i] { init => throw new NotImplementedException(); }
-}
+                class Derived : Base
+                {
+                     [||]
+                }
+                """,
+                """
+                class Base
+                {
+                    public virtual int this[int i] { init => throw new NotImplementedException(); }
+                }
 
-class Derived : Base
-{
-    public override int this[int i] { init => base[i] = value; }
-}", new[] { "this[]" });
+                class Derived : Base
+                {
+                    public override int this[int i] { init => base[i] = value; }
+                }
+                """, new[] { "this[]" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
@@ -202,11 +211,12 @@ class Derived : Base
         public async Task TestMissingInStaticClass1()
         {
             await TestMissingAsync(
-@"
-static class C
-{
-    [||]
-}");
+                """
+                static class C
+                {
+                    [||]
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
@@ -214,11 +224,12 @@ static class C
         public async Task TestMissingInStaticClass2()
         {
             await TestMissingAsync(
-@"
-static class [||]C
-{
-    
-}");
+                """
+                static class [||]C
+                {
+
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -226,55 +237,61 @@ static class [||]C
         public async Task TestNullableTypeParameter()
         {
             await TestWithPickMembersDialogAsync(
-@"class C
-{
-    public virtual void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) {}
-}
+                """
+                class C
+                {
+                    public virtual void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) {}
+                }
 
-class D : C
-{
-    [||]
-}",
-@"class C
-{
-    public virtual void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) {}
-}
+                class D : C
+                {
+                    [||]
+                }
+                """,
+                """
+                class C
+                {
+                    public virtual void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) {}
+                }
 
-class D : C
-{
-    public override void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d)
-        where T1 : default
-        where T3 : default
-    {
-        base.M(a, b, c, d);
-    }
-}", new[] { "M" });
+                class D : C
+                {
+                    public override void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d)
+                        where T1 : default
+                        where T3 : default
+                    {
+                        base.M(a, b, c, d);
+                    }
+                }
+                """, new[] { "M" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
         public async Task TestRequiredProperty()
         {
             await TestWithPickMembersDialogAsync(
-@"
-class Base
-{
-    public virtual required int Property { get; set; }
-}
+                """
+                class Base
+                {
+                    public virtual required int Property { get; set; }
+                }
 
-class Derived : Base
-{
-     [||]
-}",
-@"
-class Base
-{
-    public virtual required int Property { get; set; }
-}
+                class Derived : Base
+                {
+                     [||]
+                }
+                """,
+                """
+                class Base
+                {
+                    public virtual required int Property { get; set; }
+                }
 
-class Derived : Base
-{
-    public override required int Property { get => base.Property; set => base.Property = value; }
-}", new[] { "Property" });
+                class Derived : Base
+                {
+                    public override required int Property { get => base.Property; set => base.Property = value; }
+                }
+                """, new[] { "Property" });
         }
     }
 }
