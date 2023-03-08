@@ -119,6 +119,13 @@ internal sealed class LoadedProject : IDisposable
             document => _projectSystemProject.AddAnalyzerConfigFile(document.FilePath),
             document => _projectSystemProject.RemoveAnalyzerConfigFile(document.FilePath));
 
+        UpdateProjectSystemProjectCollection(
+            newProjectInfo.AdditionalDocuments.Where(TreatAsIsDynamicFile).Distinct(DocumentFileInfoComparer.Instance), // TODO: figure out why we have duplicates
+            _mostRecentFileInfo?.AdditionalDocuments.Where(TreatAsIsDynamicFile).Distinct(DocumentFileInfoComparer.Instance),
+            DocumentFileInfoComparer.Instance,
+            document => _projectSystemProject.AddDynamicSourceFile(document.FilePath, folders: ImmutableArray<string>.Empty),
+            document => _projectSystemProject.RemoveAdditionalFile(document.FilePath));
+
         _mostRecentFileInfo = newProjectInfo;
 
         return;
@@ -145,6 +152,12 @@ internal sealed class LoadedProject : IDisposable
                 removeItem(oldItem);
             }
         }
+    }
+
+    private static bool TreatAsIsDynamicFile(DocumentFileInfo info)
+    {
+        var extension = Path.GetExtension(info.FilePath);
+        return extension is ".cshtml" or ".razor";
     }
 
     private sealed class DocumentFileInfoComparer : IEqualityComparer<DocumentFileInfo>
