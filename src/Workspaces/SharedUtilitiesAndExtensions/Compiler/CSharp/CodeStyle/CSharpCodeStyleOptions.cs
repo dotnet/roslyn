@@ -65,27 +65,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             CSharpIdeCodeStyleOptions.Default.PreferExtendedPropertyPattern);
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferThrowExpression = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_throw_expression",
+            CodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_throw_expression",
             CSharpSimplifierOptions.Default.PreferThrowExpression);
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferInlinedVariableDeclaration = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_inlined_variable_declaration",
+            CodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_inlined_variable_declaration",
             CSharpIdeCodeStyleOptions.Default.PreferInlinedVariableDeclaration);
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferDeconstructedVariableDeclaration = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_deconstructed_variable_declaration",
+            CodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_deconstructed_variable_declaration",
             CSharpIdeCodeStyleOptions.Default.PreferDeconstructedVariableDeclaration);
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferIndexOperator = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_prefer_index_operator",
+            CodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_prefer_index_operator",
             CSharpIdeCodeStyleOptions.Default.PreferIndexOperator);
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferRangeOperator = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_prefer_range_operator",
+            CodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_prefer_range_operator",
             CSharpIdeCodeStyleOptions.Default.PreferRangeOperator);
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferUtf8StringLiterals = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_prefer_utf8_string_literals",
+            CodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_prefer_utf8_string_literals",
             CSharpIdeCodeStyleOptions.Default.PreferUtf8StringLiterals);
 
         public static readonly CodeStyleOption2<ExpressionBodyPreference> NeverWithSilentEnforcement =
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 serializeValue: value => GetPreferBracesPreferenceEditorConfigString(value, defaultValue)));
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferSimpleDefaultExpression = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences,
+            CodeStyleOptionGroups.ExpressionLevelPreferences,
             "csharp_prefer_simple_default_expression",
             CSharpSimplifierOptions.Default.PreferSimpleDefaultExpression);
 
@@ -171,12 +171,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             CSharpIdeCodeStyleOptions.Default.PreferSimpleUsingStatement);
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferLocalOverAnonymousFunction = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences,
+            CodeStyleOptionGroups.ExpressionLevelPreferences,
             "csharp_style_prefer_local_over_anonymous_function",
             CSharpIdeCodeStyleOptions.Default.PreferLocalOverAnonymousFunction);
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferTupleSwap = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_prefer_tuple_swap",
+            CodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_prefer_tuple_swap",
             CSharpIdeCodeStyleOptions.Default.PreferTupleSwap);
 
         public static readonly Option2<CodeStyleOption2<AddImportPlacement>> PreferredUsingDirectivePlacement = CreateOption(
@@ -188,24 +188,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 serializeValue: value => GetUsingDirectivesPlacementEditorConfigString(value, defaultValue)));
 
         internal static readonly Option2<CodeStyleOption2<UnusedValuePreference>> UnusedValueExpressionStatement = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences,
+            CodeStyleOptionGroups.ExpressionLevelPreferences,
             "csharp_style_unused_value_expression_statement_preference",
             CSharpIdeCodeStyleOptions.Default.UnusedValueExpressionStatement,
             serializerFactory: CodeStyleHelpers.GetUnusedValuePreferenceSerializer);
 
         internal static readonly Option2<CodeStyleOption2<UnusedValuePreference>> UnusedValueAssignment = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences,
+            CodeStyleOptionGroups.ExpressionLevelPreferences,
             "csharp_style_unused_value_assignment_preference",
             CSharpIdeCodeStyleOptions.Default.UnusedValueAssignment,
             serializerFactory: CodeStyleHelpers.GetUnusedValuePreferenceSerializer);
 
         public static readonly Option2<CodeStyleOption2<bool>> ImplicitObjectCreationWhenTypeIsApparent = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences,
+            CodeStyleOptionGroups.ExpressionLevelPreferences,
             "csharp_style_implicit_object_creation_when_type_is_apparent",
             CSharpIdeCodeStyleOptions.Default.ImplicitObjectCreationWhenTypeIsApparent);
 
         internal static readonly Option2<CodeStyleOption2<bool>> PreferNullCheckOverTypeCheck = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences,
+            CodeStyleOptionGroups.ExpressionLevelPreferences,
             "csharp_style_prefer_null_check_over_type_check",
             CSharpIdeCodeStyleOptions.Default.PreferNullCheckOverTypeCheck);
 
@@ -262,7 +262,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly OptionGroup PatternMatching = new("csharp_pattern_matching", CSharpCompilerExtensionsResources.Pattern_matching_preferences, priority: 3, parent: CodeStyleOptionGroups.CodeStyle);
         public static readonly OptionGroup NullCheckingPreferences = new("csharp_null_checking_preferences", CSharpCompilerExtensionsResources.Null_checking_preferences, priority: 4, parent: CodeStyleOptionGroups.CodeStyle);
         public static readonly OptionGroup CodeBlockPreferences = new("csharp_code_block_preferences", CSharpCompilerExtensionsResources.Code_block_preferences, priority: 6, parent: CodeStyleOptionGroups.CodeStyle);
-        public static readonly OptionGroup ExpressionLevelPreferences = new("csharp_expression_level_preferences", CompilerExtensionsResources.Expression_level_preferences, priority: 7, parent: CodeStyleOptionGroups.CodeStyle);
         public static readonly OptionGroup UsingDirectivePreferences = new("csharp_using_directive_preferences", CSharpCompilerExtensionsResources.using_directive_preferences, priority: 8, parent: CodeStyleOptionGroups.CodeStyle);
     }
 }
