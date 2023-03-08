@@ -1094,7 +1094,7 @@ class D { }
             Assert.NotEqual(oldVersion, await doc.Project.GetSemanticVersionAsync());
         }
 
-        [Fact, WorkItem(31540, "https://github.com/dotnet/roslyn/issues/31540")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31540")]
         public void TestAdditionalFile_OpenClose()
         {
             using var workspace = CreateWorkspace();
@@ -1280,7 +1280,7 @@ class D { }
             Assert.Equal("original.config", workspace.CurrentSolution.GetProject(project1.Id).AnalyzerConfigDocuments.Single().Name);
         }
 
-        [Fact, WorkItem(31540, "https://github.com/dotnet/roslyn/issues/31540")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31540")]
         public void TestAdditionalFile_GetDocumentIdsWithFilePath()
         {
             using var workspace = CreateWorkspace();
@@ -1319,7 +1319,7 @@ class D { }
             Assert.Equal(analyzerConfigDoc.Id, documentIdsWithFilePath.Single());
         }
 
-        [Fact, WorkItem(209299, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=209299")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=209299")]
         public async Task TestLinkedFilesStayInSync()
         {
             var originalText = "class Program1 { }";
@@ -1363,7 +1363,7 @@ class D { }
             Assert.Equal(updatedText, (await eventArgs[1].NewSolution.GetDocument(originalDocumentId).GetTextAsync().ConfigureAwait(false)).ToString());
         }
 
-        [Fact, WorkItem(31928, "https://github.com/dotnet/roslyn/issues/31928")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31928")]
         public void TestVersionStamp_Local()
         {
             // only Utc is allowed
@@ -1385,7 +1385,7 @@ class D { }
             Assert.Equal(version5, version4);
         }
 
-        [Fact, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19284")]
         public void TestSolutionWithOptions()
         {
             using var workspace1 = CreateWorkspace();
@@ -1413,7 +1413,7 @@ class D { }
         }
 
         [Obsolete]
-        [Fact, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19284")]
         public void TestOptionChangedHandlerInvokedAfterCurrentSolutionChanged()
         {
             using var primaryWorkspace = CreateWorkspace();

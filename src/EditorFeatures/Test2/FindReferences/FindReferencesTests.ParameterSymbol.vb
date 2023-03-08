@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542475")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542475")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestPartialParameter1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -133,7 +133,7 @@ partial class program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542475")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542475")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestPartialParameter2(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -199,7 +199,7 @@ partial class program
 
 #End Region
 
-        <WorkItem(543276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543276")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543276")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAnonymousFunctionParameter1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -222,7 +222,7 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(624310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624310")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624310")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAnonymousFunctionParameter3(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -242,7 +242,7 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(624310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624310")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624310")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAnonymousFunctionParameter4(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -261,7 +261,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(543276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543276")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543276")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAnonymousFunctionParameter2(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -284,7 +284,7 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(529688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529688")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529688")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAnonymousFunctionParameter5(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -304,7 +304,7 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(545654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545654")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545654")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestReducedExtensionNamedParameter1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -333,7 +333,7 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(545654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545654")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545654")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestReducedExtensionNamedParameter2(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -362,7 +362,7 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_TestAnonymousMethodParameter1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -385,7 +385,7 @@ class X
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_TestAnonymousMethodParameter2(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -408,7 +408,7 @@ class X
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_TestAnonymousMethodParameter3(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -431,7 +431,7 @@ class X
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_TestAnonymousMethodParameter4(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -454,7 +454,7 @@ class X
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestVB_TestAnonymousMethodParameter1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -475,7 +475,7 @@ end class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestVB_TestAnonymousMethodParameter2(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -496,7 +496,7 @@ end class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestVB_TestAnonymousMethodParameter3(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -517,7 +517,7 @@ end class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestVB_TestAnonymousMethodParameter4(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -538,7 +538,7 @@ end class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16757")>
         <WpfTheory, CombinatorialData>
         <CompilerTrait(CompilerFeature.LocalFunctions)>
         Public Async Function TestParameterInLocalFunction1(kind As TestKind, host As TestHost) As Task
@@ -564,7 +564,7 @@ end class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16757")>
         <WpfTheory, CombinatorialData>
         <CompilerTrait(CompilerFeature.LocalFunctions)>
         Public Async Function TestParameterInLocalFunction2(kind As TestKind, host As TestHost) As Task
@@ -589,7 +589,7 @@ end class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16757")>
         <WpfTheory, CombinatorialData>
         <CompilerTrait(CompilerFeature.LocalFunctions)>
         Public Async Function TestParameterInLocalFunction3(kind As TestKind, host As TestHost) As Task
@@ -615,7 +615,7 @@ end class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16757")>
         <WpfTheory, CombinatorialData>
         <CompilerTrait(CompilerFeature.LocalFunctions)>
         Public Async Function TestParameterInLocalFunction4(kind As TestKind, host As TestHost) As Task
