@@ -64,9 +64,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         // Mutable state.  Should only update on UI thread.
 
-        private SortOption _sortOption = SortOption.Location;
-        private string? _searchText;
-        private ImmutableArray<DocumentSymbolDataViewModel> _documentSymbolViewModelItems = ImmutableArray<DocumentSymbolDataViewModel>.Empty;
+        private SortOption _sortOption_doNotAccessDirectly = SortOption.Location;
+        private string? _searchText_doNotAccessDirectly;
+        private ImmutableArray<DocumentSymbolDataViewModel> _documentSymbolViewModelItems_doNotAccessDirectly = ImmutableArray<DocumentSymbolDataViewModel>.Empty;
 
         public DocumentOutlineViewModel(
             ILanguageServiceBroker2 languageServiceBroker,
@@ -114,35 +114,50 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         public SortOption SortOption
         {
-            get => _sortOption;
+            get
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                return _sortOption_doNotAccessDirectly;
+            }
+
             set
             {
                 _threadingContext.ThrowIfNotOnUIThread();
-                SetProperty(ref _sortOption, value);
+                SetProperty(ref _sortOption_doNotAccessDirectly, value);
             }
         }
 
         public string? SearchText
         {
-            get => _searchText;
+            get
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                return _searchText_doNotAccessDirectly;
+            }
+
             set
             {
                 _threadingContext.ThrowIfNotOnUIThread();
-                _searchText = value;
-                EnqueueFilter(_searchText);
+                _searchText_doNotAccessDirectly = value;
+                EnqueueFilter(_searchText_doNotAccessDirectly);
             }
         }
 
         public ImmutableArray<DocumentSymbolDataViewModel> DocumentSymbolViewModelItems
         {
-            get => _documentSymbolViewModelItems;
+            get
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                return _documentSymbolViewModelItems_doNotAccessDirectly;
+            }
+
             private set
             {
                 _threadingContext.ThrowIfNotOnBackgroundThread();
 
                 // Unselect any currently selected items or WPF will believe it needs to select the root node.
-                UnselectAll(_documentSymbolViewModelItems);
-                SetProperty(ref _documentSymbolViewModelItems, value);
+                UnselectAll(_documentSymbolViewModelItems_doNotAccessDirectly);
+                SetProperty(ref _documentSymbolViewModelItems_doNotAccessDirectly, value);
             }
         }
 
