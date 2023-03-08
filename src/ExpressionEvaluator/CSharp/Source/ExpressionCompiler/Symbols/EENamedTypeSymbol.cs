@@ -359,8 +359,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool IsExtension => false;
         internal override TypeSymbol GetDeclaredExtensionUnderlyingType() => throw ExceptionUtilities.Unreachable();
         internal override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions() => throw ExceptionUtilities.Unreachable();
-        protected override TypeSymbol ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore => throw ExceptionUtilities.Unreachable();
-        protected override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnosticsCore => throw ExceptionUtilities.Unreachable();
+        internal override TypeSymbol ExtensionUnderlyingTypeNoUseSiteDiagnostics => throw ExceptionUtilities.Unreachable();
+        internal override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics => throw ExceptionUtilities.Unreachable();
 
         [Conditional("DEBUG")]
         internal static void VerifyTypeParameters(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters)

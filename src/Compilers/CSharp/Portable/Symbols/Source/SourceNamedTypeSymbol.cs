@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     // This is a type symbol associated with a type definition in source code.
     // That is, for a generic type C<T> this is the instance type C<T>.  
-    internal sealed partial class SourceNamedTypeSymbol : SourceMemberContainerTypeSymbol, IAttributeTargetSymbol
+    internal abstract partial class SourceNamedTypeSymbol : SourceMemberContainerTypeSymbol, IAttributeTargetSymbol
     {
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ThreeState _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.Unknown;
 
-        protected override Location GetCorrespondingBaseListLocation(NamedTypeSymbol @base)
+        protected sealed override Location GetCorrespondingBaseListLocation(NamedTypeSymbol @base)
         {
             Location backupLocation = null;
 
@@ -81,6 +81,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return backupLocation;
         }
 
+        internal static SourceNamedTypeSymbol Create(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
+        {
+            if (declaration.Kind == DeclarationKind.Extension)
+            {
+                return new SourceExtensionTypeSymbol(containingSymbol, declaration, diagnostics);
+            }
+
+            return new SourceNonExtensionNamedTypeSymbol(containingSymbol, declaration, diagnostics);
+        }
+
         internal SourceNamedTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, BindingDiagnosticBag diagnostics, TupleExtraData tupleData = null)
             : base(containingSymbol, declaration, diagnostics, tupleData)
         {
@@ -107,9 +117,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+        protected sealed override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
-            return new SourceNamedTypeSymbol(ContainingType, declaration, BindingDiagnosticBag.Discarded, newData);
+            Debug.Assert(!this.IsExtension);
+            return new SourceNonExtensionNamedTypeSymbol(ContainingType, declaration, BindingDiagnosticBag.Discarded, newData);
         }
 
         #region Syntax
@@ -134,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        public sealed override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             ref var lazyDocComment = ref expandIncludes ? ref _lazyExpandedDocComment : ref _lazyDocComment;
             return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
@@ -749,7 +760,7 @@ next:;
             }
         }
 
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters
+        public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get
             {
@@ -901,7 +912,7 @@ next:;
             return (TypeEarlyWellKnownAttributeData)attributesBag.EarlyDecodedWellKnownAttributeData;
         }
 
-        internal override (CSharpAttributeData?, BoundAttribute?) EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        internal sealed override (CSharpAttributeData?, BoundAttribute?) EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
             bool hasAnyDiagnostics;
             CSharpAttributeData? attributeData;
@@ -1015,7 +1026,7 @@ next:;
         }
 #nullable disable
 
-        internal override AttributeUsageInfo GetAttributeUsageInfo()
+        internal sealed override AttributeUsageInfo GetAttributeUsageInfo()
         {
             Debug.Assert(this.SpecialType == SpecialType.System_Object || this.DeclaringCompilation.IsAttributeType(this));
 
@@ -1032,7 +1043,7 @@ next:;
         /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
         /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
         /// </summary>
-        internal override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
         {
             get
             {
@@ -1158,7 +1169,7 @@ next:;
             }
         }
 
-        internal override bool IsExplicitDefinitionOfNoPiaLocalType
+        internal sealed override bool IsExplicitDefinitionOfNoPiaLocalType
         {
             get
             {
@@ -1269,7 +1280,7 @@ next:;
             }
         }
 
-        internal override bool IsComImport
+        internal sealed override bool IsComImport
         {
             get
             {
@@ -1278,7 +1289,7 @@ next:;
             }
         }
 
-        internal override NamedTypeSymbol ComImportCoClass
+        internal sealed override NamedTypeSymbol ComImportCoClass
         {
             get
             {
@@ -1310,7 +1321,7 @@ next:;
             }
         }
 
-        internal override bool HasSpecialName
+        internal sealed override bool HasSpecialName
         {
             get
             {
@@ -1319,7 +1330,7 @@ next:;
             }
         }
 
-        internal override bool HasCodeAnalysisEmbeddedAttribute
+        internal sealed override bool HasCodeAnalysisEmbeddedAttribute
         {
             get
             {
@@ -1365,7 +1376,7 @@ next:;
             }
         }
 
-        internal override bool IsDirectlyExcludedFromCodeCoverage =>
+        internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
             GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
 
         private bool HasInstanceFields()
@@ -1415,7 +1426,7 @@ next:;
             }
         }
 
-        internal override CharSet MarshallingCharSet
+        internal sealed override CharSet MarshallingCharSet
         {
             get
             {
@@ -1458,13 +1469,13 @@ next:;
             return null;
         }
 
-        internal override ImmutableArray<string> GetAppliedConditionalSymbols()
+        internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
             var data = GetEarlyDecodedWellKnownAttributeData();
             return data != null ? data.ConditionalSymbols : ImmutableArray<string>.Empty;
         }
 
-        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal sealed override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             Debug.Assert(!boundAttributes.IsDefault);
             Debug.Assert(!allAttributeSyntaxNodes.IsDefault);
@@ -1550,7 +1561,7 @@ next:;
         /// These won't be returned by GetAttributes on source methods, but they
         /// will be returned by GetAttributes on metadata symbols.
         /// </remarks>
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
@@ -1643,7 +1654,7 @@ next:;
 
         #endregion
 
-        internal override NamedTypeSymbol AsNativeInteger()
+        internal sealed override NamedTypeSymbol AsNativeInteger()
         {
             Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
             if (ContainingAssembly.RuntimeSupportsNumericIntPtr)
@@ -1654,9 +1665,9 @@ next:;
             return ContainingAssembly.GetNativeIntegerType(this);
         }
 
-        internal override NamedTypeSymbol NativeIntegerUnderlyingType => null;
+        internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+        internal sealed override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
             return t2 is NativeIntegerTypeSymbol nativeInteger ?
                 nativeInteger.Equals(this, comparison) :
@@ -1672,7 +1683,7 @@ next:;
             }
         }
 
-        protected override void AfterMembersCompletedChecks(BindingDiagnosticBag diagnostics)
+        protected sealed override void AfterMembersCompletedChecks(BindingDiagnosticBag diagnostics)
         {
             base.AfterMembersCompletedChecks(diagnostics);
 

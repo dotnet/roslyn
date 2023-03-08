@@ -128,7 +128,7 @@ explicit extension R for UnderlyingClass
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         AssertEx.Equal(new[]
@@ -216,7 +216,7 @@ class ContainingType
 
         var r = comp.GlobalNamespace.GetTypeMember("ContainingType").GetTypeMember("R");
         Assert.Equal("ContainingType.R", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("ContainingType", r.ContainingType.ToTestDisplayString());
     }
 
@@ -269,7 +269,7 @@ explicit extension R for UnderlyingClass
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         AssertEx.Equal(new[]
             {
                 "System.Int32 R.field",
@@ -305,7 +305,7 @@ explicit extension R for UnderlyingClass
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         AssertEx.Equal(new[]
             {
                 "event System.Action R.Event",
@@ -334,7 +334,7 @@ explicit extension R for C
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         AssertEx.Equal(new[] { "void R.R()" }, r.GetMembers().ToTestDisplayStrings());
     }
 
@@ -486,7 +486,7 @@ static explicit extension R for UnderlyingClass
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         AssertEx.Equal(new[]
@@ -1435,7 +1435,7 @@ explicit extension R for UnderlyingStruct
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("UnderlyingStruct", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         Assert.Empty(r.GetMembers());
@@ -1462,7 +1462,7 @@ explicit extension R<T> for T where T : I
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R<T>", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("T", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         Assert.Empty(r.GetMembers());
@@ -1489,7 +1489,7 @@ explicit extension R for E
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("E", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         Assert.Empty(r.GetMembers());
@@ -1515,7 +1515,7 @@ explicit extension R for object
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("System.Object", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         Assert.Empty(r.GetMembers());
@@ -1542,7 +1542,7 @@ explicit extension R<U> for C<U>
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R<U>", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("C<U>", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         Assert.Empty(r.GetMembers());
@@ -1568,7 +1568,7 @@ explicit extension R for (int, int)
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("(System.Int32, System.Int32)", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         Assert.Empty(r.GetMembers());
@@ -1594,7 +1594,7 @@ explicit extension R for int[]
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("System.Int32[]", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         Assert.Empty(r.GetMembers());
@@ -1648,7 +1648,7 @@ explicit extension R<T1, T2> for UnderlyingClass
         comp.VerifyDiagnostics();
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal(new[] { "T1", "T2" }, r.TypeParameters.ToTestDisplayStrings());
         Assert.True(r.IsGenericType);
         Assert.Equal(2, r.Arity);
@@ -1807,7 +1807,7 @@ static explicit extension R for UnderlyingClass
 """;
         var comp = CreateCompilation(src);
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.True(r.IsStatic);
         comp.VerifyDiagnostics();
@@ -1824,7 +1824,7 @@ static explicit extension R for UnderlyingClass
 """;
         var comp = CreateCompilation(src);
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.True(r.IsStatic);
         comp.VerifyDiagnostics();
@@ -1841,7 +1841,7 @@ explicit extension R for UnderlyingClass
 """;
         var comp = CreateCompilation(src);
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.False(r.IsStatic);
         comp.VerifyDiagnostics(
@@ -1862,7 +1862,7 @@ explicit extension R for UnderlyingClass
 """;
         var comp = CreateCompilation(src);
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.False(r.IsSealed);
         comp.VerifyDiagnostics();
@@ -2124,7 +2124,7 @@ unsafe explicit extension R for int*
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "int*").WithLocation(1, 33)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Null(r.ExtensionUnderlyingTypeNoUseSiteDiagnostics);
     }
 
@@ -2143,7 +2143,7 @@ explicit extension R for ref int
             Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(1, 26)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("System.Int32", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
     }
 
@@ -2183,7 +2183,7 @@ explicit extension R2 for int* // 2, 3
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "i").WithLocation(8, 23)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Null(r.ExtensionUnderlyingTypeNoUseSiteDiagnostics);
     }
 
@@ -2222,7 +2222,7 @@ explicit extension R for dynamic
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "dynamic").WithLocation(1, 26)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Null(r.ExtensionUnderlyingTypeNoUseSiteDiagnostics);
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
     }
@@ -2271,7 +2271,7 @@ public explicit extension R for UnderlyingStruct
             Diagnostic(ErrorCode.ERR_BadVisUnderlyingType, "R").WithArguments("R", "UnderlyingStruct").WithLocation(2, 27)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal(Accessibility.Public, r.DeclaredAccessibility);
     }
 
@@ -2290,7 +2290,7 @@ explicit extension R for RS { }
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
     }
 
     [Fact]
@@ -3811,7 +3811,7 @@ partial explicit extension R
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.False(r.IsStatic);
     }
@@ -3831,7 +3831,7 @@ explicit extension R for C { }
             Diagnostic(ErrorCode.ERR_MissingPartial, "R").WithArguments("R").WithLocation(3, 20)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("C", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
     }
 
@@ -3851,7 +3851,7 @@ unsafe explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_IllegalUnsafe, "R").WithLocation(2, 27)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.False(r.IsStatic);
     }
@@ -3868,7 +3868,7 @@ unsafe explicit extension R for UnderlyingClass
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.False(r.IsStatic);
         comp.VerifyDiagnostics();
@@ -3893,7 +3893,7 @@ explicit extension DerivedExtension for UnderlyingClass : BaseExtension
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("DerivedExtension").GetTypeMember("R");
         Assert.Equal("DerivedExtension.R", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("UnderlyingClass2", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         // PROTOTYPE verify hiding in usages/lookups
     }
@@ -3910,7 +3910,7 @@ public explicit extension R for UnderlyingStruct
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal(Accessibility.Public, r.DeclaredAccessibility);
         // PROTOTYPE verify accessibility from source and metadata references
     }
@@ -3934,7 +3934,7 @@ protected explicit extension R for UnderlyingStruct
             Diagnostic(ErrorCode.ERR_BadVisUnderlyingType, "R").WithArguments("R", "UnderlyingStruct").WithLocation(2, 30)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal(Accessibility.Protected, r.DeclaredAccessibility);
     }
 
@@ -3972,7 +3972,7 @@ class C
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("C").GetTypeMember("R");
         Assert.Equal("C.R", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal(Accessibility.Protected, r.DeclaredAccessibility);
         Assert.Equal("C", r.ContainingType.ToTestDisplayString());
         // PROTOTYPE verify accessibility from source and metadata references
@@ -3990,7 +3990,7 @@ internal explicit extension R for UnderlyingStruct
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal(Accessibility.Internal, r.DeclaredAccessibility);
         // PROTOTYPE verify accessibility from source and metadata references
     }
@@ -4014,7 +4014,7 @@ protected internal explicit extension R for UnderlyingStruct
             Diagnostic(ErrorCode.ERR_BadVisUnderlyingType, "R").WithArguments("R", "UnderlyingStruct").WithLocation(2, 39)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal(Accessibility.ProtectedOrInternal, r.DeclaredAccessibility);
     }
 
@@ -4033,7 +4033,7 @@ class C
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("C").GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal(Accessibility.ProtectedOrInternal, r.DeclaredAccessibility);
         // PROTOTYPE verify accessibility from source and metadata references
     }
@@ -4054,7 +4054,7 @@ private explicit extension R for UnderlyingStruct
             Diagnostic(ErrorCode.ERR_NoNamespacePrivate, "R").WithLocation(2, 28)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal(Accessibility.Private, r.DeclaredAccessibility);
     }
 
@@ -4074,7 +4074,7 @@ class C
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("C").GetTypeMember("R");
         Assert.Equal("C.R", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal(Accessibility.Private, r.DeclaredAccessibility);
     }
 
@@ -4091,7 +4091,7 @@ file explicit extension R for UnderlyingStruct
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R@<tree 0>", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal(Accessibility.Internal, r.DeclaredAccessibility);
         // PROTOTYPE verify visibility from source references, in name or extension lookup
     }
@@ -4113,7 +4113,7 @@ file internal explicit extension R for UnderlyingStruct
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R@<tree 0>", r.ToTestDisplayString());
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal(Accessibility.Internal, r.DeclaredAccessibility);
     }
 
@@ -4158,7 +4158,7 @@ internal internal explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_DuplicateModifier, "internal").WithArguments("internal").WithLocation(2, 10)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Equal(Accessibility.Internal, r.DeclaredAccessibility);
     }
@@ -4182,7 +4182,7 @@ public internal explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadVisUnderlyingType, "R").WithArguments("R", "UnderlyingClass").WithLocation(2, 36)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Equal(Accessibility.Public, r.DeclaredAccessibility);
     }
@@ -4206,7 +4206,7 @@ internal public explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadVisUnderlyingType, "R").WithArguments("R", "UnderlyingClass").WithLocation(2, 36)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Equal(Accessibility.Public, r.DeclaredAccessibility);
     }
@@ -4227,7 +4227,7 @@ abstract explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("abstract").WithLocation(2, 29)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
         Assert.Equal("UnderlyingClass", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
     }
 
@@ -4247,7 +4247,7 @@ readonly explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(2, 29)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
     }
 
     [Fact]
@@ -4295,7 +4295,7 @@ volatile explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("volatile").WithLocation(2, 29)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
     }
 
     [Fact]
@@ -4314,7 +4314,7 @@ extern explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("extern").WithLocation(2, 27)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
     }
 
     [Fact]
@@ -4372,7 +4372,7 @@ virtual explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("virtual").WithLocation(2, 28)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
     }
 
     [Fact]
@@ -4391,7 +4391,7 @@ override explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("override").WithLocation(2, 29)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
     }
 
     [Fact]
@@ -4410,7 +4410,7 @@ async explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("async").WithLocation(2, 26)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
     }
 
     [Fact]
@@ -4446,7 +4446,7 @@ required explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("required").WithLocation(2, 29)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        VerifyExtension<SourceNamedTypeSymbol>(r);
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
     }
 
     [Fact]

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// For enum types, gets the underlying type. Returns null on all other
         /// kinds of types.
         /// </summary>
-        public override NamedTypeSymbol EnumUnderlyingType
+        public sealed override NamedTypeSymbol EnumUnderlyingType
         {
             get
             {

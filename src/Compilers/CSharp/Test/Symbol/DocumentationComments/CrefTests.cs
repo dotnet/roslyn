@@ -2136,7 +2136,7 @@ class C
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
-            Assert.IsType<SourceNamedTypeSymbol>(actualSymbol);
+            Assert.IsType<SourceNonExtensionNamedTypeSymbol>(actualSymbol);
             Assert.Equal("A", actualSymbol.Name);
             Assert.Equal("Lib", actualSymbol.ContainingAssembly.Name);
         }

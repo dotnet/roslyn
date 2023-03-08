@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyInterfaces;
         }
 
-        protected override void CheckBase(BindingDiagnosticBag diagnostics)
+        protected sealed override void CheckBase(BindingDiagnosticBag diagnostics)
         {
             var localBase = this.BaseTypeNoUseSiteDiagnostics;
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override void CheckInterfaces(BindingDiagnosticBag diagnostics)
+        protected sealed override void CheckInterfaces(BindingDiagnosticBag diagnostics)
         {
             // Check declared interfaces and all base interfaces. This is necessary
             // since references to all interfaces will be emitted to metadata
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void ReportDuplicate(NamedTypeSymbol other, NamedTypeSymbol @interface,
+        protected void ReportDuplicate(NamedTypeSymbol other, NamedTypeSymbol @interface,
             SourceLocation location, BindingDiagnosticBag diagnostics, bool forBaseExtension)
         {
             if (other.Equals(@interface, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void ReportDuplicateLocally(NamedTypeSymbol type, TypeSymbol referenceType,
+        protected void ReportDuplicateLocally(NamedTypeSymbol type, TypeSymbol referenceType,
             SourceLocation location, BindingDiagnosticBag diagnostics, bool forBaseExtension)
         {
             if (type.Equals(referenceType, TypeCompareKind.ConsiderEverything))
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // Returns the first declaration in the merged declarations list that includes
         // base types or interfaces. Returns null if there are no such declarations.
-        private SingleTypeDeclaration FirstDeclarationWithExplicitBases()
+        protected SingleTypeDeclaration FirstDeclarationWithExplicitBases()
         {
             foreach (var singleDeclaration in this.declaration.Declarations)
             {
@@ -300,12 +300,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyDeclaredBases;
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
+        internal sealed override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {
             return GetDeclaredBases(basesBeingResolved).Item1;
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
+        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
         {
             return GetDeclaredBases(basesBeingResolved).Item2;
         }
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>>(baseType, baseInterfacesRO);
         }
 
-        private static bool ContainsOnlyOblivious(TypeSymbol type)
+        protected static bool ContainsOnlyOblivious(TypeSymbol type)
         {
             return TypeWithAnnotations.Create(type).VisitType(
                 type: null,

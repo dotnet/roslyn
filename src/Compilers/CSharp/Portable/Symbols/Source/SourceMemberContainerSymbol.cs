@@ -1317,7 +1317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var childDeclaration in declaration.Children)
                 {
-                    var t = new SourceNamedTypeSymbol(this, childDeclaration, diagnostics);
+                    var t = SourceNamedTypeSymbol.Create(this, childDeclaration, diagnostics);
                     this.CheckMemberNameDistinctFromType(t, diagnostics);
 
                     var key = (t.Name, t.Arity, t.AssociatedSyntaxTree);

@@ -4498,7 +4498,7 @@ namespace System
             Assert.True(unnamedTuple.IsDefinition);
             Assert.True(unnamedTuple.IsTupleType);
             Assert.Same(vt2, unnamedTuple);
-            Assert.IsType<SourceNamedTypeSymbol>(unnamedTuple);
+            Assert.IsType<SourceNonExtensionNamedTypeSymbol>(unnamedTuple);
             Assert.Same(vt2, unnamedTuple.ConstructedFrom);
             Assert.Same(unnamedTuple, unnamedTuple.OriginalDefinition);
             Assert.Same(unnamedTuple, unnamedTuple.TupleUnderlyingType);
@@ -27896,7 +27896,7 @@ class C
     }
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45);
-            var type = (SourceNamedTypeSymbol)comp.GetMember("System.ValueTuple");
+            var type = (SourceNonExtensionNamedTypeSymbol)comp.GetMember("System.ValueTuple");
             var field = (SourceMemberFieldSymbolFromDeclarator)type.GetMember("Item1");
             var underlyingField = field.TupleUnderlyingField;
 
@@ -28048,7 +28048,7 @@ class C
                 AssertEx.SetEqual(new[] { "T1 (T1, T2).Item1", "T2 (T1, T2).Item2" }, fields.ToTestDisplayStrings());
                 Assert.All(fields, f => Assert.True(f.HasUseSiteError));
 
-                Assert.Equal(module is SourceModuleSymbol ? "SourceNamedTypeSymbol" : "PENamedTypeSymbolGeneric", type.GetType().Name);
+                Assert.Equal(module is SourceModuleSymbol ? "SourceNonExtensionNamedTypeSymbol" : "PENamedTypeSymbolGeneric", type.GetType().Name);
                 Assert.Empty(type.GetFieldsToEmit());
             }
         }
@@ -28076,7 +28076,7 @@ namespace System
 
                 var tuple1 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("System.ValueTuple.M").ReturnType;
                 if (isSourceSymbol)
-                    Assert.Equal("SourceNamedTypeSymbol: (T1, T2)", print(tuple1));
+                    Assert.Equal("SourceNonExtensionNamedTypeSymbol: (T1, T2)", print(tuple1));
                 else
                     Assert.Equal("PENamedTypeSymbolGeneric: (T1, T2)", print(tuple1));
 
@@ -28139,7 +28139,7 @@ namespace System
 
                 var tuple1 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("System.ValueTuple.M").ReturnType;
                 if (isSourceSymbol)
-                    Assert.Equal("SourceNamedTypeSymbol: (T1, T2)", print(tuple1));
+                    Assert.Equal("SourceNonExtensionNamedTypeSymbol: (T1, T2)", print(tuple1));
                 else
                     Assert.Equal("PENamedTypeSymbolGeneric: (T1, T2)", print(tuple1));
 
@@ -28225,7 +28225,7 @@ namespace System
 
                     var namedType = (NamedTypeSymbol)tuple;
                     Assert.True(namedType.IsTupleType);
-                    Assert.Equal(isSourceSymbol ? "SourceNamedTypeSymbol" : (retargeting ? "RetargetingNamedTypeSymbol" : "PENamedTypeSymbolGeneric"),
+                    Assert.Equal(isSourceSymbol ? "SourceNonExtensionNamedTypeSymbol" : (retargeting ? "RetargetingNamedTypeSymbol" : "PENamedTypeSymbolGeneric"),
                         namedType.GetType().Name);
 
                     var item = namedType.GetMember<FieldSymbol>(name);
@@ -28668,7 +28668,7 @@ namespace System
                 assertValueTupleUnderlyingFields(type, isSourceSymbol);
                 if (isSourceSymbol)
                 {
-                    Assert.Equal("SourceNamedTypeSymbol: (T1, T2)", print(type));
+                    Assert.Equal("SourceNonExtensionNamedTypeSymbol: (T1, T2)", print(type));
                     AssertEx.SetEqual(new[] {
                         "SourceMemberFieldSymbolFromDeclarator: field",
                         "SourceMemberFieldSymbolFromDeclarator: Item1",
@@ -28737,7 +28737,7 @@ namespace System
                 {
                     var underlying = field.TupleUnderlyingField;
                     Assert.Equal(isSourceSymbol ? "SourceMemberFieldSymbolFromDeclarator" : "PEFieldSymbol", underlying.GetType().Name);
-                    Assert.Equal(isSourceSymbol ? "SourceNamedTypeSymbol" : "PENamedTypeSymbolGeneric", underlying.ContainingType.GetType().Name);
+                    Assert.Equal(isSourceSymbol ? "SourceNonExtensionNamedTypeSymbol" : "PENamedTypeSymbolGeneric", underlying.ContainingType.GetType().Name);
                 }
             }
 

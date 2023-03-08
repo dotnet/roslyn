@@ -11,11 +11,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal partial class SourceNamedTypeSymbol
+    // TODO2 rename file after review
+    internal sealed class SourceExtensionTypeSymbol : SourceNamedTypeSymbol
     {
         private ExtensionInfo _lazyDeclaredExtensionInfo = ExtensionInfo.Sentinel;
         private TypeSymbol? _lazyExtensionUnderlyingType = ErrorTypeSymbol.UnknownResultType;
         private ImmutableArray<NamedTypeSymbol> _lazyBaseExtensions;
+
+        internal SourceExtensionTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
+            : base(containingSymbol, declaration, diagnostics)
+        {
+            Debug.Assert(declaration.Kind == DeclarationKind.Extension);
+        }
 
         private class ExtensionInfo
         {
@@ -34,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsExtension
-            => this.declaration.Declarations[0].Kind is DeclarationKind.Extension;
+        internal override bool IsExtension => true;
 
         protected override void CheckUnderlyingType(BindingDiagnosticBag diagnostics)
         {
