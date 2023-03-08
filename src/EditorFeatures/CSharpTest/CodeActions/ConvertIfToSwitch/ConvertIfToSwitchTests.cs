@@ -2807,7 +2807,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 
             test.ExpectedDiagnostics.Add(
                 // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
-                DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 19));
+                DiagnosticResult.CompilerError("CS8805").WithSpan(1, 1, 1, 19));
 
             await test.RunAsync();
         }
