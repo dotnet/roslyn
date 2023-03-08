@@ -270,13 +270,13 @@ public class VisualStudioOptionStorageTests
             .Select(optionTestInfo => optionTestInfo.Option.Definition.Group)
             .Distinct();
 
-        var allOptionsGroupNames = allOptionGroups.Select(GetFullOptionGroupName);
+        var allGroupNames = allOptionGroups.Select(GetFullOptionGroupName);
 
         // The full name of each Option group should be unique. Full name is obtained by joining the names of all groups that are chained via parent reference.
         // e.g. option group, code_style -> prefer_object_initializer.
         // Its full name code_style.prefer_object_initializer should be unique.
         var set = new HashSet<string>();
-        foreach (var groupName in allOptionsGroupNames)
+        foreach (var groupName in allGroupNames)
         {
             Assert.True(set.Add(groupName), $"Group {groupName} doesn't have a unique name.");
         }
