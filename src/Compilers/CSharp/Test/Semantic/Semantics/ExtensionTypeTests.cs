@@ -18,7 +18,7 @@ public class ExtensionTypeTests : CompilingTestBase
 {
     private static void VerifyNotExtension<T>(TypeSymbol type) where T : TypeSymbol
     {
-        Assert.True(type is T);
+        Assert.True(type is T, $"Found type '{type.GetType()}'");
         Assert.False(type.IsExtension);
         Assert.Null(type.ExtensionUnderlyingTypeNoUseSiteDiagnostics);
         Assert.Empty(type.BaseExtensionsNoUseSiteDiagnostics);
@@ -86,7 +86,7 @@ public class ExtensionTypeTests : CompilingTestBase
         {
             Assert.False(sourceNamedType.IsScriptClass);
             Assert.Null(sourceNamedType.EnumUnderlyingType);
-            Assert.False(sourceNamedType.HasStructLayoutAttribute);
+            Assert.False(sourceNamedType.HasStructLayoutAttribute); // PROTOTYPE revisit when adding support for attributes
             Assert.False(sourceNamedType.IsAnonymousType);
             Assert.False(sourceNamedType.IsSimpleProgram);
             Assert.False(sourceNamedType.IsImplicitlyDeclared);
@@ -2119,7 +2119,7 @@ unsafe explicit extension R for int*
             // (1,27): error CS0227: Unsafe code may only appear if compiling with /unsafe
             // unsafe explicit extension R for int*
             Diagnostic(ErrorCode.ERR_IllegalUnsafe, "R").WithLocation(1, 27),
-            // (1,33): error CS9205: The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (1,33): error CS9205: The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
             // unsafe explicit extension R for int*
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "int*").WithLocation(1, 33)
             );
@@ -2163,13 +2163,13 @@ explicit extension R2 for int* // 2, 3
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
-            // (1,33): error CS9205: The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (1,33): error CS9205: The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
             // unsafe explicit extension R for int* // 1
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "int*").WithLocation(1, 33),
             // (6,27): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // explicit extension R2 for int* // 2, 3
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 27),
-            // (6,27): error CS9205: The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (6,27): error CS9205: The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
             // explicit extension R2 for int* // 2, 3
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "int*").WithLocation(6, 27),
             // (8,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -2197,7 +2197,7 @@ unsafe explicit extension R for delegate*<void>
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
-            // (1,33): error CS9205: The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (1,33): error CS9205: The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
             // unsafe explicit extension R for delegate*<void>
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "delegate*<void>").WithLocation(1, 33)
             );
@@ -2217,7 +2217,7 @@ explicit extension R for dynamic
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (1,26): error CS9205: The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (1,26): error CS9205: The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
             // explicit extension R for dynamic
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "dynamic").WithLocation(1, 26)
             );
@@ -2245,7 +2245,7 @@ explicit extension R6 for C<string> { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (5,27): error CS9205: The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (5,27): error CS9205: The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
             // explicit extension R2 for string? { } // 1
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "string?").WithLocation(5, 27)
             );
@@ -2284,7 +2284,7 @@ explicit extension R for RS { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (2,26): error CS9205: The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (2,26): error CS9205: The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
             // explicit extension R for RS { }
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "RS").WithLocation(2, 26)
             );
@@ -2852,7 +2852,7 @@ explicit extension R for R { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (1,26): error CS9205: The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (1,26): error CS9205: The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
             // explicit extension R for R { }
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "R").WithLocation(1, 26)
             );
@@ -4622,9 +4622,62 @@ class C
 }
 """;
         var comp = CreateEmptyCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (11,5): error CS0518: Predefined type 'IntPtr' is not defined or imported
+            //     nint M() => throw null;
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nint").WithArguments("IntPtr").WithLocation(11, 5)
+            );
         var m = comp.GetMember<MethodSymbol>("C.M");
-        VerifyNotExtension<NativeIntegerTypeSymbol>(m.ReturnType);
+        VerifyNotExtension<MissingMetadataTypeSymbol.TopLevel>(m.ReturnType);
+    }
+
+    [Fact]
+    public void NotExtension_NativeIntegerTypeSymbol_Custom_Class()
+    {
+        var src = $$"""
+namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class Exception { }
+    public class ValueType { }
+    public class IntPtr { }
+}
+class C
+{
+    nint M() => throw null;
+}
+""";
+        var comp = CreateEmptyCompilation(src);
+        comp.VerifyDiagnostics();
+        // TODO2
+    }
+
+    [Fact]
+    public void NotExtension_Tuple_Custom()
+    {
+        var src = $$"""
+namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class Exception { }
+    public class ValueType { }
+    public explicit extension ValueTuple<T1, T2> for object { }
+}
+class C
+{
+    (object, object) M() => throw null;
+}
+""";
+        var comp = CreateEmptyCompilation(src);
+        comp.VerifyDiagnostics(
+            // (11,5): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+            //     (object, object) M() => throw null;
+            Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(object, object)").WithArguments("System.ValueTuple`2").WithLocation(11, 5)
+            );
+        var m = comp.GetMember<MethodSymbol>("C.M");
+        VerifyNotExtension<ConstructedErrorTypeSymbol>(m.ReturnType);
     }
 
     [Fact]

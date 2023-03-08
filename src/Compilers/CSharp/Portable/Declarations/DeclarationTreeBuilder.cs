@@ -157,8 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static SingleNamespaceOrTypeDeclaration CreateSimpleProgram(GlobalStatementSyntax firstGlobalStatement, bool hasAwaitExpressions, bool isIterator, bool hasReturnWithExpression, ImmutableArray<Diagnostic> diagnostics)
         {
             // PROTOTYPE: workaround for https://github.com/dotnet/roslyn/issues/67050 should be undone
-            var nameToken = firstGlobalStatement.GetFirstToken();
-            var nameLocation = new SourceLocation(nameToken.Kind() == SyntaxKind.None ? firstGlobalStatement : nameToken);
+            var token = firstGlobalStatement.GetFirstToken();
+            var location = new SourceLocation(token.Kind() == SyntaxKind.None ? firstGlobalStatement : token);
 
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.Class,
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                            (hasReturnWithExpression ? SingleTypeDeclaration.TypeDeclarationFlags.HasReturnWithExpression : SingleTypeDeclaration.TypeDeclarationFlags.None) |
                            SingleTypeDeclaration.TypeDeclarationFlags.IsSimpleProgram,
                 syntaxReference: firstGlobalStatement.SyntaxTree.GetReference(firstGlobalStatement.Parent),
-                nameLocation: nameLocation,
+                nameLocation: location,
                 memberNames: ImmutableSegmentedDictionary<string, VoidResult>.Empty,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
                 diagnostics: diagnostics,

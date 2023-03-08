@@ -3118,7 +3118,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var builder = new DeclaredMembersAndInitializersBuilder();
                 AddDeclaredNontypeMembers(builder, diagnostics);
 
-                // PROTOTYPE what are the rules for constructors in extensions?
                 switch (TypeKind)
                 {
                     case TypeKind.Struct:
@@ -4372,6 +4371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AddSynthesizedConstructorsIfNecessary(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, BindingDiagnosticBag diagnostics)
         {
+            // PROTOTYPE what are the rules for constructors in extensions?
             //we're not calling the helpers on NamedTypeSymbol base, because those call
             //GetMembers and we're inside a GetMembers call ourselves (i.e. stack overflow)
             var hasInstanceConstructor = false;

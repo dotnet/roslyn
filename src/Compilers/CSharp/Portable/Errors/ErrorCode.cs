@@ -2163,6 +2163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnrecognizedRefSafetyRulesAttributeVersion = 9103,
         ERR_BadSpecialByRefUsing = 9104,
 
+        // PROTOTYPE compact error codes
         ERR_BadExtensionUnderlyingType = 9205,
         ERR_StaticBaseTypeOnInstanceExtension = 9206,
         ERR_OnlyBaseExtensionAllowed = 9207,

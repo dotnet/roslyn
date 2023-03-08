@@ -117,6 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal NamedTypeSymbol GetWellKnownType(WellKnownType type)
         {
+            // TODO2 do not return a result if the type that is found is an extension type
             Debug.Assert(type.IsValid());
 
             bool ignoreCorLibraryDuplicatedTypes = this.Options.TopLevelBinderFlags.Includes(BinderFlags.IgnoreCorLibraryDuplicatedTypes);
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(result?.IsErrorType() != true);
                 }
 
-                if (result is null)
+                if (result is null || result.IsExtension)
                 {
                     MetadataTypeName emittedName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding: true);
                     if (type.IsValueTupleType())

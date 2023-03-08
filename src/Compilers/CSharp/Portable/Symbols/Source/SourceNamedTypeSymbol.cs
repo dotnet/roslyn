@@ -838,6 +838,7 @@ next:;
                     case TypeKind.Class:
                         return AttributeLocation.Type;
 
+                    case TypeKind.Extension: // PROTOTYPE
                     default:
                         return AttributeLocation.None;
                 }
@@ -914,6 +915,12 @@ next:;
 
         internal sealed override (CSharpAttributeData?, BoundAttribute?) EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
+            if (IsExtension)
+            {
+                // PROTOTYPE revisit when adding support for attributes
+                return (null, null);
+            }
+
             bool hasAnyDiagnostics;
             CSharpAttributeData? attributeData;
             BoundAttribute? boundAttribute;
@@ -1173,6 +1180,12 @@ next:;
         {
             get
             {
+                if (IsExtension)
+                {
+                    // PROTOTYPE revisit when adding support for attributes
+                    return false;
+                }
+
                 if (_lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.Unknown)
                 {
                     CheckPresenceOfTypeIdentifierAttribute();
@@ -1284,6 +1297,12 @@ next:;
         {
             get
             {
+                if (IsExtension)
+                {
+                    // PROTOTYPE revisit when adding support for attributes
+                    return false;
+                }
+
                 TypeEarlyWellKnownAttributeData data = this.GetEarlyDecodedWellKnownAttributeData();
                 return data != null && data.HasComImportAttribute;
             }
@@ -1293,6 +1312,12 @@ next:;
         {
             get
             {
+                if (IsExtension)
+                {
+                    // PROTOTYPE revisit when adding support for attributes
+                    return null;
+                }
+
                 TypeWellKnownAttributeData data = this.GetDecodedWellKnownAttributeData();
                 return data != null ? data.ComImportCoClass : null;
             }
@@ -1477,6 +1502,12 @@ next:;
 
         internal sealed override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
+            if (IsExtension)
+            {
+                // PROTOTYPE revisit when adding support for attributes
+                return;
+            }
+
             Debug.Assert(!boundAttributes.IsDefault);
             Debug.Assert(!allAttributeSyntaxNodes.IsDefault);
             Debug.Assert(boundAttributes.Length == allAttributeSyntaxNodes.Length);
@@ -1563,6 +1594,12 @@ next:;
         /// </remarks>
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
+            if (IsExtension)
+            {
+                // PROTOTYPE revisit when emitting extension types
+                return;
+            }
+
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             CSharpCompilation compilation = this.DeclaringCompilation;

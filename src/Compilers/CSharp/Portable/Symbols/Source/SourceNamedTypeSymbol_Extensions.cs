@@ -28,16 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             public readonly TypeSymbol? UnderlyingType;
             public readonly ImmutableArray<NamedTypeSymbol> BaseExtensions;
-            public readonly bool IsExplicit;
 
             internal static readonly ExtensionInfo Sentinel =
-                new ExtensionInfo(underlyingType: null, baseExtensions: default, isExplicit: false);
+                new ExtensionInfo(underlyingType: null, baseExtensions: default);
 
-            public ExtensionInfo(TypeSymbol? underlyingType, ImmutableArray<NamedTypeSymbol> baseExtensions, bool isExplicit)
+            public ExtensionInfo(TypeSymbol? underlyingType, ImmutableArray<NamedTypeSymbol> baseExtensions)
             {
                 UnderlyingType = underlyingType;
                 BaseExtensions = baseExtensions;
-                IsExplicit = isExplicit;
             }
         }
 
@@ -294,11 +292,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ExtensionInfo GetDeclaredExtensionInfo()
         {
-            if (!this.IsExtension)
-            {
-                return new ExtensionInfo(underlyingType: null, ImmutableArray<NamedTypeSymbol>.Empty, false);
-            }
-
             if (ReferenceEquals(_lazyDeclaredExtensionInfo, ExtensionInfo.Sentinel))
             {
                 BindingDiagnosticBag diagnostics = BindingDiagnosticBag.GetInstance();
@@ -338,14 +331,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0; i < this.declaration.Declarations.Length; i++)
             {
                 var declaration = this.declaration.Declarations[i];
-                ExtensionInfo one = MakeOneDeclaredExtensionInfo(newBasesBeingResolved, declaration, diagnostics, out bool sawPartUnderlyingType);
+                ExtensionInfo one = MakeOneDeclaredExtensionInfo(newBasesBeingResolved, declaration, diagnostics, out bool sawPartUnderlyingType, out bool oneExplicit);
                 sawUnderlyingType |= sawPartUnderlyingType;
 
                 if (i == 0)
                 {
-                    isExplicit = one.IsExplicit;
+                    isExplicit = oneExplicit;
                 }
-                else if (isExplicit != one.IsExplicit)
+                else if (isExplicit != oneExplicit)
                 {
                     diagnostics.Add(ErrorCode.ERR_PartialDifferentExtensionModifiers, Locations.FirstOrNone(), this);
                 }
@@ -440,11 +433,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnostics.Add(Locations.FirstOrNone(), useSiteInfo);
 
-            return new ExtensionInfo(underlyingType, baseExtensions, isExplicit);
+            return new ExtensionInfo(underlyingType, baseExtensions);
         }
 
         /// <summary> Bind the base extensions for one part of a partial extension.</summary>
-        private ExtensionInfo MakeOneDeclaredExtensionInfo(ConsList<TypeSymbol> basesBeingResolved, SingleTypeDeclaration decl, BindingDiagnosticBag diagnostics, out bool sawUnderlyingType)
+        private ExtensionInfo MakeOneDeclaredExtensionInfo(ConsList<TypeSymbol> basesBeingResolved, SingleTypeDeclaration decl, BindingDiagnosticBag diagnostics, 
+            out bool sawUnderlyingType, out bool isExplicit)
         {
             var syntax = (ExtensionDeclarationSyntax)decl.SyntaxReference.GetSyntax();
             TypeSymbol? partUnderlyingType = null;
@@ -520,8 +514,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return new ExtensionInfo(partUnderlyingType, partBaseExtensions.ToImmutableAndFree(),
-                isExplicit: syntax.ImplicitOrExplicitKeyword.IsKind(SyntaxKind.ExplicitKeyword));
+            isExplicit = syntax.ImplicitOrExplicitKeyword.IsKind(SyntaxKind.ExplicitKeyword);
+            return new ExtensionInfo(partUnderlyingType, partBaseExtensions.ToImmutableAndFree());
 
             void checkStatic(BindingDiagnosticBag diagnostics, Location location, TypeSymbol baseType)
             {
