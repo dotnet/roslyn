@@ -111,7 +111,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(542058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542058")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542058")>
         <WpfFact>
         Public Async Function TestConstructorNew1() As Task
             Dim input = <Code>
@@ -139,7 +139,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(542058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542058")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542058")>
         <WpfFact>
         Public Async Function TestConstructorNew2() As Task
             Dim input = <Code>
@@ -175,7 +175,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(542058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542058")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542058")>
         <WpfFact>
         Public Async Function TestConstructorNew3() As Task
             Dim input = <Code>
@@ -203,8 +203,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(542058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542058")>
-        <WorkItem(543999, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543999")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542058")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543999")>
         <WpfFact>
         Public Async Function TestConstructorNew4() As Task
             Dim input = <Code>
@@ -236,7 +236,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(541352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541352")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541352")>
         <WpfFact>
         Public Async Function TestAlias1() As Task
             Dim input = <Code>
@@ -648,7 +648,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
         Public Async Function TestPartialMethodName1() As Task
             Dim input = <Code>
 Partial Class goo
@@ -677,7 +677,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
         Public Async Function TestPartialMethodName2() As Task
             ' Partial methods must be SUBs
             Dim input = <Code>
@@ -709,7 +709,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
         Public Async Function TestPartialMethodParameterName1() As Task
             ' Partial method with parameters
             Dim input = <Code>
@@ -739,7 +739,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
         Public Async Function TestPartialMethodParameterName2() As Task
             ' Multiple overloaded partial methods
             Dim input = <Code>
@@ -781,7 +781,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
         Public Async Function TestPartialMethodParameterName3() As Task
             ' Partial method with different parameter names.
 
@@ -814,7 +814,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(608626, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608626")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608626")>
         <WpfFact>
         Public Async Function TestOverloadResolutionFailure() As Task
             Dim input = <Code>
@@ -838,7 +838,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(1949, "https://github.com/dotnet/roslyn/issues/1949")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1949")>
         <WpfFact>
         Public Async Function TestUnResolvedTypeDoesNotBindToAnyAccessibleSymbol() As Task
             Dim unchangeCode = <Code>
@@ -923,7 +923,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(538930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538930")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538930")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestCharacterTypeSuffix() As Task
@@ -946,7 +946,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(538930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538930")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538930")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestULTypeSuffix() As Task
@@ -971,7 +971,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(538930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538930")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538930")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestFTypeSuffix() As Task
@@ -994,7 +994,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(538930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538930")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538930")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestRTypeSuffix() As Task
@@ -1017,7 +1017,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(538930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538930")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538930")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestDTypeSuffix() As Task
@@ -1040,7 +1040,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(538930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538930")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538930")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestDateLiteral() As Task
@@ -1065,7 +1065,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(539020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539020")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539020")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestEscaping1() As Task
@@ -1088,7 +1088,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(539020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539020")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539020")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestEscaping2() As Task
@@ -1131,7 +1131,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(539356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539356")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539356")>
         <WpfFact>
         Public Async Function TestREMInComment() As Task
             Dim input = <Code>
@@ -1145,7 +1145,7 @@ REM this is a comment
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(529938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529938"), WorkItem(529935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529935")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529938"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529935")>
         <WpfFact>
         Public Async Function TestFullwidthREMInComment() As Task
             Dim input = <Code>
@@ -1176,7 +1176,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(397014, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=397014")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=397014")>
         <WpfFact>
         Public Async Function AvoidNodesWithSyntaxErrorsAndStringLiterals() As Task
             Dim input = <Code>
@@ -1218,7 +1218,7 @@ End Class
 
 #Region "Preprocessor"
 
-        <WorkItem(539308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539308")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539308")>
         <WpfFact>
         Public Async Function TestPreprocessor() As Task
             Dim input = <Code>
@@ -1234,7 +1234,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(539352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539352")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539352")>
         <WpfFact>
         Public Async Function TestPreprocessorLiterals() As Task
             Dim input = <Code>
@@ -1248,7 +1248,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(539352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539352")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539352")>
         <WpfFact>
         Public Async Function TestPreprocessorInMethodBodies() As Task
             Dim input = <Code>
@@ -1272,7 +1272,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(539352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539352")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539352")>
         <WpfFact>
         Public Async Function TestPreprocessorAroundClass() As Task
             Dim input = <Code>
@@ -1292,7 +1292,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(539472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539472")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539472")>
         <WpfFact>
         Public Async Function TestRemCommentAfterPreprocessor() As Task
             Dim input = <Code>
@@ -1950,7 +1950,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(542110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542110")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542110")>
         <WpfFact>
         Public Async Function SkippedTokens() As Task
             Dim input =
@@ -1968,7 +1968,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(544395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544395")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544395")>
         <WpfFact>
         Public Async Function TestAttribute() As Task
             Dim input =
@@ -1996,7 +1996,7 @@ End Enum
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(530927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530927")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530927")>
         <WpfFact>
         Public Async Function TestNewOnRightSideOfDot() As Task
             Dim input =

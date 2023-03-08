@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
                 [Fact]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-                [WorkItem(6455, "https://github.com/dotnet/roslyn/issues/6455")]
+                [WorkItem("https://github.com/dotnet/roslyn/issues/6455")]
                 public async Task TestFixMultipleInDocument()
                 {
                     var input = @"

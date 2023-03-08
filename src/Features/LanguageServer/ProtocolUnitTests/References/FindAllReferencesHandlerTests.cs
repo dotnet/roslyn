@@ -226,7 +226,7 @@ class A
             AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 1);
         }
 
-        [Fact, WorkItem(1240061, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1240061/")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1240061/")]
         public async Task TestFindAllReferencesAsync_Namespace()
         {
             var markup =
@@ -255,7 +255,7 @@ class A
             AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 2);
         }
 
-        [Fact, WorkItem(1245616, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1245616/")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1245616/")]
         public async Task TestFindAllReferencesAsync_Highlights()
         {
             var markup =

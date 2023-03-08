@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             _outputHelper = outputHelper
         End Sub
 
-        <Theory, WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <CombinatorialData>
         Public Sub RenameMoveNextCausesConflictInForEach(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -51,7 +51,7 @@ End Class
             End Using
         End Sub
 
-        <Theory, WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <CombinatorialData>
         Public Sub RenameMoveNextToChangeCasingDoesntCauseConflictInForEach(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -86,7 +86,7 @@ End Class
             End Using
         End Sub
 
-        <Theory, WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <CombinatorialData>
         Public Sub RenameMoveNextToChangeCasingInCSDoesntCauseConflictInForEach(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -132,7 +132,7 @@ End Class
             End Using
         End Sub
 
-        <Theory, WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <CombinatorialData>
         Public Sub RenameMoveNextInCSCauseConflictInForEach(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,

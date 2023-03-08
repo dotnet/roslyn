@@ -284,7 +284,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1101017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101017")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101017")>
         Public Sub NestedGenericValueType()
             Const source =
 "Class C
@@ -555,7 +555,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1100849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100849")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100849")>
         Public Sub PassByRef()
             Const source = "
 Class C
@@ -747,7 +747,7 @@ End Class
         ''' Assembly-qualified type names from the debugger refer to runtime assemblies
         ''' which may be different versions than the assembly references in metadata.
         ''' </summary>
-        <Fact, WorkItem(1087458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087458")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087458")>
         Public Sub DifferentAssemblyVersion()
             Const sourceA =
 "Public Class A(Of T)
@@ -827,7 +827,7 @@ End Class"
         ''' The assembly-qualified type may reference an assembly
         ''' outside of the current module and its references.
         ''' </summary>
-        <Fact, WorkItem(1092680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092680")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092680")>
         Public Sub TypeOutsideModule()
             Const sourceA =
 "Imports System

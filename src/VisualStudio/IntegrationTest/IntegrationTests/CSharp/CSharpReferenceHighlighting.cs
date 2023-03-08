@@ -87,7 +87,7 @@ class C
             VisualStudio.Editor.Verify.CurrentLineText("x$$ = 3;", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [WorkItem(52041, "https://github.com/dotnet/roslyn/pull/52041")]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/52041")]
         [WpfFact]
         public void HighlightBasedOnSelection()
         {
