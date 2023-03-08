@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateOverrides
                         return base.ToString();
                     }
                 }
+
                 """, new[] { "Equals", "GetHashCode", "ToString" });
         }
 
@@ -99,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateOverrides
                         return base.ToString();
                     }
                 }
+
                 """, new[] { "GetHashCode", "ToString" });
         }
 

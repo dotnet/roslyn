@@ -5085,8 +5085,7 @@ class Program
                 {
                     public C(ExtraType t) { }
                     public C(string s, int i) { }
-                }
-                        </Document>
+                }</Document>
                     </Project>
                     <Project Language="C#" CommonReferences="true">
                         <ProjectReference>CSharpProjectGeneratingInto</ProjectReference>
@@ -5097,12 +5096,12 @@ class Program
                     {
                         [|new C(42, 42)|];
                     }
-                }
-                        </Document>
+                }</Document>
                     </Project>
                 </Workspace>
                 """,
                 """
+
                 public class C
                 {
                     private int v1;

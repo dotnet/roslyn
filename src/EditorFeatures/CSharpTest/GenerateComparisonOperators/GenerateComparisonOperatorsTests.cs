@@ -401,8 +401,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateComparisonOpera
                 }
                 """;
             string GetFixedCode(string type)
-=> $@"
-using System;
+=> $@"using System;
 
 class C : IComparable<C>, IComparable<int>
 {{

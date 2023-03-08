@@ -30,10 +30,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
 
         private const string FieldNamesCamelCaseWithFieldUnderscorePrefixEndUnderscoreSuffixEditorConfig =
             FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig + """
+
             dotnet_naming_style.field_camel_case.required_suffix        = _End
             """;
 
         private const string ParameterNamesCamelCaseWithPUnderscorePrefixEditorConfig = """
+
             [*.cs]
             dotnet_naming_style.p_camel_case.capitalization             = camel_case
             dotnet_naming_style.p_camel_case.required_prefix            = p_
@@ -46,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
 
         private const string ParameterNamesCamelCaseWithPUnderscorePrefixEndUnderscoreSuffixEditorConfig =
             ParameterNamesCamelCaseWithPUnderscorePrefixEditorConfig + """
+
             dotnet_naming_style.p_camel_case.required_suffix            = _End
             """;
 
