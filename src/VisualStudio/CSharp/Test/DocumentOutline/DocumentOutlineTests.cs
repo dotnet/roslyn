@@ -67,7 +67,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             var snapshot = response.Value.snapshot;
             AssertEx.NotNull(snapshot);
 
-            var model = DocumentOutlineHelper.CreateDocumentSymbolDataModel(responseBody, snapshot);
+            var model = DocumentOutlineViewModel.CreateDocumentSymbolDataModel(responseBody, snapshot);
             var uiItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
             return (mocks, model, uiItems);
         }
@@ -128,28 +128,28 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             var (_, model, _) = await InitializeMocksAndDataModelAndUIItems(TestCode);
 
             // Empty search (added for completeness, SearchDocumentSymbolData is not called on an empty search string)
-            var searchedSymbols = DocumentOutlineHelper.SearchDocumentSymbolData(model.DocumentSymbolData, string.Empty, CancellationToken.None);
+            var searchedSymbols = DocumentOutlineViewModel.SearchDocumentSymbolData(model.DocumentSymbolData, string.Empty, CancellationToken.None);
             Assert.Equal(0, searchedSymbols.Length);
 
             // Search for 1 parent only (no children should match)
-            searchedSymbols = DocumentOutlineHelper.SearchDocumentSymbolData(model.DocumentSymbolData, "foo", CancellationToken.None);
+            searchedSymbols = DocumentOutlineViewModel.SearchDocumentSymbolData(model.DocumentSymbolData, "foo", CancellationToken.None);
             Assert.Equal(1, searchedSymbols.Length);
             Assert.Equal(0, searchedSymbols.Single(symbol => symbol.Name.Equals("foo")).Children.Length);
 
             // Search for children only (across 2 parents)
-            searchedSymbols = DocumentOutlineHelper.SearchDocumentSymbolData(model.DocumentSymbolData, "Method", CancellationToken.None);
+            searchedSymbols = DocumentOutlineViewModel.SearchDocumentSymbolData(model.DocumentSymbolData, "Method", CancellationToken.None);
             Assert.Equal(2, searchedSymbols.Length);
             Assert.Equal(2, searchedSymbols.Single(symbol => symbol.Name.Equals("MyClass")).Children.Length);
             Assert.Equal(1, searchedSymbols.Single(symbol => symbol.Name.Equals("App")).Children.Length);
 
             // Search for a parent and a child (of another parent)
-            searchedSymbols = DocumentOutlineHelper.SearchDocumentSymbolData(model.DocumentSymbolData, "app", CancellationToken.None);
+            searchedSymbols = DocumentOutlineViewModel.SearchDocumentSymbolData(model.DocumentSymbolData, "app", CancellationToken.None);
             Assert.Equal(2, searchedSymbols.Length);
             Assert.Equal(0, searchedSymbols.Single(symbol => symbol.Name.Equals("App")).Children.Length);
             Assert.Equal(1, searchedSymbols.Single(symbol => symbol.Name.Equals("foo")).Children.Length);
 
             // No search results found
-            searchedSymbols = DocumentOutlineHelper.SearchDocumentSymbolData(model.DocumentSymbolData, "xyz", CancellationToken.None);
+            searchedSymbols = DocumentOutlineViewModel.SearchDocumentSymbolData(model.DocumentSymbolData, "xyz", CancellationToken.None);
             Assert.Equal(0, searchedSymbols.Length);
         }
 

@@ -15,6 +15,8 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -26,6 +28,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
+    using LspDocumentSymbol = DocumentSymbol;
+    using Range = LanguageServer.Protocol.Range;
+
     /// <summary>
     /// Responsible for updating data related to Document outline.
     /// It is expected that all public methods on this type do not need to be on the UI thread.
@@ -185,11 +190,110 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // It would be a bug in the LSP server implementation if we get back a null result here.
             Assumes.NotNull(responseBody);
 
-            var model = DocumentOutlineHelper.CreateDocumentSymbolDataModel(responseBody, response.Value.snapshot);
+            var model = CreateDocumentSymbolDataModel(responseBody, response.Value.snapshot);
 
             _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(SearchText, CaretPositionOfNodeToSelect: null, ShouldExpand: null, DataUpdated: true));
 
             return model;
+        }
+
+        /// <summary>
+        /// Given an array of Document Symbols in a document, returns a DocumentSymbolDataModel.
+        /// </summary>
+        /// 
+        /// As of right now, the LSP document symbol response only has at most 2 levels of nesting, 
+        /// so we nest the symbols first before converting the LSP DocumentSymbols to DocumentSymbolData.
+        /// 
+        /// Example file structure:
+        /// Class A
+        ///     ClassB
+        ///         Method1
+        ///         Method2
+        ///         
+        /// LSP document symbol response:
+        /// [
+        ///     {
+        ///         Name: ClassA,
+        ///         Children: []
+        ///     },
+        ///     {
+        ///         Name: ClassB,
+        ///         Children: 
+        ///         [
+        ///             {
+        ///                 Name: Method1,
+        ///                 Children: []
+        ///             },
+        ///             {
+        ///                 Name: Method2,
+        ///                 Children: []
+        ///             }
+        ///         ]
+        ///     }
+        /// ]
+        private static DocumentSymbolDataModel CreateDocumentSymbolDataModel(LspDocumentSymbol[] documentSymbols, ITextSnapshot originalSnapshot)
+        {
+            // Obtain a flat list of all the document symbols sorted by location in the document.
+            var allSymbols = documentSymbols
+                .SelectMany(x => x.Children)
+                .Concat(documentSymbols)
+                .OrderBy(x => x.Range.Start.Line)
+                .ThenBy(x => x.Range.Start.Character)
+                .ToImmutableArray();
+
+            // Iterate through the document symbols, nest them, and add the top level symbols to finalResult.
+            using var _1 = ArrayBuilder<DocumentSymbolData>.GetInstance(out var finalResult);
+            var currentStart = 0;
+            while (currentStart < allSymbols.Length)
+                finalResult.Add(NestDescendantSymbols(allSymbols, currentStart, out currentStart));
+
+            return new DocumentSymbolDataModel(finalResult.ToImmutable(), originalSnapshot);
+
+            // Returns the symbol in the list at index start (the parent symbol) with the following symbols in the list
+            // (descendants) appropriately nested into the parent.
+            DocumentSymbolData NestDescendantSymbols(ImmutableArray<LspDocumentSymbol> allSymbols, int start, out int newStart)
+            {
+                var currentParent = allSymbols[start];
+                start++;
+                newStart = start;
+
+                // Iterates through the following symbols and checks whether the next symbol is in range of the parent and needs
+                // to be nested into the current parent symbol (along with following symbols that may be siblings/grandchildren/etc)
+                // or if the next symbol is a new parent.
+                using var _2 = ArrayBuilder<DocumentSymbolData>.GetInstance(out var currentSymbolChildren);
+                while (newStart < allSymbols.Length)
+                {
+                    var nextSymbol = allSymbols[newStart];
+
+                    // If the next symbol in the list is not in range of the current parent (i.e. is a new parent), break.
+                    if (!Contains(currentParent, nextSymbol))
+                        break;
+
+                    // Otherwise, nest this child symbol and add it to currentSymbolChildren.
+                    currentSymbolChildren.Add(NestDescendantSymbols(allSymbols, start: newStart, out newStart));
+                }
+
+                // Return the nested parent symbol.
+                return new DocumentSymbolData(
+                    currentParent.Name,
+                    currentParent.Kind,
+                    GetSymbolRangeSpan(currentParent.Range),
+                    GetSymbolRangeSpan(currentParent.SelectionRange),
+                    currentSymbolChildren.ToImmutable());
+            }
+
+            // Returns whether the child symbol is in range of the parent symbol.
+            static bool Contains(LspDocumentSymbol parent, LspDocumentSymbol child)
+                => child.Range.Start.Line > parent.Range.Start.Line && child.Range.End.Line < parent.Range.End.Line;
+
+            // Converts a Document Symbol Range to a SnapshotSpan within the text snapshot used for the LSP request.
+            SnapshotSpan GetSymbolRangeSpan(Range symbolRange)
+            {
+                var originalStartPosition = originalSnapshot.GetLineFromLineNumber(symbolRange.Start.Line).Start.Position + symbolRange.Start.Character;
+                var originalEndPosition = originalSnapshot.GetLineFromLineNumber(symbolRange.End.Line).Start.Position + symbolRange.End.Character;
+
+                return new SnapshotSpan(originalSnapshot, Span.FromBounds(originalStartPosition, originalEndPosition));
+            }
         }
 
         private void EnqueueFilter(string? newText)
@@ -238,7 +342,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                         // If we are in the middle of searching the developer should always be able to see the results
                         // so we don't want to collapse (and therefore hide) data here.
                         documentSymbolViewModelItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(
-                             DocumentOutlineHelper.SearchDocumentSymbolData(model.DocumentSymbolData, currentQuery, cancellationToken));
+                             SearchDocumentSymbolData(model.DocumentSymbolData, currentQuery, cancellationToken));
                     }
 
                     DocumentSymbolViewModelItems = documentSymbolViewModelItems;
@@ -307,6 +411,36 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
                     return true;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Returns an immutable array of DocumentSymbolData such that each node matches the given pattern.
+        /// </summary>
+        public static ImmutableArray<DocumentSymbolData> SearchDocumentSymbolData(
+            ImmutableArray<DocumentSymbolData> documentSymbolData,
+            string pattern,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using var _ = ArrayBuilder<DocumentSymbolData>.GetInstance(out var filteredDocumentSymbols);
+            var patternMatcher = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: false, allowFuzzyMatching: true);
+
+            foreach (var documentSymbol in documentSymbolData)
+            {
+                var filteredChildren = SearchDocumentSymbolData(documentSymbol.Children, pattern, cancellationToken);
+                if (SearchNodeTree(documentSymbol, patternMatcher, cancellationToken))
+                    filteredDocumentSymbols.Add(documentSymbol with { Children = filteredChildren });
+            }
+
+            return filteredDocumentSymbols.ToImmutable();
+
+            // Returns true if the name of one of the tree nodes results in a pattern match.
+            static bool SearchNodeTree(DocumentSymbolData tree, PatternMatcher patternMatcher, CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return patternMatcher.Matches(tree.Name) || tree.Children.Any(c => SearchNodeTree(c, patternMatcher, cancellationToken));
             }
         }
     }
