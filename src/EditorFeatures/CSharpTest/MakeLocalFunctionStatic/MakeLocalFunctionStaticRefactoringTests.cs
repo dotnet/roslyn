@@ -731,7 +731,7 @@ parseOptions: CSharp8ParseOptions);
                         }
                     }  
                 }
-                """, 
+                """,
 parseOptions: CSharp8ParseOptions);
         }
 
