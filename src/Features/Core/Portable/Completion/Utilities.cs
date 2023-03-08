@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // span's length + all the deltas we accumulate through each text change.  i.e.
             // if the first change adds 2 characters and the second change adds 4, then 
             // the newSpan will be 2+4=6 characters longer than the old span.
-            var sumOfDeltas = changes.Sum(c => c.NewText.Length - c.Span.Length);
+            var sumOfDeltas = changes.Sum(c => c.NewText!.Length - c.Span.Length);
             var totalNewSpan = new TextSpan(totalOldSpan.Start, totalOldSpan.Length + sumOfDeltas);
 
             return new TextChange(totalOldSpan, newText.ToString(totalNewSpan));
