@@ -55,13 +55,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var wpfTextView = editorAdaptersFactoryService.GetWpfTextView(textView);
             Assumes.NotNull(wpfTextView);
 
+            // TODO: Hooking the text buffer seems wrong.  How would this work for projections?
             subjectBuffer = wpfTextView.TextBuffer;
-            // Unfortunately, the DocumentSymbol LSP request as its implemented requires semantic information so 
-            // we need to listen for compilation changes. This can be simplifies if Roslyn's implementation of the
-            // DocumentSymbol request is ever changed to just operate off of syntax tree.
-            eventSource = new CompilationAvailableTaggerEventSource(
-                subjectBuffer,
-                asyncListener,
+
+            eventSource = TaggerEventSources.Compose(
                 // Any time an edit happens, recompute as the document symbols may have changed.
                 TaggerEventSources.OnTextChanged(subjectBuffer),
                 // If the compilation options change we need to re-compute the document symbols
