@@ -1307,5 +1307,44 @@ public class Test
                 TestCode = source,
             }.RunAsync();
         }
+
+        [Fact, WorkItem(60988, "https://github.com/dotnet/roslyn/issues/60988")]
+        public async Task TestCheckedExpression()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode =
+                """
+                using System;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Span<byte> buffer = new byte[]{ (byte)'h', (byte)'i', 0 };
+                        long length = 2;
+                        var sliced = buffer.Slice([|0, unchecked((int)length)|]); // or checked((int)length)
+                    }
+                }
+                """,
+                FixedCode =
+                """
+                using System;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Span<byte> buffer = new byte[]{ (byte)'h', (byte)'i', 0 };
+                        long length = 2;
+                        var sliced = buffer[..unchecked((int)length)]; // or checked((int)length)
+                    }
+                }
+                """,
+            }.RunAsync();
+        }
     }
 }
