@@ -51,7 +51,7 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider : SyntaxEditorBase
 
         // Supported cases:
         // public string [|MyProperty|] { get; set; }
-        // piblic string [|_myField|];
+        // public string [|_myField|];
         // public string [|_myField1|], [|_myField2|];
         if (node is not (PropertyDeclarationSyntax or VariableDeclaratorSyntax { Parent.Parent: FieldDeclarationSyntax }))
             return;
@@ -92,8 +92,13 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider : SyntaxEditorBase
         // against accessibility of member we are trying to make required
         static bool CanBeAccessed(SymbolVisibility containingTypeVisibility, Accessibility accessibility) => containingTypeVisibility switch
         {
+            // Public is the highest accessibility. So in order to be accessible outside, member accessibility must be only public
             SymbolVisibility.Public => accessibility is Accessibility.Public,
+            // In order to be accessible from an internal type member must have internal accessibility or higher
             SymbolVisibility.Internal => accessibility is >= Accessibility.Internal,
+            // Private containing type visibility means it is nested in some other type.
+            // In such case member must be accessible to the outer type of containing one.
+            // This is possible with internal accessibility or higher
             SymbolVisibility.Private => accessibility is >= Accessibility.Internal,
             _ => throw ExceptionUtilities.Unreachable(),
         };
