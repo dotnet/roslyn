@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
                 """);
         }
 
-        [Fact, WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17028")]
         public async Task TestInExpressionOfT()
         {
             await TestInRegularAndScriptAsync(

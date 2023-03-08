@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20708")]
         public async Task TestMultiLineParameters1()
         {
             await TestInRegularAndScriptAsync(
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20708")]
         public async Task TestMultiLineParameters2()
         {
             await TestInRegularAndScriptAsync(
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20708")]
         public async Task TestMultiLineParameters3()
         {
             await TestInRegularAndScriptAsync(
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20708")]
         public async Task TestMultiLineParameters4()
         {
             await TestInRegularAndScriptAsync(
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20708")]
         public async Task TestMultiLineParameters5()
         {
             await TestInRegularAndScriptAsync(
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20708")]
         public async Task TestMultiLineParameters6()
         {
             await TestInRegularAndScriptAsync(
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(20973, "https://github.com/dotnet/roslyn/issues/20973")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20973")]
         public async Task TestNullArg1()
         {
             await TestInRegularAndScriptAsync(
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(20973, "https://github.com/dotnet/roslyn/issues/20973")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20973")]
         public async Task TestNullArg2()
         {
             await TestInRegularAndScriptAsync(
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(20973, "https://github.com/dotnet/roslyn/issues/20973")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20973")]
         public async Task TestDefaultArg1()
         {
             await TestInRegularAndScriptAsync(
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(20973, "https://github.com/dotnet/roslyn/issues/20973")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20973")]
         public async Task TestDefaultArg2()
         {
             await TestInRegularAndScriptAsync(
@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationInstanceMethod1()
         {
             await TestInRegularAndScriptAsync(
@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationInheritedMethodGetFixed()
         {
             await TestInRegularAndScriptAsync(
@@ -696,7 +696,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationInheritedMethodInMetadatGetsNotFixed()
         {
             await TestMissingAsync(
@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationLocalFunction()
         {
             await TestInRegularAndScriptAsync(
@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         [Trait("TODO", "Fix broken")]
         public async Task TestInvocationLambda1()
         {
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             //Should be Action<int> a = (int v) => { };
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationStaticMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -787,7 +787,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationExtensionMethod()
         {
             var code =
@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationExtensionMethod_StaticInvocationStyle()
         {
             // error CS1501: No overload for method 'ExtensionM1' takes 2 arguments
@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationOverride()
         {
             var code = """
@@ -917,7 +917,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix_All, index: 1);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationExplicitInterface()
         {
             var code = """
@@ -966,7 +966,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix_All, index: 1);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationImplicitInterface()
         {
             var code =
@@ -1016,7 +1016,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix_All, index: 1);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationImplicitInterfaces()
         {
             var code =
@@ -1078,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix_All, index: 1);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         [Trait("TODO", "Fix broken")]
         public async Task TestInvocationGenericMethod()
         {
@@ -1105,7 +1105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationRecursion()
         {
             await TestInRegularAndScriptAsync(
@@ -1129,7 +1129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationOverloads1()
         {
             var code =
@@ -1172,7 +1172,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix1, 1);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationOverloads2()
         {
             var code =
@@ -1218,7 +1218,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix1, 1);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationTuple1()
         {
             var code =
@@ -1250,7 +1250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0, 0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationTuple2()
         {
             var code =
@@ -1284,7 +1284,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0, 0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationTuple3()
         {
             var code =
@@ -1318,7 +1318,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0, 0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_Missing_TypeArguments_AddingTypeArgumentAndParameter()
         {
             // error CS0305: Using the generic method 'C1.M1<T>(T)' requires 1 type arguments
@@ -1337,7 +1337,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_Missing_TypeArguments_AddingTypeArgument()
         {
             // error CS0308: The non-generic method 'C1.M1(int)' cannot be used with type arguments
@@ -1356,7 +1356,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         [Trait("TODO", "Fix missing")]
         public async Task TestInvocation_Missing_ExplicitInterfaceImplementation()
         {
@@ -1377,7 +1377,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestMissingAsync(code);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_OverloadResolutionFailure()
         {
             // error CS1503: Argument 1: cannot convert from 'double' to 'int'
@@ -1408,7 +1408,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_LambdaExpressionParameter()
         {
             // error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
@@ -1439,7 +1439,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_NamedParameter()
         {
             // error CS1739: The best overload for 'M1' does not have a parameter named 'i2'
@@ -1468,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationAddTypeParameter_AddTypeParameterIfUserSpecifiesOne_OnlyTypeArgument()
         {
             var code =
@@ -1486,7 +1486,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocationAddTypeParameter_AddTypeParameterIfUserSpecifiesOne_TypeArgumentAndParameterArgument()
         {
             var code =
@@ -1504,7 +1504,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_ExisitingTypeArgumentIsNotGeneralized()
         {
             var code =
@@ -1532,7 +1532,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_AddParameterToMethodWithParams()
         {
             // error CS1503: Argument 1: cannot convert from 'bool' to 'int'
@@ -1561,7 +1561,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_Cascading_FixingVirtualFixesOverrideToo()
         {
             // error CS1501: No overload for method 'M1' takes 1 arguments
@@ -1623,7 +1623,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix_All, index: 1);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_Cascading_PartialMethods()
         {
             var code =
@@ -1751,7 +1751,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_Cascading_PartialMethodsInSameDocument()
         {
             var code =
@@ -1793,7 +1793,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_Cascading_BaseNotInSource()
         {
             // error CS1501: No overload for method 'M' takes 1 arguments
@@ -1830,7 +1830,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestMissingAsync(code);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_Cascading_RootNotInSource()
         {
             // error CS1501: No overload for method 'M' takes 1 arguments
@@ -1900,7 +1900,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fixedDocumentWithConflictAnnotation, index: 1);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_Cascading_ManyReferencesInManyProjects()
         {
             // error CS1501: No overload for method 'M' takes 1 arguments
@@ -2015,7 +2015,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix_All, index: 1);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_Cascading_OfferFixCascadingForImplicitInterface()
         {
             // error CS1501: No overload for method 'M1' takes 1 arguments
@@ -2072,7 +2072,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
 
         // CodeStyle layer does not support cross language application of fixes.
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_Cascading_CrossLanguage()
         {
             var code =
@@ -2146,7 +2146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
 
 #endif
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_InvocationStyles_Positional_MoreThanOneArgumentToMuch()
         {
             var code =
@@ -2175,7 +2175,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_InvocationStyles_Positional_WithOptionalParam()
         {
             // error CS1501: No overload for method 'M' takes 2 arguments
@@ -2204,7 +2204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_InvocationStyles_Named_WithOptionalParam()
         {
             // error CS1739: The best overload for 'M' does not have a parameter named 'i3'
@@ -2233,7 +2233,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_InvocationStyles_Positional_WithParams()
         {
             // error CS1503: Argument 1: cannot convert from 'string' to 'int'
@@ -2262,7 +2262,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_InvocationStyles_Named_WithTypemissmatch()
         {
             // error CS1503: Argument 1: cannot convert from 'string' to 'int'
@@ -2280,7 +2280,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_InvocationStyles_NamedAndPositional1()
         {
             // error CS1739: The best overload for 'M' does not have a parameter named 'i2'
@@ -2309,7 +2309,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_InvocationStyles_NamedAndPositional2()
         {
             // CS1744 is not yet a supported diagnostic (just declaring the diagnostic as supported does not work)
@@ -2328,7 +2328,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_InvocationStyles_Incomplete_1()
         {
             // error CS1501: No overload for method 'M' takes 1 arguments
@@ -2357,7 +2357,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_InvocationStyles_Incomplete_2()
         {
             // error CS1503: Argument 1: cannot convert from 'string' to 'int'
@@ -2382,7 +2382,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_InvocationStyles_RefParameter()
         {
             // error CS1501: No overload for method 'M' takes 1 arguments            
@@ -2413,7 +2413,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_InvocationStyles_OutParameter_WithTypeDeclarationOutsideArgument()
         {
             // error CS1501: No overload for method 'M' takes 1 arguments            
@@ -2444,7 +2444,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_InvocationStyles_OutParameter_WithTypeDeclarationInArgument()
         {
             // error CS1501: No overload for method 'M' takes 1 arguments            
@@ -2473,7 +2473,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_InvocationStyles_OutParameter_WithVarTypeDeclarationInArgument()
         {
             // error CS1501: No overload for method 'M' takes 1 arguments            
@@ -2502,7 +2502,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
         }
 
-        [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_Indexer_NotSupported()
         {
             // Could be fixed by allowing ElementAccessExpression next to InvocationExpression
@@ -2525,7 +2525,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestMissingAsync(code);
         }
 
-        [Fact, WorkItem(29061, "https://github.com/dotnet/roslyn/issues/29061")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29061")]
         public async Task TestThis_DontOfferToFixTheConstructorWithTheDiagnosticOnIt()
         {
             // error CS1729: 'C' does not contain a constructor that takes 1 arguments
@@ -2540,7 +2540,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestMissingAsync(code);
         }
 
-        [Fact, WorkItem(29061, "https://github.com/dotnet/roslyn/issues/29061")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29061")]
         public async Task TestThis_Fix_IfACandidateIsAvailable()
         {
             // error CS1729: 'C' does not contain a constructor that takes 2 arguments
@@ -2568,7 +2568,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestActionCountAsync(code, 1);
         }
 
-        [Fact, WorkItem(29061, "https://github.com/dotnet/roslyn/issues/29061")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29061")]
         public async Task TestBase_Fix_IfACandidateIsAvailable()
         {
             // error CS1729: 'B' does not contain a constructor that takes 1 arguments
@@ -2598,7 +2598,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestActionCountAsync(code, 1);
         }
 
-        [Fact, WorkItem(29753, "https://github.com/dotnet/roslyn/issues/29753")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29753")]
         public async Task LocalFunction_AddParameterToLocalFunctionWithOneParameter()
         {
             // CS1501 No overload for method takes 2 arguments
@@ -2633,7 +2633,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
         }
 
-        [Fact, WorkItem(29752, "https://github.com/dotnet/roslyn/issues/29752")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29752")]
         public async Task LocalFunction_AddNamedParameterToLocalFunctionWithOneParameter()
         {
             // CS1739: The best overload for 'Local' does not have a parameter named 'mynewparameter'
@@ -2668,7 +2668,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
         }
 
-        [Fact, WorkItem(39270, "https://github.com/dotnet/roslyn/issues/39270")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39270")]
         public async Task TestWithArgThatHasImplicitConversionToParamType1()
         {
             await TestInRegularAndScriptAsync(
@@ -2796,7 +2796,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
             await TestInRegularAndScriptAsync(code, fix);
         }
 
-        [Fact, WorkItem(44271, "https://github.com/dotnet/roslyn/issues/44271")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44271")]
         public async Task TopLevelStatement()
         {
             await TestInRegularAndScriptAsync("""
@@ -2815,7 +2815,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
-        [Fact, WorkItem(44271, "https://github.com/dotnet/roslyn/issues/44271")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44271")]
         public async Task TopLevelStatement_Nested()
         {
             await TestInRegularAndScriptAsync("""
@@ -2840,7 +2840,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(42559, "https://github.com/dotnet/roslyn/issues/42559")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42559")]
         public async Task TestAddParameter_ImplicitObjectCreation()
         {
             await TestInRegularAndScriptAsync("""
@@ -2867,7 +2867,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(48042, "https://github.com/dotnet/roslyn/issues/48042")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48042")]
         public async Task TestNamedArgOnExtensionMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -2899,7 +2899,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 """);
         }
 
-        [Fact, WorkItem(54408, "https://github.com/dotnet/roslyn/issues/54408")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54408")]
         public async Task TestPositionalRecord()
         {
             await TestInRegularAndScriptAsync("""
@@ -2941,7 +2941,7 @@ class R(int A, string b);
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
         }
 
-        [Fact, WorkItem(54408, "https://github.com/dotnet/roslyn/issues/54408")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54408")]
         public async Task TestPositionalRecordStruct()
         {
             await TestInRegularAndScriptAsync("""
@@ -2983,7 +2983,7 @@ struct R(int A, string b);
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
         }
 
-        [Fact, WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56952")]
         public async Task TestRecordsNamingConventions()
         {
             await TestInRegularAndScript1Async("""
@@ -3011,7 +3011,7 @@ class Test(string v);
 ");
         }
 
-        [Fact, WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56952")]
         public async Task TestRecordsNamingConventions_RecordStruct()
         {
             await TestInRegularAndScript1Async("""
@@ -3039,7 +3039,7 @@ struct Test(string v);
 ");
         }
 
-        [Fact, WorkItem(61715, "https://github.com/dotnet/roslyn/issues/61715")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61715")]
         public async Task TestMethodGroup1()
         {
             await TestInRegularAndScript1Async("""
@@ -3077,7 +3077,7 @@ struct Test(string v);
                 """);
         }
 
-        [Fact, WorkItem(61715, "https://github.com/dotnet/roslyn/issues/61715")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61715")]
         public async Task TestMethodGroup2()
         {
             await TestInRegularAndScript1Async("""
@@ -3115,7 +3115,7 @@ struct Test(string v);
                 """);
         }
 
-        [Fact, WorkItem(61715, "https://github.com/dotnet/roslyn/issues/61715")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61715")]
         public async Task TestMethodGroup3()
         {
             await TestInRegularAndScript1Async("""

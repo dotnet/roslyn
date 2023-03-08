@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsPrimaryFunctionExpressionContext;
         public readonly bool IsTypeArgumentOfConstraintContext;
         public readonly bool IsTypeOfExpressionContext;
+        public readonly bool IsUsingAliasTypeContext;
 
         public readonly ISet<SyntaxKind> PrecedingModifiers;
 
@@ -103,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isTypeArgumentOfConstraintContext,
             bool isTypeContext,
             bool isTypeOfExpressionContext,
+            bool isUsingAliasTypeContext,
             bool isWithinAsyncMethod,
             ISet<SyntaxKind> precedingModifiers,
             CancellationToken cancellationToken)
@@ -167,6 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsPrimaryFunctionExpressionContext = isPrimaryFunctionExpressionContext;
             this.IsTypeArgumentOfConstraintContext = isTypeArgumentOfConstraintContext;
             this.IsTypeOfExpressionContext = isTypeOfExpressionContext;
+            this.IsUsingAliasTypeContext = isUsingAliasTypeContext;
 
             this.PrecedingModifiers = precedingModifiers;
         }
@@ -174,7 +177,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static CSharpSyntaxContext CreateContext(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
             => CreateContextWorker(document, semanticModel, position, cancellationToken);
 
-        private static CSharpSyntaxContext CreateContextWorker(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        private static CSharpSyntaxContext CreateContextWorker(
+            Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
 
@@ -294,6 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isTypeArgumentOfConstraintContext: syntaxTree.IsTypeArgumentOfConstraintClause(position, cancellationToken),
                 isTypeContext: syntaxTree.IsTypeContext(position, cancellationToken, semanticModel),
                 isTypeOfExpressionContext: syntaxTree.IsTypeOfExpressionContext(position, leftToken),
+                isUsingAliasTypeContext: syntaxTree.IsUsingAliasTypeContext(position, cancellationToken),
                 isWithinAsyncMethod: ComputeIsWithinAsyncMethod(),
                 precedingModifiers: precedingModifiers,
                 cancellationToken: cancellationToken);

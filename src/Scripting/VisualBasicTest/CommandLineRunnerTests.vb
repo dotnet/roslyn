@@ -122,7 +122,7 @@ End Class", "1").EmitToArray())
 >", runner.Console.Out.ToString())
         End Sub
 
-        <Fact, WorkItem(7133, "https://github.com/dotnet/roslyn/issues/7133")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7133")>
         Public Sub TestDisplayResultsWithCurrentUICulture1()
             ' Save the current thread culture as it is changed in the test.
             ' If the culture is not restored after the test all following tests
@@ -154,7 +154,7 @@ System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globaliz
             End Try
         End Sub
 
-        <Fact, WorkItem(7133, "https://github.com/dotnet/roslyn/issues/7133")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7133")>
         Public Sub TestDisplayResultsWithCurrentUICulture2()
             ' Save the current thread culture as it is changed in the test.
             ' If the culture is not restored after the test all following tests
