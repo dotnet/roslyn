@@ -146,22 +146,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             CSharpSimplifierOptions.Default.PreferSimpleDefaultExpression);
 
         public static readonly Option2<CodeStyleOption2<string>> PreferredModifierOrder = CreateOption(
-            CSharpCodeStyleOptionGroups.Modifier,
+            CodeStyleOptionGroups.Modifier,
             "csharp_preferred_modifier_order",
             CSharpIdeCodeStyleOptions.Default.PreferredModifierOrder);
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferStaticLocalFunction = CreateOption(
-            CSharpCodeStyleOptionGroups.Modifier,
+            CodeStyleOptionGroups.Modifier,
             "csharp_prefer_static_local_function",
             CSharpIdeCodeStyleOptions.Default.PreferStaticLocalFunction);
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferReadOnlyStruct = CreateOption(
-            CSharpCodeStyleOptionGroups.Modifier,
+            CodeStyleOptionGroups.Modifier,
             "csharp_style_prefer_readonly_struct",
             CSharpIdeCodeStyleOptions.Default.PreferReadOnlyStruct);
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferReadOnlyStructMember = CreateOption(
-            CSharpCodeStyleOptionGroups.Modifier,
+            CodeStyleOptionGroups.Modifier,
             "csharp_style_prefer_readonly_struct_member",
             CSharpIdeCodeStyleOptions.Default.PreferReadOnlyStructMember);
 
@@ -261,7 +261,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly OptionGroup ExpressionBodiedMembers = new("csharp_expression_bodied_members", CSharpCompilerExtensionsResources.Expression_bodied_members, priority: 2, parent: CodeStyleOptionGroups.CodeStyle);
         public static readonly OptionGroup PatternMatching = new("csharp_pattern_matching", CSharpCompilerExtensionsResources.Pattern_matching_preferences, priority: 3, parent: CodeStyleOptionGroups.CodeStyle);
         public static readonly OptionGroup NullCheckingPreferences = new("csharp_null_checking_preferences", CSharpCompilerExtensionsResources.Null_checking_preferences, priority: 4, parent: CodeStyleOptionGroups.CodeStyle);
-        public static readonly OptionGroup Modifier = new("csharp_modifier", CompilerExtensionsResources.Modifier_preferences, priority: 5, parent: CodeStyleOptionGroups.CodeStyle);
         public static readonly OptionGroup CodeBlockPreferences = new("csharp_code_block_preferences", CSharpCompilerExtensionsResources.Code_block_preferences, priority: 6, parent: CodeStyleOptionGroups.CodeStyle);
         public static readonly OptionGroup ExpressionLevelPreferences = new("csharp_expression_level_preferences", CompilerExtensionsResources.Expression_level_preferences, priority: 7, parent: CodeStyleOptionGroups.CodeStyle);
         public static readonly OptionGroup UsingDirectivePreferences = new("csharp_using_directive_preferences", CSharpCompilerExtensionsResources.using_directive_preferences, priority: 8, parent: CodeStyleOptionGroups.CodeStyle);
