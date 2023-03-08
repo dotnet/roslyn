@@ -473,22 +473,18 @@ namespace Roslyn.Utilities
         private Task<T> GetCachedValueAndCacheThisValueIfNoneCached_NoLock(Task<T> task)
         {
             if (_cachedResult != null)
-            {
                 return _cachedResult;
-            }
-            else
+
+            if (task.Status == TaskStatus.RanToCompletion)
             {
-                if (task.Status == TaskStatus.RanToCompletion)
-                {
-                    // Hold onto the completed task. We can get rid of the computation functions for good
-                    _cachedResult = task;
+                // Hold onto the completed task. We can get rid of the computation functions for good
+                _cachedResult = task;
 
-                    _asynchronousComputeFunction = null;
-                    _synchronousComputeFunction = null;
-                }
-
-                return task;
+                _asynchronousComputeFunction = null;
+                _synchronousComputeFunction = null;
             }
+
+            return task;
         }
 
         private void OnAsynchronousRequestCancelled(object? state)
