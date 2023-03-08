@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -85,6 +86,15 @@ namespace Roslyn.Utilities
         {
             _cachedResult = Task.FromResult(value);
         }
+
+#pragma warning disable IDE0060 // Remove unused parameter
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("'cacheResult' is no longer supported.  Use constructor without it.", error: false)]
+        public AsyncLazy(Func<CancellationToken, Task<T>> asynchronousComputeFunction, bool cacheResult)
+            : this(asynchronousComputeFunction)
+        {
+        }
+#pragma warning restore IDE0060 // Remove unused parameter
 
         public AsyncLazy(Func<CancellationToken, Task<T>> asynchronousComputeFunction)
             : this(asynchronousComputeFunction, synchronousComputeFunction: null)
