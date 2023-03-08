@@ -62,7 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
                 """,
                 """
                 {
-
                     int x;
                     Console.WriteLine(x);
                 }
@@ -109,7 +108,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
                 """,
                 """
                 Console.WriteLine();
-
                 int x;
                 Console.WriteLine(x);
                 """,
@@ -171,7 +169,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
                 """,
                 """
                 Console.WriteLine();
-
                 int x;
                 {
                 Console.WriteLine(x);
@@ -228,7 +225,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
                 """
                 Console.WriteLine();
                 {
-
                     int x;
                     Console.WriteLine(x);
                 }
@@ -455,7 +451,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
                 """,
                 """
                 Console.WriteLine();
-
                 int i = 5; Console.Write(i);
                 """,
                 Options.Regular);
@@ -2004,7 +1999,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
                 """,
                 """
                 System.Console.WriteLine();
-
                 int x;
                 switch (true)
                 {
