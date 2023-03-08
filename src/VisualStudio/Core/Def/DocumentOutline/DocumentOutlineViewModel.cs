@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// Queue that uses the language-server-protocol to get document symbol information.
         /// This queue can return null if it is called before and LSP server is registered for our document.
         /// </summary>
-        private readonly AsyncBatchingResultQueue<DocumentSymbolDataModel?> _documentSymbolQueue;
+        private readonly AsyncBatchingResultQueue<DocumentSymbolDataModel> _documentSymbolQueue;
 
         /// <summary>
         /// Queue for updating the state of the view model
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_threadingContext.DisposalToken);
 
             // work queue for refreshing LSP data
-            _documentSymbolQueue = new AsyncBatchingResultQueue<DocumentSymbolDataModel?>(
+            _documentSymbolQueue = new AsyncBatchingResultQueue<DocumentSymbolDataModel>(
                 DelayTimeSpan.Short,
                 GetDocumentSymbolAsync,
                 asyncListener,
@@ -161,37 +161,36 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             NotifyPropertyChanged(propertyName);
         }
 
-        private async ValueTask<DocumentSymbolDataModel?> GetDocumentSymbolAsync(CancellationToken cancellationToken)
+        private async ValueTask<DocumentSymbolDataModel> GetDocumentSymbolAsync(CancellationToken cancellationToken)
         {
             // We do not want this work running on a background thread
             await TaskScheduler.Default;
             cancellationToken.ThrowIfCancellationRequested();
 
             var textBuffer = _textBuffer;
+            var currentSnapshot = textBuffer.CurrentSnapshot;
             var filePath = _textBuffer.GetRelatedDocuments().FirstOrDefault(static d => d.FilePath is not null)?.FilePath;
             if (filePath is null)
             {
-                // text buffer is not saved to disk
-                // LSP does not support calls without URIs
-                // and Visual Studio does not have a URI concept other than the file path.
-                return null;
+                // text buffer is not saved to disk. LSP does not support calls without URIs. and Visual Studio does not
+                // have a URI concept other than the file path.
+                return new DocumentSymbolDataModel(ImmutableArray<DocumentSymbolData>.Empty, currentSnapshot);
             }
 
             // Obtain the LSP response and text snapshot used.
             var response = await DocumentSymbolsRequestAsync(
                 textBuffer, _languageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
 
-            // If there is no matching LSP server registered the client will return null here - e.g. wrong content type on the buffer, the
-            // server totally failed to start, server doesn't support the right capabilities. For C# we might know it's a bug if we get a null
-            // response here, but we don't know that in general for all languages.
-            // see "Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient.AlwaysActivateInProcLanguageClient" for the list of content types we register for.
-            // At this time the expected list is C#, Visual Basic, and F#
+            // If there is no matching LSP server registered the client will return null here - e.g. wrong content type
+            // on the buffer, the server totally failed to start, server doesn't support the right capabilities. For C#
+            // we might know it's a bug if we get a null response here, but we don't know that in general for all
+            // languages. see
+            // "Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient.AlwaysActivateInProcLanguageClient" for the
+            // list of content types we register for. At this time the expected list is C#, Visual Basic, and F#
             if (response is null)
-            {
-                return null;
-            }
+                return new DocumentSymbolDataModel(ImmutableArray<DocumentSymbolData>.Empty, currentSnapshot);
 
-            var responseBody = response.Value.response.ToObject<DocumentSymbol[]>();
+            var responseBody = response.Value.response.ToObject<LspDocumentSymbol[]>();
             // It would be a bug in the LSP server implementation if we get back a null result here.
             Assumes.NotNull(responseBody);
 
