@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -45,5 +48,14 @@ namespace Microsoft.CodeAnalysis.Completion
             => completionItem.DisplayText.StartsWith(UnicodeStarAndSpace);
 
         public const string UnicodeStarAndSpace = "\u2605 ";
+
+        public static async Task<SyntaxContext> CreateSyntaxContextWithExistingSpeculativeModelAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(document.SupportsSemanticModel, "Should only be called from C#/VB providers.");
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+
+            var service = document.GetRequiredLanguageService<ISyntaxContextService>();
+            return service.CreateContext(document, semanticModel, position, cancellationToken);
+        }
     }
 }
