@@ -97,16 +97,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             other.VerifyDiagnostics(
-                // (1,46): error CS7034: The specified version string does not conform to the required format - major[.minor[.build[.revision]]]
+                // (1,46): error CS7034: The specified version string '1.*' does not conform to the required format - major[.minor[.build[.revision]]]
                 // [assembly: System.Reflection.AssemblyVersion("1.*")] public class C {}
-                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, @"""1.*""").WithLocation(1, 46));
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, @"""1.*""").WithArguments("1.*").WithLocation(1, 46));
 
             s = @"[assembly: System.Reflection.AssemblyVersion(""-1"")] public class C {}";
             other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             other.VerifyDiagnostics(
-                // (1,46): error CS7034: The specified version string does not conform to the required format - major[.minor[.build[.revision]]]
+                // (1,46): error CS7034: The specified version string '-1' does not conform to the required format - major[.minor[.build[.revision]]]
                 // [assembly: System.Reflection.AssemblyVersion("-1")] public class C {}
-                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, @"""-1""").WithLocation(1, 46));
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, @"""-1""").WithArguments("-1").WithLocation(1, 46));
         }
 
         [Fact, WorkItem(22660, "https://github.com/dotnet/roslyn/issues/22660")]
@@ -116,9 +116,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(s, options: TestOptions.ReleaseDll.WithDeterministic(true));
             comp.VerifyDiagnostics(
-                // (1,46): error CS8357: The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation
+                // (1,46): error CS8357: The specified version string '1.1.1.*' contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation
                 // [assembly: System.Reflection.AssemblyVersion("1.1.1.*")]
-                Diagnostic(ErrorCode.ERR_InvalidVersionFormatDeterministic, @"""1.1.1.*""").WithLocation(1, 46)
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormatDeterministic, @"""1.1.1.*""").WithArguments("1.1.1.*").WithLocation(1, 46)
+                );
+        }
+
+        [Fact]
+        public void VersionAttributeWithWildcardAndDeterminism_Null()
+        {
+            string s = @"[assembly: System.Reflection.AssemblyVersion(null)]";
+
+            var comp = CreateCompilation(s, options: TestOptions.ReleaseDll.WithDeterministic(true));
+            comp.VerifyDiagnostics(
+                // (1,46): error CS7034: The specified version string '<null>' does not conform to the required format - major[.minor[.build[.revision]]]
+                // [assembly: System.Reflection.AssemblyVersion(null)]
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, "null").WithArguments("<null>").WithLocation(1, 46)
                 );
         }
 
@@ -158,7 +171,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string s = @"[assembly: System.Reflection.AssemblyFileVersion(""1.2.*"")] public class C {}";
 
             var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
-            other.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_InvalidVersionFormat, @"""1.2.*"""));
+            other.VerifyDiagnostics(
+                // (1,50): warning CS7035: The specified version string '1.2.*' does not conform to the recommended format - major.minor.build.revision
+                // [assembly: System.Reflection.AssemblyFileVersion("1.2.*")] public class C {}
+                Diagnostic(ErrorCode.WRN_InvalidVersionFormat, @"""1.2.*""").WithArguments("1.2.*").WithLocation(1, 50)
+                );
 
             // Confirm that suppressing the old alink warning 1607 shuts off WRN_ConflictingMachineAssembly
             var warnings = new Dictionary<string, ReportDiagnostic>();
@@ -168,12 +185,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void FileVersionAttributeWrn_Null()
+        {
+            string s = @"[assembly: System.Reflection.AssemblyFileVersion(null)] public class C {}";
+
+            var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            other.VerifyDiagnostics(
+                // (1,50): warning CS7035: The specified version string '<null>' does not conform to the recommended format - major.minor.build.revision
+                // [assembly: System.Reflection.AssemblyFileVersion(null)] public class C {}
+                Diagnostic(ErrorCode.WRN_InvalidVersionFormat, "null").WithArguments("<null>").WithLocation(1, 50)
+                );
+        }
+
+        [Fact]
         public void FileVersionAttributeWarning_OutOfRange()
         {
             string s = @"[assembly: System.Reflection.AssemblyFileVersion(""1.65536"")] public class C {}";
 
             var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
-            other.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_InvalidVersionFormat, @"""1.65536"""));
+            other.VerifyDiagnostics(
+                // (1,50): warning CS7035: The specified version string '1.65536' does not conform to the recommended format - major.minor.build.revision
+                // [assembly: System.Reflection.AssemblyFileVersion("1.65536")] public class C {}
+                Diagnostic(ErrorCode.WRN_InvalidVersionFormat, @"""1.65536""").WithArguments("1.65536").WithLocation(1, 50)
+                );
 
             // Confirm that suppressing the old alink warning 1607 shuts off WRN_ConflictingMachineAssembly
             var warnings = new Dictionary<string, ReportDiagnostic>();
@@ -191,24 +225,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             other.VerifyDiagnostics(
-                // (1,63): error CS7058: The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)
+                // (1,63): error CS7058: The specified version string '1.2.3.A' does not conform to the required format - major.minor.build.revision (without wildcards)
                 // [assembly: System.Resources.SatelliteContractVersionAttribute("1.2.3.A")] public class C {}
-                Diagnostic(ErrorCode.ERR_InvalidVersionFormat2, @"""1.2.3.A""").WithLocation(1, 63)
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat2, @"""1.2.3.A""").WithArguments("1.2.3.A").WithLocation(1, 63)
                 );
 
             s = @"[assembly: System.Resources.SatelliteContractVersionAttribute(""1.2.*"")] public class C {}";
 
             other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             other.VerifyDiagnostics(
-                // (1,63): error CS7058: The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)
+                // (1,63): error CS7058: The specified version string '1.2.*' does not conform to the required format - major.minor.build.revision (without wildcards)
                 // [assembly: System.Resources.SatelliteContractVersionAttribute("1.2.*")] public class C {}
-                Diagnostic(ErrorCode.ERR_InvalidVersionFormat2, @"""1.2.*""").WithLocation(1, 63)
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat2, @"""1.2.*""").WithArguments("1.2.*").WithLocation(1, 63)
                 );
 
             s = @"[assembly: System.Resources.SatelliteContractVersionAttribute(""1"")] public class C {}";
 
             other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             other.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SatelliteContractVersionAttributeErr_Null()
+        {
+            string s = @"[assembly: System.Resources.SatelliteContractVersionAttribute(null)] public class C {}";
+
+            var other = CreateCompilation(s);
+            other.VerifyDiagnostics(
+                // (1,63): error CS7058: The specified version string '<null>' does not conform to the required format - major.minor.build.revision (without wildcards)
+                // [assembly: System.Resources.SatelliteContractVersionAttribute(null)] public class C {}
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat2, "null").WithArguments("<null>").WithLocation(1, 63)
+                );
         }
 
         [Fact]
