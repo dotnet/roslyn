@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
@@ -25,6 +26,10 @@ internal class BrokeredServiceContainer : GlobalBrokeredServiceContainer
     /// <inheritdoc cref="GlobalBrokeredServiceContainer.RegisterServices(IReadOnlyDictionary{ServiceMoniker, ServiceRegistration})"/>
     internal new void RegisterServices(IReadOnlyDictionary<ServiceMoniker, ServiceRegistration> services)
         => base.RegisterServices(services);
+
+    /// <inheritdoc cref="GlobalBrokeredServiceContainer.UnregisterServices(IEnumerable{ServiceMoniker})"/>
+    internal new void UnregisterServices(IEnumerable<ServiceMoniker> services)
+        => base.UnregisterServices(services);
 
     internal ImmutableDictionary<ServiceMoniker, ServiceRegistration> GetRegisteredServices()
         => RegisteredServices;
