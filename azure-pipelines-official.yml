@@ -303,6 +303,17 @@ stages:
         ArtifactName: 'PackageArtifacts'
       condition: succeeded()
 
+    # Publish our language server executables as an artifact.
+    - task: NuGetCommand@2
+      displayName: Publish Language Server Executables
+      inputs:
+        command: push
+        packagesToPush: '$(Build.SourcesDirectory)\artifacts\LanguageServer\*.nupkg'
+        allowPackageConflicts: false
+        nuGetFeedType: external
+        publishFeedCredentials: 'DevDiv - VS package feed'
+      condition: succeeded()
+
     # Publish Asset Manifests for Build Asset Registry job
     - task: PublishBuildArtifacts@1
       displayName: Publish Asset Manifests
