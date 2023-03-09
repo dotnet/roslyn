@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     internal static class SortDescriptionCollectionExtensions
     {
         private static ImmutableArray<SortDescription> NameSortDescriptions { get; } = ImmutableArray.Create(new SortDescription("Data.Name", ListSortDirection.Ascending));
-        private static ImmutableArray<SortDescription> LocationSortDescriptions { get; } = ImmutableArray.Create(new SortDescription("Data.RangeSpan.Start", ListSortDirection.Ascending));
+        private static ImmutableArray<SortDescription> LocationSortDescriptions { get; } = ImmutableArray.Create(new SortDescription("Data.RangeSpan.Start.Position", ListSortDirection.Ascending));
         private static ImmutableArray<SortDescription> TypeSortDescriptions { get; } = ImmutableArray.Create(
             new SortDescription("Data.SymbolKind", ListSortDirection.Ascending),
             new SortDescription("Data.Name", ListSortDirection.Ascending));

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Microsoft.VisualStudio.LanguageServices.DocumentOutline.DocumentOutlineView"
+<UserControl x:Class="Microsoft.VisualStudio.LanguageServices.DocumentOutline.DocumentOutlineView"
              x:ClassModifier="internal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -26,7 +26,7 @@
             IsLiveSortingRequested="True"
             Source="{Binding DocumentSymbolViewModelItems}">
             <CollectionViewSource.SortDescriptions>
-                <ComponentModel:SortDescription PropertyName="Data.RangeSpan.Start" Direction="Ascending" />
+                <ComponentModel:SortDescription PropertyName="Data.RangeSpan.Start.Position" Direction="Ascending" />
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
         <!-- An instance of our custom sorter, This uses ImmutableArray's sort methods instead of linq 
