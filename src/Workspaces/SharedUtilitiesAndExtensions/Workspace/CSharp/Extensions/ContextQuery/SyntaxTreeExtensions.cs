@@ -749,7 +749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsStatementContext(position, tokenOnLeftOfPosition, cancellationToken) ||
                 syntaxTree.IsGlobalStatementContext(position, cancellationToken) ||
                 syntaxTree.IsTypeParameterConstraintContext(position, tokenOnLeftOfPosition) ||
-                syntaxTree.IsUsingAliasContext(position, cancellationToken) ||
+                syntaxTree.IsUsingAliasTypeContext(position, cancellationToken) ||
                 syntaxTree.IsUsingStaticContext(position, cancellationToken) ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 syntaxTree.IsPossibleTupleContext(tokenOnLeftOfPosition, position) ||
@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsUsingAliasContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        public static bool IsUsingAliasTypeContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             // using Goo = |
 

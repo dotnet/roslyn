@@ -99,7 +99,7 @@ End Interface</text>
              Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
         End Sub
 
-        <WorkItem(544161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544161")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544161")>
         <WpfFact>
         Public Sub TestInterfacesWithDuplicateMember()
             Dim code = <text>
@@ -228,8 +228,8 @@ End Class</text>
                  Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
         End Sub
 
-        <WorkItem(530553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
-        <WorkItem(544087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544087")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544087")>
         <WpfFact>
         Public Sub TestInvocationAfterWhitespaceTrivia()
             Dim code = <text>
@@ -254,7 +254,7 @@ End Interface</text>
 
         End Sub
 
-        <WorkItem(544089, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544089")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544089")>
         <WpfFact>
         Public Sub TestInvocationAfterCommentTrivia()
             Dim code = <text>
@@ -305,7 +305,7 @@ End Interface</text>
                  Sub(expected, actual, view) Assert.Equal(expected.Trim(), actual.Trim()))
         End Sub
 
-        <WorkItem(544211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544211")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544211")>
         <WpfFact>
         Public Sub TestWithEndBlockMissing()
             Dim code = <text>
@@ -331,7 +331,7 @@ End Class</text>
                  Sub(expected, actual, view) AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual))
         End Sub
 
-        <WorkItem(529302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529302")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529302")>
         <WpfFact>
         Public Sub TestWithEndBlockMissing2()
             Dim code = <text>
@@ -361,9 +361,9 @@ End Class</text>
                  Sub(expected, actual, view) AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual))
         End Sub
 
-        <WorkItem(530553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
-        <WorkItem(529337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529337")>
-        <WorkItem(674621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674621")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529337")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674621")>
         <WpfFact>
         Public Sub TestWithStatementSeparator()
             Dim code = <text>
@@ -397,7 +397,7 @@ End Class
                  Sub(expected, actual, view) AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual))
         End Sub
 
-        <WorkItem(529360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529360")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529360")>
         <WpfFact>
         Public Sub TestCursorNotOnSameLine()
             Dim code = <text>
@@ -432,7 +432,7 @@ End Class
                  Sub(expected, actual, view) AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual))
         End Sub
 
-        <WorkItem(529722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529722")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529722")>
         <WpfFact>
         Public Sub TestCursorPlacedOnBlankLineAfter()
             Dim code = <text>
@@ -467,7 +467,7 @@ End Class
                  End Sub)
         End Sub
 
-        <WorkItem(545867, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545867")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545867")>
         <WpfFact>
         Public Sub TestMultipleImplementationWithCaseDifference()
             Dim code = <text>
@@ -503,7 +503,7 @@ End Class</text>
              Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
         End Sub
 
-        <WorkItem(927478, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/927478")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/927478")>
         <WpfFact>
         Public Sub TestFullyQualifiedName()
             Dim code = <text>
