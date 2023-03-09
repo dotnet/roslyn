@@ -5728,94 +5728,102 @@ public class C {
             var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp);
-            verifier.VerifyIL("C.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", source: source, expectedIL: @"
-    {
-      // Code size      176 (0xb0)
-      .maxstack  3
-      .locals init (int V_0,
-                    C V_1,
-                    int? V_2,
-                    int V_3,
-                    System.Runtime.CompilerServices.TaskAwaiter<int> V_4,
-                    System.Exception V_5)
-      IL_0000:  ldarg.0
-      IL_0001:  ldfld      ""int C.<M>d__1.<>1__state""
-      IL_0006:  stloc.0
-      IL_0007:  ldarg.0
-      IL_0008:  ldfld      ""C C.<M>d__1.<>4__this""
-      IL_000d:  stloc.1
-      .try
-      {
-        IL_000e:  ldloc.0
-        IL_000f:  brfalse.s  IL_0062
-        IL_0011:  ldarg.0
-        IL_0012:  ldfld      ""int? C.<M>d__1.val""
-        IL_0017:  stloc.2
-        IL_0018:  ldloca.s   V_2
-        IL_001a:  call       ""bool int?.HasValue.get""
-        IL_001f:  brfalse.s  IL_002b
-        IL_0021:  ldloca.s   V_2
-        IL_0023:  call       ""int int?.GetValueOrDefault()""
-        IL_0028:  stloc.3
-        IL_0029:  br.s       IL_0087
-        IL_002b:  ldloc.1
-        IL_002c:  call       ""System.Threading.Tasks.Task<int> C.Get()""
-        IL_0031:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
-        IL_0036:  stloc.s    V_4
-        IL_0038:  ldloca.s   V_4
-        IL_003a:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
-        IL_003f:  brtrue.s   IL_007f
-        IL_0041:  ldarg.0
-        IL_0042:  ldc.i4.0
-        IL_0043:  dup
-        IL_0044:  stloc.0
-        IL_0045:  stfld      ""int C.<M>d__1.<>1__state""
-        IL_004a:  ldarg.0
-        IL_004b:  ldloc.s    V_4
-        IL_004d:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__1.<>u__1""
-        IL_0052:  ldarg.0
-        IL_0053:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__1.<>t__builder""
-        IL_0058:  ldloca.s   V_4
-        IL_005a:  ldarg.0
-        IL_005b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<M>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<M>d__1)""
-        IL_0060:  leave.s    IL_00af
-        IL_0062:  ldarg.0
-        IL_0063:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__1.<>u__1""
-        IL_0068:  stloc.s    V_4
-        IL_006a:  ldarg.0
-        IL_006b:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__1.<>u__1""
-        IL_0070:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-        IL_0076:  ldarg.0
-        IL_0077:  ldc.i4.m1
-        IL_0078:  dup
-        IL_0079:  stloc.0
-        IL_007a:  stfld      ""int C.<M>d__1.<>1__state""
-        IL_007f:  ldloca.s   V_4
-        IL_0081:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-        IL_0086:  stloc.3
-        IL_0087:  ldloc.3
-        IL_0088:  ldc.i4.1
-        IL_0089:  pop
-        IL_008a:  pop
-        IL_008b:  ldsfld     ""string string.Empty""
-        IL_0090:  newobj     ""System.NotImplementedException..ctor(string)""
-        IL_0095:  throw
-      }
-      catch System.Exception
-      {
-        IL_0096:  stloc.s    V_5
-        IL_0098:  ldarg.0
-        IL_0099:  ldc.i4.s   -2
-        IL_009b:  stfld      ""int C.<M>d__1.<>1__state""
-        IL_00a0:  ldarg.0
-        IL_00a1:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__1.<>t__builder""
-        IL_00a6:  ldloc.s    V_5
-        IL_00a8:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-        IL_00ad:  leave.s    IL_00af
-      }
-      IL_00af:  ret
-    }
-");
+            verifier.VerifyMethodBody("C.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      176 (0xb0)
+  .maxstack  3
+  .locals init (int V_0,
+                C V_1,
+                int? V_2,
+                int V_3,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_4,
+                System.Exception V_5)
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<M>d__1.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""C C.<M>d__1.<>4__this""
+  IL_000d:  stloc.1
+  .try
+  {
+    // sequence point: <hidden>
+    IL_000e:  ldloc.0
+    IL_000f:  brfalse.s  IL_0062
+    // sequence point: switch (val ?? await Get())
+    IL_0011:  ldarg.0
+    IL_0012:  ldfld      ""int? C.<M>d__1.val""
+    IL_0017:  stloc.2
+    IL_0018:  ldloca.s   V_2
+    IL_001a:  call       ""bool int?.HasValue.get""
+    IL_001f:  brfalse.s  IL_002b
+    IL_0021:  ldloca.s   V_2
+    IL_0023:  call       ""int int?.GetValueOrDefault()""
+    IL_0028:  stloc.3
+    IL_0029:  br.s       IL_0087
+    IL_002b:  ldloc.1
+    IL_002c:  call       ""System.Threading.Tasks.Task<int> C.Get()""
+    IL_0031:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0036:  stloc.s    V_4
+    // sequence point: <hidden>
+    IL_0038:  ldloca.s   V_4
+    IL_003a:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_003f:  brtrue.s   IL_007f
+    IL_0041:  ldarg.0
+    IL_0042:  ldc.i4.0
+    IL_0043:  dup
+    IL_0044:  stloc.0
+    IL_0045:  stfld      ""int C.<M>d__1.<>1__state""
+    // async: yield
+    IL_004a:  ldarg.0
+    IL_004b:  ldloc.s    V_4
+    IL_004d:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__1.<>u__1""
+    IL_0052:  ldarg.0
+    IL_0053:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__1.<>t__builder""
+    IL_0058:  ldloca.s   V_4
+    IL_005a:  ldarg.0
+    IL_005b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<M>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<M>d__1)""
+    IL_0060:  leave.s    IL_00af
+    // async: resume
+    IL_0062:  ldarg.0
+    IL_0063:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__1.<>u__1""
+    IL_0068:  stloc.s    V_4
+    IL_006a:  ldarg.0
+    IL_006b:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__1.<>u__1""
+    IL_0070:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0076:  ldarg.0
+    IL_0077:  ldc.i4.m1
+    IL_0078:  dup
+    IL_0079:  stloc.0
+    IL_007a:  stfld      ""int C.<M>d__1.<>1__state""
+    IL_007f:  ldloca.s   V_4
+    IL_0081:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_0086:  stloc.3
+    IL_0087:  ldloc.3
+    // sequence point: <hidden>
+    IL_0088:  ldc.i4.1
+    IL_0089:  pop
+    IL_008a:  pop
+    // sequence point: throw new NotImplementedException(string.Empty);
+    IL_008b:  ldsfld     ""string string.Empty""
+    IL_0090:  newobj     ""System.NotImplementedException..ctor(string)""
+    IL_0095:  throw
+  }
+  catch System.Exception
+  {
+    // sequence point: <hidden>
+    IL_0096:  stloc.s    V_5
+    IL_0098:  ldarg.0
+    IL_0099:  ldc.i4.s   -2
+    IL_009b:  stfld      ""int C.<M>d__1.<>1__state""
+    IL_00a0:  ldarg.0
+    IL_00a1:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__1.<>t__builder""
+    IL_00a6:  ldloc.s    V_5
+    IL_00a8:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00ad:  leave.s    IL_00af
+  }
+  IL_00af:  ret
+}");
         }
 
         [Fact, WorkItem(46843, "https://github.com/dotnet/roslyn/issues/46843")]

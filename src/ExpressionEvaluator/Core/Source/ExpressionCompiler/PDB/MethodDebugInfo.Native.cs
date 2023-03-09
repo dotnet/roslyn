@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 RoslynDebug.AssertNotNull(importString);
 
-                if (importString.Length > 0 && importString[0] == '*')
+                if (importString is ['*', ..])
                 {
                     string? alias = null;
                     string? target = null;

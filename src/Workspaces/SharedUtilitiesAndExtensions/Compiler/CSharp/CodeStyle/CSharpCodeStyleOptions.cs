@@ -160,6 +160,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_style_prefer_readonly_struct",
             CSharpIdeCodeStyleOptions.Default.PreferReadOnlyStruct);
 
+        public static readonly Option2<CodeStyleOption2<bool>> PreferReadOnlyStructMember = CreateOption(
+            CSharpCodeStyleOptionGroups.Modifier,
+            "csharp_style_prefer_readonly_struct_member",
+            CSharpIdeCodeStyleOptions.Default.PreferReadOnlyStructMember);
+
         public static readonly Option2<CodeStyleOption2<bool>> PreferSimpleUsingStatement = CreateOption(
             CSharpCodeStyleOptionGroups.CodeBlockPreferences,
             "csharp_prefer_simple_using_statement",

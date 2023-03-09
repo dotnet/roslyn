@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.VisualStudio.LanguageServices.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp;
 
@@ -23,7 +24,7 @@ internal static class CSharpVisualStudioOptionStorageReadFallbacks
     {
         private static readonly ImmutableArray<(string key, int flag)> s_storages = ImmutableArray.Create(
             ("TextEditor.CSharp.Specific.SpaceWithinExpressionParentheses", (int)SpacePlacementWithinParentheses.Expressions),
-            ("TextEditor.CSharp.Specific.SpaceWithinCastParentheses", (int)SpacePlacementWithinParentheses.Expressions),
+            ("TextEditor.CSharp.Specific.SpaceWithinCastParentheses", (int)SpacePlacementWithinParentheses.TypeCasts),
             ("TextEditor.CSharp.Specific.SpaceWithinOtherParentheses", (int)SpacePlacementWithinParentheses.ControlFlowStatements));
 
         [ImportingConstructor]
@@ -33,7 +34,7 @@ internal static class CSharpVisualStudioOptionStorageReadFallbacks
         }
 
         public Optional<object?> TryRead(string? language, TryReadValueDelegate readValue)
-            => TryReadFlags(s_storages, readValue, out var intValue) ? (SpacePlacementWithinParentheses)intValue : default(Optional<object?>);
+            => TryReadFlags(s_storages, (int)CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue, readValue, out var intValue) ? (SpacePlacementWithinParentheses)intValue : default(Optional<object?>);
     }
 
     [ExportVisualStudioStorageReadFallback("csharp_new_line_before_open_brace"), Shared]
@@ -57,16 +58,22 @@ internal static class CSharpVisualStudioOptionStorageReadFallbacks
         }
 
         public Optional<object?> TryRead(string? language, TryReadValueDelegate readValue)
-            => TryReadFlags(s_storages, readValue, out var intValue) ? (NewLineBeforeOpenBracePlacement)intValue : default(Optional<object?>);
+            => TryReadFlags(s_storages, (int)CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue, readValue, out var intValue) ? (NewLineBeforeOpenBracePlacement)intValue : default(Optional<object?>);
     }
 
-    private static bool TryReadFlags(ImmutableArray<(string key, int flag)> storages, TryReadValueDelegate read, out int result)
+    /// <summary>
+    /// Returns true if an option for any flag is present in the storage. Each flag in the result will be either read from the storage 
+    /// (if present) or from <paramref name="defaultValue"/> otherwise.
+    /// Returns false if none of the flags are present in the storage.
+    /// </summary>
+    private static bool TryReadFlags(ImmutableArray<(string key, int flag)> storages, int defaultValue, TryReadValueDelegate read, out int result)
     {
         var hasAnyFlag = false;
         result = 0;
         foreach (var (key, flag) in storages)
         {
-            var value = read(key, typeof(bool));
+            var defaultFlagValue = defaultValue & flag;
+            var value = read(key, typeof(bool), Boxes.Box(defaultFlagValue != 0));
             if (value.HasValue)
             {
                 if ((bool)value.Value!)
@@ -75,6 +82,10 @@ internal static class CSharpVisualStudioOptionStorageReadFallbacks
                 }
 
                 hasAnyFlag = true;
+            }
+            else
+            {
+                result |= defaultFlagValue;
             }
         }
 

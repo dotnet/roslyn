@@ -16,9 +16,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService
 {
     internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService
     {
-        public const string ServiceName = "WorkspaceProjectFactoryService";
-        public static readonly ServiceDescriptor ServiceDescriptor = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceDescriptors.ComponentName, ServiceName, suffix: "", ServiceDescriptors.GetFeatureDisplayName);
-
         private readonly IWorkspaceProjectContextFactory _workspaceProjectContextFactory;
 
         // For the sake of the in-proc implementation here, we're going to build this atop IWorkspaceProjectContext so semantics are preserved

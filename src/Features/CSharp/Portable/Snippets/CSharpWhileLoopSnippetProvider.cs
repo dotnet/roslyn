@@ -45,10 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return whileStatement.Condition;
         }
 
-        private static string GetIndentation(Document document, SyntaxNode node, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
+        private static string GetIndentation(Document document, WhileStatementSyntax whileStatementSyntax, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var whileStatementSyntax = (WhileStatementSyntax)node;
             var openBraceLine = parsedDocument.Text.Lines.GetLineFromPosition(whileStatementSyntax.Statement.SpanStart).LineNumber;
 
             var indentationOptions = new IndentationOptions(syntaxFormattingOptions);
@@ -67,10 +66,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
 
-            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = GetIndentation(document, snippet, syntaxFormattingOptions, cancellationToken);
+            if (snippet is not WhileStatementSyntax whileStatementSyntax)
+                return document;
 
-            var whileStatementSyntax = (WhileStatementSyntax)snippet;
+            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var indentationString = GetIndentation(document, whileStatementSyntax, syntaxFormattingOptions, cancellationToken);
+
             var blockStatement = (BlockSyntax)whileStatementSyntax.Statement;
             blockStatement = blockStatement.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
             var newWhileStatementSyntax = whileStatementSyntax.ReplaceNode(whileStatementSyntax.Statement, blockStatement);

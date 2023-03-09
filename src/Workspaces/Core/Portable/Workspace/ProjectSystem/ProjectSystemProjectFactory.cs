@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         public IFileChangeWatcher FileChangeWatcher { get; }
         public FileWatchedPortableExecutableReferenceFactory FileWatchedReferenceFactory { get; }
 
-        private readonly Action<ImmutableArray<string>> _onDocumentsAdded;
+        private readonly Func<bool, ImmutableArray<string>, Task> _onDocumentsAddedMaybeAsync;
         private readonly Action<Project> _onProjectRemoved;
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         public string? SolutionPath { get; set; }
         public Guid SolutionTelemetryId { get; set; }
 
-        public ProjectSystemProjectFactory(Workspace workspace, IFileChangeWatcher fileChangeWatcher, Action<ImmutableArray<string>> onDocumentsAdded, Action<Project> onProjectRemoved)
+        public ProjectSystemProjectFactory(Workspace workspace, IFileChangeWatcher fileChangeWatcher, Func<bool, ImmutableArray<string>, Task> onDocumentsAddedMaybeAsync, Action<Project> onProjectRemoved)
         {
             Workspace = workspace;
             WorkspaceListener = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             FileWatchedReferenceFactory = new FileWatchedPortableExecutableReferenceFactory(workspace.Services.SolutionServices, fileChangeWatcher);
             FileWatchedReferenceFactory.ReferenceChanged += this.StartRefreshingMetadataReferencesForFile;
 
-            _onDocumentsAdded = onDocumentsAdded;
+            _onDocumentsAddedMaybeAsync = onDocumentsAddedMaybeAsync;
             _onProjectRemoved = onProjectRemoved;
         }
 
@@ -649,9 +649,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             }).ConfigureAwait(false);
         }
 
-        internal void RaiseOnDocumentsAdded(ImmutableArray<string> filePaths)
+        internal Task RaiseOnDocumentsAddedMaybeAsync(bool useAsync, ImmutableArray<string> filePaths)
         {
-            _onDocumentsAdded(filePaths);
+            return _onDocumentsAddedMaybeAsync(useAsync, filePaths);
         }
     }
 }

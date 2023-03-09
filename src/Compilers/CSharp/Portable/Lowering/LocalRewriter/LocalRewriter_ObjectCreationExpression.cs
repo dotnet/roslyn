@@ -108,6 +108,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenObjectCreation = MakeConversionNode(rewrittenObjectCreation, node.Type, false, false);
             }
 
+            if (Instrument)
+            {
+                rewrittenObjectCreation = Instrumenter.InstrumentObjectCreationExpression(node, rewrittenObjectCreation);
+            }
+
             if (node.InitializerExpressionOpt == null || node.InitializerExpressionOpt.HasErrors)
             {
                 return rewrittenObjectCreation;

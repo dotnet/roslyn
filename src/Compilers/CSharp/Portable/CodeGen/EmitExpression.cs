@@ -257,6 +257,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitSourceDocumentIndex((BoundSourceDocumentIndex)expression);
                     break;
 
+                case BoundKind.LocalId:
+                    Debug.Assert(used);
+                    EmitLocalIdExpression((BoundLocalId)expression);
+                    break;
+
+                case BoundKind.ParameterId:
+                    Debug.Assert(used);
+                    EmitParameterIdExpression((BoundParameterId)expression);
+                    break;
+
                 case BoundKind.MethodInfo:
                     if (used)
                     {
@@ -3308,6 +3318,43 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var symbol = node.Method.PartialDefinitionPart ?? node.Method;
 
             EmitSymbolToken(symbol, node.Syntax, null, encodeAsRawDefinitionToken: true);
+        }
+
+        private void EmitLocalIdExpression(BoundLocalId node)
+        {
+            Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
+
+            if (node.HoistedField is null)
+            {
+                _builder.EmitIntConstant(GetLocal(node.Local).SlotIndex);
+            }
+            else
+            {
+                EmitHoistedVariableId(node.HoistedField, node.Syntax);
+            }
+        }
+
+        private void EmitParameterIdExpression(BoundParameterId node)
+        {
+            Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
+
+            if (node.HoistedField is null)
+            {
+                _builder.EmitIntConstant(node.Parameter.Ordinal);
+            }
+            else
+            {
+                EmitHoistedVariableId(node.HoistedField, node.Syntax);
+            }
+        }
+
+        private void EmitHoistedVariableId(FieldSymbol field, SyntaxNode syntax)
+        {
+            Debug.Assert(field.IsDefinition);
+            var fieldRef = _module.Translate(field, syntax, _diagnostics.DiagnosticBag, needDeclaration: true);
+
+            _builder.EmitOpCode(ILOpCode.Ldtoken);
+            _builder.EmitToken(fieldRef, syntax, _diagnostics.DiagnosticBag, Cci.MetadataWriter.RawTokenEncoding.LiftedVariableId);
         }
 
         private void EmitMaximumMethodDefIndexExpression(BoundMaximumMethodDefIndex node)

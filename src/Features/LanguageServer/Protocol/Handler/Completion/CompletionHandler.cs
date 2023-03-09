@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -19,7 +18,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -90,12 +88,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
 
             var (list, isIncomplete, resultId) = completionListResult.Value;
-            if (list.IsEmpty)
+
+            if (list.ItemsList.Count == 0)
             {
                 return new LSP.VSInternalCompletionList
                 {
                     Items = Array.Empty<LSP.CompletionItem>(),
-                    SuggestionMode = list.SuggestionModeItem != null,
+                    // If we have a suggestion mode item, we just need to keep the list in suggestion mode.
+                    // We don't need to return the fake suggestion mode item.
+                    SuggestionMode = list.SuggestionModeItem is not null,
                     IsIncomplete = isIncomplete,
                 };
             }
@@ -331,7 +332,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var resultId = result.Value.ResultId;
 
-            var completionListMaxSize = _globalOptions.GetOption(LspOptions.MaxCompletionListSize);
+            var completionListMaxSize = _globalOptions.GetOption(LspOptionsStorage.MaxCompletionListSize);
             var (completionList, isIncomplete) = FilterCompletionList(result.Value.List, completionListMaxSize, completionListSpan, completionTrigger, sourceText, document);
 
             return (completionList, isIncomplete, resultId);

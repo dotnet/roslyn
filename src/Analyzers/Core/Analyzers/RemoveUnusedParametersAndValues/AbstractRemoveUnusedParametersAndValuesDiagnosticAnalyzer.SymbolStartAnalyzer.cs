@@ -240,9 +240,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 // as event handlers are required to match this signature
                 // regardless of whether or not the parameters are used.
                 if (_eventArgsTypeOpt != null &&
-                    method.Parameters.Length == 2 &&
-                    method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
-                    method.Parameters[1].Type.InheritsFromOrEquals(_eventArgsTypeOpt))
+                    method.Parameters is [{ Type.SpecialType: SpecialType.System_Object }, var secondParam] &&
+                    secondParam.Type.InheritsFromOrEquals(_eventArgsTypeOpt))
                 {
                     return false;
                 }

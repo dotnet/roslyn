@@ -31,16 +31,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             OptionGroup group, string name, T defaultValue, EditorConfigValueSerializer<T>? serializer = null)
             => s_allOptionsBuilder.CreateEditorConfigOption(name, defaultValue, group, serializer);
 
-        /// <remarks>
-        /// When user preferences are not yet set for a style, we fall back to the default value.
-        /// One such default(s), is that the feature is turned on, so that codegen consumes it,
-        /// but with silent enforcement, so that the user is not prompted about their usage.
-        /// </remarks>
-        internal static readonly CodeStyleOption2<bool> TrueWithSilentEnforcement = new(value: true, notification: NotificationOption2.Silent);
-        internal static readonly CodeStyleOption2<bool> FalseWithSilentEnforcement = new(value: false, notification: NotificationOption2.Silent);
-        internal static readonly CodeStyleOption2<bool> TrueWithSuggestionEnforcement = new(value: true, notification: NotificationOption2.Suggestion);
-        internal static readonly CodeStyleOption2<bool> FalseWithSuggestionEnforcement = new(value: false, notification: NotificationOption2.Suggestion);
-
         private static PerLanguageOption2<CodeStyleOption2<bool>> CreateQualifyAccessOption(string name)
             => CreatePerLanguageOption(CodeStyleOptionGroups.ThisOrMe, name, defaultValue: SimplifierOptions.DefaultQualifyAccess);
 
@@ -77,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferIntrinsicPredefinedTypeKeywordInDeclaration = CreatePerLanguageOption(
             CodeStyleOptionGroups.PredefinedTypeNameUsage,
-            defaultValue: SimplifierOptions.DefaultPreferPredefinedTypeKeyword,
+            defaultValue: SimplifierOptions.CommonDefaults.PreferPredefinedTypeKeywordInDeclaration,
             name: "dotnet_style_predefined_type_for_locals_parameters_members")
             .WithPublicOption(PublicFeatureName, "PreferIntrinsicPredefinedTypeKeywordInDeclaration");
 
@@ -86,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferIntrinsicPredefinedTypeKeywordInMemberAccess = CreatePerLanguageOption(
             CodeStyleOptionGroups.PredefinedTypeNameUsage,
-            defaultValue: SimplifierOptions.DefaultPreferPredefinedTypeKeyword,
+            defaultValue: SimplifierOptions.CommonDefaults.PreferPredefinedTypeKeywordInMemberAccess,
             name: "dotnet_style_predefined_type_for_member_access")
             .WithPublicOption(PublicFeatureName, "PreferIntrinsicPredefinedTypeKeywordInMemberAccess");
 
@@ -324,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 }));
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSystemHashCode = new(
-            "CodeStyleOptions_PreferSystemHashCode",
+            "dotnet_prefer_system_hash_code",
             IdeAnalyzerOptions.CommonDefault.PreferSystemHashCode,
             group: CodeStyleOptionGroups.ExpressionLevelPreferences);
 
