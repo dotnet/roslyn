@@ -26,7 +26,7 @@
             IsLiveSortingRequested="True"
             Source="{Binding DocumentSymbolViewModelItems}">
             <CollectionViewSource.SortDescriptions>
-                <ComponentModel:SortDescription PropertyName="Data.RangeSpan.Start" Direction="Ascending" />
+                <ComponentModel:SortDescription PropertyName="Data.RangeSpan.Start.Position" Direction="Ascending" />
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
         <!-- An instance of our custom sorter, This uses ImmutableArray's sort methods instead of linq 
@@ -106,7 +106,7 @@
                 <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.SortByType}" />
             </Button>
         </Grid>
-        <TextBox Grid.Row="1" x:Name="SearchBox" Text="{Binding SearchText, Mode=TwoWay}" VerticalContentAlignment="Center">
+        <TextBox Grid.Row="1" x:Name="SearchBox" TextChanged="SearchBox_TextChanged"  VerticalContentAlignment="Center">
             <TextBox.Style>
                 <Style TargetType="TextBox">
                     <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
