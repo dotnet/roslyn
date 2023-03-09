@@ -227,6 +227,11 @@
         <target state="translated">Недопустимый параметр "{0}" для /nullable. Допустимые значения: "disable", "enable", "warnings" или "annotations"</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadNullableReferenceTypeInUsingAlias">
+        <source>Using alias cannot be a nullable reference type.</source>
+        <target state="new">Using alias cannot be a nullable reference type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
         <source>The typeof operator cannot be used on a nullable reference type</source>
         <target state="translated">Оператор typeof невозможно использовать для ссылочного типа, допускающего значения NULL.</target>
@@ -257,9 +262,19 @@
         <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadRefInUsingAlias">
+        <source>Using alias cannot be a 'ref' type.</source>
+        <target state="new">Using alias cannot be a 'ref' type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Ошибка в синтаксисе командной строки: "{0}" не является допустимым значением для параметра "{1}". Значение должно иметь форму "{2}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadUnsafeInUsingDirective">
+        <source>Only a using alias can be 'unsafe'.</source>
+        <target state="new">Only a using alias can be 'unsafe'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
@@ -1960,6 +1975,11 @@
       <trans-unit id="IDS_FeatureUtf8StringLiterals">
         <source>UTF-8 string literals</source>
         <target state="translated">Строковые литералы UTF-8</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUsingTypeAlias">
+        <source>using type alias</source>
+        <target state="new">using type alias</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">

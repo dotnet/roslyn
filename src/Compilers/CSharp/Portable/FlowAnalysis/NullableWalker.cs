@@ -5614,8 +5614,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalState state,
             bool isReachable)
         {
-            var savedState = this.State;
-            this.State = state;
+            var savedState = PossiblyConditionalState.Create(this);
+            this.SetState(state);
 
             bool previousDisabledDiagnostics = _disableDiagnostics;
             // If the node is not reachable, then we're only visiting to get
@@ -5644,7 +5644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType = default;
                 _disableDiagnostics = previousDisabledDiagnostics;
             }
-            this.State = savedState;
+            this.SetPossiblyConditionalState(in savedState);
 
             return resultType;
         }
@@ -6236,16 +6236,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var argumentNoConversion = argumentsNoConversions[i];
                         var argument = i < arguments.Length ? arguments[i] : argumentNoConversion;
 
-                        if (argument is not BoundConversion && argumentNoConversion is BoundLambda lambda)
-                        {
-                            Debug.Assert(node.HasErrors);
-                            Debug.Assert((object)argument == argumentNoConversion);
-                            // 'VisitConversion' only visits a lambda when the lambda has an AnonymousFunction conversion.
-                            // This lambda doesn't have a conversion, so we need to visit it here.
-                            VisitLambda(lambda, delegateTypeOpt: null, results[i].StateForLambda);
-                            continue;
-                        }
-
                         (ParameterSymbol? parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool isExpandedParamsArgument) =
                             GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded);
                         if (parameter is null)
@@ -6253,10 +6243,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // If this assert fails, we are missing necessary info to visit the
                             // conversion of a target typed construct.
                             Debug.Assert(!IsTargetTypedExpression(argumentNoConversion) || _targetTypedAnalysisCompletionOpt?.ContainsKey(argumentNoConversion) is true);
-
-                            // If this assert fails, it means we failed to visit a lambda for error recovery above.
-                            Debug.Assert(argumentNoConversion is not BoundLambda);
-
                             continue;
                         }
 
@@ -8457,8 +8443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reportRemainingWarnings,
             Location diagnosticLocation)
         {
-            // Uncomment when https://github.com/dotnet/roslyn/issues/67153 is fixed
-            // Debug.Assert(!IsConditionalState);
+            Debug.Assert(!IsConditionalState);
             Debug.Assert(conversionOperand != null);
             Debug.Assert(targetTypeWithNullability.HasType);
             Debug.Assert(diagnosticLocation != null);
@@ -8966,7 +8951,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLambda(BoundLambda node)
         {
-            // Note: actual lambda analysis happens after this call (primarily in VisitConversion).
+            // Lambda bodies are usually visited in VisitConversion (we need to know the target delegate type),
+            // but in erroneous code, the lambda-to-delegate conversion might be missing, then we visit the lambda here.
+            if (!node.InAnonymousFunctionConversion)
+            {
+                VisitLambda(node, delegateTypeOpt: null);
+            }
+
             // Here we just indicate that a lambda expression produces a non-null value.
             SetNotNullResult(node);
             return null;
@@ -10958,15 +10949,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitQueryClause(BoundQueryClause node)
         {
             var result = base.VisitQueryClause(node);
-
-            if (node.Value is BoundLambda lambda)
-            {
-                // 'VisitConversion' only visits a lambda when the lambda has an AnonymousFunction conversion.
-                // This lambda doesn't have a conversion, so we need to visit it here.
-                Debug.Assert(node.HasAnyErrors);
-                VisitLambda(lambda, delegateTypeOpt: null);
-            }
-
             SetNotNullResult(node); // https://github.com/dotnet/roslyn/issues/29863 Implement nullability analysis in LINQ queries
             return result;
         }

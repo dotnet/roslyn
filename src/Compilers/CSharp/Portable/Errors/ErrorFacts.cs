@@ -2304,6 +2304,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter:
                 case ErrorCode.ERR_UnexpectedParameterList:
                 case ErrorCode.WRN_AddressOfInAsync:
+                case ErrorCode.ERR_BadRefInUsingAlias:
+                case ErrorCode.ERR_BadUnsafeInUsingDirective:
+                case ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

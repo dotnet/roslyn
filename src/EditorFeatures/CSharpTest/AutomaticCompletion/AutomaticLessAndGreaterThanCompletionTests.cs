@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WorkItem(531637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
         [WpfFact]
         public void TypeParameterReturnType()
         {
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckOverType(session.Session);
         }
 
-        [WorkItem(531637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
         [WpfFact]
         public void TypeParameterInDecl()
         {
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckOverType(session.Session);
         }
 
-        [WorkItem(531637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
         [WpfFact]
         public void TypeParameterInDeclWith()
         {
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckOverType(session.Session);
         }
 
-        [WorkItem(530864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530864")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530864")]
         [WpfFact]
         public void TypeArgumentWithUsing()
         {
@@ -229,7 +229,7 @@ class C
             CheckOverType(session.Session);
         }
 
-        [WorkItem(530864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530864")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530864")]
         [WpfFact]
         public void TypeArgumentNoUsing()
         {
@@ -245,7 +245,7 @@ class C
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
         [WpfFact]
         public void NotInLessThanComparisonOperation()
         {
@@ -262,7 +262,7 @@ class C
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
         [WpfFact]
         public void NotInLessThanComparisonOperationAfterConditionalAccessExpression()
         {
@@ -279,7 +279,7 @@ class C
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
         [WpfFact]
         public void TypeArgumentInConditionalAccessExpressionSimple()
         {
@@ -296,7 +296,7 @@ class C
             CheckStart(session.Session);
         }
 
-        [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
         [WpfFact]
         public void TypeArgumentInConditionalAccessExpressionNested()
         {
@@ -326,7 +326,7 @@ class Inner<V>
             CheckOverType(session.Session);
         }
 
-        [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
         [WpfFact]
         public void TypeArgumentInConditionalAccessExpressionDeeplyNested()
         {
@@ -362,7 +362,7 @@ internal class Inner
             CheckStart(session.Session);
         }
 
-        [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/1628")]
         [WpfFact]
         public void TypeArgumentInConditionalAccessExpressionWithLambdas()
         {

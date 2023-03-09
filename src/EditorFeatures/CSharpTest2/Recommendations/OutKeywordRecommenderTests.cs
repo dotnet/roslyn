@@ -191,7 +191,7 @@ $$");
     public C(int i, [Goo]$$");
         }
 
-        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterThisConstructorInitializer()
         {
             await VerifyKeywordAsync(
@@ -199,7 +199,7 @@ $$");
     public C():this($$");
         }
 
-        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterThisConstructorInitializerNamedArgument()
         {
             await VerifyKeywordAsync(
@@ -207,7 +207,7 @@ $$");
     public C():this(Goo:$$");
         }
 
-        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterBaseConstructorInitializer()
         {
             await VerifyKeywordAsync(
@@ -215,7 +215,7 @@ $$");
     public C():base($$");
         }
 
-        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterBaseConstructorInitializerNamedArgument()
         {
             await VerifyKeywordAsync(
@@ -244,7 +244,7 @@ $$");
 @"delegate void D(int i, [Goo]$$");
         }
 
-        [Fact, WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24079")]
         public async Task TestNotAfterOperator()
         {
             await VerifyAbsenceAsync(
@@ -412,7 +412,7 @@ $$");
             await VerifyKeywordAsync(text);
         }
 
-        [Fact, WorkItem(22253, "https://github.com/dotnet/roslyn/issues/22253")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22253")]
         public async Task TestInLocalFunction()
         {
             await VerifyKeywordAsync(AddInsideMethod(

@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseBlockBody(code, fixedCode);
         }
 
-        [Fact, WorkItem(20363, "https://github.com/dotnet/roslyn/issues/20363")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20363")]
         public async Task TestUseBlockBodyForAccessorEventWhenAccessorWantExpression1()
         {
             var code = """
