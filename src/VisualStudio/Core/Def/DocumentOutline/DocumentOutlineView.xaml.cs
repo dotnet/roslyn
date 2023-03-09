@@ -32,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new();
         private readonly ComEventSink _codeWindowEventsSink;
-        private readonly ICollectionView _collectionView;
 
         /// <summary>
         /// Used to suspend all event handlers for caret movement while we navigate the cursor
@@ -53,9 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             DataContext = _viewModel;
             InitializeComponent();
-
-            // "DocumentSymbolItems" is the key name we specified for our CollectionViewSource in the XAML file
-            _collectionView = ((CollectionViewSource)FindResource("DocumentSymbolItems")).View;
+            UpdateSort(SortOption.Location); // Set default sort for top-level items
 
             // We don't think the shell is initialized lazily, so we'll Debug.Fail(), but if it was we'd still
             // see the view created later so this will still function.
@@ -121,18 +118,21 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 _ => throw new NotImplementedException(),
             }, logLevel: LogLevel.Information);
 
+            // "DocumentSymbolItems" is the key name we specified for our CollectionViewSource in the XAML file
+            var collectionView = ((CollectionViewSource)FindResource("DocumentSymbolItems")).View;
+
             // Defer changes until all the properties have been set
-            using (var _1 = _collectionView.DeferRefresh())
+            using (var _1 = collectionView.DeferRefresh())
             {
                 // Update top-level sorting options for our tree view
-                _collectionView.SortDescriptions.UpdateSortDescription(sortOption);
+                collectionView.SortDescriptions.UpdateSortDescription(sortOption);
 
                 // Set the sort option property to begin live-sorting
                 _viewModel.SortOption = sortOption;
             }
 
             // Queue a refresh now that everything is set.
-            _collectionView.Refresh();
+            collectionView.Refresh();
         }
 
         /// <summary>
