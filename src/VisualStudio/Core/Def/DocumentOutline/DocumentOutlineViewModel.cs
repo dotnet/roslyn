@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -184,9 +185,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private void SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
         {
             if (EqualityComparer<T>.Default.Equals(field, value))
-            {
                 return;
-            }
 
             field = value;
             NotifyPropertyChanged(propertyName);
@@ -266,26 +265,27 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // if we got new data or the user changed the search text, recompute our items to correspond to this new state.
             if (modelChanged || searchTextChanged)
             {
-                // Apply whatever the current search text is to what the model returned.  If no search text, show
-                // everything.  If some search text, the set of items that match that filter.
-                if (searchText == "")
+                // Apply whatever the current search text is to what the model returned, and produce the new items.
+                currentViewModelItems = GetDocumentSymbolItemViewModels(
+                    SearchDocumentSymbolData(model.DocumentSymbolData, searchText, cancellationToken));
+
+                // If the search text changed, just show everything in expanded form, so the user can see everything
+                // that matched, without anything being hidden.
+                //
+                // in the case of no search text change, attempt to keep the same open/close expansion state from before.
+                if (!searchTextChanged)
                 {
-                    // in the case of no search text, attempt to keep the same open/close expansion state from before.
-                    currentViewModelItems = GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
-                    ApplyExpansionStateToNewItems(currentViewModelItems, lastViewModelItems);
-                }
-                else
-                {
-                    // We are going to show results so we unset any expand / collapse state If we are in the middle of
-                    // searching the developer should always be able to see the results so we don't want to collapse
-                    // (and therefore hide) data here.
-                    currentViewModelItems = GetDocumentSymbolItemViewModels(
-                        SearchDocumentSymbolData(model.DocumentSymbolData, searchText, cancellationToken));
+                    ApplyExpansionStateToNewItems(
+                        oldSnapshot: lastPresentedData.model.OriginalSnapshot,
+                        newSnapshot: model.OriginalSnapshot,
+                        oldItems: lastViewModelItems,
+                        newItems: currentViewModelItems);
                 }
             }
             else
             {
-                // Model didn't change and search text didn't change.  Keep what we have.
+                // Model didn't change and search text didn't change.  Keep what we have, and only figure out what to
+                // select/expand below.
                 currentViewModelItems = lastViewModelItems;
             }
 
@@ -310,42 +310,82 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             return;
 
-            static void ApplyExpansionStateToNewItems(ImmutableArray<DocumentSymbolDataViewModel> oldItems, ImmutableArray<DocumentSymbolDataViewModel> newItems)
+            static void ApplyExpansionStateToNewItems(
+                ITextSnapshot oldSnapshot,
+                ITextSnapshot newSnapshot,
+                ImmutableArray<DocumentSymbolDataViewModel> oldItems,
+                ImmutableArray<DocumentSymbolDataViewModel> newItems)
             {
-                if (AreAllTopLevelItemsCollapsed(oldItems))
+                // If we had any items from before, and they were all collapsed, the collapse all the new items.
+                if (oldItems.Length > 0 && oldItems.All(static i => !i.IsExpanded))
                 {
                     // new nodes are un-collapsed by default
                     // we want to collapse all new top-level nodes if 
                     // everything else currently is so things aren't "jumpy"
                     foreach (var item in newItems)
-                    {
                         item.IsExpanded = false;
-                    }
+
+                    return;
                 }
-                else
+
+                // Walk through the old items, mapping their spans forward and keeping track if they were expanded or
+                // collapsed.  Then walk through the new items and see if they have the same span as a prior item.  If
+                // so, preserve the expansion state.
+                using var _ = PooledDictionary<Span, bool>.GetInstance(out var expansionState);
+                AddPreviousExpansionState(newSnapshot, oldItems, expansionState);
+                ApplyExpansionState(expansionState, newItems);
+            }
+
+            static void AddPreviousExpansionState(
+                ITextSnapshot newSnapshot,
+                ImmutableArray<DocumentSymbolDataViewModel> oldItems,
+                PooledDictionary<Span, bool> expansionState)
+            {
+                foreach (var item in oldItems)
                 {
-                    SetIsExpandedOnNewItems(newItems, oldItems);
-                }
+                    // EdgeInclusive so that if we type on the end of an existing item it maps forward to the new full span.
+                    var mapped = item.Data.RangeSpan.TranslateTo(newSnapshot, SpanTrackingMode.EdgeInclusive);
+                    expansionState[mapped.Span] = item.IsExpanded;
 
-                static bool AreAllTopLevelItemsCollapsed(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolViewModelItems)
+                    AddPreviousExpansionState(newSnapshot, item.Children, expansionState);
+                }
+            }
+
+            static void ApplyExpansionState(
+                PooledDictionary<Span, bool> expansionState,
+                ImmutableArray<DocumentSymbolDataViewModel> newItems)
+            {
+                foreach (var item in newItems)
                 {
-                    if (!documentSymbolViewModelItems.Any())
-                    {
-                        // We are operating on an empty array this can happen if the LSP service hasn't populated us with any data yet.
-                        return false;
-                    }
+                    if (expansionState.TryGetValue(item.Data.RangeSpan.Span, out var isExpanded))
+                        item.IsExpanded = isExpanded;
 
-                    // No need to recurse, if all the items are collapsed then so are their children
-                    foreach (var item in documentSymbolViewModelItems)
-                    {
-                        if (item.IsExpanded)
-                        {
-                            return false;
-                        }
-                    }
-
-                    return true;
+                    ApplyExpansionState(expansionState, item.Children);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Updates the IsExpanded property for the Document Symbol ViewModel based on the given Expansion Option. The parameter
+        /// <param name="currentDocumentSymbolItems"/> is used to reference the current node expansion in the view.
+        /// </summary>
+        public static void SetIsExpandedOnNewItems(
+            ImmutableArray<DocumentSymbolDataViewModel> newDocumentSymbolItems,
+            ImmutableArray<DocumentSymbolDataViewModel> currentDocumentSymbolItems)
+        {
+            using var _ = PooledHashSet<DocumentSymbolDataViewModel>.GetInstance(out var hashSet);
+            hashSet.AddRange(newDocumentSymbolItems);
+
+            foreach (var item in currentDocumentSymbolItems)
+            {
+                if (!hashSet.TryGetValue(item, out var newItem))
+                {
+                    continue;
+                }
+
+                // Setting a boolean property on this View Model is allowed to happen on any thread.
+                newItem.IsExpanded = item.IsExpanded;
+                SetIsExpandedOnNewItems(newItem.Children, item.Children);
             }
         }
     }
