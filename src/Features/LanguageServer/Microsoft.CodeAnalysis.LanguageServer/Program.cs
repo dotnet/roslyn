@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 Console.Title = "Microsoft.CodeAnalysis.LanguageServer";
 var parser = CreateCommandLineParser();
@@ -38,6 +39,8 @@ static async Task RunAsync(bool launchDebugger, string? solutionPath, string? br
             {
                 builder.SetMinimumLevel(minimumLogLevel);
                 builder.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace);
+                // The console logger outputs control characters on unix for colors which don't render correctly in VSCode.
+                builder.AddSimpleConsole(formatterOptions => formatterOptions.ColorBehavior = LoggerColorBehavior.Disabled);
             })
         ));
     });
