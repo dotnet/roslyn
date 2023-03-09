@@ -872,6 +872,7 @@ class Driver
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66829")]
         public void AddressOf_WithinAwaitBoundary()
         {
             var source = """
@@ -930,6 +931,7 @@ class Driver
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66829")]
         public void AddressOf_AcrossAwaitBoundary()
         {
             var source = """
@@ -988,6 +990,7 @@ class Driver
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66829")]
         public void AddressOf_Fixed()
         {
             var source = """
