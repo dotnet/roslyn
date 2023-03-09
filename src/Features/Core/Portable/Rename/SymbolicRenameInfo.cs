@@ -226,8 +226,9 @@ namespace Microsoft.CodeAnalysis.Rename
 
                     if (sourceDocument is SourceGeneratedDocument)
                     {
-                        // The file is generated so we can't go editing it (for now)
-                        return new SymbolicRenameInfo(FeaturesResources.You_cannot_rename_this_element);
+                        // The file is generated so doesn't count towards valid spans 
+                        // we can edit.
+                        continue;
                     }
 
                     if (document.Project.IsSubmission)
@@ -247,6 +248,12 @@ namespace Microsoft.CodeAnalysis.Rename
                 {
                     return new SymbolicRenameInfo(FeaturesResources.You_cannot_rename_this_element);
                 }
+            }
+
+            // No valid spans available in source we can edit
+            if (documentSpans.Count == 0)
+            {
+                return new SymbolicRenameInfo(FeaturesResources.You_cannot_rename_this_element);
             }
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

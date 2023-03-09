@@ -355,9 +355,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (_startPosition != null)
                 hashCode = Hash.Combine(hashCode, _startPosition.Value.GetHashCode());
             if (_defaultSeverityOpt != null)
-                hashCode = Hash.Combine(hashCode, _defaultSeverityOpt.Value.GetHashCode());
+                hashCode = Hash.Combine(hashCode, ((int)_defaultSeverityOpt.Value).GetHashCode());
             if (_effectiveSeverityOpt != null)
-                hashCode = Hash.Combine(hashCode, _effectiveSeverityOpt.Value.GetHashCode());
+                hashCode = Hash.Combine(hashCode, ((int)_effectiveSeverityOpt.Value).GetHashCode());
             return hashCode;
         }
 

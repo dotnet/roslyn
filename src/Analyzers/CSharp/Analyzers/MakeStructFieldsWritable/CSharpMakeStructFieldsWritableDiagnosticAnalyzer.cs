@@ -55,15 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
                     // We are only interested in struct declarations
                     if (namedTypeSymbol.TypeKind != TypeKind.Struct)
-                    {
                         return;
-                    }
 
                     //We check if struct contains any 'readonly' fields
                     if (!HasReadonlyField(namedTypeSymbol))
-                    {
                         return;
-                    }
 
                     var symbolAnalyzer = new SymbolAnalyzer(namedTypeSymbol);
                     symbolAnalyzer.RegisterActions(context);
@@ -75,8 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                 return namedTypeSymbol
                     .GetMembers()
                     .OfType<IFieldSymbol>()
-                    .Where(field => field.AssociatedSymbol == null)
-                    .Any(field => field.IsReadOnly);
+                    .Any(field => field is { AssociatedSymbol: null, IsStatic: false, IsReadOnly: true });
             }
 
             private void RegisterActions(SymbolStartAnalysisContext context)

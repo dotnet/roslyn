@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.Host
             _services = services;
         }
 
+        [Obsolete("Only use to implement obsolete public API")]
+        internal HostWorkspaceServices WorkspaceServices => _services;
+
         internal IMefHostExportProvider ExportProvider => (IMefHostExportProvider)_services.HostServices;
 
         /// <inheritdoc cref="HostWorkspaceServices.GetService"/>

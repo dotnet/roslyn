@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Completion;
@@ -26,7 +25,6 @@ internal static class CompletionOptionsStorage
             ProvideDateAndTimeCompletions = options.GetOption(ProvideDateAndTimeCompletions, language),
             ProvideRegexCompletions = options.GetOption(ProvideRegexCompletions, language),
             ForceExpandedCompletionIndexCreation = options.GetOption(ForceExpandedCompletionIndexCreation),
-            UpdateImportCompletionCacheInBackground = options.GetOption(UpdateImportCompletionCacheInBackground),
             NamingStyleFallbackOptions = options.GetNamingStylePreferences(language),
             ShowNewSnippetExperienceUserOption = options.GetOption(ShowNewSnippetExperienceUserOption, language),
             ShowNewSnippetExperienceFeatureFlag = options.GetOption(ShowNewSnippetExperienceFeatureFlag)
@@ -34,77 +32,29 @@ internal static class CompletionOptionsStorage
 
     // feature flags
 
-    public static readonly Option2<bool> UnnamedSymbolCompletionDisabledFeatureFlag = new(nameof(CompletionOptions), nameof(UnnamedSymbolCompletionDisabledFeatureFlag),
-        CompletionOptions.Default.UnnamedSymbolCompletionDisabled,
-        new FeatureFlagStorageLocation("Roslyn.UnnamedSymbolCompletionDisabled"));
-
-    public static readonly Option2<bool> ShowNewSnippetExperienceFeatureFlag = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperienceFeatureFlag),
-        CompletionOptions.Default.ShowNewSnippetExperienceFeatureFlag,
-        new FeatureFlagStorageLocation("Roslyn.SnippetCompletion"));
-
-    public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new(
-        "CompletionOptions", "HideAdvancedMembers", CompletionOptions.Default.HideAdvancedMembers,
-        new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Hide Advanced Auto List Members"));
-
-    public static readonly PerLanguageOption2<bool> TriggerOnTyping = new(
-        "CompletionOptions", "TriggerOnTyping", CompletionOptions.Default.TriggerOnTyping,
-        new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Auto List Members"));
-
-    public static readonly PerLanguageOption2<bool> TriggerOnTypingLetters = new(nameof(CompletionOptions), nameof(TriggerOnTypingLetters), CompletionOptions.Default.TriggerOnTypingLetters,
-        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerOnTypingLetters"));
-
-    public static readonly PerLanguageOption2<bool?> TriggerOnDeletion = new(nameof(CompletionOptions), nameof(TriggerOnDeletion), CompletionOptions.Default.TriggerOnDeletion,
-        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerOnDeletion"));
-
-    public static readonly PerLanguageOption2<EnterKeyRule> EnterKeyBehavior =
-        new(nameof(CompletionOptions), nameof(EnterKeyBehavior), CompletionOptions.Default.EnterKeyBehavior,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.EnterKeyBehavior"));
-
-    public static readonly PerLanguageOption2<SnippetsRule> SnippetsBehavior =
-        new(nameof(CompletionOptions), nameof(SnippetsBehavior), CompletionOptions.Default.SnippetsBehavior,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SnippetsBehavior"));
-
-    public static readonly PerLanguageOption2<bool> ShowNameSuggestions =
-        new(nameof(CompletionOptions), nameof(ShowNameSuggestions), CompletionOptions.Default.ShowNameSuggestions,
-        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNameSuggestions"));
+    public static readonly Option2<bool> UnnamedSymbolCompletionDisabledFeatureFlag = new("dotnet_disable_unnamed_symbol_completion", CompletionOptions.Default.UnnamedSymbolCompletionDisabled);
+    public static readonly Option2<bool> ShowNewSnippetExperienceFeatureFlag = new("dotnet_show_new_snippet_experience_feature_flag", CompletionOptions.Default.ShowNewSnippetExperienceFeatureFlag);
+    public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new("dotnet_hide_advanced_members_in_completion", CompletionOptions.Default.HideAdvancedMembers);
+    public static readonly PerLanguageOption2<bool> TriggerOnTyping = new("dotnet_trigger_completion_on_typing", CompletionOptions.Default.TriggerOnTyping);
+    public static readonly PerLanguageOption2<bool> TriggerOnTypingLetters = new("dotnet_trigger_completion_on_typing_letters", CompletionOptions.Default.TriggerOnTypingLetters);
+    public static readonly PerLanguageOption2<bool?> TriggerOnDeletion = new("dotnet_trigger_completion_on_deletion", CompletionOptions.Default.TriggerOnDeletion);
+    public static readonly PerLanguageOption2<EnterKeyRule> EnterKeyBehavior = new("dotnet_return_key_completion_behavior", CompletionOptions.Default.EnterKeyBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<EnterKeyRule>());
+    public static readonly PerLanguageOption2<SnippetsRule> SnippetsBehavior = new("dotnet_snippets_behavior", CompletionOptions.Default.SnippetsBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<SnippetsRule>());
+    public static readonly PerLanguageOption2<bool> ShowNameSuggestions = new("dotnet_show_name_completion_suggestions", CompletionOptions.Default.ShowNameSuggestions);
 
     //Dev16 options
 
     // Use tri-value so the default state can be used to turn on the feature with experimentation service.
-    public static readonly PerLanguageOption2<bool?> ShowItemsFromUnimportedNamespaces =
-        new(nameof(CompletionOptions), nameof(ShowItemsFromUnimportedNamespaces), CompletionOptions.Default.ShowItemsFromUnimportedNamespaces,
-        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowItemsFromUnimportedNamespaces"));
+    public static readonly PerLanguageOption2<bool?> ShowItemsFromUnimportedNamespaces = new("dotnet_show_completion_items_from_unimported_namespaces", CompletionOptions.Default.ShowItemsFromUnimportedNamespaces);
 
-    public static readonly PerLanguageOption2<bool> TriggerInArgumentLists =
-        new(nameof(CompletionOptions), nameof(TriggerInArgumentLists), CompletionOptions.Default.TriggerInArgumentLists,
-        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerInArgumentLists"));
+    public static readonly PerLanguageOption2<bool> TriggerInArgumentLists = new("dotnet_trigger_completion_in_argument_lists", CompletionOptions.Default.TriggerInArgumentLists);
 
     // Test-only option
-    public static readonly Option2<bool> ForceExpandedCompletionIndexCreation
-        = new(nameof(CompletionOptions), nameof(ForceExpandedCompletionIndexCreation), defaultValue: false);
-
-    // Set to true to update import completion cache in background if the provider isn't supposed to be triggered in the context.
-    // (cache will alsways be refreshed when provider is triggered)
-    public static readonly Option2<bool> UpdateImportCompletionCacheInBackground
-        = new(nameof(CompletionOptions), nameof(UpdateImportCompletionCacheInBackground), defaultValue: false);
+    public static readonly Option2<bool> ForceExpandedCompletionIndexCreation = new("CompletionOptions_ForceExpandedCompletionIndexCreation", defaultValue: false);
 
     // Embedded languages:
 
-    public static PerLanguageOption2<bool> ProvideRegexCompletions =
-        new(
-            "RegularExpressionsOptions",
-            nameof(ProvideRegexCompletions),
-            CompletionOptions.Default.ProvideRegexCompletions,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideRegexCompletions"));
-
-    public static readonly PerLanguageOption2<bool> ProvideDateAndTimeCompletions =
-        new(
-            "DateAndTime",
-            nameof(ProvideDateAndTimeCompletions),
-            CompletionOptions.Default.ProvideDateAndTimeCompletions,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions"));
-
-    public static readonly PerLanguageOption2<bool?> ShowNewSnippetExperienceUserOption
-        = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperienceUserOption), CompletionOptions.Default.ShowNewSnippetExperienceUserOption,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNewSnippetExperience"));
+    public static PerLanguageOption2<bool> ProvideRegexCompletions = new("dotnet_provide_regex_completions", CompletionOptions.Default.ProvideRegexCompletions);
+    public static readonly PerLanguageOption2<bool> ProvideDateAndTimeCompletions = new("dotnet_provide_date_and_time_completions", CompletionOptions.Default.ProvideDateAndTimeCompletions);
+    public static readonly PerLanguageOption2<bool?> ShowNewSnippetExperienceUserOption = new("dotnet_show_new_snippet_experience", CompletionOptions.Default.ShowNewSnippetExperienceUserOption);
 }

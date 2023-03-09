@@ -2964,31 +2964,41 @@ public static class Program
 
 
 0
-1
+0
 hello
 hello");
 
             verify.VerifyIL("C<T>.Print()", @"
 {
-  // Code size       48 (0x30)
-  .maxstack  1
-  .locals init (T V_0) //temp
+  // Code size       73 (0x49)
+  .maxstack  2
+  .locals init (T V_0, //temp
+                T V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""T C<T>.t""
   IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  box        ""T""
-  IL_000d:  brtrue.s   IL_0012
-  IL_000f:  ldnull
-  IL_0010:  br.s       IL_001f
-  IL_0012:  ldloca.s   V_0
-  IL_0014:  constrained. ""T""
-  IL_001a:  callvirt   ""string object.ToString()""
-  IL_001f:  call       ""void System.Console.WriteLine(string)""
-  IL_0024:  ldloc.0
-  IL_0025:  box        ""T""
-  IL_002a:  call       ""void System.Console.WriteLine(object)""
-  IL_002f:  ret
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    ""T""
+  IL_0011:  ldloc.1
+  IL_0012:  box        ""T""
+  IL_0017:  brtrue.s   IL_002d
+  IL_0019:  ldobj      ""T""
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloc.1
+  IL_0022:  box        ""T""
+  IL_0027:  brtrue.s   IL_002d
+  IL_0029:  pop
+  IL_002a:  ldnull
+  IL_002b:  br.s       IL_0038
+  IL_002d:  constrained. ""T""
+  IL_0033:  callvirt   ""string object.ToString()""
+  IL_0038:  call       ""void System.Console.WriteLine(string)""
+  IL_003d:  ldloc.0
+  IL_003e:  box        ""T""
+  IL_0043:  call       ""void System.Console.WriteLine(object)""
+  IL_0048:  ret
 }");
 
         }
@@ -3177,6 +3187,164 @@ class Program
   IL_0024:  callvirt   ""string object.ToString()""
   IL_0029:  ret
 }");
+        }
+
+        [Fact, WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")]
+        public void NullableSideEffects_01()
+        {
+            var source = @"
+struct S1
+{
+    private int count;
+    public override string ToString()
+    {
+        return (++count).ToString();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x1 = new S1?(new S1());
+        System.Console.Write(Test1(ref x1));
+        System.Console.Write(x1.ToString());
+        x1 = null;
+        System.Console.Write(Test1(ref x1) is null);
+    }
+
+    static string Test1<T>(ref T x)
+    {
+        return x?.ToString(); 
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "11True").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1<T>(ref T)", @"
+{
+  // Code size       48 (0x30)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0024
+  IL_0011:  ldobj      ""T""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldloc.0
+  IL_001a:  box        ""T""
+  IL_001f:  brtrue.s   IL_0024
+  IL_0021:  pop
+  IL_0022:  ldnull
+  IL_0023:  ret
+  IL_0024:  constrained. ""T""
+  IL_002a:  callvirt   ""string object.ToString()""
+  IL_002f:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")]
+        public void NullableSideEffects_02()
+        {
+            var source = @"
+struct S1
+{
+    private int count;
+    public override string ToString()
+    {
+        return (++count).ToString();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x1 = new S1?(new S1());
+        System.Console.Write(Test1(ref x1));
+        System.Console.Write(x1.ToString());
+        x1 = null;
+        System.Console.Write(Test1(ref x1) is null);
+    }
+
+    static string Test1<T>(ref T x)
+    {
+        var y = x;
+        var result = y?.ToString(); 
+        x = y;
+        return result;
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "11True").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1<T>(ref T)", @"
+{
+  // Code size       64 (0x40)
+  .maxstack  3
+  .locals init (T V_0, //y
+                T V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""T""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    ""T""
+  IL_0011:  ldloc.1
+  IL_0012:  box        ""T""
+  IL_0017:  brtrue.s   IL_002d
+  IL_0019:  ldobj      ""T""
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloc.1
+  IL_0022:  box        ""T""
+  IL_0027:  brtrue.s   IL_002d
+  IL_0029:  pop
+  IL_002a:  ldnull
+  IL_002b:  br.s       IL_0038
+  IL_002d:  constrained. ""T""
+  IL_0033:  callvirt   ""string object.ToString()""
+  IL_0038:  ldarg.0
+  IL_0039:  ldloc.0
+  IL_003a:  stobj      ""T""
+  IL_003f:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")]
+        public void NullableSideEffects_03()
+        {
+            var source = @"
+struct S1
+{
+}
+
+abstract class C0<U>
+{
+    public abstract string Test1<T>(ref T x) where T : U;
+}
+
+class C1 : C0<S1?>
+{
+    public override string Test1<T>(ref T x)
+    {
+        var y = x;
+        var result = y?.ToString(); 
+        x = y;
+        return result;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (16,23): error CS0023: Operator '?' cannot be applied to operand of type 'T'
+                //         var result = y?.ToString(); 
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(16, 23)
+                );
         }
     }
 }

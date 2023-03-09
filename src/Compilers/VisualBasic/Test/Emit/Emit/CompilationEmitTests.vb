@@ -3843,7 +3843,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source1, OutputKind.NetModule)
             Dim metadataRef = comp.EmitToImageReference()
-            CompileAndVerify(source2, references:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=Verification.FailsPEVerify Or Verification.FailsILVerify)
+            CompileAndVerify(source2, references:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=Verification.Fails)
         End Sub
 
         <Fact>

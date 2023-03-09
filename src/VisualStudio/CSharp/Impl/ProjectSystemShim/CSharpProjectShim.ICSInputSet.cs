@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public void SetOutputFileType(OutputFileType fileType)
-            => VisualStudioProjectOptionsProcessor.SetOutputFileType(fileType);
+            => ProjectSystemProjectOptionsProcessor.SetOutputFileType(fileType);
 
         public void SetImageBase(uint imageBase)
         {
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public void SetMainClass(string fullyQualifiedClassName)
-            => VisualStudioProjectOptionsProcessor.SetMainTypeName(fullyQualifiedClassName);
+            => ProjectSystemProjectOptionsProcessor.SetMainTypeName(fullyQualifiedClassName);
 
         public void SetWin32Icon(string iconFileName)
         {

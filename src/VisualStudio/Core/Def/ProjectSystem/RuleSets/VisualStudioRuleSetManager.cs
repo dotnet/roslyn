@@ -8,11 +8,12 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal sealed partial class VisualStudioRuleSetManager : IWorkspaceService
+    internal sealed partial class VisualStudioRuleSetManager : IRuleSetManager
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IFileChangeWatcher _fileChangeWatcher;

@@ -79,6 +79,16 @@
         <target state="translated">hintName의 {0} 위치 {2}에 잘못된 문자 '{1}'이(가) 있습니다.</target>
         <note>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</note>
       </trans-unit>
+      <trans-unit id="HintNameInvalidSegment">
+        <source>The hintName '{0}' contains an invalid segment '{1}' at position {2}.</source>
+        <target state="new">The hintName '{0}' contains an invalid segment '{1}' at position {2}.</target>
+        <note>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameNotWithinCurrentDirectory">
+        <source>The hintName '{0}' is not within the current directory.</source>
+        <target state="new">The hintName '{0}' is not within the current directory.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
         <target state="translated">추가된 원본 파일의 hintName ‘{0}’은(는) 생성기 내에서 고유해야 합니다.</target>
@@ -94,6 +104,11 @@
         <target state="translated">표시되지 않는 진단 ID '{0}'이(가) 지정된 비표시 설명자의 표시하지 않을 수 있는 ID '{1}'과(와) 일치하지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidInstrumentationKind">
+        <source>Invalid instrumentation kind: {0}</source>
+        <target state="new">Invalid instrumentation kind: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
         <target state="translated">지정한 작업 블록이 현재 분석 컨텍스트에 속하지 않습니다.</target>
@@ -107,6 +122,11 @@
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
         <target state="translated">'{0}' 매개 변수는 이 컴파일 또는 일부 참조된 어셈블리의 기호여야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MethodSymbolExpected">
+        <source>Method symbol expected</source>
+        <target state="new">Method symbol expected</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">

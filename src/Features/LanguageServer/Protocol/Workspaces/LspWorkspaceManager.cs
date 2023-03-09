@@ -87,6 +87,8 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
     }
 
+    public EventHandler<EventArgs>? LspTextChanged;
+
     #region Implementation of IDocumentChangeTracker
 
     /// <summary>
@@ -102,6 +104,8 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         // If LSP changed, we need to compare against the workspace again to get the updated solution.
         _cachedLspSolutions.Clear();
+
+        LspTextChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -120,6 +124,8 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         // Also remove it from our loose files workspace if it is still there.
         _lspMiscellaneousFilesWorkspace.TryRemoveMiscellaneousDocument(uri);
+
+        LspTextChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -135,6 +141,8 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         // If LSP changed, we need to compare against the workspace again to get the updated solution.
         _cachedLspSolutions.Clear();
+
+        LspTextChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public ImmutableDictionary<Uri, SourceText> GetTrackedLspText() => _trackedDocuments;
@@ -185,7 +193,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 var workspaceKind = document.Project.Solution.WorkspaceKind;
                 _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
                 _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
-                _logger.LogDebug($"{document.FilePath} found in workspace {workspaceKind}");
+                _logger.LogInformation($"{document.FilePath} found in workspace {workspaceKind}");
 
                 return (workspace, document.Project.Solution, document);
             }

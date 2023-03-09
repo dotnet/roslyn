@@ -33,6 +33,12 @@ internal class PublicDocumentPullDiagnosticsHandler : AbstractDocumentPullDiagno
     {
     }
 
+    /// <summary>
+    /// Public API doesn't support categories (yet).
+    /// </summary>
+    protected override string? GetDiagnosticCategory(DocumentDiagnosticParams diagnosticsParams)
+        => null;
+
     public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams) => diagnosticsParams.TextDocument;
 
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
@@ -77,8 +83,11 @@ internal class PublicDocumentPullDiagnosticsHandler : AbstractDocumentPullDiagno
         return null;
     }
 
-    protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(DocumentPullDiagnosticHandler.GetDiagnosticSources(context));
+    protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(DocumentDiagnosticParams diagnosticParams, RequestContext context, CancellationToken cancellationToken)
+    {
+        // Task list items are not reported through the public LSP diagnostic API.
+        return ValueTaskFactory.FromResult(DocumentPullDiagnosticHandler.GetDiagnosticSources(DiagnosticKind.All, taskList: false, context, GlobalOptions));
+    }
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(DocumentDiagnosticParams diagnosticsParams)
     {

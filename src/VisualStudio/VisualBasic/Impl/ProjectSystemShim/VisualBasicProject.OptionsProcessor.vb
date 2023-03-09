@@ -20,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     ''' <remarks></remarks>
     Partial Friend NotInheritable Class VisualBasicProject
         Friend NotInheritable Class OptionsProcessor
-            Inherits VisualStudioProjectOptionsProcessor
+            Inherits ProjectSystemProjectOptionsProcessor
 
             Private _rawOptions As VBCompilerOptions
             Private ReadOnly _imports As New List(Of GlobalImport)

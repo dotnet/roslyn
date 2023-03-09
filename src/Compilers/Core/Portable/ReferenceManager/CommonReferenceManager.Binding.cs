@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
         ///
         /// -    Result of resolving assembly references of the corresponding assembly 
         ///     against provided set of assembly definitions. Essentially, this is an array returned by
-        ///     <see cref="AssemblyData.BindAssemblyReferences(ImmutableArray{AssemblyData}, AssemblyIdentityComparer)"/> method.
+        ///     <see cref="AssemblyData.BindAssemblyReferences"/> method.
         /// </return>
         protected BoundInputAssembly[] Bind(
             ImmutableArray<AssemblyData> explicitAssemblies,
@@ -110,17 +110,25 @@ namespace Microsoft.CodeAnalysis
             var referenceBindings = ArrayBuilder<AssemblyReferenceBinding[]>.GetInstance();
             try
             {
+                var explicitAssembliesMap = new MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)>(explicitAssemblies.Length, AssemblyIdentityComparer.SimpleNameComparer);
+
+                for (int i = 0; i < explicitAssemblies.Length; i++)
+                {
+                    explicitAssembliesMap.Add(explicitAssemblies[i].Identity.Name, (explicitAssemblies[i], i));
+                }
+
                 // Based on assembly identity, for each assembly, 
                 // bind its references against the other assemblies we have.
                 for (int i = 0; i < explicitAssemblies.Length; i++)
                 {
-                    referenceBindings.Add(explicitAssemblies[i].BindAssemblyReferences(explicitAssemblies, IdentityComparer));
+                    referenceBindings.Add(explicitAssemblies[i].BindAssemblyReferences(explicitAssembliesMap, IdentityComparer));
                 }
 
                 if (resolverOpt?.ResolveMissingAssemblies == true)
                 {
                     ResolveAndBindMissingAssemblies(
                         explicitAssemblies,
+                        explicitAssembliesMap,
                         explicitModules,
                         explicitReferences,
                         explicitReferenceMap,
@@ -191,6 +199,7 @@ namespace Microsoft.CodeAnalysis
 
         private void ResolveAndBindMissingAssemblies(
             ImmutableArray<AssemblyData> explicitAssemblies,
+            MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)> explicitAssembliesMap,
             ImmutableArray<PEModule> explicitModules,
             ImmutableArray<MetadataReference> explicitReferences,
             ImmutableArray<ResolvedReference> explicitReferenceMap,
@@ -285,7 +294,7 @@ namespace Microsoft.CodeAnalysis
                         var data = CreateAssemblyDataForResolvedMissingAssembly(resolvedAssemblyMetadata, resolvedReference, importOptions);
                         implicitAssemblies.Add(data);
 
-                        var referenceBinding = data.BindAssemblyReferences(explicitAssemblies, IdentityComparer);
+                        var referenceBinding = data.BindAssemblyReferences(explicitAssembliesMap, IdentityComparer);
                         referenceBindings.Add(referenceBinding);
                         referenceBindingsToProcess.Push((resolvedReference, new ArraySegment<AssemblyReferenceBinding>(referenceBinding)));
                     }
@@ -310,6 +319,15 @@ namespace Microsoft.CodeAnalysis
                 // Rebind assembly references that were initially missing. All bindings established above
                 // are against explicitly specified references.
 
+                // We only need to resolve against implicitly resolved assemblies,
+                // since we already resolved against explicitly specified ones.
+                var implicitAssembliesMap = new MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)>(implicitAssemblies.Count, AssemblyIdentityComparer.SimpleNameComparer);
+
+                for (int i = 0; i < implicitAssemblies.Count; i++)
+                {
+                    implicitAssembliesMap.Add(implicitAssemblies[i].Identity.Name, (implicitAssemblies[i], explicitAssemblyCount + i));
+                }
+
                 allAssemblies = explicitAssemblies.AddRange(implicitAssemblies);
 
                 for (int bindingsIndex = 0; bindingsIndex < referenceBindings.Count; bindingsIndex++)
@@ -332,8 +350,8 @@ namespace Microsoft.CodeAnalysis
                         Debug.Assert(binding.ReferenceIdentity is object);
                         referenceBinding[i] = ResolveReferencedAssembly(
                             binding.ReferenceIdentity,
-                            allAssemblies,
-                            explicitAssemblyCount,
+                            implicitAssembliesMap,
+                            resolveAgainstAssemblyBeingBuilt: false,
                             IdentityComparer);
                     }
                 }

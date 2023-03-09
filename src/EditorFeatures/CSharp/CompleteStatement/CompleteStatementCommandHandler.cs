@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -93,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return false;
             }
 
-            if (!_globalOptions.GetOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon))
+            if (!_globalOptions.GetOption(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon))
             {
                 return false;
             }
@@ -258,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return true;
             }
 
-            if (currentNode is RecordDeclarationSyntax { OpenBraceToken.IsMissing: true })
+            if (currentNode is TypeDeclarationSyntax { OpenBraceToken.IsMissing: true })
             {
                 return true;
             }
@@ -348,6 +347,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.EqualsValueClause:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.InterfaceDeclaration:
                     // These statement types end in a semicolon. 
                     // if the original caret was inside any delimiters, `caret` will be after the outermost delimiter
                     targetPosition = caret;

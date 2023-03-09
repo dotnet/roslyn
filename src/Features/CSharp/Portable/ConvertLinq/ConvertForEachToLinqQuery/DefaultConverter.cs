@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery;
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             // If there is a single statement and it is a block, leave it as is.
             // Otherwise, wrap with a block.
             var block = WrapWithBlockIfNecessary(
-                ForEachInfo.Statements.Select(statement => statement.KeepCommentsAndAddElasticMarkers()));
+                ForEachInfo.Statements.SelectAsArray(statement => statement.KeepCommentsAndAddElasticMarkers()));
 
             editor.ReplaceNode(
                 ForEachInfo.ForEachStatement,
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             }
         }
 
-        private static BlockSyntax WrapWithBlockIfNecessary(IEnumerable<StatementSyntax> statements)
-            => (statements.Count() == 1 && statements.Single() is BlockSyntax block) ? block : SyntaxFactory.Block(statements);
+        private static BlockSyntax WrapWithBlockIfNecessary(ImmutableArray<StatementSyntax> statements)
+            => statements is [BlockSyntax block] ? block : SyntaxFactory.Block(statements);
     }
 }

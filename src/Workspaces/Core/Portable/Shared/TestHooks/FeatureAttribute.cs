@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string AutomaticEndConstructCorrection = nameof(AutomaticEndConstructCorrection);
         public const string AutomaticPairCompletion = nameof(AutomaticPairCompletion);
         public const string BraceHighlighting = nameof(BraceHighlighting);
+        public const string BracePairs = nameof(BracePairs);
         public const string CallHierarchy = nameof(CallHierarchy);
         public const string Classification = nameof(Classification);
         public const string CodeDefinitionWindow = nameof(CodeDefinitionWindow);
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string DesignerAttributes = nameof(DesignerAttributes);
         public const string DiagnosticService = nameof(DiagnosticService);
         public const string DocumentOutline = nameof(DocumentOutline);
+        public const string EditAndContinue = nameof(EditAndContinue);
         public const string EncapsulateField = nameof(EncapsulateField);
         public const string ErrorList = nameof(ErrorList);
         public const string ErrorSquiggles = nameof(ErrorSquiggles);

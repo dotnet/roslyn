@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly IThreadingContext _threadingContext;
         private readonly VSUtilities.IUIThreadOperationExecutor _operationExecutor;
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly EditorOptionsService _editorOptionsService;
         private bool _snippetCompletionTriggeredIndirectly;
         private bool _responsiveCompletionEnabled;
 
@@ -75,14 +76,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             IThreadingContext threadingContext,
             VSUtilities.IUIThreadOperationExecutor operationExecutor,
             IAsynchronousOperationListener asyncListener,
-            IGlobalOptionService globalOptions)
+            EditorOptionsService editorOptionsService)
         {
             _textView = textView;
             _streamingPresenter = streamingPresenter;
             _threadingContext = threadingContext;
             _operationExecutor = operationExecutor;
             _asyncListener = asyncListener;
-            _globalOptions = globalOptions;
+            _editorOptionsService = editorOptionsService;
             _isDebuggerTextView = textView is IDebuggerTextView;
             _roles = textView.Roles.ToImmutableHashSet();
         }
@@ -117,13 +118,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
                 }
 
-                var options = _globalOptions.GetCompletionOptions(document.Project.Language);
+                var options = _editorOptionsService.GlobalOptions.GetCompletionOptions(document.Project.Language);
 
                 // The Editor supports the option per textView.
                 // There could be mixed desired behavior per textView and even per same completion session.
                 // The right fix would be to send this information as a result of the method. 
                 // Then, the Editor would choose the right behavior for mixed cases.
-                _textView.Options.GlobalOptions.SetOptionValue(s_nonBlockingCompletionEditorOption, !_globalOptions.GetOption(CompletionViewOptions.BlockForCompletionItems, service.Language));
+                _textView.Options.GlobalOptions.SetOptionValue(s_nonBlockingCompletionEditorOption, !_editorOptionsService.GlobalOptions.GetOption(CompletionViewOptionsStorage.BlockForCompletionItems, service.Language));
                 _responsiveCompletionEnabled = _textView.Options.GetOptionValue(DefaultOptions.ResponsiveCompletionOptionId);
 
                 // In case of calls with multiple completion services for the same view (e.g. TypeScript and C#), those completion services must not be called simultaneously for the same session.
@@ -263,8 +264,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // contemplate such action thus typing slower before commit and/or spending more time examining the list, which give us some opportunities
                 // to still provide those items later before they are truly required.     
 
-                var showCompletionItemFilters = _globalOptions.GetOption(CompletionViewOptions.ShowCompletionItemFilters, document.Project.Language);
-                var options = _globalOptions.GetCompletionOptions(document.Project.Language) with
+                var showCompletionItemFilters = _editorOptionsService.GlobalOptions.GetOption(CompletionViewOptionsStorage.ShowCompletionItemFilters, document.Project.Language);
+                var options = _editorOptionsService.GlobalOptions.GetCompletionOptions(document.Project.Language) with
                 {
                     UpdateImportCompletionCacheInBackground = true,
                     TargetTypedCompletionFilter = showCompletionItemFilters // Compute targeted types if filter is enabled
@@ -410,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     // User selected expander explicitly, which means we need to collect and return
                     // items from unimported namespace (and only those items) regardless of whether it's enabled.
-                    var options = _globalOptions.GetCompletionOptions(document.Project.Language) with
+                    var options = _editorOptionsService.GlobalOptions.GetCompletionOptions(document.Project.Language) with
                     {
                         ShowItemsFromUnimportedNamespaces = true,
                         ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly
@@ -513,7 +514,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (!CompletionItemData.TryGetData(item, out var itemData) || !itemData.TriggerLocation.HasValue)
                 return null;
 
-            var document = itemData.TriggerLocation.Value.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var snapshot = itemData.TriggerLocation.Value.Snapshot;
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
                 return null;
 
@@ -521,16 +523,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (service == null)
                 return null;
 
-            var completionOptions = _globalOptions.GetCompletionOptions(document.Project.Language);
-            var displayOptions = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
+            var completionOptions = _editorOptionsService.GlobalOptions.GetCompletionOptions(document.Project.Language);
+            var displayOptions = _editorOptionsService.GlobalOptions.GetSymbolDescriptionOptions(document.Project.Language);
             var description = await service.GetDescriptionAsync(document, itemData.RoslynItem, completionOptions, displayOptions, cancellationToken).ConfigureAwait(false);
             if (description == null)
                 return null;
 
-            var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language);
-
+            var lineFormattingOptions = snapshot.TextBuffer.GetLineFormattingOptions(_editorOptionsService, explicitFormat: false);
             var context = new IntellisenseQuickInfoBuilderContext(
-                document, classificationOptions, _threadingContext, _operationExecutor, _asyncListener, _streamingPresenter);
+                document, displayOptions.ClassificationOptions, lineFormattingOptions, _threadingContext, _operationExecutor, _asyncListener, _streamingPresenter);
 
             var elements = IntelliSense.Helpers.BuildInteractiveTextElements(description.TaggedParts, context).ToArray();
             if (elements.Length == 0)

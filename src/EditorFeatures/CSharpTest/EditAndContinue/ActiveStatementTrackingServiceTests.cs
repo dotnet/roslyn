@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     [UseExportProvider]
     public class ActiveStatementTrackingServiceTests : EditingTestBase
     {
-        [Fact, WorkItem(846042, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846042")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846042")]
         public void MovedOutsideOfMethod1()
         {
             var src1 = @"
@@ -196,7 +196,7 @@ class C
 
             if (scheduleInitialTrackingBeforeOpenDoc)
             {
-                await trackingSession.TrackActiveSpansAsync(solution, CancellationToken.None);
+                await trackingSession.TrackActiveSpansAsync(solution);
 
                 var spans1 = trackingSession.Test_GetTrackingSpans();
                 AssertEx.Equal(new[]
@@ -223,7 +223,7 @@ class C
 
             if (!scheduleInitialTrackingBeforeOpenDoc)
             {
-                await trackingSession.TrackActiveSpansAsync(solution, CancellationToken.None);
+                await trackingSession.TrackActiveSpansAsync(solution);
 
                 var spans5 = trackingSession.Test_GetTrackingSpans();
                 AssertEx.Equal(new[]

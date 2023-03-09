@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
@@ -18,10 +17,47 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         NotificationOption2 Notification { get; }
         ICodeStyleOption WithValue(object value);
         ICodeStyleOption WithNotification(NotificationOption2 notification);
-        ICodeStyleOption AsCodeStyleOption<TCodeStyleOption>();
 #if !CODE_STYLE
+        ICodeStyleOption AsInternalCodeStyleOption();
         ICodeStyleOption AsPublicCodeStyleOption();
 #endif
+    }
+
+    internal interface ICodeStyleOption2 : ICodeStyleOption
+    {
+        /// <summary>
+        /// Creates a new <see cref="ICodeStyleOption2"/> from a specified <paramref name="element"/>.
+        /// </summary>
+        /// <exception cref="Exception">
+        /// The type of the serialized data does not match the type of <see cref="ICodeStyleOption.Value"/> or the format of the serialized data is invalid.
+        /// </exception>
+        ICodeStyleOption2 FromXElement(XElement element);
+    }
+
+    internal static class CodeStyleOption2
+    {
+        /// <remarks>
+        /// When user preferences are not yet set for a style, we fall back to the default value.
+        /// One such default(s), is that the feature is turned on, so that codegen consumes it,
+        /// but with silent enforcement, so that the user is not prompted about their usage.
+        /// </remarks>
+        public static readonly CodeStyleOption2<bool> TrueWithSilentEnforcement = new(value: true, notification: NotificationOption2.Silent);
+        public static readonly CodeStyleOption2<bool> FalseWithSilentEnforcement = new(value: false, notification: NotificationOption2.Silent);
+        public static readonly CodeStyleOption2<bool> TrueWithSuggestionEnforcement = new(value: true, notification: NotificationOption2.Suggestion);
+        public static readonly CodeStyleOption2<bool> FalseWithSuggestionEnforcement = new(value: false, notification: NotificationOption2.Suggestion);
+
+        /// <summary>
+        /// Use singletons for most common values.
+        /// </summary>
+        public static CodeStyleOption2<bool> GetCodeStyle(bool value, NotificationOption2 notification)
+            => (value, notification.Severity) switch
+            {
+                (true, ReportDiagnostic.Hidden) => TrueWithSilentEnforcement,
+                (true, ReportDiagnostic.Info) => TrueWithSuggestionEnforcement,
+                (false, ReportDiagnostic.Hidden) => FalseWithSilentEnforcement,
+                (false, ReportDiagnostic.Info) => FalseWithSuggestionEnforcement,
+                _ => new(value, notification)
+            };
     }
 
     /// <summary>
@@ -39,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// then those values will write back as false/true.
     /// </summary>
     [DataContract]
-    internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>?>
+    internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption2, IEquatable<CodeStyleOption2<T>?>
     {
         public static readonly CodeStyleOption2<T> Default = new(default!, NotificationOption2.Silent);
 
@@ -64,16 +100,31 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         object? ICodeStyleOption.Value => this.Value;
-        ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption2<T>((T)value, Notification);
+        ICodeStyleOption ICodeStyleOption.WithValue(object value) => WithValue((T)value);
         ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption2 notification) => new CodeStyleOption2<T>(Value, notification);
 
-#if CODE_STYLE
-        ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>() => this;
-#else
-        ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>()
-            => this is TCodeStyleOption ? this : new CodeStyleOption<T>(this);
+#pragma warning disable RS0030 // Do not used banned APIs: CodeStyleOption<T>
+#if !CODE_STYLE
         ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => new CodeStyleOption<T>(this);
+        ICodeStyleOption ICodeStyleOption.AsInternalCodeStyleOption() => this;
 #endif
+#pragma warning restore
+
+        public CodeStyleOption2<T> WithValue(T value)
+        {
+            if (typeof(T) == typeof(bool))
+            {
+                var boolValue = (bool)(object)value!;
+                if (boolValue == (bool)(object)Value!)
+                {
+                    return this;
+                }
+
+                return (CodeStyleOption2<T>)(object)CodeStyleOption2.GetCodeStyle(boolValue, Notification);
+            }
+
+            return EqualityComparer<T>.Default.Equals(value, Value) ? this : new CodeStyleOption2<T>(value, Notification);
+        }
 
         private int EnumValueAsInt32 => (int)(object)Value!;
 
@@ -126,6 +177,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var intVal = EnumValueAsInt32;
             return intVal is 0 or 1;
         }
+
+        ICodeStyleOption2 ICodeStyleOption2.FromXElement(XElement element)
+            => FromXElement(element);
 
         public static CodeStyleOption2<T> FromXElement(XElement element)
         {

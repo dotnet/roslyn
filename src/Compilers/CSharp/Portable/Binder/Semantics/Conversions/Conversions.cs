@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -33,7 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         protected override CSharpCompilation Compilation { get { return _binder.Compilation; } }
-#nullable disable
 
         protected override ConversionsBase WithNullabilityCore(bool includeNullability)
         {
@@ -57,13 +57,48 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(methodSymbol == ((NamedTypeSymbol)destination).DelegateInvokeMethod);
 
-            // If synthesizing a delegate with `params` array, check that `ParamArrayAttribute` is available.
-            if (methodSymbol.OriginalDefinition is SynthesizedDelegateInvokeMethod { Parameters: [.., { IsParams: true }] })
+            if (methodSymbol.OriginalDefinition is SynthesizedDelegateInvokeMethod invoke)
             {
-                Binder.GetWellKnownTypeMember(Compilation,
-                    WellKnownMember.System_ParamArrayAttribute__ctor,
-                    out var memberUseSiteInfo);
-                useSiteInfo.Add(memberUseSiteInfo);
+                // If synthesizing a delegate with `params` array, check that `ParamArrayAttribute` is available.
+                if (invoke.IsParams())
+                {
+                    Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
+                        Compilation,
+                        WellKnownMember.System_ParamArrayAttribute__ctor,
+                        ref useSiteInfo);
+                }
+
+                // If synthesizing a delegate with `decimal`/`DateTime` default value,
+                // check that the corresponding `*ConstantAttribute` is available.
+                foreach (var p in invoke.Parameters)
+                {
+                    var defaultValue = p.ExplicitDefaultConstantValue;
+                    if (defaultValue != ConstantValue.NotAvailable)
+                    {
+                        WellKnownMember? member = defaultValue.SpecialType switch
+                        {
+                            SpecialType.System_Decimal => WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
+                            SpecialType.System_DateTime => WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
+                            _ => null
+                        };
+                        if (member != null)
+                        {
+                            Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
+                                Compilation,
+                                member.GetValueOrDefault(),
+                                ref useSiteInfo);
+                        }
+                    }
+                }
+
+                // If synthesizing a delegate with an [UnscopedRef] parameter, check the attribute is available.
+                if (invoke.Parameters.Any(p => p.HasUnscopedRefAttribute))
+                {
+                    Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
+                        Compilation,
+                        WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
+                        ref useSiteInfo);
+                }
             }
 
             var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, callingConventionInfo, ref useSiteInfo);
@@ -73,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             resolution.Free();
             return conversion;
         }
+#nullable disable
 
         public override Conversion GetMethodGroupFunctionPointerConversion(BoundMethodGroup source, FunctionPointerTypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {

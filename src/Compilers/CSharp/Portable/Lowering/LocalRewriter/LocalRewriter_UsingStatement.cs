@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If expr is the constant null then we can elide the whole thing and simply generate the statement. 
 
             BoundExpression rewrittenExpression = VisitExpression(node.ExpressionOpt);
-            if (rewrittenExpression.ConstantValue == ConstantValue.Null)
+            if (rewrittenExpression.ConstantValueOpt == ConstantValue.Null)
             {
                 Debug.Assert(node.Locals.IsEmpty); // TODO: This might not be a valid assumption in presence of semicolon operator.
                 return tryBlock;
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.ImplicitDynamic,
                     iDisposableType,
                     @checked: false,
-                    constantValueOpt: rewrittenExpression.ConstantValue);
+                    constantValueOpt: rewrittenExpression.ConstantValueOpt);
 
                 boundTemp = _factory.StoreToTemp(tempInit, out tempAssignment, kind: SynthesizedLocalKind.Using);
             }
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement expressionStatement = new BoundExpressionStatement(expressionSyntax, tempAssignment);
             if (this.Instrument)
             {
-                expressionStatement = _instrumenter.InstrumentUsingTargetCapture(node, expressionStatement);
+                expressionStatement = Instrumenter.InstrumentUsingTargetCapture(node, expressionStatement);
             }
 
             BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, usingSyntax, tryBlock, boundTemp, usingSyntax.AwaitKeyword, node.AwaitOpt, node.PatternDisposeInfoOpt);
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol localType = localSymbol.Type;
             Debug.Assert((object)localType != null); //otherwise, there wouldn't be a conversion to IDisposable
 
-            BoundLocal boundLocal = new BoundLocal(declarationSyntax, localSymbol, localDeclaration.InitializerOpt.ConstantValue, localType);
+            BoundLocal boundLocal = new BoundLocal(declarationSyntax, localSymbol, localDeclaration.InitializerOpt.ConstantValueOpt, localType);
 
             BoundStatement? rewrittenDeclaration = VisitStatement(localDeclaration);
             Debug.Assert(rewrittenDeclaration is { });
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // will fail, and the Dispose call will never happen.  That is, the finally block will have no effect.
             // Consequently, we can simply skip the whole try-finally construct and just create a block containing
             // the new declaration.
-            if (boundLocal.ConstantValue == ConstantValue.Null)
+            if (boundLocal.ConstantValueOpt == ConstantValue.Null)
             {
                 //localSymbol will be declared by an enclosing block
                 return BoundBlock.SynthesizedNoLocals(declarationSyntax, rewrittenDeclaration, tryBlock);

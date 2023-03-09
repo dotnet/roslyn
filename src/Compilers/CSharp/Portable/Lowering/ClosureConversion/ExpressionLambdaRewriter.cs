@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (literal != null)
             {
                 // for compat reasons enum literals are directly promoted into underlying values
-                return Constant(literal.Update(literal.ConstantValue, promotedType));
+                return Constant(literal.Update(literal.ConstantValueOpt, promotedType));
             }
             else
             {
@@ -737,7 +737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression VisitIsOperator(BoundIsOperator node)
         {
             var operand = node.Operand;
-            if ((object)operand.Type == null && operand.ConstantValue != null && operand.ConstantValue.IsNull)
+            if ((object)operand.Type == null && operand.ConstantValueOpt != null && operand.ConstantValueOpt.IsNull)
             {
                 operand = _bound.Null(_objectType);
             }
@@ -956,7 +956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression VisitObjectCreationExpressionInternal(BoundObjectCreationExpression node)
         {
-            if (node.ConstantValue != null)
+            if (node.ConstantValueOpt != null)
             {
                 // typically a decimal constant.
                 return Constant(node);

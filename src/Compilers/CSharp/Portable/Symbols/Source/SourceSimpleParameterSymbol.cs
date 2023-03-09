@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations parameterType,
             int ordinal,
             RefKind refKind,
-            DeclarationScope scope,
+            ScopedKind scope,
             string name,
             ImmutableArray<Location> locations)
             : base(owner, parameterType, ordinal, refKind, scope, name, locations)
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ConstantValue.NotAvailable; }
         }
 
-        internal override DeclarationScope EffectiveScope => CalculateEffectiveScopeIgnoringAttributes();
+        internal override ScopedKind EffectiveScope => CalculateEffectiveScopeIgnoringAttributes();
 
         internal override bool HasUnscopedRefAttribute => false;
     }

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (cacheEntry == null)
             {
                 // Don't have a cache associated with this completion item, cannot resolve.
-                context.TraceWarning("No cache entry found for the provided completion item at resolve time.");
+                context.TraceInformation("No cache entry found for the provided completion item at resolve time.");
                 return completionItem;
             }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
                 else
                 {
-                    var clientSupportsMarkdown = clientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat.Contains(LSP.MarkupKind.Markdown) == true;
+                    var clientSupportsMarkdown = clientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat?.Contains(LSP.MarkupKind.Markdown) == true;
                     completionItem.Documentation = ProtocolConversions.GetDocumentationMarkupContent(description.TaggedParts, document, clientSupportsMarkdown);
                 }
             }
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var cacheEntry = _completionListCache.GetCachedCompletionList(resolveData.ResultId.Value);
+            var cacheEntry = _completionListCache.GetCachedEntry(resolveData.ResultId.Value);
             if (cacheEntry == null)
             {
                 // No cache for associated completion item. Log some telemetry so we can understand how frequently this actually happens.

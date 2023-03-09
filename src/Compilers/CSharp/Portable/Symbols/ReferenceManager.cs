@@ -919,9 +919,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 public override AssemblyReferenceBinding[] BindAssemblyReferences(
-                    ImmutableArray<AssemblyData> assemblies, AssemblyIdentityComparer assemblyIdentityComparer)
+                    MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)> assemblies, AssemblyIdentityComparer assemblyIdentityComparer)
                 {
-                    return ResolveReferencedAssemblies(_referencedAssemblies, assemblies, definitionStartIndex: 0, assemblyIdentityComparer: assemblyIdentityComparer);
+                    return ResolveReferencedAssemblies(_referencedAssemblies, assemblies, resolveAgainstAssemblyBeingBuilt: true, assemblyIdentityComparer: assemblyIdentityComparer);
                 }
 
                 public sealed override bool IsLinked

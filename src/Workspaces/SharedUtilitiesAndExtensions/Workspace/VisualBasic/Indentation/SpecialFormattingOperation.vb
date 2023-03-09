@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             MyBase.AddAlignTokensOperationsSlow(operations, node, nextAction)
 
             ' Smart token formatting off: No token alignment
-            If _indentStyle <> FormattingOptions.IndentStyle.Smart Then
+            If _indentStyle <> FormattingOptions2.IndentStyle.Smart Then
                 Return
             End If
 

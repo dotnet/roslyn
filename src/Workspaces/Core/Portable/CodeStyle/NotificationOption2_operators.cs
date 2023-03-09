@@ -19,4 +19,18 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 _ => throw ExceptionUtilities.UnexpectedValue(notificationOption.Severity),
             };
     }
+
+    internal static partial class Extensions
+    {
+        public static string GetDisplayString(this ReportDiagnostic severity)
+            => severity switch
+            {
+                ReportDiagnostic.Suppress => WorkspacesResources.None,
+                ReportDiagnostic.Hidden => WorkspacesResources.Refactoring_Only,
+                ReportDiagnostic.Info => WorkspacesResources.Suggestion,
+                ReportDiagnostic.Warn => WorkspacesResources.Warning,
+                ReportDiagnostic.Error => WorkspacesResources.Error,
+                _ => throw ExceptionUtilities.UnexpectedValue(severity)
+            };
+    }
 }

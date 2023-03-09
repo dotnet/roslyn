@@ -1862,6 +1862,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 allowVariance: true,
                                 invokedAsExtensionMethod: false);
                         }
+
+                        if (implementingMethod.HasUnscopedRefAttributeOnMethodOrProperty())
+                        {
+                            diagnostics.Add(
+                                ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation,
+                                GetImplicitImplementationDiagnosticLocation(implementedMethod, implementingType, implementingMethod));
+                        }
                     }
 
                     switch (interfaceMember.Kind)

@@ -10,7 +10,6 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 public interface ILspLogger
 {
-    void LogDebug(string message, params object[] @params);
     void LogStartContext(string message, params object[] @params);
     void LogEndContext(string message, params object[] @params);
     void LogInformation(string message, params object[] @params);

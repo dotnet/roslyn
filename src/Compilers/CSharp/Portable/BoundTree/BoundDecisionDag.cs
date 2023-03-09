@@ -137,13 +137,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public BoundDecisionDag SimplifyDecisionDagIfConstantInput(BoundExpression input)
         {
-            if (input.ConstantValue == null)
+            if (input.ConstantValueOpt == null)
             {
                 return this;
             }
             else
             {
-                ConstantValue inputConstant = input.ConstantValue;
+                ConstantValue inputConstant = input.ConstantValueOpt;
                 return Rewrite(makeReplacement);
 
                 // Make a replacement for a given node, using the precomputed replacements for its successors.

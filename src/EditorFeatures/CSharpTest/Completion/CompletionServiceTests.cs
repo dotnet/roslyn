@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
                 .AddDocument("TestDocument.cs", text);
 
             var service = CompletionService.GetService(document);
-            var options = new OptionValueSet(ImmutableDictionary<OptionKey, object>.Empty.Add(new OptionKey(ThirdPartyOption.Instance, LanguageNames.CSharp), 1));
+            var options = new TestOptionSet(ImmutableDictionary<OptionKey, object>.Empty.Add(new OptionKey(ThirdPartyOption.Instance, LanguageNames.CSharp), 1));
             service.ShouldTriggerCompletion(text, 1, CompletionTrigger.Invoke, options: options);
 
 #pragma warning disable RS0030 // Do not used banned APIs
@@ -187,7 +187,7 @@ namespace N
 
             // We want to make sure import completion providers are also participating.
             var options = CompletionOptions.Default with { ShowItemsFromUnimportedNamespaces = true };
-            var completionList = await completionService.GetCompletionsAsync(document, position.Value, options, OptionValueSet.Empty);
+            var completionList = await completionService.GetCompletionsAsync(document, position.Value, options, OptionSet.Empty);
 
             // We expect completion to run on frozen partial semantic, which won't run source generator.
             Assert.Equal(0, generatorRanCount);

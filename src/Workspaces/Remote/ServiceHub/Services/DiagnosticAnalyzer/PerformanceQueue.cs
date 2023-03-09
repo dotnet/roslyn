@@ -206,22 +206,32 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             public int GetUniqueNumber(string analyzerName)
             {
-                if (!_idMap.TryGetValue(analyzerName, out var id))
+                // AnalyzerNumberAssigner.Instance can be accessed concurrently from different PerformanceQueue instances,
+                // so we need to take a lock on '_idMap' for all read/write operations.
+                lock (_idMap)
                 {
-                    id = _currentId++;
-                    _idMap.Add(analyzerName, id);
-                }
+                    if (!_idMap.TryGetValue(analyzerName, out var id))
+                    {
+                        id = _currentId++;
+                        _idMap.Add(analyzerName, id);
+                    }
 
-                return id;
+                    return id;
+                }
             }
 
             public void GetReverseMap(Dictionary<int, string> reverseMap)
             {
                 reverseMap.Clear();
 
-                foreach (var kv in _idMap)
+                // AnalyzerNumberAssigner.Instance can be accessed concurrently from different PerformanceQueue instances,
+                // so we need to take a lock on '_idMap' for all read/write operations.
+                lock (_idMap)
                 {
-                    reverseMap.Add(kv.Value, kv.Key);
+                    foreach (var kv in _idMap)
+                    {
+                        reverseMap.Add(kv.Value, kv.Key);
+                    }
                 }
             }
         }

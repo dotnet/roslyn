@@ -47,7 +47,7 @@ internal partial class XmlSnippetParser
         ParsedXmlSnippet? parsedSnippet = null;
         try
         {
-            context.TraceDebug($"Reading snippet for {matchingSnippetInfo.Title} with path {matchingSnippetInfo.Path}");
+            context.TraceInformation($"Reading snippet for {matchingSnippetInfo.Title} with path {matchingSnippetInfo.Path}");
             parsedSnippet = GetAndParseSnippetFromFile(matchingSnippetInfo);
         }
         catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))

@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 {
     internal sealed partial class ItemManager : IAsyncCompletionItemManager2
     {
-        public const string AggressiveDefaultsMatchingOptionName = "AggressiveDefaultsMatchingOption";
-
         private readonly RecentItemsManager _recentItemsManager;
         private readonly IGlobalOptionService _globalOptions;
 
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CancellationToken cancellationToken)
         {
             var stopwatch = SharedStopwatch.StartNew();
-            var items = SortCompletionitems(data, cancellationToken).ToImmutableArray();
+            var items = SortCompletionItems(data, cancellationToken).ToImmutableArray();
 
             AsyncCompletionLogger.LogItemManagerSortTicksDataPoint(stopwatch.Elapsed);
             return Task.FromResult(items);
@@ -49,13 +47,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CancellationToken cancellationToken)
         {
             var stopwatch = SharedStopwatch.StartNew();
-            var itemList = session.CreateCompletionList(SortCompletionitems(data, cancellationToken));
+            var itemList = session.CreateCompletionList(SortCompletionItems(data, cancellationToken));
 
             AsyncCompletionLogger.LogItemManagerSortTicksDataPoint(stopwatch.Elapsed);
             return Task.FromResult(itemList);
         }
 
-        private static SegmentedList<VSCompletionItem> SortCompletionitems(AsyncCompletionSessionInitialDataSnapshot data, CancellationToken cancellationToken)
+        private static SegmentedList<VSCompletionItem> SortCompletionItems(AsyncCompletionSessionInitialDataSnapshot data, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var items = new SegmentedList<VSCompletionItem>(data.InitialItemList.Count);

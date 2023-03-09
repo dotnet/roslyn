@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 {
     internal partial class CSharpProjectShim
     {
-        private class OptionsProcessor : VisualStudioProjectOptionsProcessor
+        private class OptionsProcessor : ProjectSystemProjectOptionsProcessor
         {
             private readonly ProjectSystemProject _projectSystemProject;
 

@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     renameOverloads:=True)
         End Function
 
-        <WpfTheory, WorkItem(883263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
         <CombinatorialData>
         Public Async Function RenameWithInvalidOverload(host As RenameTestHost) As Task
             Await VerifyViewModels(
@@ -105,7 +105,7 @@ class Program
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(853839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853839")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853839")>
         Public Async Function RenameAttributeAlias(host As RenameTestHost) As Task
             Await VerifyViewModels(
                     (<Workspace>
@@ -125,7 +125,7 @@ class AttributeAttribute : System.Attribute { }
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameWithOverloadAndInStringsAndComments(host As RenameTestHost) As Task
             Await VerifyViewModels(
                     (<Workspace>
@@ -162,7 +162,7 @@ class AttributeAttribute : System.Attribute { }
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameInComments(host As RenameTestHost) As Task
             Await VerifyViewModels(
                     (<Workspace>
@@ -200,7 +200,7 @@ class $$Program
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameInStrings(host As RenameTestHost) As Task
             Await VerifyViewModels(
                     (<Workspace>
@@ -238,7 +238,7 @@ class $$Program
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameInCommentsAndStrings(host As RenameTestHost) As Task
             Await VerifyViewModels(
                     (<Workspace>
@@ -552,10 +552,10 @@ class D : B
 
             Using workspace = CreateWorkspaceWithWaiter(test, host)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
-                globalOptions.SetGlobalOption(New OptionKey(InlineRenameSessionOptionsStorage.RenameOverloads), renameOverloads)
-                globalOptions.SetGlobalOption(New OptionKey(InlineRenameSessionOptionsStorage.RenameInStrings), renameInStrings)
-                globalOptions.SetGlobalOption(New OptionKey(InlineRenameSessionOptionsStorage.RenameInComments), renameInComments)
-                globalOptions.SetGlobalOption(New OptionKey(InlineRenameSessionOptionsStorage.RenameFile), renameFile)
+                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameOverloads, renameOverloads)
+                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInStrings, renameInStrings)
+                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInComments, renameInComments)
+                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, renameFile)
 
                 Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -694,7 +694,7 @@ class D : B
 
             Using workspace = CreateWorkspaceWithWaiter(test, host)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
-                globalOptions.SetGlobalOption(New OptionKey(InlineRenameUIOptions.CollapseUI), False)
+                globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.CollapseUI, False)
 
                 Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim renameService = DirectCast(workspace.GetService(Of IInlineRenameService)(), InlineRenameService)

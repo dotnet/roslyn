@@ -5,10 +5,12 @@
 #nullable disable
 
 using System;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
 {
@@ -17,6 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     /// </summary>
     internal class SpacingViewModel : AbstractOptionPreviewViewModel
     {
+        private static readonly Conversions<SpacePlacementWithinParentheses, int> s_spaceBetweenParenthesesConversions = new(v => (int)v, v => (SpacePlacementWithinParentheses)v);
+
         private const string s_methodPreview = @"
 class C {
 //[
@@ -119,9 +123,12 @@ class C : I {
             Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.Set_other_spacing_options });
 
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions2.SpaceAfterControlFlowStatementKeyword, CSharpVSResources.Insert_space_after_keywords_in_control_flow_statements, s_forDelimiterPreview, this, optionStore));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions2.SpaceWithinExpressionParentheses, CSharpVSResources.Insert_space_within_parentheses_of_expressions, s_expressionPreview, this, optionStore));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions2.SpaceWithinCastParentheses, CSharpVSResources.Insert_space_within_parentheses_of_type_casts, s_castPreview, this, optionStore));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions2.SpaceWithinOtherParentheses, CSharpVSResources.Insert_spaces_within_parentheses_of_control_flow_statements, s_forDelimiterPreview, this, optionStore));
+
+            var spaceBetweenParenthesesStorage = new StrongBox<SpacePlacementWithinParentheses>();
+            Items.Add(new CheckBoxEnumFlagsOptionViewModel<SpacePlacementWithinParentheses>(CSharpFormattingOptions2.SpaceBetweenParentheses, (int)SpacePlacementWithinParentheses.Expressions, CSharpVSResources.Insert_space_within_parentheses_of_expressions, s_expressionPreview, this, optionStore, spaceBetweenParenthesesStorage, s_spaceBetweenParenthesesConversions));
+            Items.Add(new CheckBoxEnumFlagsOptionViewModel<SpacePlacementWithinParentheses>(CSharpFormattingOptions2.SpaceBetweenParentheses, (int)SpacePlacementWithinParentheses.TypeCasts, CSharpVSResources.Insert_space_within_parentheses_of_type_casts, s_castPreview, this, optionStore, spaceBetweenParenthesesStorage, s_spaceBetweenParenthesesConversions));
+            Items.Add(new CheckBoxEnumFlagsOptionViewModel<SpacePlacementWithinParentheses>(CSharpFormattingOptions2.SpaceBetweenParentheses, (int)SpacePlacementWithinParentheses.ControlFlowStatements, CSharpVSResources.Insert_spaces_within_parentheses_of_control_flow_statements, s_forDelimiterPreview, this, optionStore, spaceBetweenParenthesesStorage, s_spaceBetweenParenthesesConversions));
+
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions2.SpaceAfterCast, CSharpVSResources.Insert_space_after_cast, s_castPreview, this, optionStore));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, CSharpVSResources.Ignore_spaces_in_declaration_statements, s_declarationSpacingPreview, this, optionStore));
 

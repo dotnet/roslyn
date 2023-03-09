@@ -206,9 +206,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (documentId != null)
                 {
                     // file doesn't exist in current solution
-                    var document = await project.Solution.GetDocumentAsync(
+                    var document = await project.Solution.GetTextDocumentAsync(
                         documentId,
-                        includeSourceGenerated: project.Solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true,
                         cancellationToken).ConfigureAwait(false);
 
                     if (document == null)

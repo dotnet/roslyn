@@ -297,7 +297,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         var linePosition = new LinePosition(line, 0);
                         var linePositionSpan = new LinePositionSpan(start: linePosition, end: linePosition);
                         var location = new DiagnosticDataLocation(
-                            new FileLinePositionSpan(filePath, linePositionSpan), document.Id, mappedFileSpan: null);
+                            new FileLinePositionSpan(filePath, linePositionSpan), document.Id);
 
                         Contract.ThrowIfNull(project);
 

@@ -9,17 +9,17 @@
       </trans-unit>
       <trans-unit id="Allow_blank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
-        <target state="new">Allow blank line after colon in constructor initializer</target>
+        <target state="translated">Permitir uma linha em branco após os dois-pontos no inicializador do construtor</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_line_after_token_in_arrow_expression_clause">
         <source>Allow blank line after token in arrow expression clause</source>
-        <target state="new">Allow blank line after token in arrow expression clause</target>
+        <target state="translated">Permitir linha em branco após o token na cláusula de expressão de seta</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_line_after_token_in_conditional_expression">
         <source>Allow blank line after token in conditional expression</source>
-        <target state="new">Allow blank line after token in conditional expression</target>
+        <target state="translated">Permitir linha em branco após o token na expressão condicional</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
@@ -114,12 +114,12 @@
       </trans-unit>
       <trans-unit id="Insert_space_between_called_method_name_and_its_opening_parenthesis">
         <source>Insert space between called method name and its opening parenthesis</source>
-        <target state="new">Insert space between called method name and its opening parenthesis</target>
+        <target state="translated">Inserir espaço entre o nome do método chamado e seu parêntese de abertura</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis">
         <source>Insert space between method name and its opening parenthesis</source>
-        <target state="new">Insert space between method name and its opening parenthesis</target>
+        <target state="translated">Inserir espaço entre o nome do método e o parêntese inicial</target>
         <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">

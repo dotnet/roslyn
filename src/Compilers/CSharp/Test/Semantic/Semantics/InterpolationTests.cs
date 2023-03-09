@@ -14924,6 +14924,160 @@ class Program
             comp.VerifyDiagnostics();
         }
 
+        [Fact]
+        public void RefEscape_14()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                [InterpolatedStringHandler]
+                struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount) { }
+                }
+                ref struct R { }
+                class Program
+                {
+                    static R F1()
+                    {
+                        R r = F2($"");
+                        return r;
+                    }
+                    static R F2(ref CustomHandler handler)
+                    {
+                        return default;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (13,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(13, 16));
+        }
+
+        [Fact]
+        public void RefEscape_15()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                [InterpolatedStringHandler]
+                ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, ref R r) : this() { r.Handler = this; }
+                    public void AppendFormatted(int i) { } 
+                }
+                ref struct R
+                {
+                    public CustomHandler Handler;
+                    public object this[[InterpolatedStringHandlerArgument("")] CustomHandler handler] => null;
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        R r = new R();
+                        _ = r[$"{1}"];
+                        return r;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (5,97): error CS8352: Cannot use variable 'out CustomHandler this' in this context because it may expose referenced variables outside of their declaration scope
+                //     public CustomHandler(int literalLength, int formattedCount, ref R r) : this() { r.Handler = this; }
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler this").WithLocation(5, 97),
+                // (18,13): error CS1620: Argument 3 must be passed with the 'ref' keyword
+                //         _ = r[$"{1}"];
+                Diagnostic(ErrorCode.ERR_BadArgRef, "r").WithArguments("3", "ref").WithLocation(18, 13));
+        }
+
+        [Fact]
+        public void RefEscape_16()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                [InterpolatedStringHandler]
+                ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, ref R r) : this() { r.Handler = this; }
+                    public void AppendFormatted(int i) { } 
+                }
+                ref struct R
+                {
+                    public CustomHandler Handler;
+                    public object this[ref R r, [InterpolatedStringHandlerArgument("r")] CustomHandler handler] => null;
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        R r = new R();
+                        _ = r[ref r, $"{1}"];
+                        return r;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (5,97): error CS8352: Cannot use variable 'out CustomHandler this' in this context because it may expose referenced variables outside of their declaration scope
+                //     public CustomHandler(int literalLength, int formattedCount, ref R r) : this() { r.Handler = this; }
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler this").WithLocation(5, 97),
+                // (11,24): error CS0631: ref and out are not valid in this context
+                //     public object this[ref R r, [InterpolatedStringHandlerArgument("r")] CustomHandler handler] => null;
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(11, 24),
+                // (18,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         _ = r[ref r, $"{1}"];
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "r").WithLocation(18, 19),
+                // (18,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         _ = r[ref r, $"{1}"];
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "r").WithLocation(18, 19),
+                // (18,22): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref R)' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
+                //         _ = r[ref r, $"{1}"];
+                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref R)", "r").WithLocation(18, 22),
+                // (18,22): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref R)' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
+                //         _ = r[ref r, $"{1}"];
+                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref R)", "r").WithLocation(18, 22));
+        }
+
+        [Fact]
+        public void RefEscape_17()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                [InterpolatedStringHandler]
+                ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, ref R r) : this() { r.Handler = this; }
+                    public void AppendFormatted(int i) { } 
+                }
+                ref struct R
+                {
+                    public CustomHandler Handler;
+                    public R(ref R r, [InterpolatedStringHandlerArgument("r")] CustomHandler handler) { }
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        R x = new R();
+                        R y = new R(ref x, $"{1}");
+                        return x;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (5,97): error CS8352: Cannot use variable 'out CustomHandler this' in this context because it may expose referenced variables outside of their declaration scope
+                //     public CustomHandler(int literalLength, int formattedCount, ref R r) : this() { r.Handler = this; }
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler this").WithLocation(5, 97),
+                // (18,25): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         R y = new R(ref x, $"{1}");
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(18, 25),
+                // (18,28): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref R)' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
+                //         R y = new R(ref x, $"{1}");
+                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref R)", "r").WithLocation(18, 28));
+        }
+
         [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
         [InlineData(@"$""{{ {i} }}""")]
         [InlineData(@"$""{{ "" + $""{i}"" + $"" }}""")]

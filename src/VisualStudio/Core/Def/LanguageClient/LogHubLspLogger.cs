@@ -71,10 +71,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         {
             _traceSource.TraceEvent(TraceEventType.Stop, id: 0, message);
         }
-
-        public void LogDebug(string message, params object[] @params)
-        {
-            _traceSource.TraceEvent(TraceEventType.Verbose, id: 0, message);
-        }
     }
 }

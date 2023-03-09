@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// of rewritten return expressions. The return-handling code then uses <c>SetResult</c> on the async method builder
         /// to make the result available to the caller.
         /// </summary>
-        private readonly LocalSymbol _exprRetValue;
+        private readonly LocalSymbol? _exprRetValue;
 
         private readonly LoweredDynamicOperationFactory _dynamicFactory;
 
@@ -71,14 +69,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory F,
             FieldSymbol state,
             FieldSymbol builder,
-            IReadOnlySet<Symbol> hoistedVariables,
+            FieldSymbol? instanceIdField,
+            Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
-            VariableSlotAllocator slotAllocatorOpt,
+            VariableSlotAllocator? slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
             BindingDiagnosticBag diagnostics)
-            : base(F, method, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
+            : base(F, method, state, instanceIdField, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
         {
             _method = method;
             _asyncMethodBuilderMemberCollection = asyncMethodBuilderMemberCollection;
@@ -96,6 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
         }
+
+#nullable disable
 
         private FieldSymbol GetAwaiterField(TypeSymbol awaiterType)
         {
@@ -200,6 +201,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rootScopeHoistedLocals.Length > 0)
             {
                 newBody = MakeStateMachineScope(rootScopeHoistedLocals, newBody);
+            }
+
+            if (instrumentation != null)
+            {
+                newBody = F.Block(
+                    ImmutableArray.Create(instrumentation.Local),
+                    instrumentation.Prologue,
+                    F.Try(F.Block(newBody), ImmutableArray<BoundCatchBlock>.Empty, F.Block(instrumentation.Epilogue)));
             }
 
             F.CloseMethod(newBody);
