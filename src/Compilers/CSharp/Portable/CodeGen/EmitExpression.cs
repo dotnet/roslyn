@@ -3485,11 +3485,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // Generate branchless IL for (b ? 1 : 0).
             if (used &&
-                hasIntegralValueZeroOrOne(expr.Consequence, out var one1) &&
-                hasIntegralValueZeroOrOne(expr.Alternative, out var one2) &&
-                one1 != one2)
+                hasIntegralValueZeroOrOne(expr.Consequence, out var isConsequenceOne) &&
+                hasIntegralValueZeroOrOne(expr.Alternative, out var isAlternativeOne) &&
+                isConsequenceOne != isAlternativeOne)
             {
-                EmitCondExpr(expr.Condition, sense: one1);
+                EmitCondExpr(expr.Condition, sense: isConsequenceOne);
                 return;
             }
 
@@ -3558,24 +3558,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             _builder.MarkLabel(doneLabel);
 
-            static bool hasIntegralValueZeroOrOne(BoundExpression expr, out bool one)
+            static bool hasIntegralValueZeroOrOne(BoundExpression expr, out bool isOne)
             {
                 if (expr.ConstantValueOpt is { } constantValue)
                 {
                     if (constantValue is { IsIntegral: true, UInt64Value: (1 or 0) and var v })
                     {
-                        one = v == 1;
+                        isOne = v == 1;
                         return true;
                     }
 
                     if (constantValue is { IsBoolean: true, BooleanValue: var b })
                     {
-                        one = b;
+                        isOne = b;
                         return true;
                     }
                 }
 
-                one = false;
+                isOne = false;
                 return false;
             }
         }
