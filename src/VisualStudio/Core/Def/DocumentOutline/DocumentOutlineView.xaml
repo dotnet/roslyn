@@ -24,11 +24,7 @@
         <CollectionViewSource
             x:Key="DocumentSymbolItems"
             IsLiveSortingRequested="True"
-            Source="{Binding DocumentSymbolViewModelItems}">
-            <CollectionViewSource.SortDescriptions>
-                <ComponentModel:SortDescription PropertyName="Data.RangeSpan.Start.Position" Direction="Ascending" />
-            </CollectionViewSource.SortDescriptions>
-        </CollectionViewSource>
+            Source="{Binding DocumentSymbolViewModelItems}" />
         <!-- An instance of our custom sorter, This uses ImmutableArray's sort methods instead of linq 
              which uses far less memory.
         -->
