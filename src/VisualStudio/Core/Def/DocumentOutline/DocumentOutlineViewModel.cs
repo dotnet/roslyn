@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -28,6 +29,53 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     using LspDocumentSymbol = DocumentSymbol;
+
+    internal sealed class DocumentOutlineViewState
+    {
+        /// <summary>
+        /// The snapshot of the document used to compute this state.
+        /// </summary>
+        public readonly ITextSnapshot TextSnapshot;
+
+        /// <summary>
+        /// The individual outline items that were computed.
+        /// </summary>
+        public readonly ImmutableArray<DocumentSymbolData> DocumentSymbolData;
+
+        /// <summary>
+        /// The text string that was used to filter the original LSP results down to the set of <see
+        /// cref="DocumentSymbolData"/> we have.
+        /// </summary>
+        public readonly string SearchText;
+
+        /// <summary>
+        /// The view items we created from <see cref="DocumentSymbolData"/>.  Note: these values are a bit odd in that
+        /// they represent mutable UI state.  Need to review to ensure this is safe.  Docs on
+        /// DocumentSymbolDataViewModel indicate that it likely should be as the only mutable state is
+        /// IsExpanded/IsSelected, both of which are threadsafe.
+        /// </summary>
+        public readonly ImmutableArray<DocumentSymbolDataViewModel> ViewModelItems;
+
+        /// <summary>
+        /// Interval-tree view over <see cref="ViewModelItems"/> so that we can quickly determine which of them
+        /// intersect with a particular position in the document.
+        /// </summary>
+        public readonly IntervalTree<DocumentSymbolDataViewModel> ViewModelItemsTree;
+
+        public DocumentOutlineViewState(
+            ITextSnapshot textSnapshot,
+            ImmutableArray<DocumentSymbolData> documentSymbolData,
+            string searchText,
+            ImmutableArray<DocumentSymbolDataViewModel> viewModelItems,
+            IntervalTree<DocumentSymbolDataViewModel> viewModelItemsTree)
+        {
+            TextSnapshot = textSnapshot;
+            DocumentSymbolData = documentSymbolData;
+            SearchText = searchText;
+            ViewModelItems = viewModelItems;
+            ViewModelItemsTree = viewModelItemsTree;
+        }
+    }
 
     /// <summary>
     /// Responsible for updating data related to Document outline. It is expected that all public methods on this type
@@ -68,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Mutable state.  only accessed from UpdateViewModelStateAsync though.  Since that executes serially, it does not need locking.
         /// </summary>
-        private (DocumentSymbolDataModel model, string searchText, ImmutableArray<DocumentSymbolDataViewModel> viewModelItems) _lastPresentedData_onlyAccessSerially;
+        private (DocumentSymbolDataModel model, string searchText, ImmutableArray<DocumentSymbolDataViewModel> viewModelItems, IntervalTree<DocumentSymbolDataViewModel> intervalTree) _lastPresentedData_onlyAccessSerially;
 
         public DocumentOutlineViewModel(
             ILanguageServiceBroker2 languageServiceBroker,
@@ -232,9 +280,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             return model;
         }
 
-        public void EnqueueSelectTreeNode()
-            => _updateViewModelStateQueue.AddWork(item: null);
-
         public void EnqueueExpandOrCollapse(bool shouldExpand)
             => _updateViewModelStateQueue.AddWork(shouldExpand);
 
@@ -289,13 +334,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 currentViewModelItems = lastViewModelItems;
             }
 
-            var symbolToSelect = GetDocumentNodeToSelect(currentViewModelItems, model.OriginalSnapshot, caretPoint);
-            if (symbolToSelect is not null)
-            {
-                ExpandAncestors(currentViewModelItems, symbolToSelect.Data.SelectionRangeSpan);
-                symbolToSelect.IsSelected = true;
-            }
-
             // If we aren't filtering to search results do expand/collapse
             if (expansion != null)
                 SetExpansionOption(currentViewModelItems, expansion.Value);
@@ -306,6 +344,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             // Now that we've made all our changes, record that we've done so so we can see what has changed when future requests come in.
             // note: we are safe to record this on the BG as we are called serially and are the only place to read/write it.
+
+            // Jump back to UI thread to set the current data.
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             _lastPresentedData_onlyAccessSerially = (model, searchText, currentViewModelItems);
 
             return;

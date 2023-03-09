@@ -14,15 +14,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     using SymbolKind = LanguageServer.Protocol.SymbolKind;
 
     /// <summary>
-    /// A ViewModel over <see cref="DocumentSymbolData"/>
-    /// The only items that are mutable on this type are <see cref="IsExpanded"/> and <see cref="IsSelected"/>.
-    /// It is expected that these can be modified from any thread with INotifyPropertyChanged notifications
-    /// being marshalled to the correct thread by WPF if there needs to be a change to the visual presentation.
+    /// A ViewModel over <see cref="DocumentSymbolData"/>. The only items that are mutable on this type are <see
+    /// cref="IsExpanded"/> and <see cref="IsSelected"/>. It is expected that these can be modified from any thread with
+    /// INotifyPropertyChanged notifications being marshalled to the correct thread by WPF if there needs to be a change
+    /// to the visual presentation.
     /// </summary>
     internal sealed class DocumentSymbolDataViewModel : INotifyPropertyChanged, IEquatable<DocumentSymbolDataViewModel>
     {
         public DocumentSymbolData Data { get; }
-        public ImmutableArray<DocumentSymbolDataViewModel> Children { get; init; }
+        public ImmutableArray<DocumentSymbolDataViewModel> Children { get; }
 
         /// <summary>
         /// Necessary because we cannot convert to this type dynamically in WPF.
@@ -82,12 +82,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             NotifyPropertyChanged(propertyName);
         }
 
+        public override bool Equals(object obj)
+            => Equals(obj as DocumentSymbolDataViewModel);
+
         public bool Equals(DocumentSymbolDataViewModel? other)
         {
             if (other is null)
-            {
                 return false;
-            }
 
             var translatedRangeSpan = this.Data.RangeSpan.TranslateTo(other.Data.RangeSpan.Snapshot, SpanTrackingMode.EdgeNegative);
             return translatedRangeSpan == other.Data.RangeSpan &&
@@ -100,9 +101,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         public static bool operator ==(DocumentSymbolDataViewModel? left, DocumentSymbolDataViewModel? right)
             => left is not null && left.Equals(right);
-
-        public override bool Equals(object obj)
-            => Equals(obj as DocumentSymbolDataViewModel);
 
         public override int GetHashCode()
             => Data.GetHashCode();
