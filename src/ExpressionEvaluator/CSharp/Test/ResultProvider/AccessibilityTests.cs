@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     public class AccessibilityTests : CSharpResultProviderTestBase
     {
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21084")]
-        [WorkItem(889710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889710")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889710")]
         public void HideNonPublicMembersBaseClass()
         {
             var sourceA =
@@ -180,7 +180,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21084")]
-        [WorkItem(889710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889710")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889710")]
         public void HideNonPublicMembersDerivedClass()
         {
             var sourceA =

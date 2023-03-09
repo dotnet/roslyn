@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
                 => _refactorings;
         }
 
-        [Fact, WorkItem(62877, "https://github.com/dotnet/roslyn/issues/62877")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62877")]
         public async Task TestAdditionalDocumentRefactoringAsync()
         {
             using var workspace = TestWorkspace.CreateCSharp("", composition: FeaturesTestCompositions.Features);

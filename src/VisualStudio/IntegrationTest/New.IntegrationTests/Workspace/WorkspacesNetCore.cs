@@ -24,7 +24,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.Workspaces
 
         [IdeFact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
-        [WorkItem(34264, "https://github.com/dotnet/roslyn/issues/34264")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34264")]
         public override async Task MetadataReference()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(WorkspacesNetCore), HangMitigatingCancellationToken);

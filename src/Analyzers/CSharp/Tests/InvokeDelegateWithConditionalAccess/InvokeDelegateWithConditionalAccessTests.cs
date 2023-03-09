@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                 """);
         }
 
-        [Fact, WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
         public async Task TestMissingBeforeCSharp6()
         {
             await TestMissingAsync(
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                 """);
         }
 
-        [Fact, WorkItem(51563, "https://github.com/dotnet/roslyn/issues/51563")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51563")]
         public async Task TestTrivia3()
         {
             await TestInRegularAndScript1Async(
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                 """);
         }
 
-        [Fact, WorkItem(51563, "https://github.com/dotnet/roslyn/issues/51563")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51563")]
         public async Task TestTrivia4()
         {
             await TestInRegularAndScript1Async(
@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                 """);
         }
 
-        [Fact, WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
         public async Task TestWithLambdaInitializer()
         {
             await TestInRegularAndScript1Async(
@@ -948,7 +948,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                 """);
         }
 
-        [Fact, WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
         public async Task TestWithLambdaInitializer2()
         {
             await TestInRegularAndScript1Async(
@@ -981,7 +981,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                 """);
         }
 
-        [Fact, WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
         public async Task TestForWithAnonymousMethod()
         {
             await TestInRegularAndScript1Async(
@@ -1014,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                 """);
         }
 
-        [Fact, WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
         public async Task TestWithMethodReference()
         {
             await TestInRegularAndScript1Async(
@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                 """);
         }
 
-        [Fact, WorkItem(31827, "https://github.com/dotnet/roslyn/issues/31827")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31827")]
         public async Task TestWithExplicitInvokeCall1()
         {
             await TestInRegularAndScript1Async(
@@ -1080,7 +1080,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                 """);
         }
 
-        [Fact, WorkItem(31827, "https://github.com/dotnet/roslyn/issues/31827")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31827")]
         public async Task TestWithExplicitInvokeCall2()
         {
             await TestInRegularAndScript1Async(
@@ -1112,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                 """);
         }
 
-        [Fact, WorkItem(50976, "https://github.com/dotnet/roslyn/issues/50976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50976")]
         public async Task TestMissingOnFunctionPointer()
         {
             await TestMissingInRegularAndScriptAsync(

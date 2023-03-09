@@ -207,6 +207,7 @@ stages:
           include:
           - src/Compilers/*
           - src/Dependencies/*
+          - src/NuGet/Microsoft.Net.Compilers.Toolset/*
           - eng/*
           - src/Tools/Source/CompilerGeneratorTools/*
 

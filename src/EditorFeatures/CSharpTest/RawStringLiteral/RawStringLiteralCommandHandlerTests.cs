@@ -312,7 +312,7 @@ $${|VirtualSpaces-4:|}
 @"var v = $""""""$$""""""");
         }
 
-        [WpfFact, WorkItem(66538, "https://github.com/dotnet/roslyn/issues/66538")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66538")]
         public void TestGenerateWithInterpolatedString_TwoDollarSigns()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
@@ -325,7 +325,7 @@ var v = $$"""[||]"""
 """", withSpansOnly: true);
         }
 
-        [WpfFact, WorkItem(66538, "https://github.com/dotnet/roslyn/issues/66538")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66538")]
         public void TestGenerateWithInterpolatedString_TwoDollarSigns_FourthDoubleQuote()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
@@ -336,7 +336,7 @@ var v = $$"""[||]"""
 """""var v = $$""""[||]"""";""""", withSpansOnly: true);
         }
 
-        [WpfFact, WorkItem(66538, "https://github.com/dotnet/roslyn/issues/66538")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66538")]
         public void TestGenerateWithInterpolatedString_ThreeDollarSigns()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(

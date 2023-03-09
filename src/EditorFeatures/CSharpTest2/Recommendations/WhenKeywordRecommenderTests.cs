@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"try {} catch (Exception e) when (true) $$"));
         }
 
-        [Fact, WorkItem(24113, "https://github.com/dotnet/roslyn/issues/24113")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24113")]
         public async Task TestForSwitchCase_AfterDeclarationPattern()
             => await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case int i $$ }"));
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestForSwitchCase_AfterDeclarationPattern_BeforeWhen()
             => await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case int i $$ when }"));
 
-        [Theory, WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/25084")]
         [InlineData("int.MinValue")]
         [InlineData("1")]
         [InlineData("1 + 1")]
@@ -534,7 +534,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(44480, "https://github.com/dotnet/roslyn/issues/44480")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44480")]
         public async Task TestAfterSwitchExpressionPattern1()
         {
             await VerifyKeywordAsync(@"
@@ -551,7 +551,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(44480, "https://github.com/dotnet/roslyn/issues/44480")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44480")]
         public async Task TestAfterSwitchExpressionPattern2()
         {
             await VerifyKeywordAsync(@"
@@ -568,7 +568,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(44480, "https://github.com/dotnet/roslyn/issues/44480")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44480")]
         public async Task TestAfterSwitchExpressionPattern3()
         {
             await VerifyKeywordAsync(@"
@@ -585,7 +585,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(44480, "https://github.com/dotnet/roslyn/issues/44480")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44480")]
         public async Task TestAfterSwitchExpressionPattern4()
         {
             await VerifyKeywordAsync(@"
