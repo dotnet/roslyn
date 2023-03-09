@@ -41,5 +41,14 @@ namespace Microsoft.CodeAnalysis.Testing
         /// One run one code fix iteration.
         /// </summary>
         FixOne = 1 << 3,
+
+        /// <summary>
+        /// Skip a verification check that a code fix is not attempting to provide a fix for a non-local analyzer
+        /// diagnostic. Non-local diagnostics cannot be calculated on-demand within a span of a document, so they only
+        /// trigger code fixes in cases where they were already computed prior to the code fix request. Since local
+        /// diagnostics provide a better end user experience, the testing library helps analyzer authors default to this
+        /// behavior.
+        /// </summary>
+        SkipLocalDiagnosticCheck = 1 << 4,
     }
 }

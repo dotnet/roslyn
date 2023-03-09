@@ -618,6 +618,14 @@ namespace Microsoft.CodeAnalysis.Testing
                     .Where(diagnostic => project.Solution.GetDocument(diagnostic.diagnostic.Location.SourceTree) is object)
                     .ToImmutableArray();
 
+                if (!CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.SkipLocalDiagnosticCheck))
+                {
+                    foreach (var fixableDiagnostic in fixableDiagnostics)
+                    {
+                        Verify.False(IsNonLocalDiagnostic(fixableDiagnostic.diagnostic), $"Code fix is attempting to provide a fix for a non-local analyzer diagnostic");
+                    }
+                }
+
                 if (CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.FixOne))
                 {
                     var diagnosticToFix = TrySelectDiagnosticToFix(fixableDiagnostics.Select(x => x.diagnostic).ToImmutableArray());
@@ -758,6 +766,14 @@ namespace Microsoft.CodeAnalysis.Testing
                     .Where(diagnostic => codeFixProviders.Any(provider => provider.FixableDiagnosticIds.Contains(diagnostic.diagnostic.Id)))
                     .Where(diagnostic => project.Solution.GetDocument(diagnostic.diagnostic.Location.SourceTree) is object)
                     .ToImmutableArray();
+
+                if (!CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.SkipLocalDiagnosticCheck))
+                {
+                    foreach (var fixableDiagnostic in fixableDiagnostics)
+                    {
+                        Verify.False(IsNonLocalDiagnostic(fixableDiagnostic.diagnostic), $"Code fix is attempting to provide a fix for a non-local analyzer diagnostic");
+                    }
+                }
 
                 if (CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.FixOne))
                 {

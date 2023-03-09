@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Testing
         where TVerifier : IVerifier, new()
     {
         private static readonly Lazy<IExportProviderFactory> ExportProviderFactory;
+        private static readonly ConditionalWeakTable<Diagnostic, object> NonLocalDiagnostics = new ConditionalWeakTable<Diagnostic, object>();
 
         static AnalyzerTest()
         {
@@ -1120,6 +1122,14 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     var compilationDiagnostics = compilation.GetDiagnostics(cancellationToken);
                     var analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
+                    foreach (var (analyzer, analyzerNonLocalDiagnostics) in analysisResult.CompilationDiagnostics)
+                    {
+                        foreach (var diagnostic in analyzerNonLocalDiagnostics)
+                        {
+                            NonLocalDiagnostics.Add(diagnostic, new object());
+                        }
+                    }
+
                     allDiagnostics = compilationDiagnostics.AddRange(analysisResult.GetAllDiagnostics());
                 }
                 else
@@ -1134,6 +1144,11 @@ namespace Microsoft.CodeAnalysis.Testing
             diagnostics.AddRange(additionalDiagnostics);
             var results = SortDistinctDiagnostics(diagnostics);
             return results;
+        }
+
+        private protected static bool IsNonLocalDiagnostic(Diagnostic diagnostic)
+        {
+            return NonLocalDiagnostics.TryGetValue(diagnostic, out _);
         }
 
         protected virtual async Task<(Compilation compilation, ImmutableArray<Diagnostic> generatorDiagnostics)> GetProjectCompilationAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
