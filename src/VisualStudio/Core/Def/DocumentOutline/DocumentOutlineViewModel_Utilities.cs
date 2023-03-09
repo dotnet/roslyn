@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         ///         ]
         ///     }
         /// ]
-        public static DocumentSymbolDataModel CreateDocumentSymbolDataModel(LspDocumentSymbol[] documentSymbols, ITextSnapshot originalSnapshot)
+        public static ImmutableArray<DocumentSymbolData> CreateDocumentSymbolData(LspDocumentSymbol[] documentSymbols, ITextSnapshot textSnapshot)
         {
             // Obtain a flat list of all the document symbols sorted by location in the document.
             var allSymbols = documentSymbols
@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             while (currentStart < allSymbols.Length)
                 finalResult.Add(NestDescendantSymbols(allSymbols, currentStart, out currentStart));
 
-            return new DocumentSymbolDataModel(finalResult.ToImmutable(), originalSnapshot);
+            return finalResult.ToImmutable();
 
             // Returns the symbol in the list at index start (the parent symbol) with the following symbols in the list
             // (descendants) appropriately nested into the parent.
@@ -155,10 +155,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // Converts a Document Symbol Range to a SnapshotSpan within the text snapshot used for the LSP request.
             SnapshotSpan GetSymbolRangeSpan(Range symbolRange)
             {
-                var originalStartPosition = originalSnapshot.GetLineFromLineNumber(symbolRange.Start.Line).Start.Position + symbolRange.Start.Character;
-                var originalEndPosition = originalSnapshot.GetLineFromLineNumber(symbolRange.End.Line).Start.Position + symbolRange.End.Character;
+                var originalStartPosition = textSnapshot.GetLineFromLineNumber(symbolRange.Start.Line).Start.Position + symbolRange.Start.Character;
+                var originalEndPosition = textSnapshot.GetLineFromLineNumber(symbolRange.End.Line).Start.Position + symbolRange.End.Character;
 
-                return new SnapshotSpan(originalSnapshot, Span.FromBounds(originalStartPosition, originalEndPosition));
+                return new SnapshotSpan(textSnapshot, Span.FromBounds(originalStartPosition, originalEndPosition));
             }
         }
         /// <summary>

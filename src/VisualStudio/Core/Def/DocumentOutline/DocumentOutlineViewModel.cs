@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
+using VsWebSite;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
@@ -77,6 +78,26 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
     }
 
+    internal readonly struct DocumentOutlineViewModelIntervalInspector : IIntervalIntrospector<DocumentSymbolDataViewModel>
+    {
+        private readonly ITextSnapshot _textSnapshot;
+
+        public DocumentOutlineViewModelIntervalInspector(ITextSnapshot textSnapshot)
+        {
+            _textSnapshot = textSnapshot;
+        }
+
+        public int GetStart(DocumentSymbolDataViewModel value)
+        {
+            return value.Data.RangeSpan.Start.TranslateTo(_textSnapshot, PointTrackingMode.Positive);
+        }
+
+        public int GetLength(DocumentSymbolDataViewModel value)
+        {
+            return value.Data.RangeSpan.TranslateTo(_textSnapshot, SpanTrackingMode.EdgeInclusive).Length;
+        }
+    }
+
     /// <summary>
     /// Responsible for updating data related to Document outline. It is expected that all public methods on this type
     /// do not need to be on the UI thread. Two properties: <see cref="SortOption"/> and <see cref="SearchText"/> are
@@ -91,19 +112,18 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private readonly IThreadingContext _threadingContext;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
-        private readonly DocumentSymbolDataModel _emptyModel;
-
         /// <summary>
         /// Queue that uses the language-server-protocol to get document symbol information.
-        /// This queue can return null if it is called before and LSP server is registered for our document.
         /// </summary>
-        private readonly AsyncBatchingResultQueue<DocumentSymbolDataModel> _documentSymbolQueue;
+        private readonly AsyncBatchingWorkQueue _workQueue;
 
-        /// <summary>
-        /// Queue for updating the state of the view model.  The boolean indicates if we should expand/collapse all
-        /// items.
-        /// </summary>
-        private readonly AsyncBatchingWorkQueue<bool?> _updateViewModelStateQueue;
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        ///// <summary>
+        ///// Queue for updating the state of the view model.  The boolean indicates if we should expand/collapse all
+        ///// items.
+        ///// </summary>
+        //private readonly AsyncBatchingWorkQueue<bool?> _updateViewModelStateQueue;
 
         private CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
@@ -116,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Mutable state.  only accessed from UpdateViewModelStateAsync though.  Since that executes serially, it does not need locking.
         /// </summary>
-        private (DocumentSymbolDataModel model, string searchText, ImmutableArray<DocumentSymbolDataViewModel> viewModelItems, IntervalTree<DocumentSymbolDataViewModel> intervalTree) _lastPresentedData_onlyAccessSerially;
+        private DocumentOutlineViewState _lastViewState;
 
         public DocumentOutlineViewModel(
             ILanguageServiceBroker2 languageServiceBroker,
@@ -131,30 +151,41 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _textView = textView;
             _textBuffer = textBuffer;
             _threadingContext = threadingContext;
-            _emptyModel = new DocumentSymbolDataModel(ImmutableArray<DocumentSymbolData>.Empty, _textBuffer.CurrentSnapshot);
-            _lastPresentedData_onlyAccessSerially = (_emptyModel, this.SearchText, this.DocumentSymbolViewModelItems);
+
+            var currentSnapshot = textBuffer.CurrentSnapshot;
+            _lastViewState = new DocumentOutlineViewState(
+                currentSnapshot,
+                ImmutableArray<DocumentSymbolData>.Empty,
+                this.SearchText,
+                this.DocumentSymbolViewModelItems,
+                IntervalTree<DocumentSymbolDataViewModel>.Empty);
 
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_threadingContext.DisposalToken);
 
-            // work queue for refreshing LSP data
-            _documentSymbolQueue = new AsyncBatchingResultQueue<DocumentSymbolDataModel>(
+            //// work queue for refreshing LSP data
+            _workQueue = new AsyncBatchingWorkQueue(
                 DelayTimeSpan.Short,
-                GetDocumentSymbolAsync,
+                ComputeViewStateAsync,
                 asyncListener,
                 CancellationToken);
+            //_documentSymbolQueue = new AsyncBatchingResultQueue<DocumentSymbolDataModel>(
+            //    DelayTimeSpan.Short,
+            //    GetDocumentSymbolAsync,
+            //    asyncListener,
+            //    CancellationToken);
 
-            // work queue for updating UI state
-            _updateViewModelStateQueue = new AsyncBatchingWorkQueue<bool?>(
-                DelayTimeSpan.Short,
-                UpdateViewModelStateAsync,
-                asyncListener,
-                CancellationToken);
+            //// work queue for updating UI state
+            //_updateViewModelStateQueue = new AsyncBatchingWorkQueue<bool?>(
+            //    DelayTimeSpan.Short,
+            //    UpdateViewModelStateAsync,
+            //    asyncListener,
+            //    CancellationToken);
 
             _taggerEventSource.Changed += OnEventSourceChanged;
             _taggerEventSource.Connect();
 
             // queue initial model update
-            _documentSymbolQueue.AddWork();
+            _workQueue.AddWork();
         }
 
         public void Dispose()
@@ -199,7 +230,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
                 _threadingContext.ThrowIfNotOnUIThread();
                 _searchText_doNotAccessDirectly = value;
-                _updateViewModelStateQueue.AddWork(item: null);
+
+                _workQueue.AddWork();
             }
         }
 
@@ -223,9 +255,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         private void OnEventSourceChanged(object sender, TaggerEventArgs e)
-            => _documentSymbolQueue.AddWork(cancelExistingWork: true);
-
-        public event PropertyChangedEventHandler? PropertyChanged;
+            => _workQueue.AddWork();
 
         private void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -239,39 +269,32 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             NotifyPropertyChanged(propertyName);
         }
 
-        private async ValueTask<DocumentSymbolDataModel> GetDocumentSymbolAsync(CancellationToken cancellationToken)
+        public void EnqueueExpandOrCollapse(bool shouldExpand)
+            => _updateViewModelStateQueue.AddWork(shouldExpand);
+
+        private async ValueTask ComputeViewStateAsync(CancellationToken cancellationToken)
         {
             // We do not want this work running on a background thread
             await TaskScheduler.Default;
             cancellationToken.ThrowIfCancellationRequested();
 
             var textBuffer = _textBuffer;
-            var currentSnapshot = textBuffer.CurrentSnapshot;
-            var filePath = _textBuffer.GetRelatedDocuments().FirstOrDefault(static d => d.FilePath is not null)?.FilePath;
+
+            var filePath = textBuffer.GetRelatedDocuments().FirstOrDefault(static d => d.FilePath is not null)?.FilePath;
             if (filePath is null)
             {
                 // text buffer is not saved to disk. LSP does not support calls without URIs. and Visual Studio does not
                 // have a URI concept other than the file path.
-                return _emptyModel;
+                return;
             }
 
             // Obtain the LSP response and text snapshot used.
             var response = await DocumentSymbolsRequestAsync(
                 textBuffer, _languageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
-
-            // If there is no matching LSP server registered the client will return null here - e.g. wrong content type
-            // on the buffer, the server totally failed to start, server doesn't support the right capabilities. For C#
-            // we might know it's a bug if we get a null response here, but we don't know that in general for all
-            // languages. see
-            // "Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient.AlwaysActivateInProcLanguageClient" for the
-            // list of content types we register for. At this time the expected list is C#, Visual Basic, and F#
             if (response is null)
-                return _emptyModel;
+                return;
 
-            var responseBody = response.Value.response.ToObject<LspDocumentSymbol[]>();
-            // It would be a bug in the LSP server implementation if we get back a null result here.
-            Assumes.NotNull(responseBody);
-
+            var responseBody = response.Value.response.ToObject<LspDocumentSymbol[]>() ?? Array.Empty<LspDocumentSymbol>();
             var model = CreateDocumentSymbolDataModel(responseBody, response.Value.snapshot);
 
             // Now that we produced a new model, kick off the work to present it to the UI.
@@ -279,9 +302,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             return model;
         }
-
-        public void EnqueueExpandOrCollapse(bool shouldExpand)
-            => _updateViewModelStateQueue.AddWork(shouldExpand);
 
         private async ValueTask UpdateViewModelStateAsync(ImmutableSegmentedList<bool?> viewModelStateData, CancellationToken cancellationToken)
         {
