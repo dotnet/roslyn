@@ -90,6 +90,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             return VSConstants.S_OK;
         }
 
+        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+            => _viewModel.SearchText = SearchBox.Text;
+
         private void ExpandAll(object sender, RoutedEventArgs e)
             => _viewModel.EnqueueExpandOrCollapse(true);
 

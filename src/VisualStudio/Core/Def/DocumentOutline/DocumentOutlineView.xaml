@@ -1,4 +1,4 @@
-<UserControl x:Class="Microsoft.VisualStudio.LanguageServices.DocumentOutline.DocumentOutlineView"
+﻿<UserControl x:Class="Microsoft.VisualStudio.LanguageServices.DocumentOutline.DocumentOutlineView"
              x:ClassModifier="internal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -106,7 +106,7 @@
                 <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.SortByType}" />
             </Button>
         </Grid>
-        <TextBox Grid.Row="1" x:Name="SearchBox" Text="{Binding SearchText, Mode=TwoWay}" VerticalContentAlignment="Center">
+        <TextBox Grid.Row="1" x:Name="SearchBox" TextChanged="SearchBox_TextChanged"  VerticalContentAlignment="Center">
             <TextBox.Style>
                 <Style TargetType="TextBox">
                     <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
