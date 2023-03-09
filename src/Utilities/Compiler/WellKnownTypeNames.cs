@@ -319,6 +319,7 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeInteropServicesGCHandle = "System.Runtime.InteropServices.GCHandle";
         public const string SystemRuntimeInteropServicesHandleRef = "System.Runtime.InteropServices.HandleRef";
         public const string SystemRuntimeInteropServicesLCIDConversionAttribute = "System.Runtime.InteropServices.LCIDConversionAttribute";
+        public const string SystemRuntimeInteropServicesLibraryImportAttribute = "System.Runtime.InteropServices.LibraryImportAttribute";
         public const string SystemRuntimeInteropServicesMarshal = "System.Runtime.InteropServices.Marshal";
         public const string SystemRuntimeInteropServicesMarshalAsAttribute = "System.Runtime.InteropServices.MarshalAsAttribute";
         public const string SystemRuntimeInteropServicesOSPlatform = "System.Runtime.InteropServices.OSPlatform";
