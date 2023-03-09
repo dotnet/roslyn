@@ -83,8 +83,8 @@ internal sealed class LanguageServerProjectSystem
         {
             if (File.Exists(analyzerPath))
             {
-                _logger.LogWarning($"Solution-level analyzer at {analyzerPath} added to workspace.");
                 references.Add(new AnalyzerFileReference(analyzerPath, analyzerLoader));
+                _logger.LogInformation($"Solution-level analyzer at {analyzerPath} added to workspace.");
             }
             else
             {
