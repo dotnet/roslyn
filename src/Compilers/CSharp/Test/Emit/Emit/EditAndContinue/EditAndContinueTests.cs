@@ -1744,6 +1744,106 @@ class C
                 "C: {<>c}");
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/67243")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67243")]
+        public void SynthesizedDelegate_MethodGroup()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugExe)
+                .AddGeneration(
+                    source: @"
+using System;
+
+Console.WriteLine(1);
+var <N:0>y = C.G</N:0>;
+Console.WriteLine(2);
+
+class C
+{
+   public static void G(bool a = true) { }
+}
+",
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "<>f__AnonymousDelegate0`1", "Program", "C", "<>O");
+
+                        g.VerifyMethodBody("<top-level-statements-entry-point>", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  .locals init (<>f__AnonymousDelegate0<bool> V_0) //y
+  // sequence point: Console.WriteLine(1);
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.WriteLine(int)""
+  IL_0006:  nop
+  // sequence point: var      y = C.G      ;
+  IL_0007:  ldsfld     ""<anonymous delegate> Program.<>O.<0>__G""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0022
+  IL_000f:  pop
+  IL_0010:  ldnull
+  IL_0011:  ldftn      ""void C.G(bool)""
+  IL_0017:  newobj     ""<>f__AnonymousDelegate0<bool>..ctor(object, System.IntPtr)""
+  IL_001c:  dup
+  IL_001d:  stsfld     ""<anonymous delegate> Program.<>O.<0>__G""
+  IL_0022:  stloc.0
+  // sequence point: Console.WriteLine(2);
+  IL_0023:  ldc.i4.2
+  IL_0024:  call       ""void System.Console.WriteLine(int)""
+  IL_0029:  nop
+  IL_002a:  ret
+}
+");
+                    })
+                .AddGeneration(
+                    source: @"
+using System;
+
+Console.WriteLine(1);
+var <N:0>y = C.G</N:0>;
+Console.WriteLine(3);
+
+class C
+{
+   public static void G(bool a = true) { }
+}
+",
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<>O#1");
+
+                        g.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  .locals init ([unchanged] V_0,
+                <>f__AnonymousDelegate0<bool> V_1) //y
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.WriteLine(int)""
+  IL_0006:  nop
+  IL_0007:  ldsfld     ""<anonymous delegate> Program.<>O#1.<0>__G""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0022
+  IL_000f:  pop
+  IL_0010:  ldnull
+  IL_0011:  ldftn      ""void C.G(bool)""
+  IL_0017:  newobj     ""<>f__AnonymousDelegate0<bool>..ctor(object, System.IntPtr)""
+  IL_001c:  dup
+  IL_001d:  stsfld     ""<anonymous delegate> Program.<>O#1.<0>__G""
+  IL_0022:  stloc.1
+  IL_0023:  ldc.i4.3
+  IL_0024:  call       ""void System.Console.WriteLine(int)""
+  IL_0029:  nop
+  IL_002a:  ret
+}
+");
+                    })
+                .Verify();
+        }
+
         [WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")]
         [Fact]
         public void PartialMethod()
