@@ -344,7 +344,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 foreach (var item in oldItems)
                 {
                     // EdgeInclusive so that if we type on the end of an existing item it maps forward to the new full span.
-                    var mapped = item.Data.RangeSpan.TranslateTo(newSnapshot, SpanTrackingMode.EdgeInclusive);
+                    var mapped = item.Data.SelectionRangeSpan.TranslateTo(newSnapshot, SpanTrackingMode.EdgeInclusive);
                     expansionState[mapped.Span] = item.IsExpanded;
 
                     AddPreviousExpansionState(newSnapshot, item.Children, expansionState);
@@ -357,7 +357,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 foreach (var item in newItems)
                 {
-                    if (expansionState.TryGetValue(item.Data.RangeSpan.Span, out var isExpanded))
+                    if (expansionState.TryGetValue(item.Data.SelectionRangeSpan.Span, out var isExpanded))
                         item.IsExpanded = isExpanded;
 
                     ApplyExpansionState(expansionState, item.Children);
