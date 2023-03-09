@@ -12,6 +12,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
+    /// <summary>
+    /// This type is not thread safe due to the restriction of underlying PatternMatcher. 
+    /// Must be disposed after use.
+    /// </summary>
     internal sealed class PatternMatchHelper : IDisposable
     {
         private readonly object _gate = new();

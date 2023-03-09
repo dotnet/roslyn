@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -49,6 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             private readonly CompletionHelper _completionHelper;
             private readonly bool _highlightMatchingPortions;
             private readonly bool _showCompletionItemFilters;
+
+            // Used for  building MatchResult list in parallel
+            private readonly object _gate = new();
 
             private readonly Action<IReadOnlyList<MatchResult>, string, IList<MatchResult>> _filterMethod;
 
@@ -128,22 +132,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // since the completion list could be long with import completion enabled.
                 var itemsToBeIncluded = s_listOfMatchResultPool.Allocate();
                 var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                var threadLocalPatternMatchHelper = new ThreadLocal<PatternMatchHelper>(() => new PatternMatchHelper(_filterText), trackAllValues: true);
 
                 try
                 {
-                    using var patternMatchHelper = new PatternMatchHelper(_filterText);
-
                     // Determine the list of items to be included in the completion list.
                     // This is computed based on the filter text as well as the current
                     // selection of filters and expander.
-                    AddCompletionItems(itemsToBeIncluded, patternMatchHelper, cancellationToken);
+                    AddCompletionItems(itemsToBeIncluded, threadLocalPatternMatchHelper, cancellationToken);
 
                     // Decide if we want to dismiss an empty completion list based on CompletionRules and filter usage.
                     if (itemsToBeIncluded.Count == 0)
                         return HandleAllItemsFilteredOut();
 
+                    // Sort items based on pattern matching result
+                    itemsToBeIncluded.Sort(MatchResult.SortingComparer);
+
                     var highlightAndFilterTask = Task.Run(
-                        () => GetHighlightedListAndUpdatedFilters(session, itemsToBeIncluded, patternMatchHelper, cancellationTokenSource.Token),
+                        () => GetHighlightedListAndUpdatedFilters(session, itemsToBeIncluded, threadLocalPatternMatchHelper, cancellationTokenSource.Token),
                         cancellationTokenSource.Token);
 
                     // Decide the item to be selected for this completion session.
@@ -180,12 +186,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // Don't call ClearAndFree, which resets the capacity to a default value.
                     itemsToBeIncluded.Clear();
                     s_listOfMatchResultPool.Free(itemsToBeIncluded);
+
+                    // Dispose PatternMatchers
+                    foreach (var helper in threadLocalPatternMatchHelper.Values)
+                        helper.Dispose();
+
+                    threadLocalPatternMatchHelper.Dispose();
                 }
 
                 (CompletionList<CompletionItemWithHighlight>, ImmutableArray<CompletionFilterWithState>) GetHighlightedListAndUpdatedFilters(
-                    IAsyncCompletionSession session, IReadOnlyList<MatchResult> itemsToBeIncluded, PatternMatchHelper patternMatchers, CancellationToken cancellationToken)
+                    IAsyncCompletionSession session, IReadOnlyList<MatchResult> itemsToBeIncluded, ThreadLocal<PatternMatchHelper> patternMatcherHelper, CancellationToken cancellationToken)
                 {
-                    var highLightedList = GetHighlightedList(session, patternMatchers, itemsToBeIncluded, cancellationToken);
+                    var highLightedList = GetHighlightedList(session, patternMatcherHelper.Value!, itemsToBeIncluded, cancellationToken);
                     var updatedFilters = GetUpdatedFilters(itemsToBeIncluded, cancellationToken);
                     return (highLightedList, updatedFilters);
                 }
@@ -230,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            private void AddCompletionItems(List<MatchResult> list, PatternMatchHelper patternMatchers, CancellationToken cancellationToken)
+            private void AddCompletionItems(List<MatchResult> list, ThreadLocal<PatternMatchHelper> threadLocalPatternMatchHelper, CancellationToken cancellationToken)
             {
                 // Convert initial and update trigger reasons to corresponding Roslyn type so 
                 // we can interact with Roslyn's completion system
@@ -240,16 +252,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // FilterStateHelper is used to decide whether a given item should be included in the list based on the state of filter/expander buttons.
                 var filterHelper = new FilterStateHelper(_snapshotData.SelectedFilters);
 
-                using var _1 = PooledHashSet<string>.GetInstance(out var includedPreferredItems);
-                using var _2 = ArrayBuilder<MatchResult>.GetInstance(out var includedDefaults);
-                var unmatchedDefaults = _snapshotData.Defaults;
+                var includedPreferredItems = new ConcurrentSet<string>();
+                var includedDefaults = new ConcurrentDictionary<string, MatchResult>();
 
-                // Filter items based on the selected filters and matching.
-                var totalCount = _snapshotData.InitialSortedItemList.Count;
-                for (var currentIndex = 0; currentIndex < totalCount; currentIndex++)
+                Enumerable.Range(0, _snapshotData.InitialSortedItemList.Count)
+                    .AsParallel()
+                    .WithCancellation(cancellationToken)
+                    .ForAll(CreateMatchResultAndProcessMatchingDefaults);
+
+                PromoteDefaultItemsToPreferredState();
+
+                void CreateMatchResultAndProcessMatchingDefaults(int index)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var item = _snapshotData.InitialSortedItemList[currentIndex];
+                    var item = _snapshotData.InitialSortedItemList[index];
 
                     // All items passed in should contain a CompletionItemData object in the property bag,
                     // which is guaranteed in `ItemManager.SortCompletionListAsync`.
@@ -257,15 +272,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         throw ExceptionUtilities.Unreachable();
 
                     if (filterHelper.ShouldBeFilteredOut(item))
-                        continue;
+                        return;
 
                     // currentIndex is used to track the index of the VS CompletionItem in the initial sorted list to maintain a map from Roslyn item to VS item.
                     // It's also used to sort the items by pattern matching results while preserving the original alphabetical order for items with
                     // same pattern match score since `List<T>.Sort` isn't stable.
-                    if (patternMatchers.TryCreateMatchResult(itemData.RoslynItem, roslynInitialTriggerKind, roslynFilterReason,
-                        _recentItemsManager.GetRecentItemIndex(itemData.RoslynItem), _highlightMatchingPortions, currentIndex, out var matchResult))
+                    if (threadLocalPatternMatchHelper.Value!.TryCreateMatchResult(itemData.RoslynItem, roslynInitialTriggerKind, roslynFilterReason,
+                        _recentItemsManager.GetRecentItemIndex(itemData.RoslynItem), _highlightMatchingPortions, index, out var matchResult))
                     {
-                        list.Add(matchResult);
+                        lock (_gate)
+                            list.Add(matchResult);
 
                         if (!_snapshotData.Defaults.IsEmpty)
                         {
@@ -278,26 +294,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                             }
                             else
                             {
-                                var defaultIndex = unmatchedDefaults.IndexOf(matchResult.CompletionItem.FilterText);
-                                if (defaultIndex >= 0)
+                                if (_snapshotData.Defaults.IndexOf(matchResult.CompletionItem.FilterText) >= 0)
                                 {
-                                    unmatchedDefaults = unmatchedDefaults.RemoveAt(defaultIndex);
-                                    includedDefaults.Add(matchResult);
+                                    includedDefaults.TryAdd(matchResult.CompletionItem.FilterText, matchResult);
                                 }
                             }
                         }
                     }
                 }
 
-                PromoteDefaultItemsToPreferredState();
-                list.Sort(MatchResult.SortingComparer);
-
                 // Go through items matched with defaults. If it doesn't have
                 // a corresponding preferred items, we will add one that mimic
                 // the "starred" item from Pythia.
                 void PromoteDefaultItemsToPreferredState()
                 {
-                    foreach (var includedDefault in includedDefaults)
+                    foreach (var includedDefault in includedDefaults.Values)
                     {
                         var completionItem = includedDefault.CompletionItem;
 
