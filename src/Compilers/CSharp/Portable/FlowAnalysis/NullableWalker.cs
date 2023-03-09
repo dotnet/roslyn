@@ -8929,7 +8929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLambda(BoundLambda node)
         {
             // Lambda bodies are usually visited in VisitConversion (we need to know the target delegate type),
-            // but in errorneous code, the lambda-to-delegate conversion might be missing, then we visit the lambda here.
+            // but in erroneous code, the lambda-to-delegate conversion might be missing, then we visit the lambda here.
             if (!node.InAnonymousFunctionConversion)
             {
                 VisitLambda(node, delegateTypeOpt: null);
