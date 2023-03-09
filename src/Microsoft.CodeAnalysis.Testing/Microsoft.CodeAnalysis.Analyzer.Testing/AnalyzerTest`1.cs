@@ -1114,7 +1114,18 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 var (compilation, generatorDiagnostics) = await GetProjectCompilationAsync(project, verifier, cancellationToken).ConfigureAwait(false);
                 var compilationWithAnalyzers = CreateCompilationWithAnalyzers(compilation, analyzers, GetAnalyzerOptions(project), cancellationToken);
-                var allDiagnostics = await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
+
+                ImmutableArray<Diagnostic> allDiagnostics;
+                if (AnalysisResultWrapper.WrappedType is not null)
+                {
+                    var compilationDiagnostics = compilation.GetDiagnostics(cancellationToken);
+                    var analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
+                    allDiagnostics = compilationDiagnostics.AddRange(analysisResult.GetAllDiagnostics());
+                }
+                else
+                {
+                    allDiagnostics = await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
+                }
 
                 diagnostics.AddRange(generatorDiagnostics.Select(diagnostic => (project, diagnostic)));
                 diagnostics.AddRange(allDiagnostics.Where(diagnostic => !IsCompilerDiagnostic(diagnostic) || IsCompilerDiagnosticIncluded(diagnostic, compilerDiagnostics)).Select(diagnostic => (project, diagnostic)));
