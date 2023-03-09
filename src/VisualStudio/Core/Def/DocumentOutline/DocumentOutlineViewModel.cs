@@ -294,8 +294,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (response is null)
                 return;
 
-            var responseBody = response.Value.response.ToObject<LspDocumentSymbol[]>() ?? Array.Empty<LspDocumentSymbol>();
-            var model = CreateDocumentSymbolDataModel(responseBody, response.Value.snapshot);
+            var textSnapshot = response.Value.snapshot;
+            var rawData = CreateDocumentSymbolData(response.Value.response, textSnapshot);
+
+            // Now, go back to the UI and grab the prior view state we set, and the current UI values we want to update the data with.
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Now that we produced a new model, kick off the work to present it to the UI.
             _updateViewModelStateQueue.AddWork(item: null);

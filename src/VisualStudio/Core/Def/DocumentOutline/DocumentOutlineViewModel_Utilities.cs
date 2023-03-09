@@ -97,8 +97,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         ///         ]
         ///     }
         /// ]
-        public static ImmutableArray<DocumentSymbolData> CreateDocumentSymbolData(LspDocumentSymbol[] documentSymbols, ITextSnapshot textSnapshot)
+        public static ImmutableArray<DocumentSymbolData> CreateDocumentSymbolData(JToken token, ITextSnapshot textSnapshot)
         {
+            var documentSymbols = token.ToObject<LspDocumentSymbol[]>() ?? Array.Empty<LspDocumentSymbol>();
+
             // Obtain a flat list of all the document symbols sorted by location in the document.
             var allSymbols = documentSymbols
                 .SelectMany(x => x.Children)
