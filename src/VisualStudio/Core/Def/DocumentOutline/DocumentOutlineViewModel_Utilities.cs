@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
                 // Return the nested parent symbol.
                 return new DocumentSymbolData(
-                    currentParent.Name,
+                    currentParent.Detail ?? currentParent.Name,
                     currentParent.Kind,
                     GetSymbolRangeSpan(currentParent.Range),
                     GetSymbolRangeSpan(currentParent.SelectionRange),
