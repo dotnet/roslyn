@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal sealed class DynamicFileInfo
     {
-        public DynamicFileInfo(string filePath, SourceCodeKind sourceCodeKind, TextLoader textLoader, bool designTimeOnly, IDocumentServiceProvider documentServiceProvider)
+        public DynamicFileInfo(string filePath, SourceCodeKind sourceCodeKind, TextLoader textLoader, bool designTimeOnly, IDocumentServiceProvider? documentServiceProvider)
         {
             FilePath = filePath;
             SourceCodeKind = sourceCodeKind;
@@ -45,6 +45,6 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// return <see cref="IDocumentServiceProvider"/> for the content it provided
         /// </summary>
-        public IDocumentServiceProvider DocumentServiceProvider { get; }
+        public IDocumentServiceProvider? DocumentServiceProvider { get; }
     }
 }

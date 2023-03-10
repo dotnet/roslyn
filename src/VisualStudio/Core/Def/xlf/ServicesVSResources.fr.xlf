@@ -777,11 +777,6 @@
         <target state="translated">Déclarations d'espaces de noms</target>
         <note />
       </trans-unit>
-      <trans-unit id="Namespaces_have_been_updated">
-        <source>Namespaces have been updated.</source>
-        <target state="translated">Les espaces de noms ont été mis à jour.</target>
-        <note>"Namespaces" is the programming language concept</note>
-      </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
         <target state="new">class</target>
@@ -1496,6 +1491,11 @@
         <source>Sync Namespaces</source>
         <target state="translated">Synchroniser les espaces de noms</target>
         <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Sync_namespaces_changes">
+        <source>Sync namespaces changes</source>
+        <target state="new">Sync namespaces changes</target>
+        <note />
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>

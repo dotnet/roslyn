@@ -29,7 +29,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/67244")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void AlignOpenBraceWithMethodDeclaration()
         {
             using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
@@ -276,7 +277,7 @@ class Program
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.EditorConfig)]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        [WorkItem(15003, "https://github.com/dotnet/roslyn/issues/15003")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15003")]
         public void ApplyEditorConfigAndFormatDocument()
         {
             var markup = @"

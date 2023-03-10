@@ -127,7 +127,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")]
         public async Task TestExtensionWithThePresenceOfTheSameNameNonExtensionMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -189,8 +189,8 @@ namespace NS2
 }");
         }
 
-        [Fact, WorkItem(920398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")]
-        [WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")]
         public async Task TestExtensionWithThePresenceOfTheSameNameNonExtensionPrivateMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -252,8 +252,8 @@ namespace NS2
 }");
         }
 
-        [Fact, WorkItem(920398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")]
-        [WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")]
         public async Task TestExtensionWithThePresenceOfTheSameNameExtensionPrivateMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -332,7 +332,7 @@ namespace NS3
 }");
         }
 
-        [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtensionMethod()
         {
             await TestAsync(
@@ -382,7 +382,7 @@ namespace Ext
 parseOptions: null);
         }
 
-        [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtensionMethod2()
         {
             await TestAsync(
@@ -432,7 +432,7 @@ namespace Ext
 parseOptions: null);
         }
 
-        [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtensionMethod3()
         {
             await TestAsync(
@@ -482,7 +482,7 @@ namespace Ext
 parseOptions: null);
         }
 
-        [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtensionMethod4()
         {
             await TestAsync(
@@ -532,7 +532,7 @@ namespace Ext
 parseOptions: null);
         }
 
-        [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtensionMethod5()
         {
             await TestAsync(
@@ -582,7 +582,7 @@ namespace Ext
 parseOptions: null);
         }
 
-        [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtensionMethod6()
         {
             await TestAsync(
@@ -632,7 +632,7 @@ namespace Ext
 parseOptions: null);
         }
 
-        [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtensionMethod7()
         {
             await TestAsync(
@@ -682,7 +682,7 @@ namespace Ext
 parseOptions: null);
         }
 
-        [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtensionMethod8()
         {
             await TestAsync(
@@ -732,7 +732,7 @@ namespace Ext
 parseOptions: null);
         }
 
-        [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtensionMethod9()
         {
             await TestAsync(
@@ -782,7 +782,7 @@ namespace Ext
 parseOptions: null);
         }
 
-        [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtensionMethod10()
         {
             await TestAsync(
@@ -852,7 +852,7 @@ namespace Ext2
 parseOptions: null);
         }
 
-        [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtensionMethod11()
         {
             await TestAsync(
@@ -923,7 +923,7 @@ index: 1,
 parseOptions: null);
         }
 
-        [Fact, WorkItem(3818, "https://github.com/dotnet/roslyn/issues/3818")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3818")]
         public async Task InExtensionMethodUnderConditionalAccessExpression()
         {
             var initialText =
@@ -976,7 +976,7 @@ namespace Sample
             await TestInRegularAndScriptAsync(initialText, expectedText);
         }
 
-        [Fact, WorkItem(3818, "https://github.com/dotnet/roslyn/issues/3818")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3818")]
         public async Task InExtensionMethodUnderMultipleConditionalAccessExpressions()
         {
             var initialText =
@@ -1021,7 +1021,7 @@ public class C
             await TestInRegularAndScriptAsync(initialText, expectedText);
         }
 
-        [Fact, WorkItem(3818, "https://github.com/dotnet/roslyn/issues/3818")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3818")]
         public async Task InExtensionMethodUnderMultipleConditionalAccessExpressions2()
         {
             var initialText =
@@ -1109,7 +1109,7 @@ parseOptions: null);
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(16547, "https://github.com/dotnet/roslyn/issues/16547")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16547")]
         public async Task TestAddUsingForAddExtensionMethodWithSameNameAsProperty(TestHost testHost)
         {
             await TestAsync(
@@ -1173,7 +1173,7 @@ namespace A.Extensions
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39155")]
         public async Task TestExtensionGetAwaiterOverload(TestHost testHost)
         {
             await TestAsync(
@@ -1264,7 +1264,7 @@ namespace A.Extension
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39155")]
         public async Task TestExtensionSelectOverload(TestHost testHost)
         {
             await TestAsync(
@@ -1391,7 +1391,7 @@ namespace A.Extension
 parseOptions: null);
         }
 
-        [Fact, WorkItem(55117, "https://github.com/dotnet/roslyn/issues/55117")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55117")]
         public async Task TestMethodConflictWithGenericExtension()
         {
             await TestInRegularAndScriptAsync(
@@ -1449,7 +1449,7 @@ namespace A.Extensions
 }");
         }
 
-        [Fact, WorkItem(55117, "https://github.com/dotnet/roslyn/issues/55117")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55117")]
         public async Task TestMethodConflictWithConditionalGenericExtension()
         {
             await TestInRegularAndScriptAsync(
