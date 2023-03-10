@@ -64,8 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private SortOption _sortOption_doNotAccessDirectly = SortOption.Location;
         private string _searchText_doNotAccessDirectly = "";
         private ImmutableArray<DocumentSymbolDataViewModel> _documentSymbolViewModelItems_doNotAccessDirectly = ImmutableArray<DocumentSymbolDataViewModel>.Empty;
-
-        private DocumentOutlineViewState _lastViewState_onlyAccessOnMainThread;
+        private DocumentOutlineViewState _lastPresentedViewState_doNotAccessDirectly;
 
         /// <summary>
         /// Use to prevent reeentrancy on navigation/selection.
@@ -88,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             var currentSnapshot = textBuffer.CurrentSnapshot;
 
-            _lastViewState_onlyAccessOnMainThread = CreateEmptyViewState(currentSnapshot);
+            _lastPresentedViewState_doNotAccessDirectly = CreateEmptyViewState(currentSnapshot);
 
             _workQueue = new AsyncBatchingWorkQueue(
                 DelayTimeSpan.Medium,
@@ -196,6 +195,21 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
+        private DocumentOutlineViewState LastPresentedViewState
+        {
+            get
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                return _lastPresentedViewState_doNotAccessDirectly;
+            }
+
+            set
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                _lastPresentedViewState_doNotAccessDirectly = value;
+            }
+        }
+
         private void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
@@ -236,14 +250,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var searchText = this.SearchText;
-            var lastViewState = _lastViewState_onlyAccessOnMainThread;
+            var lastPresentedViewState = this.LastPresentedViewState;
 
             // Jump back to the BG to do all our work.
             await TaskScheduler.Default;
             cancellationToken.ThrowIfCancellationRequested();
 
-            var searchTextChanged = searchText != lastViewState.SearchText;
-            var oldViewModelItems = lastViewState.ViewModelItems;
+            var searchTextChanged = searchText != lastPresentedViewState.SearchText;
+            var oldViewModelItems = lastPresentedViewState.ViewModelItems;
 
             // if we got new data or the user changed the search text, recompute our items to correspond to this new state.
             // Apply whatever the current search text is to what the model returned, and produce the new items.
@@ -257,7 +271,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (!searchTextChanged)
             {
                 ApplyExpansionStateToNewItems(
-                    oldSnapshot: lastViewState.TextSnapshot,
+                    oldSnapshot: lastPresentedViewState.TextSnapshot,
                     newSnapshot: newTextSnapshot,
                     oldItems: oldViewModelItems,
                     newItems: newViewModelItems);
@@ -276,7 +290,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            _lastViewState_onlyAccessOnMainThread = newViewState;
+            this.LastPresentedViewState = newViewState;
             this.DocumentSymbolViewModelItems = newViewModelItems;
 
             // Now that we've updated our state, enqueue the work to expand/select the right item.
@@ -293,12 +307,18 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 }
             }
 
-            static void ApplyExpansionStateToNewItems(
+            static void ApplyOldStateToNewItems(
                 ITextSnapshot oldSnapshot,
                 ITextSnapshot newSnapshot,
                 ImmutableArray<DocumentSymbolDataViewModel> oldItems,
                 ImmutableArray<DocumentSymbolDataViewModel> newItems)
             {
+                // Walk through the old items, mapping their spans forward and keeping track if they were expanded or
+                // collapsed.  Then walk through the new items and see if they have the same span as a prior item.  If
+                // so, preserve the expansion state.
+                using var _ = PooledDictionary<Span, bool>.GetInstance(out var expansionState);
+                AddPreviousExpansionState(newSnapshot, oldItems, expansionState);
+
                 // If we had any items from before, and they were all collapsed, the collapse all the new items.
                 if (oldItems.Length > 0 && oldItems.All(static i => !i.IsExpanded))
                 {
@@ -307,16 +327,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     // everything else currently is so things aren't "jumpy"
                     foreach (var item in newItems)
                         item.IsExpanded = false;
-
-                    return;
                 }
-
-                // Walk through the old items, mapping their spans forward and keeping track if they were expanded or
-                // collapsed.  Then walk through the new items and see if they have the same span as a prior item.  If
-                // so, preserve the expansion state.
-                using var _ = PooledDictionary<Span, bool>.GetInstance(out var expansionState);
-                AddPreviousExpansionState(newSnapshot, oldItems, expansionState);
-                ApplyExpansionState(expansionState, newItems);
+                else
+                {
+                    ApplyExpansionState(expansionState, newItems);
+                }
             }
 
             static void AddPreviousExpansionState(
@@ -381,7 +396,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 return;
 
             var caretPosition = _textView.Caret.Position.BufferPosition.Position;
-            var modelTree = _lastViewState_onlyAccessOnMainThread.ViewModelItemsTree;
+            var modelTree = this.LastPresentedViewState.ViewModelItemsTree;
 
             this.IsNavigating = true;
             try
