@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -138,10 +139,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private string _searchText_doNotAccessDirectly = "";
         private ImmutableArray<DocumentSymbolDataViewModel> _documentSymbolViewModelItems_doNotAccessDirectly = ImmutableArray<DocumentSymbolDataViewModel>.Empty;
 
-        /// <summary>
-        /// Mutable state.  only accessed from UpdateViewModelStateAsync though.  Since that executes serially, it does not need locking.
-        /// </summary>
         private DocumentOutlineViewState _lastViewState_onlyAccessFromUIThread;
+
+        /// <summary>
+        /// Use to prevent reeentrancy on navigation/selection.
+        /// </summary>
+        private bool _isNavigating_doNotAccessDirectly;
 
         public DocumentOutlineViewModel(
             ILanguageServiceBroker2 languageServiceBroker,
@@ -199,6 +202,22 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _taggerEventSource.Disconnect();
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource.Dispose();
+        }
+
+        public bool IsNavigating
+        {
+            get
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                return _isNavigating_doNotAccessDirectly;
+            }
+
+            set
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                Debug.Assert(_isNavigating_doNotAccessDirectly != value);
+                _isNavigating_doNotAccessDirectly = value;
+            }
         }
 
         public SortOption SortOption
@@ -342,11 +361,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     newItems: newViewModelItems);
             }
 
+            // Now create an interval tree out of the view models.  This will allow us to easily find the intersecting
+            // view models given any position in the file with any particular text snapshot.
+            var intervalTree = SimpleIntervalTree.Create(new IntervalIntrospector(newTextSnapshot), Array.Empty<DocumentSymbolDataViewModel>());
+            AddToTree(newViewModelItems);
+
             var newViewState = new DocumentOutlineViewState(
                 newTextSnapshot,
                 searchText,
                 newViewModelItems,
-                IntervalTree.Create(new IntervalIntrospector(newTextSnapshot), newViewModelItems));
+                intervalTree);
 
             // Now, go back to the UI and set this as our current state.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -359,6 +383,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             ExpandAndSelectItemAtCaretPosition(_textView.Caret.Position);
 
             return;
+
+            void AddToTree(ImmutableArray<DocumentSymbolDataViewModel> viewModels)
+            {
+                foreach (var model in viewModels)
+                {
+                    intervalTree.AddIntervalInPlace(model);
+                    AddToTree(model.Children);
+                }
+            }
 
             static void ApplyExpansionStateToNewItems(
                 ITextSnapshot oldSnapshot,
@@ -418,22 +451,34 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         public void ExpandAndSelectItemAtCaretPosition(CaretPosition position)
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            var models = _lastViewState_onlyAccessFromUIThread.ViewModelItemsTree.GetIntervalsThatIntersectWith(
-                position.BufferPosition.Position, 0, new IntervalIntrospector(_textBuffer.CurrentSnapshot));
 
-            if (models.Length == 0)
+            if (this.IsNavigating)
                 return;
 
-            // Order from smallest to largest.  The smallest is the innermost and should be the one we actually select.
-            // The others are the parents and we should expand those so the innermost one is visible.
-            models = models.Sort(static (m1, m2) =>
+            this.IsNavigating = true;
+            try
             {
-                return m1.Data.RangeSpan.Span.Length - m2.Data.RangeSpan.Span.Length;
-            });
+                var models = _lastViewState_onlyAccessFromUIThread.ViewModelItemsTree.GetIntervalsThatIntersectWith(
+                    position.BufferPosition.Position, 0, new IntervalIntrospector(_textBuffer.CurrentSnapshot));
 
-            models[0].IsSelected = true;
-            for (var i = 1; i < models.Length; i++)
-                models[i].IsExpanded = true;
+                if (models.Length == 0)
+                    return;
+
+                // Order from smallest to largest.  The smallest is the innermost and should be the one we actually select.
+                // The others are the parents and we should expand those so the innermost one is visible.
+                models = models.Sort(static (m1, m2) =>
+                {
+                    return m1.Data.RangeSpan.Span.Length - m2.Data.RangeSpan.Span.Length;
+                });
+
+                models[0].IsSelected = true;
+                for (var i = 1; i < models.Length; i++)
+                    models[i].IsExpanded = true;
+            }
+            finally
+            {
+                this.IsNavigating = false;
+            }
         }
 
         //private DocumentOutlineViewState ComputeNewViewModelState(
