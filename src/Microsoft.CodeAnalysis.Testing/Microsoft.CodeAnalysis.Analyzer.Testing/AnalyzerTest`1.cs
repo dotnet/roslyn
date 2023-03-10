@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Testing.Extensions;
+using Microsoft.CodeAnalysis.Testing.Lightup;
 using Microsoft.CodeAnalysis.Testing.Model;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
@@ -595,7 +596,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     message = FormatVerifierMessage(analyzers, actual.diagnostic, expected, $"Expected diagnostic message arguments to match");
                     verifier.SequenceEqual(
                         expected.MessageArguments.Select(argument => argument?.ToString() ?? string.Empty),
-                        GetArguments(actual.diagnostic).Select(argument => argument?.ToString() ?? string.Empty),
+                        actual.diagnostic.Arguments().Select(argument => argument?.ToString() ?? string.Empty),
                         StringComparer.Ordinal,
                         message);
                 }
@@ -751,7 +752,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     if (expected.MessageArguments?.Length > 0)
                     {
-                        var actualArguments = GetArguments(actual).Select(ToStringOrEmpty);
+                        var actualArguments = actual.Arguments().Select(ToStringOrEmpty);
                         var expectedArguments = expected.MessageArguments.Select(ToStringOrEmpty);
                         return actualArguments.SequenceEqual(expectedArguments);
                     }
@@ -866,7 +867,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     }
                 }
 
-                var arguments = GetArguments(diagnostics[i]);
+                var arguments = diagnostics[i].Arguments();
                 if (arguments.Count > 0)
                 {
                     builder.Append($".{nameof(DiagnosticResult.WithArguments)}(");
@@ -1219,7 +1220,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var analyzerOptions = project.AnalyzerOptions;
             var additionalFiles = analyzerOptions.AdditionalFiles;
-            var analyzerConfigOptionsProvider = typeof(AnalyzerOptions).GetTypeInfo().DeclaredProperties.SingleOrDefault(property => property.Name == "AnalyzerConfigOptionsProvider")?.GetValue(analyzerOptions);
+            var analyzerConfigOptionsProvider = analyzerOptions.AnalyzerConfigOptionsProvider();
             verifier.True(analyzerConfigOptionsProvider is not null, "Failed to locate AnalyzerConfigOptionsProvider for project");
 
             var driver = createMethod.Invoke(null, new[] { convertedSourceGenerators, additionalFiles, project.ParseOptions, analyzerConfigOptionsProvider });
@@ -1614,13 +1615,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 .ThenBy(d => d.diagnostic.Location.SourceSpan.Start)
                 .ThenBy(d => d.diagnostic.Location.SourceSpan.End)
                 .ThenBy(d => d.diagnostic.Id)
-                .ThenBy(d => GetArguments(d.diagnostic), LexicographicComparer.Instance).ToImmutableArray();
-        }
-
-        private static IReadOnlyList<object?> GetArguments(Diagnostic diagnostic)
-        {
-            return (IReadOnlyList<object?>?)diagnostic.GetType().GetProperty("Arguments", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(diagnostic)
-                ?? new object[0];
+                .ThenBy(d => d.diagnostic.Arguments(), LexicographicComparer.Instance).ToImmutableArray();
         }
 
         /// <summary>
@@ -1742,6 +1737,20 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private sealed class LightupGeneratorDriverRunResult
         {
+            private static readonly Type? s_generatorDriverRunResultType = typeof(Compilation).GetTypeInfo().Assembly.GetType("Microsoft.CodeAnalysis.GeneratorDriverRunResult");
+
+            private static readonly Func<object, ImmutableArray<SyntaxTree>> s_generatedTrees =
+                LightupHelpers.CreatePropertyAccessor<object, ImmutableArray<SyntaxTree>>(
+                    s_generatorDriverRunResultType,
+                    nameof(GeneratedTrees),
+                    defaultValue: ImmutableArray<SyntaxTree>.Empty);
+
+            private static readonly Func<object, ImmutableArray<Diagnostic>> s_diagnostics =
+                LightupHelpers.CreatePropertyAccessor<object, ImmutableArray<Diagnostic>>(
+                    s_generatorDriverRunResultType,
+                    nameof(Diagnostics),
+                    defaultValue: ImmutableArray<Diagnostic>.Empty);
+
             private readonly object _instance;
 
             public LightupGeneratorDriverRunResult(object instance)
@@ -1749,21 +1758,9 @@ namespace Microsoft.CodeAnalysis.Testing
                 _instance = instance;
             }
 
-            public ImmutableArray<SyntaxTree> GeneratedTrees
-            {
-                get
-                {
-                    return (ImmutableArray<SyntaxTree>)_instance.GetType().GetTypeInfo().GetProperties().SingleOrDefault(property => property.Name == nameof(GeneratedTrees)).GetValue(_instance)!;
-                }
-            }
+            public ImmutableArray<SyntaxTree> GeneratedTrees => s_generatedTrees(_instance);
 
-            public ImmutableArray<Diagnostic> Diagnostics
-            {
-                get
-                {
-                    return (ImmutableArray<Diagnostic>)_instance.GetType().GetTypeInfo().GetProperties().SingleOrDefault(property => property.Name == nameof(Diagnostics)).GetValue(_instance)!;
-                }
-            }
+            public ImmutableArray<Diagnostic> Diagnostics => s_diagnostics(_instance);
         }
     }
 }
