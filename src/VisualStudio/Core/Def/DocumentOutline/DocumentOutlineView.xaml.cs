@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var collectionView = ((CollectionViewSource)FindResource("DocumentSymbolItems")).View;
 
             // Defer changes until all the properties have been set
-            using (var _1 = collectionView.DeferRefresh())
+            using (var _ = collectionView.DeferRefresh())
             {
                 // Update top-level sorting options for our tree view
                 collectionView.SortDescriptions.UpdateSortDescription(sortOption);
