@@ -137,7 +137,7 @@
                   Name="SymbolTree"
                   VirtualizingStackPanel.IsVirtualizing="True"
                   VirtualizingStackPanel.VirtualizationMode="Recycling"
-                  TreeViewItem.Selected="SymbolTree_Selected"
+                  TreeViewItem.SourceUpdated="SymbolTreeItem_SourceUpdated"
                   ItemsSource="{Binding Source={StaticResource DocumentSymbolItems}}"> <!-- Binding to our CollectionViewSource -->
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolDataViewModel}">
@@ -165,7 +165,7 @@
             <TreeView.ItemContainerStyle>
                 <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewItemStyleKey}}">
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay, NotifyOnTargetUpdated=True, NotifyOnSourceUpdated=False}" />
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=False}" />
                     <Setter Property="Padding" Value="4, 0, 6, 1" />
                     <Setter Property="Margin" Value="0, 0, 0, 1" />
                 </Style>

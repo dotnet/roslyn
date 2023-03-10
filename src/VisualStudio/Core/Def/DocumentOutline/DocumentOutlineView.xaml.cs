@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// When a symbol node in the window is selected via the keyboard, move the caret to its position in the latest active text view.
         /// </summary>
-        private void SymbolTree_Selected(object sender, RoutedEventArgs e)
+        private void SymbolTreeItem_SourceUpdated(object sender, DataTransferEventArgs e)
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
