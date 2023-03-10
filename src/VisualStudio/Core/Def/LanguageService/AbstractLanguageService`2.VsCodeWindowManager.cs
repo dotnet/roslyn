@@ -278,13 +278,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var subjectBuffer = wpfTextView.TextBuffer;
 
                 var eventSource = TaggerEventSources.Compose(
-                    // Any time an edit happens, recompute as the document symbols may have changed.
                     TaggerEventSources.OnTextChanged(subjectBuffer),
-                    // If the compilation options change we need to re-compute the document symbols
                     TaggerEventSources.OnParseOptionChanged(subjectBuffer),
-                    // Many workspace changes may need us to change the document symbols (like options changing, or project renaming).
                     TaggerEventSources.OnWorkspaceChanged(subjectBuffer, asyncListener),
-                    // Once we hook this buffer up to the workspace, then we can start computing the document symbols.
                     TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer));
 
                 _documentOutlineView = new DocumentOutlineView(
