@@ -50,13 +50,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 });
             }
 
-            var response = (await languageServiceBroker.RequestAsync(
+            var manualResponse = await languageServiceBroker.RequestAsync(
                 textBuffer: textBuffer,
                 method: Methods.TextDocumentDocumentSymbolName,
                 capabilitiesFilter: _ => true,
                 languageServerName: WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString(),
                 parameterFactory: ParameterFunction,
-                cancellationToken: cancellationToken).ConfigureAwait(false))?.Response;
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+            var response = manualResponse?.Response;
 
             // The request snapshot or response can be null if there is no LSP server implementation for
             // the document symbol request for that language.
@@ -99,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// ]
         public static ImmutableArray<DocumentSymbolData> CreateDocumentSymbolData(JToken token, ITextSnapshot textSnapshot)
         {
-            var documentSymbols = token.ToObject<LspDocumentSymbol[]>() ?? Array.Empty<LspDocumentSymbol>();
+            var documentSymbols = token.ToObject<RoslynDocumentSymbol[]>() ?? Array.Empty<RoslynDocumentSymbol>();
 
             // Obtain a flat list of all the document symbols sorted by location in the document.
             var allSymbols = documentSymbols
@@ -119,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             // Returns the symbol in the list at index start (the parent symbol) with the following symbols in the list
             // (descendants) appropriately nested into the parent.
-            DocumentSymbolData NestDescendantSymbols(ImmutableArray<LspDocumentSymbol> allSymbols, int start, out int newStart)
+            DocumentSymbolData NestDescendantSymbols(ImmutableArray<RoslynDocumentSymbol> allSymbols, int start, out int newStart)
             {
                 var currentParent = allSymbols[start];
                 start++;
@@ -145,6 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 return new DocumentSymbolData(
                     currentParent.Detail ?? currentParent.Name,
                     currentParent.Kind,
+                    (Glyph)((RoslynDocumentSymbol)currentParent).Glyph,
                     GetSymbolRangeSpan(currentParent.Range),
                     GetSymbolRangeSpan(currentParent.SelectionRange),
                     currentSymbolChildren.ToImmutable());
@@ -174,9 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             foreach (var documentSymbol in documentSymbolData)
             {
                 var children = GetDocumentSymbolItemViewModels(sortOption, documentSymbol.Children);
-                var documentSymbolItem = new DocumentSymbolDataViewModel(
-                    documentSymbol,
-                    children);
+                var documentSymbolItem = new DocumentSymbolDataViewModel(documentSymbol, children);
                 documentSymbolItems.Add(documentSymbolItem);
             }
 

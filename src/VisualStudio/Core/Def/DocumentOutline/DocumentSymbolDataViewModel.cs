@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Text;
 
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Necessary because we cannot convert to this type dynamically in WPF.
         /// </summary>
-        public ImageMoniker ImageMoniker => Data.SymbolKind.GetImageMoniker();
+        public ImageMoniker ImageMoniker => Data.Glyph.GetImageMoniker();
 
         private bool _isExpanded = true;
         private bool _isSelected = false;

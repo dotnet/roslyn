@@ -63,7 +63,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             AssertEx.NotNull(response.Value);
 
             var model = DocumentOutlineViewModel.CreateDocumentSymbolData(response.Value.response, response.Value.snapshot);
-            var uiItems = DocumentOutlineViewModel.GetDocumentSymbolItemViewModels(model);
+            var uiItems = DocumentOutlineViewModel.GetDocumentSymbolItemViewModels(SortOption.Location, model);
             return (mocks, (model, response.Value.snapshot), uiItems);
         }
 

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
@@ -12,6 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     internal sealed record DocumentSymbolData(
         string Name,
         SymbolKind SymbolKind,
+        Glyph Glyph,
         SnapshotSpan RangeSpan,
         SnapshotSpan SelectionRangeSpan,
         ImmutableArray<DocumentSymbolData> Children);
