@@ -24,17 +24,20 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (values[0] is ImmutableArray<DocumentSymbolDataViewModel> children &&
                 values[1] is SortOption sortOption)
             {
-                return sortOption switch
-                {
-                    SortOption.Name => children.Sort(NameComparer.Instance),
-                    SortOption.Type => children.Sort(TypeComparer.Instance),
-                    SortOption.Location => children.Sort(LocationComparer.Instance),
-                    _ => throw ExceptionUtilities.UnexpectedValue(sortOption)
-                };
+                return children.Sort(GetComparer(sortOption));
             }
 
             return values[0];
         }
+
+        public static IComparer<DocumentSymbolDataViewModel> GetComparer(SortOption sortOption)
+            => sortOption switch
+            {
+                SortOption.Name => NameComparer.Instance,
+                SortOption.Type => TypeComparer.Instance,
+                SortOption.Location => LocationComparer.Instance,
+                _ => throw ExceptionUtilities.UnexpectedValue(sortOption)
+            };
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
             => throw new NotImplementedException();

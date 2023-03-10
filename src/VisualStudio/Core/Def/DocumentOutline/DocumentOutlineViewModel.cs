@@ -250,6 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var searchText = this.SearchText;
+            var sortOption = this.SortOption;
             var lastPresentedViewState = this.LastPresentedViewState;
 
             // Jump back to the BG to do all our work.
@@ -262,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // if we got new data or the user changed the search text, recompute our items to correspond to this new state.
             // Apply whatever the current search text is to what the model returned, and produce the new items.
             var newViewModelItems = GetDocumentSymbolItemViewModels(
-                SearchDocumentSymbolData(documentSymbolData, searchText, cancellationToken));
+                sortOption, SearchDocumentSymbolData(documentSymbolData, searchText, cancellationToken));
 
             // If the search text changed, just show everything in expanded form, so the user can see everything
             // that matched, without anything being hidden.
