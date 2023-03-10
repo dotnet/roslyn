@@ -109,13 +109,40 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var changes = applyChangesOperation.ChangedSolution.GetChanges(solution);
                 var projectChanges = changes.GetProjectChanges();
 
-                // Ignore any non-document changes for now.  Note though that LSP does support additional functionality
-                // (like create/rename/delete file).  Once VS updates their LSP client impl to support this, we should
-                // add that support here.
+                // Don't apply changes in the presence of any non-document changes for now.  Note though that LSP does
+                // support additional functionality (like create/rename/delete file).  Once VS updates their LSP client
+                // impl to support this, we should add that support here.
                 //
                 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceEdit
                 //
                 // Tracked with: https://github.com/dotnet/roslyn/issues/65303
+                foreach (var projectChange in projectChanges)
+                {
+                    if (projectChange.GetAddedProjectReferences().Any()
+                        || projectChange.GetRemovedProjectReferences().Any()
+                        || projectChange.GetAddedMetadataReferences().Any()
+                        || projectChange.GetRemovedMetadataReferences().Any()
+                        || projectChange.GetAddedAnalyzerReferences().Any()
+                        || projectChange.GetRemovedAnalyzerReferences().Any())
+                    {
+                        // Changes to references are not currently supported
+                        codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
+                        return codeAction;
+                    }
+
+                    if (projectChange.GetAddedDocuments().Any()
+                        || projectChange.GetRemovedDocuments().Any()
+                        || projectChange.GetAddedAdditionalDocuments().Any()
+                        || projectChange.GetRemovedAdditionalDocuments().Any()
+                        || projectChange.GetAddedAnalyzerConfigDocuments().Any()
+                        || projectChange.GetRemovedAnalyzerConfigDocuments().Any())
+                    {
+                        // Adding and removing documents is not currently supported
+                        codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
+                        return codeAction;
+                    }
+                }
+
 #if false
 
                 // TO-DO: If the change involves adding or removing a document, execute via command instead of WorkspaceEdit
