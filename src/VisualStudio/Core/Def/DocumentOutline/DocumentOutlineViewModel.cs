@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Queue that computes the new model and updates the UI state.
         /// </summary>
-        private readonly AsyncBatchingResultQueue<DocumentOutlineViewState> _workQueue;
+        private readonly AsyncBatchingWorkQueue<VoidResult, DocumentOutlineViewState> _workQueue;
 
         /// <summary>
         /// Queue responsible for updating the ui after a change/move happens.
@@ -90,9 +90,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             _lastViewState_onlyAccessSerially = CreateEmptyViewState(currentSnapshot);
 
-            _workQueue = new AsyncBatchingResultQueue<DocumentOutlineViewState>(
+            _workQueue = new AsyncBatchingWorkQueue<VoidResult, DocumentOutlineViewState>(
                 DelayTimeSpan.Medium,
                 ComputeViewStateAsync,
+                EqualityComparer<VoidResult>.Default,
                 asyncListener,
                 _threadingContext.DisposalToken);
 
@@ -106,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _taggerEventSource.Connect();
 
             // queue initial model update
-            _workQueue.AddWork();
+            _workQueue.AddWork(default(VoidResult));
         }
 
         private static DocumentOutlineViewState CreateEmptyViewState(ITextSnapshot currentSnapshot)
@@ -123,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         private void OnEventSourceChanged(object sender, TaggerEventArgs e)
-            => _workQueue.AddWork(cancelExistingWork: false);
+            => _workQueue.AddWork(default(VoidResult), cancelExistingWork: false);
 
         public bool IsNavigating
         {
@@ -176,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 _threadingContext.ThrowIfNotOnUIThread();
                 _searchText_doNotAccessDirectly = value;
 
-                _workQueue.AddWork(cancelExistingWork: false);
+                _workQueue.AddWork(default(VoidResult), cancelExistingWork: false);
             }
         }
 
@@ -209,6 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         public void ExpandOrCollapseAll(bool shouldExpand)
         {
+            _threadingContext.ThrowIfNotOnUIThread();
             ExpandOrCollapse(this.DocumentSymbolViewModelItems, shouldExpand);
 
             static void ExpandOrCollapse(ImmutableArray<DocumentSymbolDataViewModel> models, bool shouldExpand)
@@ -221,7 +223,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
-        private async ValueTask<DocumentOutlineViewState> ComputeViewStateAsync(CancellationToken cancellationToken)
+        private async ValueTask<DocumentOutlineViewState> ComputeViewStateAsync(
+            ImmutableSegmentedList<VoidResult> _, CancellationToken cancellationToken)
         {
             // We do not want this work running on a background thread
             await TaskScheduler.Default;
