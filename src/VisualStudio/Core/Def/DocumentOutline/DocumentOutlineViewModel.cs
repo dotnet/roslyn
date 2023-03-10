@@ -280,7 +280,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             // Now create an interval tree out of the view models.  This will allow us to easily find the intersecting
             // view models given any position in the file with any particular text snapshot.
-            var intervalTree = SimpleIntervalTree.Create(new IntervalIntrospector(newTextSnapshot), Array.Empty<DocumentSymbolDataViewModel>());
+            var intervalTree = SimpleIntervalTree.Create(new IntervalIntrospector(), Array.Empty<DocumentSymbolDataViewModel>());
             AddToIntervalTree(newViewModelItems);
 
             var newViewState = new DocumentOutlineViewState(
@@ -401,28 +401,31 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (this.IsNavigating)
                 return;
 
-            var caretPosition = _textView.Caret.Position.BufferPosition.Position;
+            // Map the caret back to the snapshot used to create the last set of items.
             var modelTree = this.LastPresentedViewState.ViewModelItemsTree;
+            var caretPosition = _textView.Caret.Position.BufferPosition.TranslateTo(this.LastPresentedViewState.TextSnapshot, PointTrackingMode.Positive);
 
             this.IsNavigating = true;
             try
             {
-                var intersectingModels = modelTree.GetIntervalsThatIntersectWith(
-                    caretPosition, 0, new IntervalIntrospector(_textBuffer.CurrentSnapshot));
+                // Treat the caret as if it has length 1.  That way if it is in between two items, it will naturally
+                // only intersect right the item on the right of it.
+                var overlappingModels = modelTree.GetIntervalsThatOverlapWith(
+                    caretPosition.Position, 1, new IntervalIntrospector());
 
-                if (intersectingModels.Length == 0)
+                if (overlappingModels.Length == 0)
                     return;
 
                 // Order from smallest to largest.  The smallest is the innermost and should be the one we actually select.
                 // The others are the parents and we should expand those so the innermost one is visible.
-                intersectingModels = intersectingModels.Sort(static (m1, m2) =>
+                overlappingModels = overlappingModels.Sort(static (m1, m2) =>
                 {
                     return m1.Data.RangeSpan.Span.Length - m2.Data.RangeSpan.Span.Length;
                 });
 
-                intersectingModels[0].IsSelected = true;
-                for (var i = 1; i < intersectingModels.Length; i++)
-                    intersectingModels[i].IsExpanded = true;
+                overlappingModels[0].IsSelected = true;
+                for (var i = 1; i < overlappingModels.Length; i++)
+                    overlappingModels[i].IsExpanded = true;
             }
             finally
             {

@@ -11,26 +11,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     internal sealed partial class DocumentOutlineViewModel
     {
         /// <summary>
-        /// Helper for <see cref="DocumentOutlineViewState.ViewModelItemsTree"/>.  Allows us to tell
+        /// Helper for <see cref="DocumentOutlineViewState.ViewModelItemsTree"/>.  Allows us to lookup a set of
+        /// view-models that intersect the care efficiently.
         /// </summary>
         private readonly struct IntervalIntrospector : IIntervalIntrospector<DocumentSymbolDataViewModel>
         {
-            private readonly ITextSnapshot _textSnapshot;
-
-            public IntervalIntrospector(ITextSnapshot textSnapshot)
-            {
-                _textSnapshot = textSnapshot;
-            }
-
             public int GetStart(DocumentSymbolDataViewModel value)
-            {
-                return value.Data.RangeSpan.Start.TranslateTo(_textSnapshot, PointTrackingMode.Positive);
-            }
+                => value.Data.RangeSpan.Start;
 
             public int GetLength(DocumentSymbolDataViewModel value)
-            {
-                return value.Data.RangeSpan.TranslateTo(_textSnapshot, SpanTrackingMode.EdgeInclusive).Length;
-            }
+                => value.Data.RangeSpan.Length;
         }
     }
 }
