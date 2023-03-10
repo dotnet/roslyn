@@ -10,6 +10,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     internal sealed partial class DocumentOutlineViewModel
     {
+        /// <summary>
+        /// Helper for <see cref="DocumentOutlineViewState.ViewModelItemsTree"/>.  Allows us to tell
+        /// </summary>
         private readonly struct IntervalIntrospector : IIntervalIntrospector<DocumentSymbolDataViewModel>
         {
             private readonly ITextSnapshot _textSnapshot;
