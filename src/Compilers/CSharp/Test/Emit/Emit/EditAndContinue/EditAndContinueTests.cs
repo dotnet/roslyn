@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         public void Constructor_Delete()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -592,7 +592,7 @@ class Bad : Bad
         public void ModifyMethod_WithAttributes1()
         {
             using var _ = new EditAndContinueTest(options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+                .AddBaseline(
                     source: @"
 class C
 {
@@ -1749,7 +1749,7 @@ class C
         public void SynthesizedDelegate_MethodGroup()
         {
             using var _ = new EditAndContinueTest(options: TestOptions.DebugExe)
-                .AddGeneration(
+                .AddBaseline(
                     source: @"
 using System;
 
@@ -1905,7 +1905,7 @@ class C
         public void PartialMethod_WithLambda()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: @"
 partial class C
 {
@@ -2243,7 +2243,7 @@ delegate void D([A]int x);
         public void TypePropertyField_Attributes()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: @"
 enum E
 {
@@ -3085,7 +3085,7 @@ class C
         public void Property_DeleteAndAdd()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3215,7 +3215,7 @@ class C
         public void Property_DeleteAndAdd_ChangeToAutoProp()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3348,7 +3348,7 @@ class C
         public void Property_DeleteAndAdd_WithAccessorBodies()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3473,7 +3473,7 @@ class C
         public void Property_DeleteAndAdd_OneAccessor()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3590,7 +3590,7 @@ class C
         public void Property_ChangeReturnType()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3788,7 +3788,7 @@ class C
         public void Property_Rename()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3986,7 +3986,7 @@ class C
         public void Indexer_Delete()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -4057,7 +4057,7 @@ class C
         public void Indexer_ChangeParameterType()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -4346,7 +4346,7 @@ class C
         public void Event_Delete()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -4419,7 +4419,7 @@ class C
         public void Event_Rename()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -11190,7 +11190,7 @@ public interface IB
         public void Operator_Delete()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -14990,7 +14990,7 @@ class C
         public void Method_Delete(string methodDef, int parameterCount)
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -15054,7 +15054,7 @@ class C
         public void Method_AddThenDelete()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -15148,7 +15148,7 @@ class C
         public void Method_DeleteThenAdd()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -15242,7 +15242,7 @@ class C
         public void Method_DeleteThenAdd_WithAttributes()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class A : System.Attribute { }
                         class B : System.Attribute { }
@@ -15379,7 +15379,7 @@ class C
         public void Method_AddThenDeleteThenAdd()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -15533,7 +15533,7 @@ class C
         public void Method_Rename_Multiple()
         {
             using var test = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -15590,7 +15590,7 @@ class C
         public void Method_ChangeParameterType()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -15717,7 +15717,7 @@ class C
         public void Method_ChangeReturnType()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -15851,7 +15851,7 @@ class C
         public void Method_InsertAndDeleteParameter()
         {
             using var _ = new EditAndContinueTest()
-                .AddGeneration(
+                .AddBaseline(
                     source: $$"""
                         class C
                         {

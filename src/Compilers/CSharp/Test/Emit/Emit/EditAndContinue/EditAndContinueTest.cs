@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             _parseOptions = parseOptions ?? TestOptions.Regular.WithNoRefSafetyRulesAttribute();
         }
 
-        internal EditAndContinueTest AddGeneration(string source, Action<GenerationVerifier> validator)
-            => AddGeneration(EditAndContinueTestBase.MarkedSource(source, options: _parseOptions), validator);
+        internal EditAndContinueTest AddBaseline(string source, Action<GenerationVerifier> validator)
+            => AddBaseline(EditAndContinueTestBase.MarkedSource(source, options: _parseOptions), validator);
 
-        internal EditAndContinueTest AddGeneration(SourceWithMarkedNodes source, Action<GenerationVerifier> validator)
+        internal EditAndContinueTest AddBaseline(SourceWithMarkedNodes source, Action<GenerationVerifier> validator)
         {
             _hasVerified = false;
 
