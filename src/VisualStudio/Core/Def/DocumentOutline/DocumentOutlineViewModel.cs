@@ -288,14 +288,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // Now, go back to the UI and set this as our current state.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            // Actually update our view items (wpf will take care of rerendering efficiently).
+            // Figure out what items to select and expand based on current caret position.
             ExpandAndSelectItemAtCaretPosition(_textView.Caret.Position, intervalTree);
+
+            // Actually update our view items (wpf will take care of rerendering efficiently).
+
             _lastViewState_onlyAccessFromUIThread = newViewState;
-
             this.DocumentSymbolViewModelItems = newViewModelItems;
-
-            // Finally, select the appropriate item based on the users current position.
-            // ExpandAndSelectItemAtCaretPosition(_textView.Caret.Position);
 
             return;
 
