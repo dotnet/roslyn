@@ -270,7 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // in the case of no search text change, attempt to keep the same open/close expansion state from before.
             if (!searchTextChanged)
             {
-                ApplyExpansionStateToNewItems(
+                ApplyOldStateToNewItems(
                     oldSnapshot: lastPresentedViewState.TextSnapshot,
                     newSnapshot: newTextSnapshot,
                     oldItems: oldViewModelItems,
@@ -316,49 +316,54 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 // Walk through the old items, mapping their spans forward and keeping track if they were expanded or
                 // collapsed.  Then walk through the new items and see if they have the same span as a prior item.  If
                 // so, preserve the expansion state.
-                using var _ = PooledDictionary<Span, bool>.GetInstance(out var expansionState);
-                AddPreviousExpansionState(newSnapshot, oldItems, expansionState);
+                using var _ = PooledDictionary<Span, (bool isExpanded, bool isSelected)>.GetInstance(out var oldState);
+                AddPreviousState(newSnapshot, oldItems, oldState);
 
                 // If we had any items from before, and they were all collapsed, the collapse all the new items.
                 if (oldItems.Length > 0 && oldItems.All(static i => !i.IsExpanded))
                 {
-                    // new nodes are un-collapsed by default
-                    // we want to collapse all new top-level nodes if 
-                    // everything else currently is so things aren't "jumpy"
                     foreach (var item in newItems)
+                    {
                         item.IsExpanded = false;
+
+                        if (oldState.TryGetValue(item.Data.SelectionRangeSpan.Span, out var oldValues) && oldValues.isSelected)
+                            item.IsSelected = true;
+                    }
                 }
                 else
                 {
-                    ApplyExpansionState(expansionState, newItems);
+                    ApplyOldState(oldState, newItems);
                 }
             }
 
-            static void AddPreviousExpansionState(
+            static void AddPreviousState(
                 ITextSnapshot newSnapshot,
                 ImmutableArray<DocumentSymbolDataViewModel> oldItems,
-                PooledDictionary<Span, bool> expansionState)
+                PooledDictionary<Span, (bool isExpanded, bool isSelected)> oldState)
             {
                 foreach (var item in oldItems)
                 {
                     // EdgeInclusive so that if we type on the end of an existing item it maps forward to the new full span.
                     var mapped = item.Data.SelectionRangeSpan.TranslateTo(newSnapshot, SpanTrackingMode.EdgeInclusive);
-                    expansionState[mapped.Span] = item.IsExpanded;
+                    oldState[mapped.Span] = (item.IsExpanded, item.IsSelected);
 
-                    AddPreviousExpansionState(newSnapshot, item.Children, expansionState);
+                    AddPreviousState(newSnapshot, item.Children, oldState);
                 }
             }
 
-            static void ApplyExpansionState(
-                PooledDictionary<Span, bool> expansionState,
+            static void ApplyOldState(
+                PooledDictionary<Span, (bool isExpanded, bool isSelected)> oldState,
                 ImmutableArray<DocumentSymbolDataViewModel> newItems)
             {
                 foreach (var item in newItems)
                 {
-                    if (expansionState.TryGetValue(item.Data.SelectionRangeSpan.Span, out var isExpanded))
-                        item.IsExpanded = isExpanded;
+                    if (oldState.TryGetValue(item.Data.SelectionRangeSpan.Span, out var oldValues))
+                    {
+                        item.IsExpanded = oldValues.isExpanded;
+                        item.IsSelected = oldValues.isSelected;
+                    }
 
-                    ApplyExpansionState(expansionState, item.Children);
+                    ApplyOldState(oldState, item.Children);
                 }
             }
         }
