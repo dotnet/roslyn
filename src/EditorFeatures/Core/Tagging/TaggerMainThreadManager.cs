@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         public Task PerformWorkOnMainThreadAsync(Action action, CancellationToken cancellationToken)
         {
-            // If either us, or the cancellation token cancels the work
             var taskSource = new TaskCompletionSource<bool>();
             var wrappedAction = () =>
             {
