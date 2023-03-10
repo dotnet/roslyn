@@ -277,7 +277,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // Now create an interval tree out of the view models.  This will allow us to easily find the intersecting
             // view models given any position in the file with any particular text snapshot.
             var intervalTree = SimpleIntervalTree.Create(new IntervalIntrospector(newTextSnapshot), Array.Empty<DocumentSymbolDataViewModel>());
-            AddToTree(newViewModelItems);
+            AddToIntervalTree(newViewModelItems);
 
             var newViewState = new DocumentOutlineViewState(
                 newTextSnapshot,
@@ -297,7 +297,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             return;
 
-            void AddToTree(ImmutableArray<DocumentSymbolDataViewModel> viewModels)
+            void AddToIntervalTree(ImmutableArray<DocumentSymbolDataViewModel> viewModels)
             {
                 foreach (var model in viewModels)
                 {
