@@ -47,7 +47,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             IGlobalOptionService globalOptions,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(
+                  threadingContext,
+                  globalOptions,
+                  visibilityTracker,
+                  listenerProvider.GetListener(FeatureAttribute.Classification),
+                  TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
         {
         }
 

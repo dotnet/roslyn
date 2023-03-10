@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -36,7 +37,8 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
             IDiagnosticAnalyzerService analyzerService,
             IGlobalOptionService globalOptions,
             ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListener listener)
+            IAsynchronousOperationListener listener,
+            TaggerMainThreadManager mainThreadManager)
         {
             _diagnosticsTaggerProviders = ImmutableArray.Create(
                 CreateDiagnosticsTaggerProvider(DiagnosticKind.CompilerSyntax),
@@ -47,7 +49,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
             return;
 
             SingleDiagnosticKindPullTaggerProvider CreateDiagnosticsTaggerProvider(DiagnosticKind diagnosticKind)
-                => new(callback, diagnosticKind, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listener);
+                => new(callback, diagnosticKind, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listener, mainThreadManager);
         }
 
         public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag

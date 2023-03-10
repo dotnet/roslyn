@@ -20,8 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptions,
             ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListener asyncListener)
-            : base(threadingContext, globalOptions, visibilityTracker, asyncListener)
+            IAsynchronousOperationListener asyncListener,
+            TaggerMainThreadManager mainThreadManager)
+            : base(threadingContext, globalOptions, visibilityTracker, asyncListener, mainThreadManager)
         {
         }
 

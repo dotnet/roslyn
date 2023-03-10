@@ -47,7 +47,12 @@ namespace Microsoft.CodeAnalysis.Classification
             ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider,
             ClassificationType type)
-            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(
+                  threadingContext,
+                  globalOptions,
+                  visibilityTracker,
+                  listenerProvider.GetListener(FeatureAttribute.Classification),
+                  TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
         {
             _typeMap = typeMap;
             _globalOptions = globalOptions;

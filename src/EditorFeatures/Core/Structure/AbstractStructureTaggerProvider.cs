@@ -56,7 +56,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             IProjectionBufferFactoryService projectionBufferFactoryService,
             ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, editorOptionsService.GlobalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Outlining))
+            : base(
+                  threadingContext,
+                  editorOptionsService.GlobalOptions,
+                  visibilityTracker,
+                  listenerProvider.GetListener(FeatureAttribute.Outlining),
+                  TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
         {
             EditorOptionsService = editorOptionsService;
             ProjectionBufferFactoryService = projectionBufferFactoryService;

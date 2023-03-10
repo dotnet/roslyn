@@ -48,7 +48,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 threadingContext,
                 globalOptions,
                 visibilityTracker,
-                listenerProvider.GetListener(FeatureAttribute.InheritanceMargin))
+                listenerProvider.GetListener(FeatureAttribute.InheritanceMargin),
+                TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
         {
         }
 

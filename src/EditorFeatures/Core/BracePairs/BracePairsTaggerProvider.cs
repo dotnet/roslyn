@@ -45,7 +45,8 @@ namespace Microsoft.CodeAnalysis.BracePairs
             : base(threadingContext,
                   globalOptionService,
                   visibilityTracker,
-                  listenerProvider.GetListener(FeatureAttribute.BracePairs))
+                  listenerProvider.GetListener(FeatureAttribute.BracePairs),
+                  TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
         {
         }
 

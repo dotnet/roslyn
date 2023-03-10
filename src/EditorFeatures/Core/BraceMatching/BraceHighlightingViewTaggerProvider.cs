@@ -45,7 +45,12 @@ namespace Microsoft.CodeAnalysis.BraceMatching
             IGlobalOptionService globalOptions,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.BraceHighlighting))
+            : base(
+                  threadingContext,
+                  globalOptions,
+                  visibilityTracker,
+                  listenerProvider.GetListener(FeatureAttribute.BraceHighlighting),
+                  TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
         {
             _braceMatcherService = braceMatcherService;
         }
