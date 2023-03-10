@@ -133,6 +133,13 @@
                We set IsVirtualizing to "True" so that WPF only generates internal data-structures elements that are visible.
                Setting VirtualizationMode to "Recycling" ensures that WPF internal data is reused as items scroll in and out of view.
         -->
+        <!-- Note: we register TreeViewItem.SourceUpdated and set `NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=False`
+             for the item `IsSelected` event.  This is important for a reentrancy issue we would otherwise have.  Specifically,
+             As the user moves around, we want to expand/select the correct item of interest in the tree.  However, we do not 
+             want that *programmatic* selection to then end up firing an event saying "i was selected" which we then interpret
+             to mean that we should navigate to that item.  By only hearing when the source is updated (meaning the user actually
+             clicked on the tree view item, not that we programmatically set it) we only actual perform the navigation on user
+             interaction. -->
         <TreeView Grid.Row="2"
                   Name="SymbolTree"
                   VirtualizingStackPanel.IsVirtualizing="True"
@@ -165,6 +172,7 @@
             <TreeView.ItemContainerStyle>
                 <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewItemStyleKey}}">
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <!-- See docs above for why we set `NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=False` -->
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=False}" />
                     <Setter Property="Padding" Value="4, 0, 6, 1" />
                     <Setter Property="Margin" Value="0, 0, 0, 1" />
