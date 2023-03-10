@@ -22,35 +22,34 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
     [Trait(Traits.Feature, Traits.Features.DocumentOutline)]
     public class DocumentOutlineTests : DocumentOutlineTestsBase
     {
-        private const string TestCode =
-        """
-        private class MyClass
-        {
-            int _x;
+        private const string TestCode = """
+            private class MyClass
+            {
+                int _x;
 
-            static void Method1(string[] args) {}
-                                
-            private class MyClass2 {}
+                static void Method1(string[] args) {}
 
-            static void Method2(string[] args) {}
-        }
+                private class MyClass2 {}
 
-        class App
-        {
-            void Method() {}
+                static void Method2(string[] args) {}
+            }
 
-            void Z() {}
-        }
+            class App
+            {
+                void Method() {}
 
-        interface foo
-        {
-            void z() {}
+                void Z() {}
+            }
 
-            private static int apple = 9, b = 4, c = 6;
+            interface foo
+            {
+                void z() {}
 
-            void r() {}
-        }
-        """;
+                private static int apple = 9, b = 4, c = 6;
+
+                void r() {}
+            }
+            """;
 
         public DocumentOutlineTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
