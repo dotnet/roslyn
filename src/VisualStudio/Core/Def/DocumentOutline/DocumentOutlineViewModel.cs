@@ -85,9 +85,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _textBuffer = textBuffer;
             _threadingContext = threadingContext;
 
-            var currentSnapshot = textBuffer.CurrentSnapshot;
-
-            _lastPresentedViewState_doNotAccessDirectly = CreateEmptyViewState(currentSnapshot);
+            // initialize us to an empty state.
+            _lastPresentedViewState_doNotAccessDirectly = CreateEmptyViewState(textBuffer.CurrentSnapshot);
 
             _workQueue = new AsyncBatchingWorkQueue(
                 DelayTimeSpan.Medium,
