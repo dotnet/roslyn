@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim culture = New CultureInfo("tr-TR", useUserOverride:=False)
 
             Dim workspace = New TestWorkspace
-            Dim helper = New CompletionHelper(isCaseSensitive:=False)
+            Dim helper = New PatternMatchHelper(pattern)
 
             For Each wordMarkup In wordsToMatch
                 Dim word As String = Nothing
@@ -64,26 +64,31 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 MarkupTestFile.GetSpan(wordMarkup, word, wordMatchSpan)
 
                 Dim item = CompletionItem.Create(word)
-                Assert.True(helper.MatchesPattern(item, pattern, culture), $"Expected item {word} does not match {pattern}")
+                Assert.True(helper.MatchesPattern(item, culture), $"Expected item {word} does not match {pattern}")
 
-                Dim highlightedSpans = helper.GetHighlightedSpans(item, pattern, culture)
+                Dim highlightedSpans = helper.GetHighlightedSpans(item.GetEntireDisplayText(), culture)
                 Assert.NotEmpty(highlightedSpans)
                 Assert.Equal(1, highlightedSpans.Length)
                 Assert.Equal(wordMatchSpan, highlightedSpans(0))
             Next
+
+            helper.Dispose()
         End Sub
 
         Private Shared Sub TestNotMatches(pattern As String, wordsToNotMatch() As String)
             Dim culture = New CultureInfo("tr-TR", useUserOverride:=False)
             Dim workspace = New TestWorkspace
-            Dim helper = New CompletionHelper(isCaseSensitive:=True)
+            Dim helper = New PatternMatchHelper(pattern)
+
             For Each word In wordsToNotMatch
                 Dim item = CompletionItem.Create(word)
-                Assert.False(helper.MatchesPattern(item, pattern, culture), $"Unexpected item {word} matches {pattern}")
+                Assert.False(helper.MatchesPattern(item, culture), $"Unexpected item {word} matches {pattern}")
 
-                Dim highlightedSpans = helper.GetHighlightedSpans(item, pattern, culture)
+                Dim highlightedSpans = helper.GetHighlightedSpans(item.GetEntireDisplayText(), culture)
                 Assert.Empty(highlightedSpans)
             Next
+
+            helper.Dispose()
         End Sub
     End Class
 End Namespace

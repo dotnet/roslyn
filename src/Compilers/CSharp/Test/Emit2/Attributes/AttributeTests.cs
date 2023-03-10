@@ -39,9 +39,9 @@ class Program
 }";
             var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithDeterministic(true));
             comp.VerifyDiagnostics(
-                // (2,55): error CS7034: The specified version string does not conform to the required format - major[.minor[.build[.revision]]]
+                // (2,55): error CS7034: The specified version string '<null>' does not conform to the required format - major[.minor[.build[.revision]]]
                 // [assembly: System.Reflection.AssemblyVersionAttribute(null)]
-                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, "null").WithLocation(2, 55)
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, "null").WithArguments("<null>").WithLocation(2, 55)
                 );
         }
 
