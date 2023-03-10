@@ -187,9 +187,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             private set
             {
                 _threadingContext.ThrowIfNotOnUIThread();
-
-                // Unselect any currently selected items or WPF will believe it needs to select the root node.
-                // UnselectAll(_documentSymbolViewModelItems_doNotAccessDirectly);
                 SetProperty(ref _documentSymbolViewModelItems_doNotAccessDirectly, value);
             }
         }
