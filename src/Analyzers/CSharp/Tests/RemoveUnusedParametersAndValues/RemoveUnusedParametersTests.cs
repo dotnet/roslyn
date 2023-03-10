@@ -1872,5 +1872,28 @@ class C
                 }
                 """);
         }
+
+        [Fact, WorkItem(67013, "https://github.com/dotnet/roslyn/issues/67013")]
+        public async Task Test_PrimaryConstructor1()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C(int [|a100|])
+{
+}");
+        }
+
+        [Fact, WorkItem(67013, "https://github.com/dotnet/roslyn/issues/67013")]
+        public async Task Test_PrimaryConstructor2()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C(int [|a100|]) : Object()
+{
+    int M1() => a100;
+}");
+        }
     }
 }

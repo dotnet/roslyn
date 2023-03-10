@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var resultId = result.Value.ResultId;
 
             var completionListMaxSize = _globalOptions.GetOption(LspOptionsStorage.MaxCompletionListSize);
-            var (completionList, isIncomplete) = FilterCompletionList(result.Value.List, completionListMaxSize, completionListSpan, completionTrigger, sourceText, document);
+            var (completionList, isIncomplete) = FilterCompletionList(result.Value.List, completionListMaxSize, completionListSpan, completionTrigger, sourceText);
 
             return (completionList, isIncomplete, resultId);
         }
@@ -366,21 +366,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             int completionListMaxSize,
             TextSpan completionListSpan,
             CompletionTrigger completionTrigger,
-            SourceText sourceText,
-            Document document)
+            SourceText sourceText)
         {
             var filterText = sourceText.GetSubText(completionListSpan).ToString();
 
             // Use pattern matching to determine which items are most relevant out of the calculated items.
             using var _ = ArrayBuilder<MatchResult>.GetInstance(out var matchResultsBuilder);
             var index = 0;
-            var completionHelper = CompletionHelper.GetHelper(document);
+            using var helper = new PatternMatchHelper(filterText);
             foreach (var item in completionList.ItemsList)
             {
-                if (CompletionHelper.TryCreateMatchResult(
-                    completionHelper,
+                if (helper.TryCreateMatchResult(
                     item,
-                    filterText,
                     completionTrigger.Kind,
                     GetFilterReason(completionTrigger),
                     recentItemIndex: -1,

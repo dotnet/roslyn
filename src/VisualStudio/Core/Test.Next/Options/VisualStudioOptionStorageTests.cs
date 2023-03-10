@@ -6,11 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using Xunit;
-using Microsoft.VisualStudio.LanguageServices.Options;
-using Roslyn.Test.Utilities;
+using System.Text;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices.Options;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
@@ -261,5 +260,39 @@ public class VisualStudioOptionStorageTests
         };
 
         Assert.Contains(configName, optionsWithoutStorage);
+    }
+
+    [Fact]
+    public void VerifyOptionGroupUnique()
+    {
+        var allOptionGroups = OptionsTestInfo.CollectOptions(Path.GetDirectoryName(typeof(VisualStudioOptionStorage).Assembly.Location))
+            .Values
+            .Select(optionTestInfo => optionTestInfo.Option.Definition.Group)
+            .Distinct();
+
+        var allGroupNames = allOptionGroups.Select(GetFullOptionGroupName);
+
+        // The full name of each Option group should be unique. Full name is obtained by joining the names of all groups that are chained via parent reference.
+        // e.g. option group, code_style -> prefer_object_initializer.
+        // Its full name code_style.prefer_object_initializer should be unique.
+        var set = new HashSet<string>();
+        foreach (var groupName in allGroupNames)
+        {
+            Assert.True(set.Add(groupName), $"Group {groupName} doesn't have a unique name.");
+        }
+
+        static string GetFullOptionGroupName(OptionGroup group)
+        {
+            var builder = new StringBuilder();
+            var currentGroup = group;
+            while (currentGroup != null)
+            {
+                var stringToInsert = builder.Length == 0 ? currentGroup.Name : currentGroup.Name + ".";
+                builder.Insert(0, stringToInsert);
+                currentGroup = currentGroup.Parent;
+            }
+
+            return builder.ToString();
+        }
     }
 }
