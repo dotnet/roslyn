@@ -200,22 +200,5 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 }
             }
         }
-
-        //[WpfFact]
-        //public async Task TestUnselectAll()
-        //{
-        //    var (_, _, uiItems) = await InitializeMocksAndDataModelAndUIItems(TestCode);
-        //    DocumentOutlineViewModel.UnselectAll(uiItems);
-        //    CheckNodesUnselected(uiItems);
-
-        //    static void CheckNodesUnselected(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems)
-        //    {
-        //        foreach (var symbol in documentSymbolItems)
-        //        {
-        //            Assert.False(symbol.IsSelected);
-        //            CheckNodesUnselected(symbol.Children);
-        //        }
-        //    }
-        //}
     }
 }
