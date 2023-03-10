@@ -3,10 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests.EditAndContinueTestBase;
 
@@ -104,6 +105,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             internal void VerifyIL(string expectedIL)
             {
                 _generationInfo.CompilationDifference!.VerifyIL(expectedIL);
+            }
+
+            internal string Visualize()
+            {
+                using var writer = new StringWriter();
+                var visualizer = new MetadataVisualizer(_readers.ToList(), writer, MetadataVisualizerOptions.NoHeapReferences);
+                visualizer.VisualizeAllGenerations();
+                writer.Flush();
+                return writer.ToString();
             }
         }
     }

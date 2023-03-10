@@ -62,6 +62,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
+        internal void EmitRawToken(uint token)
+        {
+            token |= Cci.MetadataWriter.LiteralMethodDefinitionToken;
+            this.GetCurrentWriter().WriteUInt32(token);
+        }
+
         internal void EmitGreatestMethodToken()
         {
             var token = Cci.MetadataWriter.GetRawToken(Cci.MetadataWriter.RawTokenEncoding.GreatestMethodDefinitionRowId, 0);

@@ -3068,6 +3068,14 @@ namespace Microsoft.Cci
         private EntityHandle ResolveEntityHandleFromPseudoToken(int pseudoSymbolToken)
         {
             int index = pseudoSymbolToken;
+
+            // If the token was emitted as a literal token, then it is resolved just by removing the flag, rather
+            // than doing any kind of pseudo token lookup
+            if ((pseudoSymbolToken & LiteralMethodDefinitionToken) == LiteralMethodDefinitionToken)
+            {
+                return MetadataTokens.EntityHandle(pseudoSymbolToken & (int)~LiteralMethodDefinitionToken);
+            }
+
             var entity = _pseudoSymbolTokenToReferenceMap[index];
             if (entity != null)
             {
