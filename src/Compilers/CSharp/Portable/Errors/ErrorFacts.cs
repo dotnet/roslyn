@@ -2301,7 +2301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
                     //       to ensure that we correctly classify all error codes as build-only or not.
-                    throw new NotImplementedException($"ErrorCode.{code} is not handled by IsBuildOnlyDiagnostic");
+                    throw new NotImplementedException($"ErrorCode.{code} is not handled by {nameof(IsBuildOnlyDiagnostic)}");
             }
         }
 

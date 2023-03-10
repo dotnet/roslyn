@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // since references to all extensions will be emitted to metadata
             // and it's possible to define derived extensions with weaker
             // constraints than the base extensions, at least in metadata.
-            var allBaseExtensions = this.ExtensionsAndTheirBaseExtensionsNoUseSiteDiagnostics;
+            var allBaseExtensions = this.GetExtensionsAndTheirBaseExtensionsNoUseSiteDiagnostics();
             if (allBaseExtensions.IsEmpty)
                 return;
 
@@ -105,24 +105,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> ExtensionsAndTheirBaseExtensionsNoUseSiteDiagnostics
+        // PROTOTYPE consider caching and using a property like InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics
+        private MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> GetExtensionsAndTheirBaseExtensionsNoUseSiteDiagnostics()
         {
-            get
+            var baseExtensions = this.BaseExtensionsNoUseSiteDiagnostics;
+            var resultBuilder = new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(baseExtensions.Length,
+                SymbolEqualityComparer.CLRSignature, SymbolEqualityComparer.ConsiderEverything);
+
+            foreach (var baseExtension in baseExtensions)
             {
-                var baseExtensions = this.BaseExtensionsNoUseSiteDiagnostics;
-                var resultBuilder = new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(baseExtensions.Length,
-                    SymbolEqualityComparer.CLRSignature, SymbolEqualityComparer.ConsiderEverything);
-
-                foreach (var baseExtension in baseExtensions)
+                if (resultBuilder.Add(baseExtension, baseExtension))
                 {
-                    if (resultBuilder.Add(baseExtension, baseExtension))
-                    {
-                        // PROTOTYPE we need to collect all base extensions from baseExtension too
-                    }
+                    // PROTOTYPE we need to collect all base extensions from baseExtension too
                 }
-
-                return resultBuilder;
             }
+
+            return resultBuilder;
         }
 
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
