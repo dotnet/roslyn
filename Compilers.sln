@@ -1,3 +1,4 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32228.430
@@ -161,6 +162,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "vbc-arm64", "src\Compilers\VisualBasic\vbc\arm64\vbc-arm64.csproj", "{48C93F90-8776-4847-96D8-127B896D6C80}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.EndToEnd.UnitTests", "src\Compilers\CSharp\Test\EndToEnd\Microsoft.CodeAnalysis.CSharp.EndToEnd.UnitTests.csproj", "{F3D9264A-7CAE-4265-AF48-0C863301F51E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestDiscoveryWorker", "src\Tools\TestDiscoveryWorker\TestDiscoveryWorker.csproj", "{FB617466-C4A1-4289-A512-A06182FC779F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -416,6 +419,10 @@ Global
 		{F3D9264A-7CAE-4265-AF48-0C863301F51E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3D9264A-7CAE-4265-AF48-0C863301F51E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3D9264A-7CAE-4265-AF48-0C863301F51E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB617466-C4A1-4289-A512-A06182FC779F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB617466-C4A1-4289-A512-A06182FC779F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB617466-C4A1-4289-A512-A06182FC779F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB617466-C4A1-4289-A512-A06182FC779F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -491,6 +498,7 @@ Global
 		{810B02AD-2EA5-4422-88AC-B71B8AB0DF0B} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
 		{48C93F90-8776-4847-96D8-127B896D6C80} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
 		{F3D9264A-7CAE-4265-AF48-0C863301F51E} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
+		{FB617466-C4A1-4289-A512-A06182FC779F} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}

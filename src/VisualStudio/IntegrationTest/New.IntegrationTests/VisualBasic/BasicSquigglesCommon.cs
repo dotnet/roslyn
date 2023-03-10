@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
@@ -28,9 +29,8 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
         Dim x = 1 +
       End Sub
 End Class", HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.ErrorTagsAsync(
-                new[] { "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\\r'[50-51]" },
-                HangMitigatingCancellationToken);
+
+            await TestServices.EditorVerifier.ErrorTagsAsync(new[] { ("syntax error", TextSpan.FromBounds(50, 51), "\r", "BC30201: Expression expected.") }, HangMitigatingCancellationToken);
         }
 
         [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]
@@ -42,8 +42,9 @@ End Class", HangMitigatingCancellationToken);
         Console.WriteLine(b)
       End Sub
 End Class", HangMitigatingCancellationToken);
+
             await TestServices.EditorVerifier.ErrorTagsAsync(
-                new[] { "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'Bar'[33-36]" },
+                new[] { ("syntax error", TextSpan.FromBounds(33, 36), "Bar", "BC30002: Type 'Bar' is not defined.") },
                 HangMitigatingCancellationToken);
         }
     }

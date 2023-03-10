@@ -18,8 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
             Return (Nothing, New VisualBasicAddImportCodeFixProvider())
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestSimpleImportFromSameFile(testHost As TestHost) As Task
             Await TestAsync(
 "Class Class1
@@ -67,8 +66,7 @@ Class Class1
 End Class", testHost, priority:=CodeActionPriority.Medium)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestSimpleImportFromReference(testHost As TestHost) As Task
             Await TestAsync(
 "Class Class1
@@ -81,7 +79,7 @@ Class Class1
 End Class", testHost)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
+        <ConditionalFact>
         Public Async Function TestSmartTagDisplay() As Task
             Await TestSmartTagTextAsync(
 "Class Class1
@@ -90,8 +88,7 @@ End Class",
 "Imports System.Threading")
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenericClassDefinitionAsClause(testHost As TestHost) As Task
             Await TestAsync(
 "Namespace SomeNamespace
@@ -110,8 +107,7 @@ Class SomeClass(Of x As Base)
 End Class", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenericClassInstantiationOfClause(testHost As TestHost) As Task
             Await TestAsync(
 "Namespace SomeNamespace
@@ -140,8 +136,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenericMethodDefinitionAsClause(testHost As TestHost) As Task
             Await TestAsync(
 "Namespace SomeNamespace
@@ -164,8 +159,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenericMethodInvocationOfClause(testHost As TestHost) As Task
             Await TestAsync(
 "Namespace SomeNamespace
@@ -194,8 +188,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestAttributeApplication(testHost As TestHost) As Task
             Await TestAsync(
 "<[|Something|]()>
@@ -218,8 +211,7 @@ Namespace SomeNamespace
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestMultipleAttributeApplicationBelow(testHost As TestHost) As Task
             Await TestAsync(
 "<Existing()>
@@ -250,8 +242,7 @@ Namespace SomeNamespace
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestMultipleAttributeApplicationAbove(testHost As TestHost) As Task
             Await TestAsync(
 "<[|Something|]()>
@@ -282,8 +273,7 @@ Namespace SomeNamespace
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestImportsIsEscapedWhenNamespaceMatchesKeyword(testHost As TestHost) As Task
             Await TestAsync(
 "Class SomeClass
@@ -304,8 +294,7 @@ Namespace [Namespace]
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestImportsIsNOTEscapedWhenNamespaceMatchesKeywordButIsNested(testHost As TestHost) As Task
             Await TestAsync(
 "Class SomeClass
@@ -330,7 +319,7 @@ Namespace Outer
 End Namespace", testHost)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
+        <ConditionalFact>
         Public Async Function TestAddImportsNotSuggestedForImportsStatement() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports [|InnerNamespace|]
@@ -342,7 +331,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
+        <ConditionalFact>
         Public Async Function TestAddImportsNotSuggestedForGenericTypeParametersOfClause() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class SomeClass
@@ -355,7 +344,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
+        <ConditionalFact>
         Public Async Function TestAddImportsNotSuggestedForGenericTypeParametersAsClause() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class SomeClass
@@ -368,7 +357,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(540543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540543")>
+        <Theory, WorkItem(540543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540543")>
         <CombinatorialData>
         Public Async Function TestCaseSensitivity1(testHost As TestHost) As Task
             Await TestAsync(
@@ -390,8 +379,7 @@ Namespace SomeNamespace
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestTypeFromMultipleNamespaces1(testHost As TestHost) As Task
             Await TestAsync(
 "Class Goo
@@ -406,8 +394,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestTypeFromMultipleNamespaces2(testHost As TestHost) As Task
             Await TestAsync(
 "Class Goo
@@ -423,8 +410,7 @@ End Class",
                 testHost, index:=1)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenericWithNoArgs(testHost As TestHost) As Task
             Await TestAsync(
 "Class Goo
@@ -439,8 +425,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenericWithCorrectArgs(testHost As TestHost) As Task
             Await TestAsync(
 "Class Goo
@@ -455,7 +440,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
+        <ConditionalFact>
         Public Async Function TestGenericWithWrongArgs1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class Goo
@@ -464,7 +449,7 @@ End Class", testHost)
 End Class")
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
+        <ConditionalFact>
         Public Async Function TestGenericWithWrongArgs2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class Goo
@@ -473,8 +458,7 @@ End Class")
 End Class")
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenericInLocalDeclaration(testHost As TestHost) As Task
             Await TestAsync(
 "Class Goo
@@ -491,8 +475,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenericItemType(testHost As TestHost) As Task
             Await TestAsync(
 "Class Goo
@@ -509,8 +492,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenerateWithExistingUsings(testHost As TestHost) As Task
             Await TestAsync(
 "Imports System
@@ -529,8 +511,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenerateInNamespace(testHost As TestHost) As Task
             Await TestAsync(
 "Imports System
@@ -553,7 +534,7 @@ Namespace NS
 End Namespace", testHost)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(540519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540519")>
+        <Fact, WorkItem(540519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540519")>
         Public Async Function TestCodeIssueCountInExistingUsing() As Task
             Await TestActionCountAsync(
 "Imports System.Collections.Generic
@@ -566,7 +547,7 @@ End Namespace",
 count:=1)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(540519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540519")>
+        <Theory, WorkItem(540519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540519")>
         <CombinatorialData>
         Public Async Function TestFixInExistingUsing(testHost As TestHost) As Task
             Await TestAsync(
@@ -587,7 +568,7 @@ Namespace NS
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(541731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541731")>
+        <Theory, WorkItem(541731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541731")>
         <CombinatorialData>
         Public Async Function TestGenericExtensionMethod(testHost As TestHost) As Task
             Await TestAsync(
@@ -607,8 +588,7 @@ Class Test
 End Class", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestParameterType(testHost As TestHost) As Task
             Await TestAsync(
 "Imports System
@@ -628,7 +608,7 @@ Module Program
 End Module", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(540519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540519")>
+        <Theory, WorkItem(540519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540519")>
         <CombinatorialData>
         Public Async Function TestAddWithExistingConflictWithDifferentArity(testHost As TestHost) As Task
             Await TestAsync(
@@ -649,7 +629,7 @@ Namespace NS
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
+        <Theory, WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
         <CombinatorialData>
         Public Async Function TestImportNamespace(testHost As TestHost) As Task
             Await TestAsync(
@@ -679,8 +659,7 @@ Namespace SomeNamespace
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestCaseSensitivity2(testHost As TestHost) As Task
             Await TestAsync(
 "Class GOo
@@ -709,7 +688,7 @@ Namespace SomeNamespace
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(540745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540745")>
+        <Theory, WorkItem(540745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540745")>
         <CombinatorialData>
         Public Async Function TestCaseSensitivity3(testHost As TestHost) As Task
             Await TestAsync(
@@ -739,7 +718,7 @@ Namespace OUTER
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(541746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541746")>
+        <Theory, WorkItem(541746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541746")>
         <CombinatorialData>
         Public Async Function TestAddBlankLineAfterLastImports(testHost As TestHost) As Task
             Await TestAsync(
@@ -780,8 +759,7 @@ Namespace SomeNamespace
 End Namespace</Text>.Value.Replace(vbLf, vbCrLf), testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestSimpleWhereClause(testHost As TestHost) As Task
             Await TestAsync(
 "Class Program
@@ -804,8 +782,7 @@ Class Program
 End Class", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestAggregateClause(testHost As TestHost) As Task
             Await TestAsync(
 "Imports System.Collections.Generic
@@ -828,7 +805,7 @@ Class Program
 End Class", testHost)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(543107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543107")>
+        <Fact, WorkItem(543107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543107")>
         Public Async Function TestNoCrashOnMissingLeftSide() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -839,7 +816,7 @@ Class C1
 End Class")
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(544335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544335")>
+        <Theory, WorkItem(544335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544335")>
         <CombinatorialData>
         Public Async Function TestOnCallWithoutArgumentList(testHost As TestHost) As Task
             Await TestAsync(
@@ -857,8 +834,7 @@ Module Program
 End Module", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestAddToVisibleRegion(testHost As TestHost) As Task
             Await TestAsync(
 "#ExternalSource (""Default.aspx"", 1) 
@@ -884,7 +860,7 @@ Class C
 End Class", testHost)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
+        <ConditionalFact>
         Public Async Function TestDoNotAddIntoHiddenRegion() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -897,7 +873,7 @@ Class C
 End Class")
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(546369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546369")>
+        <Theory, WorkItem(546369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546369")>
         <CombinatorialData>
         Public Async Function TestFormattingAfterImports(testHost As TestHost) As Task
             Await TestAsync(
@@ -921,7 +897,7 @@ End Module
 </Text>.Value.Replace(vbLf, vbCrLf), testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
+        <Theory, WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
         <CombinatorialData>
         Public Async Function TestShouldTriggerOnBC32045(testHost As TestHost) As Task
             ' BC32045: 'A' has no type parameters and so cannot have type arguments.
@@ -943,7 +919,7 @@ Module Program
 End Module</Text>.Value.Replace(vbLf, vbCrLf), testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(867425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867425")>
+        <Theory, WorkItem(867425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867425")>
         <CombinatorialData>
         Public Async Function TestUnknownIdentifierInModule(testHost As TestHost) As Task
             Await TestAsync(
@@ -963,7 +939,7 @@ Module Goo
 End Module", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(872908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872908")>
+        <Theory, WorkItem(872908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872908")>
         <CombinatorialData>
         Public Async Function TestConflictedGenericName(testHost As TestHost) As Task
             Await TestAsync(
@@ -983,7 +959,7 @@ Module Goo
 End Module", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(838253, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838253")>
+        <Theory, WorkItem(838253, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838253")>
         <CombinatorialData>
         Public Async Function TestConflictedInaccessibleType(testHost As TestHost) As Task
             Await TestAsync(
@@ -1011,7 +987,7 @@ Class C
 End Class", testHost, index:=1)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(858085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858085")>
+        <Theory, WorkItem(858085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858085")>
         <CombinatorialData>
         Public Async Function TestConflictedAttributeName(testHost As TestHost) As Task
             Await TestAsync(
@@ -1023,7 +999,7 @@ End Class",
 End Class", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
+        <Theory, WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
         <CombinatorialData>
         Public Async Function TestExtensionWithThePresenceOfTheSameNameNonExtensionMethod(testHost As TestHost) As Task
             Await TestAsync(
@@ -1073,7 +1049,7 @@ Namespace NS2
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
+        <Theory, WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
         <WorkItem(920398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")>
         <CombinatorialData>
         Public Async Function TestExtensionWithThePresenceOfTheSameNameNonExtensionPrivateMethod(testHost As TestHost) As Task
@@ -1124,7 +1100,7 @@ Namespace NS2
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
+        <Theory, WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
         <WorkItem(920398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")>
         <CombinatorialData>
         Public Async Function TestExtensionWithThePresenceOfTheSameNameExtensionPrivateMethod(testHost As TestHost) As Task
@@ -1193,7 +1169,7 @@ Namespace NS3
 End Namespace", testHost)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
+        <Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
         Public Async Function TestAddImportForCref() As Task
             Dim initialText As String = "''' <summary>
 ''' This is just like <see cref=[|""INotifyPropertyChanged""|]/>, but this one is mine.
@@ -1213,7 +1189,7 @@ End Interface"
                 parseOptions:=options)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
+        <Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
         Public Async Function TestAddImportForCref2() As Task
             Dim initialText As String = "''' <summary>
 ''' This is just like <see cref=[|""INotifyPropertyChanged.PropertyChanged""|]/>, but this one is mine.
@@ -1233,7 +1209,7 @@ End Interface"
                 parseOptions:=options)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
+        <Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
         Public Async Function TestAddImportForCref3() As Task
             Dim initialText =
 "
@@ -1288,7 +1264,7 @@ End Module
                 parseOptions:=options)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
+        <Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
         Public Async Function TestAddImportForCref4() As Task
             Dim initialText =
 "
@@ -1346,7 +1322,7 @@ End Module
                 parseOptions:=options)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
+        <Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
         Public Async Function TestAddImportForCref5() As Task
             Dim initialText =
 "
@@ -1383,7 +1359,7 @@ End Class
                 parseOptions:=options)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
+        <Theory, WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
         <CombinatorialData>
         Public Async Function TestExtensionMethodNoMemberAccessOverload(testHost As TestHost) As Task
             Await TestAsync(
@@ -1427,7 +1403,7 @@ Namespace NS2
 End Namespace", testHost, )
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
+        <Theory, WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
         <CombinatorialData>
         Public Async Function TestExtensionMethodNoMemberAccess(testHost As TestHost) As Task
             Await TestAsync(
@@ -1467,7 +1443,7 @@ Namespace NS2
 End Namespace", testHost, )
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(1003618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003618")>
+        <Theory, WorkItem(1003618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003618")>
         <CombinatorialData>
         Public Async Function TestAddImportsTypeParsedAsNamespace(testHost As TestHost) As Task
             Await TestAsync(
@@ -1506,7 +1482,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")>
+        <Theory, WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")>
         <CombinatorialData>
         Public Async Function TestAddImportsForTypeAttribute(testHost As TestHost) As Task
             Await TestAsync(
@@ -1537,7 +1513,7 @@ Namespace N
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")>
+        <Theory, WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")>
         <CombinatorialData>
         Public Async Function TestAddImportsForTypeAttributeMultipleNestedClasses(testHost As TestHost) As Task
             Await TestAsync(
@@ -1572,7 +1548,7 @@ Namespace N
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")>
+        <Theory, WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")>
         <CombinatorialData>
         Public Async Function TestAddImportsForTypeAttributePartiallyQualified(testHost As TestHost) As Task
             Await TestAsync(
@@ -1607,7 +1583,7 @@ Namespace N
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Theory, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <CombinatorialData>
         Public Async Function TestConditionalAccessExtensionMethod(testHost As TestHost) As Task
             Dim initial = <Workspace>
@@ -1644,7 +1620,7 @@ End Class
             Await TestAsync(initial, expected, testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Theory, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <CombinatorialData>
         Public Async Function TestConditionalAccessExtensionMethod2(testHost As TestHost) As Task
             Dim initial = <Workspace>
@@ -1697,8 +1673,7 @@ End Class
             Await TestAsync(initial, expected, testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestAddUsingInDirective(testHost As TestHost) As Task
             Await TestAsync(
 "#Const Debug
@@ -1726,8 +1701,7 @@ Module Program
 End Module", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestAddUsingInDirective2(testHost As TestHost) As Task
             Await TestAsync(
 "#Const Debug
@@ -1755,8 +1729,7 @@ Module Program
 End Module", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestAddUsingInDirective3(testHost As TestHost) As Task
             Await TestAsync(
 "#Const Debug
@@ -1784,8 +1757,7 @@ Module Program
 End Module", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestInaccessibleExtensionMethod(testHost As TestHost) As Task
             Dim initial = <Workspace>
                               <Project Language="Visual Basic" AssemblyName="lib" CommonReferences="true">
@@ -1830,8 +1802,7 @@ End Module
             Await TestAsync(initial, expected, testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestInaccessibleExtensionMethod2(testHost As TestHost) As Task
             Dim initial = <Workspace>
                               <Project Language="Visual Basic" AssemblyName="lib" CommonReferences="true">
@@ -1865,7 +1836,7 @@ End Module
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
+        <Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         Public Async Function TestAddImportForAddExtensionMethod() As Task
             Await TestAsync(
 "Imports System
@@ -1907,7 +1878,7 @@ End Namespace",
 parseOptions:=Nothing)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
+        <Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         Public Async Function TestAddImportForAddExtensionMethod2() As Task
             Await TestAsync(
 "Imports System
@@ -1949,7 +1920,7 @@ End Namespace",
 parseOptions:=Nothing)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
+        <Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         Public Async Function TestAddImportForAddExtensionMethod3() As Task
             Await TestAsync(
 "Imports System
@@ -1991,7 +1962,7 @@ End Namespace",
 parseOptions:=Nothing)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
+        <Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         Public Async Function TestAddImportForAddExtensionMethod4() As Task
             Await TestAsync(
 "Imports System
@@ -2033,7 +2004,7 @@ End Namespace",
 parseOptions:=Nothing)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
+        <Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         Public Async Function TestAddImportForAddExtensionMethod5() As Task
             Await TestAsync(
 "Imports System
@@ -2075,7 +2046,7 @@ End Namespace",
 parseOptions:=Nothing)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
+        <Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         Public Async Function TestAddImportForAddExtensionMethod6() As Task
             Await TestAsync(
 "Imports System
@@ -2131,7 +2102,7 @@ End Namespace",
 parseOptions:=Nothing)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
+        <Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         Public Async Function TestAddImportForAddExtensionMethod7() As Task
             Await TestAsync(
 "Imports System
@@ -2188,8 +2159,7 @@ index:=1,
 parseOptions:=Nothing)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         <WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")>
         Public Async Function TestAddUsingWithOtherExtensionsInScope(testHost As TestHost) As Task
             Await TestAsync(
@@ -2227,8 +2197,7 @@ Namespace X
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         <WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")>
         Public Async Function TestAddUsingWithOtherExtensionsInScope2(testHost As TestHost) As Task
             Await TestAsync(
@@ -2268,8 +2237,7 @@ Namespace X
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         <WorkItem(562, "https://github.com/dotnet/roslyn/issues/562")>
         Public Async Function TestAddUsingWithOtherExtensionsInScope3(testHost As TestHost) As Task
             Await TestAsync(
@@ -2325,8 +2293,7 @@ Namespace Y
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         <WorkItem(562, "https://github.com/dotnet/roslyn/issues/562")>
         Public Async Function TestAddUsingWithOtherExtensionsInScope4(testHost As TestHost) As Task
             Await TestAsync(
@@ -2382,8 +2349,7 @@ Namespace Y
 End Namespace", testHost)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue)>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         <WorkItem(19796, "https://github.com/dotnet/roslyn/issues/19796")>
         Public Async Function TestWhenInRome1(testHost As TestHost) As Task
             Await TestAsync(
@@ -2412,7 +2378,7 @@ Namespace A
 End Namespace", testHost, placeSystemFirst:=False)
         End Function
 
-        <ConditionalTheory(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(19796, "https://github.com/dotnet/roslyn/issues/19796")>
+        <Theory, WorkItem(19796, "https://github.com/dotnet/roslyn/issues/19796")>
         <CombinatorialData>
         Public Async Function TestWhenInRome2(testHost As TestHost) As Task
             Await TestAsync(
@@ -2441,7 +2407,7 @@ Namespace A
 End Namespace", testHost, placeSystemFirst:=True)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(1744, "https://github.com/dotnet/roslyn/issues/1744")>
+        <Fact, WorkItem(1744, "https://github.com/dotnet/roslyn/issues/1744")>
         Public Async Function TestImportIncompleteSub() As Task
             Await TestAsync(
 "Imports System
@@ -2473,7 +2439,7 @@ Namespace T
 End Namespace", TestHost.InProcess)
         End Function
 
-        <ConditionalFact(GetType(IsRelease), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(1239, "https://github.com/dotnet/roslyn/issues/1239")>
+        <Fact, WorkItem(1239, "https://github.com/dotnet/roslyn/issues/1239")>
         Public Async Function TestImportIncompleteSub2() As Task
             Await TestAsync(
 "Imports System

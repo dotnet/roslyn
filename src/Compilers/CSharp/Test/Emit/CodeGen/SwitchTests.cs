@@ -1268,7 +1268,6 @@ public class Test
             );
         }
 
-
         [Fact]
         public void ULongTypeSwitchArgumentExpression()
         {
@@ -1357,7 +1356,6 @@ public class Test
 }"
             );
         }
-
 
         [Fact]
         public void EnumTypeSwitchArgumentExpressionWithCasts()

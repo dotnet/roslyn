@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 guidStreamLengthAdded: metadataSizes.HeapSizes[(int)HeapIndex.Guid],
                 anonymousTypeMap: ((IPEDeltaAssemblyBuilder)module).GetAnonymousTypeMap(),
                 anonymousDelegates: ((IPEDeltaAssemblyBuilder)module).GetAnonymousDelegates(),
-                anonymousDelegatesWithFixedTypes: ((IPEDeltaAssemblyBuilder)module).GetAnonymousDelegatesWithFixedTypes(),
+                anonymousDelegatesWithIndexedNames: ((IPEDeltaAssemblyBuilder)module).GetAnonymousDelegatesWithIndexedNames(),
                 synthesizedMembers: synthesizedMembers,
                 deletedMembers: deletedMembers,
                 addedOrChangedMethods: AddRange(_previousGeneration.AddedOrChangedMethods, addedOrChangedMethodsByIndex),

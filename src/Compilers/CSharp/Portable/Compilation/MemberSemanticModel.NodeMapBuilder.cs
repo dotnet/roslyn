@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()

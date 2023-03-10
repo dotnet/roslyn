@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        private OptionsCollection UseExpressionBody =>
-            Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
+        private OptionsCollection UseExpressionBody
+            => Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
 
         [Fact]
         public async Task TestExpressionWithNoMethodCallsCase()

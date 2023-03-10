@@ -25,6 +25,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
 
         Protected Overrides ReadOnly Property ShouldMoveCloseBraceToNewLine As Boolean = False
 
+        Protected Overrides Function FirstToken(listSyntax As ArgumentListSyntax) As SyntaxToken
+            Return listSyntax.OpenParenToken
+        End Function
+
+        Protected Overrides Function LastToken(listSyntax As ArgumentListSyntax) As SyntaxToken
+            Return listSyntax.CloseParenToken
+        End Function
+
         Protected Overrides Function GetListItems(listSyntax As ArgumentListSyntax) As SeparatedSyntaxList(Of ArgumentSyntax)
             Return listSyntax.Arguments
         End Function

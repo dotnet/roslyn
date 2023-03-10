@@ -227,6 +227,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return cacheEntry;
         }
+        private static string ConcatNamespace(string? containingNamespace, string name)
+            => string.IsNullOrEmpty(containingNamespace) ? name : containingNamespace + "." + name;
 
         private static void GetCompletionItemsForTopLevelTypeDeclarations(
             INamespaceSymbol rootNamespaceSymbol,
@@ -243,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                containingNamespace = CompletionHelper.ConcatNamespace(containingNamespace, symbol.Name);
+                containingNamespace = ConcatNamespace(containingNamespace, symbol.Name);
 
                 foreach (var memberNamespace in symbol.GetNamespaceMembers())
                 {
@@ -256,8 +258,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // Iterate over all top level internal and public types, keep track of "type overloads".
                 foreach (var type in types)
                 {
-                    // No need to check accessibility here, since top level types can only be internal or public.
-                    if (type.CanBeReferencedByName)
+                    // Include all top level types except those declared as `file` (i.e. all internal or public)
+                    if (type.CanBeReferencedByName && !type.IsFileLocal)
                     {
                         overloads.TryGetValue(type.Name, out var overloadInfo);
                         overloads[type.Name] = overloadInfo.Aggregate(type);

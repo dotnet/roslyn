@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 {
@@ -47,9 +48,13 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         }"
 ;
 
+        public DocumentOutlineTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         private async Task<(DocumentOutlineTestMocks mocks, DocumentSymbolDataModel model, ImmutableArray<DocumentSymbolUIItem> uiItems)> InitializeMocksAndDataModelAndUIItems(string testCode)
         {
-            using var mocks = await CreateMocksAsync(testCode);
+            await using var mocks = await CreateMocksAsync(testCode);
             var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(mocks.TextBuffer, mocks.LanguageServiceBroker, mocks.FilePath, CancellationToken.None);
             AssertEx.NotNull(response.Value);
 

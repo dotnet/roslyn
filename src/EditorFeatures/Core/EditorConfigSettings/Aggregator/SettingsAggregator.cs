@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
     {
         private readonly Workspace _workspace;
         private readonly ISettingsProviderFactory<AnalyzerSetting> _analyzerProvider;
-        private ISettingsProviderFactory<WhitespaceSetting> _whitespaceProvider;
+        private ISettingsProviderFactory<Setting> _whitespaceProvider;
         private ISettingsProviderFactory<NamingStyleSetting> _namingStyleProvider;
         private ISettingsProviderFactory<CodeStyleSetting> _codeStyleProvider;
 
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
         {
             _workspace = workspace;
             _workspace.WorkspaceChanged += UpdateProviders;
-            _whitespaceProvider = GetOptionsProviderFactory<WhitespaceSetting>(_workspace);
+            _whitespaceProvider = GetOptionsProviderFactory<Setting>(_workspace);
             _codeStyleProvider = GetOptionsProviderFactory<CodeStyleSetting>(_workspace);
             _namingStyleProvider = GetOptionsProviderFactory<NamingStyleSetting>(_workspace);
             _analyzerProvider = GetOptionsProviderFactory<AnalyzerSetting>(_workspace);
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
                 case WorkspaceChangeKind.ProjectAdded:
                 case WorkspaceChangeKind.ProjectRemoved:
                 case WorkspaceChangeKind.ProjectChanged:
-                    _whitespaceProvider = GetOptionsProviderFactory<WhitespaceSetting>(_workspace);
+                    _whitespaceProvider = GetOptionsProviderFactory<Setting>(_workspace);
                     _codeStyleProvider = GetOptionsProviderFactory<CodeStyleSetting>(_workspace);
                     _namingStyleProvider = GetOptionsProviderFactory<NamingStyleSetting>(_workspace);
                     break;
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
                 return (ISettingsProvider<TData>)_analyzerProvider.GetForFile(fileName);
             }
 
-            if (typeof(TData) == typeof(WhitespaceSetting))
+            if (typeof(TData) == typeof(Setting))
             {
                 return (ISettingsProvider<TData>)_whitespaceProvider.GetForFile(fileName);
             }

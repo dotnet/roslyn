@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             if (TestWorkspace.IsWorkspaceElement(expectedText))
             {
                 var newSolutionWithLinkedFiles = await newSolution.WithMergedLinkedFileChangesAsync(oldSolution);
-                await VerifyAgainstWorkspaceDefinitionAsync(expectedText, newSolutionWithLinkedFiles, workspace.ExportProvider);
+                await VerifyAgainstWorkspaceDefinitionAsync(expectedText, newSolutionWithLinkedFiles, workspace.Composition);
                 return Tuple.Create(oldSolution, newSolution);
             }
 
@@ -661,9 +661,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return document;
         }
 
-        private static async Task VerifyAgainstWorkspaceDefinitionAsync(string expectedText, Solution newSolution, ExportProvider exportProvider)
+        private static async Task VerifyAgainstWorkspaceDefinitionAsync(string expectedText, Solution newSolution, TestComposition composition)
         {
-            using (var expectedWorkspace = TestWorkspace.Create(expectedText, exportProvider: exportProvider))
+            using (var expectedWorkspace = TestWorkspace.Create(expectedText, composition: composition))
             {
                 var expectedSolution = expectedWorkspace.CurrentSolution;
                 Assert.Equal(expectedSolution.Projects.Count(), newSolution.Projects.Count());

@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             var title = syntaxFacts.ConvertToSingleLine(token.Parent).ToString();
             if (title.Length >= 10)
             {
-                title = title.Substring(0, 10) + "...";
+                title = title[..10] + "...";
             }
 
             var searchTitle = string.Format(FeaturesResources._0_references, title);

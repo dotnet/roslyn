@@ -30,13 +30,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation
             _underlyingService = underlyingService;
         }
 
-        public async Task<INavigableLocation?> TryGetNavigableLocationAsync(string documentationCommentId, CancellationToken cancellationToken)
+        public async Task<INavigableLocation?> TryGetNavigableLocationAsync(
+            string assemblyName, string documentationCommentId, CancellationToken cancellationToken)
         {
             // Only defer to actual F# service if it exists.
             if (_underlyingService is null)
                 return null;
 
-            var location = await _underlyingService.TryGetNavigableLocationAsync(documentationCommentId, cancellationToken).ConfigureAwait(false);
+            var location = await _underlyingService.TryGetNavigableLocationAsync(
+                assemblyName, documentationCommentId, cancellationToken).ConfigureAwait(false);
             if (location == null)
                 return null;
 

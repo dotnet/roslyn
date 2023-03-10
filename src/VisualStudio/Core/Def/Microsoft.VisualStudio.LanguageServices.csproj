@@ -40,7 +40,6 @@
     <None Include=".\ColorSchemes\VisualStudio2019.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <ItemGroup Label="Build Items">
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
@@ -89,14 +88,8 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <!-- <TODO> remove, once project system is updated https://github.com/dotnet/roslyn/issues/20320 -->
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <!-- </TODO> -->
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
@@ -134,6 +127,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Designer.Interfaces" Version="$(MicrosoftVisualStudioDesignerInterfacesVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Search" Version="$(MicrosoftVisualStudioSearchVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorVersion)" />

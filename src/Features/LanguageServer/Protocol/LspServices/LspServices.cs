@@ -5,18 +5,24 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition.Hosting;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal class LspServices : IDisposable
+internal class LspServices : ILspServices
 {
-    private readonly ImmutableDictionary<Type, Lazy<ILspService, LspServiceMetadataView>> _lazyLspServices;
+    private readonly ImmutableDictionary<Type, Lazy<ILspService, LspServiceMetadataView>> _lazyMefLspServices;
+
+    /// <summary>
+    /// A set of base services that apply to all roslyn lsp services.
+    /// Unfortunately MEF doesn't provide a good way to export something for multiple contracts with metadata
+    /// so these are manually created in <see cref="RoslynLanguageServer"/>.
+    /// TODO - cleanup once https://github.com/dotnet/roslyn/issues/63555 is resolved.
+    /// </summary>
+    private readonly ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> _baseServices;
 
     /// <summary>
     /// Gates access to <see cref="_servicesToDispose"/>.
@@ -28,7 +34,7 @@ internal class LspServices : IDisposable
         ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> mefLspServices,
         ImmutableArray<Lazy<ILspServiceFactory, LspServiceMetadataView>> mefLspServiceFactories,
         WellKnownLspServerKinds serverKind,
-        ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> baseServices)
+        ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> baseServices)
     {
         // Convert MEF exported service factories to the lazy LSP services that they create.
         var servicesFromFactories = mefLspServiceFactories.Select(lz => new Lazy<ILspService, LspServiceMetadataView>(() => lz.Value.CreateILspService(this, serverKind), lz.Metadata));
@@ -38,28 +44,45 @@ internal class LspServices : IDisposable
         // Make sure that we only include services exported for the specified server kind (or NotSpecified).
         services = services.Where(lazyService => lazyService.Metadata.ServerKind == serverKind || lazyService.Metadata.ServerKind == WellKnownLspServerKinds.Any);
 
-        // Include the base level services that were passed in.
-        services = services.Concat(baseServices);
+        // This will throw if the same service is registered twice
+        _lazyMefLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.Type, lazyService => lazyService);
 
-        _lazyLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.Type, lazyService => lazyService);
+        // Bit cheaky, but lets make an this ILspService available on the base services to make constructors that take an ILspServices instance possible.
+        _baseServices = baseServices.Add(typeof(ILspServices), ImmutableArray.Create<Func<ILspServices, object>>((_) => this));
     }
 
-    public T GetRequiredService<T>() where T : class, ILspService
+    public T GetRequiredService<T>() where T : notnull
     {
-        var service = GetService<T>();
+        T? service;
+
+        // Check the base services first
+        service = GetBaseServices<T>().SingleOrDefault();
+        service ??= GetService<T>();
+
         Contract.ThrowIfNull(service, $"Missing required LSP service {typeof(T).FullName}");
         return service;
     }
 
-    public T? GetService<T>() where T : class, ILspService
+    public T? GetService<T>()
     {
         var type = typeof(T);
-        return TryGetService(type, out var service) ? (T)service : null;
+        var service = (T?)TryGetService(type);
+
+        return service;
     }
 
-    public bool TryGetService(Type type, [NotNullWhen(true)] out object? lspService)
+    public IEnumerable<T> GetRequiredServices<T>()
     {
-        if (_lazyLspServices.TryGetValue(type, out var lazyService))
+        var baseServices = GetBaseServices<T>();
+        var mefServices = GetMefServices<T>();
+
+        return baseServices != null ? mefServices.Concat(baseServices) : mefServices;
+    }
+
+    public object? TryGetService(Type type)
+    {
+        object? lspService;
+        if (_lazyMefLspServices.TryGetValue(type, out var lazyService))
         {
             // If we are creating a stateful LSP service for the first time, we need to check
             // if it is disposable after creation and keep it around to dispose of on shutdown.
@@ -75,14 +98,57 @@ internal class LspServices : IDisposable
                 }
             }
 
-            return true;
+            return lspService;
         }
 
         lspService = null;
-        return false;
+        return lspService;
     }
 
-    public ImmutableArray<Type> GetRegisteredServices() => _lazyLspServices.Keys.ToImmutableArray();
+    public ImmutableArray<Type> GetRegisteredServices() => _lazyMefLspServices.Keys.ToImmutableArray();
+
+    public bool SupportsGetRegisteredServices()
+    {
+        return true;
+    }
+
+    private IEnumerable<T> GetBaseServices<T>()
+    {
+        if (_baseServices.TryGetValue(typeof(T), out var baseServices))
+        {
+            return baseServices.Select(creatorFunc => (T)creatorFunc(this)).ToImmutableArray();
+        }
+
+        return ImmutableArray<T>.Empty;
+    }
+
+    private IEnumerable<T> GetMefServices<T>()
+    {
+        if (typeof(T) == typeof(IMethodHandler))
+        {
+            // HACK: There is special handling for the IMethodHandler to make sure that its types remain lazy
+            // Special case this to avoid providing them twice.
+            yield break;
+        }
+
+        var allServices = GetRegisteredServices();
+        foreach (var service in allServices)
+        {
+            var @interface = service.GetInterface(typeof(T).Name);
+            if (@interface is not null)
+            {
+                var instance = TryGetService(service);
+                if (instance is not null)
+                {
+                    yield return (T)instance;
+                }
+                else
+                {
+                    throw new Exception("Service failed to construct");
+                }
+            }
+        }
+    }
 
     public void Dispose()
     {

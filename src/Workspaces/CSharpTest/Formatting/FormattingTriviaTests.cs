@@ -1661,7 +1661,7 @@ class Program
         public async Task FormatInvalidCode_2()
         {
             var content = @">	Roslyn.Utilities.dll! Line 43 + 0x5 bytes	Basic";
-            var expectedContent = @"> Roslyn.Utilities.dll! Line 43 + 0x5 bytes Basic";
+            var expectedContent = @"> Roslyn.Utilities.dll! Line 43 + 0x5 bytes	Basic";
             await AssertFormatAsync(expectedContent, content);
         }
 

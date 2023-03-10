@@ -77,6 +77,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaDataFactory.ModifiedComplexTrivia.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaRewriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\NewLineBeforeOpenBracePlacement.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\SpacingWithinParentheses.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\AnchorIndentationFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\BaseFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\ElasticTriviaFormattingRule.cs" />

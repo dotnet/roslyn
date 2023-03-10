@@ -40,7 +40,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 (!string.IsNullOrWhiteSpace(d.DataLocation.UnmappedFileSpan.Path) ? $" {d.DataLocation.UnmappedFileSpan.Path}({d.DataLocation.UnmappedFileSpan.StartLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.StartLinePosition.Character}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Character}):" : "") +
                 $" {d.Message}";
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Theory]
         [CombinatorialData]
         public async Task Proxy(TestHost testHost)
         {
@@ -145,7 +145,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             IManagedHotReloadService? remoteDebuggeeModuleMetadataProvider = null;
 
-            var debuggingSession = mockEncService.StartDebuggingSessionImpl = (solution, debuggerService, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics) =>
+            var debuggingSession = mockEncService.StartDebuggingSessionImpl = (solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics) =>
             {
                 Assert.Equal("proj", solution.GetRequiredProject(projectId).Name);
                 AssertEx.Equal(new[] { documentId }, captureMatchingDocuments);
@@ -163,6 +163,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                     IsEditAndContinueAvailable = _ => new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.NotAllowedForModule, "can't do enc"),
                     GetActiveStatementsImpl = () => ImmutableArray.Create(as1)
                 },
+                sourceTextProvider: NullPdbMatchingSourceTextProvider.Instance,
                 captureMatchingDocuments: ImmutableArray.Create(documentId),
                 captureAllMatchingDocuments: false,
                 reportDiagnostics: true,
@@ -241,7 +242,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             {
                 $"[{projectId}] Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "some error")}",
                 $"[{projectId}] Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "proj", "some error")}"
-            }, emitDiagnosticsUpdated.Select(update => Inspect(update.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode).Single())));
+            }, emitDiagnosticsUpdated.Select(update => Inspect(update.Diagnostics.Single())));
 
             emitDiagnosticsUpdated.Clear();
 
@@ -346,21 +347,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             Assert.Empty(await proxy.GetDocumentDiagnosticsAsync(inProcOnlyDocument, inProcOnlyDocument, activeStatementSpanProvider, CancellationToken.None));
             Assert.Equal(diagnostic.GetMessage(), (await proxy.GetDocumentDiagnosticsAsync(document, document, activeStatementSpanProvider, CancellationToken.None)).Single().GetMessage());
-
-            // OnSourceFileUpdatedAsync
-
-            called = false;
-            mockEncService.OnSourceFileUpdatedImpl = updatedDocument =>
-            {
-                Assert.Equal(documentId, updatedDocument.Id);
-                called = true;
-            };
-
-            await proxy.OnSourceFileUpdatedAsync(inProcOnlyDocument, CancellationToken.None);
-            Assert.False(called);
-
-            await proxy.OnSourceFileUpdatedAsync(document, CancellationToken.None);
-            Assert.True(called);
 
             // EndDebuggingSession
 

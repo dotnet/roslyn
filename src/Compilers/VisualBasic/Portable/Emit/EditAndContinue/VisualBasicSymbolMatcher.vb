@@ -366,7 +366,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        AssemblyIdentity.EqualIgnoringNameAndVersion(leftIdentity, rightIdentity)
             End Function
 
-
             Public Overrides Function VisitNamespace([namespace] As NamespaceSymbol) As Symbol
                 Dim otherContainer As Symbol = Visit([namespace].ContainingSymbol)
 

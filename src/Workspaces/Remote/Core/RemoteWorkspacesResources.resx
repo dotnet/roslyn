@@ -156,6 +156,9 @@
   <data name="FeatureName_FindUsages" xml:space="preserve">
     <value>Find usages</value>
   </data>
+  <data name="FeatureName_FullyQualify" xml:space="preserve">
+    <value>Fully qualify</value>
+  </data>
   <data name="FeatureName_GlobalNotificationDelivery" xml:space="preserve">
     <value>Global notification delivery</value>
   </data>
@@ -212,5 +215,11 @@
   </data>
   <data name="FeatureName_StackTraceExplorer" xml:space="preserve">
     <value>Stack Trace Explorer</value>
+  </data>
+  <data name="FeatureName_LegacySolutionEventsAggregation" xml:space="preserve">
+    <value>Solution Events</value>
+  </data>
+  <data name="FeatureName_UnitTestingSearch" xml:space="preserve">
+    <value>Unit testing search</value>
   </data>
 </root>

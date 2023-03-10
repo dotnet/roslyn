@@ -327,6 +327,6 @@ if [[ "$test_core_clr" == true ]]; then
   if [[ "$ci" != true ]]; then
     runtests_args="$runtests_args --html"
   fi
-  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net6.0/RunTests.dll" --tfm net6.0 --configuration ${configuration} --logs ${log_dir} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
+  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net7.0/RunTests.dll" --tfm net7.0 --configuration ${configuration} --logs ${log_dir} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
 fi
 ExitWithExitCode 0

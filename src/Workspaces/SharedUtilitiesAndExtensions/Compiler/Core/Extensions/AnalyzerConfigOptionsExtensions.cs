@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis
             => TryGetEditorConfigOption(analyzerConfigOptions, option, defaultValue: default, out value);
 
         public static T GetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, T defaultValue)
-            => TryGetEditorConfigOption(analyzerConfigOptions, option, new Optional<T?>(defaultValue), out var value) ? value! : throw ExceptionUtilities.Unreachable;
+            => TryGetEditorConfigOption(analyzerConfigOptions, option, new Optional<T?>(defaultValue), out var value) ? value! : throw ExceptionUtilities.Unreachable();
 
         public static T GetEditorConfigOptionValue<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, T defaultValue)
-            => TryGetEditorConfigOption(analyzerConfigOptions, option, new Optional<CodeStyleOption2<T>?>(new CodeStyleOption2<T>(defaultValue, NotificationOption2.None)), out var style) ? style!.Value : throw ExceptionUtilities.Unreachable;
+            => TryGetEditorConfigOption(analyzerConfigOptions, option, new Optional<CodeStyleOption2<T>?>(new CodeStyleOption2<T>(defaultValue, NotificationOption2.None)), out var style) ? style!.Value : throw ExceptionUtilities.Unreachable();
 
         private static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, Optional<T?> defaultValue, out T? value)
         {
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
                 // This code path will avoid allocating a Dictionary wrapper since we can get direct access to the KeyName.
                 if (storageLocation is EditorConfigStorageLocation<T> editorConfigStorageLocation &&
                     analyzerConfigOptions.TryGetValue(editorConfigStorageLocation.KeyName, out var stringValue) &&
-                    editorConfigStorageLocation.TryGetOption(stringValue, typeof(T), out value))
+                    editorConfigStorageLocation.TryGetOption(stringValue, out value))
                 {
                     return true;
                 }

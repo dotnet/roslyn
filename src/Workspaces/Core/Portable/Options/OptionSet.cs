@@ -56,26 +56,40 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
-        public T GetOption<T>(Option<T> option)
-            => OptionsHelpers.GetOption(option, _getOptionCore);
-
-        /// <summary>
-        /// Gets the value of the option, or the default value if not otherwise set.
-        /// </summary>
         internal T GetOption<T>(Option2<T> option)
             => OptionsHelpers.GetOption(option, _getOptionCore);
 
         /// <summary>
         /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
-        public T GetOption<T>(PerLanguageOption<T> option, string? language)
+        internal T GetOption<T>(PerLanguageOption2<T> option, string? language)
             => OptionsHelpers.GetOption(option, language, _getOptionCore);
+
+#pragma warning disable RS0030 // Do not used banned APIs: PerLanguageOption<T>
+        /// <summary>
+        /// Gets the value of the option, or the default value if not otherwise set.
+        /// </summary>
+        public T GetOption<T>(Option<T> option)
+            => OptionsHelpers.GetOption<T>(new OptionKey(option), _getOptionCore);
+
+        /// <summary>
+        /// Creates a new <see cref="OptionSet" /> that contains the changed value.
+        /// </summary>
+        public OptionSet WithChangedOption<T>(Option<T> option, T value)
+            => WithChangedOption(new OptionKey(option), value);
 
         /// <summary>
         /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
-        internal T GetOption<T>(PerLanguageOption2<T> option, string? language)
-            => OptionsHelpers.GetOption(option, language, _getOptionCore);
+        public T GetOption<T>(PerLanguageOption<T> option, string? language)
+            => OptionsHelpers.GetOption<T>(new OptionKey(option, language), _getOptionCore);
+
+        /// <summary>
+        /// Creates a new <see cref="OptionSet" /> that contains the changed value.
+        /// </summary>
+        public OptionSet WithChangedOption<T>(PerLanguageOption<T> option, string? language, T value)
+            => WithChangedOption(new OptionKey(option, language), value);
+#pragma warning restore
 
         /// <summary>
         /// Creates a new <see cref="OptionSet" /> that contains the changed value.
@@ -91,20 +105,8 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Creates a new <see cref="OptionSet" /> that contains the changed value.
         /// </summary>
-        public OptionSet WithChangedOption<T>(Option<T> option, T value)
-            => WithChangedOption(new OptionKey(option), value);
-
-        /// <summary>
-        /// Creates a new <see cref="OptionSet" /> that contains the changed value.
-        /// </summary>
         internal OptionSet WithChangedOption<T>(Option2<T> option, T value)
             => WithChangedOption(new OptionKey(option), value);
-
-        /// <summary>
-        /// Creates a new <see cref="OptionSet" /> that contains the changed value.
-        /// </summary>
-        public OptionSet WithChangedOption<T>(PerLanguageOption<T> option, string? language, T value)
-            => WithChangedOption(new OptionKey(option, language), value);
 
         /// <summary>
         /// Creates a new <see cref="OptionSet" /> that contains the changed value.

@@ -1254,5 +1254,104 @@ enum MyEnum
     }
 }");
         }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task NotOnCompleteBoolean1()
+        {
+            await TestMissingAsync(
+@"
+public class Sample
+{
+    public string Method(bool boolean)
+    {
+        [||]switch (boolean)
+        {
+            case true: return ""true"";
+            case false: ""false"";
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task NotOnCompleteBoolean2()
+        {
+            await TestMissingAsync(
+@"
+public class Sample
+{
+    public string Method(bool? boolean)
+    {
+        [||]switch (boolean)
+        {
+            case true: return ""true"";
+            case false: return ""false"";
+            case null: return ""null"";
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task OnIncompleteBoolean1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+public class Sample
+{
+    public string Method(bool boolean)
+    {
+        [||]switch (boolean)
+        {
+            case true: return ""true"";
+        }
+    }
+}",
+@"
+public class Sample
+{
+    public string Method(bool boolean)
+    {
+        switch (boolean)
+        {
+            case true: return ""true"";
+            default:
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task OnIncompleteBoolean2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+public class Sample
+{
+    public string Method(bool? boolean)
+    {
+        [||]switch (boolean)
+        {
+            case true: return ""true"";
+            case false: return ""false"";
+        }
+    }
+}",
+@"
+public class Sample
+{
+    public string Method(bool? boolean)
+    {
+        switch (boolean)
+        {
+            case true: return ""true"";
+            case false: return ""false"";
+            default:
+                break;
+        }
+    }
+}");
+        }
     }
 }

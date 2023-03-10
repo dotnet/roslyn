@@ -115,6 +115,7 @@ namespace Microsoft.Cci
             _debugMetadataOpt = debugMetadataOpt;
             _dynamicAnalysisDataWriterOpt = dynamicAnalysisDataWriterOpt;
             _smallMethodBodies = new Dictionary<(ImmutableArray<byte>, bool), int>(ByteSequenceBoolTupleComparer.Instance);
+            _scopeIndex = new Dictionary<IImportScope, ImportScopeHandle>(new ImportScopeEqualityComparer(context));
         }
 
         /// <summary>
@@ -1099,7 +1100,7 @@ namespace Microsoft.Cci
             {
                 IFieldReference fieldReference => this.GetFieldSignatureIndex(fieldReference),
                 IMethodReference methodReference => this.GetMethodSignatureHandle(methodReference),
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.Unreachable()
             };
         }
 
@@ -1587,7 +1588,7 @@ namespace Microsoft.Cci
                 return GetMethodDefinitionHandle(genMethPar.DefiningMethod);
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private TypeReferenceHandle GetTypeReferenceHandle(ITypeReference typeReference)
@@ -1678,7 +1679,7 @@ namespace Microsoft.Cci
                 IFieldDefinition fieldDef => GetFieldDefinitionHandle(fieldDef),
                 IEventDefinition eventDef => GetEventDefinitionHandle(eventDef),
                 IPropertyDefinition propertyDef => GetPropertyDefIndex(propertyDef),
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.Unreachable()
             };
         }
 
@@ -2315,7 +2316,15 @@ namespace Microsoft.Cci
                     continue;
                 }
 
+                // The compiler always aligns each RVA data field to an 8-byte boundary; this accomodates the alignment
+                // needs for all primitive types, regardless of which type is actually being used, at the expense of
+                // potentially wasting up to 7 bytes per field if the alignment needs are less. In the future, this
+                // potentially could be tightened to align each field only as much as is actually required by that
+                // field, saving a few bytes per field.
                 int offset = mappedFieldDataWriter.Count;
+                Debug.Assert(offset % ManagedPEBuilder.MappedFieldDataAlignment == 0, "Expected last write to end at alignment boundary");
+                Debug.Assert(ManagedPEBuilder.MappedFieldDataAlignment == 8, "Expected alignment to be 8");
+
                 mappedFieldDataWriter.WriteBytes(fieldDef.MappedData);
                 mappedFieldDataWriter.Align(ManagedPEBuilder.MappedFieldDataAlignment);
 

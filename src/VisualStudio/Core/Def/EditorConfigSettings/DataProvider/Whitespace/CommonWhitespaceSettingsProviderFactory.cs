@@ -7,13 +7,13 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whitespace
 {
-    internal class CommonWhitespaceSettingsProviderFactory : IWorkspaceSettingsProviderFactory<WhitespaceSetting>
+    internal class CommonWhitespaceSettingsProviderFactory : IWorkspaceSettingsProviderFactory<Setting>
     {
         private readonly Workspace _workspace;
 
         public CommonWhitespaceSettingsProviderFactory(Workspace workspace) => _workspace = workspace;
 
-        public ISettingsProvider<WhitespaceSetting> GetForFile(string filePath)
+        public ISettingsProvider<Setting> GetForFile(string filePath)
             => new CommonWhitespaceSettingsProvider(filePath, new OptionUpdater(_workspace, filePath), _workspace);
 
     }

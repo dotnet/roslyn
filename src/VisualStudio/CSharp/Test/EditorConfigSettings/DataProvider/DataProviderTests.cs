@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
         [Fact]
         public void TestGettingWhitespaceSettingsProvider()
         {
-            TestGettingSettingsProviderFromWorkspace<WhitespaceSetting>();
-            TestGettingSettingsProviderFromLanguageService<WhitespaceSetting>();
+            TestGettingSettingsProviderFromWorkspace<Setting>();
+            TestGettingSettingsProviderFromLanguageService<Setting>();
         }
 
         [Fact]
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
         [Fact]
         public void TestGettingWhitespaceSettingProviderWorkspaceServiceAsync()
         {
-            var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspace<WhitespaceSetting>();
+            var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspace<Setting>();
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
@@ -194,19 +194,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
         [Fact]
         public void TestGettingWhitespaceSettingProviderLanguageServiceAsync()
         {
-            var settingsProviderFactory = GettingSettingsProviderFactoryFromLanguageService<WhitespaceSetting>(LanguageNames.CSharp);
+            var settingsProviderFactory = GettingSettingsProviderFactoryFromLanguageService<Setting>(LanguageNames.CSharp);
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
-            var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
+            var dataSnapshot = settingsProvider.GetCurrentDataSnapshot();
+
+            // multiple settings may share the same option (e.g. settings representing flags of an enum):
+            var optionsForSettings = dataSnapshot.GroupBy(s => s.Option).Select(g => g.Key).ToArray();
+
             var optionsCount = CSharpFormattingOptions2.AllOptions.Where(x => x.StorageLocations.Any(y => y is IEditorConfigStorageLocation2)).Count();
-            Assert.Equal(optionsCount, dataSnapShot.Length);
+            Assert.Equal(optionsCount, optionsForSettings.Length);
         }
 
         [Fact]
         public void TestGettingSettingProviderWithNullProjectPath1()
         {
-            var settingsProviderFactory = GettingSettingsProviderFactoryFromLanguageServiceWithNullProjectPath<WhitespaceSetting>(LanguageNames.CSharp);
+            var settingsProviderFactory = GettingSettingsProviderFactoryFromLanguageServiceWithNullProjectPath<Setting>(LanguageNames.CSharp);
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
@@ -217,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
         [Fact]
         public void TestGettingSettingProviderWithNullProjectPath2()
         {
-            var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspaceWithNullProjectPath<WhitespaceSetting>();
+            var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspaceWithNullProjectPath<Setting>();
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);

@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact, Obsolete]
+        [Fact, Obsolete("Testing obsolete API")]
         public void SetOptions_PublicGlobalOptions()
         {
             using var workspace1 = new AdhocWorkspace();

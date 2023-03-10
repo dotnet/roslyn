@@ -35,6 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
         protected override bool ShouldMoveCloseBraceToNewLine
             => false;
 
+        protected override SyntaxToken FirstToken(BaseParameterListSyntax listSyntax)
+            => listSyntax.GetOpenToken();
+
+        protected override SyntaxToken LastToken(BaseParameterListSyntax listSyntax)
+            => listSyntax.GetCloseToken();
+
         protected override SeparatedSyntaxList<ParameterSyntax> GetListItems(BaseParameterListSyntax listSyntax)
             => listSyntax.Parameters;
 

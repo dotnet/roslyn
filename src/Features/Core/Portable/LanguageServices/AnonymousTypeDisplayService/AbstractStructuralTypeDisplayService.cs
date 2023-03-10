@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         {
             using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
 
-            var invokeMethod = anonymousType.DelegateInvokeMethod ?? throw ExceptionUtilities.Unreachable;
+            var invokeMethod = anonymousType.DelegateInvokeMethod ?? throw ExceptionUtilities.Unreachable();
 
             parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, symbol: null,
                 SyntaxFactsService.GetText(SyntaxFactsService.SyntaxKinds.DelegateKeyword)));

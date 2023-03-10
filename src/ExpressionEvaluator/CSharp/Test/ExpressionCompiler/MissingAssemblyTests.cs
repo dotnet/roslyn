@@ -420,7 +420,7 @@ class C
                     else
                     {
                         Marshal.ThrowExceptionForHR(DkmExceptionUtilities.CORDBG_E_MISSING_METADATA);
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }
 
@@ -447,7 +447,7 @@ class C
                 (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                 {
                     Marshal.ThrowExceptionForHR(DkmExceptionUtilities.CORDBG_E_MISSING_METADATA);
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 });
         }
 
@@ -458,7 +458,7 @@ class C
                 (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                 {
                     Marshal.ThrowExceptionForHR(DkmExceptionUtilities.COR_E_BADIMAGEFORMAT);
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 });
         }
 
@@ -478,7 +478,7 @@ class C
             IntPtr gmdbpf(AssemblyIdentity assemblyIdentity, out uint uSize)
             {
                 Marshal.ThrowExceptionForHR(unchecked((int)0x80010108));
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             var references = ImmutableArray<MetadataBlock>.Empty;
@@ -765,7 +765,7 @@ class UseLinq
                                 block = systemCore.MetadataBlock;
                                 break;
                             default:
-                                throw ExceptionUtilities.Unreachable;
+                                throw ExceptionUtilities.Unreachable();
                         }
                         uSize = (uint)block.Size;
                         return block.Pointer;

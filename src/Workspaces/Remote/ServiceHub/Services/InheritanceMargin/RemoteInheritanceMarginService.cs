@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.Remote
             bool frozenPartialSemantics,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionChecksum, solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var document = solution.GetRequiredDocument(documentId);
+                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                 var service = document.GetRequiredLanguageService<IInheritanceMarginService>();
-                return service.GetInheritanceMemberItemsAsync(document, spanToSearch, includeGlobalImports, frozenPartialSemantics, cancellationToken);
+                return await service.GetInheritanceMemberItemsAsync(document, spanToSearch, includeGlobalImports, frozenPartialSemantics, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
     }

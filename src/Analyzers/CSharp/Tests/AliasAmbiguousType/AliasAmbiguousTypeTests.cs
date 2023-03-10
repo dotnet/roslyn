@@ -10,8 +10,11 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.AliasAmbiguousType;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -31,13 +34,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AliasAmbiguousType
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        private static string GetAmbiguousDefinition(string typeDefinion)
+        private static string GetAmbiguousDefinition(string typeDefinion, string ns1Name = "N1", string ns2Name = "N2")
             => $@"
-namespace N1
+namespace {ns1Name}
 {{
     {typeDefinion}
 }}
-namespace N2
+namespace {ns2Name}
 {{
     {typeDefinion}
 }}";
@@ -574,6 +577,112 @@ namespace NTest
 }
 ";
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
+        }
+
+        [Fact, WorkItem(30838, "https://github.com/dotnet/roslyn/issues/30838")]
+        public async Task TestSortSystemFirst1()
+        {
+            var classDef = GetAmbiguousDefinition("public class Ambiguous { }", "Microsoft", "System");
+            var initialMarkup = classDef + @"
+namespace Test
+{
+    using System;
+    using Microsoft;
+    class C
+    {
+        void M()
+        {
+            var a = new [|Ambiguous|]();
+        }
+    }
+}";
+            var expectedMarkup0 = classDef + @"
+namespace Test
+{
+    using System;
+    using Microsoft;
+    using Ambiguous = System.Ambiguous;
+
+    class C
+    {
+        void M()
+        {
+            var a = new Ambiguous();
+        }
+    }
+}";
+            var expectedMarkup1 = classDef + @"
+namespace Test
+{
+    using System;
+    using Microsoft;
+    using Ambiguous = Microsoft.Ambiguous;
+
+    class C
+    {
+        void M()
+        {
+            var a = new Ambiguous();
+        }
+    }
+}";
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup0, index: 0);
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup1, index: 1);
+        }
+
+        [Fact, WorkItem(30838, "https://github.com/dotnet/roslyn/issues/30838")]
+        public async Task TestSortSystemFirst2()
+        {
+            var classDef = GetAmbiguousDefinition("public class Ambiguous { }", "Microsoft", "System");
+            var initialMarkup = classDef + @"
+namespace Test
+{
+    using System;
+    using Microsoft;
+    class C
+    {
+        void M()
+        {
+            var a = new [|Ambiguous|]();
+        }
+    }
+}";
+            var expectedMarkup0 = classDef + @"
+namespace Test
+{
+    using System;
+    using Microsoft;
+    using Ambiguous = Microsoft.Ambiguous;
+
+    class C
+    {
+        void M()
+        {
+            var a = new Ambiguous();
+        }
+    }
+}";
+            var expectedMarkup1 = classDef + @"
+namespace Test
+{
+    using System;
+    using Microsoft;
+    using Ambiguous = System.Ambiguous;
+
+    class C
+    {
+        void M()
+        {
+            var a = new Ambiguous();
+        }
+    }
+}";
+            var options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { GenerationOptions.PlaceSystemNamespaceFirst, false }
+            };
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup0, options: options, index: 0);
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup1, options: options, index: 1);
         }
     }
 }

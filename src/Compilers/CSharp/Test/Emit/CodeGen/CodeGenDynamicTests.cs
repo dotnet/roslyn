@@ -5058,7 +5058,6 @@ class C
             CompileAndVerifyWithCSharp(source: source, expectedOutput: output);
         }
 
-
         [Fact]
         public void BooleanOperation_NestedOperators2()
         {

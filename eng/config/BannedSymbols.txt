@@ -1,4 +1,12 @@
 T:Microsoft.VisualStudio.Shell.Interop.IComWrapper; Use Microsoft.VisualStudio.LanguageServices.Implementation.Interop.IComWrapperFixed instead
+T:Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions; Use CSharpFormattingOptions2 instead
+T:Microsoft.CodeAnalysis.Simplification.SimplificationOptions; Use SimplificationOptions2 instead
+T:Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption`1; Use 'Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption2' instead
+T:Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions; Use CodeStyleOptions2 instead
+T:Microsoft.CodeAnalysis.Recommendations;RecommendationOptions; Use RecommendationOptions2 instead
+T:Microsoft.CodeAnalysis.Formatting.FormattingOptions; Use FormattingOptions2 instead
+T:Microsoft.CodeAnalysis.Options.PerLanguageOption`1; Use PerLanguageOption2<T> instead
+T:Microsoft.CodeAnalysis.Options.Option`1; Use 'Microsoft.CodeAnalysis.Options.Option2' instead
 P:Microsoft.CodeAnalysis.Completion.CompletionContext.Options; Use CompletionOptions instead.
 P:Microsoft.CodeAnalysis.Completion.CompletionList.Items; Use CompletionList.ItemsList instead
 M:Microsoft.CodeAnalysis.Completion.CompletionProvider.ShouldTriggerCompletion(Microsoft.CodeAnalysis.Text.SourceText,System.Int32,Microsoft.CodeAnalysis.Completion.CompletionTrigger,Microsoft.CodeAnalysis.Options.OptionSet); Use internal overload instead
@@ -35,3 +43,19 @@ M:Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAna
 M:Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document,Microsoft.CodeAnalysis.Text.TextSpan,Microsoft.CodeAnalysis.Options.OptionSet,System.Threading.CancellationToken); Use overload that takes SimplifierOptions
 M:Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document,System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.Text.TextSpan},Microsoft.CodeAnalysis.Options.OptionSet,System.Threading.CancellationToken); Use overload that takes SimplifierOptions
 M:Microsoft.CodeAnalysis.Editing.SyntaxEditor.#ctor(Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.Host.HostWorkspaceServices); Use overload that takes HostSolutionServices instead
+M:Microsoft.CodeAnalysis.FileTextLoader.#ctor(System.String,System.Text.Encoding); use WorkspaceFileTextLoader that calls on ITextFactoryService to create SourceText
+M:Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SyntaxTree(Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.ParseOptions,System.String,System.Text.Encoding); Use CSharpSyntaxTree sublass that takes checksum algorithm
+M:Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(System.String,Microsoft.CodeAnalysis.ParseOptions,System.String,System.Text.Encoding,System.Threading.CancellationToken); Use CSharpSyntaxTree sublass that takes checksum algorithm
+M:Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.CreateWithoutClone(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode); Use CSharpSyntaxTree sublass that takes checksum algorithm
+M:Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.Create(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options, System.String path, System.Text.Encoding encoding); Use CSharpSyntaxTree sublass that takes checksum algorithm
+M:Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(System.String,Microsoft.CodeAnalysis.CSharp.CSharpParseOptions,System.String,System.Text.Encoding,System.Threading.CancellationToken); Use API that takes SourceText
+M:Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(System.String,Microsoft.CodeAnalysis.CSharp.CSharpParseOptions,System.String,System.Text.Encoding,System.Collections.Immutable.ImmutableDictionary{System.String,Microsoft.CodeAnalysis.ReportDiagnostic},System.Nullable{System.Boolean},System.Threading.CancellationToken); Use API that takes SourceText
+M:Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.SyntaxTree(Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.ParseOptions,System.String,System.Text.Encoding); Use VisualBasicSyntaxTree sublass that takes checksum algorithm
+M:Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseSyntaxTree(System.String,Microsoft.CodeAnalysis.ParseOptions,System.String,System.Text.Encoding,System.Threading.CancellationToken); Use overload with SourceText
+M:Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseSyntaxTree(System.String,Microsoft.CodeAnalysis.ParseOptions,System.String,System.Text.Encoding,System.Collections.Immutable.ImmutableDictionary{System.String,Microsoft.CodeAnalysis.ReportDiagnostic},System.Threading.CancellationToken); Use overload with SourceText
+M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.CreateWithoutClone(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode); Use VisualBasicSyntaxTree sublass that takes checksum algorithm
+M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.Create(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode,Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions,System.String,System.Text.Encoding,System.Collections.Immutable.ImmutableDictionary{System.String,Microsoft.CodeAnalysis.ReportDiagnostic}); Use VisualBasicSyntaxTree sublass that takes checksum algorithm
+M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.Create(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode,Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions,System.String,System.Text.Encoding); Use VisualBasicSyntaxTree sublass that takes checksum algorithm
+M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(System.String,Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions,System.String,System.Text.Encoding,System.Collections.Immutable.ImmutableDictionary{System.String,Microsoft.CodeAnalysis.ReportDiagnostic},System.Threading.CancellationToken); Use overload with SourceText
+M:Microsoft.CodeAnalysis.Workspaces.Workspace.SetCurrentSolution(Microsoft.CodeAnalysis.Solution); Use SetCurrentSolutionEx instead.
+M:System.Enum.GetHashCode(); Cast to integral type to avoid boxing on .NET Framework

@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SyntaxTokenExtensions
     {
+        public static void Deconstruct(this SyntaxToken token, out SyntaxKind kind)
+            => kind = token.Kind();
+
         public static bool IsLastTokenOfNode<T>(this SyntaxToken token) where T : SyntaxNode
             => token.IsLastTokenOfNode<T>(out _);
 

@@ -3,18 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CSharp.UseNullPropagation;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNullPropagation
 {
@@ -2060,6 +2055,151 @@ public class C
         D?.InstanceMethod(D);
     }
 }");
+        }
+
+        [Fact, WorkItem(53860, "https://github.com/dotnet/roslyn/issues/53860")]
+        public async Task TestWithMethodGroupReference()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    Action<int> M(List<int> p) => p is null ? null : p.Add;
+}");
+        }
+
+        [Fact, WorkItem(66036, "https://github.com/dotnet/roslyn/issues/66036")]
+        public async Task TestElseIfStatement1()
+        {
+            await TestInRegularAndScript1Async("""
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (true)
+                        {
+                        }
+                        else [|if|] (s != null)
+                        {
+                            s.ToString();
+                        }
+                    }
+                }
+                """, """
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (true)
+                        {
+                        }
+                        else
+                        {
+                            s?.ToString();
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(66036, "https://github.com/dotnet/roslyn/issues/66036")]
+        public async Task TestElseIfStatement2()
+        {
+            await TestInRegularAndScript1Async("""
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (true)
+                        {
+                        }
+                        else [|if|] (s != null)
+                            s.ToString();
+                    }
+                }
+                """, """
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (true)
+                        {
+                        }
+                        else
+                            s?.ToString();
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(66036, "https://github.com/dotnet/roslyn/issues/66036")]
+        public async Task TestElseIfStatement_Trivia()
+        {
+            await TestInRegularAndScript1Async("""
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (true)
+                        {
+                        }
+                        else [|if|] (s != null)
+                        {
+                            // comment
+                            s.ToString();
+                        }
+                    }
+                }
+                """, """
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (true)
+                        {
+                        }
+                        else
+                        {
+                            // comment
+                            s?.ToString();
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(66036, "https://github.com/dotnet/roslyn/issues/66036")]
+        public async Task TestElseIfStatement_KeepBracePlacementStyle()
+        {
+            await TestInRegularAndScript1Async("""
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (true)
+                        {
+                        }
+                        else [|if|] (s != null) {
+                            s.ToString();
+                        }
+                    }
+                }
+                """, """
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (true)
+                        {
+                        }
+                        else {
+                            s?.ToString();
+                        }
+                    }
+                }
+                """);
         }
     }
 }

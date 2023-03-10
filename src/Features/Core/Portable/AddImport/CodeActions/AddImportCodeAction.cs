@@ -43,13 +43,14 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             protected AddImportCodeAction(
                 Document originalDocument,
-                AddImportFixData fixData)
+                AddImportFixData fixData,
+                ImmutableArray<string> additionalTags)
             {
                 OriginalDocument = originalDocument;
                 FixData = fixData;
 
                 Title = fixData.Title;
-                Tags = fixData.Tags.ToImmutableArrayOrEmpty();
+                Tags = fixData.Tags.ToImmutableArrayOrEmpty().AddRange(additionalTags);
                 Priority = fixData.Priority;
                 _textChanges = fixData.TextChanges.ToImmutableArrayOrEmpty();
             }

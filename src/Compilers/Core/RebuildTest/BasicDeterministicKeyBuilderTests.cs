@@ -71,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             }
         }
 
-
         [Theory]
         [InlineData(@"hello world")]
         [InlineData(@"just need some text here")]
@@ -160,7 +159,6 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""DEBUG"": null
 }", ("DEBUG", null));
 
-
             assert(@"
 {
   ""DEBUG"": null,
@@ -178,7 +176,6 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""DEBUG"": ""4.2"",
   ""TRACE"": true
 }", ("TRACE", true), ("DEBUG", 4.2));
-
 
             void assert(string? expected, params (string Key, object? Value)[] values)
             {

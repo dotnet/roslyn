@@ -380,7 +380,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ImmutableDictionary<AssemblyIdentity, PortableExecutableReference?>.Empty;
 
                     BoundInputAssembly[] bindingResult = Bind(
-                        compilation,
                         explicitAssemblyData,
                         modules,
                         explicitReferences,

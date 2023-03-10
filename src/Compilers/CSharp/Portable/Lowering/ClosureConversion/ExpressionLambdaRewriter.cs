@@ -433,7 +433,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 right = _bound.Default(left.Type);
             }
 
-
             // Enums are handled as per their promoted underlying type
             switch (opKind.OperandTypes())
             {

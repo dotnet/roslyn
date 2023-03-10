@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis
         internal virtual DiagnosticInfo GetResolvedInfo()
         {
             // We should never call GetResolvedInfo on a non-lazy DiagnosticInfo
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

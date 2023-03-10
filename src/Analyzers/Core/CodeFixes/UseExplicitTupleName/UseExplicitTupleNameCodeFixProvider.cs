@@ -5,13 +5,13 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
     internal partial class UseExplicitTupleNameCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public UseExplicitTupleNameCodeFixProvider()
         {
         }

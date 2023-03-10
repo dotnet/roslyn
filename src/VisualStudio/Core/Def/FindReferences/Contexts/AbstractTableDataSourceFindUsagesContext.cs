@@ -345,7 +345,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
                 catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -422,7 +422,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
                 catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 

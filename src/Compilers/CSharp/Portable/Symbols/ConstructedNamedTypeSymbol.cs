@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool AreLocalsZeroed
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool AreLocalsZeroed
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
     }
 }

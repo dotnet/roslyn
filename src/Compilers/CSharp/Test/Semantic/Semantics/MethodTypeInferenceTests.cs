@@ -741,7 +741,6 @@ class Program
             CreateCompilationWithMscorlib40(source, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
         }
 
-
         [WorkItem(543691, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543691")]
         [Fact]
         public void Bug()

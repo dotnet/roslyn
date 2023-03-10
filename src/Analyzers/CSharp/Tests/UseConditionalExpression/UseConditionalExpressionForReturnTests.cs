@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -1838,6 +1836,45 @@ class C
         return 2;
     }
 }");
+        }
+
+        [Fact, WorkItem(39260, "https://github.com/dotnet/roslyn/issues/39260")]
+        public async Task TestTitleWhenSimplifying()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(string node1, string node2)
+    {
+        [|if|] (AreSimilarCore(node1, node2))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private bool AreSimilarCore(string node1, string node2)
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"
+class C
+{
+    void M(string node1, string node2)
+    {
+        return AreSimilarCore(node1, node2);
+    }
+
+    private bool AreSimilarCore(string node1, string node2)
+    {
+        throw new NotImplementedException();
+    }
+}", title: AnalyzersResources.Simplify_check);
         }
     }
 }

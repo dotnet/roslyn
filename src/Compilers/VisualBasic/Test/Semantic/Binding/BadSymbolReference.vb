@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -37,7 +36,6 @@ Module Module1
 End Module
         </file>
     </compilation>, {cl2, cl3})
-
 
             Dim a_vb =
         <file name="a.vb">
@@ -296,7 +294,6 @@ BC30652: Reference required to assembly 'CL2, Version=0.0.0.0, Culture=neutral, 
         Dim u As CL3_D1 = Sub(uuu) System.Console.WriteLine()
                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>
-
 
             Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {cl3}, options:=TestOptions.ReleaseExe)
 
@@ -637,7 +634,6 @@ BC31143: Method 'Public Sub Test2(x As Integer)' does not have a signature compa
         Dim d1 As CL3_D1 = AddressOf y.Test2
                                      ~~~~~~~
 </errors>
-
 
             Dim cl3Source =
     <compilation name="cl3">
@@ -1364,7 +1360,6 @@ End Class]]>
                 </compilation>, options:=TestOptions.ReleaseDll)
 
             Dim missingRef = New VisualBasicCompilationReference(missing)
-
 
             Dim ilSource1 =
             <![CDATA[

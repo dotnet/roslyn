@@ -4,8 +4,6 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -20,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<LocalSymbol> _locals;
         private ImmutableArray<LocalFunctionSymbol> _localFunctions;
         private ImmutableArray<LabelSymbol> _labels;
-        private readonly uint _localScopeDepth;
 
         internal LocalScopeBinder(Binder next)
             : this(next, next.Flags)
@@ -30,35 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal LocalScopeBinder(Binder next, BinderFlags flags)
             : base(next, flags)
         {
-            var parentDepth = next.LocalScopeDepth;
-
-            if (parentDepth != Binder.CurrentMethodScope)
-            {
-                _localScopeDepth = parentDepth + 1;
-            }
-            else
-            {
-                //NOTE: TopLevel is special.
-                //For our purpose parameters and top level locals are on that level.
-                var parentScope = next;
-                while (parentScope != null)
-                {
-                    if (parentScope is InMethodBinder || parentScope is WithLambdaParametersBinder)
-                    {
-                        _localScopeDepth = Binder.CurrentMethodScope;
-                        break;
-                    }
-
-                    if (parentScope is LocalScopeBinder)
-                    {
-                        _localScopeDepth = Binder.CurrentMethodScope + 1;
-                        break;
-                    }
-
-                    parentScope = parentScope.Next;
-                    Debug.Assert(parentScope != null);
-                }
-            }
         }
 
         internal sealed override ImmutableArray<LocalSymbol> Locals
@@ -403,8 +371,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return base.LookupLocalFunction(nameToken);
         }
-
-        internal override uint LocalScopeDepth => _localScopeDepth;
 
         internal override void LookupSymbolsInSingleBinder(
             LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)

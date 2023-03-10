@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -20,13 +21,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
         Friend Class Factory
             Implements ILanguageServiceFactory
 
+            Private ReadOnly _listenerProvider As IAsynchronousOperationListenerProvider
+
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-            Public Sub New()
+            Public Sub New(listenerProvider As IAsynchronousOperationListenerProvider)
+                _listenerProvider = listenerProvider
             End Sub
 
             Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-                Return New VisualBasicCompletionService(languageServices.LanguageServices.SolutionServices)
+                Return New VisualBasicCompletionService(languageServices.LanguageServices.SolutionServices, _listenerProvider)
             End Function
         End Class
 
@@ -36,8 +40,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
             defaultEnterKeyRule:=EnterKeyRule.Always)
 
-        Private Sub New(services As SolutionServices)
-            MyBase.New(services)
+        Private Sub New(services As SolutionServices, listenerProvider As IAsynchronousOperationListenerProvider)
+            MyBase.New(services, listenerProvider)
         End Sub
 
         Public Overrides ReadOnly Property Language As String

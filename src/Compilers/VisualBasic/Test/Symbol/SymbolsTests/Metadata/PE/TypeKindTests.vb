@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
     Public Class TypeKindTests : Inherits BasicTestBase
@@ -63,7 +62,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                             Where t.Name.Equals("TypeCode")).Single()
 
             Assert.Equal(TypeKind.Enum, typeCode.TypeKind)
-
 
             Assert.False(obj.IsMustInherit)
             Assert.False(obj.IsNotInheritable)

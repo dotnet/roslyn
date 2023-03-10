@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
             {
                 SyntaxKind.StringLiteralToken => position == token.Span.End - 1 && token.Text[^1] == '"',
                 SyntaxKind.Utf8StringLiteralToken => position == token.Span.End - 3 && token.Text is [.., '"', 'u' or 'U', '8'],
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.Unreachable()
             };
 
         protected override TextExtent GetExtentOfWordFromToken(SyntaxToken token, SnapshotPoint position)

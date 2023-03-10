@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveAsyncModifier
@@ -1032,7 +1031,35 @@ class C
 }");
         }
 
-        [Fact(Skip = "Metalama: tests fails on assembly loading of NewtonSoft.Json. The same failure is on release/dev17.4 branch.")]
+        [Fact, WorkItem(65536, "https://github.com/dotnet/roslyn/issues/65536")]
+        public async Task Method_TaskOfT_BlockBody_QualifyTaskFromResultType()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                using System.Threading.Tasks;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public async Task<IReadOnlyCollection<int>> {|CS1998:M|}()
+                    {
+                        return new int[0];
+                    }
+                }
+                """, """
+                using System.Threading.Tasks;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    public Task<IReadOnlyCollection<int>> M()
+                    {
+                        return Task.FromResult<IReadOnlyCollection<int>>(new int[0]);
+                    }
+                }
+                """);
+        }
+
+        [Fact]
         public async Task IAsyncEnumerable_Missing()
         {
             var source = @"

@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         : GenerateNullLiteral();
 
                 case TypedConstantKind.Array:
-                    return typedConstant.IsNull ?
-                        GenerateNullLiteral() :
-                        SyntaxFactory.ImplicitArrayCreationExpression(
+                    return typedConstant.IsNull
+                        ? GenerateNullLiteral()
+                        : SyntaxFactory.ImplicitArrayCreationExpression(
                             SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression,
                                 SyntaxFactory.SeparatedList(typedConstant.Values.Select(GenerateExpression))));
 
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var suffix = DetermineSuffix(type, nonNegativeValue);
 
             var stringValue = negative && nonNegativeValue.Equals(value)
-                ? (integerMinValueString ?? throw ExceptionUtilities.Unreachable)
+                ? (integerMinValueString ?? throw ExceptionUtilities.Unreachable())
                 : ((IFormattable)nonNegativeValue).ToString(formatString, CultureInfo.InvariantCulture) + suffix;
 
             var literal = SyntaxFactory.LiteralExpression(

@@ -3090,6 +3090,163 @@ class X
             );
     }
 
+    [Fact, WorkItem(65876, "https://github.com/dotnet/roslyn/issues/65876")]
+    public void ListPattern_Negated_03()
+    {
+        var source = """
+using System;
+public class C
+{
+    static void Main() 
+    {
+        Console.WriteLine(M1(new[]{1,2}));
+        Console.WriteLine(M1(new[]{2,1}));
+        Console.WriteLine(M1(new[]{1}));
+        Console.WriteLine(M1(new[]{0}));
+        
+        Console.WriteLine(M2(new[]{1,2}));
+        Console.WriteLine(M2(new[]{2,1}));
+        Console.WriteLine(M2(new[]{1}));
+        Console.WriteLine(M2(new[]{0}));
+    }
+    
+    public static bool M1(int[] a) {
+        return a is not ([1,2,..] or [..,2,1] or [1]);
+    }
+    public static bool M2(int[] a) {
+        return !(a is ([1,2,..] or [..,2,1] or [1]));
+    }
+}
+""";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: @"
+False
+False
+False
+True
+False
+False
+False
+True
+");
+    }
+
+    [Fact]
+    public void ListPattern_Negated_04()
+    {
+        var source = """
+using System;
+public class C
+{
+    static void Main() 
+    {
+        Console.WriteLine(M1(new[]{1,2}));
+        Console.WriteLine(M1(new[]{2,1}));
+        Console.WriteLine(M1(new[]{1}));
+        Console.WriteLine(M1(new[]{0}));
+        
+        Console.WriteLine(M2(new[]{1,2}));
+        Console.WriteLine(M2(new[]{2,1}));
+        Console.WriteLine(M2(new[]{1}));
+        Console.WriteLine(M2(new[]{0}));
+    }
+    
+    public static int M1(int[] a) {
+        return a switch 
+        {
+            not ([1,2,..] or [..,2,1] or [1]) => 1, 
+            [1,2,..] => 2,
+            [..,2,1] => 3,
+            [1] => 4,
+        };
+    }
+    public static int M2(int[] a) {
+        switch (a) 
+        {
+            case not ([1,2,..] or [..,2,1] or [1]):
+                return 1; 
+            case [1,2,..]:
+                return 2;
+            case [..,2,1]:
+                return 3;
+            case [1]:
+                return 4;
+        }
+    }
+}
+""";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: @"
+2
+3
+4
+1
+2
+3
+4
+1
+");
+    }
+
+    [Fact]
+    public void ListPattern_Negated_05()
+    {
+        var source = """
+using System;
+public class C
+{
+    static void Main() 
+    {
+        Console.WriteLine(M1(new[]{1,2}, new[]{1}));
+        Console.WriteLine(M1(new[]{1}, new[]{2,1}));
+        Console.WriteLine(M1(new[]{2,1}, new[]{1,2}));
+        Console.WriteLine(M1(new[]{0}, new[]{0}));
+
+        Console.WriteLine(M2(new[]{1,2}, new[]{1}));
+        Console.WriteLine(M2(new[]{1}, new[]{2,1}));
+        Console.WriteLine(M2(new[]{2,1}, new[]{1,2}));
+        Console.WriteLine(M2(new[]{0}, new[]{0}));
+    }
+    
+    public static int M1(int[] a, int[] b) {
+        return (a, b) switch 
+        {
+            (not ([1,2,..] or [..,2,1] or [1]),
+             not ([1,2,..] or [..,2,1] or [1])) => 1, 
+            ([1,2,..] or [1], [..,2,1] or [1]) => 2,
+            ([..,2,1], [1,2,..]) => 3,
+            _ => 0
+        };
+    }
+    public static int M2(int[] a, int[] b) {
+        switch (a, b) 
+        {
+            case (not ([1,2,..] or [..,2,1] or [1]),
+                  not ([1,2,..] or [..,2,1] or [1])):
+                return 1; 
+            case ([1,2,..] or [1], [..,2,1] or [1]):
+                return 2;
+            case ([..,2,1], [1,2,..]):
+                return 3;
+            default:
+                return 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: @"
+2
+2
+3
+1
+2
+2
+3
+1
+");
+    }
+
     [Fact]
     public void ListPattern_UseSiteErrorOnIndexerAndSlice()
     {

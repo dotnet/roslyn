@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Accept(this);
         }
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         private BoundExpression? VisitExpression(BoundExpression? node)
         {
             if (node == null)
@@ -374,12 +374,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDefaultLiteral(BoundDefaultLiteral node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode VisitValuePlaceholder(BoundValuePlaceholder node)
@@ -471,13 +471,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
         {
             // OutDeconstructVarPendingInference nodes are only used within initial binding, but don't survive past that stage
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode VisitDeconstructionVariablePendingInference(DeconstructionVariablePendingInference node)
         {
             // DeconstructionVariablePendingInference nodes are only used within initial binding, but don't survive past that stage
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode VisitBadExpression(BoundBadExpression node)
@@ -606,7 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var block = (BoundBlock)initializer;
                         var statement = RewriteExpressionStatement((BoundExpressionStatement)block.Statements.Single(), suppressInstrumentation: true);
                         Debug.Assert(statement is { });
-                        statements.Add(block.Update(block.Locals, block.LocalFunctions, ImmutableArray.Create(statement)));
+                        statements.Add(block.Update(block.Locals, block.LocalFunctions, block.HasUnsafeModifier, ImmutableArray.Create(statement)));
                     }
                     else
                     {

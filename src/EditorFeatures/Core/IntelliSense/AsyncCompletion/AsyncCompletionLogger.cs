@@ -54,20 +54,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 s_countLogAggregator.IncreaseCount(ActionInfo.SessionWithImportCompletionDelayed);
         }
 
-        internal static void LogSessionWithDelayedImportCompletionIncludedInUpdate() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.SessionWithDelayedImportCompletionIncludedInUpdate);
+        internal static void LogSessionWithDelayedImportCompletionIncludedInUpdate()
+            => s_countLogAggregator.IncreaseCount(ActionInfo.SessionWithDelayedImportCompletionIncludedInUpdate);
 
-        internal static void LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint(TimeSpan timeSpan) =>
-            s_histogramLogAggregator.LogTime(ActionInfo.AdditionalTicksToCompleteDelayedImportCompletion, timeSpan);
+        internal static void LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint(TimeSpan timeSpan)
+            => s_histogramLogAggregator.LogTime(ActionInfo.AdditionalTicksToCompleteDelayedImportCompletion, timeSpan);
 
-        internal static void LogDelayedImportCompletionIncluded() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.SessionWithTypeImportCompletionEnabled);
+        internal static void LogDelayedImportCompletionIncluded()
+            => s_countLogAggregator.IncreaseCount(ActionInfo.SessionWithTypeImportCompletionEnabled);
 
-        internal static void LogExpanderUsage() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.ExpanderUsageCount);
+        internal static void LogExpanderUsage()
+            => s_countLogAggregator.IncreaseCount(ActionInfo.ExpanderUsageCount);
 
-        internal static void LogGetDefaultsMatchTicksDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint(ActionInfo.GetDefaultsMatchTicks, count);
+        internal static void LogGetDefaultsMatchTicksDataPoint(int count)
+            => s_statisticLogAggregator.AddDataPoint(ActionInfo.GetDefaultsMatchTicks, count);
 
         internal static void LogSourceInitializationTicksDataPoint(TimeSpan elapsed)
         {

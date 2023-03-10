@@ -896,5 +896,25 @@ class P
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestLambdaDefaultParameter(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class P
+{
+    const int {|Definition:$$y|} = 10;
+    static void Main()
+    {
+        var f = (int x = [|y|]) => x;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // we haven't found the constructor part that declares the variable:
-            // <Metalama> - instead of `throw ExceptionUtilities.Unreachable;`
+            // <Metalama> - instead of `throw ExceptionUtilities.Unreachable();`
             return -1;
             // </Metalama>
         }

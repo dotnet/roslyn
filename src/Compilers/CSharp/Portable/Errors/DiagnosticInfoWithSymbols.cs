@@ -24,5 +24,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Symbols = symbols;
         }
+
+        protected DiagnosticInfoWithSymbols(DiagnosticInfoWithSymbols original, DiagnosticSeverity severity) : base(original, severity)
+        {
+            this.Symbols = original.Symbols;
+        }
+
+        internal override DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        {
+            return new DiagnosticInfoWithSymbols(this, severity);
+        }
     }
 }

@@ -19,8 +19,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Function
 
         Public Function CreateProject(wszName As String, punkProject As Object, pProjHier As IVsHierarchy, pVbCompilerHost As IVbCompilerHost) As IVbCompilerProject Implements IVbCompiler.CreateProject
-            Dim hostDiagnosticUpdateSource = ComponentModel.GetService(Of HostDiagnosticUpdateSource)()
-
             Return New VisualBasicProject(
                 wszName,
                 pVbCompilerHost,

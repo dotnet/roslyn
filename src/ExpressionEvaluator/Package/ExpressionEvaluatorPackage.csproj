@@ -4,6 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>net472</TargetFramework>
+    <IsShippingAssembly>false</IsShippingAssembly>
 
     <!-- VSIX -->
     <GeneratePkgDefFile>true</GeneratePkgDefFile>

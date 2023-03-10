@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    /// <inheritdoc cref="CSharpFormattingOptions"/>
+    /// <inheritdoc cref="CSharpFormattingOptions2"/>
     public static class CSharpFormattingOptions
     {
         /// <inheritdoc cref="CSharpFormattingOptions2.SpacingAfterMethodDeclarationName"/>

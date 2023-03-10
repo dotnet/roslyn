@@ -1671,39 +1671,39 @@ class C
                 // In C# 7.2 the input to an `out` parameter can escape which means several 
                 // of the tests are errors due to stack copying to escape
                 comp.VerifyDiagnostics(
-                    // (16,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                    // (16,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
                     //         M2(ref s1, out s2);         // one
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s1, out s2)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "y").WithLocation(16, 9),
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s1, out s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "y").WithLocation(16, 9),
                     // (16,24): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                     //         M2(ref s1, out s2);         // one
                     Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(16, 24),
-                    // (17,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    // (17,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                     //         M2(ref s2, out s1);         // two
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "x").WithLocation(17, 9),
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(17, 9),
                     // (17,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                     //         M2(ref s2, out s1);         // two
                     Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(17, 16),
-                    // (19,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                    // (19,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
                     //         M2(ref s1, out s2);         // three
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s1, out s2)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "y").WithLocation(19, 9),
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s1, out s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "y").WithLocation(19, 9),
                     // (19,24): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                     //         M2(ref s1, out s2);         // three
                     Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(19, 24),
-                    // (20,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    // (20,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                     //         M2(ref s2, out s1);         // four
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "x").WithLocation(20, 9),
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(20, 9),
                     // (20,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                     //         M2(ref s2, out s1);         // four
                     Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(20, 16),
-                    // (22,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                    // (22,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
                     //         M2(y: out s2, x: ref s1);   // five
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s2, x: ref s1)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "y").WithLocation(22, 9),
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s2, x: ref s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "y").WithLocation(22, 9),
                     // (22,19): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                     //         M2(y: out s2, x: ref s1);   // five
                     Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(22, 19),
-                    // (23,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    // (23,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                     //         M2(y: out s1, x: ref s2);   // six
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s1, x: ref s2)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "x").WithLocation(23, 9),
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s1, x: ref s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(23, 9),
                     // (23,30): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                     //         M2(y: out s1, x: ref s2);   // six
                     Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(23, 30),
@@ -1714,21 +1714,21 @@ class C
             else
             {
                 comp.VerifyDiagnostics(
-                    // (17,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    // (17,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                     //         M2(ref s2, out s1);         // two
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "x").WithLocation(17, 9),
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(17, 9),
                     // (17,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                     //         M2(ref s2, out s1);         // two
                     Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(17, 16),
-                    // (20,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    // (20,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                     //         M2(ref s2, out s1);         // four
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "x").WithLocation(20, 9),
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(20, 9),
                     // (20,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                     //         M2(ref s2, out s1);         // four
                     Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(20, 16),
-                    // (23,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    // (23,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                     //         M2(y: out s1, x: ref s2);   // six
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s1, x: ref s2)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "x").WithLocation(23, 9),
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s1, x: ref s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(23, 9),
                     // (23,30): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                     //         M2(y: out s1, x: ref s2);   // six
                     Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(23, 30));

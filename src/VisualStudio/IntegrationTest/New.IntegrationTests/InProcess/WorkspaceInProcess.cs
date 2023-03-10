@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         internal static void EnableAsynchronousOperationTracking()
         {
-            AsynchronousOperationListenerProvider.Enable(true);
+            AsynchronousOperationListenerProvider.Enable(true, diagnostics: true);
         }
 
         protected override async Task InitializeCoreAsync()

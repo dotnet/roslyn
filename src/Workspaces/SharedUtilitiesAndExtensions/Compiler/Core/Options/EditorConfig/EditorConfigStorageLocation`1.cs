@@ -3,18 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#endif
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -25,47 +17,37 @@ namespace Microsoft.CodeAnalysis.Options
     {
         public string KeyName { get; }
 
-        private readonly Func<string, Type, Optional<T>> _parseValue;
-        private readonly Func<T, OptionSet, string?> _getEditorConfigStringForValue;
+        private readonly Func<string, Optional<T>> _parseValue;
+        private readonly Func<T, string> _serializeValue;
 
-        public EditorConfigStorageLocation(string keyName, Func<string, Optional<T>> parseValue, Func<T, string> getEditorConfigStringForValue)
-            : this(keyName, parseValue, (value, optionSet) => getEditorConfigStringForValue(value))
+#if !CODE_STYLE
+        private readonly Func<OptionSet, T>? _getValueFromOptionSet;
+
+        public EditorConfigStorageLocation(
+            string keyName,
+            Func<string, Optional<T>> parseValue,
+            Func<T, string> serializeValue,
+            Func<OptionSet, T>? getValueFromOptionSet)
+            : this(keyName, parseValue, serializeValue)
         {
-            if (getEditorConfigStringForValue == null)
-            {
-                throw new ArgumentNullException(nameof(getEditorConfigStringForValue));
-            }
+            _getValueFromOptionSet = getValueFromOptionSet;
         }
-
-        public EditorConfigStorageLocation(string keyName, Func<string, Optional<T>> parseValue, Func<OptionSet, string> getEditorConfigStringForValue)
-            : this(keyName, parseValue, (value, optionSet) => getEditorConfigStringForValue(optionSet))
+#endif
+        public EditorConfigStorageLocation(
+            string keyName,
+            Func<string, Optional<T>> parseValue,
+            Func<T, string> serializeValue)
         {
-            if (getEditorConfigStringForValue == null)
-            {
-                throw new ArgumentNullException(nameof(getEditorConfigStringForValue));
-            }
-        }
-
-        private EditorConfigStorageLocation(string keyName, Func<string, Optional<T>> parseValue, Func<T, OptionSet, string> getEditorConfigStringForValue)
-        {
-            if (parseValue == null)
-            {
-                throw new ArgumentNullException(nameof(parseValue));
-            }
-
-            KeyName = keyName ?? throw new ArgumentNullException(nameof(keyName));
-
-            // If we're explicitly given a parsing function we can throw away the type when parsing
-            _parseValue = (s, type) => parseValue(s);
-
-            _getEditorConfigStringForValue = getEditorConfigStringForValue ?? throw new ArgumentNullException(nameof(getEditorConfigStringForValue));
+            KeyName = keyName;
+            _parseValue = parseValue;
+            _serializeValue = serializeValue;
         }
 
         public bool TryGetOption(StructuredAnalyzerConfigOptions options, Type type, out object? result)
         {
             if (options.TryGetValue(KeyName, out var value))
             {
-                var ret = TryGetOption(value, type, out var typedResult);
+                var ret = TryGetOption(value, out var typedResult);
                 result = typedResult;
                 return ret;
             }
@@ -74,9 +56,9 @@ namespace Microsoft.CodeAnalysis.Options
             return false;
         }
 
-        internal bool TryGetOption(string value, Type type, [MaybeNullWhen(false)] out T result)
+        internal bool TryGetOption(string value, [MaybeNullWhen(false)] out T result)
         {
-            var optionalValue = _parseValue(value, type);
+            var optionalValue = _parseValue(value);
             if (optionalValue.HasValue)
             {
                 result = optionalValue.Value;
@@ -89,20 +71,14 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        /// <summary>
-        /// Gets the editorconfig string representation for this storage location.
-        /// </summary>
-        public string GetEditorConfigStringValue(T value, OptionSet optionSet)
+        public string GetEditorConfigStringValue(T value)
         {
-            var editorConfigStringForValue = _getEditorConfigStringForValue(value, optionSet);
-            RoslynDebug.Assert(!RoslynString.IsNullOrEmpty(editorConfigStringForValue));
+            var editorConfigStringForValue = _serializeValue(value);
+            Contract.ThrowIfTrue(RoslynString.IsNullOrEmpty(editorConfigStringForValue));
             return editorConfigStringForValue;
         }
 
-        string IEditorConfigStorageLocation2.GetEditorConfigString(object? value, OptionSet optionSet)
-            => $"{KeyName} = {((IEditorConfigStorageLocation2)this).GetEditorConfigStringValue(value, optionSet)}";
-
-        string IEditorConfigStorageLocation2.GetEditorConfigStringValue(object? value, OptionSet optionSet)
+        string IEditorConfigStorageLocation2.GetEditorConfigStringValue(object? value)
         {
             T typedValue;
             if (value is ICodeStyleOption codeStyleOption)
@@ -114,7 +90,21 @@ namespace Microsoft.CodeAnalysis.Options
                 typedValue = (T)value!;
             }
 
-            return GetEditorConfigStringValue(typedValue, optionSet);
+            return GetEditorConfigStringValue(typedValue);
         }
+
+#if !CODE_STYLE
+        public string GetEditorConfigStringValue(OptionKey optionKey, OptionSet optionSet)
+        {
+            if (_getValueFromOptionSet != null)
+            {
+                var editorConfigStringForValue = _serializeValue(_getValueFromOptionSet(optionSet));
+                Contract.ThrowIfTrue(RoslynString.IsNullOrEmpty(editorConfigStringForValue));
+                return editorConfigStringForValue;
+            }
+
+            return GetEditorConfigStringValue(optionSet.GetOption<T>(optionKey));
+        }
+#endif
     }
 }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.Host;
 
@@ -11,6 +12,6 @@ namespace Microsoft.CodeAnalysis.SourceGeneratorTelemetry
 {
     internal interface ISourceGeneratorTelemetryCollectorWorkspaceService : IWorkspaceService
     {
-        void CollectRunResult(GeneratorDriverRunResult driverRunResult, GeneratorDriverTimingInfo driverTimingInfo);
+        void CollectRunResult(GeneratorDriverRunResult driverRunResult, GeneratorDriverTimingInfo driverTimingInfo, ProjectState project);
     }
 }

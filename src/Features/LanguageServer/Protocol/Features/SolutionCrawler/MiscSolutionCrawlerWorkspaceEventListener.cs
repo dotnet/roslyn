@@ -25,11 +25,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public void StartListening(Workspace workspace, object serviceOpt)
         {
             if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-            {
-                // misc workspace will enable syntax errors and semantic errors for script files for
-                // all participating projects in the workspace
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax | DiagnosticProvider.Options.ScriptSemantic);
-            }
+                DiagnosticProvider.Enable(workspace);
         }
 
         public void StopListening(Workspace workspace)

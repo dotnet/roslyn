@@ -58,11 +58,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             public T GetOption<T>(PerLanguageOption2<T> option, string? languageName)
                 => default!;
 
-            public T GetOption<T>(Option<T> option)
-                => throw new NotImplementedException();
-
             public T GetOption<T>(Option2<T> option) => throw new NotImplementedException();
-            public T GetOption<T>(PerLanguageOption<T> option, string? languageName) => throw new NotImplementedException();
             public object? GetOption(OptionKey optionKey) => throw new NotImplementedException();
             public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey> optionKeys) => throw new NotImplementedException();
             public IEnumerable<IOption> GetRegisteredOptions() => throw new NotImplementedException();
@@ -72,7 +68,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             public void SetGlobalOption(OptionKey optionKey, object? value) => throw new NotImplementedException();
             public void SetGlobalOptions(ImmutableArray<OptionKey> optionKeys, ImmutableArray<object?> values) => throw new NotImplementedException();
             public void SetOptions(OptionSet optionSet, IEnumerable<OptionKey> optionKeys) => throw new NotImplementedException();
-            public bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey) => throw new NotImplementedException();
             public void UnregisterWorkspace(Workspace workspace) => throw new NotImplementedException();
         }
     }

@@ -6,6 +6,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.Setup</RootNamespace>
     <TargetFramework>net472</TargetFramework>
+    <IsShippingAssembly>false</IsShippingAssembly>
 
     <!-- VSIX -->
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
@@ -128,6 +129,12 @@
     </ProjectReference>
     <ProjectReference Include="..\..\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj">
       <Name>LanguageServerProtocol</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <PkgDefEntry>BindingRedirect</PkgDefEntry>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.csproj">
+      <Name>Microsoft.CommonLanguageServerProtocolFramework</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>

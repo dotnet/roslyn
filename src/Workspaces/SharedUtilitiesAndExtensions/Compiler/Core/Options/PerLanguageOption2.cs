@@ -48,20 +48,20 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public ImmutableArray<OptionStorageLocation2> StorageLocations { get; }
 
-        public PerLanguageOption2(string feature, string name, T defaultValue)
+        public PerLanguageOption2(string? feature, string? name, T defaultValue)
             : this(feature, name, defaultValue, storageLocations: ImmutableArray<OptionStorageLocation2>.Empty)
         {
         }
 
         public PerLanguageOption2(
-            string feature, string name, T defaultValue,
+            string? feature, string? name, T defaultValue,
             OptionStorageLocation2 storageLocation)
             : this(feature, group: OptionGroup.Default, name, defaultValue, ImmutableArray.Create(storageLocation))
         {
         }
 
         public PerLanguageOption2(
-            string feature, string name, T defaultValue,
+            string? feature, string? name, T defaultValue,
             OptionStorageLocation2 storageLocation1,
             OptionStorageLocation2 storageLocation2,
             OptionStorageLocation2 storageLocation3)
@@ -71,46 +71,36 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public PerLanguageOption2(
-            string feature, string name, T defaultValue,
+            string? feature, string? name, T defaultValue,
             ImmutableArray<OptionStorageLocation2> storageLocations)
             : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocations)
         {
         }
 
-        public PerLanguageOption2(string feature, OptionGroup group, string name, T defaultValue)
+        public PerLanguageOption2(string? feature, OptionGroup group, string? name, T defaultValue)
             : this(feature, group, name, defaultValue, ImmutableArray<OptionStorageLocation2>.Empty)
         {
         }
 
         public PerLanguageOption2(
-            string feature, OptionGroup group, string name, T defaultValue,
+            string? feature, OptionGroup group, string? name, T defaultValue,
             OptionStorageLocation2 storageLocation)
             : this(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation))
         {
         }
 
         public PerLanguageOption2(
-            string feature, OptionGroup group, string name, T defaultValue,
+            string? feature, OptionGroup group, string? name, T defaultValue,
             OptionStorageLocation2 storageLocation1, OptionStorageLocation2 storageLocation2)
             : this(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation1, storageLocation2))
         {
         }
 
         public PerLanguageOption2(
-            string feature, OptionGroup group, string name, T defaultValue,
+            string? feature, OptionGroup group, string? name, T defaultValue,
             ImmutableArray<OptionStorageLocation2> storageLocations)
         {
-            if (string.IsNullOrWhiteSpace(feature))
-            {
-                throw new ArgumentNullException(nameof(feature));
-            }
-
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException(nameof(name));
-            }
-
-            OptionDefinition = new OptionDefinition(feature, group, name, defaultValue, typeof(T));
+            OptionDefinition = new OptionDefinition(feature, group, name, storageLocations.GetOptionConfigName(feature, name), defaultValue, typeof(T));
             this.StorageLocations = storageLocations;
         }
 

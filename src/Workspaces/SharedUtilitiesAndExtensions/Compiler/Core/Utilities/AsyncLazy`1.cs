@@ -429,11 +429,11 @@ namespace Roslyn.Utilities
                 // We can only be here if the computation was cancelled, which means all requests for the value
                 // must have been cancelled. Therefore, the ThrowIfCancellationRequested above must have thrown
                 // because that token from the requester was cancelled.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

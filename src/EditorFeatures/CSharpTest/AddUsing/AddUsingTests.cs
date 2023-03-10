@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
         {
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestTypeFromMultipleNamespaces1(TestHost testHost)
         {
             await TestAsync(
@@ -51,8 +50,7 @@ class Class
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestTypeFromMultipleNamespaces1_FileScopedNamespace_Outer(TestHost testHost)
         {
             await TestAsync(
@@ -80,8 +78,7 @@ class Class
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestTypeFromMultipleNamespaces1_FileScopedNamespace_Inner(TestHost testHost)
         {
             await TestAsync(
@@ -112,8 +109,7 @@ class Class
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(11241, "https://github.com/dotnet/roslyn/issues/11241")]
         public async Task TestAddImportWithCaseChange(TestHost testHost)
         {
@@ -142,8 +138,7 @@ class Class1 : TextBox
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestTypeFromMultipleNamespaces2(TestHost testHost)
         {
             await TestAsync(
@@ -166,8 +161,7 @@ class Class
 testHost, index: 1);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestGenericWithNoArgs(TestHost testHost)
         {
             await TestAsync(
@@ -189,8 +183,7 @@ class Class
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestGenericWithCorrectArgs(TestHost testHost)
         {
             await TestAsync(
@@ -212,7 +205,7 @@ class Class
 }", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestGenericWithWrongArgs1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -225,7 +218,7 @@ class Class
 }");
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestGenericWithWrongArgs2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -238,8 +231,7 @@ class Class
 }");
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestGenericInLocalDeclaration(TestHost testHost)
         {
             await TestAsync(
@@ -261,8 +253,7 @@ class Class
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestGenericItemType(TestHost testHost)
         {
             await TestAsync(
@@ -281,8 +272,7 @@ class Class
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestGenerateWithExistingUsings(TestHost testHost)
         {
             await TestAsync(
@@ -307,8 +297,7 @@ class Class
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestGenerateInNamespace(TestHost testHost)
         {
             await TestAsync(
@@ -336,8 +325,7 @@ namespace N
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestGenerateInNamespaceWithUsings(TestHost testHost)
         {
             await TestAsync(
@@ -368,7 +356,7 @@ namespace N
 }", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestExistingUsing_ActionCount()
         {
             await TestActionCountAsync(
@@ -384,8 +372,7 @@ class Class
 count: 1);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestExistingUsing(TestHost testHost)
         {
             await TestAsync(
@@ -410,8 +397,7 @@ class Class
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(541730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
         public async Task TestAddUsingForGenericExtensionMethod(TestHost testHost)
         {
@@ -435,7 +421,7 @@ class Class
 }", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(541730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
+        [Fact, WorkItem(541730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
         public async Task TestAddUsingForNormalExtensionMethod()
         {
             await TestAsync(
@@ -476,8 +462,7 @@ namespace N
 parseOptions: Options.Regular);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestOnEnum(TestHost testHost)
         {
             await TestAsync(
@@ -519,8 +504,7 @@ namespace A
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestOnClassInheritance(TestHost testHost)
         {
             await TestAsync(
@@ -548,8 +532,7 @@ namespace A
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestOnImplementedInterface(TestHost testHost)
         {
             await TestAsync(
@@ -577,8 +560,7 @@ namespace A
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAllInBaseList(TestHost testHost)
         {
             await TestAsync(
@@ -661,8 +643,7 @@ namespace B
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAttributeUnexpanded(TestHost testHost)
         {
             await TestAsync(
@@ -678,8 +659,7 @@ class Class
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAttributeExpanded(TestHost testHost)
         {
             await TestAsync(
@@ -695,8 +675,7 @@ class Class
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(538018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538018")]
         public async Task TestAfterNew(TestHost testHost)
         {
@@ -721,8 +700,7 @@ class Class
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestArgumentsInMethodCall(TestHost testHost)
         {
             await TestAsync(
@@ -744,8 +722,7 @@ class Class
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestCallSiteArgs(TestHost testHost)
         {
             await TestAsync(
@@ -765,8 +742,7 @@ class Class
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUsePartialClass(TestHost testHost)
         {
             await TestAsync(
@@ -802,8 +778,7 @@ namespace B
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestGenericClassInNestedNamespace(TestHost testHost)
         {
             await TestAsync(
@@ -845,8 +820,7 @@ namespace C
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(541730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
         public async Task TestExtensionMethods(TestHost testHost)
         {
@@ -874,8 +848,7 @@ class Goo
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(541730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
         public async Task TestQueryPatterns(TestHost testHost)
         {
@@ -908,8 +881,7 @@ class Goo
         }
 
         // Tests for Insertion Order
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestSimplePresortedUsings1(TestHost testHost)
         {
             await TestAsync(
@@ -956,8 +928,7 @@ namespace D
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestSimplePresortedUsings2(TestHost testHost)
         {
             await TestAsync(
@@ -1004,8 +975,7 @@ namespace A
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestSimpleUnsortedUsings1(TestHost testHost)
         {
             await TestAsync(
@@ -1052,8 +1022,7 @@ namespace A
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestSimpleUnsortedUsings2(TestHost testHost)
         {
             await TestAsync(
@@ -1100,8 +1069,7 @@ namespace C
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestMultiplePresortedUsings1(TestHost testHost)
         {
             await TestAsync(
@@ -1148,8 +1116,7 @@ namespace B
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestMultiplePresortedUsings2(TestHost testHost)
         {
             await TestAsync(
@@ -1196,8 +1163,7 @@ namespace B.A
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestMultiplePresortedUsings3(TestHost testHost)
         {
             await TestAsync(
@@ -1250,8 +1216,7 @@ namespace B
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestMultipleUnsortedUsings1(TestHost testHost)
         {
             await TestAsync(
@@ -1304,8 +1269,7 @@ namespace B
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestMultipleUnsortedUsings2(TestHost testHost)
         {
             await TestAsync(
@@ -1353,8 +1317,7 @@ namespace B
         }
 
         // System on top cases
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestSimpleSystemSortedUsings1(TestHost testHost)
         {
             await TestAsync(
@@ -1402,8 +1365,7 @@ namespace A
 testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestSimpleSystemSortedUsings2(TestHost testHost)
         {
             await TestAsync(
@@ -1453,8 +1415,7 @@ namespace A
 testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestSimpleSystemSortedUsings3(TestHost testHost)
         {
             await TestAsync(
@@ -1482,8 +1443,7 @@ class Class
 testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestSimpleSystemUnsortedUsings1(TestHost testHost)
         {
             await TestAsync(
@@ -1535,8 +1495,7 @@ namespace A
 testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestSimpleSystemUnsortedUsings2(TestHost testHost)
         {
             await TestAsync(
@@ -1586,8 +1545,7 @@ namespace A
 testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestSimpleSystemUnsortedUsings3(TestHost testHost)
         {
             await TestAsync(
@@ -1615,8 +1573,7 @@ class Class
 testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestSimpleBogusSystemUsings1(TestHost testHost)
         {
             await TestAsync(
@@ -1642,8 +1599,7 @@ class Class
 testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestSimpleBogusSystemUsings2(TestHost testHost)
         {
             await TestAsync(
@@ -1669,8 +1625,7 @@ class Class
 testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUsingsWithComments(TestHost testHost)
         {
             await TestAsync(
@@ -1697,8 +1652,7 @@ testHost);
         }
 
         // System Not on top cases
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestSimpleSystemUnsortedUsings4(TestHost testHost)
         {
             await TestAsync(
@@ -1750,8 +1704,7 @@ namespace A
 testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestSimpleSystemSortedUsings5(TestHost testHost)
         {
             await TestAsync(
@@ -1799,8 +1752,7 @@ namespace A
 testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestSimpleSystemSortedUsings4(TestHost testHost)
         {
             await TestAsync(
@@ -1828,7 +1780,7 @@ class Class
 testHost, options: Option(GenerationOptions.PlaceSystemNamespaceFirst, false));
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(538136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
+        [Fact, WorkItem(538136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
         [WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
         public async Task TestAddUsingForNamespace()
         {
@@ -1852,8 +1804,7 @@ namespace B
 }");
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(538220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538220")]
         public async Task TestAddUsingForFieldWithFormatting(TestHost testHost)
         {
@@ -1864,8 +1815,7 @@ namespace B
 class C { DateTime t; }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(539657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539657")]
         public async Task BugFix5688(TestHost testHost)
         {
@@ -1876,7 +1826,7 @@ class C { DateTime t; }", testHost);
 class Program { static void Main ( string [ ] args ) { Console . Out . NewLine = ""\r\n\r\n"" ; } } ", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(539853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
+        [Fact, WorkItem(539853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
         public async Task BugFix5950()
         {
             await TestAsync(
@@ -1888,8 +1838,7 @@ WriteLine(Expression.Constant(123));",
 parseOptions: GetScriptOptions());
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(540339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540339")]
         public async Task TestAddAfterDefineDirective1(TestHost testHost)
         {
@@ -1921,8 +1870,7 @@ class Program
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(540339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540339")]
         public async Task TestAddAfterDefineDirective2(TestHost testHost)
         {
@@ -1949,8 +1897,7 @@ class Program
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddAfterDefineDirective3(TestHost testHost)
         {
             await TestAsync(
@@ -1977,8 +1924,7 @@ class Program
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddAfterDefineDirective4(TestHost testHost)
         {
             await TestAsync(
@@ -2006,8 +1952,7 @@ class Program
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddAfterExistingBanner(TestHost testHost)
         {
             await TestAsync(
@@ -2035,8 +1980,7 @@ class Program
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddAfterExternAlias1(TestHost testHost)
         {
             await TestAsync(
@@ -2066,8 +2010,7 @@ class Program
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddAfterExternAlias2(TestHost testHost)
         {
             await TestAsync(
@@ -2100,7 +2043,7 @@ class Program
 }", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestWithReferenceDirective()
         {
             var resolver = new TestMetadataReferenceResolver(assemblyNames: new Dictionary<string, PortableExecutableReference>()
@@ -2119,8 +2062,7 @@ GetScriptOptions(),
 TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(542643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
         public async Task TestAssemblyAttribute(TestHost testHost)
         {
@@ -2131,7 +2073,7 @@ TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
 [assembly: InternalsVisibleTo(""Project"")]", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestDoNotAddIntoHiddenRegion()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2148,8 +2090,7 @@ class Program
 }");
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddToVisibleRegion(TestHost testHost)
         {
             await TestAsync(
@@ -2184,7 +2125,7 @@ class Program
 #line default", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(545248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545248")]
+        [Fact, WorkItem(545248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545248")]
         public async Task TestVenusGeneration1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2201,15 +2142,14 @@ class Program
     }");
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
+        [Fact, WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
         public async Task TestAttribute_ActionCount()
         {
             var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
             await TestActionCountAsync(input, 2);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
         public async Task TestAttribute(TestHost testHost)
         {
@@ -2222,7 +2162,7 @@ input,
 [ assembly : Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(546833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546833")]
+        [Fact, WorkItem(546833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546833")]
         public async Task TestNotOnOverloadResolutionError()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2242,8 +2182,7 @@ input,
 }");
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(17020, "DevDiv_Projects/Roslyn")]
         public async Task TestAddUsingForGenericArgument(TestHost testHost)
         {
@@ -2286,8 +2225,7 @@ namespace ConsoleApplication10
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")]
         public async Task ShouldTriggerOnCS0308(TestHost testHost)
         {
@@ -2314,8 +2252,7 @@ class Test
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(838253, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838253")]
         public async Task TestConflictedInaccessibleType(TestHost testHost)
         {
@@ -2354,8 +2291,7 @@ class C
 testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(858085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858085")]
         public async Task TestConflictedAttributeName(TestHost testHost)
         {
@@ -2372,8 +2308,7 @@ class Description
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(872908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872908")]
         public async Task TestConflictedGenericName(TestHost testHost)
         {
@@ -2393,7 +2328,7 @@ class X
 }", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(913300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913300")]
+        [Fact, WorkItem(913300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913300")]
         public async Task TestNoDuplicateReport_ActionCount()
         {
             await TestActionCountInAllFixesAsync(
@@ -2410,8 +2345,7 @@ class X
 }", count: 1);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(913300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913300")]
         public async Task TestNoDuplicateReport(TestHost testHost)
         {
@@ -2440,7 +2374,7 @@ class C
 }", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(938296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938296")]
+        [Fact, WorkItem(938296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938296")]
         public async Task TestNullParentInNode()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2455,7 +2389,7 @@ class MultiDictionary<K, V> : Dictionary<K, HashSet<V>>
 }");
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(968303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968303")]
+        [Fact, WorkItem(968303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968303")]
         public async Task TestMalformedUsingSection()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2464,8 +2398,7 @@ class MultiDictionary<K, V> : Dictionary<K, HashSet<V>>
     [|List<|] }");
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
         public async Task TestAddUsingsWithExternAlias(TestHost testHost)
         {
@@ -2516,8 +2449,7 @@ namespace ExternAliases
             await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
         public async Task TestAddUsingsWithPreExistingExternAlias(TestHost testHost)
         {
@@ -2580,8 +2512,7 @@ namespace ExternAliases
             await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
         public async Task TestAddUsingsWithPreExistingExternAlias_FileScopedNamespace(TestHost testHost)
         {
@@ -2642,8 +2573,7 @@ class Program
             await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
         public async Task TestAddUsingsNoExtern(TestHost testHost)
         {
@@ -2694,8 +2624,7 @@ namespace ExternAliases
             await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
         public async Task TestAddUsingsNoExtern_FileScopedNamespace(TestHost testHost)
         {
@@ -2743,8 +2672,7 @@ class Program
             await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
         public async Task TestAddUsingsNoExternFilterGlobalAlias(TestHost testHost)
         {
@@ -2767,7 +2695,7 @@ class Program
 }", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
+        [Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
         public async Task TestAddUsingForCref()
         {
             var initialText =
@@ -2788,7 +2716,7 @@ interface MyNotifyPropertyChanged { }";
             await TestAsync(initialText, expectedText, parseOptions: options);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
+        [Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
         public async Task TestAddUsingForCref2()
         {
             var initialText =
@@ -2809,7 +2737,7 @@ interface MyNotifyPropertyChanged { }";
             await TestAsync(initialText, expectedText, parseOptions: options);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
+        [Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
         public async Task TestAddUsingForCref3()
         {
             var initialText =
@@ -2857,7 +2785,7 @@ public class MyClass2
             await TestAsync(initialText, expectedText, parseOptions: options);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
+        [Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
         public async Task TestAddUsingForCref4()
         {
             var initialText =
@@ -2895,8 +2823,7 @@ public class MyClass
             await TestAsync(initialText, expectedText, parseOptions: options);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
         public async Task TestAddStaticType(TestHost testHost)
         {
@@ -2936,8 +2863,7 @@ class Test
             await TestAsync(initialText, expectedText, testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
         public async Task TestAddStaticType2(TestHost testHost)
         {
@@ -2981,8 +2907,7 @@ class Test
             await TestAsync(initialText, expectedText, testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
         public async Task TestAddStaticType3(TestHost testHost)
         {
@@ -3024,8 +2949,7 @@ class Test
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
         public async Task TestAddStaticType4(TestHost testHost)
         {
@@ -3071,8 +2995,7 @@ class Test
             await TestAsync(initialText, expectedText, testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
         public async Task TestAddInsideUsingDirective1(TestHost testHost)
         {
@@ -3089,8 +3012,7 @@ namespace ns
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
         public async Task TestAddInsideUsingDirective2(TestHost testHost)
         {
@@ -3110,8 +3032,7 @@ namespace ns
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
         public async Task TestAddInsideUsingDirective3(TestHost testHost)
         {
@@ -3148,8 +3069,7 @@ namespace ns2
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
         public async Task TestAddInsideUsingDirective4(TestHost testHost)
         {
@@ -3183,8 +3103,7 @@ namespace ns2
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
         public async Task TestAddInsideUsingDirective5(TestHost testHost)
         {
@@ -3224,15 +3143,14 @@ namespace ns2
 }", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
+        [Fact, WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
         public async Task TestAddInsideUsingDirective6()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using B = [|Byte|];");
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         public async Task TestAddConditionalAccessExpression(TestHost testHost)
         {
@@ -3275,8 +3193,7 @@ public class C
             await TestAsync(initialText, expectedText, testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         public async Task TestAddConditionalAccessExpression2(TestHost testHost)
         {
@@ -3331,8 +3248,7 @@ public class C
             await TestAsync(initialText, expectedText, testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(1089138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089138")]
         public async Task TestAmbiguousUsingName(TestHost testHost)
         {
@@ -3394,8 +3310,7 @@ namespace ClassLibrary1.SubNamespaceName
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddUsingInDirective(TestHost testHost)
         {
             await TestAsync(
@@ -3432,8 +3347,7 @@ class Program
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddUsingInDirective2(TestHost testHost)
         {
             await TestAsync(
@@ -3458,8 +3372,7 @@ using System.Text;
 class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddUsingInDirective3(TestHost testHost)
         {
             await TestAsync(
@@ -3485,8 +3398,7 @@ using System.IO;
 class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddUsingInDirective4(TestHost testHost)
         {
             await TestAsync(
@@ -3512,7 +3424,7 @@ using System.IO;
 class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestInaccessibleExtensionMethod()
         {
             const string initial = @"
@@ -3540,8 +3452,7 @@ namespace N2
             await TestMissingInRegularAndScriptAsync(initial);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(1116011, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116011")]
         public async Task TestAddUsingForProperty(TestHost testHost)
         {
@@ -3579,8 +3490,7 @@ class Program
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(1116011, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116011")]
         public async Task TestAddUsingForField(TestHost testHost)
         {
@@ -3634,8 +3544,7 @@ namespace A
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(1893, "https://github.com/dotnet/roslyn/issues/1893")]
         public async Task TestNameSimplification(TestHost testHost)
         {
@@ -3684,8 +3593,7 @@ namespace A.C
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")]
         public async Task TestAddUsingWithOtherExtensionsInScope(TestHost testHost)
         {
@@ -3757,8 +3665,7 @@ public class B
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")]
         public async Task TestAddUsingWithOtherExtensionsInScope2(TestHost testHost)
         {
@@ -3830,8 +3737,7 @@ public class B
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(562, "https://github.com/dotnet/roslyn/issues/562")]
         public async Task TestAddUsingWithOtherExtensionsInScope3(TestHost testHost)
         {
@@ -3867,8 +3773,7 @@ namespace X
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(562, "https://github.com/dotnet/roslyn/issues/562")]
         public async Task TestAddUsingWithOtherExtensionsInScope4(TestHost testHost)
         {
@@ -3912,8 +3817,7 @@ namespace X
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
         public async Task TestNestedNamespaceSimplified(TestHost testHost)
         {
@@ -3945,8 +3849,7 @@ namespace X
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
         public async Task TestNestedNamespaceSimplified2(TestHost testHost)
         {
@@ -3978,8 +3881,7 @@ namespace X
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
         public async Task TestNestedNamespaceSimplified3(TestHost testHost)
         {
@@ -4013,8 +3915,7 @@ namespace X
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
         public async Task TestNestedNamespaceSimplified4(TestHost testHost)
         {
@@ -4048,8 +3949,7 @@ namespace X
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
         public async Task TestNestedNamespaceSimplified5(TestHost testHost)
         {
@@ -4087,8 +3987,7 @@ namespace X
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
         public async Task TestNestedNamespaceSimplified6(TestHost testHost)
         {
@@ -4128,8 +4027,7 @@ namespace X
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddUsingOrdinalUppercase(TestHost testHost)
         {
             await TestAsync(
@@ -4185,8 +4083,7 @@ namespace Uppercase
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddUsingOrdinalLowercase(TestHost testHost)
         {
             await TestAsync(
@@ -4242,8 +4139,7 @@ namespace Uppercase
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(7443, "https://github.com/dotnet/roslyn/issues/7443")]
         public async Task TestWithExistingIncompatibleExtension(TestHost testHost)
         {
@@ -4291,8 +4187,7 @@ namespace N
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(1744, @"https://github.com/dotnet/roslyn/issues/1744")]
         public async Task TestIncompleteCatchBlockInLambda(TestHost testHost)
         {
@@ -4315,8 +4210,7 @@ class A
     catch (Exception", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(1033612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
         public async Task TestAddInsideLambda(TestHost testHost)
         {
@@ -4339,8 +4233,7 @@ static void Main(string[] args)
             await TestAsync(initialText, expectedText, testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(1033612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
         public async Task TestAddInsideLambda2(TestHost testHost)
         {
@@ -4363,8 +4256,7 @@ static void Main(string[] args)
             await TestAsync(initialText, expectedText, testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(1033612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
         public async Task TestAddInsideLambda3(TestHost testHost)
         {
@@ -4395,8 +4287,7 @@ static void Main(string[] args)
             await TestAsync(initialText, expectedText, testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(1033612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
         public async Task TestAddInsideLambda4(TestHost testHost)
         {
@@ -4427,7 +4318,7 @@ static void Main(string[] args)
             await TestAsync(initialText, expectedText, testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
+        [Theory, WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
         [CombinatorialData]
         [WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
         public async Task TestIncompleteParenthesizedLambdaExpression(TestHost testHost)
@@ -4458,8 +4349,7 @@ class Test
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(7461, "https://github.com/dotnet/roslyn/issues/7461")]
         public async Task TestExtensionWithIncompatibleInstance(TestHost testHost)
         {
@@ -4513,8 +4403,7 @@ namespace Namespace2
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(5499, "https://github.com/dotnet/roslyn/issues/5499")]
         public async Task TestFormattingForNamespaceUsings(TestHost testHost)
         {
@@ -4552,7 +4441,7 @@ namespace Namespace2
 }", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestGenericAmbiguityInSameNamespace()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4567,7 +4456,7 @@ namespace Namespace2
 }");
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestNotOnVar1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4586,7 +4475,7 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestNotOnVar2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4605,8 +4494,7 @@ class C
 ");
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
         public async Task TestAddUsingWithLeadingDocCommentInFrontOfUsing1(TestHost testHost)
         {
@@ -4634,8 +4522,7 @@ class C : IEnumerable<int>
 ", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
         public async Task TestAddUsingWithLeadingDocCommentInFrontOfUsing2(TestHost testHost)
         {
@@ -4665,8 +4552,7 @@ class C
 ", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
         public async Task TestAddUsingWithLeadingDocCommentInFrontOfClass1(TestHost testHost)
         {
@@ -4690,8 +4576,7 @@ class C
 ", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestPlaceUsingWithUsings_NotWithAliases(TestHost testHost)
         {
             await TestAsync(
@@ -4728,8 +4613,7 @@ namespace N
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(15025, "https://github.com/dotnet/roslyn/issues/15025")]
         public async Task TestPreferSystemNamespaceFirst(TestHost testHost)
         {
@@ -4774,8 +4658,7 @@ namespace N
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(15025, "https://github.com/dotnet/roslyn/issues/15025")]
         public async Task TestPreferSystemNamespaceFirst2(TestHost testHost)
         {
@@ -4820,7 +4703,7 @@ namespace N
 }", testHost, index: 1);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
+        [Fact, WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
         public async Task TestContextualKeyword1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4841,8 +4724,7 @@ class C
 }");
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(19218, "https://github.com/dotnet/roslyn/issues/19218")]
         public async Task TestChangeCaseWithUsingsInNestedNamespace(TestHost testHost)
         {
@@ -4892,7 +4774,7 @@ namespace Outer
 ", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
+        [Fact, WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
         public async Task TestNoNonGenericsWithGenericCodeParsedAsExpression()
         {
             var code = @"
@@ -4921,8 +4803,7 @@ class C
 }");
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(19796, "https://github.com/dotnet/roslyn/issues/19796")]
         public async Task TestWhenInRome1(TestHost testHost)
         {
@@ -4975,8 +4856,7 @@ namespace A
 testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(19796, "https://github.com/dotnet/roslyn/issues/19796")]
         public async Task TestWhenInRome2(TestHost testHost)
         {
@@ -5028,7 +4908,7 @@ namespace A
 }", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestExactMatchNoGlyph()
         {
             await TestSmartTagGlyphTagsAsync(
@@ -5049,7 +4929,7 @@ class C
 ", ImmutableArray<string>.Empty);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestFuzzyMatchGlyph()
         {
             await TestSmartTagGlyphTagsAsync(
@@ -5070,8 +4950,7 @@ class C
 ", WellKnownTagArrays.Namespace);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(29313, "https://github.com/dotnet/roslyn/issues/29313")]
         public async Task TestGetAwaiterExtensionMethod1(TestHost testHost)
         {
@@ -5151,8 +5030,7 @@ namespace B
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(29313, "https://github.com/dotnet/roslyn/issues/29313")]
         public async Task TestGetAwaiterExtensionMethod2(TestHost testHost)
         {
@@ -5232,8 +5110,7 @@ namespace B
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(745490, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/745490")]
         public async Task TestAddUsingForAwaitableReturningExtensionMethod(TestHost testHost)
         {
@@ -5291,8 +5168,7 @@ namespace B
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddUsingForExtensionGetEnumeratorReturningIEnumerator(TestHost testHost)
         {
             await TestAsync(
@@ -5342,8 +5218,7 @@ namespace B
 }", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddUsingForExtensionGetEnumeratorReturningPatternEnumerator(TestHost testHost)
         {
             await TestAsync(
@@ -5403,7 +5278,7 @@ namespace B
 }", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestMissingForExtensionInvalidGetEnumerator()
         {
             await TestMissingAsync(
@@ -5429,8 +5304,7 @@ namespace B
 }");
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddUsingForExtensionGetEnumeratorReturningPatternEnumeratorWrongAsync(TestHost testHost)
         {
             await TestAsync(
@@ -5510,7 +5384,7 @@ namespace B
 }", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestMissingForExtensionGetAsyncEnumeratorOnForeach()
         {
             await TestMissingAsync(
@@ -5537,8 +5411,7 @@ namespace B
 }" + IAsyncEnumerable);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddUsingForExtensionGetAsyncEnumeratorReturningIAsyncEnumerator(TestHost testHost)
         {
             await TestAsync(
@@ -5590,8 +5463,7 @@ namespace B
 }" + IAsyncEnumerable, testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddUsingForExtensionGetAsyncEnumeratorReturningPatternEnumerator(TestHost testHost)
         {
             await TestAsync(
@@ -5653,7 +5525,7 @@ namespace B
 }", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestMissingForExtensionInvalidGetAsyncEnumerator()
         {
             await TestMissingAsync(
@@ -5681,8 +5553,7 @@ namespace B
 }");
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddUsingForExtensionGetAsyncEnumeratorReturningPatternEnumeratorWrongAsync(TestHost testHost)
         {
             await TestAsync(
@@ -5766,7 +5637,7 @@ namespace B
 }", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestMissingForExtensionGetEnumeratorOnAsyncForeach()
         {
             await TestMissingAsync(
@@ -5795,8 +5666,7 @@ namespace B
 }");
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithStaticUsingInNamespace_WhenNoExistingUsings(TestHost testHost)
         {
@@ -5826,8 +5696,7 @@ namespace N
 ", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithStaticUsingInInnerNestedNamespace_WhenNoExistingUsings(TestHost testHost)
         {
@@ -5863,8 +5732,7 @@ namespace N
 ", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithStaticUsingInOuterNestedNamespace_WhenNoExistingUsings(TestHost testHost)
         {
@@ -5900,8 +5768,7 @@ namespace N
 ", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithExistingUsingInCompilationUnit_WhenStaticUsingInNamespace(TestHost testHost)
         {
@@ -5935,8 +5802,7 @@ namespace N
 ", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithExistingUsing_WhenStaticUsingInInnerNestedNamespace(TestHost testHost)
         {
@@ -5976,8 +5842,7 @@ namespace N
 ", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithExistingUsing_WhenStaticUsingInOuterNestedNamespace(TestHost testHost)
         {
@@ -6017,8 +5882,7 @@ namespace N
 ", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithUsingAliasInNamespace_WhenNoExistingUsing(TestHost testHost)
         {
@@ -6048,8 +5912,7 @@ namespace N
 ", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithUsingAliasInInnerNestedNamespace_WhenNoExistingUsing(TestHost testHost)
         {
@@ -6085,8 +5948,7 @@ namespace N
 ", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithUsingAliasInOuterNestedNamespace_WhenNoExistingUsing(TestHost testHost)
         {
@@ -6122,8 +5984,7 @@ namespace N
 ", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithExistingUsingInCompilationUnit_WhenUsingAliasInNamespace(TestHost testHost)
         {
@@ -6157,8 +6018,7 @@ namespace N
 ", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithExistingUsing_WhenUsingAliasInInnerNestedNamespace(TestHost testHost)
         {
@@ -6198,8 +6058,7 @@ namespace N
 ", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithExistingUsing_WhenUsingAliasInOuterNestedNamespace(TestHost testHost)
         {
@@ -6239,8 +6098,7 @@ namespace N
 ", testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
         public async Task KeepUsingsGrouped1(TestHost testHost)
         {
@@ -6282,7 +6140,7 @@ namespace Microsoft
 }", testHost);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
+        [Fact, WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
         public async Task TestIncompleteLambda1()
         {
             await TestInRegularAndScriptAsync(
@@ -6305,7 +6163,7 @@ class C
         new Byte");
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
+        [Fact, WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
         public async Task TestIncompleteLambda2()
         {
             await TestInRegularAndScriptAsync(
@@ -6328,7 +6186,7 @@ class C
             new Byte() }");
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
+        [Fact, WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
         [WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
         public async Task TestIncompleteSimpleLambdaExpression()
         {
@@ -6356,8 +6214,7 @@ class Program
 }");
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(1266354, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
         public async Task TestAddUsingsEditorBrowsableNeverSameProject(TestHost testHost)
         {
@@ -6401,8 +6258,7 @@ class Program
             await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(1266354, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
         public async Task TestAddUsingsEditorBrowsableNeverDifferentProject(TestHost testHost)
         {
@@ -6434,8 +6290,7 @@ class Program
             await TestMissingAsync(InitialWorkspace, new TestParameters(testHost: testHost));
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(1266354, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
         public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOn(TestHost testHost)
         {
@@ -6479,8 +6334,7 @@ class Program
             await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
         }
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(1266354, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
         public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff(TestHost testHost)
         {

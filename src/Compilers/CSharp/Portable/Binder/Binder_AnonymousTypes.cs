@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindAnonymousObjectCreation(AnonymousObjectCreationExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureAnonymousTypes.CheckFeatureAvailability(diagnostics, node, node.NewKeyword.GetLocation());
+
             //  prepare
             var initializers = node.Initializers;
             int fieldCount = initializers.Count;

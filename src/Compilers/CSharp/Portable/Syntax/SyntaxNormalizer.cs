@@ -197,10 +197,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return 0;
             }
 
-            if (nextToken.IsKind(SyntaxKind.CloseBraceToken) &&
-                IsAccessorListWithoutAccessorsWithBlockBody(currentToken.Parent?.Parent))
+            if (nextToken.IsKind(SyntaxKind.CloseBraceToken))
             {
-                return 0;
+                if (IsAccessorListWithoutAccessorsWithBlockBody(currentToken.Parent?.Parent))
+                {
+                    return 0;
+                }
+
+                if (nextToken.Parent is InitializerExpressionSyntax or AnonymousObjectCreationExpressionSyntax &&
+                    !IsSingleLineInitializerContext(nextToken.Parent))
+                {
+                    return 1;
+                }
             }
 
             switch (currentToken.Kind())
@@ -209,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return 0;
 
                 case SyntaxKind.OpenBraceToken:
-                    return LineBreaksAfterOpenBrace(currentToken, nextToken);
+                    return LineBreaksAfterOpenBrace(currentToken);
 
                 case SyntaxKind.FinallyKeyword:
                     return 1;
@@ -220,9 +228,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.CloseParenToken:
                     if (currentToken.Parent is PositionalPatternClauseSyntax)
                     {
-                        //don't break inside a recursive pattern
+                        // don't break inside a recursive pattern
                         return 0;
                     }
+
+                    if (nextToken.IsKind(SyntaxKind.OpenBraceToken) &&
+                        IsInitializerInSingleLineContext(nextToken.Parent))
+                    {
+                        // Don't break before an open brace of an initializer when inside single-line.
+                        // Initializers in such context are not expected to be large,
+                        // so formatting them in single-line fashion looks more compact.
+                        return 0;
+                    }
+
                     // Note: the `where` case handles constraints on method declarations
                     //  and also `where` clauses (consistently with other LINQ cases below)
                     return (((currentToken.Parent is StatementSyntax) && nextToken.Parent != currentToken.Parent)
@@ -230,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         || nextToken.Kind() == SyntaxKind.WhereKeyword) ? 1 : 0;
 
                 case SyntaxKind.CloseBracketToken:
-                    if (currentToken.Parent is AttributeListSyntax && !(currentToken.Parent.Parent is ParameterSyntax))
+                    if (currentToken.Parent is AttributeListSyntax && currentToken.Parent.Parent is not ParameterSyntax)
                     {
                         return 1;
                     }
@@ -240,6 +258,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return LineBreaksAfterSemicolon(currentToken, nextToken);
 
                 case SyntaxKind.CommaToken:
+                    if (currentToken.Parent is InitializerExpressionSyntax or AnonymousObjectCreationExpressionSyntax &&
+                        !IsSingleLineInitializerContext(nextToken.Parent))
+                    {
+                        return 1;
+                    }
                     return currentToken.Parent is EnumDeclarationSyntax or SwitchExpressionSyntax ? 1 : 0;
                 case SyntaxKind.ElseKeyword:
                     return nextToken.Kind() != SyntaxKind.IfKeyword ? 1 : 0;
@@ -288,16 +311,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 accessorList.Accessors.All(a => a.Body == null);
 
         private static bool IsAccessorListFollowedByInitializer([NotNullWhen(true)] SyntaxNode? node)
-            => node is AccessorListSyntax accessorList &&
-                node.Parent is PropertyDeclarationSyntax property &&
-                property.Initializer != null;
+            => node is AccessorListSyntax { Parent: PropertyDeclarationSyntax { Initializer: not null } };
 
         private static int LineBreaksBeforeOpenBrace(SyntaxToken openBraceToken)
         {
             Debug.Assert(openBraceToken.IsKind(SyntaxKind.OpenBraceToken));
-            if (openBraceToken.Parent.IsKind(SyntaxKind.Interpolation) ||
-                openBraceToken.Parent is InitializerExpressionSyntax or PropertyPatternClauseSyntax ||
-                IsAccessorListWithoutAccessorsWithBlockBody(openBraceToken.Parent))
+            var parent = openBraceToken.Parent;
+            if (parent.IsKind(SyntaxKind.Interpolation) ||
+                parent is PropertyPatternClauseSyntax ||
+                IsAccessorListWithoutAccessorsWithBlockBody(parent) ||
+                IsInitializerInSingleLineContext(parent))
             {
                 return 0;
             }
@@ -310,8 +333,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private static int LineBreaksBeforeCloseBrace(SyntaxToken closeBraceToken)
         {
             Debug.Assert(closeBraceToken.IsKind(SyntaxKind.CloseBraceToken));
-            if (closeBraceToken.Parent.IsKind(SyntaxKind.Interpolation) ||
-                closeBraceToken.Parent is InitializerExpressionSyntax or PropertyPatternClauseSyntax)
+            var parent = closeBraceToken.Parent;
+            if (parent.IsKind(SyntaxKind.Interpolation) ||
+                parent is PropertyPatternClauseSyntax ||
+                IsInitializerInSingleLineContext(parent))
             {
                 return 0;
             }
@@ -321,11 +346,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        private static int LineBreaksAfterOpenBrace(SyntaxToken currentToken, SyntaxToken nextToken)
+        private static int LineBreaksAfterOpenBrace(SyntaxToken openBraceToken)
         {
-            if (currentToken.Parent is InitializerExpressionSyntax or PropertyPatternClauseSyntax ||
-                currentToken.Parent.IsKind(SyntaxKind.Interpolation) ||
-                IsAccessorListWithoutAccessorsWithBlockBody(currentToken.Parent))
+            var parent = openBraceToken.Parent;
+            if (parent is PropertyPatternClauseSyntax ||
+                parent.IsKind(SyntaxKind.Interpolation) ||
+                IsAccessorListWithoutAccessorsWithBlockBody(parent) ||
+                IsInitializerInSingleLineContext(parent))
             {
                 return 0;
             }
@@ -337,10 +364,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static int LineBreaksAfterCloseBrace(SyntaxToken currentToken, SyntaxToken nextToken)
         {
-            if (currentToken.Parent is InitializerExpressionSyntax or SwitchExpressionSyntax or PropertyPatternClauseSyntax ||
-                currentToken.Parent.IsKind(SyntaxKind.Interpolation) ||
-                currentToken.Parent?.Parent is AnonymousFunctionExpressionSyntax ||
-                IsAccessorListFollowedByInitializer(currentToken.Parent))
+            var currentTokenParent = currentToken.Parent;
+            if (currentTokenParent is SwitchExpressionSyntax or PropertyPatternClauseSyntax ||
+                currentTokenParent.IsKind(SyntaxKind.Interpolation) ||
+                currentTokenParent?.Parent is AnonymousFunctionExpressionSyntax ||
+                IsAccessorListFollowedByInitializer(currentTokenParent) ||
+                isCloseBraceFollowedByCommaOrSemicolon(currentToken, nextToken) || // Typical case: `var a = new A { X = new B { }, <- here }; <- and here`. Should emit no breaks regardless of whether in multiline mode or not
+                nextToken.Parent is MemberAccessExpressionSyntax or BracketedArgumentListSyntax || // Typical cases: `new [] { ... }.Length` or `new [] { ... }[0]`. When in multiline mode still want to keep them on the same line as closing brace
+                IsInitializerInSingleLineContext(currentTokenParent))
             {
                 return 0;
             }
@@ -365,6 +396,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         return 2;
                     }
             }
+
+            static bool isCloseBraceFollowedByCommaOrSemicolon(SyntaxToken currentToken, SyntaxToken nextToken)
+                => currentToken.IsKind(SyntaxKind.CloseBraceToken) &&
+                   nextToken.Kind() is SyntaxKind.CommaToken or SyntaxKind.SemicolonToken;
         }
 
         private static int LineBreaksAfterSemicolon(SyntaxToken currentToken, SyntaxToken nextToken)
@@ -775,6 +810,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 (next.IsKind(SyntaxKind.IdentifierToken) || next.Parent.IsKind(SyntaxKind.IndexerDeclaration)))
             {
                 return true;
+            }
+
+            // Rules for single-line initializer syntax inside single-line context:
+            // 1. Separator before open brace token
+            // 2. Separator after open brace token
+            // 3. Separator before close brace token
+            // e.g. `$"{new SomeClass() { A = 2 }}"`, [SomeAttribute(new int[] { 1, 2, 3 })] or `MethodCall(new Arg { A = 1, B = 2 })`
+            // Initializers in such context are not expected to be large,
+            // so formatting them in single-line fashion looks more compact.
+            if (IsSingleLineInitializerContext(token.Parent))
+            {
+                if (next.Parent is InitializerExpressionSyntax or AnonymousObjectCreationExpressionSyntax &&
+                    next.IsKind(SyntaxKind.OpenBraceToken))
+                {
+                    return true;
+                }
+
+                if (token.Parent is InitializerExpressionSyntax or AnonymousObjectCreationExpressionSyntax &&
+                    token.IsKind(SyntaxKind.OpenBraceToken))
+                {
+                    return true;
+                }
+
+                if (next.Parent is InitializerExpressionSyntax or AnonymousObjectCreationExpressionSyntax &&
+                    next.IsKind(SyntaxKind.CloseBraceToken))
+                {
+                    return true;
+                }
             }
 
             if (IsKeyword(token.Kind()))
@@ -1189,74 +1252,140 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static int GetDeclarationDepth(SyntaxNode? node)
         {
-            if (node != null)
+            if (node is null)
             {
-                if (node.IsStructuredTrivia)
+                return 0;
+            }
+
+            if (node.IsStructuredTrivia)
+            {
+                var tr = ((StructuredTriviaSyntax)node).ParentTrivia;
+                return GetDeclarationDepth(tr);
+            }
+            else if (node.Parent != null)
+            {
+                if (node.Parent.IsKind(SyntaxKind.CompilationUnit))
                 {
-                    var tr = ((StructuredTriviaSyntax)node).ParentTrivia;
-                    return GetDeclarationDepth(tr);
+                    return 0;
                 }
-                else if (node.Parent != null)
+
+                int parentDepth = GetDeclarationDepth(node.Parent);
+
+                if (node.Parent.Kind() is SyntaxKind.GlobalStatement or SyntaxKind.FileScopedNamespaceDeclaration)
                 {
-                    if (node.Parent.IsKind(SyntaxKind.CompilationUnit))
-                    {
-                        return 0;
-                    }
-
-                    int parentDepth = GetDeclarationDepth(node.Parent);
-
-                    if (node.Parent.Kind() is SyntaxKind.GlobalStatement or SyntaxKind.FileScopedNamespaceDeclaration)
-                    {
-                        return parentDepth;
-                    }
-
-                    if (node.IsKind(SyntaxKind.IfStatement) && node.Parent.IsKind(SyntaxKind.ElseClause))
-                    {
-                        return parentDepth;
-                    }
-
-                    if (node.Parent is BlockSyntax)
-                    {
-                        return parentDepth + 1;
-                    }
-
-                    if (node is StatementSyntax && node is not BlockSyntax)
-                    {
-                        // Nested statements are normally indented one level.
-                        //
-                        // However, for chains of using-statements or fixed-statements, we'd like to follow the
-                        // idiomatic pattern of:
-                        //
-                        //      using ...
-                        //      using ...
-                        //          .. embedded statement ..
-                        if (node is UsingStatementSyntax { Parent: UsingStatementSyntax })
-                            return parentDepth;
-
-                        if (node is FixedStatementSyntax { Parent: FixedStatementSyntax })
-                            return parentDepth;
-
-                        return parentDepth + 1;
-                    }
-
-                    if (node is MemberDeclarationSyntax ||
-                        node is AccessorDeclarationSyntax ||
-                        node is TypeParameterConstraintClauseSyntax ||
-                        node is SwitchSectionSyntax ||
-                        node is SwitchExpressionArmSyntax ||
-                        node is UsingDirectiveSyntax ||
-                        node is ExternAliasDirectiveSyntax ||
-                        node is QueryExpressionSyntax ||
-                        node is QueryContinuationSyntax)
-                    {
-                        return parentDepth + 1;
-                    }
-
                     return parentDepth;
                 }
+
+                if (node.IsKind(SyntaxKind.IfStatement) && node.Parent.IsKind(SyntaxKind.ElseClause))
+                {
+                    return parentDepth;
+                }
+
+                if (node.Parent is BlockSyntax)
+                {
+                    return parentDepth + 1;
+                }
+
+                if (node is { Parent: InitializerExpressionSyntax or AnonymousObjectMemberDeclaratorSyntax } ||
+                    node is AssignmentExpressionSyntax { Parent: InitializerExpressionSyntax })
+                {
+                    if (!IsSingleLineInitializerContext(node.Parent))
+                    {
+                        return parentDepth + 1;
+                    }
+                }
+
+                if (node is StatementSyntax && node is not BlockSyntax)
+                {
+                    // Nested statements are normally indented one level.
+                    //
+                    // However, for chains of using-statements or fixed-statements, we'd like to follow the
+                    // idiomatic pattern of:
+                    //
+                    //      using ...
+                    //      using ...
+                    //          .. embedded statement ..
+                    if (node is UsingStatementSyntax { Parent: UsingStatementSyntax })
+                        return parentDepth;
+
+                    if (node is FixedStatementSyntax { Parent: FixedStatementSyntax })
+                        return parentDepth;
+
+                    return parentDepth + 1;
+                }
+
+                if (node is MemberDeclarationSyntax ||
+                    node is AccessorDeclarationSyntax ||
+                    node is TypeParameterConstraintClauseSyntax ||
+                    node is SwitchSectionSyntax ||
+                    node is SwitchExpressionArmSyntax ||
+                    node is UsingDirectiveSyntax ||
+                    node is ExternAliasDirectiveSyntax ||
+                    node is QueryExpressionSyntax ||
+                    node is QueryContinuationSyntax)
+                {
+                    return parentDepth + 1;
+                }
+
+                return parentDepth;
             }
 
             return 0;
+        }
+
+        /// <summary>
+        /// Tells if the given SyntaxNode is inside single-line initializer context.
+        /// Initializers in such context are not expected to be large,
+        /// so formatting them in single-line fashion looks more compact.
+        /// Current cases:
+        /// <list type="bullet">
+        /// <item>Interpolation holes in strings</item>
+        /// <item>Attribute arguments</item>
+        /// <item>Normal arguments</item>
+        /// </list>
+        /// </summary>
+        private static bool IsSingleLineInitializerContext(SyntaxNode? node)
+        {
+            if (node is null)
+            {
+                return false;
+            }
+
+            var currentParent = node.Parent;
+
+            while (currentParent is not null)
+            {
+                if (currentParent is InterpolationSyntax
+                                  or AttributeArgumentSyntax
+                                  or ArgumentSyntax)
+                {
+                    return true;
+                }
+
+                if (currentParent is StatementSyntax
+                                  or MemberDeclarationSyntax)
+                {
+                    return false;
+                }
+
+                currentParent = currentParent.Parent;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Tells if given SyntaxNode is an initializer in a single-line initializer context.
+        /// See <see cref="IsSingleLineInitializerContext"/>
+        /// </summary>
+        private static bool IsInitializerInSingleLineContext(SyntaxNode? node)
+        {
+            if (node is not (InitializerExpressionSyntax or AnonymousObjectCreationExpressionSyntax))
+            {
+                return false;
+            }
+
+            return IsSingleLineInitializerContext(node);
         }
 
         public override SyntaxNode? VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)

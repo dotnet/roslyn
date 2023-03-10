@@ -2,16 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
 Imports System.Composition
-Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
-Imports Microsoft.CodeAnalysis.Editing
+Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Simplification
-Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Friend Module VisualBasicSyntaxFormattingOptionsStorage

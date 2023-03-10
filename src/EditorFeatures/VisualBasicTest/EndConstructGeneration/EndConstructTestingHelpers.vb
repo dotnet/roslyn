@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 Dim endConstructor = New EndConstructCommandHandler(
                     factory,
                     workspace.GetService(Of ITextUndoHistoryRegistry),
-                    globalOptions)
+                    workspace.GetService(Of EditorOptionsService))
 
                 Dim operations = factory.GetEditorOperations(view)
                 endConstructor.ExecuteCommand_ReturnKeyCommandHandler(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() operations.InsertNewLine(), TestCommandExecutionContext.Create())

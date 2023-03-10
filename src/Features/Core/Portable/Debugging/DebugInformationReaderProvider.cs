@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.Debugging
             public static readonly DummySymReaderMetadataProvider Instance = new();
 
             public unsafe bool TryGetStandaloneSignature(int standaloneSignatureToken, out byte* signature, out int length)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
 
             public bool TryGetTypeDefinitionInfo(int typeDefinitionToken, out string namespaceName, out string typeName, out TypeAttributes attributes)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
 
             public bool TryGetTypeReferenceInfo(int typeReferenceToken, out string namespaceName, out string typeName)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
         }
 
         private sealed class Portable : DebugInformationReaderProvider

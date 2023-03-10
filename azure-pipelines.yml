@@ -38,8 +38,8 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       queueName: windows.vs2022preview.amd64.open
-      restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+      buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
 - stage: Windows_Release_Build
   dependsOn: []
@@ -50,8 +50,8 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       queueName: windows.vs2022preview.amd64.open
-      restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+      buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
 - stage: Unix_Build
   dependsOn: []
@@ -232,6 +232,9 @@ stages:
 
       - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.sln
         displayName: Validate Build Artifacts
+
+      - script: eng/validate-rules-missing-documentation.cmd -ci
+        displayName: Validate rules missing documentation
 
       - task: PowerShell@2
         displayName: Generate Syntax Files

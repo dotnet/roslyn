@@ -13,18 +13,22 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="8.0.0-beta.22524.5">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="8.0.0-beta.23052.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>c5dd6a1da2e6d9b3423ab809fcda8af2927a408b</Sha>
+      <Sha>5a5ae41c42e475e280342b668e668ff34539e36d</Sha>
       <SourceBuild RepoName="arcade" ManagedOnly="true" />
     </Dependency>
     <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="4.1.0-5.22128.4">
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>5d10d428050c0d6afef30a072c4ae68776621877</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="8.0.0-beta.22524.5">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="8.0.0-beta.23052.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>c5dd6a1da2e6d9b3423ab809fcda8af2927a408b</Sha>
+      <Sha>5a5ae41c42e475e280342b668e668ff34539e36d</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0-preview1.23053.1">
+      <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
+      <Sha>fad2bc69091f4282606ba4d3223f7efd94f2fbc8</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>

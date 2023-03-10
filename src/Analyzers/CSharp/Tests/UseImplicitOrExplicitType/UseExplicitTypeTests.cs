@@ -37,40 +37,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
         private readonly CodeStyleOption2<bool> offWithError = new CodeStyleOption2<bool>(false, NotificationOption2.Error);
 
         // specify all options explicitly to override defaults.
-        private OptionsCollection ExplicitTypeEverywhere() =>
-            new OptionsCollection(GetLanguage())
+        private OptionsCollection ExplicitTypeEverywhere()
+            => new OptionsCollection(GetLanguage())
             {
                 { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo },
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
             };
 
-        private OptionsCollection ExplicitTypeExceptWhereApparent() =>
-            new OptionsCollection(GetLanguage())
+        private OptionsCollection ExplicitTypeExceptWhereApparent()
+            => new OptionsCollection(GetLanguage())
             {
                 { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
             };
 
-        private OptionsCollection ExplicitTypeForBuiltInTypesOnly() =>
-            new OptionsCollection(GetLanguage())
+        private OptionsCollection ExplicitTypeForBuiltInTypesOnly()
+            => new OptionsCollection(GetLanguage())
             {
                 { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
             };
 
-        private OptionsCollection ExplicitTypeEnforcements() =>
-            new OptionsCollection(GetLanguage())
+        private OptionsCollection ExplicitTypeEnforcements()
+            => new OptionsCollection(GetLanguage())
             {
                 { CSharpCodeStyleOptions.VarElsewhere, offWithWarning },
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithError },
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
             };
 
-        private OptionsCollection ExplicitTypeSilentEnforcement() =>
-            new OptionsCollection(GetLanguage())
+        private OptionsCollection ExplicitTypeSilentEnforcement()
+            => new OptionsCollection(GetLanguage())
             {
                 { CSharpCodeStyleOptions.VarElsewhere, offWithSilent },
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithSilent },

@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
     [ExportLanguageService(typeof(ISemanticModelReuseLanguageService), LanguageNames.CSharp), Shared]
     internal class CSharpSemanticModelReuseLanguageService : AbstractSemanticModelReuseLanguageService<
         MemberDeclarationSyntax,
-        BaseMethodDeclarationSyntax,
         BasePropertyDeclarationSyntax,
         AccessorDeclarationSyntax>
     {
@@ -56,14 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
             return null;
         }
 
-        protected override async Task<SemanticModel?> TryGetSpeculativeSemanticModelWorkerAsync(
-            SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken)
+        protected override SemanticModel? TryGetSpeculativeSemanticModelWorker(SemanticModel previousSemanticModel, SyntaxNode previousBodyNode, SyntaxNode currentBodyNode)
         {
-            var previousRoot = await previousSemanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var currentRoot = await currentBodyNode.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var previousBodyNode = GetPreviousBodyNode(previousRoot, currentRoot, currentBodyNode);
-
             if (previousBodyNode is BaseMethodDeclarationSyntax previousBaseMethod &&
                 currentBodyNode is BaseMethodDeclarationSyntax currentBaseMethod &&
                 previousBaseMethod.Body != null &&

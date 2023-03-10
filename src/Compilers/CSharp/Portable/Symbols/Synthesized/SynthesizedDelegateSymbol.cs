@@ -30,13 +30,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal sealed class SynthesizedDelegateInvokeMethod : SynthesizedInstanceMethodSymbol
     {
+        internal readonly struct ParameterDescription
+        {
+            internal ParameterDescription(TypeWithAnnotations type, RefKind refKind, DeclarationScope scope, ConstantValue? defaultValue, bool isParams, bool hasUnscopedRefAttribute)
+            {
+                Type = type;
+                RefKind = refKind;
+                Scope = scope;
+                DefaultValue = defaultValue;
+                IsParams = isParams;
+                HasUnscopedRefAttribute = hasUnscopedRefAttribute;
+            }
+
+            internal readonly TypeWithAnnotations Type;
+            internal readonly RefKind RefKind;
+            internal readonly DeclarationScope Scope;
+            internal readonly ConstantValue? DefaultValue;
+            internal readonly bool IsParams;
+            internal readonly bool HasUnscopedRefAttribute;
+        }
+
         private readonly NamedTypeSymbol _containingType;
 
-        internal SynthesizedDelegateInvokeMethod(NamedTypeSymbol containingType, ArrayBuilder<(TypeWithAnnotations Type, RefKind RefKind, DeclarationScope Scope)> parameterDescriptions, TypeWithAnnotations returnType, RefKind refKind)
+        internal SynthesizedDelegateInvokeMethod(
+            NamedTypeSymbol containingType,
+            ArrayBuilder<ParameterDescription> parameterDescriptions,
+            TypeWithAnnotations returnType,
+            RefKind refKind)
         {
             _containingType = containingType;
 
-            Parameters = parameterDescriptions.SelectAsArrayWithIndex((p, i, m) => SynthesizedParameterSymbol.Create(m, p.Type, i, p.RefKind, scope: p.Scope), this);
+            Parameters = parameterDescriptions.SelectAsArrayWithIndex(static (p, i, a) =>
+                SynthesizedParameterSymbol.Create(a.Method, p.Type, i, p.RefKind, GeneratedNames.AnonymousDelegateParameterName(i, a.ParameterCount), p.Scope, p.DefaultValue, isParams: p.IsParams, hasUnscopedRefAttribute: p.HasUnscopedRefAttribute),
+                (Method: this, ParameterCount: parameterDescriptions.Count));
             ReturnTypeWithAnnotations = returnType;
             RefKind = refKind;
         }
@@ -101,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation
@@ -234,6 +260,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
     }
 }

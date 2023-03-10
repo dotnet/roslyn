@@ -11305,9 +11305,9 @@ class C
                 }
             });
 
-            var expectedDiagnostic = outOfMemory ?
-                Diagnostic(RudeEditKind.MemberBodyTooBig, "public static void G()", FeaturesResources.method) :
-                Diagnostic(RudeEditKind.MemberBodyInternalError, "public static void G()", FeaturesResources.method, SimpleToStringException.ToStringOutput);
+            var expectedDiagnostic = outOfMemory
+                ? Diagnostic(RudeEditKind.MemberBodyTooBig, "public static void G()", FeaturesResources.method)
+                : Diagnostic(RudeEditKind.MemberBodyInternalError, "public static void G()", FeaturesResources.method, SimpleToStringException.ToStringOutput);
 
             validator.VerifySemantics(
                 new[] { edits },

@@ -197,14 +197,14 @@
         <target state="translated">Włącz typy referencyjne dopuszczające wartości null w projekcie</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_solution">
+        <source>Enable nullable reference types in solution</source>
+        <target state="translated">Włączanie typów referencyjnych dopuszczających wartość null w rozwiązaniu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
         <target state="translated">Globalne dyrektywy „using”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">Wstawiona zmienna tymczasowa</target>
         <note />
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
@@ -236,6 +236,11 @@
         <source>Reverse 'for' statement</source>
         <target state="translated">Odwróć instrukcję „for”</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Selection_cannot_be_in_constructor_initializer">
+        <source>Selection cannot be in constructor initializer</source>
+        <target state="translated">Zaznaczenie nie może znajdować się w inicjatorze konstruktora</target>
+        <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
         <source>Selection cannot include global statements</source>

@@ -8915,6 +8915,42 @@ class B : A
             await TestExtractMethodAsync(code, expected);
         }
 
+        [Fact]
+        public async Task NullabilityTypeParameters()
+        {
+            var code = @"
+#nullable enable
+
+using System.Collections.Generic;
+
+public class Test
+{
+    public int M(Dictionary<string, string?> v)
+    {
+        [|return v.Count;|]
+    }
+}";
+            var expected = @"
+#nullable enable
+
+using System.Collections.Generic;
+
+public class Test
+{
+    public int M(Dictionary<string, string?> v)
+    {
+        return NewMethod(v);
+    }
+
+    private static int NewMethod(Dictionary<string, string?> v)
+    {
+        return v.Count;
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
         [Fact, WorkItem(543012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543012")]
         public async Task TypeParametersInConstraintBestEffort()
         {

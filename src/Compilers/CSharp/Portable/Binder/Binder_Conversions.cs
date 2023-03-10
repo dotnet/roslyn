@@ -704,6 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRange(boundLambda.Diagnostics);
 
             CheckValidScopedMethodConversion(syntax, boundLambda.Symbol, destination, invokedAsExtensionMethod: false, diagnostics);
+            CheckLambdaConversion(boundLambda.Symbol, destination, diagnostics);
             return new BoundConversion(
                 syntax,
                 boundLambda,
@@ -770,6 +771,94 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (Type: targetType, Location: syntax.Location),
                     allowVariance: true,
                     invokedAsExtensionMethod: invokedAsExtensionMethod);
+            }
+        }
+
+        private static void CheckLambdaConversion(LambdaSymbol lambdaSymbol, TypeSymbol targetType, BindingDiagnosticBag diagnostics)
+        {
+            var delegateType = targetType.GetDelegateType();
+            Debug.Assert(delegateType is not null);
+            var isSynthesized = delegateType.DelegateInvokeMethod?.OriginalDefinition is SynthesizedDelegateInvokeMethod;
+            var delegateParameters = delegateType.DelegateParameters();
+
+            Debug.Assert(lambdaSymbol.ParameterCount == delegateParameters.Length);
+            for (int p = 0; p < lambdaSymbol.ParameterCount; p++)
+            {
+                var lambdaParameter = lambdaSymbol.Parameters[p];
+                var delegateParameter = delegateParameters[p];
+
+                if (isSynthesized)
+                {
+                    // If synthesizing a delegate with `decimal`/`DateTime` default value,
+                    // check that the corresponding `*ConstantAttribute` is available.
+                    if (delegateParameter.ExplicitDefaultConstantValue is { } defaultValue &&
+                        // Skip reporting this diagnostic if already reported in `SourceComplexParameterSymbolBase.DefaultSyntaxValue`.
+                        lambdaParameter is not SourceComplexParameterSymbolBase
+                        {
+                            ExplicitDefaultConstantValue.IsDecimal: true,
+                            DefaultValueFromAttributes: ConstantValue.NotAvailable
+                        })
+                    {
+                        WellKnownMember? member = defaultValue.SpecialType switch
+                        {
+                            SpecialType.System_Decimal => WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
+                            SpecialType.System_DateTime => WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
+                            _ => null
+                        };
+                        if (member != null)
+                        {
+                            reportUseSiteDiagnosticForSynthesizedAttribute(
+                                lambdaSymbol,
+                                lambdaParameter,
+                                member.GetValueOrDefault(),
+                                diagnostics);
+                        }
+                    }
+
+                    // If synthesizing a delegate with an [UnscopedRef] parameter, check the attribute is available.
+                    if (delegateParameter.HasUnscopedRefAttribute)
+                    {
+                        reportUseSiteDiagnosticForSynthesizedAttribute(
+                            lambdaSymbol,
+                            lambdaParameter,
+                            WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
+                            diagnostics);
+                    }
+                }
+
+                // Warn for defaults/`params` mismatch.
+                if (!lambdaSymbol.SyntaxNode.IsKind(SyntaxKind.AnonymousMethodExpression))
+                {
+                    if (lambdaParameter.HasExplicitDefaultValue &&
+                        lambdaParameter.ExplicitDefaultConstantValue is { IsBad: false } lambdaParamDefault)
+                    {
+                        var delegateParamDefault = delegateParameter.HasExplicitDefaultValue ? delegateParameter.ExplicitDefaultConstantValue : null;
+                        if (delegateParamDefault?.IsBad != true && lambdaParamDefault != delegateParamDefault)
+                        {
+                            // Parameter {0} has default value '{1}' in lambda but '{2}' in target delegate type.
+                            Error(diagnostics, ErrorCode.WRN_OptionalParamValueMismatch, lambdaParameter.Locations[0], p + 1, lambdaParamDefault, delegateParamDefault ?? ((object)MessageID.IDS_Missing.Localize()));
+                        }
+                    }
+
+                    if (lambdaParameter.IsParams && !delegateParameter.IsParams && p == lambdaSymbol.ParameterCount - 1 && lambdaParameter.Type.IsSZArray())
+                    {
+                        // Parameter {0} has params modifier in lambda but not in target delegate type.
+                        Error(diagnostics, ErrorCode.WRN_ParamsArrayInLambdaOnly, lambdaParameter.Locations[0], p + 1);
+                    }
+                }
+            }
+
+            static void reportUseSiteDiagnosticForSynthesizedAttribute(
+                LambdaSymbol lambdaSymbol,
+                ParameterSymbol lambdaParameter,
+                WellKnownMember member,
+                BindingDiagnosticBag diagnostics)
+            {
+                ReportUseSiteDiagnosticForSynthesizedAttribute(
+                    lambdaSymbol.DeclaringCompilation,
+                    member,
+                    diagnostics,
+                    lambdaParameter.Locations.FirstOrDefault() ?? lambdaSymbol.SyntaxNode.Location);
             }
         }
 

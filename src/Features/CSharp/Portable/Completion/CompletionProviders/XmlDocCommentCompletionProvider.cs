@@ -324,8 +324,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             yield return SyntaxFacts.GetText(SyntaxKind.AwaitKeyword);
         }
 
-        protected override IEnumerable<string> GetExistingTopLevelElementNames(DocumentationCommentTriviaSyntax syntax) =>
-            syntax.Content.Select(GetElementName).WhereNotNull();
+        protected override IEnumerable<string> GetExistingTopLevelElementNames(DocumentationCommentTriviaSyntax syntax)
+            => syntax.Content.Select(GetElementName).WhereNotNull();
 
         protected override IEnumerable<string?> GetExistingTopLevelAttributeValues(DocumentationCommentTriviaSyntax syntax, string elementName, string attributeName)
         {

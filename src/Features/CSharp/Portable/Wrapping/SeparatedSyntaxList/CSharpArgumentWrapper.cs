@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
@@ -34,6 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
 
         protected override bool ShouldMoveCloseBraceToNewLine
             => false;
+
+        protected override SyntaxToken FirstToken(BaseArgumentListSyntax listSyntax)
+            => listSyntax.GetOpenToken();
+
+        protected override SyntaxToken LastToken(BaseArgumentListSyntax listSyntax)
+            => listSyntax.GetCloseToken();
 
         protected override SeparatedSyntaxList<ArgumentSyntax> GetListItems(BaseArgumentListSyntax listSyntax)
             => listSyntax.Arguments;

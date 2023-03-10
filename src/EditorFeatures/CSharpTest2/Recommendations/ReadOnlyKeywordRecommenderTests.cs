@@ -148,7 +148,7 @@ $$");
 using Goo;");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotBeforeUsing_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -164,7 +164,7 @@ using Goo;");
 global using Goo;");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotBeforeGlobalUsing_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -397,7 +397,7 @@ $$");
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyNotAsParameterModifierInMethods()
         {
             await VerifyAbsenceAsync(@"
@@ -408,7 +408,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyNotAsParameterModifierInSecondParameter()
         {
             await VerifyAbsenceAsync(@"
@@ -419,7 +419,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyNotAsParameterModifierInDelegates()
         {
             await VerifyAbsenceAsync(@"
@@ -436,7 +436,7 @@ public delegate int Delegate(ref $$ int p);");
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyNotAsParameterModifierInLambdaExpressions()
         {
             await VerifyAbsenceAsync(@"
@@ -457,7 +457,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyNotAsParameterModifierInAnonymousMethods()
         {
             await VerifyAbsenceAsync(@"
@@ -473,7 +473,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyAsModifierInMethodReturnTypes()
         {
             await VerifyKeywordAsync(@"
@@ -487,7 +487,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyAsModifierInGlobalMemberDeclaration()
         {
             await VerifyKeywordAsync(@"
@@ -495,7 +495,7 @@ public ref $$ ");
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyAsModifierInDelegateReturnType()
         {
             await VerifyKeywordAsync(@"
@@ -507,7 +507,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyAsModifierInMemberDeclaration()
         {
             await VerifyKeywordAsync(@"

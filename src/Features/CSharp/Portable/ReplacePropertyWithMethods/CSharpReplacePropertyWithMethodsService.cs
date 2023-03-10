@@ -112,9 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             ExpressionBodyPreference expressionBodyPreference,
             CancellationToken cancellationToken)
         {
-            var methodDeclaration = GetSetMethodWorker(
-                generator, propertyDeclaration, propertyBackingField,
-                setMethod, desiredSetMethodName, cancellationToken);
+            var methodDeclaration = GetSetMethodWorker();
 
             // The analyzer doesn't report diagnostics when the trivia contains preprocessor directives, so it's safe
             // to copy the complete leading trivia to both generated methods.
@@ -123,47 +121,43 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             return UseExpressionOrBlockBodyIfDesired(
                 languageVersion, methodDeclaration, expressionBodyPreference,
                 createReturnStatementForExpression: false);
-        }
 
-        private static MethodDeclarationSyntax GetSetMethodWorker(
-            SyntaxGenerator generator,
-            PropertyDeclarationSyntax propertyDeclaration,
-            IFieldSymbol? propertyBackingField,
-            IMethodSymbol setMethod,
-            string desiredSetMethodName,
-            CancellationToken cancellationToken)
-        {
-            var setAccessorDeclaration = (AccessorDeclarationSyntax)setMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-            var methodDeclaration = (MethodDeclarationSyntax)generator.MethodDeclaration(setMethod, desiredSetMethodName);
+            MethodDeclarationSyntax GetSetMethodWorker()
+            {
+                var setAccessorDeclaration = (AccessorDeclarationSyntax)setMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                var methodDeclaration = (MethodDeclarationSyntax)generator.MethodDeclaration(setMethod, desiredSetMethodName);
 
-            // property has unsafe, but generator didn't add it to the method, so we have to add it here
-            if (propertyDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword)
-                && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
-            {
-                methodDeclaration = methodDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
-            }
+                // property has unsafe, but generator didn't add it to the method, so we have to add it here
+                if (propertyDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword)
+                    && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
+                {
+                    methodDeclaration = methodDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+                }
 
-            if (setAccessorDeclaration.Body != null)
-            {
-                return methodDeclaration.WithBody(setAccessorDeclaration.Body)
-                                        .WithAdditionalAnnotations(Formatter.Annotation);
-            }
-            else if (setAccessorDeclaration.ExpressionBody != null)
-            {
-                return methodDeclaration.WithBody(null)
-                                        .WithExpressionBody(setAccessorDeclaration.ExpressionBody)
-                                        .WithSemicolonToken(setAccessorDeclaration.SemicolonToken);
-            }
-            else if (propertyBackingField != null)
-            {
-                return methodDeclaration.WithBody(SyntaxFactory.Block(
-                    (StatementSyntax)generator.ExpressionStatement(
-                        generator.AssignmentStatement(
-                            GetFieldReference(generator, propertyBackingField),
-                            generator.IdentifierName("value")))));
-            }
+                methodDeclaration = methodDeclaration.WithAttributeLists(setAccessorDeclaration.AttributeLists);
 
-            return methodDeclaration;
+                if (setAccessorDeclaration.Body != null)
+                {
+                    return methodDeclaration.WithBody(setAccessorDeclaration.Body)
+                                            .WithAdditionalAnnotations(Formatter.Annotation);
+                }
+                else if (setAccessorDeclaration.ExpressionBody != null)
+                {
+                    return methodDeclaration.WithBody(null)
+                                            .WithExpressionBody(setAccessorDeclaration.ExpressionBody)
+                                            .WithSemicolonToken(setAccessorDeclaration.SemicolonToken);
+                }
+                else if (propertyBackingField != null)
+                {
+                    return methodDeclaration.WithBody(SyntaxFactory.Block(
+                        (StatementSyntax)generator.ExpressionStatement(
+                            generator.AssignmentStatement(
+                                GetFieldReference(generator, propertyBackingField),
+                                generator.IdentifierName("value")))));
+                }
+
+                return methodDeclaration;
+            }
         }
 
         private static SyntaxNode GetGetMethod(
@@ -176,15 +170,59 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             ExpressionBodyPreference expressionBodyPreference,
             CancellationToken cancellationToken)
         {
-            var methodDeclaration = GetGetMethodWorker(
-                generator, propertyDeclaration, propertyBackingField, getMethod,
-                desiredGetMethodName, cancellationToken);
+            var methodDeclaration = GetGetMethodWorker();
 
             methodDeclaration = CopyLeadingTrivia(propertyDeclaration, methodDeclaration, ConvertValueToReturnsRewriter.Instance);
 
             return UseExpressionOrBlockBodyIfDesired(
                 languageVersion, methodDeclaration, expressionBodyPreference,
                 createReturnStatementForExpression: true);
+
+            MethodDeclarationSyntax GetGetMethodWorker()
+            {
+                var methodDeclaration = (MethodDeclarationSyntax)generator.MethodDeclaration(getMethod, desiredGetMethodName);
+
+                // property has unsafe, but generator didn't add it to the method, so we have to add it here
+                if (propertyDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword)
+                    && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
+                {
+                    methodDeclaration = methodDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+                }
+
+                if (propertyDeclaration.ExpressionBody != null)
+                {
+                    return methodDeclaration.WithBody(null)
+                                            .WithExpressionBody(propertyDeclaration.ExpressionBody)
+                                            .WithSemicolonToken(propertyDeclaration.SemicolonToken);
+                }
+                else
+                {
+                    var getAccessorDeclaration = (AccessorDeclarationSyntax)getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+
+                    methodDeclaration = methodDeclaration.WithAttributeLists(getAccessorDeclaration.AttributeLists);
+
+                    if (getAccessorDeclaration?.ExpressionBody != null)
+                    {
+                        return methodDeclaration.WithBody(null)
+                                                .WithExpressionBody(getAccessorDeclaration.ExpressionBody)
+                                                .WithSemicolonToken(getAccessorDeclaration.SemicolonToken);
+                    }
+                    else if (getAccessorDeclaration?.Body != null)
+                    {
+                        return methodDeclaration.WithBody(getAccessorDeclaration.Body)
+                                                .WithAdditionalAnnotations(Formatter.Annotation);
+                    }
+                    else if (propertyBackingField != null)
+                    {
+                        var fieldReference = GetFieldReference(generator, propertyBackingField);
+                        return methodDeclaration.WithBody(
+                            SyntaxFactory.Block(
+                                (StatementSyntax)generator.ReturnStatement(fieldReference)));
+                    }
+                }
+
+                return methodDeclaration;
+            }
         }
 
         private static MethodDeclarationSyntax CopyLeadingTrivia(
@@ -242,56 +280,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                                             .WithSemicolonToken(default)
                                             .WithBody(block)
                                             .WithAdditionalAnnotations(Formatter.Annotation);
-                }
-            }
-
-            return methodDeclaration;
-        }
-
-        private static MethodDeclarationSyntax GetGetMethodWorker(
-            SyntaxGenerator generator,
-            PropertyDeclarationSyntax propertyDeclaration,
-            IFieldSymbol? propertyBackingField,
-            IMethodSymbol getMethod,
-            string desiredGetMethodName,
-            CancellationToken cancellationToken)
-        {
-            var methodDeclaration = (MethodDeclarationSyntax)generator.MethodDeclaration(getMethod, desiredGetMethodName);
-
-            // property has unsafe, but generator didn't add it to the method, so we have to add it here
-            if (propertyDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword)
-                && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
-            {
-                methodDeclaration = methodDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
-            }
-
-            if (propertyDeclaration.ExpressionBody != null)
-            {
-                return methodDeclaration.WithBody(null)
-                                        .WithExpressionBody(propertyDeclaration.ExpressionBody)
-                                        .WithSemicolonToken(propertyDeclaration.SemicolonToken);
-            }
-            else
-            {
-                var getAccessorDeclaration = (AccessorDeclarationSyntax)getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-                if (getAccessorDeclaration?.ExpressionBody != null)
-                {
-                    return methodDeclaration.WithBody(null)
-                                            .WithExpressionBody(getAccessorDeclaration.ExpressionBody)
-                                            .WithSemicolonToken(getAccessorDeclaration.SemicolonToken);
-                }
-
-                if (getAccessorDeclaration?.Body != null)
-                {
-                    return methodDeclaration.WithBody(getAccessorDeclaration.Body)
-                                            .WithAdditionalAnnotations(Formatter.Annotation);
-                }
-                else if (propertyBackingField != null)
-                {
-                    var fieldReference = GetFieldReference(generator, propertyBackingField);
-                    return methodDeclaration.WithBody(
-                        SyntaxFactory.Block(
-                            (StatementSyntax)generator.ReturnStatement(fieldReference)));
                 }
             }
 

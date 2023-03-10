@@ -160,6 +160,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        public string DumpIL()
+        {
+            var output = new ICSharpCode.Decompiler.PlainTextOutput();
+            using var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies);
+            string mainModuleFullName = Emit(testEnvironment, manifestResources: null, EmitOptions.Default);
+            using var moduleMetadata = ModuleMetadata.CreateFromImage(testEnvironment.GetMainImage());
+            var peFile = new PEFile(mainModuleFullName, moduleMetadata.Module.PEReaderOpt);
+            var disassembler = new ICSharpCode.Decompiler.Disassembler.ReflectionDisassembler(output, default);
+            disassembler.WriteModuleContents(peFile);
+            return output.ToString();
+        }
+
         /// <summary>
 		/// Asserts that the emitted IL for a type is the same as the expected IL.
 		/// Many core library types are in different assemblies on .Net Framework, and .Net Core.
@@ -170,6 +182,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 		/// <param name="typeName">The non-fully-qualified name of the type</param>
 		/// <param name="expected">The expected IL</param>
         public void VerifyTypeIL(string typeName, string expected)
+        {
+            VerifyTypeIL(typeName, output => AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output, escapeQuotes: false));
+        }
+
+        /// <summary>
+        /// Invokes <paramref name="validateExpected"/> with the emitted IL for a type to validate it's expected.
+        /// Many core library types are in different assemblies on .Net Framework, and .Net Core.
+        /// Therefore this test is likely to fail unless you  only run it only only on one of these frameworks,
+        /// or you run it on both, but provide a different expected output string for each.
+        /// See <see cref="ExecutionConditionUtil"/>.
+        /// </summary>
+        /// <param name="typeName">The non-fully-qualified name of the type</param>
+        /// <param name="validateExpected">An action to invoke with the emitted IL.</param>
+        public void VerifyTypeIL(string typeName, Action<string> validateExpected)
         {
             var output = new ICSharpCode.Decompiler.PlainTextOutput();
             using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
@@ -197,7 +223,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     Assert.True(found, "Could not find type named " + typeName);
                 }
             }
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output.ToString(), escapeQuotes: false);
+
+            validateExpected(output.ToString());
         }
 
         public void Emit(
@@ -214,10 +241,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
             _allModuleData = testEnvironment.GetAllModuleData();
-            testEnvironment.Verify(peVerify);
+
+            try
+            {
+                testEnvironment.Verify(peVerify);
 #if NETCOREAPP
-            ILVerify(peVerify);
+                ILVerify(peVerify);
 #endif
+            }
+            catch (Exception) when ((peVerify & Verification.PassesOrFailFast) != 0)
+            {
+                var il = DumpIL();
+                Console.WriteLine(il);
+
+                Environment.FailFast("Investigating flaky IL verification issue. Tracked by https://github.com/dotnet/roslyn/issues/63782");
+            }
 
             if (expectedSignatures != null)
             {

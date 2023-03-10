@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSyntax returnTypeSyntax = syntax.ReturnType;
             Debug.Assert(returnTypeSyntax is not ScopedTypeSyntax);
 
-            returnTypeSyntax = returnTypeSyntax.SkipScoped(out _).SkipRef(out RefKind refKind);
+            returnTypeSyntax = returnTypeSyntax.SkipScoped(out _).SkipRefInLocalOrReturn(diagnostics, out RefKind refKind);
             var returnType = binder.BindType(returnTypeSyntax, diagnostics);
 
             // reuse types to avoid reporting duplicate errors if missing:

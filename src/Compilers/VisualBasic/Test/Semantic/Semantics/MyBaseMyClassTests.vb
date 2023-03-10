@@ -3994,7 +3994,6 @@ End Module
                              options:=TestOptions.DebugDll,
                              references:={SystemCoreRef})
 
-
             Dim _assembly = Assembly.Load(verifier.EmittedAssemblyData.ToArray())
             Assert.NotNull(_assembly)
 

@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
@@ -17,6 +18,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
     [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
     public class OnAutoInsertTests : AbstractLanguageServerProtocolTests
     {
+        public OnAutoInsertTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public async Task OnAutoInsert_CommentCharacter()
         {
@@ -395,7 +400,7 @@ End Class";
                 throw ExceptionUtilities.UnexpectedValue(languageName);
             }
 
-            using var testLspServer = await testLspServerTask;
+            await using var testLspServer = await testLspServerTask;
             var locationTyped = testLspServer.GetLocations("type").Single();
 
             var document = testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single();
@@ -411,7 +416,7 @@ End Class";
 
         private async Task VerifyNoResult(string characterTyped, string markup, bool insertSpaces = true, int tabSize = 4)
         {
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
             var locationTyped = testLspServer.GetLocations("type").Single();
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync();
 

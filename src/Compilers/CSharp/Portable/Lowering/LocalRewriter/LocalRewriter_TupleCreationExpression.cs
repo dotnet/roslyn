@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)

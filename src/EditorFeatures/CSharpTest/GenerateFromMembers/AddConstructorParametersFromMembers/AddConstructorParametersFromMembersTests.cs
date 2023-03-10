@@ -5,13 +5,14 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.AddConstructorParameters
 {
-    using VerifyCS = Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<AddConstructorParametersFromMembersCodeRefactoringProvider>;
+    using VerifyCS = CSharpCodeRefactoringVerifier<AddConstructorParametersFromMembersCodeRefactoringProvider>;
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
     public class AddConstructorParametersFromMembersTests
@@ -2492,6 +2493,42 @@ partial class C
     }
 }",
                 CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "C(int, int)"), codeAction.Title)
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(49112, "https://github.com/dotnet/roslyn/issues/49112")]
+        public async Task TestAddParameterToExpressionBodiedConstructor()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+using System.Collections.Generic;
+
+class C
+{
+    int x;
+    [|int y;|]
+
+    public C(int x) => this.x = x;
+}
+",
+                FixedCode =
+@"
+using System.Collections.Generic;
+
+class C
+{
+    int x;
+    int y;
+
+    public C(int x, int y)
+    {
+        this.x = x;
+        this.y = y;
+    }
+}
+",
             }.RunAsync();
         }
     }

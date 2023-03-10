@@ -5395,7 +5395,6 @@ int (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x, y)").WithLocation(2, 5)
                 );
 
-
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
 
@@ -5428,7 +5427,6 @@ int (x, y) = (1, 2);
                 // (int (x, y), int z) = ((1, 2), 3);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x, y)").WithLocation(2, 6)
                 );
-
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -6628,40 +6626,39 @@ class C
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-                //         (_, var _, int _) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, var _, int _)").WithArguments("tuples", "7.0").WithLocation(6, 9),
-                // (6,10): error CS8059: Feature 'discards' is not available in C# 6. Please use language version 7.0 or greater.
-                //         (_, var _, int _) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("discards", "7.0").WithLocation(6, 10),
-                // (6,29): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-                //         (_, var _, int _) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2, 3)").WithArguments("tuples", "7.0").WithLocation(6, 29),
-                // (7,13): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-                //         var (_, _) = (1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, _)").WithArguments("tuples", "7.0").WithLocation(7, 13),
-                // (7,22): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-                //         var (_, _) = (1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2)").WithArguments("tuples", "7.0").WithLocation(7, 22),
-                // (8,18): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
-                //         bool b = 3 is int _;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is int _").WithArguments("pattern matching", "7.0").WithLocation(8, 18),
-                // (11,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
-                //             case int _:
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case int _:").WithArguments("pattern matching", "7.0").WithLocation(11, 13),
-                // (14,20): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
-                //         M1(out var _);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("out variable declaration", "7.0").WithLocation(14, 20),
-                // (15,20): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
-                //         M1(out int _);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("out variable declaration", "7.0").WithLocation(15, 20),
-                // (16,16): error CS8059: Feature 'discards' is not available in C# 6. Please use language version 7.0 or greater.
-                //         M1(out _);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("discards", "7.0").WithLocation(16, 16),
-                // (24,18): warning CS8512: The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.
-                //             case _: // not a discard
-                Diagnostic(ErrorCode.WRN_CaseConstantNamedUnderscore, "_").WithLocation(24, 18)
-                );
+                    // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         (_, var _, int _) = (1, 2, 3);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, var _, int _)").WithArguments("tuples", "7.0").WithLocation(6, 9),
+                    // (6,10): error CS8059: Feature 'discards' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         (_, var _, int _) = (1, 2, 3);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("discards", "7.0").WithLocation(6, 10),
+                    // (6,29): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         (_, var _, int _) = (1, 2, 3);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2, 3)").WithArguments("tuples", "7.0").WithLocation(6, 29),
+                    // (7,13): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         var (_, _) = (1, 2);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, _)").WithArguments("tuples", "7.0").WithLocation(7, 13),
+                    // (7,22): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         var (_, _) = (1, 2);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2)").WithArguments("tuples", "7.0").WithLocation(7, 22),
+                    // (8,20): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         bool b = 3 is int _;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "is").WithArguments("pattern matching", "7.0").WithLocation(8, 20),
+                    // (11,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
+                    //             case int _:
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case").WithArguments("pattern matching", "7.0").WithLocation(11, 13),
+                    // (14,12): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         M1(out var _);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "out").WithArguments("out variable declaration", "7.0").WithLocation(14, 12),
+                    // (15,12): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         M1(out int _);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "out").WithArguments("out variable declaration", "7.0").WithLocation(15, 12),
+                    // (16,16): error CS8059: Feature 'discards' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         M1(out _);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("discards", "7.0").WithLocation(16, 16),
+                    // (24,18): warning CS8512: The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.
+                    //             case _: // not a discard
+                    Diagnostic(ErrorCode.WRN_CaseConstantNamedUnderscore, "_").WithLocation(24, 18));
         }
 
         [Fact]
@@ -6895,7 +6892,6 @@ public class C
 }
 (string _, string _) = new C();
 ";
-
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
 
@@ -8114,12 +8110,11 @@ public class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C..ctor(int, string, ref int)", @"
 {
-  // Code size       39 (0x27)
-  .maxstack  4
+  // Code size       37 (0x25)
+  .maxstack  3
   .locals init (long V_0,
                 string V_1,
-                int V_2,
-                long V_3)
+                int V_2)
   IL_0000:  ldarg.0
   IL_0001:  call       ""object..ctor()""
   IL_0006:  ldarg.0
@@ -8134,15 +8129,57 @@ public class C
   IL_0013:  stloc.2
   IL_0014:  ldarg.0
   IL_0015:  ldloc.0
-  IL_0016:  dup
-  IL_0017:  stloc.3
-  IL_0018:  call       ""void C.X.set""
-  IL_001d:  ldarg.0
-  IL_001e:  ldloc.1
-  IL_001f:  stfld      ""string C.<Y>k__BackingField""
-  IL_0024:  ldloc.2
-  IL_0025:  stind.i4
-  IL_0026:  ret
+  IL_0016:  call       ""void C.X.set""
+  IL_001b:  ldarg.0
+  IL_001c:  ldloc.1
+  IL_001d:  stfld      ""string C.<Y>k__BackingField""
+  IL_0022:  ldloc.2
+  IL_0023:  stind.i4
+  IL_0024:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(38702, "https://github.com/dotnet/roslyn/issues/38702")]
+        public void AssignInConstructorWithProperties2()
+        {
+            string source = @"
+public class Point
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+
+    public Point(int x, int y) => (X, Y) = (x, y);
+
+    public static void Main()
+    {
+        var p = new Point(1, 2);
+        System.Console.WriteLine(p.X + "" "" + p.Y);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Point..ctor(int, int)", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (int V_0,
+              int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.1
+  IL_0007:  stloc.0
+  IL_0008:  ldarg.2
+  IL_0009:  stloc.1
+  IL_000a:  ldarg.0
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""void Point.X.set""
+  IL_0011:  ldarg.0
+  IL_0012:  ldloc.1
+  IL_0013:  call       ""void Point.Y.set""
+  IL_0018:  ret
 }");
         }
 

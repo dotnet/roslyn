@@ -320,5 +320,24 @@ class D
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WorkItem(40978, "https://github.com/dotnet/roslyn/issues/40978")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestImplicitElementAccessExpression1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public class Test
+{
+  int {|Definition:$$this|}[int index] { get => 0; set { } }
+
+  Test Create() { return new Test() { [||][0] = 0, [||][1] = 1 }; }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

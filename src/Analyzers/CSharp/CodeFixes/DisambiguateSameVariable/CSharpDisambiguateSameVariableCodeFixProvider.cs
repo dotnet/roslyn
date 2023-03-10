@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
         private const string CS1718 = nameof(CS1718); // Comparison made to same variable; did you mean to compare something else?
 
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpDisambiguateSameVariableCodeFixProvider()
         {
         }

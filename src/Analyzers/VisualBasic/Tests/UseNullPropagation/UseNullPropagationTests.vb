@@ -132,6 +132,21 @@ End Class")
         End Function
 
         <Fact>
+        Public Async Function TestIfStatement_NotIfTrue() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        [||]If True
+            o.ToString()
+        End If
+    End Sub
+End Class")
+        End Function
+
+        <Fact>
         Public Async Function TestIfStatement_NotWithElse() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -158,6 +173,24 @@ Class C
         [||]If (o IsNot Nothing)
             o.ToString()
         ElseIf (o IsNot Nothing)
+        End If
+    End Sub
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function TestIfStatement_NotIfTrueInsideElse() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        If True
+        Else
+            [||]If True
+                o.ToString()
+            End If
         End If
     End Sub
 End Class")
@@ -1103,6 +1136,21 @@ public class C
         D?.InstanceMethod()
     end sub
 end class")
+        End Function
+
+        <Fact>
+        Public Async Function TestElseIf() As Task
+            ' Subject to improve
+            Await TestMissingInRegularAndScriptAsync(
+"
+Class C
+    Sub M(s as String)
+        If True Then
+        ElseIf s [||]IsNot Nothing
+            s.ToString()
+        End If
+    End Sub
+End Class")
         End Function
     End Class
 End Namespace

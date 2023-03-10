@@ -26,11 +26,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     [UseExportProvider]
-    [Trait(Traits.Feature, Traits.Features.Diagnostics)]
+    [Trait(Traits.Feature, Traits.Features.Diagnostics), Trait(Traits.Feature, Traits.Features.Tagging)]
     public class DiagnosticsClassificationTaggerProviderTests
     {
-        [WpfTheory]
-        [CombinatorialData]
+        [WpfTheory, CombinatorialData]
         public async Task Test_FadingSpans(bool throughAdditionalLocations)
         {
             var analyzer = new Analyzer(diagnosticId: "test", throughAdditionalLocations);
@@ -41,12 +40,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, parseOptions: CSharpParseOptions.Default, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsClassificationTaggerProvider, ClassificationTag>(workspace, analyzerMap);
-            var tagger = wrapper.TaggerProvider.CreateTagger<ClassificationTag>(workspace.Documents.First().GetTextBuffer());
+
+            var firstDocument = workspace.Documents.First();
+            var tagger = wrapper.TaggerProvider.CreateTagger<ClassificationTag>(firstDocument.GetTextBuffer());
             using var disposable = tagger as IDisposable;
             // test first update
             await wrapper.WaitForTags();
 
-            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var snapshot = firstDocument.GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
             if (!throughAdditionalLocations)
             {
@@ -140,12 +141,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             // Set up the tagger
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsClassificationTaggerProvider, ClassificationTag>(workspace, analyzerMap);
-            var tagger = wrapper.TaggerProvider.CreateTagger<ClassificationTag>(workspace.Documents.First().GetTextBuffer());
+
+            var firstDocument = workspace.Documents.First();
+            var tagger = wrapper.TaggerProvider.CreateTagger<ClassificationTag>(firstDocument.GetTextBuffer());
             using var disposable = tagger as IDisposable;
             // test first update
             await wrapper.WaitForTags();
 
-            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var snapshot = firstDocument.GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
             if (!fadingOptionValue)
             {

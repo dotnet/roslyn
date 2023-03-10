@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 var newDocumentInfo = info.WithName(fileName)
                     .WithFilePath(fullPath)
-                    .WithTextLoader(new FileTextLoader(fullPath, text.Encoding));
+                    .WithTextLoader(new WorkspaceFileTextLoader(Services.SolutionServices, fullPath, text.Encoding));
 
                 // add document to project file
                 _applyChangesProjectFile.AddDocument(relativePath);

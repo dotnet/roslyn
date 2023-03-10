@@ -71,23 +71,6 @@ namespace AnalyzerRunner
                 incrementalAnalyzerProvider ??= incrementalAnalyzerProviders.Where(x => x.Metadata.Name == incrementalAnalyzerName).Single(provider => provider.Metadata.WorkspaceKinds is null).Value;
                 var incrementalAnalyzer = incrementalAnalyzerProvider.CreateIncrementalAnalyzer(_workspace);
                 solutionCrawlerRegistrationService.GetTestAccessor().WaitUntilCompletion(_workspace, ImmutableArray.Create(incrementalAnalyzer));
-
-                switch (incrementalAnalyzerName)
-                {
-                    case nameof(SymbolTreeInfoIncrementalAnalyzerProvider):
-                        var symbolTreeInfoCacheService = _workspace.Services.GetRequiredService<SymbolTreeInfoCacheService>();
-                        var symbolTreeInfo = await symbolTreeInfoCacheService.TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(_workspace.CurrentSolution.Projects.First(), cancellationToken).ConfigureAwait(false);
-                        if (symbolTreeInfo is null)
-                        {
-                            throw new InvalidOperationException("Benchmark failed to calculate symbol tree info.");
-                        }
-
-                        break;
-
-                    default:
-                        // No additional actions required
-                        break;
-                }
             }
         }
     }

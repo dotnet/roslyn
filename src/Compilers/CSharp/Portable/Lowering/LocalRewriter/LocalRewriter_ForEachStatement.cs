@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: intType)));
         }
 
-        private void InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, [NotNullIfNotNull("collectionVarDecl")] ref BoundStatement? collectionVarDecl)
+        private void InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, [NotNullIfNotNull(nameof(collectionVarDecl))] ref BoundStatement? collectionVarDecl)
         {
             if (this.Instrument)
             {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable RS0030 // Do not used banned APIs: Option<T>, PerLanguageOption<T>
+
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
@@ -13,20 +15,24 @@ namespace Microsoft.CodeAnalysis.Options
         {
             RoslynDebug.Assert(option != null);
 
-            var codeStyleOption = new CodeStyleOption<T>(option.DefaultValue);
-            var optionDefinition = new OptionDefinition(option.Feature, option.Group, option.Name,
-                defaultValue: codeStyleOption, type: typeof(CodeStyleOption<T>));
-            return new Option<CodeStyleOption<T>>(optionDefinition, option.StorageLocations.As<OptionStorageLocation>());
+            return new Option<CodeStyleOption<T>>(
+                option.Feature,
+                option.Group,
+                option.Name,
+                defaultValue: new CodeStyleOption<T>(option.DefaultValue),
+                option.StorageLocations.As<OptionStorageLocation>());
         }
 
         public static PerLanguageOption<CodeStyleOption<T>> ToPublicOption<T>(this PerLanguageOption2<CodeStyleOption2<T>> option)
         {
             RoslynDebug.Assert(option != null);
 
-            var codeStyleOption = new CodeStyleOption<T>(option.DefaultValue);
-            var optionDefinition = new OptionDefinition(option.Feature, option.Group, option.Name,
-                defaultValue: codeStyleOption, type: typeof(CodeStyleOption<T>));
-            return new PerLanguageOption<CodeStyleOption<T>>(optionDefinition, option.StorageLocations.As<OptionStorageLocation>());
+            return new PerLanguageOption<CodeStyleOption<T>>(
+                option.Feature,
+                option.Group,
+                option.Name,
+                defaultValue: new CodeStyleOption<T>(option.DefaultValue),
+                option.StorageLocations.As<OptionStorageLocation>());
         }
     }
 }

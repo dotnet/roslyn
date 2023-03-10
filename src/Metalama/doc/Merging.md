@@ -14,12 +14,9 @@ version 3.11.0, commit https://github.com/dotnet/roslyn/commit/ae1fff344d4697662
 
 See Modifications.md to better understand the changes done for Metalama.
 
-## 3. Update eng\Versions.props
+## 3. Update eng-Metalama\MainVersions.props
 
-- Set MajorVersion and MinorVersion to the source Roslyn version.
-- Reset the PatchVersion to 1001.
-
-Note: If the pach version of the source Roslyn version is not 0, we'd need to modify the Versions.props file.
+Set RoslynVersion to the source Roslyn version.
 
 ## 4. Regenerate generated source files
 
@@ -33,7 +30,4 @@ To run Metalama.Compiler tests, execute `dotnet test src\Metalama\Metalama.Compi
 
 ## 6. Update Metalama Framework
 
-In the Metalama repo:
-- Update the Metalama.Compiler version.
-- Regenerate the `MetaSyntaxRewriter.g.cs` by executing `dotnet run Build\Metalama.Framework.GenerateMetaSyntaxRewriter\Metalama.Framework.GenerateMetaSyntaxRewriter.csproj`. "Cannot find factory method SyntaxNode." is OK.
-- Replace the file in in `Metalama.Framework.Impl\Templating`.
+See docs\updating-roslyn.md in the Metalama repo.

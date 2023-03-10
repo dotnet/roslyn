@@ -779,7 +779,7 @@ partial class Bar
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+            var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
             workspace.GlobalOptions.SetGlobalOption(
                 new OptionKey(CSharpCodeStyleOptions.PreferExpressionBodiedMethods),
                 new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent));
@@ -810,7 +810,7 @@ partial class Bar
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+            var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
             workspace.GlobalOptions.SetGlobalOption(
                 new OptionKey(CSharpCodeStyleOptions.PreferExpressionBodiedMethods),
                 new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent));

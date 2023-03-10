@@ -4,6 +4,8 @@
 
 #nullable disable
 
+#pragma warning disable RS0030 // Do not used banned APIs: CodeStyleOption<T>
+
 using System;
 using System.Xml.Linq;
 using Roslyn.Utilities;

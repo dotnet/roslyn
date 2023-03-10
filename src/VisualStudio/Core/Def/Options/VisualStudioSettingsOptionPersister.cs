@@ -116,6 +116,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     return stringArray.ToImmutableArray();
                 }
 
+                if (optionKey.Option.Type == typeof(int) &&
+                    _settingManager.TryGetValue(storageKey, out int intValue) == GetValueResult.Success)
+                {
+                    return intValue;
+                }
+
                 if (_settingManager.TryGetValue(storageKey, out object value) == GetValueResult.Success)
                 {
                     return value;

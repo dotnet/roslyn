@@ -67,11 +67,6 @@
         <target state="translated">插入遺漏的 '{0}'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">內嵌暫存變數</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
         <target state="translated">偵測到衝突。</target>

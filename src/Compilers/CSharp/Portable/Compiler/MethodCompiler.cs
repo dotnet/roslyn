@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                     {
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }), _cancellationToken);
         }
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                     {
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }), _cancellationToken);
         }
@@ -903,22 +903,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override object VisitMethod(MethodSymbol symbol, TypeCompilationState arg)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override object VisitProperty(PropertySymbol symbol, TypeCompilationState argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override object VisitEvent(EventSymbol symbol, TypeCompilationState argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override object VisitField(FieldSymbol symbol, TypeCompilationState argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private void CompileMethod(
@@ -1037,6 +1037,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol);
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
+
+                        RefSafetyAnalysis.Analyze(_compilation, methodSymbol, processedInitializers.BoundInitializers, diagsForCurrentMethod);
                     }
 
                     body = BindMethodBody(
@@ -1082,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 insertAt = 1;
                             }
-                            body = body.Update(body.Locals, body.LocalFunctions, body.Statements.Insert(insertAt, analyzedInitializers));
+                            body = body.Update(body.Locals, body.LocalFunctions, body.HasUnsafeModifier, body.Statements.Insert(insertAt, analyzedInitializers));
                             includeNonEmptyInitializersInBody = false;
                             analyzedInitializers = null;
                         }
@@ -1132,35 +1134,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // errors (note: errors, not diagnostics).
                 SetGlobalErrorIfTrue(hasErrors);
 
-                bool diagsWritten = false;
                 var actualDiagnostics = diagsForCurrentMethod.ToReadOnly();
                 if (sourceMethod != null)
                 {
-                    actualDiagnostics = new ImmutableBindingDiagnostic<AssemblySymbol>(sourceMethod.SetDiagnostics(actualDiagnostics.Diagnostics, out diagsWritten), actualDiagnostics.Dependencies);
-                }
+                    _compilation.RegisterPossibleUpcomingEventEnqueue();
 
-                if (diagsWritten && !methodSymbol.IsImplicitlyDeclared && _compilation.EventQueue != null)
-                {
-                    // If compilation has a caching semantic model provider, then cache the already-computed bound tree
-                    // onto the semantic model and store it on the event.
-                    SyntaxTreeSemanticModel semanticModelWithCachedBoundNodes = null;
-                    if (body != null &&
-                        forSemanticModel.Syntax is { } semanticModelSyntax &&
-                        _compilation.SemanticModelProvider is CachingSemanticModelProvider cachingSemanticModelProvider)
+                    try
                     {
-                        var syntax = body.Syntax;
-                        semanticModelWithCachedBoundNodes = (SyntaxTreeSemanticModel)cachingSemanticModelProvider.GetSemanticModel(syntax.SyntaxTree, _compilation);
-                        semanticModelWithCachedBoundNodes.GetOrAddModel(semanticModelSyntax,
-                                                    (rootSyntax) =>
-                                                    {
-                                                        Debug.Assert(rootSyntax == forSemanticModel.Syntax);
-                                                        return MethodBodySemanticModel.Create(semanticModelWithCachedBoundNodes,
-                                                                                              methodSymbol,
-                                                                                              forSemanticModel);
-                                                    });
-                    }
+                        bool diagsWritten;
+                        actualDiagnostics = new ImmutableBindingDiagnostic<AssemblySymbol>(sourceMethod.SetDiagnostics(actualDiagnostics.Diagnostics, out diagsWritten), actualDiagnostics.Dependencies);
 
-                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol.GetPublicSymbol(), semanticModelWithCachedBoundNodes));
+                        if (diagsWritten && !methodSymbol.IsImplicitlyDeclared && _compilation.EventQueue != null)
+                        {
+                            // If compilation has a caching semantic model provider, then cache the already-computed bound tree
+                            // onto the semantic model and store it on the event.
+                            SyntaxTreeSemanticModel semanticModelWithCachedBoundNodes = null;
+                            if (body != null &&
+                                forSemanticModel.Syntax is { } semanticModelSyntax &&
+                                _compilation.SemanticModelProvider is CachingSemanticModelProvider cachingSemanticModelProvider)
+                            {
+                                var syntax = body.Syntax;
+                                semanticModelWithCachedBoundNodes = (SyntaxTreeSemanticModel)cachingSemanticModelProvider.GetSemanticModel(syntax.SyntaxTree, _compilation);
+                                semanticModelWithCachedBoundNodes.GetOrAddModel(semanticModelSyntax,
+                                                            (rootSyntax) =>
+                                                            {
+                                                                Debug.Assert(rootSyntax == forSemanticModel.Syntax);
+                                                                return MethodBodySemanticModel.Create(semanticModelWithCachedBoundNodes,
+                                                                                                      methodSymbol,
+                                                                                                      forSemanticModel);
+                                                            });
+                            }
+
+                            _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol.GetPublicSymbol(), semanticModelWithCachedBoundNodes));
+                        }
+                    }
+                    finally
+                    {
+                        _compilation.UnregisterPossibleUpcomingEventEnqueue();
+                    }
                 }
 
                 // Don't lower if we're not emitting or if there were errors.
@@ -1499,7 +1510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 StateMachineMoveNextBodyDebugInfo moveNextBodyDebugInfoOpt = null;
 
-                var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod.DiagnosticBag, optimizations, emittingPdb);
+                var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdb);
 
                 if (diagnosticsForThisMethod.HasAnyErrors())
                 {
@@ -1817,7 +1828,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 finalNullableState: out _);
                         }
                     }
+
                     forSemanticModel = new MethodBodySemanticModel.InitialState(syntaxNode, methodBodyForSemanticModel, bodyBinder, snapshotManager, remappedSymbols);
+
+#if DEBUG
+                    Debug.Assert(IsEmptyRewritePossible(methodBody));
+#endif
+
+                    RefSafetyAnalysis.Analyze(compilation, method, methodBody, diagnostics);
 
                     switch (methodBody.Kind)
                     {
@@ -1947,6 +1965,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
         }
+
+#if DEBUG
+        private static bool IsEmptyRewritePossible(BoundNode node)
+        {
+            var rewriter = new EmptyRewriter();
+            try
+            {
+                var rewritten = rewriter.Visit(node);
+                return (object)rewritten == node;
+            }
+            catch (BoundTreeVisitor.CancelledByStackGuardException)
+            {
+                return true;
+            }
+        }
+
+        private sealed class EmptyRewriter : BoundTreeRewriterWithStackGuard
+        {
+        }
+#endif
 #nullable disable
 
         private static BoundBlock GetSynthesizedEmptyBody(Symbol symbol)

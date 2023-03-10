@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.ConversionKind)
             {
                 case ConversionKind.MethodGroup:
-                    CheckMethodGroup((BoundMethodGroup)node.Operand, node.Conversion.Method, parentIsConversion: true, node.Type);
+                    CheckMethodGroup((BoundMethodGroup)node.Operand, node.Conversion.Method, node.IsExtensionMethod, parentIsConversion: true, node.Type);
 
                     return node;
 
@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                CheckMethodGroup((BoundMethodGroup)node.Argument, node.MethodOpt, parentIsConversion: true, convertedToType: node.Type);
+                CheckMethodGroup((BoundMethodGroup)node.Argument, node.MethodOpt, node.IsExtensionMethod, parentIsConversion: true, convertedToType: node.Type);
             }
 
             return null;
@@ -792,11 +792,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitMethodGroup(BoundMethodGroup node)
         {
-            CheckMethodGroup(node, method: null, parentIsConversion: false, convertedToType: null);
+            CheckMethodGroup(node, method: null, isExtensionMethod: false, parentIsConversion: false, convertedToType: null);
             return null;
         }
 
-        private void CheckMethodGroup(BoundMethodGroup node, MethodSymbol method, bool parentIsConversion, TypeSymbol convertedToType)
+        private void CheckMethodGroup(BoundMethodGroup node, MethodSymbol method, bool isExtensionMethod, bool parentIsConversion, TypeSymbol convertedToType)
         {
             // Formerly reported ERR_MemGroupInExpressionTree when this occurred, but the expanded 
             // ERR_LambdaInIsAs makes this impossible (since the node will always be wrapped in
@@ -822,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckReceiverIfField(node.ReceiverOpt);
             CheckReferenceToMethodIfLocalFunction(node, method);
 
-            if (method is null || method.RequiresInstanceReceiver)
+            if (method is null || method.RequiresInstanceReceiver || isExtensionMethod)
             {
                 Visit(node.ReceiverOpt);
             }

@@ -68,10 +68,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 // End token: Insert the #pragma disable directive just **after** the first end of line trivia after diagnostic location.
 
                 int getNextIndex(int cur) => isStartToken ? cur - 1 : cur + 1;
-                bool shouldConsiderTrivia(SyntaxTrivia trivia) =>
-                    isStartToken ?
-                    trivia.FullSpan.End <= currentDiagnosticSpan.Start :
-                    trivia.FullSpan.Start >= currentDiagnosticSpan.End;
+                bool shouldConsiderTrivia(SyntaxTrivia trivia)
+                    => isStartToken
+                        ? trivia.FullSpan.End <= currentDiagnosticSpan.Start
+                        : trivia.FullSpan.Start >= currentDiagnosticSpan.End;
 
                 var walkedPastDiagnosticSpan = false;
                 var seenEndOfLineTrivia = false;
@@ -92,9 +92,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     index = getNextIndex(index);
                 }
 
-                triviaAtIndex = index >= 0 && index < triviaList.Length ?
-                    triviaList[index] :
-                    default;
+                triviaAtIndex = index >= 0 && index < triviaList.Length
+                    ? triviaList[index]
+                    : default;
 
                 return index;
             }

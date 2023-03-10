@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -474,7 +475,7 @@ public class Generator : ISourceGenerator
                 var generatorPath = Path.Combine(directory.Path, $"generator_{targetFramework}.dll");
 
                 var compilation = CSharpCompilation.Create($"generator_{targetFramework}",
-                                                           new[] { CSharpSyntaxTree.ParseText(generatorSource) },
+                                                           new[] { CSharpTestSource.Parse(generatorSource) },
                                                            TargetFrameworkUtil.GetReferences(TargetFramework.Standard, new[] { MetadataReference.CreateFromAssemblyInternal(typeof(ISourceGenerator).Assembly) }),
                                                            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 

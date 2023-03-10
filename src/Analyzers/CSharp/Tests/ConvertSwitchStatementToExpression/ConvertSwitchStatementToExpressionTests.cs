@@ -2287,5 +2287,110 @@ class Program
     }
 }");
         }
+
+        [Fact, WorkItem(61278, "https://github.com/dotnet/roslyn/issues/61278")]
+        public async Task TestLeadingTrivia1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"using System;
+
+class C
+{
+    public static int RefactorReplacementDemoMethod(int argument)
+    {
+        Console.WriteLine(nameof(RefactorReplacementDemoMethod));
+
+        // This comment will get deleted, together with the blank lines around it.
+        // Very similar issue already filed, but no resolution to this issue so far.
+
+        int result;
+        [|switch|] (argument)
+        {
+            case 1: result = 1001; break;
+            case 2: result = 1002; break;
+            default: result = -1; break;
+        }
+        return result;
+    }
+}",
+                FixedCode =
+@"using System;
+
+class C
+{
+    public static int RefactorReplacementDemoMethod(int argument)
+    {
+        Console.WriteLine(nameof(RefactorReplacementDemoMethod));
+
+        // This comment will get deleted, together with the blank lines around it.
+        // Very similar issue already filed, but no resolution to this issue so far.
+
+        var result = argument switch
+        {
+            1 => 1001,
+            2 => 1002,
+            _ => -1,
+        };
+        return result;
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(61278, "https://github.com/dotnet/roslyn/issues/61278")]
+        public async Task TestLeadingTrivia2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"using System;
+
+class C
+{
+    public static int RefactorReplacementDemoMethod(int argument)
+    {
+        Console.WriteLine(nameof(RefactorReplacementDemoMethod));
+
+        // This comment will get deleted, together with the blank lines around it.
+        // Very similar issue already filed, but no resolution to this issue so far.
+
+        int result, x = 0;
+        [|switch|] (argument)
+        {
+            case 1: result = 1001; break;
+            case 2: result = 1002; break;
+            default: result = -1; break;
+        }
+        return result;
+    }
+}",
+                FixedCode =
+@"using System;
+
+class C
+{
+    public static int RefactorReplacementDemoMethod(int argument)
+    {
+        Console.WriteLine(nameof(RefactorReplacementDemoMethod));
+
+        // This comment will get deleted, together with the blank lines around it.
+        // Very similar issue already filed, but no resolution to this issue so far.
+
+        int x = 0;
+        var result = argument switch
+        {
+            1 => 1001,
+            2 => 1002,
+            _ => -1,
+        };
+        return result;
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }

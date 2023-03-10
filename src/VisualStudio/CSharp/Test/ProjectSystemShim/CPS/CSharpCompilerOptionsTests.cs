@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
@@ -101,8 +102,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         public async Task InvalidProjectOutputBinPaths_CPS()
         {
             using var environment = new TestEnvironment();
-            await Assert.ThrowsAsync<InvalidProjectPropertyValueException>(() => CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test2", binOutputPath: ""));
-            await Assert.ThrowsAsync<InvalidProjectPropertyValueException>(() => CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test3", binOutputPath: "Test.dll"));
+            await Assert.ThrowsAsync<InvalidProjectDataException>(() => CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test2", binOutputPath: ""));
+            await Assert.ThrowsAsync<InvalidProjectDataException>(() => CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test3", binOutputPath: "Test.dll"));
         }
 
         [WpfFact]
@@ -165,6 +166,20 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             Assert.Equal(initialProjectDisplayName, project.DisplayName);
 
             SharedResourceHelpers.CleanupAllGeneratedFiles(newFilePath);
+        }
+
+        [WpfFact]
+        public async Task ChecksumAlgorithm_CPS()
+        {
+            using var environment = new TestEnvironment();
+            using var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
+
+            Assert.Equal(SourceHashAlgorithms.Default, environment.Workspace.CurrentSolution.Projects.Single().State.ChecksumAlgorithm);
+
+            cpsProject.SetOptions(ImmutableArray.Create("/checksumalgorithm:SHA1"));
+
+            var project = environment.Workspace.CurrentSolution.Projects.Single();
+            Assert.Equal(SourceHashAlgorithm.Sha1, environment.Workspace.CurrentSolution.Projects.Single().State.ChecksumAlgorithm);
         }
     }
 }

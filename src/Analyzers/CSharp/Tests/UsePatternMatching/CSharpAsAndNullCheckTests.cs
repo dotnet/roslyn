@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -1622,6 +1620,78 @@ class Program
         }
     }
 }");
+        }
+
+        [Fact, WorkItem(37398, "https://github.com/dotnet/roslyn/issues/37398")]
+        public async Task TestPrecedingDirectiveTrivia()
+        {
+            await TestInRegularAndScript1Async(
+                @"
+class C
+{
+    public static void M(object o)
+    {
+#if DEBUG
+        Console.WriteLine(""in debug"");
+#endif
+
+        [|string|] s = o as string;
+        if (s != null)
+        {
+
+        }
+    }
+}",
+                @"
+class C
+{
+    public static void M(object o)
+    {
+#if DEBUG
+        Console.WriteLine(""in debug"");
+#endif
+
+        if (o is string s)
+        {
+
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(40006, "https://github.com/dotnet/roslyn/issues/40006")]
+        public async Task TestArrayOfNullables()
+        {
+            await TestInRegularAndScript1Async(
+                @"
+#nullable enable
+
+class Program
+{
+    static void Set(object obj, object? item)
+    {
+        [|object?[]?|] arr = obj as object[];
+        if (arr != null)
+        {
+            arr[0] = item;
+        }
+    }
+}
+",
+                @"
+#nullable enable
+
+class Program
+{
+    static void Set(object obj, object? item)
+    {
+        if (obj is object?[] arr)
+        {
+            arr[0] = item;
+        }
+    }
+}
+");
         }
     }
 }

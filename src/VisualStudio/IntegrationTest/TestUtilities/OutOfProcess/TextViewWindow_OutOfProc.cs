@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void InvokeCodeActionList()
         {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawler);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawlerLegacy);
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.DiagnosticService);
 
             ShowLightBulb();

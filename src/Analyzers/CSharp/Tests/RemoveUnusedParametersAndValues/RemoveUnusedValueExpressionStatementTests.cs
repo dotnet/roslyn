@@ -24,16 +24,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         {
         }
 
-        private protected override OptionsCollection PreferNone =>
-            Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
+        private protected override OptionsCollection PreferNone
+            => Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.None));
 
-        private protected override OptionsCollection PreferDiscard =>
-            Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
+        private protected override OptionsCollection PreferDiscard
+            => Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.Silent));
 
-        private protected override OptionsCollection PreferUnusedLocal =>
-            Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
+        private protected override OptionsCollection PreferUnusedLocal
+            => Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Silent));
 
         [Fact]

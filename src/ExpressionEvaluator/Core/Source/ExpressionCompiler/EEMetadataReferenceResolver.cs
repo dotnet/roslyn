@@ -46,13 +46,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string? baseFilePath, MetadataReferenceProperties properties)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         public override bool Equals(object? other)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         public override int GetHashCode()
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         private (AssemblyIdentity? Identity, MetadataReference? Reference) GetBestMatch(
             ImmutableArray<(AssemblyIdentity Identity, MetadataReference Reference)> references,

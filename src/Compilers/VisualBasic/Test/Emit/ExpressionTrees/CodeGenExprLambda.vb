@@ -1183,7 +1183,6 @@ Lambda(
 ]]>)
         End Sub
 
-
 #Region "Conversions: User Defined Types"
 
         Public Sub TestConversion_UserDefinedTypes_Narrowing(checked As Boolean, result As String)
@@ -1678,7 +1677,6 @@ lNothing:
             TestConversion_TypeParameters("O", "D", tests)
             TestConversion_TypeParameters("D", "O", tests)
 
-
             ' Type parameter -> Type
             For Each type1 In {"T", "S", "S?", "O", "D"}
                 TestConversion_TypeParameters(type1, "Object", tests)
@@ -1687,7 +1685,6 @@ lNothing:
             TestConversion_TwoTypesAndExpression("O", "Clazz2", "TryCast({0}, {1})", tests)
             TestConversion_TypeParameters("D", "Clazz1", tests)
             TestConversion_TwoTypesAndExpression("D", "Clazz2", "TryCast({0}, {1})", tests)
-
 
             ' Type -> Type parameter 
             For Each type1 In {"T", "S", "S?", "O", "D"}
@@ -1701,7 +1698,6 @@ lNothing:
             TestConversion_TypeParameters("Clazz1", "D", tests)
             TestConversion_TwoTypesAndExpression("Clazz2", "D", "TryCast({0}, {1})", tests)
 
-
             ' Nothing -> Type parameter 
             For Each type1 In {"T", "S", "S?", "O", "D"}
                 TestConversion_TwoTypesAndExpression("Object", type1, "Nothing", tests)
@@ -1711,7 +1707,6 @@ lNothing:
                     TestConversion_TwoTypesAndExpression("Object", type1, "TryCast(Nothing, {1})", tests)
                 End If
             Next
-
 
             tests(0).Prefix = <![CDATA[
 Public Class Clazz1
@@ -3257,7 +3252,6 @@ End Class
 () => M1(a0 => Invoke(value(C1`1+_Closure$__1-0[System.String]).$VB$Local_anonymousDelegate, a0))
 ]]>)
         End Sub
-
 
 #End Region
 
@@ -7262,7 +7256,6 @@ end class
                  expectedOutput:="m => m").VerifyDiagnostics()
         End Sub
 
-
         <WorkItem(3906, "https://github.com/dotnet/roslyn/issues/3906")>
         <Fact>
         Public Sub GenericField01()
@@ -8517,7 +8510,6 @@ x => x.set_City("aa")
 aa
 ]]>).VerifyDiagnostics()
 
-
         End Sub
 
         <WorkItem(4524, "https://github.com/dotnet/roslyn/issues/4524")>
@@ -8594,7 +8586,6 @@ x => x.set_City(value(Module1+_Closure$__4-0).$VB$Local_i, "aa")
 aa23
 ]]>).VerifyDiagnostics()
 
-
         End Sub
 
         <WorkItem(4524, "https://github.com/dotnet/roslyn/issues/4524")>
@@ -8651,7 +8642,6 @@ End Module
                             ]]></file>
                          </compilation>
 
-
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source,
                  references:={Net40.SystemCore},
                  options:=TestOptions.ReleaseExe)
@@ -8701,7 +8691,6 @@ End Class
 
                             ]]></file>
                          </compilation>
-
 
             CompileAndVerify(source,
                  references:={Net40.SystemCore},

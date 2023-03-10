@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.Logging
         public DiagnosticLogItem this[int index] => _items[index];
         public bool IsEmpty => _items.Count == 0;
 
-        public bool HasFailure =>
-            _items.Any(i => i.Kind == WorkspaceDiagnosticKind.Failure);
+        public bool HasFailure
+            => _items.Any(i => i.Kind == WorkspaceDiagnosticKind.Failure);
 
         public DiagnosticLog()
             => _items = new List<DiagnosticLogItem>();

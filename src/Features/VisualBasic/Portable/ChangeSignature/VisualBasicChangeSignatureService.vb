@@ -270,7 +270,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return matchingNode
         End Function
 
-        Public Overrides Async Function ChangeSignatureAsync(document As Document, declarationSymbol As ISymbol, potentiallyUpdatedNode As SyntaxNode, originalNode As SyntaxNode, updatedSignature As SignatureChange, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+        Public Overrides Async Function ChangeSignatureAsync(
+            document As Document,
+            declarationSymbol As ISymbol,
+            potentiallyUpdatedNode As SyntaxNode,
+            originalNode As SyntaxNode,
+            updatedSignature As SignatureChange,
+            fallbackOptions As LineFormattingOptionsProvider,
+            cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+
             Dim vbnode = DirectCast(potentiallyUpdatedNode, VisualBasicSyntaxNode)
             If vbnode.IsKind(SyntaxKind.SubStatement) OrElse
                vbnode.IsKind(SyntaxKind.FunctionStatement) OrElse
@@ -282,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                vbnode.IsKind(SyntaxKind.EventBlock) OrElse
                vbnode.IsKind(SyntaxKind.EventStatement) Then
 
-                Dim updatedLeadingTrivia = UpdateParamNodesInLeadingTrivia(document, vbnode, declarationSymbol, updatedSignature)
+                Dim updatedLeadingTrivia = Await UpdateParamNodesInLeadingTriviaAsync(document, vbnode, declarationSymbol, updatedSignature, fallbackOptions, cancellationToken).ConfigureAwait(False)
                 vbnode = vbnode.WithLeadingTrivia(updatedLeadingTrivia)
             End If
 
@@ -351,10 +359,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     isReducedExtensionMethod = True
                 End If
 
-                If invocation.ArgumentList Is Nothing
+                If invocation.ArgumentList Is Nothing Then
                     ' If the invocation doesn't contain an argument list, we don't want to add one unless necessary.
                     ' In the case an argument list isn't needed, we can return early as there will be no changes to the invocation.
-                    If updatedSignature.UpdatedConfiguration.ParametersWithoutDefaultValues.IsEmpty
+                    If updatedSignature.UpdatedConfiguration.ParametersWithoutDefaultValues.IsEmpty Then
                         Return invocation
                     Else
                         ' The invocation requires an argument list - add one.
@@ -594,7 +602,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 type:=addedParameter.Type.GenerateTypeSyntax())
         End Function
 
-        Private Function UpdateParamNodesInLeadingTrivia(document As Document, node As VisualBasicSyntaxNode, declarationSymbol As ISymbol, updatedSignature As SignatureChange) As ImmutableArray(Of SyntaxTrivia)
+        Private Async Function UpdateParamNodesInLeadingTriviaAsync(
+            document As Document,
+            node As VisualBasicSyntaxNode,
+            declarationSymbol As ISymbol,
+            updatedSignature As SignatureChange,
+            fallbackOptions As LineFormattingOptionsProvider,
+            cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SyntaxTrivia))
+
             If Not node.HasLeadingTrivia Then
                 Return ImmutableArray(Of SyntaxTrivia).Empty
             End If
@@ -611,7 +626,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Return node.GetLeadingTrivia().ToImmutableArray()
             End If
 
-            Return GetPermutedDocCommentTrivia(document, node, permutedParamNodes)
+            Dim options = Await document.GetLineFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(False)
+            Return GetPermutedDocCommentTrivia(node, permutedParamNodes, document.Project.Services, options)
         End Function
 
         Private Function VerifyAndPermuteParamNodes(paramNodes As ImmutableArray(Of XmlElementSyntax), declarationSymbol As ISymbol, updatedSignature As SignatureChange) As ImmutableArray(Of SyntaxNode)

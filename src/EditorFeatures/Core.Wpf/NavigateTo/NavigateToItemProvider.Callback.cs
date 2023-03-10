@@ -48,6 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _callback.ReportProgress(current, maximum);
             }
 
+            public void ReportIncomplete()
+            {
+            }
+
             private void ReportMatchResult(Project project, INavigateToSearchResult result)
             {
                 var matchedSpans = result.NameMatchSpans.SelectAsArray(t => t.ToSpan());

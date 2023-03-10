@@ -756,12 +756,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitForStatement(BoundForStatement node)
         {
-            throw ExceptionUtilities.Unreachable; // for statements have been lowered away by now
+            throw ExceptionUtilities.Unreachable(); // for statements have been lowered away by now
         }
 
         public override BoundNode VisitUsingStatement(BoundUsingStatement node)
         {
-            throw ExceptionUtilities.Unreachable; // using statements have been lowered away by now
+            throw ExceptionUtilities.Unreachable(); // using statements have been lowered away by now
         }
 
         public override BoundNode VisitExpressionStatement(BoundExpressionStatement node)

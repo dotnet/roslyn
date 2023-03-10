@@ -227,11 +227,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SpecializedCollections.SingletonEnumerable(semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken))
         End Function
 
-        Public Function FindParameterForArgument(semanticModel As SemanticModel, argument As SyntaxNode, allowUncertainCandidates As Boolean, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForArgument
-            Return DirectCast(argument, ArgumentSyntax).DetermineParameter(semanticModel, allowUncertainCandidates, allowParamArray:=False, cancellationToken)
+        Public Function FindParameterForArgument(semanticModel As SemanticModel, argument As SyntaxNode, allowUncertainCandidates As Boolean, allowParams As Boolean, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForArgument
+            Return DirectCast(argument, ArgumentSyntax).DetermineParameter(semanticModel, allowUncertainCandidates, allowParams, cancellationToken)
         End Function
 
-        Public Function FindParameterForAttributeArgument(semanticModel As SemanticModel, argument As SyntaxNode, allowUncertainCandidates As Boolean, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForAttributeArgument
+        Public Function FindParameterForAttributeArgument(semanticModel As SemanticModel, argument As SyntaxNode, allowUncertainCandidates As Boolean, allowParams As Boolean, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForAttributeArgument
             Return Nothing
         End Function
 

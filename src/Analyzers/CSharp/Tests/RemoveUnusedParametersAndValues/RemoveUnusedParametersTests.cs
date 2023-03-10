@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new CSharpRemoveUnusedValuesCodeFixProvider());
 
-        private OptionsCollection NonPublicMethodsOnly =>
-            Option(CodeStyleOptions2.UnusedParameters,
+        private OptionsCollection NonPublicMethodsOnly
+            => Option(CodeStyleOptions2.UnusedParameters,
                 new CodeStyleOption2<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption2.Suggestion));
 
         // Ensure that we explicitly test missing UnusedParameterDiagnosticId, which has no corresponding code fix (non-fixable diagnostic).

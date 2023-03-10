@@ -4693,7 +4693,6 @@ OPERATOR ndec   //-LiftedDecimalKIND" + Postfix;
 + nr64, //-LiftedDoubleUnaryPlus
 + ndec  //-LiftedDecimalUnaryPlus" + Postfix;
 
-
         private const string UnaryMinus = Prefix + @"
 - chr, //-IntUnaryMinus
 - i08, //-IntUnaryMinus
@@ -4721,7 +4720,6 @@ OPERATOR ndec   //-LiftedDecimalKIND" + Postfix;
         private const string LogicalNegation = Prefix + @"
 ! bln, //-BoolLogicalNegation
 ! nbln //-LiftedBoolLogicalNegation" + Postfix;
-
 
         private const string BitwiseComplement = Prefix + @"
 ~ e,   //-EnumBitwiseComplement
@@ -5281,7 +5279,6 @@ public class X
 }";
             comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
-
 
             // "default(dynamic)" has type dynamic
             source = @"

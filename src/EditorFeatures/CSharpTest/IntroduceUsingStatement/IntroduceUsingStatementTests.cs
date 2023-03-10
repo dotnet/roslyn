@@ -678,5 +678,400 @@ class C
     }
 }");
         }
+
+        [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
+        public async Task ConsumeFollowingTryStatement1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        var reader = new MemoryStream()[||];
+        try
+        {
+            var buffer = reader.GetBuffer();
+            int a = buffer[0], b = a;
+            var c = b;
+            var d = 1;
+        }
+        finally
+        {
+            reader.Dispose();
+        }
+    }
+}",
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var reader = new MemoryStream())
+        {
+            var buffer = reader.GetBuffer();
+            int a = buffer[0], b = a;
+            var c = b;
+            var d = 1;
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
+        public async Task ConsumeFollowingTryStatement2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        var reader = new MemoryStream()[||];
+        try
+        {
+            var buffer = reader.GetBuffer();
+            int a = buffer[0], b = a;
+            var c = b;
+            var d = 1;
+        }
+        catch (Exception e)
+        {
+        }
+        finally
+        {
+            reader.Dispose();
+        }
+    }
+}",
+@"using System;
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var reader = new MemoryStream())
+        {
+            try
+            {
+                var buffer = reader.GetBuffer();
+                int a = buffer[0], b = a;
+                var c = b;
+                var d = 1;
+            }
+            catch (Exception e)
+            {
+            }
+            finally
+            {
+                reader.Dispose();
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
+        public async Task ConsumeFollowingTryStatement3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        var reader = new MemoryStream()[||];
+        try
+        {
+            var buffer = reader.GetBuffer();
+            int a = buffer[0], b = a;
+            var c = b;
+            var d = 1;
+        }
+        finally
+        {
+        }
+    }
+}",
+@"using System;
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var reader = new MemoryStream())
+        {
+            try
+            {
+                var buffer = reader.GetBuffer();
+                int a = buffer[0], b = a;
+                var c = b;
+                var d = 1;
+            }
+            finally
+            {
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
+        public async Task ConsumeFollowingTryStatement4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        var reader = new MemoryStream()[||];
+        try
+        {
+            var buffer = reader.GetBuffer();
+            int a = buffer[0], b = a;
+            var c = b;
+            var d = 1;
+        }
+        finally
+        {
+            return;
+        }
+    }
+}",
+@"using System;
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var reader = new MemoryStream())
+        {
+            try
+            {
+                var buffer = reader.GetBuffer();
+                int a = buffer[0], b = a;
+                var c = b;
+                var d = 1;
+            }
+            finally
+            {
+                return;
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
+        public async Task ConsumeFollowingTryStatement5()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        var reader = new MemoryStream()[||];
+        try
+        {
+            var buffer = reader.GetBuffer();
+            int a = buffer[0], b = a;
+            var c = b;
+            var d = 1;
+        }
+        finally
+        {
+            reader = null;
+        }
+    }
+}",
+@"using System;
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var reader = new MemoryStream())
+        {
+            try
+            {
+                var buffer = reader.GetBuffer();
+                int a = buffer[0], b = a;
+                var c = b;
+                var d = 1;
+            }
+            finally
+            {
+                reader = null;
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
+        public async Task ConsumeFollowingTryStatement6()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        var reader = new MemoryStream()[||];
+        try
+        {
+            var buffer = reader.GetBuffer();
+            int a = buffer[0], b = a;
+            var c = b;
+            var d = 1;
+        }
+        finally
+        {
+            Dispose();
+        }
+    }
+}",
+@"using System;
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var reader = new MemoryStream())
+        {
+            try
+            {
+                var buffer = reader.GetBuffer();
+                int a = buffer[0], b = a;
+                var c = b;
+                var d = 1;
+            }
+            finally
+            {
+                Dispose();
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
+        public async Task ConsumeFollowingTryStatement7()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        var reader = new MemoryStream()[||];
+        try
+        {
+            var buffer = reader.GetBuffer();
+            int a = buffer[0], b = a;
+            var c = b;
+            var d = 1;
+        }
+        finally
+        {
+            reader.X();
+        }
+    }
+}",
+@"using System;
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var reader = new MemoryStream())
+        {
+            try
+            {
+                var buffer = reader.GetBuffer();
+                int a = buffer[0], b = a;
+                var c = b;
+                var d = 1;
+            }
+            finally
+            {
+                reader.X();
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
+        public async Task ConsumeFollowingTryStatement8()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        var reader = new MemoryStream()[||];
+        try
+        {
+            var buffer = reader.GetBuffer();
+            int a = buffer[0], b = a;
+            var c = b;
+            var d = 1;
+        }
+        finally
+        {
+            other.Dispose();
+        }
+    }
+}",
+@"using System;
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var reader = new MemoryStream())
+        {
+            try
+            {
+                var buffer = reader.GetBuffer();
+                int a = buffer[0], b = a;
+                var c = b;
+                var d = 1;
+            }
+            finally
+            {
+                other.Dispose();
+            }
+        }
+    }
+}");
+        }
     }
 }

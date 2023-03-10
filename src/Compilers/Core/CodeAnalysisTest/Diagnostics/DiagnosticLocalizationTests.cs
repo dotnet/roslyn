@@ -247,7 +247,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     new LocalizableResourceString(@"Resource1", resourceManager, typeof(CustomResourceManager)));
             EqualityUtil.RunAll(unit, checkIEquatable: false);
 
-
             var str = new LocalizableResourceString(@"ResourceWithArguments", resourceManager, typeof(CustomResourceManager), "arg");
             var threw = false;
             str.OnException += (sender, e) => { threw = true; };

@@ -138,7 +138,7 @@ csharp_style_namespace_declarations = file_scoped
         private async Task VerifyNoErrorsAsync(CancellationToken cancellationToken)
         {
             await TestServices.ErrorList.ShowErrorListAsync(cancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, cancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, cancellationToken);
             var actualContents = await TestServices.ErrorList.GetErrorsAsync(cancellationToken);
             AssertEx.EqualOrDiff(
                 string.Join<string>(Environment.NewLine, Array.Empty<string>()),

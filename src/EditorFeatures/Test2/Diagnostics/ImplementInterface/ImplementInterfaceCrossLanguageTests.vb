@@ -2,8 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.CSharp.ImplementInterface
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ImplementInterface
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
             If language = LanguageNames.CSharp Then
-                Throw New NotSupportedException("Please add C# Implement interface tests to CSharpEditorTestTests.csproj. These tests require DiagnosticAnalyzer based test base and are NYI for AbstractCrossLanguageUserDiagnosticTest test base.")
+                Return (Nothing, New CSharpImplementInterfaceCodeFixProvider())
             Else
                 Return (Nothing, New VisualBasicImplementInterfaceCodeFixProvider())
             End If
@@ -293,6 +293,46 @@ Class C
         End Get
     End Property
 End Class
+                </text>.Value.Trim()
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, WorkItem(39434, "https://github.com/dotnet/roslyn/issues/39434")>
+        Public Async Function Test_ParameterizedProperty() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language='Visual Basic' AssemblyName='VBAssembly1' CommonReferences='true'>
+                        <Document>
+Public Interface I
+    Property Goo(x As Integer) As String
+End Interface
+                        </Document>
+                    </Project>
+                    <Project Language='C#' AssemblyName='CSharpAssembly1' CommonReferences='true'>
+                        <ProjectReference>VBAssembly1</ProjectReference>
+                        <Document FilePath='Test1.cs'>
+public class C : $$I
+{
+}
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+public class C : I
+{
+    public string get_Goo(int x)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void set_Goo(int x, string Value)
+    {
+        throw new System.NotImplementedException();
+    }
+}
                 </text>.Value.Trim()
 
             Await TestAsync(input, expected)

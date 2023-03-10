@@ -572,5 +572,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }"
 );
         }
+
+        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
+        public async Task TestMissingStartToken()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Bar() {
+        var test = new[] [||] 1, 2 };
+    }
+}");
+        }
+
+        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
+        public async Task TestMissingEndToken1()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Bar() {
+        var test = new[] [||]{ 1, 2
+        return;
+    }
+}");
+        }
+
+        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
+        public async Task TestMissingEndToken2()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Bar() {
+        var test = new[] [||]{ 1, 2 ;
+    }
+}");
+        }
     }
 }

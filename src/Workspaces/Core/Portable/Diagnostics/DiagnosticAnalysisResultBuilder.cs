@@ -207,9 +207,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         private static ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> Convert(Dictionary<DocumentId, List<DiagnosticData>>? map)
         {
-            return map == null ?
-                ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty :
-                map.ToImmutableDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
+            return map == null
+                ? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty
+                : map.ToImmutableDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
         }
     }
 }

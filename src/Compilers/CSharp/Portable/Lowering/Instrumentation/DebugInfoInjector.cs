@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rewritten.Kind == BoundKind.Block)
             {
                 var block = (BoundBlock)rewritten;
-                return block.Update(block.Locals, block.LocalFunctions, ImmutableArray.Create(InstrumentFieldOrPropertyInitializer(block.Statements.Single(), syntax)));
+                return block.Update(block.Locals, block.LocalFunctions, block.HasUnsafeModifier, ImmutableArray.Create(InstrumentFieldOrPropertyInitializer(block.Statements.Single(), syntax)));
             }
 
             return InstrumentFieldOrPropertyInitializer(rewritten, syntax);

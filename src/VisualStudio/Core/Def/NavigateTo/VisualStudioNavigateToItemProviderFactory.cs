@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
+using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -13,7 +13,9 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo
 {
-    [Export(typeof(INavigateToItemProviderFactory)), Shared]
+    // Used to indicate that this type should be ignored if the platform uses the new ISearchItemsSourceProvider system instead.
+    [OnlyNavigateToSupport]
+    [Export(typeof(INavigateToItemProviderFactory))]
     internal sealed class VisualStudioNavigateToItemProviderFactory : INavigateToItemProviderFactory
     {
         private readonly VisualStudioWorkspace _workspace;

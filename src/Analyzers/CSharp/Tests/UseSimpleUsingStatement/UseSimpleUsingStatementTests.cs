@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -1658,6 +1657,161 @@ parseOptions: CSharp8ParseOptions);
 }
 ",
 parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, WorkItem(42194, "https://github.com/dotnet/roslyn/issues/42194")]
+        public async Task TestWithConstantReturn1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.IO;
+
+class C
+{
+    bool M()
+    {
+        [||]using (var foo = new MemoryStream())
+        {
+        }
+
+        return true;
+    }
+}
+",
+@"
+using System.IO;
+
+class C
+{
+    bool M()
+    {
+        using var foo = new MemoryStream();
+
+        return true;
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(42194, "https://github.com/dotnet/roslyn/issues/42194")]
+        public async Task TestWithNonConstantReturn1()
+        {
+            await TestMissingAsync(
+@"
+using System.IO;
+
+class C
+{
+    bool M(int a, int b)
+    {
+        [||]using (var foo = new MemoryStream())
+        {
+        }
+
+        return a > b;
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(42194, "https://github.com/dotnet/roslyn/issues/42194")]
+        public async Task TestWithLocalFunctions1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.IO;
+
+class C
+{
+    bool M()
+    {
+        [||]using (var foo = new MemoryStream())
+        {
+        }
+
+        void Inner1() { }
+        void Inner2() { }
+    }
+}
+",
+@"
+using System.IO;
+
+class C
+{
+    bool M()
+    {
+        using var foo = new MemoryStream();
+
+        void Inner1() { }
+        void Inner2() { }
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(42194, "https://github.com/dotnet/roslyn/issues/42194")]
+        public async Task TestWithLocalFunctions2()
+        {
+            await TestMissingAsync(
+@"
+using System.IO;
+
+class C
+{
+    bool M(int a, int b)
+    {
+        [||]using (var foo = new MemoryStream())
+        {
+        }
+
+        void Inner1() { }
+        void Inner2() { }
+
+        return a > b;
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(42194, "https://github.com/dotnet/roslyn/issues/42194")]
+        public async Task TestWithLocalFunctionsAndConstantReturn()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.IO;
+
+class C
+{
+    bool M(int a, int b)
+    {
+        [||]using (var foo = new MemoryStream())
+        {
+        }
+
+        void Inner1() { }
+        void Inner2() { }
+
+        return true;
+    }
+}
+",
+@"
+using System.IO;
+
+class C
+{
+    bool M(int a, int b)
+    {
+        using var foo = new MemoryStream();
+
+        void Inner1() { }
+        void Inner2() { }
+
+        return true;
+    }
+}
+");
         }
     }
 }

@@ -41,19 +41,19 @@ namespace Microsoft.CodeAnalysis.Formatting
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(UseTabs), LineFormattingOptions.Default.UseTabs,
             storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
                 new EditorConfigStorageLocation<bool>("indent_style", s => s == "tab", isSet => isSet ? "tab" : "space"),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Insert Tabs")));
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Insert Tabs", useEditorLanguageName: true)));
 
         public static PerLanguageOption2<int> TabSize =
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(TabSize), LineFormattingOptions.Default.TabSize,
             storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
                 EditorConfigStorageLocation.ForInt32Option("tab_width"),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Tab Size")));
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Tab Size", useEditorLanguageName: true)));
 
         public static PerLanguageOption2<int> IndentationSize =
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(IndentationSize), LineFormattingOptions.Default.IndentationSize,
             storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
                 EditorConfigStorageLocation.ForInt32Option("indent_size"),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Indent Size")));
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Indent Size", useEditorLanguageName: true)));
 
         public static PerLanguageOption2<string> NewLine =
             new(FeatureName, FormattingOptionGroups.NewLine, nameof(NewLine), LineFormattingOptions.Default.NewLine,
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     "crlf" => "\r\n",
                     _ => Environment.NewLine
                 },
-                getEditorConfigStringForValue: option => option switch
+                serializeValue: value => value switch
                 {
                     "\n" => "lf",
                     "\r" => "cr",
@@ -78,8 +78,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             new(FeatureName, FormattingOptionGroups.NewLine, nameof(InsertFinalNewLine), DocumentFormattingOptions.Default.InsertFinalNewLine,
             storageLocation: EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
 
-        public static PerLanguageOption2<FormattingOptions2.IndentStyle> SmartIndent { get; } =
-            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent), defaultValue: IndentationOptions.DefaultIndentStyle);
+        public static PerLanguageOption2<IndentStyle> SmartIndent { get; } =
+            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent), defaultValue: IndentationOptions.DefaultIndentStyle,
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Indent Style", useEditorLanguageName: true));
 
 #if !CODE_STYLE
         internal static readonly ImmutableArray<IOption> Options = ImmutableArray.Create<IOption>(

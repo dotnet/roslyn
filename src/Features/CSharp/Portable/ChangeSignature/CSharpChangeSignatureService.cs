@@ -278,6 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxNode potentiallyUpdatedNode,
             SyntaxNode originalNode,
             SignatureChange signaturePermutation,
+            LineFormattingOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var updatedNode = potentiallyUpdatedNode as CSharpSyntaxNode;
@@ -290,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 updatedNode.IsKind(SyntaxKind.RecordStructDeclaration) ||
                 updatedNode.IsKind(SyntaxKind.RecordDeclaration))
             {
-                var updatedLeadingTrivia = UpdateParamTagsInLeadingTrivia(document, updatedNode, declarationSymbol, signaturePermutation);
+                var updatedLeadingTrivia = await UpdateParamTagsInLeadingTriviaAsync(document, updatedNode, declarationSymbol, signaturePermutation, fallbackOptions, cancellationToken).ConfigureAwait(false);
                 if (updatedLeadingTrivia != default && !updatedLeadingTrivia.IsEmpty)
                 {
                     updatedNode = updatedNode.WithLeadingTrivia(updatedLeadingTrivia);
@@ -747,7 +748,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return result.ToImmutable();
         }
 
-        private ImmutableArray<SyntaxTrivia> UpdateParamTagsInLeadingTrivia(Document document, CSharpSyntaxNode node, ISymbol declarationSymbol, SignatureChange updatedSignature)
+        private async ValueTask<ImmutableArray<SyntaxTrivia>> UpdateParamTagsInLeadingTriviaAsync(
+            Document document, CSharpSyntaxNode node, ISymbol declarationSymbol, SignatureChange updatedSignature, LineFormattingOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (!node.HasLeadingTrivia)
             {
@@ -765,7 +767,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return ImmutableArray<SyntaxTrivia>.Empty;
             }
 
-            return GetPermutedDocCommentTrivia(document, node, permutedParamNodes);
+            var options = await document.GetLineFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            return GetPermutedDocCommentTrivia(node, permutedParamNodes, document.Project.Services, options);
         }
 
         private ImmutableArray<SyntaxNode> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)

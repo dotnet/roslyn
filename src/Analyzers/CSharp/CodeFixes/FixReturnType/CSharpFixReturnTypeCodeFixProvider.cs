@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,9 +14,9 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
 {
@@ -28,12 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
     internal class CSharpFixReturnTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         // error CS0127: Since 'M()' returns void, a return keyword must not be followed by an object expression
-        // error CS1997: Since 'M()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
+        // error CS1997: Since 'M()' is an async method that returns 'Task', a return keyword must not be followed by an object expression
         // error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS0127", "CS1997", "CS0201");
 
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpFixReturnTypeCodeFixProvider()
             : base(supportsFixAll: false)
         {
@@ -71,25 +70,54 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
             var location = diagnostics[0].Location;
             var node = location.FindNode(getInnermostNodeForTie: true, cancellationToken);
             var returnedValue = node is ReturnStatementSyntax returnStatement ? returnStatement.Expression : node;
-            if (returnedValue == null)
+            if (returnedValue is null)
                 return default;
 
-            var (declarationTypeToFix, useTask) = TryGetDeclarationTypeToFix(node);
-            if (declarationTypeToFix == null)
+            var (declarationTypeToFix, isAsync) = TryGetDeclarationTypeToFix(node);
+            if (declarationTypeToFix is null)
                 return default;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var returnedType = semanticModel.GetTypeInfo(returnedValue, cancellationToken).Type;
+
+            // Special case when tuple has elements with unknown type, e.g. `(null, default)`
+            // Need to replace this unknown elements with default `object`s
+            if (returnedType is null &&
+                returnedValue is TupleExpressionSyntax tuple)
+            {
+                returnedType = InferTupleType(tuple, semanticModel, cancellationToken);
+            }
+
             returnedType ??= semanticModel.Compilation.ObjectType;
 
             TypeSyntax fixedDeclaration;
-            if (useTask)
+            if (isAsync)
             {
-                var taskOfTType = semanticModel.Compilation.TaskOfTType();
-                if (taskOfTType is null)
+                var previousReturnType = semanticModel.GetTypeInfo(declarationTypeToFix, cancellationToken).Type;
+                if (previousReturnType is null)
                     return default;
 
-                fixedDeclaration = taskOfTType.Construct(returnedType).GenerateTypeSyntax(allowVar: false);
+                var compilation = semanticModel.Compilation;
+
+                INamedTypeSymbol? taskType = null;
+
+                // void, Task -> Task<T>
+                // ValueTask -> ValueTask<T>
+                // other type -> we cannot infer anything
+                if (previousReturnType.SpecialType is SpecialType.System_Void ||
+                    Equals(previousReturnType, compilation.TaskType()))
+                {
+                    taskType = compilation.TaskOfTType();
+                }
+                else if (Equals(previousReturnType, compilation.ValueTaskType()))
+                {
+                    taskType = compilation.ValueTaskOfTType();
+                }
+
+                if (taskType is null)
+                    return default;
+
+                fixedDeclaration = taskType.Construct(returnedType).GenerateTypeSyntax(allowVar: false);
             }
             else
             {
@@ -109,11 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
             editor.ReplaceNode(declarationTypeToFix, fixedDeclaration);
         }
 
-        private static (TypeSyntax type, bool useTask) TryGetDeclarationTypeToFix(SyntaxNode node)
+        private static (TypeSyntax type, bool isAsync) TryGetDeclarationTypeToFix(SyntaxNode node)
         {
             return node.GetAncestors().Select(TryGetReturnTypeToFix).FirstOrDefault(p => p.type != null);
 
-            static (TypeSyntax type, bool useTask) TryGetReturnTypeToFix(SyntaxNode containingMember)
+            static (TypeSyntax type, bool isAsync) TryGetReturnTypeToFix(SyntaxNode containingMember)
             {
                 return containingMember switch
                 {
@@ -126,6 +154,35 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
                     _ => default,
                 };
             }
+        }
+
+        private static ITypeSymbol? InferTupleType(TupleExpressionSyntax tuple, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var compilation = semanticModel.Compilation;
+            var argCount = tuple.Arguments.Count;
+
+            var baseTupleType = compilation.ValueTupleType(argCount);
+            if (baseTupleType is null)
+                return null;
+
+            var inferredTupleTypes = new ITypeSymbol[argCount];
+
+            for (var i = 0; i < argCount; i++)
+            {
+                var argumentExpression = tuple.Arguments[i].Expression;
+                var type = semanticModel.GetTypeInfo(argumentExpression, cancellationToken).Type;
+
+                // Nested tuple with unknown type, e.g. `(string.Empty, (2, null))`
+                if (type is null &&
+                    argumentExpression is TupleExpressionSyntax nestedTuple)
+                {
+                    type = InferTupleType(nestedTuple, semanticModel, cancellationToken);
+                }
+
+                inferredTupleTypes[i] = type is null ? semanticModel.Compilation.ObjectType : type;
+            }
+
+            return baseTupleType.Construct(inferredTupleTypes);
         }
     }
 }

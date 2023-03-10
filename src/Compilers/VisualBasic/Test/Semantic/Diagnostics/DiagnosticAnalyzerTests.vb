@@ -1678,7 +1678,7 @@ End Namespace
             Assert.Equal(Analyzer.Descriptor.Id, diagnostic.Id)
             Assert.Equal(LocationKind.ExternalFile, diagnostic.Location.Kind)
             Dim location = DirectCast(diagnostic.Location, ExternalFileLocation)
-            Assert.Equal(additionalFile.Path, location.FilePath)
+            Assert.Equal(additionalFile.Path, location.GetLineSpan().Path)
             Assert.Equal(expectedDiagnosticSpan, location.SourceSpan)
         End Sub
 

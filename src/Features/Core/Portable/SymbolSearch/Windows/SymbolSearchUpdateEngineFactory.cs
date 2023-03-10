@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// </summary>
         public static ISymbolSearchUpdateEngine CreateEngineInProcess(IFileDownloaderFactory fileDownloaderFactory)
         {
-            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-                new SymbolSearchUpdateEngine(fileDownloaderFactory) :
-                SymbolSearchUpdateNoOpEngine.Instance;
+            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? new SymbolSearchUpdateEngine(fileDownloaderFactory)
+                : SymbolSearchUpdateNoOpEngine.Instance;
         }
     }
 }

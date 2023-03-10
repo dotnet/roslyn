@@ -80,8 +80,7 @@ namespace Microsoft.CodeAnalysis.Options
             string GetEditorConfigString(IOption option, IEditorConfigStorageLocation2 editorConfigLocation)
             {
                 var optionKey = new OptionKey(option, option.IsPerLanguage ? language : null);
-                var value = optionSet.GetOption(optionKey);
-                var editorConfigString = editorConfigLocation.GetEditorConfigString(value, optionSet);
+                var editorConfigString = editorConfigLocation.GetEditorConfigString(optionKey, optionSet);
                 Debug.Assert(!string.IsNullOrEmpty(editorConfigString));
                 return editorConfigString;
             }

@@ -28,7 +28,8 @@ internal enum SourceGeneratorSyntaxTreeInfo
 
 public partial struct SyntaxValueProvider
 {
-    private static readonly ObjectPool<Stack<string>> s_stackPool = new ObjectPool<Stack<string>>(static () => new Stack<string>());
+    private static readonly ObjectPool<Stack<string>> s_stringStackPool = new ObjectPool<Stack<string>>(static () => new Stack<string>());
+    private static readonly ObjectPool<Stack<SyntaxNode>> s_nodeStackPool = new ObjectPool<Stack<SyntaxNode>>(static () => new Stack<SyntaxNode>());
 
     /// <summary>
     /// Returns all syntax nodes of that match <paramref name="predicate"/> if that node has an attribute on it that
@@ -170,87 +171,122 @@ public partial struct SyntaxValueProvider
 
         // Used to ensure that as we recurse through alias names to see if they could bind to attributeName that we
         // don't get into cycles.
-        var seenNames = s_stackPool.Allocate();
+        var seenNames = s_stringStackPool.Allocate();
         var results = ArrayBuilder<SyntaxNode>.GetInstance();
         var attributeTargets = ArrayBuilder<SyntaxNode>.GetInstance();
 
         try
         {
-            recurse(compilationUnit);
+            processCompilationUnit(compilationUnit);
         }
         finally
         {
             localAliases.Free();
             seenNames.Clear();
-            s_stackPool.Free(seenNames);
+            s_stringStackPool.Free(seenNames);
             attributeTargets.Free();
         }
 
         results.RemoveDuplicates();
         return results.ToImmutableAndFree();
 
-        void recurse(SyntaxNode node)
+        void processCompilationUnit(SyntaxNode compilationUnit)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (node is ICompilationUnitSyntax)
-            {
-                syntaxHelper.AddAliases(node.Green, localAliases, global: false);
+            if (compilationUnit is ICompilationUnitSyntax)
+                syntaxHelper.AddAliases(compilationUnit.Green, localAliases, global: false);
 
-                recurseChildren(node);
-            }
-            else if (syntaxHelper.IsAnyNamespaceBlock(node))
-            {
-                var localAliasCount = localAliases.Count;
-                syntaxHelper.AddAliases(node.Green, localAliases, global: false);
+            processCompilationOrNamespaceMembers(compilationUnit);
+        }
 
-                recurseChildren(node);
+        void processCompilationOrNamespaceMembers(SyntaxNode node)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
 
-                // after recursing into this namespace, dump any local aliases we added from this namespace decl itself.
-                localAliases.Count = localAliasCount;
-            }
-            else if (syntaxHelper.IsAttributeList(node))
+            foreach (var child in node.ChildNodesAndTokens())
             {
-                foreach (var attribute in syntaxHelper.GetAttributesOfAttributeList(node))
+                if (child.IsNode)
                 {
-                    // Have to lookup both with the name in the attribute, as well as adding the 'Attribute' suffix.
-                    // e.g. if there is [X] then we have to lookup with X and with XAttribute.
-                    var simpleAttributeName = syntaxHelper.GetUnqualifiedIdentifierOfName(syntaxHelper.GetNameOfAttribute(attribute));
-                    if (matchesAttributeName(simpleAttributeName, withAttributeSuffix: false) ||
-                        matchesAttributeName(simpleAttributeName, withAttributeSuffix: true))
-                    {
-                        attributeTargets.Clear();
-                        syntaxHelper.AddAttributeTargets(node, attributeTargets);
+                    var childNode = child.AsNode()!;
+                    if (syntaxHelper.IsAnyNamespaceBlock(childNode))
+                        processNamespaceBlock(childNode);
+                    else
+                        processMember(childNode);
+                }
+            }
+        }
 
-                        foreach (var target in attributeTargets)
+        void processNamespaceBlock(SyntaxNode namespaceBlock)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var localAliasCount = localAliases.Count;
+            syntaxHelper.AddAliases(namespaceBlock.Green, localAliases, global: false);
+
+            processCompilationOrNamespaceMembers(namespaceBlock);
+
+            // after recursing into this namespace, dump any local aliases we added from this namespace decl itself.
+            localAliases.Count = localAliasCount;
+        }
+
+        void processMember(SyntaxNode member)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // nodes can be arbitrarily deep.  Use an explicit stack over recursion to prevent a stack-overflow.
+            var nodeStack = s_nodeStackPool.Allocate();
+            nodeStack.Push(member);
+
+            try
+            {
+                while (nodeStack.Count > 0)
+                {
+                    var node = nodeStack.Pop();
+
+                    if (syntaxHelper.IsAttributeList(node))
+                    {
+                        foreach (var attribute in syntaxHelper.GetAttributesOfAttributeList(node))
                         {
-                            if (predicate(target, cancellationToken))
-                                results.Add(target);
+                            // Have to lookup both with the name in the attribute, as well as adding the 'Attribute' suffix.
+                            // e.g. if there is [X] then we have to lookup with X and with XAttribute.
+                            var simpleAttributeName = syntaxHelper.GetUnqualifiedIdentifierOfName(syntaxHelper.GetNameOfAttribute(attribute));
+                            if (matchesAttributeName(simpleAttributeName, withAttributeSuffix: false) ||
+                                matchesAttributeName(simpleAttributeName, withAttributeSuffix: true))
+                            {
+                                attributeTargets.Clear();
+                                syntaxHelper.AddAttributeTargets(node, attributeTargets);
+
+                                foreach (var target in attributeTargets)
+                                {
+                                    if (predicate(target, cancellationToken))
+                                        results.Add(target);
+                                }
+
+                                break;
+                            }
                         }
 
-                        return;
+                        // attributes can't have attributes inside of them.  so no need to recurse when we're done.
                     }
+                    else
+                    {
+                        // For any other node, just keep recursing deeper to see if we can find an attribute. Note: we cannot
+                        // terminate the search anywhere as attributes may be found on things like local functions, and that
+                        // means having to dive deep into statements and expressions.
+                        foreach (var child in node.ChildNodesAndTokens().Reverse())
+                        {
+                            if (child.IsNode)
+                                nodeStack.Push(child.AsNode()!);
+                        }
+                    }
+
                 }
-
-                // attributes can't have attributes inside of them.  so no need to recurse when we're done.
             }
-            else
+            finally
             {
-                // For any other node, just keep recursing deeper to see if we can find an attribute. Note: we cannot
-                // terminate the search anywhere as attributes may be found on things like local functions, and that
-                // means having to dive deep into statements and expressions.
-                recurseChildren(node);
-            }
-
-            return;
-
-            void recurseChildren(SyntaxNode node)
-            {
-                foreach (var child in node.ChildNodesAndTokens())
-                {
-                    if (child.IsNode)
-                        recurse(child.AsNode()!);
-                }
+                nodeStack.Clear();
+                s_nodeStackPool.Free(nodeStack);
             }
         }
 

@@ -44,9 +44,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var capabilities = clientCapabilities is VSInternalClientCapabilities { SupportsVisualStudioExtensions: true }
-                ? GetVSServerCapabilities()
-                : new ServerCapabilities();
+            var supportsVsExtensions = clientCapabilities is VSInternalClientCapabilities { SupportsVisualStudioExtensions: true };
+            var capabilities = supportsVsExtensions ? GetVSServerCapabilities() : new ServerCapabilities();
 
             var commitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
             var triggerCharacters = _completionProviders.SelectMany(
@@ -94,6 +93,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     TokenModifiers = new string[] { SemanticTokenModifiers.Static }
                 }
             };
+
+            if (!supportsVsExtensions)
+            {
+                capabilities.DiagnosticOptions = new DiagnosticOptions
+                {
+                    InterFileDependencies = true,
+                    WorkDoneProgress = true,
+                    WorkspaceDiagnostics = true,
+                };
+            }
 
             return capabilities;
         }

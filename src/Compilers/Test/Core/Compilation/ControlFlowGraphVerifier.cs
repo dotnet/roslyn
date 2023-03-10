@@ -65,6 +65,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     graph = ControlFlowGraph.Create(parameterInitializerOperation);
                     break;
 
+                case IAttributeOperation attributeOperation:
+                    graph = ControlFlowGraph.Create(attributeOperation);
+                    break;
+
                 default:
                     return default;
             }
@@ -310,7 +314,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     validateBranch(block, nextBranch);
                 }
-
 
                 if (currentRegion.LastBlockOrdinal == block.Ordinal && i != blocks.Length - 1)
                 {
@@ -1997,6 +2000,7 @@ endRegion:
                 case OperationKind.SlicePattern:
                 case OperationKind.ListPattern:
                 case OperationKind.ImplicitIndexerReference:
+                case OperationKind.Attribute:
                     return true;
             }
 

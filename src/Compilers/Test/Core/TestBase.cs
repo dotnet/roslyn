@@ -144,7 +144,7 @@ namespace Roslyn.Test.Utilities
         public static MetadataReference SystemRuntimeSerializationRef_v4_0_30319_17929 => s_systemRuntimeSerializationRef_v4_0_30319_17929.Value;
 
         private static readonly Lazy<MetadataReference> s_systemCoreRef_v46 = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet461.SystemCore).GetReference(display: "System.Core.v4_6_1038_0.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.References.SystemCore.ImageBytes).GetReference(display: "System.Core.v4_6_1038_0.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemCoreRef_v46 => s_systemCoreRef_v4_0_30319_17929.Value;
 
@@ -177,7 +177,7 @@ namespace Roslyn.Test.Utilities
             () =>
             {
                 var source = TestResources.NetFX.aacorlib_v15_0_3928.aacorlib_v15_0_3928_cs;
-                var syntaxTree = Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(source);
+                var syntaxTree = Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default));
 
                 var compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
@@ -201,7 +201,7 @@ namespace Roslyn.Test.Utilities
         public static MetadataReference MscorlibRef_v4_0_30316_17626 => Net451.mscorlib;
 
         private static readonly Lazy<MetadataReference> s_mscorlibRef_v46 = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet461.mscorlib).GetReference(display: "mscorlib.v4_6_1038_0.dll", filePath: @"Z:\FxReferenceAssembliesUri"),
+            () => AssemblyMetadata.CreateFromImage(Net461.References.mscorlib.ImageBytes).GetReference(display: "mscorlib.v4_6_1038_0.dll", filePath: @"Z:\FxReferenceAssembliesUri"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference MscorlibRef_v46 => s_mscorlibRef_v46.Value;
 
@@ -248,7 +248,7 @@ namespace Roslyn.Test.Utilities
         public static MetadataReference SystemRef => s_systemRef.Value;
 
         private static readonly Lazy<MetadataReference> s_systemRef_v46 = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet461.System).GetReference(display: "System.v4_6_1038_0.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.References.System.ImageBytes).GetReference(display: "System.v4_6_1038_0.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemRef_v46 => s_systemRef_v46.Value;
 

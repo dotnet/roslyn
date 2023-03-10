@@ -3,12 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
 
@@ -16,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 {
     internal abstract class AbstractPropSnippetProvider : AbstractSnippetProvider
     {
-        public override string SnippetIdentifier => "prop";
+        public override string Identifier => "prop";
 
-        public override string SnippetDescription => FeaturesResources.property_;
+        public override string Description => FeaturesResources.property_;
 
         /// <summary>
         /// Generates the property syntax.

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.IntroduceUsingStatement;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.IntroduceUsingStatement), Shared]
     internal sealed class CSharpIntroduceUsingStatementCodeRefactoringProvider
-        : AbstractIntroduceUsingStatementCodeRefactoringProvider<StatementSyntax, LocalDeclarationStatementSyntax>
+        : AbstractIntroduceUsingStatementCodeRefactoringProvider<StatementSyntax, LocalDeclarationStatementSyntax, TryStatementSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -27,16 +28,22 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement
 
         protected override string CodeActionTitle => CSharpFeaturesResources.Introduce_using_statement;
 
+        protected override bool HasCatchBlocks(TryStatementSyntax tryStatement)
+            => tryStatement.Catches.Count > 0;
+
+        protected override (SyntaxList<StatementSyntax> tryStatements, SyntaxList<StatementSyntax> finallyStatements) GetTryFinallyStatements(TryStatementSyntax tryStatement)
+            => (tryStatement.Block.Statements, tryStatement.Finally?.Block.Statements ?? default);
+
         protected override bool CanRefactorToContainBlockStatements(SyntaxNode parent)
             => parent is BlockSyntax || parent is SwitchSectionSyntax || parent.IsEmbeddedStatementOwner();
 
-        protected override SyntaxList<StatementSyntax> GetStatements(SyntaxNode parentOfStatementsToSurround)
-        {
-            return
-                parentOfStatementsToSurround is BlockSyntax block ? block.Statements :
-                parentOfStatementsToSurround is SwitchSectionSyntax switchSection ? switchSection.Statements :
-                throw ExceptionUtilities.UnexpectedValue(parentOfStatementsToSurround);
-        }
+        protected override SyntaxList<StatementSyntax> GetSurroundingStatements(LocalDeclarationStatementSyntax declarationStatement)
+            => declarationStatement.GetRequiredParent() switch
+            {
+                BlockSyntax block => block.Statements,
+                SwitchSectionSyntax switchSection => switchSection.Statements,
+                _ => SyntaxFactory.SingletonList<StatementSyntax>(declarationStatement),
+            };
 
         protected override SyntaxNode WithStatements(SyntaxNode parentOfStatementsToSurround, SyntaxList<StatementSyntax> statements)
         {

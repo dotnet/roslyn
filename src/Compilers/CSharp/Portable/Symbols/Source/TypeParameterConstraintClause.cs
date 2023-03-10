@@ -124,8 +124,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public readonly TypeParameterConstraintKind Constraints;
         public readonly ImmutableArray<TypeWithAnnotations> ConstraintTypes;
 
-        internal static SmallDictionary<TypeParameterSymbol, bool> BuildIsValueTypeMap(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters,
-                                                                                       ImmutableArray<TypeParameterConstraintClause> constraintClauses)
+        internal static SmallDictionary<TypeParameterSymbol, bool> BuildIsValueTypeMap(
+            ImmutableArray<TypeParameterSymbol> typeParameters,
+            ImmutableArray<TypeParameterConstraintClause> constraintClauses)
         {
             Debug.Assert(constraintClauses.Length == typeParameters.Length);
 
@@ -188,8 +189,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static SmallDictionary<TypeParameterSymbol, bool> BuildIsReferenceTypeFromConstraintTypesMap(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters,
-                                                                                                              ImmutableArray<TypeParameterConstraintClause> constraintClauses)
+        internal static SmallDictionary<TypeParameterSymbol, bool> BuildIsReferenceTypeFromConstraintTypesMap(
+            ImmutableArray<TypeParameterSymbol> typeParameters,
+            ImmutableArray<TypeParameterConstraintClause> constraintClauses)
         {
             Debug.Assert(constraintClauses.Length == typeParameters.Length);
 

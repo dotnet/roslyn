@@ -262,6 +262,11 @@
         <target state="translated">删除不必要的转换</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_accessibility_modifiers">
+        <source>Remove accessibility modifiers</source>
+        <target state="translated">删除辅助功能修饰符</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_equality">
         <source>Remove redundant equality</source>
         <target state="translated">删除冗余等同性</target>
@@ -320,6 +325,11 @@
       <trans-unit id="Simplify_Names">
         <source>Simplify Names</source>
         <target state="translated">简化名称</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="translated">简化检查</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

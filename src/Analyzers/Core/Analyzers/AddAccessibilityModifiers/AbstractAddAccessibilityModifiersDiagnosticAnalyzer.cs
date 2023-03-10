@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -11,6 +12,9 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TCompilationUnitSyntax : SyntaxNode
     {
+        protected static readonly ImmutableDictionary<string, string?> ModifiersAddedProperties = ImmutableDictionary<string, string?>.Empty.Add(
+            AddAccessibilityModifiersConstants.ModifiersAdded, AddAccessibilityModifiersConstants.ModifiersAdded);
+
         protected AbstractAddAccessibilityModifiersDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId,
                    EnforceOnBuildValues.AddAccessibilityModifiers,

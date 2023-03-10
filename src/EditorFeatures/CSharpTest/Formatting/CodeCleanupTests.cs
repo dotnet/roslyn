@@ -563,8 +563,8 @@ namespace A
             var expectedNumberOfUnsupportedDiagnosticIds =
                 language switch
                 {
-                    LanguageNames.CSharp => 35,
-                    LanguageNames.VisualBasic => 72,
+                    LanguageNames.CSharp => 40,
+                    LanguageNames.VisualBasic => 77,
                     _ => throw ExceptionUtilities.UnexpectedValue(language),
                 };
 

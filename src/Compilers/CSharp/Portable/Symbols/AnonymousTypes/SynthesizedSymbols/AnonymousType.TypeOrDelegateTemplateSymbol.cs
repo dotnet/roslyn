@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal abstract string TypeDescriptorKey { get; }
 
             protected sealed override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
 
             /// <summary>
             /// Smallest location of the template, actually contains the smallest location 
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AttributeUsageInfo.Null;
             }
 
-            internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+            internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
             internal sealed override NamedTypeSymbol? NativeIntegerUnderlyingType => null;
 

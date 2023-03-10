@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption2<T>((T)value, Notification);
         ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption2 notification) => new CodeStyleOption2<T>(Value, notification);
 
+#pragma warning disable RS0030 // Do not used banned APIs: CodeStyleOption<T>
 #if CODE_STYLE
         ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>() => this;
 #else
@@ -74,11 +75,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             => this is TCodeStyleOption ? this : new CodeStyleOption<T>(this);
         ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => new CodeStyleOption<T>(this);
 #endif
+#pragma warning restore
 
         private int EnumValueAsInt32 => (int)(object)Value!;
 
-        public XElement ToXElement() =>
-            new(XmlElement_CodeStyleOption, // Ensure that we use "CodeStyleOption" as the name for back compat.
+        public XElement ToXElement()
+            => new(XmlElement_CodeStyleOption, // Ensure that we use "CodeStyleOption" as the name for back compat.
                 new XAttribute(XmlAttribute_SerializationVersion, SerializationVersion),
                 new XAttribute(XmlAttribute_Type, GetTypeNameForSerialization()),
                 new XAttribute(XmlAttribute_Value, GetValueForSerialization()),

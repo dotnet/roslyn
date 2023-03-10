@@ -816,7 +816,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                        receiverOpt,
                                        qualificationKind:=qualificationKind)
 
-
             ' AddressOf currentMethod
             Dim syntheticAddressOf = New BoundAddressOfOperator(singleHandleClause, typeBinder, diagBag.AccumulatesDependencies, syntheticMethodGroup).MakeCompilerGenerated
 
@@ -958,7 +957,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 For Each symbol In symbols
                     If symbol.Kind = SymbolKind.Property Then
-
 
                         'Function ValidEventSourceProperty( _
                         '    ByVal [Property] As BCSym.[Property] _

@@ -205,6 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _project.CompilationOutputAssemblyFilePath = fullOutputFilePath ?? _project.CompilationOutputAssemblyFilePath;
             _project.ParseOptions = parseOptions;
+            _project.ChecksumAlgorithm = _commandLineArgumentsForCommandLine.ChecksumAlgorithm;
         }
 
         private void RuleSetFile_UpdatedOnDisk(object sender, EventArgs e)

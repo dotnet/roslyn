@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
@@ -194,7 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
             }
 
-            if (CSharpSemanticFacts.Instance.IsInExpressionTree(instance.SemanticModel, instance.Syntax, infoCache.ExpressionOfTType, cancellationToken))
+            var semanticModel = instance.SemanticModel;
+            Contract.ThrowIfNull(semanticModel);
+
+            if (CSharpSemanticFacts.Instance.IsInExpressionTree(semanticModel, instance.Syntax, infoCache.ExpressionOfTType, cancellationToken))
                 return;
 
             // Everything looks good.  We can update this to use the System.Index member instead.

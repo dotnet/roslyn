@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Host
             // However, we want to avoid collisions, so ensure we also append a safe short piece of text
             // that is based on the full text.
             const int MaxLength = 20;
-            var prefix = fileName.Length > MaxLength ? fileName.Substring(0, MaxLength) : fileName;
+            var prefix = fileName.Length > MaxLength ? fileName[..MaxLength] : fileName;
             var suffix = Checksum.Create(fullPath);
             var fullName = $"{prefix}-{suffix}";
             return StripInvalidPathChars(fullName);

@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis
         /// One can think about the rest of the items in assemblies array as assembly references given to the compiler to
         /// build executable for the assembly being built. 
         /// </summary>
-        /// <param name="compilation">Compilation.</param>
         /// <param name="explicitAssemblies">
         /// An array of <see cref="AssemblyData"/> objects describing assemblies, for which this method should
         /// resolve references and find suitable AssemblySymbols. The first slot contains the assembly being built.
@@ -89,7 +88,6 @@ namespace Microsoft.CodeAnalysis
         ///     <see cref="AssemblyData.BindAssemblyReferences(ImmutableArray{AssemblyData}, AssemblyIdentityComparer)"/> method.
         /// </return>
         protected BoundInputAssembly[] Bind(
-            TCompilation compilation,
             ImmutableArray<AssemblyData> explicitAssemblies,
             ImmutableArray<PEModule> explicitModules,
             ImmutableArray<MetadataReference> explicitReferences,
@@ -122,7 +120,6 @@ namespace Microsoft.CodeAnalysis
                 if (resolverOpt?.ResolveMissingAssemblies == true)
                 {
                     ResolveAndBindMissingAssemblies(
-                        compilation,
                         explicitAssemblies,
                         explicitModules,
                         explicitReferences,
@@ -193,7 +190,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         private void ResolveAndBindMissingAssemblies(
-            TCompilation compilation,
             ImmutableArray<AssemblyData> explicitAssemblies,
             ImmutableArray<PEModule> explicitModules,
             ImmutableArray<MetadataReference> explicitReferences,

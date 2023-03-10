@@ -48,7 +48,7 @@ public struct EventDescriptor
 
                     // Get System.Security.Permissions.HostProtection
                     var emittedName = MetadataTypeName.FromNamespaceAndTypeName("System.Security.Permissions", "HostProtectionAttribute");
-                    NamedTypeSymbol hostProtectionAttr = sourceAssembly.CorLibrary.LookupTopLevelMetadataType(ref emittedName, true);
+                    NamedTypeSymbol hostProtectionAttr = sourceAssembly.CorLibrary.LookupDeclaredTopLevelMetadataType(ref emittedName);
                     Assert.NotNull(hostProtectionAttr);
 
                     // Verify type security attributes

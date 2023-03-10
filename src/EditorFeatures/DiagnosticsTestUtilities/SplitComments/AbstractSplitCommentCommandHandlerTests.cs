@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
             var language = workspace.Projects.Single().Language;
 
             globalOptions.SetGlobalOption(new OptionKey(SplitCommentOptions.Enabled, language), enabled);
-            globalOptions.SetGlobalOption(new OptionKey(FormattingOptions.UseTabs, language), useTabs);
+            globalOptions.SetGlobalOption(new OptionKey(FormattingOptions2.UseTabs, language), useTabs);
 
             var document = workspace.Documents.Single();
             var view = document.GetTextView();

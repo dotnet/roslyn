@@ -3786,45 +3786,6 @@ class Program
 }", CodeActionIndex);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestInBaseIntegerParameter()
-        {
-            await TestInRegularAndScript1Async(
-@"class B
-{
-    protected B(int test)
-    {
-
-    }
-}
-
-class C : B
-{
-    public C(int test) : base([|1 + 1|])
-    {
-
-    }
-}",
-@"class B
-{
-    protected B(int test)
-    {
-
-    }
-}
-
-class C : B
-{
-    public C(int test) : base({|Rename:NewMethod|}())
-    {
-        static int NewMethod()
-        {
-            return 1 + 1;
-        }
-    }
-}", CodeActionIndex);
-        }
-
         [Fact, WorkItem(40188, "https://github.com/dotnet/roslyn/issues/40188"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestEditorconfigSetting_StaticLocalFunction_True()
         {
@@ -5233,6 +5194,96 @@ public class Class
     }
 }";
             await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+        }
+
+        [Fact]
+        public async Task TestExtractLocalFunction_MissingInBaseInitializer()
+        {
+            var code = """
+                class Base
+                {
+                    private readonly int _x;
+                    public Base(int x)
+                    {
+                        _x = x;
+                    }
+                }
+
+                class C : Base
+                {
+                    public C(int y)
+                        : base([|y + 1|])
+                    {
+                    }
+                }
+                """;
+
+            await TestMissingAsync(code, codeActionIndex: CodeActionIndex);
+        }
+
+        [Fact]
+        public async Task TestExtractLocalFunction_MissingInThisInitializer()
+        {
+            var code = """
+                class C
+                {
+                    public C(int y)
+                        : this(y, [|y + 1|])
+                    {
+                    }
+                
+                    public C(int x, int y)
+                    {
+                    }
+                }
+                """;
+
+            await TestMissingAsync(code, codeActionIndex: CodeActionIndex);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/65222")]
+        public async Task TestExtractLocalFunction_LambdaInitializer()
+        {
+            var code = """
+                class C
+                {
+                    public C(int y)
+                        : this(y, (x) => 
+                            {
+                                return [|y + 1|];
+                            })
+                    {
+                    }
+                
+                    public C(int x, Func<int, int> modX)
+                    {
+                    }
+                }
+                """;
+
+            var expected = """
+                class C
+                {
+                    public C(int y)
+                        : this(y, (x) => 
+                            {
+                                return NewMethod(x);
+
+                                int NewMethod(int x)
+                                {
+                                    return x + 1;
+                                }
+                            })
+                    {
+                    }
+                
+                    public C(int x, Func<int, int> modX)
+                    {
+                    }
+                }
+                """;
+
+            await TestAsync(code, expected, TestOptions.Regular, index: CodeActionIndex);
         }
     }
 }

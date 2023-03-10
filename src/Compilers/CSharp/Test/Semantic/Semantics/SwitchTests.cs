@@ -2749,8 +2749,7 @@ class SwitchTest
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (10,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case true when true:
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case true when true:").WithArguments("pattern matching", "7.0").WithLocation(10, 13)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case").WithArguments("pattern matching", "7.0").WithLocation(10, 13));
             CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics();
             CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }

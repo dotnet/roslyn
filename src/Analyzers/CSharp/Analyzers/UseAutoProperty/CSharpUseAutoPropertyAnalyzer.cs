@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                 case ArrowExpressionClauseSyntax arrowExpression:
                     return arrowExpression.Expression;
                 case null: return null;
-                default: throw ExceptionUtilities.Unreachable;
+                default: throw ExceptionUtilities.Unreachable();
             }
         }
 

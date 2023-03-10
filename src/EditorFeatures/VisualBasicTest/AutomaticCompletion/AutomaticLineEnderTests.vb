@@ -279,7 +279,7 @@ End Module
             Dim endConstructor = New EndConstructCommandHandler(
                 workspace.GetService(Of IEditorOperationsFactoryService),
                 workspace.GetService(Of ITextUndoHistoryRegistry),
-                workspace.GetService(Of IGlobalOptionService))
+                workspace.GetService(Of EditorOptionsService))
 
             Dim view = workspace.Documents.Single().GetTextView()
             Dim buffer = workspace.Documents.Single().GetTextBuffer()

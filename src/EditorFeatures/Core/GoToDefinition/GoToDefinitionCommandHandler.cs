@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                 }
                 else
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
         }

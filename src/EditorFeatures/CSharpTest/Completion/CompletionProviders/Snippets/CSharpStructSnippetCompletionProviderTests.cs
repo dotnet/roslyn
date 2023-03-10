@@ -81,7 +81,6 @@ $$";
 
             var expectedCodeAfterCommit =
 @"System.Console.WriteLine();
-
 struct MyStruct
 {
     $$

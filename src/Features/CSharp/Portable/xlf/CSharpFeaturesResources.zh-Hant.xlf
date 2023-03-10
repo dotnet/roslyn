@@ -197,14 +197,14 @@
         <target state="translated">在專案中啟用可為 Null 的參考類型</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_solution">
+        <source>Enable nullable reference types in solution</source>
+        <target state="translated">在解決方案中啟用可 null 的參考類型</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
         <target state="translated">全域 using 指示詞</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">內嵌暫存變數</target>
         <note />
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
@@ -236,6 +236,11 @@
         <source>Reverse 'for' statement</source>
         <target state="translated">反向 'for' 陳述式</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Selection_cannot_be_in_constructor_initializer">
+        <source>Selection cannot be in constructor initializer</source>
+        <target state="translated">選取範圍不能是使用建構函式初始設定式</target>
+        <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
         <source>Selection cannot include global statements</source>

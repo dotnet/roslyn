@@ -5,7 +5,6 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.MakeFieldReadonly
 Imports Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeFieldReadonly
@@ -14,8 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeFieldReadonly
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New MakeFieldReadonlyDiagnosticAnalyzer(),
-                New VisualBasicMakeFieldReadonlyCodeFixProvider())
+            Return (New VisualBasicMakeFieldReadonlyDiagnosticAnalyzer(), New VisualBasicMakeFieldReadonlyCodeFixProvider())
         End Function
 
         <Theory>

@@ -78,12 +78,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.Formatting
             bool newLineForMembersInObjectInit,
             bool newLineForMembersInAnonymousTypes,
             bool newLineForClausesInQuery)
-            => new(new(
-                FormattingOptions: new CSharpSyntaxFormattingOptions()
+            => new(new()
+            {
+                FormattingOptions = new CSharpSyntaxFormattingOptions()
                 {
-                    Common = new SyntaxFormattingOptions.CommonOptions()
+                    Common = new()
                     {
-                        LineFormatting = new LineFormattingOptions()
+                        LineFormatting = new()
                         {
                             UseTabs = useTabs,
                             TabSize = tabSize,
@@ -142,6 +143,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.Formatting
                     WrappingKeepStatementsOnSingleLine = wrappingKeepStatementsOnSingleLine,
                     WrappingPreserveSingleLine = wrappingPreserveSingleLine
                 },
-                SimplifierOptions: CSharpSimplifierOptions.Default));
+                SimplifierOptions = CSharpSimplifierOptions.Default
+            });
     }
 }

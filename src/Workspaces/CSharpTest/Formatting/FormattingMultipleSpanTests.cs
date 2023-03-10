@@ -190,11 +190,11 @@ class A { }";
                     break;
                 }
 
-                codeWithMarker = codeWithMarker.Substring(0, startPosition) + codeWithMarker.Substring(startPosition + 5);
+                codeWithMarker = codeWithMarker[..startPosition] + codeWithMarker[(startPosition + 5)..];
 
                 var endPosition = codeWithMarker.IndexOf("/*2*/", startPosition, StringComparison.Ordinal);
 
-                codeWithMarker = codeWithMarker.Substring(0, endPosition) + codeWithMarker.Substring(endPosition + 5);
+                codeWithMarker = codeWithMarker[..endPosition] + codeWithMarker[(endPosition + 5)..];
 
                 spans.Add(TextSpan.FromBounds(startPosition, endPosition));
 

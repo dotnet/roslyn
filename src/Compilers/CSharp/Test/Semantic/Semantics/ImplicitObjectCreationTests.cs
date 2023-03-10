@@ -95,9 +95,15 @@ class C
                 // (10,16): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         C v1 = new();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(10, 16),
+                // (11,11): warning CS0219: The variable 'v2' is assigned but its value is never used
+                //         S v2 = new();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v2").WithArguments("v2").WithLocation(11, 11),
                 // (11,16): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         S v2 = new();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(11, 16),
+                // (12,12): warning CS0219: The variable 'v3' is assigned but its value is never used
+                //         S? v3 = new();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v3").WithArguments("v3").WithLocation(12, 12),
                 // (12,17): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         S? v3 = new();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(12, 17),
@@ -118,8 +124,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(15, 17),
                 // (15,21): error CS0103: The name 'missing' does not exist in the current context
                 //         S? v6 = new(missing);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "missing").WithArguments("missing").WithLocation(15, 21)
-                );
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "missing").WithArguments("missing").WithLocation(15, 21));
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);

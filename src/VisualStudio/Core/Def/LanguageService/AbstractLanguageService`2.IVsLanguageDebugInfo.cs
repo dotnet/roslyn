@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

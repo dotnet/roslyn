@@ -3,7 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Xml.Linq
+Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
+Imports System.IO
 
 Public Structure BasicTestSource
 
@@ -11,6 +13,29 @@ Public Structure BasicTestSource
 
     Private Sub New(value As Object)
         Me.Value = value
+    End Sub
+
+    Public Shared Function Parse(text As String,
+                                 Optional path As String = "",
+                                 Optional options As VisualBasicParseOptions = Nothing,
+                                 Optional encoding As Encoding = Nothing,
+                                 Optional checksumAlgorithm As SourceHashAlgorithm = SourceHashAlgorithms.Default) As SyntaxTree
+
+        Dim sourceTest = SourceText.From(text, If(encoding, Encoding.UTF8), checksumAlgorithm)
+        Dim tree = SyntaxFactory.ParseSyntaxTree(sourceTest, If(options, TestOptions.RegularLatest), path)
+        CheckSerializable(tree)
+        Return tree
+    End Function
+
+    Private Shared Sub CheckSerializable(tree As SyntaxTree)
+        Using stream = New MemoryStream()
+            Dim root = tree.GetRoot()
+            root.SerializeTo(stream)
+            stream.Position = 0
+
+            ' verify absence of exception
+            VisualBasicSyntaxNode.DeserializeFrom(stream)
+        End Using
     End Sub
 
     Public Function GetSyntaxTrees(
@@ -30,12 +55,12 @@ Public Structure BasicTestSource
 
         Dim source = TryCast(Value, String)
         If source IsNot Nothing Then
-            Return New SyntaxTree() {VisualBasicSyntaxTree.ParseText(source, parseOptions)}
+            Return New SyntaxTree() {VisualBasicSyntaxTree.ParseText(SourceText.From(source, encoding:=Nothing, SourceHashAlgorithms.Default), parseOptions)}
         End If
 
         Dim sources = TryCast(Value, String())
         If sources IsNot Nothing Then
-            Return sources.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions)).ToArray()
+            Return sources.Select(Function(s) VisualBasicSyntaxTree.ParseText(SourceText.From(s, encoding:=Nothing, SourceHashAlgorithms.Default), parseOptions)).ToArray()
         End If
 
         Dim tree = TryCast(Value, SyntaxTree)

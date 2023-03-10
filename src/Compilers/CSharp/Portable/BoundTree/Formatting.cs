@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
     }
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
     }
 

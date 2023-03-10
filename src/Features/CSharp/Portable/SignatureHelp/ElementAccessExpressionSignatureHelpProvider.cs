@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return IncompleteElementAccessExpression.GetTextSpan(expression, openBracket);
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)

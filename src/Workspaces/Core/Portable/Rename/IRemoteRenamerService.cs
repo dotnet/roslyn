@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Rename
             return new SerializableConflictResolution(
                 errorMessage: null,
                 new SuccessfulConflictResolution(
-                    ReplacementTextValid.Value,
+                    ReplacementTextValid,
                     _renamedDocument.Value,
                     DocumentIds,
                     RelatedLocations,

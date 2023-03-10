@@ -32,22 +32,27 @@ namespace Microsoft.Cci
         /// </summary>
         internal sealed class ImportScopeEqualityComparer : IEqualityComparer<IImportScope>
         {
-            public static readonly ImportScopeEqualityComparer Instance = new ImportScopeEqualityComparer();
+            private readonly EmitContext _context;
+
+            public ImportScopeEqualityComparer(EmitContext context)
+            {
+                _context = context;
+            }
 
             public bool Equals(IImportScope x, IImportScope y)
             {
                 return (object)x == y ||
-                       x != null && y != null && Equals(x.Parent, y.Parent) && x.GetUsedNamespaces().SequenceEqual(y.GetUsedNamespaces());
+                       x != null && y != null && Equals(x.Parent, y.Parent) && x.GetUsedNamespaces(_context).SequenceEqual(y.GetUsedNamespaces(_context));
             }
 
             public int GetHashCode(IImportScope obj)
             {
-                return Hash.Combine(Hash.CombineValues(obj.GetUsedNamespaces()), obj.Parent != null ? GetHashCode(obj.Parent) : 0);
+                return Hash.Combine(Hash.CombineValues(obj.GetUsedNamespaces(_context)), obj.Parent != null ? GetHashCode(obj.Parent) : 0);
             }
         }
 
         private readonly Dictionary<DebugSourceDocument, DocumentHandle> _documentIndex = new Dictionary<DebugSourceDocument, DocumentHandle>();
-        private readonly Dictionary<IImportScope, ImportScopeHandle> _scopeIndex = new Dictionary<IImportScope, ImportScopeHandle>(ImportScopeEqualityComparer.Instance);
+        private readonly Dictionary<IImportScope, ImportScopeHandle> _scopeIndex;
 
         private void SerializeMethodDebugInfo(IMethodBody bodyOpt, int methodRid, int aggregateMethodRid, StandaloneSignatureHandle localSignatureHandleOpt, ref LocalVariableHandle lastLocalVariableHandle, ref LocalConstantHandle lastLocalConstantHandle)
         {
@@ -301,7 +306,7 @@ namespace Microsoft.Cci
                 return SignatureTypeCode.Single;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         #region ImportScope
@@ -444,7 +449,7 @@ namespace Microsoft.Cci
         {
             var writer = new BlobBuilder();
 
-            foreach (UsedNamespaceOrType import in scope.GetUsedNamespaces())
+            foreach (UsedNamespaceOrType import in scope.GetUsedNamespaces(Context))
             {
                 SerializeImport(writer, import);
             }

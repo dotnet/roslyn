@@ -8,13 +8,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -46,6 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // On load focus the first tab target
             Loaded += (s, e) =>
             {
+                // Wait until load to position adornment for space negotiation
+                PositionAdornment();
+
                 IdentifierTextBox.Focus();
                 IdentifierTextBox.Select(_viewModel.StartingSelection.Start, _viewModel.StartingSelection.Length);
 
@@ -55,7 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             };
 
             InitializeComponent();
-            PositionAdornment();
 
             if (themeService is not null)
             {
@@ -141,8 +141,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void PositionAdornment()
         {
-            var top = _textView.Caret.Bottom + 5;
-            var left = _textView.Caret.Left - 5;
+            var span = _viewModel.InitialTrackingSpan.GetSpan(_textView.TextSnapshot);
+            var line = _textView.GetTextViewLineContainingBufferPosition(span.Start);
+            var charBounds = line.GetCharacterBounds(span.Start);
+
+            var height = DesiredSize.Height;
+            var width = DesiredSize.Width;
+
+            var desiredTop = charBounds.TextBottom + 5;
+            var desiredLeft = charBounds.Left;
+
+            var top = (desiredTop + height) > _textView.ViewportBottom
+                ? _textView.ViewportBottom - height
+                : desiredTop;
+
+            var left = (desiredLeft + width) > _textView.ViewportRight
+                ? _textView.ViewportRight - width
+                : desiredLeft;
 
             Canvas.SetTop(this, top);
             Canvas.SetLeft(this, left);

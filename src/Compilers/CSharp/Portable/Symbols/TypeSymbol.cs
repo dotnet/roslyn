@@ -517,7 +517,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code)
             => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
 
-
         public override bool HasUnsupportedMetadata
         {
             get
@@ -1863,6 +1862,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 allowVariance: true,
                                 invokedAsExtensionMethod: false);
                         }
+
+                        if (implementingMethod.HasUnscopedRefAttributeOnMethodOrProperty())
+                        {
+                            diagnostics.Add(
+                                ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation,
+                                GetImplicitImplementationDiagnosticLocation(implementedMethod, implementingType, implementingMethod));
+                        }
                     }
 
                     switch (interfaceMember.Kind)
@@ -2391,7 +2397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [Obsolete("Use TypeWithAnnotations.Is method.", true)]
         internal bool Equals(TypeWithAnnotations other)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
 #nullable enable
@@ -2408,27 +2414,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator ==(TypeSymbol left, TypeSymbol right)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator !=(TypeSymbol left, TypeSymbol right)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator ==(Symbol left, TypeSymbol right)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator !=(Symbol left, TypeSymbol right)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator ==(TypeSymbol left, Symbol right)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator !=(TypeSymbol left, Symbol right)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         internal ITypeSymbol GetITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {

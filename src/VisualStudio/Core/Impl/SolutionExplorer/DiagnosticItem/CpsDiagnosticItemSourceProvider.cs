@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
                 else if (capability.StartsWith("$TFM:"))
                 {
-                    potentialTFM = capability.Substring("$TFM:".Length);
+                    potentialTFM = capability["$TFM:".Length..];
                 }
             }
 

@@ -262,7 +262,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' taken to ensure these are compatible with 2.0 runtimes so there is no danger
                             ' with allowing the newer syntax here.
                             Dim options = parseOptions.WithLanguageVersion(LanguageVersion.Default)
-                            tree = VisualBasicSyntaxTree.ParseText(text, options:=options, isMyTemplate:=True)
+                            tree = VisualBasicSyntaxTree.ParseText(
+                                SourceText.From(text, encoding:=Nothing, SourceHashAlgorithms.Default),
+                                isMyTemplate:=True,
+                                options,
+                                path:=Nothing)
 
                             If tree.GetDiagnostics().Any() Then
                                 Throw ExceptionUtilities.Unreachable
@@ -1223,7 +1227,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' We are explicitly ignoring scenario where the type might be defined in an added module.
             For Each reference As AssemblySymbol In sourceAssembly.SourceModule.GetReferencedAssemblySymbols()
                 Debug.Assert(Not reference.IsMissing)
-                Dim candidate As NamedTypeSymbol = reference.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+                Dim candidate As NamedTypeSymbol = reference.LookupDeclaredTopLevelMetadataType(metadataName)
+                Debug.Assert(If(Not candidate?.IsErrorType(), True))
 
                 If sourceAssembly.IsValidWellKnownType(candidate) AndAlso AssemblySymbol.IsAcceptableMatchForGetTypeByNameAndArity(candidate) Then
                     Return True

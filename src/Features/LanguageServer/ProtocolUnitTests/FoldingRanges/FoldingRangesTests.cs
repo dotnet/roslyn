@@ -10,19 +10,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FoldingRanges
 {
     public class FoldingRangesTests : AbstractLanguageServerProtocolTests
     {
+        public FoldingRangesTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public async Task TestGetFoldingRangeAsync_Imports()
         {
             var markup =
 @"using {|foldingRange:System;
 using System.Linq;|}";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
             var expected = testLspServer.GetLocations("foldingRange")
                 .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Imports, location.Range, "..."))
                 .ToArray();
@@ -38,7 +43,7 @@ using System.Linq;|}";
 @"{|foldingRange:// A comment|}
 {|foldingRange:/* A multiline
 comment */|}";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
             var expected = testLspServer.GetLocations("foldingRange")
                 .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Comment, location.Range, ""))
                 .ToArray();
@@ -54,7 +59,7 @@ comment */|}";
 @"{|foldingRange:#region ARegion
 #endregion|}
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
             var expected = testLspServer.GetLocations("foldingRange")
                 .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Region, location.Range, "ARegion"))
                 .ToArray();

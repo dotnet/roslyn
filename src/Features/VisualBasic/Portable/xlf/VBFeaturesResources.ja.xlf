@@ -67,11 +67,6 @@
         <target state="translated">不足している '{0}' を挿入します。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">インラインの一時変数</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
         <target state="translated">競合が検出されました。</target>

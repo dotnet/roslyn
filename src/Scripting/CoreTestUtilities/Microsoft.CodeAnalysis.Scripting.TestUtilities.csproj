@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <TargetFrameworks>net472;net7.0</TargetFrameworks>
     <NoStdLib>true</NoStdLib>
     <IsShipping>false</IsShipping>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>

@@ -46,7 +46,6 @@ public class C
             CompileAndVerify(src, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
-
         [Fact]
         public void TestOptimizationFlags()
         {

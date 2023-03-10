@@ -43,7 +43,7 @@ End Module
                 "(Compiler) Class1.vb(4, 24): error BC30002: Type 'P' is not defined.",
                 "(Compiler) Class1.vb(9, 9): error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.",
             };
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
             var actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(
                 string.Join(Environment.NewLine, expectedContents),
@@ -51,9 +51,9 @@ End Module
 
             await TestServices.ErrorList.NavigateToErrorListItemAsync(0, isPreview: false, shouldActivate: true, HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CaretPositionAsync(43, HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
             actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(
                 string.Join(Environment.NewLine, expectedContents),
@@ -77,7 +77,7 @@ End Namespace
             await TestServices.Input.SendAsync("F = 0", HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             var expectedContents = Array.Empty<string>();
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
             var actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(
                 string.Join(Environment.NewLine, expectedContents),
@@ -90,7 +90,7 @@ End Namespace
             expectedContents = new[] {
                 "(Compiler) Class1.vb(6, 13): error BC30451: 'FF' is not declared. It may be inaccessible due to its protection level.",
             };
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
             actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(
                 string.Join(Environment.NewLine, expectedContents),
@@ -101,11 +101,39 @@ End Namespace
             await TestServices.Input.SendAsync(VirtualKeyCode.DELETE, HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             expectedContents = Array.Empty<string>();
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
             actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(
                 string.Join(Environment.NewLine, expectedContents),
                 string.Join(Environment.NewLine, actualContents));
+        }
+
+        [IdeFact, WorkItem(1643350, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1643350")]
+        public virtual async Task BuildErrorsInClosedFiles()
+        {
+            // Enter code with compiler error.
+            await TestServices.Editor.SetTextAsync(@"Class Class1
+", HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.SaveAllAsync(HangMitigatingCancellationToken);
+
+            // Close active tab before build.
+            await TestServices.SolutionExplorer.CloseActiveWindow(HangMitigatingCancellationToken);
+
+            // Build and verify build failure in the output window.
+            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
+            Assert.Equal("========== Build: 0 succeeded, 1 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
+
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
+
+            // Verify the build error is listed in the error list for closed file.
+            await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
+            var actualErrors = await TestServices.ErrorList.GetBuildErrorsAsync(HangMitigatingCancellationToken);
+            var expectedErrors = new[] {
+                "(Compiler) Class1.vb(1, 1): error BC30481: 'Class' statement must end with a matching 'End Class'.",
+            };
+            AssertEx.EqualOrDiff(
+                string.Join(Environment.NewLine, expectedErrors),
+                string.Join(Environment.NewLine, actualErrors));
         }
     }
 }

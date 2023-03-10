@@ -79,7 +79,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-
         ' moduleBeingBuilt can be Nothing in order to just analyze methods for errors.
         Private Sub New(compilation As VisualBasicCompilation,
                        moduleBeingBuiltOpt As PEModuleBuilder,
@@ -347,7 +346,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub ProcessEmbeddedMethods()
             Dim manager = _compilation.EmbeddedSymbolManager
             Dim processedSymbols As New ConcurrentSet(Of Symbol)(ReferenceEqualityComparer.Instance)
-
 
             Dim methodOrdinal = 0
 
@@ -896,7 +894,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          emitTestCoverageData:=_emitTestCoverageData,
                                                          dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty)
 
-
                     ' error while generating IL
                     If emittedBody Is Nothing Then
                         _diagnostics.AddRange(diagnosticsThisMethod)
@@ -1256,28 +1253,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim hasErrors = _hasDeclarationErrors OrElse diagsForCurrentMethod.HasAnyErrors() OrElse processedInitializers.HasAnyErrors OrElse block.HasErrors
             SetGlobalErrorIfTrue(hasErrors)
 
-            If sourceMethod IsNot Nothing AndAlso sourceMethod.SetDiagnostics(diagsForCurrentMethod.DiagnosticBag.ToReadOnly()) Then
+            If sourceMethod IsNot Nothing Then
                 Dim compilation = compilationState.Compilation
-                If compilation.ShouldAddEvent(method) Then
-                    If block Is Nothing Then
-                        compilation.SymbolDeclaredEvent(sourceMethod)
-                    Else
-                        ' If compilation has a caching semantic model provider, then cache the already-computed bound tree
-                        ' onto the semantic model and store it on the event.
-                        Dim semanticModelWithCachedBoundNodes As SyntaxTreeSemanticModel = Nothing
-                        Dim cachingSemanticModelProvider = TryCast(compilation.SemanticModelProvider, CachingSemanticModelProvider)
-                        If cachingSemanticModelProvider IsNot Nothing Then
-                            Dim syntax = block.Syntax
-                            semanticModelWithCachedBoundNodes = CType(cachingSemanticModelProvider.GetSemanticModel(syntax.SyntaxTree, compilation), SyntaxTreeSemanticModel)
-                            Dim memberModel = CType(semanticModelWithCachedBoundNodes.GetMemberSemanticModel(syntax), MethodBodySemanticModel)
-                            If memberModel IsNot Nothing Then
-                                memberModel.CacheBoundNodes(block, syntax)
+
+                compilation.RegisterPossibleUpcomingEventEnqueue()
+
+                Try
+                    If sourceMethod.SetDiagnostics(diagsForCurrentMethod.DiagnosticBag.ToReadOnly()) Then
+                        If Compilation.ShouldAddEvent(method) Then
+                            If block Is Nothing Then
+                                compilation.SymbolDeclaredEvent(sourceMethod)
+                            Else
+                                ' If compilation has a caching semantic model provider, then cache the already-computed bound tree
+                                ' onto the semantic model and store it on the event.
+                                Dim semanticModelWithCachedBoundNodes As SyntaxTreeSemanticModel = Nothing
+                                Dim cachingSemanticModelProvider = TryCast(compilation.SemanticModelProvider, CachingSemanticModelProvider)
+                                If cachingSemanticModelProvider IsNot Nothing Then
+                                    Dim syntax = block.Syntax
+                                    semanticModelWithCachedBoundNodes = CType(cachingSemanticModelProvider.GetSemanticModel(syntax.SyntaxTree, compilation), SyntaxTreeSemanticModel)
+                                    Dim memberModel = CType(semanticModelWithCachedBoundNodes.GetMemberSemanticModel(syntax), MethodBodySemanticModel)
+                                    If memberModel IsNot Nothing Then
+                                        memberModel.CacheBoundNodes(block, syntax)
+                                    End If
+                                End If
+
+                                compilation.EventQueue.TryEnqueue(New SymbolDeclaredCompilationEvent(compilation, method, semanticModelWithCachedBoundNodes))
                             End If
                         End If
-
-                        compilation.EventQueue.TryEnqueue(New SymbolDeclaredCompilationEvent(compilation, method, semanticModelWithCachedBoundNodes))
                     End If
-                End If
+                Finally
+                    compilation.UnregisterPossibleUpcomingEventEnqueue()
+                End Try
             End If
 
             If Not DoLoweringPhase AndAlso sourceMethod IsNot Nothing Then

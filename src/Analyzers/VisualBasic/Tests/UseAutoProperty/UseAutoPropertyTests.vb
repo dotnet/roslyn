@@ -1273,5 +1273,29 @@ End Class",
     Public ReadOnly Property Condition As Integer(,) = {{ 1, 2 }, { 3, 4 }}
 End Class")
         End Function
+
+        <Fact, WorkItem(30351, "https://github.com/dotnet/roslyn/issues/30351")>
+        Public Async Function TestConvertAllowedInPrivatePropertyWithWriteOutsideOfConstructor() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    [|Dim i As Integer|]
+    Private ReadOnly Property P As Integer
+        Get
+            Return i
+        End Get
+    End Property
+
+    Sub M()
+        i = 1
+    End Sub
+End Class",
+"Class C
+    Private Property P As Integer
+
+    Sub M()
+        P = 1
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

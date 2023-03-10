@@ -1036,8 +1036,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                 _callback = callback;
             }
 
-            public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
+            public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T>? previousTable, CancellationToken cancellationToken)
             {
+                previousTable ??= NodeStateTable<T>.Empty;
                 return _callback(graphState, previousTable);
             }
 

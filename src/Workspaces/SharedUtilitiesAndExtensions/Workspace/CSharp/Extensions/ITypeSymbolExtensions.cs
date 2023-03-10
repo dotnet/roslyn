@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions;
 using Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Text;
@@ -54,12 +55,13 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                     {
                         var allCurrentStyles = result.Rules.Select(x => x.NamingScheme).Distinct().Select(x => (x, style: x.AsNamingStyle()));
                         var styleParseResult = TryGetStyleParseResult(prevStyle, allCurrentStyles);
+                        var allDistinctStyles = allCurrentStyles.Select(x => x.style).DistinctBy(x => x.Name).ToArray();
                         if (styleParseResult is (NamingScheme namingScheme, NamingStyle style))
                         {
                             var newLine = $"dotnet_naming_rule.{parseResult.RuleName.Value}.style = {namingScheme.OptionName.Value}";
                             analyzerConfigDocument = UpdateDocument(analyzerConfigDocument, newLine, parseResult.NamingScheme.OptionName.Span, endOfSection);
                             result = Parse(analyzerConfigDocument, EditorconfigPath);
-                            onSettingChange((style, allCurrentStyles.Select(x => x.style).ToArray()));
+                            onSettingChange((style, allDistinctStyles));
                         }
 
                         continue;

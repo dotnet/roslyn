@@ -21,11 +21,12 @@ namespace Microsoft.CodeAnalysis
             HostLanguageServices languageServices,
             HostWorkspaceServices solutionServices)
         {
+            var loadTextOptions = new LoadTextOptions(generatedSourceText.ChecksumAlgorithm);
             var textAndVersion = TextAndVersion.Create(generatedSourceText, VersionStamp.Create());
-            var textSource = new ConstantValueSource<TextAndVersion>(textAndVersion);
+            var textSource = new ConstantTextAndVersionSource(textAndVersion);
             var treeSource = CreateLazyFullyParsedTree(
                 textSource,
-                documentIdentity.DocumentId.ProjectId,
+                loadTextOptions,
                 documentIdentity.FilePath,
                 parseOptions,
                 languageServices);
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis
                     designTimeOnly: false),
                 parseOptions,
                 textSource,
+                loadTextOptions,
                 treeSource);
         }
 
@@ -55,9 +57,10 @@ namespace Microsoft.CodeAnalysis
             IDocumentServiceProvider? documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             ParseOptions options,
-            ValueSource<TextAndVersion> textSource,
+            ITextAndVersionSource textSource,
+            LoadTextOptions loadTextOptions,
             ValueSource<TreeAndVersion> treeSource)
-            : base(languageServices, solutionServices, documentServiceProvider, attributes, options, sourceText: null, textSource, treeSource)
+            : base(languageServices, solutionServices, documentServiceProvider, attributes, options, textSource, loadTextOptions, treeSource)
         {
             Identity = documentIdentity;
         }
@@ -65,10 +68,8 @@ namespace Microsoft.CodeAnalysis
         // The base allows for parse options to be null for non-C#/VB languages, but we'll always have parse options
         public new ParseOptions ParseOptions => base.ParseOptions!;
 
-        protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
-        {
-            throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
-        }
+        protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
+            => throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
 
         public SourceGeneratedDocumentState WithUpdatedGeneratedContent(SourceText sourceText, ParseOptions parseOptions)
         {

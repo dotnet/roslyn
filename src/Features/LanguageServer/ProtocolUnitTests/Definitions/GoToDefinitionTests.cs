@@ -11,12 +11,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 {
     public class GoToDefinitionTests : AbstractLanguageServerProtocolTests
     {
+        public GoToDefinitionTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public async Task TestGotoDefinitionAsync()
         {
@@ -29,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         var len = {|caret:|}aString.Length;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
@@ -56,7 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 }"
             };
 
-            using var testLspServer = await CreateTestLspServerAsync(markups);
+            await using var testLspServer = await CreateTestLspServerAsync(markups);
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
@@ -74,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         var len = aString.Length;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(string.Empty);
+            await using var testLspServer = await CreateTestLspServerAsync(string.Empty);
 
             AddMappedDocument(testLspServer.TestWorkspace, markup);
 
@@ -98,7 +103,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         var len = aString.Length;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Empty(results);
@@ -114,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Empty(results);
@@ -141,7 +146,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         </Document>
     </Project>
 </Workspace>";
-            using var testLspServer = await CreateXmlTestLspServerAsync(markup);
+            await using var testLspServer = await CreateXmlTestLspServerAsync(markup);
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);

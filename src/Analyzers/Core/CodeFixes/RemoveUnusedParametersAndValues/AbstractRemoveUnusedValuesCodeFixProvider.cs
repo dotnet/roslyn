@@ -117,9 +117,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         /// <param name="newNameNode">The rewritten node produced by <see cref="TryUpdateNameForFlaggedNode"/>.</param>
         /// <param name="editor">The syntax editor for the code fix.</param>
         /// <param name="syntaxFacts">The syntax facts for the current language.</param>
+        /// <param name="semanticModel">Semantic model for the tree.</param>
         /// <returns>The replacement node to use in the rewritten syntax tree; otherwise, <see langword="null"/> to only
         /// rewrite the node originally rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</returns>
-        protected virtual SyntaxNode? TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts) => null;
+        protected virtual SyntaxNode? TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts, SemanticModel semanticModel) => null;
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -363,7 +364,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -554,7 +555,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     }
                     else
                     {
-                        var newParentNode = TryUpdateParentOfUpdatedNode(node.GetRequiredParent(), newNameNode, editor, syntaxFacts);
+                        var newParentNode = TryUpdateParentOfUpdatedNode(node.GetRequiredParent(), newNameNode, editor, syntaxFacts, semanticModel);
                         if (newParentNode is not null)
                         {
                             nodeReplacementMap.Add(node.GetRequiredParent(), newParentNode);

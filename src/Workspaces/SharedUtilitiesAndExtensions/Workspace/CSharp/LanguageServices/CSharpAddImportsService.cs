@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 _cancellationToken = cancellationToken;
             }
 
-            [return: NotNullIfNotNull("node")]
+            [return: NotNullIfNotNull(nameof(node))]
             public override SyntaxNode? Visit(SyntaxNode? node)
                 => base.Visit(node);
 
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             public override SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node)
             {
                 // recurse downwards so we visit inner namespaces first.
-                var rewritten = (CompilationUnitSyntax)(base.VisitCompilationUnit(node) ?? throw ExceptionUtilities.Unreachable);
+                var rewritten = (CompilationUnitSyntax)(base.VisitCompilationUnit(node) ?? throw ExceptionUtilities.Unreachable());
 
                 if (!node.CanAddUsingDirectives(_options.AllowInHiddenRegions, _cancellationToken))
                 {

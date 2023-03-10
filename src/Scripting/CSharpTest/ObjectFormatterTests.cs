@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
                 };
 
                 var actual = s_formatter.FormatObject(obj, printOptions);
-                var expected = output.Substring(0, i) + "...";
+                var expected = output[..i] + "...";
                 Assert.Equal(expected, actual);
             }
         }

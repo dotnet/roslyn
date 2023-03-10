@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                         => new PositionalParameterInfo(syntax, symbol, !allowSetToInitConversion),
                     ConvertStatus.AlwaysConvert
                         => new PositionalParameterInfo(syntax, symbol, KeepAsOverride: false),
-                    _ => throw ExceptionUtilities.Unreachable,
+                    _ => throw ExceptionUtilities.Unreachable(),
                 }).WhereNotNull());
 
             return resultBuilder.ToImmutable();

@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     if (syntaxRef != null)
                     {
                         var declIdentifier = ((UsingDirectiveSyntax)syntaxRef.GetSyntax(cancellationToken)).Alias.Name.Identifier;
-                        text = declIdentifier.IsVerbatimIdentifier() ? declIdentifier.ToString().Substring(1) : declIdentifier.ToString();
+                        text = declIdentifier.IsVerbatimIdentifier() ? declIdentifier.ToString()[1..] : declIdentifier.ToString();
                     }
 
                     replacementNode = SyntaxFactory.IdentifierName(

@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
 
             Contract.ThrowIfFalse(kind == SerializationKinds.Bits);
-            return new SerializableSourceText(SourceTextExtensions.ReadFrom(textService, reader, encoding, cancellationToken));
+            return new SerializableSourceText(SourceTextExtensions.ReadFrom(textService, reader, encoding, checksumAlgorithm, cancellationToken));
         }
     }
 }

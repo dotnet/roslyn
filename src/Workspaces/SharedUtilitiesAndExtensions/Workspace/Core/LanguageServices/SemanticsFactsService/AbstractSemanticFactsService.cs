@@ -153,11 +153,11 @@ namespace Microsoft.CodeAnalysis.LanguageService
         public IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
             => SemanticFacts.GetDeclaredSymbols(semanticModel, memberDeclaration, cancellationToken);
 
-        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, bool allowUncertainCandidates, CancellationToken cancellationToken)
-            => SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, allowUncertainCandidates, cancellationToken);
+        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken)
+            => SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, allowUncertainCandidates, allowParams, cancellationToken);
 
-        public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argumentNode, bool allowUncertainCandidates, CancellationToken cancellationToken)
-            => SemanticFacts.FindParameterForAttributeArgument(semanticModel, argumentNode, allowUncertainCandidates, cancellationToken);
+        public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argumentNode, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken)
+            => SemanticFacts.FindParameterForAttributeArgument(semanticModel, argumentNode, allowUncertainCandidates, allowParams, cancellationToken);
 
         public ISymbol FindFieldOrPropertyForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
             => SemanticFacts.FindFieldOrPropertyForArgument(semanticModel, argumentNode, cancellationToken);

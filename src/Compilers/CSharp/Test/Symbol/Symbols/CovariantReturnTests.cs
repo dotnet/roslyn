@@ -503,7 +503,7 @@ namespace System.Runtime.CompilerServices
                 MetadataReference alternateCorlib =
                     (coreLibrary == CorelibraryWithCovariantReturnSupport1) ? CorelibraryWithCovariantReturnSupport2 :
                     (coreLibrary == CorelibraryWithoutCovariantReturnSupport1) ? CorelibraryWithoutCovariantReturnSupport2 :
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 references = references.Prepend(alternateCorlib).ToArray();
             }
             var parseOptions = (CSharpParseOptions)comp.SyntaxTrees[0].Options;

@@ -1513,5 +1513,102 @@ enum MyEnum
     Value1, Value2
 }");
         }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task NotOnCompleteBoolean1()
+        {
+            await TestMissingAsync(
+@"
+public class Sample
+{
+    public string Method(bool boolean)
+    {
+        return boolean [||]switch
+        {
+            true => ""true"",
+            false => ""false"",
+        };
+    }
+}");
+        }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task NotOnCompleteBoolean2()
+        {
+            await TestMissingAsync(
+@"
+public class Sample
+{
+    public string Method(bool? boolean)
+    {
+        return boolean [||]switch
+        {
+            true => ""true"",
+            false => ""false"",
+            null => ""null"",
+        };
+    }
+}");
+        }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task OnIncompleteBoolean1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+public class Sample
+{
+    public string Method(bool boolean)
+    {
+        return boolean [||]switch
+        {
+            true => ""true"",
+        };
+    }
+}",
+@"
+public class Sample
+{
+    public string Method(bool boolean)
+    {
+        return boolean switch
+        {
+            true => ""true"",
+            _ => throw new System.NotImplementedException(),
+        };
+    }
+}");
+        }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task OnIncompleteBoolean2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+public class Sample
+{
+    public string Method(bool? boolean)
+    {
+        return boolean [||]switch
+        {
+            true => ""true"",
+            false => ""false"",
+        };
+    }
+}",
+@"
+public class Sample
+{
+    public string Method(bool? boolean)
+    {
+        return boolean switch
+        {
+            true => ""true"",
+            false => ""false"",
+            _ => throw new System.NotImplementedException(),
+        };
+    }
+}");
+        }
     }
 }

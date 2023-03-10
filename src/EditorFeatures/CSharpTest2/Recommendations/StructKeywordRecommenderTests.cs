@@ -226,7 +226,7 @@ global using Goo;");
 @"class C { void M() { ref $$ } }");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
         public async Task TestNotBeforeUsing_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -234,7 +234,7 @@ global using Goo;");
 using Goo;");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
         public async Task TestNotBeforeGlobalUsing_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -420,6 +420,18 @@ $$");
     void Goo<T>()
       where T : IList<$$
       where U : T");
+        }
+
+        [Fact, WorkItem(64465, "https://github.com/dotnet/roslyn/issues/64465")]
+        public async Task TestNotAfterRecord_AbstractModifier()
+        {
+            await VerifyAbsenceAsync("abstract record $$");
+        }
+
+        [Fact, WorkItem(64465, "https://github.com/dotnet/roslyn/issues/64465")]
+        public async Task TestNotAfterRecord_SealedModifier()
+        {
+            await VerifyAbsenceAsync("sealed record $$");
         }
     }
 }

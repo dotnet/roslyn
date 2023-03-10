@@ -14,11 +14,15 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 {
     public class SpellCheckTests : AbstractLanguageServerProtocolTests
     {
+        public SpellCheckTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
         #region Document
 
         [Fact]
@@ -28,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 @"class A
 {
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
             var results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, document.GetURI());
@@ -43,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 @"class {|Identifier:A|}
 {
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             // Calling GetTextBuffer will effectively open the file.
             var testDocument = testLspServer.TestWorkspace.Documents.Single();
@@ -71,7 +75,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 @"class {|Identifier:A|}
 {
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
             var workspace = testLspServer.TestWorkspace;
 
             // Calling GetTextBuffer will effectively open the file.
@@ -111,7 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 @"class {|Identifier:A|}
 {
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -147,7 +151,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 }
 
 ";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             // Calling GetTextBuffer will effectively open the file.
             var buffer = testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -195,7 +199,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 @"class {|Identifier:A|}
 {
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             // Calling GetTextBuffer will effectively open the file.
             var buffer = testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -236,7 +240,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 class {|Identifier:A|}
 {
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -263,7 +267,7 @@ class {|Identifier:A|}
 @"class {|Identifier:A|}
 {
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -295,7 +299,7 @@ class {|Identifier:A|}
 {
 }";
             var markup2 = "";
-            using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 });
+            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 });
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
@@ -329,7 +333,7 @@ class {|Identifier:A|}
             </Project>
         </Workspace>";
 
-            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
@@ -342,7 +346,7 @@ class {|Identifier:A|}
         //            var markup1 =
         //@"class A {";
         //            var markup2 = "";
-        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+        //            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
         //                markups: Array.Empty<string>(),
         //                sourceGeneratedMarkups: new[] { markup1, markup2 },
         //                BackgroundAnalysisScope.FullSolution,
@@ -368,7 +372,7 @@ class {|Identifier:A|}
 {
 }";
             var markup2 = "";
-            using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 });
+            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 });
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
@@ -406,7 +410,7 @@ class {|Identifier:A|}
 {
 }";
             var markup2 = "";
-            using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 });
+            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 });
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
@@ -442,7 +446,7 @@ class {|Identifier:A|}
 
 ";
             var markup2 = "";
-            using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 });
+            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 });
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
@@ -495,7 +499,7 @@ class {|Identifier:A|}
 {
 }";
             var markup2 = "";
-            using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 });
+            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 });
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
@@ -554,8 +558,8 @@ class {|Identifier:A|}
             string? previousResultId = null,
             bool useProgress = false)
         {
-            BufferedProgress<VSInternalSpellCheckableRangeReport>? progress = useProgress
-                ? BufferedProgress.Create<VSInternalSpellCheckableRangeReport>(null) : null;
+            BufferedProgress<VSInternalSpellCheckableRangeReport[]>? progress = useProgress
+                ? BufferedProgress.Create<VSInternalSpellCheckableRangeReport[]>(null) : null;
             var spans = await testLspServer.ExecuteRequestAsync<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport[]>(
                 VSInternalMethods.TextDocumentSpellCheckableRangesName,
                 CreateDocumentParams(uri, previousResultId, progress),
@@ -564,7 +568,7 @@ class {|Identifier:A|}
             if (useProgress)
             {
                 Assert.Null(spans);
-                spans = progress!.Value.GetValues();
+                spans = progress!.Value.GetFlattenedValues();
             }
 
             AssertEx.NotNull(spans);
@@ -576,7 +580,7 @@ class {|Identifier:A|}
             ImmutableArray<(string resultId, Uri uri)>? previousResults = null,
             bool useProgress = false)
         {
-            BufferedProgress<VSInternalWorkspaceSpellCheckableReport>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceSpellCheckableReport>(null) : null;
+            BufferedProgress<VSInternalWorkspaceSpellCheckableReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceSpellCheckableReport[]>(null) : null;
             var spans = await testLspServer.ExecuteRequestAsync<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport[]>(
                 VSInternalMethods.WorkspaceSpellCheckableRangesName,
                 CreateWorkspaceParams(previousResults, progress),
@@ -585,7 +589,7 @@ class {|Identifier:A|}
             if (useProgress)
             {
                 Assert.Null(spans);
-                spans = progress!.Value.GetValues();
+                spans = progress!.Value.GetFlattenedValues();
             }
 
             AssertEx.NotNull(spans);

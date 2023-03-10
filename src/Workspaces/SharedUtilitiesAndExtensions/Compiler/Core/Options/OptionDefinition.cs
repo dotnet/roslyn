@@ -11,8 +11,12 @@ namespace Microsoft.CodeAnalysis.Options
     [NonDefaultable]
     internal readonly struct OptionDefinition : IEquatable<OptionDefinition>
     {
+        private const string FeatureConfig = "config";
+
+        private readonly string? _name;
+
         /// <summary>
-        /// Feature this option is associated with.
+        /// Feature this option is associated with. Obsolete.
         /// </summary>
         public string Feature { get; }
 
@@ -22,9 +26,9 @@ namespace Microsoft.CodeAnalysis.Options
         internal OptionGroup Group { get; }
 
         /// <summary>
-        /// The name of the option.
+        /// A unique name of the option used in editorconfig.
         /// </summary>
-        public string Name { get; }
+        public string ConfigName { get; }
 
         /// <summary>
         /// The default value of the option.
@@ -36,32 +40,49 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public Type Type { get; }
 
-        public OptionDefinition(string feature, OptionGroup group, string name, object? defaultValue, Type type)
+        public OptionDefinition(string? feature, OptionGroup group, string? name, string configName, object? defaultValue, Type type)
         {
-            if (string.IsNullOrWhiteSpace(feature))
-            {
-                throw new ArgumentNullException(nameof(feature));
-            }
-
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException(nameof(name));
-            }
-
-            this.Feature = feature;
-            this.Group = group ?? throw new ArgumentNullException(nameof(group));
-            this.Name = name;
-            this.DefaultValue = defaultValue;
-            this.Type = type ?? throw new ArgumentNullException(nameof(type));
+            ConfigName = configName;
+            Feature = feature ?? FeatureConfig;
+            _name = name;
+            Group = group;
+            DefaultValue = defaultValue;
+            Type = type;
         }
+
+        /// <summary>
+        /// The legacy name of the option.
+        /// </summary>
+        public string Name => _name ?? ConfigName;
 
         public override bool Equals(object? obj)
-        {
-            return obj is OptionDefinition key &&
-                   Equals(key);
-        }
+            => obj is OptionDefinition key && Equals(key);
 
         public bool Equals(OptionDefinition other)
+            => ConfigName == other.ConfigName;
+
+        public override int GetHashCode()
+            => ConfigName.GetHashCode();
+
+        public override string ToString()
+            => ConfigName;
+
+        public static bool operator ==(OptionDefinition left, OptionDefinition right)
+            => left.Equals(right);
+
+        public static bool operator !=(OptionDefinition left, OptionDefinition right)
+            => !left.Equals(right);
+
+        #region Backward compat helpers
+
+        // The following are used only to implement equality/ToString of public Option<T> and PerLanguageOption<T> options.
+        // Public options can be instantiated with non-unique config name and thus we need to include default value in the equality
+        // to avoid collisions among them.
+
+        public string PublicOptionDefinitionToString()
+            => $"{Feature} - {_name}";
+
+        public bool PublicOptionDefinitionEquals(OptionDefinition other)
         {
             var equals = this.Name == other.Name &&
                 this.Feature == other.Feature &&
@@ -77,30 +98,6 @@ namespace Microsoft.CodeAnalysis.Options
             return equals;
         }
 
-        public override int GetHashCode()
-        {
-            var hash = this.Feature.GetHashCode();
-            hash = unchecked((hash * (int)0xA5555529) + this.Group.GetHashCode());
-            hash = unchecked((hash * (int)0xA5555529) + this.Name.GetHashCode());
-
-            // DefaultValue and Type can differ between different but equivalent implementations of "ICodeStyleOption".
-            // So, we skip these fields for hash computation of code style options.
-            if (this.DefaultValue is not ICodeStyleOption)
-            {
-                hash = unchecked((hash * (int)0xA5555529) + this.DefaultValue?.GetHashCode() ?? 0);
-                hash = unchecked((hash * (int)0xA5555529) + this.Type.GetHashCode());
-            }
-
-            return hash;
-        }
-
-        public override string ToString()
-            => string.Format("{0} - {1}", this.Feature, this.Name);
-
-        public static bool operator ==(OptionDefinition left, OptionDefinition right)
-            => left.Equals(right);
-
-        public static bool operator !=(OptionDefinition left, OptionDefinition right)
-            => !left.Equals(right);
+        #endregion
     }
 }

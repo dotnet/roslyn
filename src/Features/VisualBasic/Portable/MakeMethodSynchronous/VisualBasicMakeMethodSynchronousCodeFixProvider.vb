@@ -56,12 +56,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
 
             ' if this returns Task(of T), then we want to convert this to a T returning function.
             ' if this returns Task, then we want to convert it to a Sub method.
-            If methodSymbol.ReturnType.OriginalDefinition.Equals(knownTypes._taskOfTType) Then
+            If methodSymbol.ReturnType.OriginalDefinition.Equals(knownTypes.TaskOfTType) Then
                 Dim newAsClause = functionStatement.AsClause.WithType(methodSymbol.ReturnType.GetTypeArguments()(0).GenerateTypeSyntax())
                 Dim newFunctionStatement = functionStatement.WithAsClause(newAsClause)
                 newFunctionStatement = RemoveAsyncModifierHelpers.RemoveAsyncKeyword(newFunctionStatement)
                 Return node.WithSubOrFunctionStatement(newFunctionStatement)
-            ElseIf Equals(methodSymbol.ReturnType.OriginalDefinition, knownTypes._taskType) Then
+            ElseIf Equals(methodSymbol.ReturnType.OriginalDefinition, knownTypes.TaskType) Then
                 ' Convert this to a 'Sub' method.
                 Dim subStatement = SyntaxFactory.SubStatement(
                     functionStatement.AttributeLists,

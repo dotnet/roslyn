@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         // This dictionary stores contexts so we don't have to recreate them, which can be
         // expensive. 
         private readonly ConcurrentCache<BinderCacheKey, Binder> _binderCache;

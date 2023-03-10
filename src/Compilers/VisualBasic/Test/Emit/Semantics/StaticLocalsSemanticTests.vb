@@ -307,7 +307,6 @@ End Class
 3]]>)
         End Sub
 
-
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub Semantic_StaticLocalDeclaration_Keyword_NameClash_Property_NoEscapingRequired()
@@ -717,11 +716,6 @@ No Exception Thrown
 2
 No Exception Thrown]]>)
 
-
-
-
-
-
             'SemanticInfoTypeTestForeach(compilation1, 1, "String()", "System.Collections.IEnumerable")
 
             'AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="s", ReadInsideSymbol:="arr, s", ReadOutsideSymbol:="arr",
@@ -1081,8 +1075,6 @@ End Class
 11
 12]]>)
         End Sub
-
-
 
         Public Sub Semantic_InheritanceConstructor()
             'The Use of Static Locals in both a base and derived class constructor - instance method

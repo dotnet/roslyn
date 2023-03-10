@@ -53,7 +53,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\SuppressMessageAttributeState.TargetScope.cs" Link="RemoveUnnecessarySuppressions\SuppressMessageAttributeState.TargetScope.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\SuppressMessageAttributeState.TargetSymbolResolver.cs" Link="RemoveUnnecessarySuppressions\SuppressMessageAttributeState.TargetSymbolResolver.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\MakeFieldReadonlyDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\AbstractMakeFieldReadonlyDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyle\NamingStyleDiagnosticAnalyzerBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\AbstractOrderModifiersDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersHelpers.cs" />
@@ -77,8 +77,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\AbstractSimplifyLinqExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyTypeNames\SimplifyTypeNamesDiagnosticAnalyzerBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\AbstractUseCoalesceExpressionDiagnosticAnalyzer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\AbstractUseCoalesceExpressionForIfNullCheckDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\AbstractUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\AbstractUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\AbstractObjectCreationExpressionAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\AbstractUseCollectionInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\UseCollectionInitializerAnalyzer.cs" />

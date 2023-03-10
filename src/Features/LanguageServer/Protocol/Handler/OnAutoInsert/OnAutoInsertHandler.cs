@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(OnAutoInsertHandler)), Shared]
     [Method(LSP.VSInternalMethods.OnAutoInsertName)]
-    internal sealed class OnAutoInsertHandler : IRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
+    internal sealed class OnAutoInsertHandler : ILspServiceDocumentRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
     {
         private readonly ImmutableArray<IBraceCompletionService> _csharpBraceCompletionServices;
         private readonly ImmutableArray<IBraceCompletionService> _visualBasicBraceCompletionServices;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
+        public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
 
         public async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
             LSP.VSInternalDocumentOnAutoInsertParams request,

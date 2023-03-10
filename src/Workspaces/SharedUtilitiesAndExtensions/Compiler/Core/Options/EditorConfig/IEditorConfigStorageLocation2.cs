@@ -2,30 +2,46 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+namespace Microsoft.CodeAnalysis.Options;
+
+internal interface IEditorConfigStorageLocation2 : IEditorConfigStorageLocation
+{
+    /// <summary>
+    /// The name of the editorconfig key for the option.
+    /// </summary>
+    string KeyName { get; }
+
+    /// <summary>
+    /// Gets the editorconfig string representation for the specified <paramref name="value"/>. 
+    /// </summary>
+    string GetEditorConfigStringValue(object? value);
+
+#if !CODE_STYLE
+    /// <summary>
+    /// Gets the editorconfig string representation for the option value stored in <paramref name="optionSet"/>.
+    /// May combine values of multiple options stored in the set.
+    /// </summary>
+    string GetEditorConfigStringValue(OptionKey optionKey, OptionSet optionSet);
+#endif
+}
+
+internal static partial class Extensions
+{
+    /// <summary>
+    /// Gets the editorconfig string representation for this storage location. The result is a complete line of the
+    /// <strong>.editorconfig</strong> file, such as the following:
+    /// <code>
+    /// dotnet_sort_system_directives_first = true
+    /// </code>
+    /// </summary>
+    public static string GetEditorConfigString(this IEditorConfigStorageLocation2 location, object? value)
+        => GetEditorConfigStringImpl(location, location.GetEditorConfigStringValue(value));
+
+#if !CODE_STYLE
+    public static string GetEditorConfigString(this IEditorConfigStorageLocation2 location, OptionKey optionKey, OptionSet optionSet)
+        => GetEditorConfigStringImpl(location, location.GetEditorConfigStringValue(optionKey, optionSet));
 #endif
 
-namespace Microsoft.CodeAnalysis.Options
-{
-    internal interface IEditorConfigStorageLocation2 : IEditorConfigStorageLocation
-    {
-        string KeyName { get; }
-
-        /// <summary>
-        /// Gets the editorconfig string representation for this storage location. The result is a complete line of the
-        /// <strong>.editorconfig</strong> file, such as the following:
-        /// <code>
-        /// dotnet_sort_system_directives_first = true
-        /// </code>
-        /// </summary>
-        string GetEditorConfigString(object? value, OptionSet optionSet);
-
-        /// <summary>
-        /// Gets the editorconfig string representation for this storage location. The result only includes the value
-        /// for the <strong>.editorconfig</strong> entry.
-        /// </summary>
-        /// <seealso cref="GetEditorConfigString"/>
-        string GetEditorConfigStringValue(object? value, OptionSet optionSet);
-    }
+    private static string GetEditorConfigStringImpl(IEditorConfigStorageLocation2 location, string serializedValue)
+        => $"{location.KeyName} = {serializedValue}";
 }

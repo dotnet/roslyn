@@ -783,5 +783,45 @@ end class",
     end sub
 end class")
         End Function
+
+        <Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")>
+        Public Async Function TestMissingStartToken1() As Task
+            Await TestMissingAsync(
+"class C
+    sub Bar()
+        Goobar [||])
+    end sub
+end class")
+        End Function
+
+        <Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")>
+        Public Async Function TestMissingStartToken2() As Task
+            Await TestMissingAsync(
+"class C
+    sub Bar()
+        Goobar [||]1, 2)
+    end sub
+end class")
+        End Function
+
+        <Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")>
+        Public Async Function TestMissingEndToken1() As Task
+            Await TestMissingAsync(
+"class C
+    sub Bar()
+        Goobar([||]
+    end sub
+end class")
+        End Function
+
+        <Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")>
+        Public Async Function TestMissingEndToken2() As Task
+            Await TestMissingAsync(
+"class C
+    sub Bar()
+        Goobar([||]1, 2
+    end sub
+end class")
+        End Function
     End Class
 End Namespace

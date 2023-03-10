@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             return default;
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

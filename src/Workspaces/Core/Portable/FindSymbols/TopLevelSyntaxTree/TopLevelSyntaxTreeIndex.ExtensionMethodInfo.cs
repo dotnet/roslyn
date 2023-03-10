@@ -73,15 +73,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         var typeName = reader.ReadString();
                         var arrayLength = reader.ReadInt32();
-                        var arrayBuilder = ArrayBuilder<int>.GetInstance(arrayLength);
+                        using var _ = ArrayBuilder<int>.GetInstance(arrayLength, out var builder);
 
                         for (var j = 0; j < arrayLength; ++j)
-                        {
-                            var declaredSymbolInfoIndex = reader.ReadInt32();
-                            arrayBuilder.Add(declaredSymbolInfoIndex);
-                        }
+                            builder.Add(reader.ReadInt32());
 
-                        receiverTypeNameToExtensionMethodMapBuilder[typeName] = arrayBuilder.ToImmutableAndFree();
+                        receiverTypeNameToExtensionMethodMapBuilder[typeName] = builder.ToImmutableAndClear();
                     }
 
                     return new ExtensionMethodInfo(receiverTypeNameToExtensionMethodMapBuilder.ToImmutable());

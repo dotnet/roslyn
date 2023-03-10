@@ -1291,5 +1291,205 @@ class C
     }
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
+
+        [Fact, WorkItem(63311, "https://github.com/dotnet/roslyn/issues/63311")]
+        public async Task TestLiftedNullable_GreaterThan()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    void M(int? p)
+                    {
+                        [||]if (p > 10)
+                        {
+                            System.Console.WriteLine("p is not null and p.Value > 10");
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int? p)
+                    {
+                        if (!(p > 10))
+                        {
+                            return;
+                        }
+                        System.Console.WriteLine("p is not null and p.Value > 10");
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(63311, "https://github.com/dotnet/roslyn/issues/63311")]
+        public async Task TestLiftedNullable_GreaterThanOrEqual()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    void M(int? p)
+                    {
+                        [||]if (p >= 10)
+                        {
+                            System.Console.WriteLine("p is not null and p.Value >= 10");
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int? p)
+                    {
+                        if (!(p >= 10))
+                        {
+                            return;
+                        }
+                        System.Console.WriteLine("p is not null and p.Value >= 10");
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(63311, "https://github.com/dotnet/roslyn/issues/63311")]
+        public async Task TestLiftedNullable_LessThan()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    void M(int? p)
+                    {
+                        [||]if (p < 10)
+                        {
+                            System.Console.WriteLine("p is not null and p.Value < 10");
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int? p)
+                    {
+                        if (!(p < 10))
+                        {
+                            return;
+                        }
+                        System.Console.WriteLine("p is not null and p.Value < 10");
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(63311, "https://github.com/dotnet/roslyn/issues/63311")]
+        public async Task TestLiftedNullable_LessThanOrEqual()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    void M(int? p)
+                    {
+                        [||]if (p <= 10)
+                        {
+                            System.Console.WriteLine("p is not null and p.Value <= 10");
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int? p)
+                    {
+                        if (!(p <= 10))
+                        {
+                            return;
+                        }
+                        System.Console.WriteLine("p is not null and p.Value <= 10");
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(63311, "https://github.com/dotnet/roslyn/issues/63311")]
+        public async Task TestNullableReference_GreaterThan()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                #nullable enable
+                using System;
+                class C
+                {
+                    void M(C? p)
+                    {
+                        [||]if (p > new C())
+                        {
+                            Console.WriteLine("Null-handling semantics may actually change depending on the operator implementation");
+                        }
+                    }
+
+                    public static bool operator <(C? left, C? right) => throw new NotImplementedException();
+                    public static bool operator >(C? left, C? right) => throw new NotImplementedException();
+                    public static bool operator <=(C? left, C? right) => throw new NotImplementedException();
+                    public static bool operator >=(C? left, C? right) => throw new NotImplementedException();
+                }
+                """,
+                """
+                #nullable enable
+                using System;
+                class C
+                {
+                    void M(C? p)
+                    {
+                        if (p <= new C())
+                        {
+                            return;
+                        }
+                        Console.WriteLine("Null-handling semantics may actually change depending on the operator implementation");
+                    }
+
+                    public static bool operator <(C? left, C? right) => throw new NotImplementedException();
+                    public static bool operator >(C? left, C? right) => throw new NotImplementedException();
+                    public static bool operator <=(C? left, C? right) => throw new NotImplementedException();
+                    public static bool operator >=(C? left, C? right) => throw new NotImplementedException();
+                }
+                """);
+        }
+
+        [Fact, WorkItem(40585, "https://github.com/dotnet/roslyn/issues/40585")]
+        public async Task TestYieldBreak()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections;
+
+class Program
+{
+    public static IEnumerable Method(bool condition)
+    {
+        [||]if (condition)
+        {
+            yield return 1;
+        }
+    }
+}",
+@"using System.Collections;
+
+class Program
+{
+    public static IEnumerable Method(bool condition)
+    {
+        if (!condition)
+        {
+            yield break;
+        }
+        yield return 1;
+    }
+}");
+        }
     }
 }

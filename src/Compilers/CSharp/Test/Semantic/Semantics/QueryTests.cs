@@ -1960,7 +1960,6 @@ class Program
             CompileAndVerify(csSource, expectedOutput: "3 4");
         }
 
-
         [WorkItem(541788, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541788")]
         [Fact]
         public void JoinClauseTest()
@@ -3340,7 +3339,6 @@ class Test1
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(34, 32)
                 );
         }
-
 
         [WorkItem(529350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529350")]
         [Fact]

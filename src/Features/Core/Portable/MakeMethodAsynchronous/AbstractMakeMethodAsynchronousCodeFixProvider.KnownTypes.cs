@@ -12,29 +12,29 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
     {
         internal readonly struct KnownTypes
         {
-            public readonly INamedTypeSymbol _taskType;
-            public readonly INamedTypeSymbol _taskOfTType;
-            public readonly INamedTypeSymbol _valueTaskType;
-            public readonly INamedTypeSymbol _valueTaskOfTTypeOpt;
+            public readonly INamedTypeSymbol TaskType;
+            public readonly INamedTypeSymbol TaskOfTType;
+            public readonly INamedTypeSymbol ValueTaskType;
+            public readonly INamedTypeSymbol ValueTaskOfTTypeOpt;
 
-            public readonly INamedTypeSymbol _iEnumerableOfTType;
-            public readonly INamedTypeSymbol _iEnumeratorOfTType;
+            public readonly INamedTypeSymbol IEnumerableOfTType;
+            public readonly INamedTypeSymbol IEnumeratorOfTType;
 
-            public readonly INamedTypeSymbol _iAsyncEnumerableOfTTypeOpt;
-            public readonly INamedTypeSymbol _iAsyncEnumeratorOfTTypeOpt;
+            public readonly INamedTypeSymbol IAsyncEnumerableOfTTypeOpt;
+            public readonly INamedTypeSymbol IAsyncEnumeratorOfTTypeOpt;
 
             internal KnownTypes(Compilation compilation)
             {
-                _taskType = compilation.TaskType();
-                _taskOfTType = compilation.TaskOfTType();
-                _valueTaskType = compilation.ValueTaskType();
-                _valueTaskOfTTypeOpt = compilation.ValueTaskOfTType();
+                TaskType = compilation.TaskType();
+                TaskOfTType = compilation.TaskOfTType();
+                ValueTaskType = compilation.ValueTaskType();
+                ValueTaskOfTTypeOpt = compilation.ValueTaskOfTType();
 
-                _iEnumerableOfTType = compilation.IEnumerableOfTType();
-                _iEnumeratorOfTType = compilation.IEnumeratorOfTType();
+                IEnumerableOfTType = compilation.IEnumerableOfTType();
+                IEnumeratorOfTType = compilation.IEnumeratorOfTType();
 
-                _iAsyncEnumerableOfTTypeOpt = compilation.IAsyncEnumerableOfTType();
-                _iAsyncEnumeratorOfTTypeOpt = compilation.IAsyncEnumeratorOfTType();
+                IAsyncEnumerableOfTTypeOpt = compilation.IAsyncEnumerableOfTType();
+                IAsyncEnumeratorOfTTypeOpt = compilation.IAsyncEnumeratorOfTType();
             }
         }
     }

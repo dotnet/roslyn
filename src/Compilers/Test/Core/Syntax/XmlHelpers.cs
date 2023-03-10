@@ -58,27 +58,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public static void AddInfo(SyntaxNode node, XElement xml, XmlOptions options)
+        public static void AddInfo(SyntaxNode node, XElement xml)
         {
             AddNodeInfo(node.GetNodeInfo(), xml);
         }
 
-        public static void AddInfo(SyntaxNodeOrToken node, XElement xml, XmlOptions options)
+        public static void AddInfo(SyntaxNodeOrToken node, XElement xml)
         {
             AddNodeInfo(node.GetNodeInfo(), xml);
         }
 
-        public static void AddInfo(SyntaxToken node, XElement xml, XmlOptions options)
+        public static void AddInfo(SyntaxToken node, XElement xml)
         {
             AddNodeInfo(node.GetNodeInfo(), xml);
         }
 
-        public static void AddInfo(SyntaxTrivia node, XElement xml, XmlOptions options)
+        public static void AddInfo(SyntaxTrivia node, XElement xml)
         {
             AddNodeInfo(node.GetNodeInfo(), xml);
         }
 
-        public static void AddErrors(XElement xml, IEnumerable<Diagnostic> errors, XmlOptions options)
+        public static void AddErrors(XElement xml)
         {
             xml.Add(@"<Errors>
                     <%= From e In errors
@@ -134,14 +134,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (options.ReflectionInfo)
                 {
-                    AddInfo(node, xml, options);
+                    AddInfo(node, xml);
                 }
 
                 if (options.Errors)
                 {
                     if (syntaxTree.GetDiagnostics(node).Any())
                     {
-                        AddErrors(xml, syntaxTree.GetDiagnostics(node), options);
+                        AddErrors(xml);
                     }
                 }
 
@@ -180,14 +180,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (options.ReflectionInfo)
             {
-                AddInfo(token, retVal, options);
+                AddInfo(token, retVal);
             }
 
             if (options.Errors)
             {
                 if (syntaxTree.GetDiagnostics(token).Any())
                 {
-                    AddErrors(retVal, syntaxTree.GetDiagnostics(token), options);
+                    AddErrors(retVal);
                 }
             }
 
@@ -232,14 +232,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (options.ReflectionInfo)
             {
-                AddInfo(trivia, retVal, options);
+                AddInfo(trivia, retVal);
             }
 
             if (options.Errors)
             {
                 if (syntaxTree.GetDiagnostics(trivia).Any())
                 {
-                    AddErrors(retVal, syntaxTree.GetDiagnostics(trivia), options);
+                    AddErrors(retVal);
                 }
             }
 

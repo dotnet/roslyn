@@ -42,6 +42,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             _additionalLocations = additionalLocations.IsDefaultOrEmpty ? SpecializedCollections.EmptyReadOnlyList<Location>() : additionalLocations;
         }
 
+        private CSDiagnosticInfo(CSDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
+        {
+            _additionalLocations = original._additionalLocations;
+        }
+
+        internal override DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        {
+            return new CSDiagnosticInfo(this, severity);
+        }
+
         public override IReadOnlyList<Location> AdditionalLocations => _additionalLocations;
 
         internal new ErrorCode Code => (ErrorCode)base.Code;

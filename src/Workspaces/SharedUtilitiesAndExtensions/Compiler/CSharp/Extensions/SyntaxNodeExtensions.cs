@@ -519,13 +519,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
+        public static bool ContainsYield(this SyntaxNode node)
+            => node.DescendantNodes(n => n == node || !n.IsReturnableConstruct()).Any(IsYield);
+
+        private static bool IsYield(SyntaxNode node)
+            => node.Kind() is SyntaxKind.YieldBreakStatement or SyntaxKind.YieldReturnStatement;
+
         public static bool IsReturnableConstructOrTopLevelCompilationUnit(this SyntaxNode node)
             => node.IsReturnableConstruct() || (node is CompilationUnitSyntax compilationUnit && compilationUnit.Members.Any(SyntaxKind.GlobalStatement));
 
         public static bool SpansPreprocessorDirective<TSyntaxNode>(this IEnumerable<TSyntaxNode> list) where TSyntaxNode : SyntaxNode
             => CSharpSyntaxFacts.Instance.SpansPreprocessorDirective(list);
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         public static TNode? ConvertToSingleLine<TNode>(this TNode? node, bool useElasticTrivia = false)
             where TNode : SyntaxNode
         {

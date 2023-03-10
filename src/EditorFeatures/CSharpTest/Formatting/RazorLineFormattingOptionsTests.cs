@@ -3,24 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.TodoComments;
-using Microsoft.CodeAnalysis.UnitTests;
-using Microsoft.CodeAnalysis.VisualBasic.Formatting;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -62,16 +53,16 @@ void F   () {}
        }
 ";
 
+        var sourceText = SourceText.From(source, encoding: null, SourceHashAlgorithms.Default);
         var documentInfo = DocumentInfo.Create(
             DocumentId.CreateNewId(project.Id),
             name: "file.razor.g.cs",
             folders: Array.Empty<string>(),
             sourceCodeKind: SourceCodeKind.Regular,
-            loader: TextLoader.From(TextAndVersion.Create(SourceText.From(source), VersionStamp.Create(), "file.razor.g.cs")),
-            filePath: "file.razor.g.cs",
-            isGenerated: false,
-            designTimeOnly: true,
-            documentServiceProvider: new TestRazorDocumentServiceProvider());
+            loader: TextLoader.From(TextAndVersion.Create(sourceText, VersionStamp.Create(), "file.razor.g.cs")),
+            filePath: "file.razor.g.cs")
+            .WithDesignTimeOnly(true)
+            .WithDocumentServiceProvider(new TestRazorDocumentServiceProvider());
 
         var document = workspace.AddDocument(documentInfo);
 

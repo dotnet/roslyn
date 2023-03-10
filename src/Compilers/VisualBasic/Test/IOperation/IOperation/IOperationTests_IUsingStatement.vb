@@ -1252,7 +1252,6 @@ Public Class D
 End Class
 ]]>.Value
 
-
             Dim expectedDiagnostics = <![CDATA[
 BC36010: 'Using' operand of type 'D' must implement 'System.IDisposable'.
         Using New D()
@@ -1416,7 +1415,6 @@ Block[B6] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(compilation, expectedFlowGraph, expectedDiagnostics)
         End Sub
-
 
     End Class
 End Namespace

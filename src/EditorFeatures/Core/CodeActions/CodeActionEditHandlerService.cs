@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                     }
                     catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                     {
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }
             }
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 }
                 catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 transaction.Commit();

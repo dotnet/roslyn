@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundEvaluationDecisionDagNode p:
                         {
                             var evaluation = p.Evaluation;
-                            (int inputSlot, TypeSymbol inputType) = tempMap.TryGetValue(evaluation.Input, out var slotAndType) ? slotAndType : throw ExceptionUtilities.Unreachable;
+                            (int inputSlot, TypeSymbol inputType) = tempMap.TryGetValue(evaluation.Input, out var slotAndType) ? slotAndType : throw ExceptionUtilities.Unreachable();
                             Debug.Assert(inputSlot > 0);
 
                             switch (evaluation)

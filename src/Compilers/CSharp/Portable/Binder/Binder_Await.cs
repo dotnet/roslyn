@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindAwait(AwaitExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureAsync.CheckFeatureAvailability(diagnostics, node, node.AwaitKeyword.GetLocation());
+
             BoundExpression expression = BindRValueWithoutTargetType(node.Expression, diagnostics);
 
             return BindAwait(expression, node, diagnostics);
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundAwaitExpression BindAwait(BoundExpression expression, SyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             bool hasErrors = false;
-            var placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, GetValEscape(expression, LocalScopeDepth), expression.Type);
+            var placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, expression.Type);
 
             ReportBadAwaitDiagnostics(node, node.Location, diagnostics, ref hasErrors);
             var info = BindAwaitInfo(placeholder, node, diagnostics, ref hasErrors, expressionOpt: expression);

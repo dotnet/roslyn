@@ -8,6 +8,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplyNgenOptimization>full</ApplyNgenOptimization>
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

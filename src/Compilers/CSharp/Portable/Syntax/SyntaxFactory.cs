@@ -1544,13 +1544,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Create a new syntax tree from a syntax node.
         /// </summary>
         public static SyntaxTree SyntaxTree(SyntaxNode root, ParseOptions? options = null, string path = "", Encoding? encoding = null)
-        {
-            return CSharpSyntaxTree.Create((CSharpSyntaxNode)root, (CSharpParseOptions?)options, path, encoding);
-        }
+            => CSharpSyntaxTree.Create((CSharpSyntaxNode)root, (CSharpParseOptions?)options ?? CSharpParseOptions.Default, path, encoding, SourceHashAlgorithm.Sha1);
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 #pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
-
+#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable CS0618 // Type or member is obsolete
         /// <inheritdoc cref="CSharpSyntaxTree.ParseText(string, CSharpParseOptions?, string, Encoding?, CancellationToken)"/>
         public static SyntaxTree ParseSyntaxTree(
             string text,
@@ -1559,8 +1558,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Encoding? encoding = null,
             CancellationToken cancellationToken = default)
         {
-            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, encoding, cancellationToken);
+            return CSharpSyntaxTree.ParseText(SourceText.From(text, encoding, SourceHashAlgorithm.Sha1), (CSharpParseOptions?)options, path, diagnosticOptions: null, isGeneratedCode: null, cancellationToken);
         }
+#pragma warning restore
 
         /// <inheritdoc cref="CSharpSyntaxTree.ParseText(SourceText, CSharpParseOptions?, string, CancellationToken)"/>
         public static SyntaxTree ParseSyntaxTree(
@@ -1876,15 +1876,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="options">The optional parse options to use. If no options are specified default options are
         /// used.</param>
         /// <param name="consumeFullText">True if extra tokens in the input should be treated as an error</param>
-        public static AttributeArgumentListSyntax ParseAttributeArgumentList(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true)
+        public static AttributeArgumentListSyntax? ParseAttributeArgumentList(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true)
         {
-            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options))
-            using (var parser = MakeParser(lexer))
-            {
-                var node = parser.ParseAttributeArgumentList();
-                if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (AttributeArgumentListSyntax)node.CreateRed();
-            }
+            using var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options);
+            using var parser = MakeParser(lexer);
+
+            var node = parser.ParseAttributeArgumentList() ?? new InternalSyntax.AttributeArgumentListSyntax(
+                SyntaxKind.AttributeArgumentList,
+                InternalSyntax.SyntaxFactory.MissingToken(SyntaxKind.OpenParenToken),
+                arguments: null,
+                InternalSyntax.SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken),
+                diagnostics: null,
+                annotations: null);
+            if (consumeFullText)
+                node = parser.ConsumeUnexpectedTokens(node);
+            return (AttributeArgumentListSyntax)node.CreateRed();
         }
 
         /// <summary>

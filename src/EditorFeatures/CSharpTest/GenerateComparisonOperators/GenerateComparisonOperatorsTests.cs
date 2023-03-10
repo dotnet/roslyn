@@ -382,8 +382,8 @@ class C : IComparable<C>, IComparable<int>
 
 [||]
 }";
-            string GetFixedCode(string type) =>
-$@"
+            string GetFixedCode(string type)
+=> $@"
 using System;
 
 class C : IComparable<C>, IComparable<int>

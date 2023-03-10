@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
     {
         protected override string Language => "csharp";
 
-        protected override TestWorkspace CreateWorkspace(string content, ExportProvider exportProvider)
-            => TestWorkspace.CreateCSharp(content, exportProvider: exportProvider);
+        protected override TestWorkspace CreateWorkspace(string content, TestComposition composition)
+            => TestWorkspace.CreateCSharp(content, composition: composition);
 
         [Theory]
         [CombinatorialData]

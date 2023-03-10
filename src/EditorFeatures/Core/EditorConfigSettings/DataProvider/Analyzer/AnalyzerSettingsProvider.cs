@@ -28,14 +28,12 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyz
             Update();
         }
 
-        protected override void UpdateOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet _)
+        protected override void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope)
         {
-            var solution = Workspace.CurrentSolution;
-            var projects = solution.GetProjectsUnderEditorConfigFile(FileName);
-            var analyzerReferences = projects.SelectMany(p => p.AnalyzerReferences).DistinctBy(a => a.Id).ToImmutableArray();
+            var analyzerReferences = projectsInScope.SelectMany(p => p.AnalyzerReferences).DistinctBy(a => a.Id).ToImmutableArray();
             foreach (var analyzerReference in analyzerReferences)
             {
-                var configSettings = GetSettings(analyzerReference, editorConfigOptions);
+                var configSettings = GetSettings(analyzerReference, options.EditorConfigOptions);
                 AddRange(configSettings);
             }
         }

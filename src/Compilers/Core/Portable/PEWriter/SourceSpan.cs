@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override int GetHashCode()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override bool Equals(object? obj)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private string GetDebuggerDisplay()

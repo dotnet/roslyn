@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             Assert.Equal(FormattingOptions.UseTabs.DefaultValue, options.UseTabs);
         }
 
-        [Fact]
+        [Fact, WorkItem(61109, "https://github.com/dotnet/roslyn/issues/61109")]
         public async Task SingleLineWithTab()
         {
             using var testWorkspace = CreateWithLines(
@@ -38,7 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
                 "}");
             var options = await testWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetLineFormattingOptionsAsync(testWorkspace.GlobalOptions, CancellationToken.None);
 
-            Assert.True(options.UseTabs);
+            // the indentation is only inferred by a command handler:
+            Assert.False(options.UseTabs);
         }
 
         [Fact]

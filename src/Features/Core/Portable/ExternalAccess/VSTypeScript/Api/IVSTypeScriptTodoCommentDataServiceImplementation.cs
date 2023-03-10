@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.TaskList;
-using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 

@@ -12,7 +12,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
     internal interface IFSharpCrossLanguageSymbolNavigationService
     {
         /// <inheritdoc cref="ICrossLanguageSymbolNavigationService.TryGetNavigableLocationAsync"/>
-        Task<IFSharpNavigableLocation?> TryGetNavigableLocationAsync(string documentationCommentId, CancellationToken cancellationToken);
+        Task<IFSharpNavigableLocation?> TryGetNavigableLocationAsync(
+            string assemblyName, string documentationCommentId, CancellationToken cancellationToken);
     }
 
     /// <inheritdoc cref="NavigationOptions"/>

@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return (docId, renamedToken.Value.Span);
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static async Task<Solution> CleanupAsync(Solution oldSolution, Solution newSolution, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)

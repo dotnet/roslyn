@@ -172,6 +172,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     .WithProjectOutputRefFilePath(projectId, "OutputRefFilePath" + version)
                     .WithProjectCompilationOutputInfo(projectId, new CompilationOutputInfo("AssemblyPath" + version))
                     .WithProjectDefaultNamespace(projectId, "DefaultNamespace" + version)
+                    .WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha1 + version)
                     .WithHasAllInformation(projectId, (version % 2) != 0)
                     .WithRunAnalyzers(projectId, (version % 2) != 0);
             }
@@ -186,6 +187,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 Assert.Equal("OutputRefFilePath" + version, project.OutputRefFilePath);
                 Assert.Equal("AssemblyPath" + version, project.CompilationOutputInfo.AssemblyPath);
                 Assert.Equal("DefaultNamespace" + version, project.DefaultNamespace);
+                Assert.Equal(SourceHashAlgorithm.Sha1 + version, project.State.ChecksumAlgorithm);
                 Assert.Equal((version % 2) != 0, project.State.HasAllInformation);
                 Assert.Equal((version % 2) != 0, project.State.RunAnalyzers);
             }

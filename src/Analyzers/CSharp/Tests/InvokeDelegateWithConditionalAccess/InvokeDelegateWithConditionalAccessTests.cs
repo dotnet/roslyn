@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -941,6 +939,82 @@ class C
     {
         Action v = Console.WriteLine;
         v?.Invoke();
+    }
+}");
+        }
+
+        [Fact, WorkItem(31827, "https://github.com/dotnet/roslyn/issues/31827")]
+        public async Task TestWithExplicitInvokeCall1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        [||]if (Event != null)
+            Event.Invoke(this, EventArgs.Empty);
+    }
+
+    event EventHandler Event;
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        Event?.Invoke(this, EventArgs.Empty);
+    }
+
+    event EventHandler Event;
+}");
+        }
+
+        [Fact, WorkItem(31827, "https://github.com/dotnet/roslyn/issues/31827")]
+        public async Task TestWithExplicitInvokeCall2()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    System.Action a;
+
+    void Goo()
+    {
+        [||]var v = a;
+        if (v != null)
+        {
+            v.Invoke();
+        }
+    }
+}",
+@"class C
+{
+    System.Action a;
+
+    void Goo()
+    {
+        a?.Invoke();
+    }
+}");
+        }
+
+        [Fact, WorkItem(50976, "https://github.com/dotnet/roslyn/issues/50976")]
+        public async Task TestMissingOnFunctionPointer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    unsafe void M(delegate* managed<void> func)
+    {
+        if (func != null)
+        {
+            [||]func();
+        }
     }
 }");
         }

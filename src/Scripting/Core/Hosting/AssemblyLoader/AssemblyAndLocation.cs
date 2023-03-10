@@ -28,16 +28,16 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         public bool IsDefault => Assembly == null;
 
-        public bool Equals(AssemblyAndLocation other) =>
-            Assembly == other.Assembly && Location == other.Location && GlobalAssemblyCache == other.GlobalAssemblyCache;
+        public bool Equals(AssemblyAndLocation other)
+            => Assembly == other.Assembly && Location == other.Location && GlobalAssemblyCache == other.GlobalAssemblyCache;
 
-        public override int GetHashCode() =>
-            Hash.Combine(Assembly, Hash.Combine(Location, Hash.Combine(GlobalAssemblyCache, 0)));
+        public override int GetHashCode()
+            => Hash.Combine(Assembly, Hash.Combine(Location, Hash.Combine(GlobalAssemblyCache, 0)));
 
-        public override bool Equals(object obj) =>
-            obj is AssemblyAndLocation && Equals((AssemblyAndLocation)obj);
+        public override bool Equals(object obj)
+            => obj is AssemblyAndLocation && Equals((AssemblyAndLocation)obj);
 
-        public override string ToString() =>
-            Assembly + " @ " + (GlobalAssemblyCache ? "<GAC>" : Location);
+        public override string ToString()
+            => Assembly + " @ " + (GlobalAssemblyCache ? "<GAC>" : Location);
     }
 }

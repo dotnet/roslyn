@@ -10760,8 +10760,16 @@ End Class
             edits.VerifyEdits(
                 "Reorder [b As Integer]@38 -> @24")
 
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                     SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.M"))
+                },
+                capabilities:=EditAndContinueCapabilities.UpdateParameters)
+
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Move, "b As Integer", FeaturesResources.parameter))
+                {Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "b As Integer", FeaturesResources.parameter)},
+                capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
 
         <Fact>
@@ -10775,8 +10783,8 @@ End Class
                 "Update [a]@24 -> [c]@38")
 
             edits.VerifySemanticDiagnostics(
-                {Diagnostic(RudeEditKind.Move, "b As Integer", FeaturesResources.parameter),
-                 Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "c", FeaturesResources.parameter)},
+                {Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "b As Integer", FeaturesResources.parameter),
+                Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "c", FeaturesResources.parameter)},
                 capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
 

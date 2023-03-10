@@ -153,7 +153,7 @@ Delta: Gamma: Beta: Test B
 
         private static void VerifyAssemblies(IEnumerable<Assembly> assemblies, params (string simpleName, string version, string path)[] expected)
         {
-            Assert.Equal(expected, assemblies.Select(assembly => (assembly.GetName().Name!, assembly.GetName().Version!.ToString(), assembly.Location)).Order());
+            Assert.Equal(expected, Roslyn.Utilities.EnumerableExtensions.Order(assemblies.Select(assembly => (assembly.GetName().Name!, assembly.GetName().Version!.ToString(), assembly.Location))));
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]

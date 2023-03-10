@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 }
                 else
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
         }
