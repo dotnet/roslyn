@@ -302,7 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 foreach (var model in viewModels)
                 {
                     intervalTree.AddIntervalInPlace(model);
-                    AddToTree(model.Children);
+                    AddToIntervalTree(model.Children);
                 }
             }
 
