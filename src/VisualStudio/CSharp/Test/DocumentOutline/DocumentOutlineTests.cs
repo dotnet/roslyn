@@ -122,9 +122,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         {
             var (_, model, _) = await InitializeMocksAndDataModelAndUIItems(TestCode);
 
-            // Empty search (added for completeness, SearchDocumentSymbolData is not called on an empty search string)
+            // Empty search.  Should filter nothing.
             var searchedSymbols = DocumentOutlineViewModel.SearchDocumentSymbolData(model.DocumentSymbolData, string.Empty, CancellationToken.None);
-            Assert.Equal(0, searchedSymbols.Length);
+            Assert.Equal(3, searchedSymbols.Length);
 
             // Search for 1 parent only (no children should match)
             searchedSymbols = DocumentOutlineViewModel.SearchDocumentSymbolData(model.DocumentSymbolData, "foo", CancellationToken.None);
