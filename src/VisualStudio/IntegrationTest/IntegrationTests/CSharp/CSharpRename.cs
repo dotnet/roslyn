@@ -46,7 +46,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_PreviewChanges, language: null, value: false);
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/67245")]
         public void VerifyLocalVariableRename()
         {
             var markup = @"
