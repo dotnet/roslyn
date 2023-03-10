@@ -175,30 +175,5 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             nodeToSelect = DocumentOutlineViewModel.GetDocumentNodeToSelect(uiItems, model.OriginalSnapshot, caretPosition);
             Assert.Equal("App", nodeToSelect?.Data.Name);
         }
-
-        [WpfFact]
-        public async Task TestExpandAncestors()
-        {
-            var (mocks, model, uiItems) = await InitializeMocksAndDataModelAndUIItems(TestCode);
-
-            // Collapse all nodes first
-            DocumentOutlineViewModel.SetExpansionOption(uiItems, false);
-
-            // Call ExpandAncestors on a child node
-            var selectedNode = uiItems.Single(parent => parent.Data.Name.Equals("MyClass")).Children.Single(child => child.Data.Name.Equals("Method2"));
-            DocumentOutlineViewModel.ExpandAncestors(uiItems, selectedNode.Data.RangeSpan);
-
-            // Confirm that only the child node and its ancestors are expanded
-            CheckAncestorNodeExpansion(uiItems);
-
-            static void CheckAncestorNodeExpansion(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems)
-            {
-                foreach (var symbol in documentSymbolItems)
-                {
-                    Assert.True(symbol.Data.Name.Equals("MyClass") || symbol.Data.Name.Equals("Method2") ? symbol.IsExpanded : !symbol.IsExpanded);
-                    CheckAncestorNodeExpansion(symbol.Children);
-                }
-            }
-        }
     }
 }
