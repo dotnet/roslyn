@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Queue that computes the new model and updates the UI state.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<VoidResult, DocumentOutlineViewState> _workQueue;
+        private readonly AsyncBatchingWorkQueue _workQueue;
 
         /// <summary>
         /// Queue responsible for updating the ui after a change/move happens.
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private string _searchText_doNotAccessDirectly = "";
         private ImmutableArray<DocumentSymbolDataViewModel> _documentSymbolViewModelItems_doNotAccessDirectly = ImmutableArray<DocumentSymbolDataViewModel>.Empty;
 
-        private DocumentOutlineViewState _lastViewState_onlyAccessSerially;
+        private DocumentOutlineViewState _lastViewState_onlyAccessOnMainThread;
 
         /// <summary>
         /// Use to prevent reeentrancy on navigation/selection.
@@ -88,12 +88,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             var currentSnapshot = textBuffer.CurrentSnapshot;
 
-            _lastViewState_onlyAccessSerially = CreateEmptyViewState(currentSnapshot);
+            _lastViewState_onlyAccessOnMainThread = CreateEmptyViewState(currentSnapshot);
 
-            _workQueue = new AsyncBatchingWorkQueue<VoidResult, DocumentOutlineViewState>(
+            _workQueue = new AsyncBatchingWorkQueue(
                 DelayTimeSpan.Medium,
                 ComputeViewStateAsync,
-                EqualityComparer<VoidResult>.Default,
                 asyncListener,
                 _threadingContext.DisposalToken);
 
@@ -224,8 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
-        private async ValueTask<DocumentOutlineViewState> ComputeViewStateAsync(
-            ImmutableSegmentedList<VoidResult> _, CancellationToken cancellationToken)
+        private async ValueTask ComputeViewStateAsync(CancellationToken cancellationToken)
         {
             // We do not want this work running on a background thread
             await TaskScheduler.Default;
@@ -236,14 +234,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 // text buffer is not saved to disk. LSP does not support calls without URIs. and Visual Studio does not
                 // have a URI concept other than the file path.
-                return CreateEmptyViewState(_textBuffer.CurrentSnapshot);
+                return;
             }
 
             // Obtain the LSP response and text snapshot used.
             var response = await DocumentSymbolsRequestAsync(
                 _textBuffer, _languageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
             if (response is null)
-                return CreateEmptyViewState(_textBuffer.CurrentSnapshot);
+                return;
 
             var newTextSnapshot = response.Value.snapshot;
             var rawData = CreateDocumentSymbolData(response.Value.response, newTextSnapshot);
@@ -252,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var searchText = this.SearchText;
-            var lastViewState = _lastViewState_onlyAccessSerially;
+            var lastViewState = _lastViewState_onlyAccessOnMainThread;
 
             // Jump back to the BG to do all our work.
             await TaskScheduler.Default;
@@ -292,13 +290,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            _lastViewState_onlyAccessSerially = newViewState;
+            _lastViewState_onlyAccessOnMainThread = newViewState;
             this.DocumentSymbolViewModelItems = newViewModelItems;
 
             // Now that we've updated our state, enqueue the work to expand/select the right item.
             ExpandAndSelectItemAtCaretPosition();
 
-            return newViewState;
+            return;
 
             void AddToIntervalTree(ImmutableArray<DocumentSymbolDataViewModel> viewModels)
             {
@@ -372,20 +370,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         private async ValueTask UpdateSelectionAsync(CancellationToken cancellationToken)
         {
-            var viewState = await _workQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
-            if (viewState is null)
-                return;
-
-            if (cancellationToken.IsCancellationRequested)
-                return;
-
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var caretPosition = _textView.Caret.Position.BufferPosition.Position;
-            var modelTree = viewState.ViewModelItemsTree;
 
             if (this.IsNavigating)
                 return;
+
+            var caretPosition = _textView.Caret.Position.BufferPosition.Position;
+            var modelTree = _lastViewState_onlyAccessOnMainThread.ViewModelItemsTree;
 
             this.IsNavigating = true;
             try
