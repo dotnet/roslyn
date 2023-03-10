@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
                     Assumes.NotNull(wpfTextView);
                     wpfTextView.TryMoveCaretToAndEnsureVisible(
-                        symbolModel.Data.SelectionRangeSpan.TranslateTo(wpfTextView.TextSnapshot, SpanTrackingMode.EdgeNegative).Start);
+                        symbolModel.Data.SelectionRangeSpan.TranslateTo(wpfTextView.TextSnapshot, SpanTrackingMode.EdgeInclusive).Start);
                 }
                 finally
                 {

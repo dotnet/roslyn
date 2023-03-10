@@ -90,17 +90,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (other is null)
                 return false;
 
-            var translatedRangeSpan = this.Data.RangeSpan.TranslateTo(other.Data.RangeSpan.Snapshot, SpanTrackingMode.EdgeNegative);
-            return translatedRangeSpan == other.Data.RangeSpan &&
-                   Data.Name == other.Data.Name &&
-                   Data.SymbolKind == Data.SymbolKind;
+            if (ReferenceEquals(this, other))
+                return true;
+
+            // If two view models are in the same location (across edits), we consider them the same.  We want to treat
+            // things like name edits as just mutating a model, not producing a new one.
+            var translatedRangeSpan = this.Data.RangeSpan.TranslateTo(other.Data.RangeSpan.Snapshot, SpanTrackingMode.EdgeInclusive);
+            return translatedRangeSpan == other.Data.RangeSpan;
         }
-
-        public static bool operator !=(DocumentSymbolDataViewModel? left, DocumentSymbolDataViewModel? right)
-            => !(left == right);
-
-        public static bool operator ==(DocumentSymbolDataViewModel? left, DocumentSymbolDataViewModel? right)
-            => left is not null && left.Equals(right);
 
         public override int GetHashCode()
             => Data.GetHashCode();
