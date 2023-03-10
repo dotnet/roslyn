@@ -16,9 +16,11 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SemanticModelReuse;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
@@ -38,10 +40,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         public readonly ITextSnapshot TextSnapshot;
 
-        /// <summary>
-        /// The individual outline items that were computed.
-        /// </summary>
-        public readonly ImmutableArray<DocumentSymbolData> DocumentSymbolData;
+        ///// <summary>
+        ///// The individual outline items that were computed.
+        ///// </summary>
+        //public readonly ImmutableArray<DocumentSymbolData> DocumentSymbolData;
 
         /// <summary>
         /// The text string that was used to filter the original LSP results down to the set of <see
@@ -65,36 +67,39 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         public DocumentOutlineViewState(
             ITextSnapshot textSnapshot,
-            ImmutableArray<DocumentSymbolData> documentSymbolData,
+            // ImmutableArray<DocumentSymbolData> documentSymbolData,
             string searchText,
             ImmutableArray<DocumentSymbolDataViewModel> viewModelItems,
             IntervalTree<DocumentSymbolDataViewModel> viewModelItemsTree)
         {
             TextSnapshot = textSnapshot;
-            DocumentSymbolData = documentSymbolData;
+            // DocumentSymbolData = documentSymbolData;
             SearchText = searchText;
             ViewModelItems = viewModelItems;
             ViewModelItemsTree = viewModelItemsTree;
         }
     }
 
-    internal readonly struct DocumentOutlineViewModelIntervalInspector : IIntervalIntrospector<DocumentSymbolDataViewModel>
+    internal sealed partial class DocumentOutlineViewModel
     {
-        private readonly ITextSnapshot _textSnapshot;
-
-        public DocumentOutlineViewModelIntervalInspector(ITextSnapshot textSnapshot)
+        private readonly struct IntervalIntrospector : IIntervalIntrospector<DocumentSymbolDataViewModel>
         {
-            _textSnapshot = textSnapshot;
-        }
+            private readonly ITextSnapshot _textSnapshot;
 
-        public int GetStart(DocumentSymbolDataViewModel value)
-        {
-            return value.Data.RangeSpan.Start.TranslateTo(_textSnapshot, PointTrackingMode.Positive);
-        }
+            public IntervalIntrospector(ITextSnapshot textSnapshot)
+            {
+                _textSnapshot = textSnapshot;
+            }
 
-        public int GetLength(DocumentSymbolDataViewModel value)
-        {
-            return value.Data.RangeSpan.TranslateTo(_textSnapshot, SpanTrackingMode.EdgeInclusive).Length;
+            public int GetStart(DocumentSymbolDataViewModel value)
+            {
+                return value.Data.RangeSpan.Start.TranslateTo(_textSnapshot, PointTrackingMode.Positive);
+            }
+
+            public int GetLength(DocumentSymbolDataViewModel value)
+            {
+                return value.Data.RangeSpan.TranslateTo(_textSnapshot, SpanTrackingMode.EdgeInclusive).Length;
+            }
         }
     }
 
@@ -155,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var currentSnapshot = textBuffer.CurrentSnapshot;
             _lastViewState_onlyAccessFromUIThread = new DocumentOutlineViewState(
                 currentSnapshot,
-                ImmutableArray<DocumentSymbolData>.Empty,
+                //ImmutableArray<DocumentSymbolData>.Empty,
                 this.SearchText,
                 this.DocumentSymbolViewModelItems,
                 IntervalTree<DocumentSymbolDataViewModel>.Empty);
@@ -246,10 +251,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // Setting this only happens from within this type once we've computed new items or filtered down the existing set.
             private set
             {
-                _threadingContext.ThrowIfNotOnBackgroundThread();
+                _threadingContext.ThrowIfNotOnUIThread();
 
                 // Unselect any currently selected items or WPF will believe it needs to select the root node.
-                UnselectAll(_documentSymbolViewModelItems_doNotAccessDirectly);
+                // UnselectAll(_documentSymbolViewModelItems_doNotAccessDirectly);
                 SetProperty(ref _documentSymbolViewModelItems_doNotAccessDirectly, value);
             }
         }
@@ -269,8 +274,19 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             NotifyPropertyChanged(propertyName);
         }
 
-        public void EnqueueExpandOrCollapse(bool shouldExpand)
-            => _updateViewModelStateQueue.AddWork(shouldExpand);
+        public void ExpandOrCollapseAll(bool shouldExpand)
+        {
+            ExpandOrCollapse(this.DocumentSymbolViewModelItems, shouldExpand);
+
+            static void ExpandOrCollapse(ImmutableArray<DocumentSymbolDataViewModel> models, bool shouldExpand)
+            {
+                foreach (var model in models)
+                {
+                    model.IsExpanded = shouldExpand;
+                    ExpandOrCollapse(model.Children, shouldExpand);
+                }
+            }
+        }
 
         private async ValueTask ComputeViewStateAsync(CancellationToken cancellationToken)
         {
@@ -278,9 +294,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             await TaskScheduler.Default;
             cancellationToken.ThrowIfCancellationRequested();
 
-            var textBuffer = _textBuffer;
-
-            var filePath = textBuffer.GetRelatedDocuments().FirstOrDefault(static d => d.FilePath is not null)?.FilePath;
+            var filePath = _textBuffer.GetRelatedDocuments().FirstOrDefault(static d => d.FilePath is not null)?.FilePath;
             if (filePath is null)
             {
                 // text buffer is not saved to disk. LSP does not support calls without URIs. and Visual Studio does not
@@ -290,51 +304,30 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             // Obtain the LSP response and text snapshot used.
             var response = await DocumentSymbolsRequestAsync(
-                textBuffer, _languageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
+                _textBuffer, _languageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
             if (response is null)
                 return;
 
-            var textSnapshot = response.Value.snapshot;
-            var rawData = CreateDocumentSymbolData(response.Value.response, textSnapshot);
+            var newTextSnapshot = response.Value.snapshot;
+            var rawData = CreateDocumentSymbolData(response.Value.response, newTextSnapshot);
 
             // Now, go back to the UI and grab the prior view state we set, and the current UI values we want to update the data with.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var searchText = this.SearchText;
-            var caretPoint = _textView.Caret.Position.BufferPosition;
-            var lastPresentedData = _lastViewState_onlyAccessFromUIThread;
+            var lastViewState = _lastViewState_onlyAccessFromUIThread;
 
             // Jump back to the BG to do all our work.
             await TaskScheduler.Default;
             cancellationToken.ThrowIfCancellationRequested();
 
-            var newViewState = ComputeNewViewModelState(
-                lastPresentedData, textSnapshot, rawData, searchText, cancellationToken);
-
-            // Now, go back to the UI and set this as our current state.
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            _lastViewState_onlyAccessFromUIThread = newViewState;
-
-            // Finally, select the appropriate item based on the users current position.
-            SelectItemBasedOnCaretPosition();
-        }
-
-        private DocumentOutlineViewState ComputeNewViewModelState(
-            DocumentOutlineViewState lastViewState,
-            ITextSnapshot textSnapshot,
-            ImmutableArray<DocumentSymbolData> data,
-            string searchText,
-            CancellationToken cancellationToken)
-        {
             var searchTextChanged = searchText != lastViewState.SearchText;
-            var lastViewModelItems = lastViewState.ViewModelItems;
-
-            ImmutableArray<DocumentSymbolDataViewModel> currentViewModelItems;
+            var oldViewModelItems = lastViewState.ViewModelItems;
 
             // if we got new data or the user changed the search text, recompute our items to correspond to this new state.
-                // Apply whatever the current search text is to what the model returned, and produce the new items.
-            var  newViewModelItems = GetDocumentSymbolItemViewModels(
-                SearchDocumentSymbolData(data, searchText, cancellationToken));
+            // Apply whatever the current search text is to what the model returned, and produce the new items.
+            var newViewModelItems = GetDocumentSymbolItemViewModels(
+                SearchDocumentSymbolData(rawData, searchText, cancellationToken));
 
             // If the search text changed, just show everything in expanded form, so the user can see everything
             // that matched, without anything being hidden.
@@ -343,20 +336,27 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (!searchTextChanged)
             {
                 ApplyExpansionStateToNewItems(
-                    oldSnapshot: lastPresentedData.model.OriginalSnapshot,
-                    newSnapshot: model.OriginalSnapshot,
-                    oldItems: lastViewModelItems,
-                    newItems: currentViewModelItems);
+                    oldSnapshot: lastViewState.TextSnapshot,
+                    newSnapshot: newTextSnapshot,
+                    oldItems: oldViewModelItems,
+                    newItems: newViewModelItems);
             }
 
-            this.DocumentSymbolViewModelItems = currentViewModelItems;
+            var newViewState = new DocumentOutlineViewState(
+                newTextSnapshot,
+                searchText,
+                newViewModelItems,
+                IntervalTree.Create(new IntervalIntrospector(newTextSnapshot), newViewModelItems));
 
-            // Now that we've made all our changes, record that we've done so so we can see what has changed when future requests come in.
-            // note: we are safe to record this on the BG as we are called serially and are the only place to read/write it.
-
-            // Jump back to UI thread to set the current data.
+            // Now, go back to the UI and set this as our current state.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            _lastPresentedData_onlyAccessSerially = (model, searchText, currentViewModelItems);
+
+            // Actually update our view items (wpf will take care of rerendering efficiently).
+            this.DocumentSymbolViewModelItems = newViewModelItems;
+            _lastViewState_onlyAccessFromUIThread = newViewState;
+
+            // Finally, select the appropriate item based on the users current position.
+            ExpandAndSelectItemAtCaretPosition(_textView.Caret.Position);
 
             return;
 
@@ -414,6 +414,45 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 }
             }
         }
+
+        public void ExpandAndSelectItemAtCaretPosition(CaretPosition position)
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
+            var models = _lastViewState_onlyAccessFromUIThread.ViewModelItemsTree.GetIntervalsThatIntersectWith(
+                position.BufferPosition.Position, 0, new IntervalIntrospector(_textBuffer.CurrentSnapshot));
+
+            if (models.Length == 0)
+                return;
+
+            // Order from smallest to largest.  The smallest is the innermost and should be the one we actually select.
+            // The others are the parents and we should expand those so the innermost one is visible.
+            models = models.Sort(static (m1, m2) =>
+            {
+                return m1.Data.RangeSpan.Span.Length - m2.Data.RangeSpan.Span.Length;
+            });
+
+            models[0].IsSelected = true;
+            for (var i = 1; i < models.Length; i++)
+                models[i].IsExpanded = true;
+        }
+
+        //private DocumentOutlineViewState ComputeNewViewModelState(
+        //    DocumentOutlineViewState lastViewState,
+        //    ITextSnapshot textSnapshot,
+        //    ImmutableArray<DocumentSymbolData> data,
+        //    string searchText,
+        //    CancellationToken cancellationToken)
+        //{
+
+        //    // Now that we've made all our changes, record that we've done so so we can see what has changed when future requests come in.
+        //    // note: we are safe to record this on the BG as we are called serially and are the only place to read/write it.
+
+        //    // Jump back to UI thread to set the current data.
+        //    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        //    _lastPresentedData_onlyAccessSerially = (model, searchText, currentViewModelItems);
+
+        //    return;
+        //}
 
         /// <summary>
         /// Updates the IsExpanded property for the Document Symbol ViewModel based on the given Expansion Option. The parameter

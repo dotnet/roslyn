@@ -91,10 +91,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             => _viewModel.SearchText = SearchBox.Text;
 
         private void ExpandAll(object sender, RoutedEventArgs e)
-            => _viewModel.EnqueueExpandOrCollapse(true);
+            => _viewModel.ExpandOrCollapseAll(true);
 
         private void CollapseAll(object sender, RoutedEventArgs e)
-            => _viewModel.EnqueueExpandOrCollapse(false);
+            => _viewModel.ExpandOrCollapseAll(false);
 
         private void SortByName(object sender, EventArgs e)
             => UpdateSort(SortOption.Name);
@@ -142,15 +142,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            // We are already navigating, this indicates we've finished selecting the item we wanted.
-            if (_isNavigating)
-            {
-                _isNavigating = false;
-                return;
-            }
-
             // This is a user-initiated navigation
-            if (e.OriginalSource is TreeViewItem { DataContext: DocumentSymbolDataViewModel symbolModel })
+            if (!_isNavigating && e.OriginalSource is TreeViewItem { DataContext: DocumentSymbolDataViewModel symbolModel })
             {
                 _isNavigating = true;
                 try
@@ -182,7 +175,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 // indicate that we are about to programmatically set focus
                 _isNavigating = true;
-                _viewModel.EnqueueSelectTreeNode();
+                try
+                {
+                    _viewModel.ExpandAndSelectItemAtCaretPosition(e.NewPosition);
+                }
+                finally
+                {
+                    Debug.Assert(_isNavigating);
+                    _isNavigating = false;
+                }
             }
         }
 
