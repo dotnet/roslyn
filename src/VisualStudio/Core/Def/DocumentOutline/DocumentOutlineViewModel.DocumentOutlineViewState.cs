@@ -11,6 +11,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     internal sealed partial class DocumentOutlineViewModel
     {
+        /// <summary>
+        /// Snapshot of all state used to compute and present our models. Used when we produce new models to both
+        /// transfer state over from the old ones, and to efficiently tell what is different between the last results
+        /// and the new ones.
+        /// </summary>
         private sealed class DocumentOutlineViewState
         {
             /// <summary>
