@@ -379,9 +379,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             this.DocumentSymbolViewModelItems = newViewModelItems;
             _lastViewState_onlyAccessFromUIThread = newViewState;
 
-            // Finally, select the appropriate item based on the users current position.
-            ExpandAndSelectItemAtCaretPosition(_textView.Caret.Position);
-
             return;
 
             void AddToTree(ImmutableArray<DocumentSymbolDataViewModel> viewModels)
