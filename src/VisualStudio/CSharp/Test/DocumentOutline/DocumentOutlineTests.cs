@@ -95,8 +95,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 
             static DocumentSymbolDataViewModel ReplaceChildren(DocumentSymbolDataViewModel symbolToUpdate, ImmutableArray<DocumentSymbolDataViewModel> newChildren)
             {
-                var symbolData = new DocumentSymbolData(symbolToUpdate.Data.Name, symbolToUpdate.Data.SymbolKind, symbolToUpdate.Data.RangeSpan, symbolToUpdate.Data.SelectionRangeSpan, ImmutableArray<DocumentSymbolData>.Empty);
-                return new DocumentSymbolDataViewModel(symbolData, newChildren, symbolToUpdate.IsExpanded, symbolToUpdate.IsSelected);
+                var data = symbolToUpdate.Data;
+                var symbolData = new DocumentSymbolData(data.Name, data.SymbolKind, data.Glyph, data.RangeSpan, data.SelectionRangeSpan, ImmutableArray<DocumentSymbolData>.Empty);
+                return new DocumentSymbolDataViewModel(symbolData, newChildren);
             }
 
             static void CheckSortedSymbols(ImmutableArray<DocumentSymbolDataViewModel> sortedSymbols, SortOption sortOption)
