@@ -34,29 +34,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     using LspDocumentSymbol = DocumentSymbol;
 
-    internal sealed partial class DocumentOutlineViewModel
-    {
-        private readonly struct IntervalIntrospector : IIntervalIntrospector<DocumentSymbolDataViewModel>
-        {
-            private readonly ITextSnapshot _textSnapshot;
-
-            public IntervalIntrospector(ITextSnapshot textSnapshot)
-            {
-                _textSnapshot = textSnapshot;
-            }
-
-            public int GetStart(DocumentSymbolDataViewModel value)
-            {
-                return value.Data.RangeSpan.Start.TranslateTo(_textSnapshot, PointTrackingMode.Positive);
-            }
-
-            public int GetLength(DocumentSymbolDataViewModel value)
-            {
-                return value.Data.RangeSpan.TranslateTo(_textSnapshot, SpanTrackingMode.EdgeInclusive).Length;
-            }
-        }
-    }
-
     /// <summary>
     /// Responsible for updating data related to Document outline. It is expected that all public methods on this type
     /// do not need to be on the UI thread. Two properties: <see cref="SortOption"/> and <see cref="SearchText"/> are
