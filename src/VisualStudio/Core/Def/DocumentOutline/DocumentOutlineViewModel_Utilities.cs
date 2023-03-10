@@ -176,9 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 var children = GetDocumentSymbolItemViewModels(sortOption, documentSymbol.Children);
                 var documentSymbolItem = new DocumentSymbolDataViewModel(
                     documentSymbol,
-                    children,
-                    isExpanded: true,
-                    isSelected: false);
+                    children);
                 documentSymbolItems.Add(documentSymbolItem);
             }
 

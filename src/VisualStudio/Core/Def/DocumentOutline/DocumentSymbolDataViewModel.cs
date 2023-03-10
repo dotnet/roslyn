@@ -29,14 +29,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         public ImageMoniker ImageMoniker => Data.SymbolKind.GetImageMoniker();
 
-        private bool _isExpanded;
+        private bool _isExpanded = true;
+        private bool _isSelected = false;
+
         public bool IsExpanded
         {
             get => _isExpanded;
             set => SetProperty(ref _isExpanded, value);
         }
-
-        private bool _isSelected;
 
         public bool IsSelected
         {
@@ -46,14 +46,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         public DocumentSymbolDataViewModel(
             DocumentSymbolData data,
-            ImmutableArray<DocumentSymbolDataViewModel> children,
-            bool isExpanded,
-            bool isSelected)
+            ImmutableArray<DocumentSymbolDataViewModel> children)
         {
             Data = data;
             Children = children;
-            _isExpanded = isExpanded;
-            _isSelected = isSelected;
         }
 
         private static readonly PropertyChangedEventArgs _isExpandedPropertyChangedEventArgs = new PropertyChangedEventArgs(nameof(IsExpanded));
@@ -74,9 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // Note: we do not lock here. Worst case is that we fire multiple
             //       NotifyPropertyChanged events which WPF can handle.
             if (field == value)
-            {
                 return;
-            }
 
             field = value;
             NotifyPropertyChanged(propertyName);
