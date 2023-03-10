@@ -192,6 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // Setting this only happens from within this type once we've computed new items or filtered down the existing set.
             private set
             {
+                _threadingContext.ThrowIfNotOnUIThread();
                 SetProperty(ref _documentSymbolViewModelItems_doNotAccessDirectly, value);
             }
         }
@@ -289,10 +290,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 newViewModelItems,
                 intervalTree);
 
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             _lastViewState_onlyAccessSerially = newViewState;
             this.DocumentSymbolViewModelItems = newViewModelItems;
 
-            _selectionQueue.AddWork(cancelExistingWork: true);
+            // Now that we've updated our state, enqueue the work to expand/select the right item.
+            ExpandAndSelectItemAtCaretPosition();
 
             return newViewState;
 
