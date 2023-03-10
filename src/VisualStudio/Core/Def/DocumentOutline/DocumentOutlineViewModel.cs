@@ -93,31 +93,17 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var currentSnapshot = textBuffer.CurrentSnapshot;
             _lastViewState_onlyAccessFromUIThread = new DocumentOutlineViewState(
                 currentSnapshot,
-                //ImmutableArray<DocumentSymbolData>.Empty,
                 this.SearchText,
                 this.DocumentSymbolViewModelItems,
                 IntervalTree<DocumentSymbolDataViewModel>.Empty);
 
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_threadingContext.DisposalToken);
 
-            //// work queue for refreshing LSP data
             _workQueue = new AsyncBatchingWorkQueue(
                 DelayTimeSpan.Short,
                 ComputeViewStateAsync,
                 asyncListener,
                 CancellationToken);
-            //_documentSymbolQueue = new AsyncBatchingResultQueue<DocumentSymbolDataModel>(
-            //    DelayTimeSpan.Short,
-            //    GetDocumentSymbolAsync,
-            //    asyncListener,
-            //    CancellationToken);
-
-            //// work queue for updating UI state
-            //_updateViewModelStateQueue = new AsyncBatchingWorkQueue<bool?>(
-            //    DelayTimeSpan.Short,
-            //    UpdateViewModelStateAsync,
-            //    asyncListener,
-            //    CancellationToken);
 
             _taggerEventSource.Changed += OnEventSourceChanged;
             _taggerEventSource.Connect();

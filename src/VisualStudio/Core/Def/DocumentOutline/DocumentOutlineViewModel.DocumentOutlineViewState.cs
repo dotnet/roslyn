@@ -18,11 +18,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             /// </summary>
             public readonly ITextSnapshot TextSnapshot;
 
-            ///// <summary>
-            ///// The individual outline items that were computed.
-            ///// </summary>
-            //public readonly ImmutableArray<DocumentSymbolData> DocumentSymbolData;
-
             /// <summary>
             /// The text string that was used to filter the original LSP results down to the set of <see
             /// cref="DocumentSymbolData"/> we have.
@@ -45,13 +40,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             public DocumentOutlineViewState(
                 ITextSnapshot textSnapshot,
-                // ImmutableArray<DocumentSymbolData> documentSymbolData,
                 string searchText,
                 ImmutableArray<DocumentSymbolDataViewModel> viewModelItems,
                 IntervalTree<DocumentSymbolDataViewModel> viewModelItemsTree)
             {
                 TextSnapshot = textSnapshot;
-                // DocumentSymbolData = documentSymbolData;
                 SearchText = searchText;
                 ViewModelItems = viewModelItems;
                 ViewModelItemsTree = viewModelItemsTree;
