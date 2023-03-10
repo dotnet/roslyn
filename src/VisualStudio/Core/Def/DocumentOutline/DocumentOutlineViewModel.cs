@@ -229,22 +229,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             await TaskScheduler.Default;
             cancellationToken.ThrowIfCancellationRequested();
 
-            var filePath = _textBuffer.GetRelatedDocuments().FirstOrDefault(static d => d.FilePath is not null)?.FilePath;
-            if (filePath is null)
-            {
-                // text buffer is not saved to disk. LSP does not support calls without URIs. and Visual Studio does not
-                // have a URI concept other than the file path.
-                return;
-            }
-
-            // Obtain the LSP response and text snapshot used.
-            var response = await DocumentSymbolsRequestAsync(
-                _textBuffer, _languageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
-            if (response is null)
-                return;
-
-            var newTextSnapshot = response.Value.snapshot;
-            var rawData = CreateDocumentSymbolData(response.Value.response, newTextSnapshot);
+            // Do the expensive LSP work of actually computing the items to show.
+            var (documentSymbolData, newTextSnapshot) = await ComputeDocumentSymbolDataAsync(cancellationToken).ConfigureAwait(false);
 
             // Now, go back to the UI and grab the prior view state we set, and the current UI values we want to update the data with.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -262,7 +248,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // if we got new data or the user changed the search text, recompute our items to correspond to this new state.
             // Apply whatever the current search text is to what the model returned, and produce the new items.
             var newViewModelItems = GetDocumentSymbolItemViewModels(
-                SearchDocumentSymbolData(rawData, searchText, cancellationToken));
+                SearchDocumentSymbolData(documentSymbolData, searchText, cancellationToken));
 
             // If the search text changed, just show everything in expanded form, so the user can see everything
             // that matched, without anything being hidden.
@@ -360,6 +346,25 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     ApplyExpansionState(expansionState, item.Children);
                 }
             }
+        }
+
+        private async Task<(ImmutableArray<DocumentSymbolData> documentSymbolData, ITextSnapshot newTextSnapshot)> ComputeDocumentSymbolDataAsync(CancellationToken cancellationToken)
+        {
+            var filePath = _textBuffer.GetRelatedDocuments().FirstOrDefault(static d => d.FilePath is not null)?.FilePath;
+            if (filePath != null)
+            {
+                // Obtain the LSP response and text snapshot used.
+                var response = await DocumentSymbolsRequestAsync(
+                    _textBuffer, _languageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
+                if (response != null)
+                {
+                    var newTextSnapshot = response.Value.snapshot;
+                    var documentSymbolData = CreateDocumentSymbolData(response.Value.response, newTextSnapshot);
+                    return (documentSymbolData, newTextSnapshot);
+                }
+            }
+
+            return (ImmutableArray<DocumentSymbolData>.Empty, _textBuffer.CurrentSnapshot);
         }
 
         public void ExpandAndSelectItemAtCaretPosition()
