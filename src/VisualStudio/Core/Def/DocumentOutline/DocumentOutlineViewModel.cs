@@ -107,18 +107,18 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _workQueue.AddWork(default(VoidResult));
         }
 
+        public void Dispose()
+        {
+            _taggerEventSource.Changed -= OnEventSourceChanged;
+            _taggerEventSource.Disconnect();
+        }
+
         private static DocumentOutlineViewState CreateEmptyViewState(ITextSnapshot currentSnapshot)
             => new(
                 currentSnapshot,
                 searchText: "",
                 ImmutableArray<DocumentSymbolDataViewModel>.Empty,
                 IntervalTree<DocumentSymbolDataViewModel>.Empty);
-
-        public void Dispose()
-        {
-            _taggerEventSource.Changed -= OnEventSourceChanged;
-            _taggerEventSource.Disconnect();
-        }
 
         private void OnEventSourceChanged(object sender, TaggerEventArgs e)
             => _workQueue.AddWork(default(VoidResult), cancelExistingWork: false);
