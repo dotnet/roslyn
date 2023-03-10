@@ -2155,5 +2155,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default: return -1;
             }
         }
+
+        internal static bool IsDisplayClassType(this TypeSymbol type)
+        {
+            if (type.Kind == SymbolKind.NamedType)
+            {
+                switch (GeneratedNameParser.GetKind(type.Name))
+                {
+                    case GeneratedNameKind.LambdaDisplayClass:
+                    case GeneratedNameKind.StateMachineType:
+                        return true;
+                }
+            }
+
+            return false;
+        }
     }
 }
