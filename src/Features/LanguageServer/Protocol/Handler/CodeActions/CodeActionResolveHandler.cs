@@ -147,9 +147,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         || projectChange.GetAddedAdditionalDocuments().Any()
                         || projectChange.GetAddedAnalyzerConfigDocuments().Any())
                     {
-                        // Adding documents is not currently supported
-                        codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
-                        return codeAction;
+                        if (context.GetRequiredClientCapabilities() is not { Workspace.WorkspaceEdit.ResourceOperations: { } resourceOperations }
+                            || !resourceOperations.Contains(ResourceOperationKind.Create))
+                        {
+                            // Adding documents is not supported by this workspace
+                            codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
+                            return codeAction;
+                        }
                     }
                 }
 
@@ -196,6 +200,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     projectChanges.SelectMany(pc => pc.GetRemovedAdditionalDocuments()),
                     solution.GetAdditionalDocument).ConfigureAwait(false);
 
+                // Added documents
+                await AddTextDocumentAdditionsAsync(
+                    projectChanges.SelectMany(pc => pc.GetAddedDocuments()),
+                    applyChangesOperation.ChangedSolution.GetDocument).ConfigureAwait(false);
+
+                // Added analyzer config documents
+                await AddTextDocumentAdditionsAsync(
+                    projectChanges.SelectMany(pc => pc.GetAddedAnalyzerConfigDocuments()),
+                    applyChangesOperation.ChangedSolution.GetAnalyzerConfigDocument).ConfigureAwait(false);
+
+                // Added additional documents
+                await AddTextDocumentAdditionsAsync(
+                    projectChanges.SelectMany(pc => pc.GetAddedAdditionalDocuments()),
+                    applyChangesOperation.ChangedSolution.GetAdditionalDocument).ConfigureAwait(false);
+
                 // Changed documents
                 await AddTextDocumentEditsAsync(
                     projectChanges.SelectMany(pc => pc.GetChangedDocuments()),
@@ -233,6 +252,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
 
                 return Task.CompletedTask;
+            }
+
+            async Task AddTextDocumentAdditionsAsync<TTextDocument>(
+                IEnumerable<DocumentId> addedDocuments,
+                Func<DocumentId, TTextDocument?> getNewDocument)
+                where TTextDocument : TextDocument
+            {
+                foreach (var docId in addedDocuments)
+                {
+                    var newTextDoc = getNewDocument(docId);
+                    Contract.ThrowIfNull(newTextDoc);
+
+                    // Create the document as empty
+                    textDocumentEdits.Add(new CreateFile { Uri = newTextDoc.GetURI() });
+
+                    // And then give it content
+                    var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var emptyDocumentRange = new LSP.Range { Start = new Position { Line = 0, Character = 0 }, End = new Position { Line = 0, Character = 0 } };
+                    var edit = new TextEdit { Range = emptyDocumentRange, NewText = newText.ToString() };
+                    var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
+                    textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = new[] { edit } });
+                }
             }
 
             async Task AddTextDocumentEditsAsync<TTextDocument>(
