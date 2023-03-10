@@ -1047,6 +1047,11 @@
         <target state="translated">Vzory seznamů nelze použít pro hodnotu typu {0}. Nenašla se žádná vhodná vlastnost Length nebo Count.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MalformedExtensionInMetadata">
+        <source>Extension marker method on type '{0}' is malformed.</source>
+        <target state="new">Extension marker method on type '{0}' is malformed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Žádná přetížená metoda {0} neodpovídá ukazateli na funkci {1}.</target>

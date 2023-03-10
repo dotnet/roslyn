@@ -1411,6 +1411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal DiagnosticInfo CalculateUseSiteDiagnostic()
         {
+            // PROTOTYPE calculate proper use-site diagnostics for extension types.
             DiagnosticInfo result = null;
 
             // Check base type.

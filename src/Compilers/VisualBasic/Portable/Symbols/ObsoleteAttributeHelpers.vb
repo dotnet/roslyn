@@ -34,7 +34,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim obsoleteAttributeData As ObsoleteAttributeData = Nothing
             ' ignoreByRefLikeMarker := False, since VB does not support ref-like types
             ' https://github.com/dotnet/roslyn/issues/61435: Determine what support will be added for VB
-            obsoleteAttributeData = containingModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(token, New MetadataDecoder(containingModule), ignoreByRefLikeMarker:=False, ignoreRequiredMemberMarker:=False)
+            obsoleteAttributeData = containingModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(token, New MetadataDecoder(containingModule),
+                ignoreByRefLikeMarker:=False, ignoreRequiredMemberMarker:=False, ignoreExtensionMarker:=False)
+
             Debug.Assert(obsoleteAttributeData Is Nothing OrElse Not obsoleteAttributeData.IsUninitialized)
             Return obsoleteAttributeData
         End Function

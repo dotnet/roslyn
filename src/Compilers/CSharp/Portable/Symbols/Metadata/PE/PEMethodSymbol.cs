@@ -1530,7 +1530,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (!_packedFlags.IsObsoleteAttributePopulated)
                 {
-                    var result = ObsoleteAttributeHelpers.GetObsoleteDataFromMetadata(_handle, (PEModuleSymbol)ContainingModule, ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: MethodKind == MethodKind.Constructor);
+                    var result = ObsoleteAttributeHelpers.GetObsoleteDataFromMetadata(_handle, (PEModuleSymbol)ContainingModule,
+                        ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: MethodKind == MethodKind.Constructor, ignoreExtensionMarker: false);
+
                     if (result != null)
                     {
                         result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyObsoleteAttributeData, result, ObsoleteAttributeData.Uninitialized);

@@ -8,17 +8,18 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return result;
             }
 
-            if (this.IsUncommon())
+            if (isUncommon())
             {
                 result = new UncommonProperties();
                 return Interlocked.CompareExchange(ref _lazyUncommonProperties, result, null) ?? result;
@@ -105,22 +106,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             _lazyUncommonProperties = result = s_noUncommonProperties;
             return result;
-        }
 
-        // enums and types with custom attributes are considered uncommon
-        private bool IsUncommon()
-        {
-            if (this.ContainingPEModule.HasAnyCustomAttributes(_handle))
+            // enums and types with custom attributes are considered uncommon
+            bool isUncommon()
             {
-                return true;
-            }
+                if (this.ContainingPEModule.HasAnyCustomAttributes(_handle))
+                {
+                    return true;
+                }
 
-            if (this.TypeKind == TypeKind.Enum)
-            {
-                return true;
-            }
+                if (this.TypeKind is TypeKind.Enum or TypeKind.Extension)
+                {
+                    return true;
+                }
 
-            return false;
+                return false;
+            }
         }
 
         private class UncommonProperties
@@ -148,6 +149,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ImmutableArray<byte> lazyFilePathChecksum = default;
             internal string lazyDisplayFileName;
 
+            internal TypeSymbol lazyDeclaredExtensionUnderlyingType = null;
+            internal ImmutableArray<NamedTypeSymbol> lazyDeclaredBaseExtensions = default;
+            internal ImmutableArray<NamedTypeSymbol> lazyBaseExtensions = default;
+
 #if DEBUG
             internal bool IsDefaultValue()
             {
@@ -164,7 +169,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     !lazyHasInterpolatedStringHandlerAttribute.HasValue() &&
                     !lazyHasRequiredMembers.HasValue() &&
                     lazyFilePathChecksum.IsDefault &&
-                    lazyDisplayFileName == null;
+                    lazyDisplayFileName == null &&
+                    lazyDeclaredExtensionUnderlyingType is null &&
+                    lazyDeclaredBaseExtensions.IsDefault &&
+                    lazyBaseExtensions.IsDefault;
             }
 #endif
         }
@@ -503,16 +511,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
 
                     var moduleSymbol = ContainingPEModule;
-                    TypeSymbol decodedType = DynamicTypeDecoder.TransformType(baseType, 0, _handle, moduleSymbol);
-                    decodedType = NativeIntegerTypeDecoder.TransformType(decodedType, _handle, moduleSymbol, this);
-                    decodedType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType, _handle, moduleSymbol);
-                    baseType = (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeWithAnnotations.Create(decodedType), _handle, moduleSymbol, accessSymbol: this, nullableContext: this).Type;
+                    baseType = (NamedTypeSymbol)ApplyTransforms(baseType, _handle, moduleSymbol);
                 }
 
                 Interlocked.CompareExchange(ref _lazyDeclaredBaseType, baseType, ErrorTypeSymbol.UnknownResultType);
             }
 
             return _lazyDeclaredBaseType;
+        }
+
+        private TypeSymbol ApplyTransforms(TypeSymbol type, EntityHandle targetSymbolToken, PEModuleSymbol moduleSymbol)
+        {
+            // PROTOTYPE consider sharing this code with other locations that decode types
+            TypeSymbol decodedType = DynamicTypeDecoder.TransformType(type, targetSymbolCustomModifierCount: 0, targetSymbolToken, moduleSymbol);
+            decodedType = NativeIntegerTypeDecoder.TransformType(decodedType, targetSymbolToken, moduleSymbol, containingType: this);
+            decodedType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType, targetSymbolToken, moduleSymbol);
+            return NullableTypeDecoder.TransformType(TypeWithAnnotations.Create(decodedType), targetSymbolToken, moduleSymbol, accessSymbol: this, nullableContext: this).Type;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
@@ -617,17 +631,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
 #nullable enable
-        internal sealed override bool IsExtension => false; // PROTOTYPE Extension symbols not yet supported in metadata
+        internal sealed override bool IsExtension => TypeKind == TypeKind.Extension;
 
-        internal sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics => null; // PROTOTYPE
+        internal sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnostics
+        {
+            get
+            {
+                return GetDeclaredExtensionUnderlyingType();
+            }
+        }
+
         internal sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
-            => ImmutableArray<NamedTypeSymbol>.Empty; // PROTOTYPE
+        {
+            get
+            {
+                var declaredBaseExtensions = GetDeclaredBaseExtensions();
+                return declaredBaseExtensions.SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(depends: t, on: this) ? CyclicInheritanceError(t) : t);
+            }
+        }
 
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
-            => throw ExceptionUtilities.Unreachable(); // PROTOTYPE
+        {
+            if (this.TypeKind != TypeKind.Extension)
+                return null;
+
+            var uncommon = GetUncommonProperties();
+            if (uncommon == s_noUncommonProperties)
+                return null;
+
+            if (uncommon.lazyDeclaredExtensionUnderlyingType is not null)
+                return uncommon.lazyDeclaredExtensionUnderlyingType;
+
+            DecodeExtensionType(out TypeSymbol underlyingType, out _);
+            Interlocked.CompareExchange(ref uncommon.lazyDeclaredExtensionUnderlyingType, underlyingType, null);
+
+            return uncommon.lazyDeclaredExtensionUnderlyingType;
+        }
 
         internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
-            => throw ExceptionUtilities.Unreachable(); // PROTOTYPE
+        {
+            if (this.TypeKind != TypeKind.Extension)
+                return ImmutableArray<NamedTypeSymbol>.Empty;
+
+            var uncommon = GetUncommonProperties();
+            if (uncommon == s_noUncommonProperties)
+                return ImmutableArray<NamedTypeSymbol>.Empty;
+
+            if (!uncommon.lazyDeclaredBaseExtensions.IsDefault)
+                return uncommon.lazyDeclaredBaseExtensions;
+
+            DecodeExtensionType(out _, out ImmutableArray<NamedTypeSymbol> baseExtensions);
+            ImmutableInterlocked.InterlockedCompareExchange(ref uncommon.lazyDeclaredBaseExtensions, baseExtensions, default);
+
+            return uncommon.lazyDeclaredBaseExtensions;
+        }
 #nullable disable
 
         // Record structs get erased when emitted to metadata
@@ -1342,6 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // (to allow efficient lookup when matching property accessors).
                     PooledDictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol = this.CreateMethods(nonFieldMembers);
 
+                    // PROTOTYPE revisit when handling constructors
                     if (this.TypeKind == TypeKind.Struct)
                     {
                         bool haveParameterlessConstructor = false;
@@ -1754,6 +1812,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+#nullable enable
         public override TypeKind TypeKind
         {
             get
@@ -1789,8 +1848,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                                     break;
 
                                 case SpecialType.System_ValueType:
-                                    // System.Enum is the only class that derives from ValueType
-                                    if (this.SpecialType != SpecialType.System_Enum)
+                                    if (this.SpecialType == SpecialType.System_Enum)
+                                    {
+                                        // System.Enum is the only class that derives from ValueType
+                                        break;
+                                    }
+
+                                    // PROTOTYPE consider caching/optimizing this computation
+                                    if (IsExtensionType(foundMarkerMethod: out _))
+                                    {
+                                        // Extension
+                                        result = TypeKind.Extension;
+                                    }
+                                    else
                                     {
                                         // Struct
                                         result = TypeKind.Struct;
@@ -1806,6 +1876,160 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return result;
             }
         }
+
+        private bool IsExtensionType([NotNullWhen(true)] out MethodDefinitionHandle? foundMarkerMethod)
+        {
+            var moduleSymbol = this.ContainingPEModule;
+            var module = moduleSymbol.Module;
+            foundMarkerMethod = null;
+
+            var isByRefLike = module.HasIsByRefLikeAttribute(_handle);
+            if (!isByRefLike)
+            {
+                return false;
+            }
+
+            foreach (var field in module.GetFieldsOfTypeOrThrow(_handle))
+            {
+                if ((module.GetFieldDefFlagsOrThrow(field) & FieldAttributes.Static) == 0)
+                {
+                    return false;
+                }
+            }
+
+            try
+            {
+                foreach (var methodHandle in module.GetMethodsOfTypeOrThrow(_handle))
+                {
+                    var methodName = module.GetMethodDefNameOrThrow(methodHandle);
+                    if (methodName == WellKnownMemberNames.ExtensionMarkerMethodName)
+                    {
+                        if (foundMarkerMethod != null)
+                        {
+                            return false;
+                        }
+
+                        foundMarkerMethod = methodHandle;
+                    }
+                }
+
+                return foundMarkerMethod is not null;
+            }
+            catch (BadImageFormatException)
+            {
+            }
+
+            return false;
+        }
+
+        private void DecodeExtensionType(out TypeSymbol underlyingType, out ImmutableArray<NamedTypeSymbol> baseExtensions)
+        {
+            // PROTOTYPE we should also decode `implicit` vs. `explicit`
+            // PROTOTYPE consider optimizing/caching
+
+            TypeSymbol? foundUnderlyingType;
+            if (!tryDecodeExtensionType(out foundUnderlyingType, out baseExtensions))
+            {
+                if (foundUnderlyingType is null)
+                {
+                    foundUnderlyingType = new UnsupportedMetadataTypeSymbol();
+                }
+
+                if (baseExtensions.IsDefault)
+                {
+                    baseExtensions = ImmutableArray<NamedTypeSymbol>.Empty;
+                }
+            }
+
+            underlyingType = foundUnderlyingType;
+
+            return;
+
+            bool tryDecodeExtensionType([NotNullWhen(true)] out TypeSymbol? underlyingType, out ImmutableArray<NamedTypeSymbol> baseExtensions)
+            {
+                var found = IsExtensionType(out MethodDefinitionHandle? foundMarkerMethod);
+                Debug.Assert(found);
+                var markerMethod = foundMarkerMethod!.Value;
+                var moduleSymbol = this.ContainingPEModule;
+
+                underlyingType = null;
+                baseExtensions = default;
+
+                MethodAttributes localFlags;
+                moduleSymbol.Module.GetMethodDefPropsOrThrow(markerMethod, name: out _, implFlags: out _, out localFlags, rva: out _);
+                // PROTOTYPE do we want to tighten the flags check further?
+                if ((localFlags & MethodAttributes.Private) == 0 ||
+                    (localFlags & MethodAttributes.Static) == 0)
+                {
+                    return false;
+                }
+
+                SignatureHeader signatureHeader;
+                BadImageFormatException mrEx;
+                ParamInfo<TypeSymbol>[] paramInfos = new MetadataDecoder(moduleSymbol, context: this)
+                    .GetSignatureForMethod(markerMethod, out signatureHeader, out mrEx);
+
+                if (mrEx is not null || signatureHeader.IsGeneric || paramInfos.Length <= 1)
+                {
+                    return false;
+                }
+
+                var baseExtensionsBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance(paramInfos.Length - 1);
+                for (int i = 0; i < paramInfos.Length; i++)
+                {
+                    var paramInfo = paramInfos[i];
+                    TypeSymbol type = paramInfo.Type;
+
+                    if (paramInfo.IsByRef || !paramInfo.CustomModifiers.IsDefault)
+                    {
+                        var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, Name); // PROTOTYPE need to report use-site diagnostic
+                        type = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
+                    }
+
+                    type = ApplyTransforms(type, paramInfo.Handle, moduleSymbol);
+
+                    if (i == 0)
+                    {
+                        if (type.SpecialType != SpecialType.System_Void)
+                        {
+                            return false;
+                        }
+                    }
+                    else if (i == 1)
+                    {
+                        if (SourceExtensionTypeSymbol.IsRestrictedExtensionUnderlyingType(type))
+                        {
+                            var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, Name); // PROTOTYPE need to report use-site diagnostic
+                            underlyingType = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
+                        }
+                        else
+                        {
+                            underlyingType = type;
+                        }
+                    }
+                    else
+                    {
+                        NamedTypeSymbol baseExtension;
+                        if (type is NamedTypeSymbol { IsExtension: true } namedType)
+                        {
+                            baseExtension = namedType;
+                        }
+                        else
+                        {
+                            var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, Name);
+                            baseExtension = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
+                        }
+
+                        baseExtensionsBuilder.Add(baseExtension);
+                    }
+                }
+
+                Debug.Assert(underlyingType is not null);
+                baseExtensions = baseExtensionsBuilder.ToImmutableAndFree();
+                return true;
+            }
+        }
+#nullable disable
 
         internal sealed override bool IsInterface
         {
@@ -1823,6 +2047,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NamedTypeSymbol MakeAcyclicBaseType()
         {
+            if (TypeKind is TypeKind.Extension)
+            {
+                return null;
+            }
+
             NamedTypeSymbol declaredBase = GetDeclaredBaseType(null);
 
             // implicit base is not interesting for metadata cycle detection
@@ -1959,6 +2188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var module = moduleSymbol.Module;
             var map = PooledDictionary<MethodDefinitionHandle, PEMethodSymbol>.GetInstance();
 
+            // PROTOTYPE are extensions embeddable?
             // for ordinary embeddable struct types we import private members so that we can report appropriate errors if the structure is used
             var isOrdinaryEmbeddableStruct = (this.TypeKind == TypeKind.Struct) && (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.None) && this.ContainingAssembly.IsLinked;
 
@@ -2143,6 +2373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private DiagnosticInfo? DeriveCompilerFeatureRequiredDiagnostic()
         {
+            // PROTOTYPE handle new compiler required feature attribute (as part of use-site diagnostics work)
             var decoder = new MetadataDecoder(ContainingPEModule, this);
             var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, ContainingPEModule, Handle, allowedFeatures: IsRefLikeType ? CompilerFeatureRequiredFeatures.RefStructs : CompilerFeatureRequiredFeatures.None, decoder);
 
@@ -2369,7 +2600,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 bool ignoreByRefLikeMarker = this.IsRefLikeType;
-                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref uncommon.lazyObsoleteAttributeData, _handle, ContainingPEModule, ignoreByRefLikeMarker, ignoreRequiredMemberMarker: false);
+                bool ignoreExtensionMarker = this.IsExtension;
+
+                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref uncommon.lazyObsoleteAttributeData, _handle, ContainingPEModule,
+                    ignoreByRefLikeMarker, ignoreRequiredMemberMarker: false, ignoreExtensionMarker);
+
                 return uncommon.lazyObsoleteAttributeData;
             }
         }

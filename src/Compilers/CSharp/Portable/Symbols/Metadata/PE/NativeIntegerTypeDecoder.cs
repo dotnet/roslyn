@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 case TypeKind.Interface:
                 case TypeKind.Delegate:
                 case TypeKind.Enum:
+                case TypeKind.Extension:
                     return TransformNamedType((NamedTypeSymbol)type);
                 default:
                     Debug.Assert(type.TypeKind == TypeKind.Error);

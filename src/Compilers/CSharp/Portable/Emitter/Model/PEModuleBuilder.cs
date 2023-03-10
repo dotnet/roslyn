@@ -1130,6 +1130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
+                    // PROTOTYPE emit references to extension types
                     return Translate((NamedTypeSymbol)typeSymbol, syntaxNodeOpt, diagnostics);
 
                 case SymbolKind.PointerType:

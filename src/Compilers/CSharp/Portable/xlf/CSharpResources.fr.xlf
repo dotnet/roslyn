@@ -1047,6 +1047,11 @@
         <target state="translated">Les modèles de liste ne peuvent pas être utilisés pour une valeur de type '{0}'. Aucune propriété 'Longueur' ou 'Compte' appropriée n’a été trouvée.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MalformedExtensionInMetadata">
+        <source>Extension marker method on type '{0}' is malformed.</source>
+        <target state="new">Extension marker method on type '{0}' is malformed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Aucune surcharge pour '{0}' ne correspond au pointeur de fonction '{1}'</target>

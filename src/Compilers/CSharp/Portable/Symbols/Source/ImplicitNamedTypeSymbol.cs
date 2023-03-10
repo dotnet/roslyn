@@ -183,9 +183,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
             => throw ExceptionUtilities.Unreachable();
 
-        protected override void CheckUnderlyingType(BindingDiagnosticBag diagnostics)
-            => throw ExceptionUtilities.Unreachable();
-
         protected override void CheckBaseExtensions(BindingDiagnosticBag diagnostics)
             => throw ExceptionUtilities.Unreachable();
     }

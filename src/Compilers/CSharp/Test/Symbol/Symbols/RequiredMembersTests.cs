@@ -94,7 +94,9 @@ End Namespace";
             {
                 var peMethod = (PEMethodSymbol)ctor;
                 var decoder = new MetadataDecoder(peModule, peMethod);
-                var obsoleteAttribute = peModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(peMethod.Handle, decoder, ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: false);
+                var obsoleteAttribute = peModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(peMethod.Handle, decoder,
+                    ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: false, ignoreExtensionMarker: false);
+
                 string? unsupportedCompilerFeatureToken = peModule.Module.GetFirstUnsupportedCompilerFeatureFromToken(peMethod.Handle, decoder, CompilerFeatureRequiredFeatures.None);
 
                 if (ctorAttributes.Any(attr => attr.AttributeClass.ToTestDisplayString() == "System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute"))

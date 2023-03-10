@@ -398,5 +398,10 @@ namespace Microsoft.CodeAnalysis
         /// The name of a type synthesized for a top-level statements entry point method.
         /// </summary>
         public const string TopLevelStatementsEntryPointTypeName = "Program";
+
+        /// <summary>
+        /// The name of marker method for an extension type.
+        /// </summary>
+        internal const string ExtensionMarkerMethodName = "<Extension>$"; // PROTOTYPE confirm name with WG
     }
 }

@@ -1047,6 +1047,11 @@
         <target state="translated">I criteri di elenco non possono essere utilizzati per un valore di tipo '{0}'. Non è stata trovata alcuna proprietà 'Length' o 'Count' appropriata.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MalformedExtensionInMetadata">
+        <source>Extension marker method on type '{0}' is malformed.</source>
+        <target state="new">Extension marker method on type '{0}' is malformed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Nessun overload per '{0}' corrisponde al puntatore a funzione '{1}'</target>

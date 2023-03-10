@@ -359,6 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
                 case TypeKind.Struct:
                 case TypeKind.Enum:
+                case TypeKind.Extension:
                     mods |= DeclarationModifiers.Sealed;
                     break;
                 case TypeKind.Delegate:
@@ -522,7 +523,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract void CheckBase(BindingDiagnosticBag diagnostics);
         protected abstract void CheckInterfaces(BindingDiagnosticBag diagnostics);
-        protected abstract void CheckUnderlyingType(BindingDiagnosticBag diagnostics);
         protected abstract void CheckBaseExtensions(BindingDiagnosticBag diagnostics);
 
         internal override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
@@ -545,7 +545,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var diagnostics = BindingDiagnosticBag.GetInstance();
                             if (IsExtension)
                             {
-                                CheckUnderlyingType(diagnostics);
+                                // We check the constraints on underlying type later,
+                                // as part of binding the extension marker method.
                                 CheckBaseExtensions(diagnostics);
                             }
                             else
@@ -830,15 +831,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return managedKind;
         }
 
-        public override bool IsStatic => HasFlag(DeclarationModifiers.Static);
+        public sealed override bool IsStatic => HasFlag(DeclarationModifiers.Static);
 
         public sealed override bool IsRefLikeType => HasFlag(DeclarationModifiers.Ref);
 
-        public override bool IsReadOnly => HasFlag(DeclarationModifiers.ReadOnly);
+        public sealed override bool IsReadOnly => HasFlag(DeclarationModifiers.ReadOnly);
 
-        public override bool IsSealed => HasFlag(DeclarationModifiers.Sealed);
+        public sealed override bool IsSealed => HasFlag(DeclarationModifiers.Sealed);
 
-        public override bool IsAbstract => HasFlag(DeclarationModifiers.Abstract);
+        public sealed override bool IsAbstract => HasFlag(DeclarationModifiers.Abstract);
 
         internal bool IsPartial => HasFlag(DeclarationModifiers.Partial);
 
@@ -1727,7 +1728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var location = Locations[0];
             var compilation = DeclaringCompilation;
 
-            if (this.IsRefLikeType)
+            if (this.IsRefLikeType || this.IsExtension)
             {
                 compilation.EnsureIsByRefLikeAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -3355,8 +3356,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Class:
                 case TypeKind.Interface:
                 case TypeKind.Submission:
-                case TypeKind.Extension:
                     AddSynthesizedTypeMembersIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
+                    AddSynthesizedConstructorsIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
+                    break;
+
+                case TypeKind.Extension:
+                    AddSynthesizedExtensionMarkerIfPossible(builder, declaredMembersAndInitializers, diagnostics);
+                    // PROTOTYPE what are the rules for constructors in extensions?
                     AddSynthesizedConstructorsIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
                     break;
 
@@ -3365,6 +3371,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             AddSynthesizedTupleMembersIfNecessary(builder, declaredMembersAndInitializers);
+        }
+
+        private void AddSynthesizedExtensionMarkerIfPossible(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, BindingDiagnosticBag diagnostics)
+        {
+            if (ExtensionUnderlyingTypeNoUseSiteDiagnostics is not null)
+            {
+                builder.AddNonTypeMember(
+                    new SynthesizedExtensionMarker(this, ExtensionUnderlyingTypeNoUseSiteDiagnostics, BaseExtensionsNoUseSiteDiagnostics, diagnostics),
+                    declaredMembersAndInitializers);
+            }
         }
 
         private void AddDeclaredNontypeMembers(DeclaredMembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
