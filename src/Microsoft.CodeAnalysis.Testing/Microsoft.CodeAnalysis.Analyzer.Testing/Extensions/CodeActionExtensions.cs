@@ -4,23 +4,20 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Reflection;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Testing.Lightup;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
     internal static class CodeActionExtensions
     {
-        public static ImmutableArray<CodeAction> GetNestedActions(this CodeAction action)
-        {
-            var property = typeof(CodeAction).GetTypeInfo().DeclaredProperties.SingleOrDefault(property => property.Name == "NestedCodeActions");
-            if (property is null)
-            {
-                return ImmutableArray<CodeAction>.Empty;
-            }
+        private static readonly Func<CodeAction, ImmutableArray<CodeAction>> s_nestedCodeActions =
+            LightupHelpers.CreatePropertyAccessor<CodeAction, ImmutableArray<CodeAction>>(
+                typeof(CodeAction),
+                nameof(NestedCodeActions),
+                defaultValue: ImmutableArray<CodeAction>.Empty);
 
-            return (ImmutableArray<CodeAction>)(property.GetValue(action) ?? throw new NotSupportedException());
-        }
+        public static ImmutableArray<CodeAction> NestedCodeActions(this CodeAction action)
+            => s_nestedCodeActions(action);
     }
 }
