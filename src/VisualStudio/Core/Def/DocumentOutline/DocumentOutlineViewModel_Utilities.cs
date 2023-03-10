@@ -183,16 +183,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             return documentSymbolItems.ToImmutable();
         }
 
-        //public static void UnselectAll(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems)
-        //{
-        //    foreach (var documentSymbolItem in documentSymbolItems)
-        //    {
-        //        // Setting a Boolean property on this item is allowed to happen on any thread.
-        //        documentSymbolItem.IsSelected = false;
-        //        UnselectAll(documentSymbolItem.Children);
-        //    }
-        //}
-
         public static void SetExpansionOption(
             ImmutableArray<DocumentSymbolDataViewModel> currentDocumentSymbolItems,
             bool expand)
