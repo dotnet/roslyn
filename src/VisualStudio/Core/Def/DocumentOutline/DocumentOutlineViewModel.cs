@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 IntervalTree<DocumentSymbolDataViewModel>.Empty);
 
         private void OnEventSourceChanged(object sender, TaggerEventArgs e)
-            => _workQueue.AddWork(default(VoidResult), cancelExistingWork: false);
+            => _workQueue.AddWork(default(VoidResult), cancelExistingWork: true);
 
         public bool IsNavigating
         {
@@ -174,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 _threadingContext.ThrowIfNotOnUIThread();
                 _searchText_doNotAccessDirectly = value;
 
-                _workQueue.AddWork(default(VoidResult), cancelExistingWork: false);
+                _workQueue.AddWork(default(VoidResult), cancelExistingWork: true);
             }
         }
 
