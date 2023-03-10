@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
 
                 switch (operation.Parent)
                 {
-                    case IPatternCaseClauseOperation _:
+                    case IPatternCaseClauseOperation:
                         // A declaration pattern within a pattern case clause is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis
                         //
                         return ValueUsageInfo.Write;
 
-                    case IRecursivePatternOperation _:
+                    case IRecursivePatternOperation:
                         // A declaration pattern within a recursive pattern is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
                         //
                         return ValueUsageInfo.Write;
 
-                    case ISwitchExpressionArmOperation _:
+                    case ISwitchExpressionArmOperation:
                         // A declaration pattern within a switch expression arm is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis
                         //
                         return ValueUsageInfo.Write;
 
-                    case IIsPatternOperation _:
+                    case IIsPatternOperation:
                         // A declaration pattern within an is pattern is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
                         //
                         return ValueUsageInfo.Write;
 
-                    case IPropertySubpatternOperation _:
+                    case IPropertySubpatternOperation:
                         // A declaration pattern within a property sub-pattern is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj.Property' below:
@@ -285,15 +285,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static bool IsAnyCompoundAssignment(this IOperation operation)
         {
-            switch (operation)
-            {
-                case ICompoundAssignmentOperation _:
-                case ICoalesceAssignmentOperation _:
-                    return true;
-
-                default:
-                    return false;
-            }
+            return operation is ICompoundAssignmentOperation or ICoalesceAssignmentOperation;
         }
 
         public static bool IsInsideCatchRegion(this IOperation operation, ControlFlowGraph cfg)
