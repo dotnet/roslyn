@@ -164,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _threadingContext.ThrowIfNotOnUIThread();
 
             if (!e.NewPosition.Equals(e.OldPosition))
-                _viewModel.ExpandAndSelectItemAtCaretPosition(e.NewPosition);
+                _viewModel.ExpandAndSelectItemAtCaretPosition();
         }
 
         int IVsCodeWindowEvents.OnNewView(IVsTextView textView)
