@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         public EditAndContinueTest(CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework targetFramework = TargetFramework.Standard)
         {
-            _options = options;
+            _options = options ?? TestOptions.DebugDll;
             _targetFramework = targetFramework;
             _parseOptions = parseOptions ?? TestOptions.Regular.WithNoRefSafetyRulesAttribute();
         }

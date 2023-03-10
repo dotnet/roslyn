@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void Constructor_Delete()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -1904,7 +1904,7 @@ class C
         [Fact]
         public void PartialMethod_WithLambda()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: @"
 partial class C
@@ -2242,7 +2242,7 @@ delegate void D([A]int x);
         [Fact]
         public void TypePropertyField_Attributes()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: @"
 enum E
@@ -3084,7 +3084,7 @@ class C
         [Fact]
         public void Property_DeleteAndAdd()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -3214,7 +3214,7 @@ class C
         [Fact]
         public void Property_DeleteAndAdd_ChangeToAutoProp()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -3347,7 +3347,7 @@ class C
         [Fact]
         public void Property_DeleteAndAdd_WithAccessorBodies()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -3472,7 +3472,7 @@ class C
         [Fact]
         public void Property_DeleteAndAdd_OneAccessor()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -3589,7 +3589,7 @@ class C
         [Fact]
         public void Property_ChangeReturnType()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -3787,7 +3787,7 @@ class C
         [Fact]
         public void Property_Rename()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -3985,7 +3985,7 @@ class C
         [Fact]
         public void Indexer_Delete()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -4056,7 +4056,7 @@ class C
         [Fact]
         public void Indexer_ChangeParameterType()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -4345,7 +4345,7 @@ class C
         [Fact]
         public void Event_Delete()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -4418,7 +4418,7 @@ class C
         [Fact]
         public void Event_Rename()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -11189,7 +11189,7 @@ public interface IB
         [Fact]
         public void Operator_Delete()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -14989,7 +14989,7 @@ class C
         [InlineData("T M1<T>() where T : C { return default; }", 0)]
         public void Method_Delete(string methodDef, int parameterCount)
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -15053,7 +15053,7 @@ class C
         [Fact]
         public void Method_AddThenDelete()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -15147,7 +15147,7 @@ class C
         [Fact]
         public void Method_DeleteThenAdd()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -15241,7 +15241,7 @@ class C
         [Fact]
         public void Method_DeleteThenAdd_WithAttributes()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class A : System.Attribute { }
@@ -15378,7 +15378,7 @@ class C
         [Fact]
         public void Method_AddThenDeleteThenAdd()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -15532,7 +15532,7 @@ class C
         [Fact]
         public void Method_Rename_Multiple()
         {
-            using var test = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var test = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -15589,7 +15589,7 @@ class C
         [Fact]
         public void Method_ChangeParameterType()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -15716,7 +15716,7 @@ class C
         [Fact]
         public void Method_ChangeReturnType()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
@@ -15850,7 +15850,7 @@ class C
         [Fact]
         public void Method_InsertAndDeleteParameter()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest()
                 .AddGeneration(
                     source: $$"""
                         class C
