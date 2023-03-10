@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -510,18 +511,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            if (IsFieldLikeEventAccessor(method))
+                            method = GetMethodToCompile(method);
+                            if (method is null)
                             {
                                 continue;
-                            }
-
-                            if (method.IsPartialDefinition())
-                            {
-                                method = method.PartialImplementationPart;
-                                if ((object)method == null)
-                                {
-                                    continue;
-                                }
                             }
 
                             Binder.ProcessedFieldInitializers processedInitializers =
@@ -656,6 +649,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             compilationState.Free();
+        }
+
+        internal static MethodSymbol GetMethodToCompile(MethodSymbol method)
+        {
+            if (IsFieldLikeEventAccessor(method))
+            {
+                return null;
+            }
+
+            if (method.IsPartialDefinition())
+            {
+                return method.PartialImplementationPart;
+            }
+
+            return method;
         }
 
         private void CompileSynthesizedMethods(PrivateImplementationDetails privateImplClass, BindingDiagnosticBag diagnostics)
@@ -854,6 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // https://github.com/dotnet/roslyn/issues/67104: Unify with GenerateMethodBody/SynthesizesLoweredBoundBody
         private void CompileFieldLikeEventAccessor(SourceEventSymbol eventSymbol, bool isAddMethod)
         {
             Debug.Assert(_moduleBeingBuiltOpt != null);
@@ -1073,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (body != null &&
                             ((methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor) ||
-                            methodSymbol is SynthesizedRecordConstructor ||
+                            methodSymbol is SynthesizedPrimaryConstructor ||
                             instrumentation.Kinds.Contains(InstrumentationKind.TestCoverage) ||
                             instrumentation.Kinds.Contains(InstrumentationKindExtensions.LocalStateTracing)))
                         {
@@ -1256,6 +1265,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             boundStatements = ImmutableArray<BoundStatement>.Empty;
 
+                            if (methodSymbol is SynthesizedPrimaryConstructor primaryCtor)
+                            {
+                                IReadOnlyDictionary<ParameterSymbol, FieldSymbol> capturedParameters = primaryCtor.GetCapturedParameters();
+
+                                if (capturedParameters.Count != 0)
+                                {
+                                    // Store parameter values into the corresponding fields as the very first thing in the constructor
+                                    var factory = new SyntheticBoundNodeFactory(methodSymbol, syntax, compilationState, diagsForCurrentMethod);
+                                    var initializers = ArrayBuilder<BoundStatement>.GetInstance(capturedParameters.Count);
+
+                                    foreach (var (parameter, field) in capturedParameters.OrderBy(pair => pair.Key.Ordinal))
+                                    {
+                                        initializers.Add(factory.Assignment(factory.Field(factory.This(), field), factory.Parameter(parameter)));
+                                    }
+
+                                    boundStatements = boundStatements.Insert(
+                                                          0,
+                                                          factory.HiddenSequencePoint(
+                                                              factory.StatementList(initializers.ToImmutableAndFree())));
+                                }
+                            }
+
                             if (analyzedInitializers != null)
                             {
                                 // For test coverage, field initializers are instrumented as part of constructors,
@@ -1316,8 +1347,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 boundStatements = boundStatements.Concat(loweredBodyOpt);
                             }
-
-                            var factory = new SyntheticBoundNodeFactory(methodSymbol, syntax, compilationState, diagsForCurrentMethod);
 
                             hasErrors = diagsForCurrentMethod.HasAnyErrors();
                             SetGlobalErrorIfTrue(hasErrors);
@@ -1757,9 +1786,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             initializersBody ??= GetSynthesizedEmptyBody(method);
 
-            if (method is SynthesizedRecordConstructor recordStructPrimaryCtor && method.ContainingType.IsRecordStruct)
+            if (method is SynthesizedPrimaryConstructor primaryCtor && method.ContainingType.IsStructType())
             {
-                body = BoundBlock.SynthesizedNoLocals(recordStructPrimaryCtor.GetSyntax());
+                body = BoundBlock.SynthesizedNoLocals(primaryCtor.GetSyntax());
                 nullableInitialState = getInitializerState(body);
             }
             else if (method is SourceMemberMethodSymbol sourceMethod)
@@ -1787,7 +1816,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (bodyBinder != null)
                 {
                     importChain = bodyBinder.ImportChain;
+
+#if DEBUG
+                    InMethodBinder? inMethodBinder;
+                    ConcurrentDictionary<IdentifierNameSyntax, int>? identifierMap;
+                    buildIdentifierMapOfBindIdentifierTargets(syntaxNode, bodyBinder, out inMethodBinder, out identifierMap);
+#endif
+
                     BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
+
+#if DEBUG
+                    assertBindIdentifierTargets(inMethodBinder, identifierMap, methodBody, diagnostics);
+#endif
+
                     BoundNode methodBodyForSemanticModel = methodBody;
                     NullableWalker.SnapshotManager? snapshotManager = null;
                     ImmutableDictionary<Symbol, Symbol>? remappedSymbols = null;
@@ -1888,6 +1929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var property = sourceMethod.AssociatedSymbol as SourcePropertySymbolBase;
                     if (property is not null && property.IsAutoPropertyWithGetAccessor)
                     {
+                        // https://github.com/dotnet/roslyn/issues/67104: Unify with GenerateMethodBody/SynthesizesLoweredBoundBody
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
                     }
 
@@ -1965,6 +2007,194 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return null;
             }
+
+#if DEBUG
+            // Predict all identifiers in the body that should go through Binder.BindIdentifier method
+            static void buildIdentifierMapOfBindIdentifierTargets(
+                CSharpSyntaxNode syntaxNode, Binder bodyBinder,
+                out InMethodBinder? inMethodBinder, out ConcurrentDictionary<IdentifierNameSyntax, int>? identifierMap)
+            {
+                inMethodBinder = null;
+                identifierMap = null;
+
+                switch (syntaxNode)
+                {
+                    case BaseMethodDeclarationSyntax:
+                    case AccessorDeclarationSyntax:
+                    case ArrowExpressionClauseSyntax:
+
+                        Binder current = bodyBinder;
+                        while (current is not InMethodBinder)
+                        {
+                            current = current.Next!;
+                        }
+
+                        inMethodBinder = (InMethodBinder)current;
+                        identifierMap = new ConcurrentDictionary<IdentifierNameSyntax, int>(ReferenceEqualityComparer.Instance);
+
+                        switch (syntaxNode)
+                        {
+                            case ConstructorDeclarationSyntax s:
+                                addIdentifiers(s.Initializer, identifierMap);
+                                addIdentifiers(s.Body, identifierMap);
+                                addIdentifiers(s.ExpressionBody, identifierMap);
+                                break;
+
+                            case BaseMethodDeclarationSyntax s:
+                                addIdentifiers(s.Body, identifierMap);
+                                addIdentifiers(s.ExpressionBody, identifierMap);
+                                break;
+
+                            case AccessorDeclarationSyntax s:
+                                addIdentifiers(s.Body, identifierMap);
+                                addIdentifiers(s.ExpressionBody, identifierMap);
+                                break;
+
+                            case ArrowExpressionClauseSyntax s:
+                                addIdentifiers(s, identifierMap);
+                                break;
+
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(syntaxNode);
+                        }
+
+                        Interlocked.CompareExchange(ref inMethodBinder.IdentifierMap, identifierMap, null);
+                        break;
+                }
+            }
+
+            static void addIdentifiers(CSharpSyntaxNode? node, ConcurrentDictionary<IdentifierNameSyntax, int> identifierMap)
+            {
+                if (node is null)
+                {
+                    return;
+                }
+
+                var ids = node.DescendantNodes(
+                    descendIntoChildren: static (n) =>
+                    {
+                        switch (n)
+                        {
+                            case MemberBindingExpressionSyntax:
+                            case BaseExpressionColonSyntax:
+                            case NameEqualsSyntax:
+                            case GotoStatementSyntax { RawKind: (int)SyntaxKind.GotoStatement }:
+                            case TypeParameterConstraintClauseSyntax:
+                            case AliasQualifiedNameSyntax:
+                                // These nodes do not have anything interesting for us
+                                return false;
+
+                            case ExpressionSyntax expression:
+                                if (SyntaxFacts.IsInTypeOnlyContext(expression) &&
+                                    !(expression.Parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.IsExpression } isExpression &&
+                                      isExpression.Right == expression))
+                                {
+                                    return false;
+                                }
+                                break;
+                        }
+
+                        return true;
+                    },
+                    descendIntoTrivia: false
+                    ).OfType<IdentifierNameSyntax>().Where(
+                    static (id) =>
+                    {
+                        switch (id.Parent)
+                        {
+                            case MemberAccessExpressionSyntax memberAccess:
+                                if (memberAccess.Expression != id)
+                                {
+                                    return false;
+                                }
+                                break;
+
+                            case QualifiedNameSyntax qualifiedName:
+                                if (qualifiedName.Left != id)
+                                {
+                                    return false;
+                                }
+                                break;
+
+                            case AssignmentExpressionSyntax assignment:
+                                if (assignment.Left == id &&
+                                    assignment.Parent?.Kind() is SyntaxKind.ObjectInitializerExpression or SyntaxKind.WithInitializerExpression)
+                                {
+                                    return false;
+                                }
+                                break;
+                        }
+
+                        if (SyntaxFacts.IsInTypeOnlyContext(id) &&
+                            !(id.Parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.IsExpression } isExpression &&
+                                isExpression.Right == id))
+                        {
+                            return false;
+                        }
+
+                        return true;
+                    }
+                    );
+
+                foreach (var id in ids)
+                {
+                    identifierMap.Add(id, 1);
+                }
+            }
+
+            // Confirm that our prediction was accurate enough.
+            // Correctness of SynthesizedPrimaryConstructor.GetCapturedParameters depends on this.
+            static void assertBindIdentifierTargets(InMethodBinder? inMethodBinder, ConcurrentDictionary<IdentifierNameSyntax, int>? identifierMap, BoundNode methodBody, BindingDiagnosticBag diagnostics)
+            {
+                if (identifierMap != null && inMethodBinder!.IdentifierMap == identifierMap)
+                {
+                    inMethodBinder.IdentifierMap = null;
+
+                    if (!diagnostics.HasAnyResolvedErrors())
+                    {
+                        foreach (var (id, flags) in identifierMap)
+                        {
+                            if (flags != (1 | 2))
+                            {
+                                if (id.IsMissing)
+                                {
+                                    continue;
+                                }
+
+                                if (flags == 1)
+                                {
+                                    CSharpSyntaxNode child = id;
+                                    var parent = child.Parent;
+
+                                    while (parent is QualifiedNameSyntax qualifiedName)
+                                    {
+                                        child = qualifiedName;
+                                        parent = child.Parent;
+                                    }
+
+                                    if (parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.IsExpression } isExpression && isExpression.Right == child)
+                                    {
+                                        continue;
+                                    }
+
+                                    if (id.Parent is InvocationExpressionSyntax invocation && invocation.Expression == id && invocation.MayBeNameofOperator())
+                                    {
+                                        continue;
+                                    }
+
+                                    if (UnboundLambdaFinder.FoundInUnboundLambda(methodBody, id))
+                                    {
+                                        continue;
+                                    }
+                                }
+
+                                Debug.Assert(false);
+                            }
+                        }
+                    }
+                }
+            }
+#endif
         }
 
 #if DEBUG
@@ -1984,6 +2214,50 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private sealed class EmptyRewriter : BoundTreeRewriterWithStackGuard
         {
+        }
+
+        private sealed class UnboundLambdaFinder : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            private bool _found;
+            private readonly IdentifierNameSyntax _id;
+
+            private UnboundLambdaFinder(IdentifierNameSyntax id)
+            {
+                _id = id;
+            }
+
+            public static bool FoundInUnboundLambda(BoundNode methodBody, IdentifierNameSyntax id)
+            {
+                var walker = new UnboundLambdaFinder(id);
+                walker.Visit(methodBody);
+                return walker._found;
+            }
+
+            public override BoundNode? VisitUnboundLambda(UnboundLambda node)
+            {
+                if (!LambdaUtilities.TryGetLambdaBodies(node.Syntax, out var body1, out var body2))
+                {
+                    return base.VisitUnboundLambda(node);
+                }
+
+                if (body1?.DescendantNodesAndSelf().Where(n => (object)n == _id).Any() == true ||
+                    body2?.DescendantNodesAndSelf().Where(n => (object)n == _id).Any() == true)
+                {
+                    _found = true;
+                }
+
+                return node;
+            }
+
+            public override BoundNode? Visit(BoundNode? node)
+            {
+                if (_found)
+                {
+                    return node;
+                }
+
+                return base.Visit(node);
+            }
         }
 #endif
 #nullable disable

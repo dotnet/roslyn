@@ -144,16 +144,23 @@ ValueC = 257 // Out of underlying range
         [WorkItem(539167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539167")]
         // No enum-body 
         [Fact]
-        public void CS1514ERR_LbraceExpected_NoEnumBody()
+        public void NoEnumBody_01()
         {
             var text =
 @"enum Figure ;";
             VerifyEnumsValue(text, "Figure");
             var comp = CreateCompilation(text);
-            // Same errors as parsing "class Name ;".
-            DiagnosticsUtils.VerifyErrorCodesNoLineColumn(comp.GetDiagnostics(),
-                new ErrorDescription { Code = (int)ErrorCode.ERR_LbraceExpected },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_RbraceExpected });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NoEnumBody_02()
+        {
+            var text =
+@"enum Figure : int ;";
+            VerifyEnumsValue(text, "Figure");
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

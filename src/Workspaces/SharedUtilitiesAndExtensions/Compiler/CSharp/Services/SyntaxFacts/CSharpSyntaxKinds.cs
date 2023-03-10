@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int StringLiteralExpression => (int)SyntaxKind.StringLiteralExpression;
         public int TrueLiteralExpression => (int)SyntaxKind.TrueLiteralExpression;
 
+        public int AddressOfExpression => (int)SyntaxKind.AddressOfExpression;
         public int AnonymousObjectCreationExpression => (int)SyntaxKind.AnonymousObjectCreationExpression;
         public int ArrayCreationExpression => (int)SyntaxKind.ArrayCreationExpression;
         public int AwaitExpression => (int)SyntaxKind.AwaitExpression;

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.CodeStyle;
 
 #if CODE_STYLE
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
@@ -76,8 +77,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
     internal static class FormattingOptionGroups
     {
-        private const string name = "Formatting";
-        public static readonly OptionGroup IndentationAndSpacing = new(name: name, description: WorkspacesResources.Indentation_and_spacing, priority: 1);
-        public static readonly OptionGroup NewLine = new(name: name, description: WorkspacesResources.New_line_preferences, priority: 2);
+        public static readonly OptionGroup FormattingOptionGroup = new(name: "formatting", description: "", parent: CodeStyleOptionGroups.CodeStyle);
+        public static readonly OptionGroup IndentationAndSpacing = new(name: "indentation_and_spacing", description: WorkspacesResources.Indentation_and_spacing, priority: 1, parent: FormattingOptionGroup);
+        public static readonly OptionGroup NewLine = new(name: "new_line", description: WorkspacesResources.New_line_preferences, priority: 2, parent: FormattingOptionGroup);
     }
 }

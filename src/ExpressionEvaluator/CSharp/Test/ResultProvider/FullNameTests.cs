@@ -247,7 +247,7 @@ class C
             Assert.Equal("a  +  b, ac, raw", root.FullName);
         }
 
-        [Fact, WorkItem(1022165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022165")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022165")]
         public void Keywords_Root()
         {
             var source = @"
@@ -962,6 +962,7 @@ namespace @namespace
             Assert.Equal("myClass", fullNameProvider.GetClrNameForField(inspectionContext, new DkmClrRuntimeInstance(assembly).Modules[0], fieldToken));
         }
 
+        // https://github.com/dotnet/roslyn/issues/67107: should clone this test for parameter backing field
         [Fact]
         public void MangledName_SimplifyBackingField()
         {

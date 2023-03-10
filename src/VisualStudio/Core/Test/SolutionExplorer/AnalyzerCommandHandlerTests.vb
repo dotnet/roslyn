@@ -11,7 +11,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
     Public Class AnalyzerCommandHandlerTests
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        <WorkItem(36304, "https://github.com/dotnet/roslyn/issues/36304")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/36304")>
         Public Sub TestLazyInitialization()
             Dim descriptor = New DiagnosticDescriptor(
                 id:="TST0001",

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             _innerDynamicFileInfoProvider = innerDynamicFileInfoProvider ?? throw new ArgumentNullException(nameof(innerDynamicFileInfoProvider));
         }
 
-        public async Task<DynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
+        public async Task<DynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
         {
             // We lazily attach to the dynamic file info provider in order to ensure that Razor assemblies are not loaded in non-Razor contexts.
             if (!EnsureAttached())
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             return dynamicFileInfo;
         }
 
-        public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
+        public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
         {
             if (_innerDynamicFileInfoProvider == null)
             {
