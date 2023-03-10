@@ -113,7 +113,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     {
         private readonly ILanguageServiceBroker2 _languageServiceBroker;
         private readonly ITaggerEventSource _taggerEventSource;
-        private readonly ITextView _textView;
         private readonly ITextBuffer _textBuffer;
         private readonly IThreadingContext _threadingContext;
         private readonly CancellationTokenSource _cancellationTokenSource;
