@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         foreach (var local in _localsForBindingOutside)
                         {
                             if (!itemsAdded.Contains(local.Name) &&
-                                !_locals.Any((l, name) => l.Name == name, local.Name)) // Not captured locals inside the method shadow outside locals
+                                !_locals.Any(static (l, name) => l.Name == name, local.Name)) // Not captured locals inside the method shadow outside locals
                             {
                                 AppendLocalAndMethod(localBuilder, methodBuilder, local, container, localIndex, GetLocalResultFlags(local));
                             }
