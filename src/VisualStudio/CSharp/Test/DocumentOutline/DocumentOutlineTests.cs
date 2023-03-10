@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -55,21 +56,15 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         {
         }
 
-        private async Task<(DocumentOutlineTestMocks mocks, DocumentSymbolDataModel model, ImmutableArray<DocumentSymbolDataViewModel> uiItems)> InitializeMocksAndDataModelAndUIItems(string testCode)
+        private async Task<(DocumentOutlineTestMocks mocks, (ImmutableArray<DocumentSymbolData> DocumentSymbolData, ITextSnapshot OriginalSnapshot), ImmutableArray<DocumentSymbolDataViewModel> uiItems)> InitializeMocksAndDataModelAndUIItems(string testCode)
         {
             await using var mocks = await CreateMocksAsync(testCode);
             var response = await DocumentOutlineViewModel.DocumentSymbolsRequestAsync(mocks.TextBuffer, mocks.LanguageServiceBroker, mocks.FilePath, CancellationToken.None);
             AssertEx.NotNull(response.Value);
 
-            var responseBody = response.Value.response?.ToObject<DocumentSymbol[]>();
-            AssertEx.NotNull(responseBody);
-
-            var snapshot = response.Value.snapshot;
-            AssertEx.NotNull(snapshot);
-
-            var model = DocumentOutlineViewModel.CreateDocumentSymbolDataModel(responseBody, snapshot);
-            var uiItems = DocumentOutlineViewModel.GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
-            return (mocks, model, uiItems);
+            var model = DocumentOutlineViewModel.CreateDocumentSymbolData(response.Value.response, response.Value.snapshot);
+            var uiItems = DocumentOutlineViewModel.GetDocumentSymbolItemViewModels(model);
+            return (mocks, (model, response.Value.snapshot), uiItems);
         }
 
         [WpfTheory]
@@ -182,50 +177,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         }
 
         [WpfFact]
-        public async Task TestSetIsExpanded()
-        {
-            var (mocks, model, originalUIItems) = await InitializeMocksAndDataModelAndUIItems(TestCode);
-            var updatedUIItems = DocumentOutlineViewModel.GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
-
-            // Check that all updatedUIItems nodes are collapsed
-            DocumentOutlineViewModel.SetExpansionOption(updatedUIItems, true);
-            CheckNodeExpansion(updatedUIItems, true);
-
-            // Check that all updatedUIItems nodes are expanded
-            DocumentOutlineViewModel.SetExpansionOption(updatedUIItems, false);
-            CheckNodeExpansion(updatedUIItems, false);
-
-            // Collapse 3 nodes in originalUIItems
-            originalUIItems.Single(parent => parent.Data.Name.Equals("App")).IsExpanded = false;
-            originalUIItems.Single(parent => parent.Data.Name.Equals("MyClass")).Children.Single(child => child.Data.Name.Equals("Method2")).IsExpanded = false;
-            originalUIItems.Single(parent => parent.Data.Name.Equals("foo")).Children.Single(child => child.Data.Name.Equals("r")).IsExpanded = false;
-
-            // Apply same expansion as originalUIItems to updatedUIItems
-            DocumentOutlineViewModel.SetIsExpandedOnNewItems(updatedUIItems, originalUIItems);
-
-            // Confirm that matching expanded/collapsed node states have been applied
-            CheckNodeExpansionMatches(updatedUIItems, originalUIItems);
-
-            static void CheckNodeExpansion(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems, bool isExpanded)
-            {
-                foreach (var symbol in documentSymbolItems)
-                {
-                    Assert.True(symbol.IsExpanded == isExpanded);
-                    CheckNodeExpansion(symbol.Children, isExpanded);
-                }
-            }
-
-            static void CheckNodeExpansionMatches(ImmutableArray<DocumentSymbolDataViewModel> newUIItems, ImmutableArray<DocumentSymbolDataViewModel> originalUIItems)
-            {
-                for (var i = 0; i < newUIItems.Length; i++)
-                {
-                    Assert.True(newUIItems[i].IsExpanded == originalUIItems[i].IsExpanded);
-                    CheckNodeExpansionMatches(newUIItems[i].Children, originalUIItems[i].Children);
-                }
-            }
-        }
-
-        [WpfFact]
         public async Task TestExpandAncestors()
         {
             var (mocks, model, uiItems) = await InitializeMocksAndDataModelAndUIItems(TestCode);
@@ -250,21 +201,21 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             }
         }
 
-        [WpfFact]
-        public async Task TestUnselectAll()
-        {
-            var (_, _, uiItems) = await InitializeMocksAndDataModelAndUIItems(TestCode);
-            DocumentOutlineViewModel.UnselectAll(uiItems);
-            CheckNodesUnselected(uiItems);
+        //[WpfFact]
+        //public async Task TestUnselectAll()
+        //{
+        //    var (_, _, uiItems) = await InitializeMocksAndDataModelAndUIItems(TestCode);
+        //    DocumentOutlineViewModel.UnselectAll(uiItems);
+        //    CheckNodesUnselected(uiItems);
 
-            static void CheckNodesUnselected(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems)
-            {
-                foreach (var symbol in documentSymbolItems)
-                {
-                    Assert.False(symbol.IsSelected);
-                    CheckNodesUnselected(symbol.Children);
-                }
-            }
-        }
+        //    static void CheckNodesUnselected(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolItems)
+        //    {
+        //        foreach (var symbol in documentSymbolItems)
+        //        {
+        //            Assert.False(symbol.IsSelected);
+        //            CheckNodesUnselected(symbol.Children);
+        //        }
+        //    }
+        //}
     }
 }

@@ -393,47 +393,5 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 this.IsNavigating = false;
             }
         }
-
-        //private DocumentOutlineViewState ComputeNewViewModelState(
-        //    DocumentOutlineViewState lastViewState,
-        //    ITextSnapshot textSnapshot,
-        //    ImmutableArray<DocumentSymbolData> data,
-        //    string searchText,
-        //    CancellationToken cancellationToken)
-        //{
-
-        //    // Now that we've made all our changes, record that we've done so so we can see what has changed when future requests come in.
-        //    // note: we are safe to record this on the BG as we are called serially and are the only place to read/write it.
-
-        //    // Jump back to UI thread to set the current data.
-        //    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-        //    _lastPresentedData_onlyAccessSerially = (model, searchText, currentViewModelItems);
-
-        //    return;
-        //}
-
-        /// <summary>
-        /// Updates the IsExpanded property for the Document Symbol ViewModel based on the given Expansion Option. The parameter
-        /// <param name="currentDocumentSymbolItems"/> is used to reference the current node expansion in the view.
-        /// </summary>
-        public static void SetIsExpandedOnNewItems(
-            ImmutableArray<DocumentSymbolDataViewModel> newDocumentSymbolItems,
-            ImmutableArray<DocumentSymbolDataViewModel> currentDocumentSymbolItems)
-        {
-            using var _ = PooledHashSet<DocumentSymbolDataViewModel>.GetInstance(out var hashSet);
-            hashSet.AddRange(newDocumentSymbolItems);
-
-            foreach (var item in currentDocumentSymbolItems)
-            {
-                if (!hashSet.TryGetValue(item, out var newItem))
-                {
-                    continue;
-                }
-
-                // Setting a boolean property on this View Model is allowed to happen on any thread.
-                newItem.IsExpanded = item.IsExpanded;
-                SetIsExpandedOnNewItems(newItem.Children, item.Children);
-            }
-        }
     }
 }
