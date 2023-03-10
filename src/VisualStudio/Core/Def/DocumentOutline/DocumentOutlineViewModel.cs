@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Mutable state.  only accessed from UpdateViewModelStateAsync though.  Since that executes serially, it does not need locking.
         /// </summary>
-        private DocumentOutlineViewState _lastViewState;
+        private DocumentOutlineViewState _lastViewState_onlyAccessFromUIThread;
 
         public DocumentOutlineViewModel(
             ILanguageServiceBroker2 languageServiceBroker,
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _threadingContext = threadingContext;
 
             var currentSnapshot = textBuffer.CurrentSnapshot;
-            _lastViewState = new DocumentOutlineViewState(
+            _lastViewState_onlyAccessFromUIThread = new DocumentOutlineViewState(
                 currentSnapshot,
                 ImmutableArray<DocumentSymbolData>.Empty,
                 this.SearchText,
@@ -300,70 +300,56 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // Now, go back to the UI and grab the prior view state we set, and the current UI values we want to update the data with.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            // Now that we produced a new model, kick off the work to present it to the UI.
-            _updateViewModelStateQueue.AddWork(item: null);
-
-            return model;
-        }
-
-        private async ValueTask UpdateViewModelStateAsync(ImmutableSegmentedList<bool?> viewModelStateData, CancellationToken cancellationToken)
-        {
-            // just to UI thread to get the last UI state we presented.
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             var searchText = this.SearchText;
             var caretPoint = _textView.Caret.Position.BufferPosition;
-            var lastPresentedData = _lastPresentedData_onlyAccessSerially;
+            var lastPresentedData = _lastViewState_onlyAccessFromUIThread;
 
             // Jump back to the BG to do all our work.
             await TaskScheduler.Default;
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Grab the last computed model.  We can compare it to what we previously presented to see if it's changed.
-            var model = await _documentSymbolQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false) ?? _emptyModel;
+            var newViewState = ComputeNewViewModelState(
+                lastPresentedData, textSnapshot, rawData, searchText, cancellationToken);
 
-            var expansion = viewModelStateData.LastOrDefault(b => b != null);
+            // Now, go back to the UI and set this as our current state.
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            _lastViewState_onlyAccessFromUIThread = newViewState;
 
-            var modelChanged = model != lastPresentedData.model;
-            var searchTextChanged = searchText != lastPresentedData.searchText;
-            var lastViewModelItems = lastPresentedData.viewModelItems;
+            // Finally, select the appropriate item based on the users current position.
+            SelectItemBasedOnCaretPosition();
+        }
+
+        private DocumentOutlineViewState ComputeNewViewModelState(
+            DocumentOutlineViewState lastViewState,
+            ITextSnapshot textSnapshot,
+            ImmutableArray<DocumentSymbolData> data,
+            string searchText,
+            CancellationToken cancellationToken)
+        {
+            var searchTextChanged = searchText != lastViewState.SearchText;
+            var lastViewModelItems = lastViewState.ViewModelItems;
 
             ImmutableArray<DocumentSymbolDataViewModel> currentViewModelItems;
 
             // if we got new data or the user changed the search text, recompute our items to correspond to this new state.
-            if (modelChanged || searchTextChanged)
-            {
                 // Apply whatever the current search text is to what the model returned, and produce the new items.
-                currentViewModelItems = GetDocumentSymbolItemViewModels(
-                    SearchDocumentSymbolData(model.DocumentSymbolData, searchText, cancellationToken));
+            var  newViewModelItems = GetDocumentSymbolItemViewModels(
+                SearchDocumentSymbolData(data, searchText, cancellationToken));
 
-                // If the search text changed, just show everything in expanded form, so the user can see everything
-                // that matched, without anything being hidden.
-                //
-                // in the case of no search text change, attempt to keep the same open/close expansion state from before.
-                if (!searchTextChanged)
-                {
-                    ApplyExpansionStateToNewItems(
-                        oldSnapshot: lastPresentedData.model.OriginalSnapshot,
-                        newSnapshot: model.OriginalSnapshot,
-                        oldItems: lastViewModelItems,
-                        newItems: currentViewModelItems);
-                }
-            }
-            else
+            // If the search text changed, just show everything in expanded form, so the user can see everything
+            // that matched, without anything being hidden.
+            //
+            // in the case of no search text change, attempt to keep the same open/close expansion state from before.
+            if (!searchTextChanged)
             {
-                // Model didn't change and search text didn't change.  Keep what we have, and only figure out what to
-                // select/expand below.
-                currentViewModelItems = lastViewModelItems;
+                ApplyExpansionStateToNewItems(
+                    oldSnapshot: lastPresentedData.model.OriginalSnapshot,
+                    newSnapshot: model.OriginalSnapshot,
+                    oldItems: lastViewModelItems,
+                    newItems: currentViewModelItems);
             }
 
-            // If we aren't filtering to search results do expand/collapse
-            if (expansion != null)
-                SetExpansionOption(currentViewModelItems, expansion.Value);
-
-            // If we produced new items, then let wpf know so it can update hte UI.
-            if (currentViewModelItems != lastViewModelItems)
-                this.DocumentSymbolViewModelItems = currentViewModelItems;
+            this.DocumentSymbolViewModelItems = currentViewModelItems;
 
             // Now that we've made all our changes, record that we've done so so we can see what has changed when future requests come in.
             // note: we are safe to record this on the BG as we are called serially and are the only place to read/write it.
