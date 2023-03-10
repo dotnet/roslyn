@@ -64,6 +64,35 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _codeWindowEventsSink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
         }
 
+        public void Dispose()
+        {
+            _viewModel.Dispose();
+            _codeWindowEventsSink.Unadvise();
+        }
+
+        int IVsCodeWindowEvents.OnNewView(IVsTextView textView)
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
+
+            return StartTrackingView(textView);
+        }
+
+        int IVsCodeWindowEvents.OnCloseView(IVsTextView textView)
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
+
+            if (_trackedTextViews.TryGetValue(textView, out var view))
+            {
+                // In the split window case, there's two views (each with its own caret position) but only one text buffer.
+                // Unsubscribe to caret position changes once per view.
+                view.Caret.PositionChanged -= Caret_PositionChanged;
+
+                _trackedTextViews.Remove(textView);
+            }
+
+            return VSConstants.S_OK;
+        }
+
         private int StartTrackingView(IVsTextView textView)
         {
             _threadingContext.ThrowIfNotOnUIThread();
@@ -165,35 +194,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             if (!e.NewPosition.Equals(e.OldPosition))
                 _viewModel.ExpandAndSelectItemAtCaretPosition();
-        }
-
-        int IVsCodeWindowEvents.OnNewView(IVsTextView textView)
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
-
-            return StartTrackingView(textView);
-        }
-
-        int IVsCodeWindowEvents.OnCloseView(IVsTextView textView)
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
-
-            if (_trackedTextViews.TryGetValue(textView, out var view))
-            {
-                // In the split window case, there's two views (each with its own caret position) but only one text buffer.
-                // Unsubscribe to caret position changes once per view.
-                view.Caret.PositionChanged -= Caret_PositionChanged;
-
-                _trackedTextViews.Remove(textView);
-            }
-
-            return VSConstants.S_OK;
-        }
-
-        public void Dispose()
-        {
-            _viewModel.Dispose();
-            _codeWindowEventsSink.Unadvise();
         }
     }
 }
