@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -85,6 +86,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(isPartialAnalysis || FilterSpanOpt == null);
             Debug.Assert(isPartialAnalysis || !isSyntacticSingleFileAnalysis);
 
+            if (filterSpanOpt.HasValue)
+            {
+                Debug.Assert(filterFile.HasValue);
+                Debug.Assert(filterFile.Value.SourceTree != null);
+                Debug.Assert(filterSpanOpt.Value.Length <= filterFile.Value.SourceTree.Length);
+
+                // PERF: Clear out filter span if the span length is equal to the entire tree span.
+                //       We are basically analyzing the entire tree, and clearing out the filter span
+                //       avoids span intersection checks for each symbol/node/operation in the tree
+                //       to determine if it falls in the analysis scope.
+                if (filterSpanOpt.Value.Length == filterFile.Value.SourceTree.Length)
+                {
+                    filterSpanOpt = null;
+                }
+            }
+
             SyntaxTrees = trees;
             AdditionalFiles = additionalFiles;
             Analyzers = analyzers;
@@ -117,6 +134,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new AnalysisScope(SyntaxTrees, AdditionalFiles, analyzers, isPartialAnalysis, FilterFileOpt, FilterSpanOpt, IsSyntacticSingleFileAnalysis, ConcurrentAnalysis, CategorizeDiagnostics);
         }
 
+        public AnalysisScope WithFilterSpan(TextSpan? filterSpan)
+            => new(SyntaxTrees, AdditionalFiles, Analyzers, IsPartialAnalysis, FilterFileOpt, filterSpan, IsSyntacticSingleFileAnalysis, ConcurrentAnalysis, CategorizeDiagnostics);
+
         public static bool ShouldSkipSymbolAnalysis(SymbolDeclaredCompilationEvent symbolEvent)
         {
             // Skip symbol actions for implicitly declared symbols and non-source symbols.
@@ -140,7 +160,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return !FilterFileOpt.HasValue || FilterFileOpt.Value.AdditionalFile == file;
         }
 
-        public bool ShouldAnalyze(ISymbol symbol)
+        public bool ShouldAnalyze(
+            SymbolDeclaredCompilationEvent symbolEvent,
+            Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopmostNodeForAnalysis,
+            CancellationToken cancellationToken)
         {
             if (!FilterFileOpt.HasValue)
             {
@@ -152,11 +175,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            foreach (var location in symbol.Locations)
+            foreach (var syntaxRef in symbolEvent.DeclaringSyntaxReferences)
             {
-                if (FilterFileOpt.Value.SourceTree == location.SourceTree && ShouldInclude(location.SourceSpan))
+                if (syntaxRef.SyntaxTree == FilterFileOpt.Value.SourceTree)
                 {
-                    return true;
+                    var node = getTopmostNodeForAnalysis(symbolEvent.Symbol, syntaxRef, symbolEvent.Compilation, cancellationToken);
+                    if (ShouldInclude(node.FullSpan))
+                    {
+                        return true;
+                    }
                 }
             }
 
