@@ -165,7 +165,7 @@
             <TreeView.ItemContainerStyle>
                 <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewItemStyleKey}}">
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay, NotifyOnTargetUpdated=True, NotifyOnSourceUpdated=False}" />
                     <Setter Property="Padding" Value="4, 0, 6, 1" />
                     <Setter Property="Margin" Value="0, 0, 0, 1" />
                 </Style>

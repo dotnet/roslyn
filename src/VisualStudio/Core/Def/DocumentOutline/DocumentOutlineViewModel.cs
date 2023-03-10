@@ -289,8 +289,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Actually update our view items (wpf will take care of rerendering efficiently).
-            this.DocumentSymbolViewModelItems = newViewModelItems;
+            ExpandAndSelectItemAtCaretPosition(_textView.Caret.Position, intervalTree);
             _lastViewState_onlyAccessFromUIThread = newViewState;
+
+            this.DocumentSymbolViewModelItems = newViewModelItems;
 
             // Finally, select the appropriate item based on the users current position.
             // ExpandAndSelectItemAtCaretPosition(_textView.Caret.Position);
@@ -364,6 +366,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         public void ExpandAndSelectItemAtCaretPosition(CaretPosition position)
         {
             _threadingContext.ThrowIfNotOnUIThread();
+            ExpandAndSelectItemAtCaretPosition(position, _lastViewState_onlyAccessFromUIThread.ViewModelItemsTree);
+        }
+
+        public void ExpandAndSelectItemAtCaretPosition(
+            CaretPosition position,
+            IntervalTree<DocumentSymbolDataViewModel> modelTree)
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
 
             if (this.IsNavigating)
                 return;
@@ -371,22 +381,22 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             this.IsNavigating = true;
             try
             {
-                var models = _lastViewState_onlyAccessFromUIThread.ViewModelItemsTree.GetIntervalsThatIntersectWith(
+                var intersectingModels = modelTree.GetIntervalsThatIntersectWith(
                     position.BufferPosition.Position, 0, new IntervalIntrospector(_textBuffer.CurrentSnapshot));
 
-                if (models.Length == 0)
+                if (intersectingModels.Length == 0)
                     return;
 
                 // Order from smallest to largest.  The smallest is the innermost and should be the one we actually select.
                 // The others are the parents and we should expand those so the innermost one is visible.
-                models = models.Sort(static (m1, m2) =>
+                intersectingModels = intersectingModels.Sort(static (m1, m2) =>
                 {
                     return m1.Data.RangeSpan.Span.Length - m2.Data.RangeSpan.Span.Length;
                 });
 
-                models[0].IsSelected = true;
-                for (var i = 1; i < models.Length; i++)
-                    models[i].IsExpanded = true;
+                intersectingModels[0].IsSelected = true;
+                for (var i = 1; i < intersectingModels.Length; i++)
+                    intersectingModels[i].IsExpanded = true;
             }
             finally
             {
