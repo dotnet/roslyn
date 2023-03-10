@@ -4300,23 +4300,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class RefSafetyAnalysis
     {
-        private void ValidateRefConditionalOperator(SyntaxNode node, BoundExpression trueExpr, BoundExpression falseExpr, BindingDiagnosticBag diagnostics)
+        private void ValidateRefConditionalOperator(SyntaxNode node, Result whenTrueResult, Result whenFalseResult)
         {
-            var currentScope = _localScopeDepth;
-
             // val-escape must agree on both branches.
-            uint whenTrueEscape = GetValEscape(trueExpr, currentScope);
-            uint whenFalseEscape = GetValEscape(falseExpr, currentScope);
+            uint whenTrueEscape = whenTrueResult.ValEscapeScope;
+            uint whenFalseEscape = whenFalseResult.ValEscapeScope;
 
             if (whenTrueEscape != whenFalseEscape)
             {
                 // ask the one with narrower escape, for the wider - hopefully the errors will make the violation easier to fix.
                 if (whenTrueEscape < whenFalseEscape)
-                    CheckValEscape(falseExpr.Syntax, falseExpr, currentScope, whenTrueEscape, checkingReceiver: false, diagnostics: diagnostics);
+                    ReportRefEscapeErrors(whenFalseResult.GetValResult(), whenTrueEscape);
                 else
-                    CheckValEscape(trueExpr.Syntax, trueExpr, currentScope, whenFalseEscape, checkingReceiver: false, diagnostics: diagnostics);
+                    ReportRefEscapeErrors(whenTrueResult.GetValResult(), whenFalseEscape);
 
-                diagnostics.Add(_inUnsafeRegion ? ErrorCode.WRN_MismatchedRefEscapeInTernary : ErrorCode.ERR_MismatchedRefEscapeInTernary, node.Location);
+                _diagnostics.Add(_inUnsafeRegion ? ErrorCode.WRN_MismatchedRefEscapeInTernary : ErrorCode.ERR_MismatchedRefEscapeInTernary, node.Location);
             }
         }
     }

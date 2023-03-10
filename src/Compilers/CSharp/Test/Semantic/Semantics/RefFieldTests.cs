@@ -20592,7 +20592,7 @@ class C
         }
 
         [Fact]
-        public void RefInitializer_Nested()
+        public void RefInitializer_Nested_01()
         {
             var source = @"
 class C
@@ -20638,6 +20638,35 @@ ref struct Item
   IL_002a:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void RefInitializer_Nested_02()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        int x = 42;
+        Container r;
+        r = new Container { item = { field = ref x } };
+    }
+}
+ref struct Container
+{
+    public Item item;
+}
+ref struct Item
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (7,38): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         r = new Container { item = { field = ref x } };
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(7, 38));
         }
 
         [Fact]
@@ -21333,6 +21362,35 @@ public ref struct R
                 //         r = new R() with { field = ref x }; // 4
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(36, 28)
                 );
+        }
+
+        [Fact]
+        public void RefWith_Nested()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        int x = 42;
+        Container r;
+        r = new Container() with { item = new Item { field = ref x } };
+    }
+}
+ref struct Container
+{
+    public Item item;
+}
+ref struct Item
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (7,54): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         r = new Container() with { item = new Item { field = ref x } };
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(7, 54));
         }
 
         [Fact]
@@ -29554,6 +29612,62 @@ Block[B2] - Exit
                 // (27,2): error CS1513: } expected
                 // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(27, 2));
+        }
+
+        [ConditionalFact(typeof(ClrOnly))]
+        public void SpanToString()
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static string F1()
+                    {
+                        Span<char> s = stackalloc char[1];
+                        return s.ToString();
+                    }
+                    static string F2()
+                    {
+                        Span<byte> s = stackalloc byte[2];
+                        return Convert.ToBase64String(s);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        // PROTOTYPE: Use deeply nested calls.
+        [WorkItem(65596, "https://github.com/dotnet/roslyn/issues/65596")]
+        [Fact]
+        public void PROTOTYPE_NestedCalls()
+        {
+            var source = """
+                #pragma warning disable 8321
+
+                static string BuildString(ref Builder<char> builder)
+                {
+                    string name = "";
+                    return builder
+                        .Append(name)
+                        .Append(name)
+                        .Append(name)
+                        .Append(name)
+                        .ToString();
+                }
+
+                ref struct Builder<T>
+                {
+                    public override string ToString() => "";
+                }
+
+                static class Extensions
+                {
+                    public static ref Builder<char> Append(this ref Builder<char> builder, string txt) => ref builder;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
         }
     }
 }
