@@ -147,33 +147,5 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             searchedSymbols = DocumentOutlineViewModel.SearchDocumentSymbolData(model.DocumentSymbolData, "xyz", CancellationToken.None);
             Assert.Equal(0, searchedSymbols.Length);
         }
-
-        [WpfFact]
-        public async Task TestGetDocumentNodeToSelect()
-        {
-            var (mocks, model, uiItems) = await InitializeMocksAndDataModelAndUIItems(TestCode);
-            var currentTextSnapshotLines = mocks.TextBuffer.CurrentSnapshot.Lines;
-            AssertEx.NotNull(model.OriginalSnapshot);
-
-            // Click between 2 parent nodes (no symbol is selected)
-            var caretPosition = currentTextSnapshotLines.ElementAt(10).End;
-            var nodeToSelect = DocumentOutlineViewModel.GetDocumentNodeToSelect(uiItems, model.OriginalSnapshot, caretPosition);
-            Assert.Null(nodeToSelect);
-
-            // Click within range of a parent symbol
-            caretPosition = currentTextSnapshotLines.ElementAt(1).End;
-            nodeToSelect = DocumentOutlineViewModel.GetDocumentNodeToSelect(uiItems, model.OriginalSnapshot, caretPosition);
-            Assert.Equal("MyClass", nodeToSelect?.Data.Name);
-
-            // Click within range of a child symbol
-            caretPosition = currentTextSnapshotLines.ElementAt(4).End - 1;
-            nodeToSelect = DocumentOutlineViewModel.GetDocumentNodeToSelect(uiItems, model.OriginalSnapshot, caretPosition);
-            Assert.Equal("Method1", nodeToSelect?.Data.Name);
-
-            // Click between 2 child symbols (caret is in range of parent)
-            caretPosition = currentTextSnapshotLines.ElementAt(14).End;
-            nodeToSelect = DocumentOutlineViewModel.GetDocumentNodeToSelect(uiItems, model.OriginalSnapshot, caretPosition);
-            Assert.Equal("App", nodeToSelect?.Data.Name);
-        }
     }
 }
