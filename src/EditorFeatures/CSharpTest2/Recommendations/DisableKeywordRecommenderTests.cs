@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class DisableKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [Fact, WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31130")]
         public async Task TestAfterNullable()
             => await VerifyKeywordAsync(@"#nullable $$");
 
-        [Fact, WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31130")]
         public async Task TestNotAfterNullableAndNewline()
         {
             await VerifyAbsenceAsync(@"

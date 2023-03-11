@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
                 """);
         }
 
-        [Fact, WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27006")]
         public async Task TestReferencesWithCopyrightAndPreservableTrivia()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
                 """);
         }
 
-        [Fact, WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27006")]
         public async Task TestReferencesWithCopyrightAndGroupings()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
                 """);
         }
 
-        [Fact, WorkItem(541827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
         public async Task TestExtensionMethodLinq()
         {
             // NOTE: Intentionally not running this test with Script options, because in Script,
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
                 """);
         }
 
-        [Fact, WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")]
         public async Task TestNestedUsedUsings2()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
                 """);
         }
 
-        [Fact, WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")]
         public async Task TestNestedUsedUsings2_FileScopedNamespace()
         {
             await new VerifyCS.Test
@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
                 """);
         }
 
-        [Fact, WorkItem(541817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541817")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541817")]
         public async Task TestComments8718()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -921,7 +921,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
                 """);
         }
 
-        [Fact, WorkItem(528609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528609")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528609")]
         public async Task TestComments()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -970,7 +970,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
                 """);
         }
 
-        [Fact, WorkItem(541827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
         public async Task TestSimpleQuery()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1240,7 +1240,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
                 """);
         }
 
-        [Fact, WorkItem(541817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541817")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541817")]
         public async Task TestRemoveTrailingComment()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1264,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
                 """);
         }
 
-        [Fact, WorkItem(541914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541914")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541914")]
         public async Task TestRemovingUnbindableUsing()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1282,7 +1282,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
                 """);
         }
 
-        [Fact, WorkItem(541937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541937")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541937")]
         public async Task TestAliasInUse()
         {
             var code = """
@@ -1307,7 +1307,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(541914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541914")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541914")]
         public async Task TestRemoveUnboundUsing()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1325,7 +1325,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
                 """);
         }
 
-        [Fact, WorkItem(542016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
         public async Task TestLeadingNewlines1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1353,7 +1353,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
                 """);
         }
 
-        [Fact, WorkItem(542016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
         public async Task TestRemoveLeadingNewLines2()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1387,7 +1387,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
                 """);
         }
 
-        [Fact, WorkItem(542134, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542134")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542134")]
         public async Task TestImportedTypeUsedAsGenericTypeArgument()
         {
             var code = """
@@ -1416,7 +1416,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(542723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542723")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542723")]
         public async Task TestRemoveCorrectUsing1()
         {
             var source = """
@@ -1444,7 +1444,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
             }.RunAsync();
         }
 
-        [Fact, WorkItem(542723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542723")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542723")]
         public async Task TestRemoveCorrectUsing2()
         {
             var code = """
@@ -1482,7 +1482,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
             await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
         }
 
-        [Fact, WorkItem(543000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543000")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543000")]
         public async Task TestMissingWhenErrorsWouldBeGenerated()
         {
             var code = """
@@ -1534,7 +1534,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(544976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544976")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544976")]
         public async Task TestMissingWhenMeaningWouldChangeInLambda()
         {
             var code = """
@@ -1588,7 +1588,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(544976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544976")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544976")]
         public async Task TestCasesWithLambdas1()
         {
             // NOTE: Y is used when speculatively binding "x => x.Goo()".  As such, it is marked as
@@ -1636,7 +1636,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(545646, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545646")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545646")]
         public async Task TestCasesWithLambdas2()
         {
             var code = """
@@ -1691,7 +1691,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(545741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545741")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545741")]
         public async Task TestMissingOnAliasedVar()
         {
             var code = """
@@ -1713,7 +1713,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(546115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546115")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546115")]
         public async Task TestBrokenCode()
         {
             var code = """
@@ -1940,7 +1940,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
             }.RunAsync();
         }
 
-        [Fact, WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")]
         public async Task TestReferenceInCref()
         {
             // Parsing doc comments as simple trivia; we don't know System is unnecessary, but CS8019 is disabled so
@@ -1982,7 +1982,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
             }.RunAsync();
         }
 
-        [Fact, WorkItem(751283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751283")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751283")]
         public async Task TestUnusedUsingOverLinq()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2012,7 +2012,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
                 """);
         }
 
-        [Fact, WorkItem(1323, "https://github.com/dotnet/roslyn/issues/1323")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1323")]
         public async Task TestUsingsInPPRegionWithoutOtherMembers()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2034,7 +2034,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
         [InlineData(3)]
         [InlineData(4)]
         [InlineData(5)]
-        [WorkItem(20377, "https://github.com/dotnet/roslyn/issues/20377")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20377")]
         public async Task TestWarningLevel(int warningLevel)
         {
             var code = """
@@ -2090,7 +2090,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
             }.RunAsync();
         }
 
-        [Fact, WorkItem(58972, "https://github.com/dotnet/roslyn/issues/58972")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58972")]
         public async Task TestWhitespaceBeforeUnusedUsings_FileScopedNamespace()
         {
             await new VerifyCS.Test
@@ -2128,7 +2128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
             }.RunAsync();
         }
 
-        [Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45866")]
         public async Task TestUsingGroups_DeleteLeadingBlankLinesIfFirstGroupWasDeleted_SingleUsing()
         {
             await new VerifyCS.Test
@@ -2162,7 +2162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
             }.RunAsync();
         }
 
-        [Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45866")]
         public async Task TestUsingGroups_DeleteLeadingBlankLinesIfFirstGroupWasDeleted_MultipleUsings()
         {
             await new VerifyCS.Test
@@ -2197,7 +2197,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
             }.RunAsync();
         }
 
-        [Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45866")]
         public async Task TestUsingGroups_NotAllFirstGroupIsDeleted()
         {
             await new VerifyCS.Test
@@ -2236,7 +2236,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
             }.RunAsync();
         }
 
-        [Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45866")]
         public async Task TestUsingGroups_AllLastGroupIsDeleted()
         {
             await new VerifyCS.Test

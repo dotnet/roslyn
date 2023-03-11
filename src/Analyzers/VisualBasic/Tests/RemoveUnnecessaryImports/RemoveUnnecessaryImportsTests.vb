@@ -81,7 +81,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27006")>
         Public Async Function TestReferencesWithCopyrightAndGroupings() As Task
             Await TestInRegularAndScript1Async(
 "[|' Copyright (c) Somebody.
@@ -108,7 +108,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27006")>
         Public Async Function TestReferencesWithCopyrightAndPreservableTrivia() As Task
             Await TestInRegularAndScript1Async(
 "[|' Copyright (c) Somebody.
@@ -304,7 +304,7 @@ End Module|]",
 End Module")
         End Function
 
-        <Fact, WorkItem(541744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541744")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541744")>
         Public Async Function TestCommentsAroundImportsStatement() As Task
             Await TestInRegularAndScript1Async(
 <Text>'c1
@@ -328,7 +328,7 @@ Module Module1
 End Module</Text>.NormalizedValue)
         End Function
 
-        <Fact, WorkItem(541747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541747")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541747")>
         Public Async Function TestAttribute() As Task
             Await TestMissingInRegularAndScriptAsync(
 "[|Imports SomeNamespace
@@ -366,7 +366,7 @@ Public Class SomeAttribute
 End Class|]")
         End Function
 
-        <Fact, WorkItem(541757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541757")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541757")>
         Public Async Function TestImportsSurroundedByDirectives() As Task
             Await TestInRegularAndScript1Async(
 "#If True Then
@@ -380,7 +380,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(541758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541758")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541758")>
         Public Async Function TestRemovingUnbindableImports() As Task
             Await TestInRegularAndScript1Async(
 "[|Imports gibberish
@@ -390,7 +390,7 @@ End Module|]",
 End Module")
         End Function
 
-        <Fact, WorkItem(541744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541744")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541744")>
         Public Async Function TestPreservePrecedingComments() As Task
             Await TestInRegularAndScript1Async(
 <Text>' c1
@@ -406,7 +406,7 @@ Module Module1
 End Module</Text>.NormalizedValue)
         End Function
 
-        <Fact, WorkItem(541757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541757")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541757")>
         Public Async Function TestDirective1() As Task
             Await TestInRegularAndScript1Async(
 <Text>#If True Then
@@ -422,7 +422,7 @@ Module Program
 End Module</Text>.NormalizedValue)
         End Function
 
-        <Fact, WorkItem(541757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541757")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541757")>
         Public Async Function TestDirective2() As Task
             Await TestInRegularAndScript1Async(
 <Text>#If True Then
@@ -442,7 +442,7 @@ Module Program
 End Module</Text>.NormalizedValue)
         End Function
 
-        <Fact, WorkItem(541932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541932")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541932")>
         Public Async Function TestImportsClauseRemoval1() As Task
             Await TestInRegularAndScript1Async(
 "[|Imports System, goo, System.Collections.Generic
@@ -469,7 +469,7 @@ Namespace goo
 End Namespace")
         End Function
 
-        <Fact, WorkItem(541932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541932")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541932")>
         Public Async Function TestImportsClauseRemoval2() As Task
             Await TestInRegularAndScript1Async(
 "[|Imports System, System.Collections.Generic, goo
@@ -495,7 +495,7 @@ Namespace goo
 End Namespace")
         End Function
 
-        <Fact, WorkItem(541932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541932")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541932")>
         Public Async Function TestImportsClauseRemoval3() As Task
             Await TestInRegularAndScript1Async(
 "[|Imports goo, System, System.Collections.Generic
@@ -522,7 +522,7 @@ Namespace goo
 End Namespace")
         End Function
 
-        <Fact, WorkItem(541758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541758")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541758")>
         Public Async Function TestUnbindableNamespace() As Task
             Await TestInRegularAndScript1Async(
 "[|Imports gibberish
@@ -532,7 +532,7 @@ End Module|]",
 End Module")
         End Function
 
-        <Fact, WorkItem(541780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541780")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541780")>
         Public Async Function TestRemoveClause() As Task
             Await TestInRegularAndScript1Async(
 "[|Imports System, goo, System.Collections.Generic
@@ -559,7 +559,7 @@ Namespace goo
 End Namespace")
         End Function
 
-        <Fact, WorkItem(528603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528603")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528603")>
         Public Async Function TestRemoveClauseWithExplicitLC1() As Task
             Await TestInRegularAndScript1Async(
 "[|Imports A _
@@ -627,7 +627,7 @@ Namespace B
 End Namespace")
         End Function
 
-        <Fact, WorkItem(528603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528603")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528603")>
         Public Async Function TestRemoveClauseWithExplicitLC3() As Task
             Await TestInRegularAndScript1Async(
 <Text>[|Imports A _
@@ -705,7 +705,7 @@ Public Class Goo
 End Class</Text>.NormalizedValue)
         End Function
 
-        <Fact, WorkItem(528603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528603")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528603")>
         Public Async Function TestTypeImports_DoesNotRemove() As Task
             Await TestMissingAsync(
 <Text>[|Imports Goo
@@ -766,7 +766,7 @@ Namespace SomeNS
 End Namespace|]</Text>.NormalizedValue)
         End Function
 
-        <Fact, WorkItem(541809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541809")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541809")>
         <WorkItem(16488, "DevDiv_Projects/Roslyn")>
         Public Async Function TestImportsOnSameLine1() As Task
             Await TestInRegularAndScript1Async(
@@ -859,7 +859,7 @@ Namespace C
 End Namespace</Text>.NormalizedValue)
         End Function
 
-        <Fact, WorkItem(541808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541808")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541808")>
         Public Async Function TestTypeImport1() As Task
             Await TestMissingAsync(
 "[|Imports Goo
@@ -914,7 +914,7 @@ Namespace SomeNS
 End Namespace</Text>.NormalizedValue)
         End Function
 
-        <Fact, WorkItem(528643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528643")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528643")>
         Public Async Function TestExtensionMethodLinq() As Task
             ' TODO: Enable script context testing.
 
@@ -944,7 +944,7 @@ Namespace SomeNS
 End Namespace|]</Text>.NormalizedValue, New TestParameters(parseOptions:=TestOptions.Regular))
         End Function
 
-        <Fact, WorkItem(543217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543217")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543217")>
         Public Async Function TestExtensionMethodLinq2() As Task
             Await TestMissingInRegularAndScriptAsync(
 <Text>[|Imports System.Collections.Generic
@@ -965,7 +965,7 @@ End Module
 |]</Text>.NormalizedValue)
         End Function
 
-        <Fact, WorkItem(542135, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542135")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542135")>
         Public Async Function TestImportedTypeUsedAsGenericTypeArgument() As Task
             Await TestMissingInRegularAndScriptAsync(
 <Text>[|Imports GenericThingie
@@ -987,7 +987,7 @@ Public Class Program
 End Class|]</Text>.NormalizedValue)
         End Function
 
-        <Fact, WorkItem(542132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542132")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542132")>
         Public Async Function TestRemoveSuperfluousNewLines1() As Task
             Await TestInRegularAndScript1Async(
 <Text>[|Imports System
@@ -1006,7 +1006,7 @@ End Module|]</Text>.NormalizedValue,
 End Module</Text>.NormalizedValue)
         End Function
 
-        <Fact, WorkItem(542132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542132")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542132")>
         Public Async Function TestRemoveSuperfluousNewLines2() As Task
             Await TestInRegularAndScript1Async(
 <Text><![CDATA[[|Imports System
@@ -1032,7 +1032,7 @@ Module Program
 End Module]]></Text>.NormalizedValue)
         End Function
 
-        <Fact, WorkItem(542895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542895")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542895")>
         Public Async Function TestRegressionFor10326() As Task
             Await TestInRegularAndScript1Async(
 "[|Imports System.ComponentModel
@@ -1044,7 +1044,7 @@ Class Category
 End Class")
         End Function
 
-        <Fact, WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
         Public Async Function TestRemovalSpan1() As Task
             Await TestSpansAsync(
 <text>    [|Imports System|]
@@ -1053,8 +1053,8 @@ Namespace N
 End Namespace</text>.NormalizedValue)
         End Function
 
-        <Fact, WorkItem(545434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545434")>
-        <WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545434")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
         Public Async Function TestRemovalSpan2() As Task
             Await TestSpansAsync(
 <text>
@@ -1065,8 +1065,8 @@ Imports System.Runtime.InteropServices</text>.NormalizedValue,
 diagnosticId:=IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId)
         End Function
 
-        <Fact, WorkItem(545434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545434")>
-        <WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545434")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
         Public Async Function TestRemovalSpan3() As Task
             Await TestSpansAsync(
 <text>
@@ -1077,7 +1077,7 @@ Imports System
 diagnosticId:=IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId)
         End Function
 
-        <Fact, WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
         Public Async Function TestRemovalSpan4() As Task
             Await TestInRegularAndScript1Async(
 <text>
@@ -1093,7 +1093,7 @@ Imports System
 Class C : Dim x As Action : End Class</text>.NormalizedValue)
         End Function
 
-        <Fact, WorkItem(545831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545831")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545831")>
         Public Async Function TestImplicitElementAtOrDefault() As Task
             Await TestInRegularAndScript1Async(
 <Text><![CDATA[[|Option Strict On
@@ -1177,7 +1177,7 @@ Imports System
 ")
         End Function
 
-        <Fact, WorkItem(1323, "https://github.com/dotnet/roslyn/issues/1323")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1323")>
         Public Async Function TestMissingOnSynthesizedEventType() As Task
             Await TestMissingInRegularAndScriptAsync(
 "[|Class C
@@ -1185,7 +1185,7 @@ Imports System
 End Class|]")
         End Function
 
-        <Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45866")>
         Public Async Function TestImportGroup_DeleteLeadingBlankLinesIfFirstGroupWasDeleted_SingleImport() As Task
             Await TestInRegularAndScript1Async(
 "[|Imports System.Threading.Tasks
@@ -1208,7 +1208,7 @@ End Class
 ")
         End Function
 
-        <Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45866")>
         Public Async Function TestImportGroup_DeleteLeadingBlankLinesIfFirstGroupWasDeleted_MultipleImports() As Task
             Await TestInRegularAndScript1Async(
 "[|Imports System.Threading.Tasks
@@ -1232,7 +1232,7 @@ End Class
 ")
         End Function
 
-        <Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45866")>
         Public Async Function TestImportGroup_NotAllFirstGroupIsDeleted() As Task
             Await TestInRegularAndScript1Async(
 "[|Imports System.Threading.Tasks
@@ -1260,7 +1260,7 @@ End Class
 ")
         End Function
 
-        <Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45866")>
         Public Async Function TestImportGroup_AllLastGroupIsDeleted() As Task
             Await TestInRegularAndScript1Async(
 "[|Imports System
@@ -1284,7 +1284,7 @@ End Class
 ")
         End Function
 
-        <Fact, WorkItem(63591, "https://github.com/dotnet/roslyn/issues/63591")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63591")>
         Public Async Function TestAmbiguityWithProjectLevelMemberImport() As Task
             Await TestAsync(
 "[|Imports System

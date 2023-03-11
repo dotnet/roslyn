@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Await VerifyItemExistsAsync(text, "Ev_Event")
         End Function
 
-        <Fact, WorkItem(546497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546497")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546497")>
         Public Async Function TestSuggestMeEventInDerived() As Task
             Dim text = <text>Public Class Base
     Public Event Click()
@@ -44,7 +44,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "Click")
         End Function
 
-        <Fact, WorkItem(546497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546497")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546497")>
         Public Async Function TestSuggestMeEventInIndirectDerived() As Task
             Dim text = <text>Public Class Base
     Public Event Click()
@@ -132,7 +132,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "Ev_Event")
         End Function
 
-        <Fact, WorkItem(546508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546508")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546508")>
         Public Async Function TestSuggestGenericFieldEvent() As Task
             Dim text = <text>Class A
     Event Ev_Event()
@@ -148,7 +148,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "Ev_Event")
         End Function
 
-        <Fact, WorkItem(546494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546494")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546494")>
         Public Async Function TestSuggestFieldDerivedEvent() As Task
             Dim text = <text>Public Class Base
     Public Event Click()
@@ -165,7 +165,7 @@ End Class
             Await VerifyItemExistsAsync(text, "Click")
         End Function
 
-        <Fact, WorkItem(546513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546513")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546513")>
         Public Async Function TestInheritedFieldOfNestedType() As Task
             Dim text = <text>Class container
     'Delegate Sub MyDele(x As Integer)
@@ -182,7 +182,7 @@ End Class
             Await VerifyItemExistsAsync(text, "obj")
         End Function
 
-        <Fact, WorkItem(546511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546511")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546511")>
         Public Async Function TestDoNotShowMeShadowedEvents() As Task
             Dim text = <text>Public Class Base
     Protected Event B()
@@ -219,7 +219,7 @@ End Class</text>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, WorkItem(8307, "https://github.com/dotnet/roslyn/issues/8307")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8307")>
         Public Async Function DontCrashOnDotAfterCompleteHandlesClause() As Task
             Dim text = "
 Imports System

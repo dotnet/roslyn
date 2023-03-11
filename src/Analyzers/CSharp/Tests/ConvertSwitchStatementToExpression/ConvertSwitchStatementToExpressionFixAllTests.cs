@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             }.RunAsync();
         }
 
-        [Fact, WorkItem(37907, "https://github.com/dotnet/roslyn/issues/37907")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37907")]
         public async Task TestNested_03()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 }
                 """);
         }
-        [Fact, WorkItem(44572, "https://github.com/dotnet/roslyn/issues/44572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44572")]
         public async Task TestImplicitConversion()
         {
             await VerifyCS.VerifyCodeFixAsync(

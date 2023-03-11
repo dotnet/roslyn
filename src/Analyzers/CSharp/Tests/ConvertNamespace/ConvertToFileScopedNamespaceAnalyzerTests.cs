@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedWithNoNewlineAtEnd()
         {
             await new VerifyCS.Test
@@ -846,7 +846,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedWithNoMembersAndNoNewlineAtEnd()
         {
             await new VerifyCS.Test
@@ -867,7 +867,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedPreserveNewlineAtEnd()
         {
             await new VerifyCS.Test
@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedWithNoMembersPreserveNewlineAtEnd()
         {
             await new VerifyCS.Test
@@ -916,7 +916,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedPPDirective1()
         {
             await new VerifyCS.Test
@@ -946,7 +946,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedPPDirective2()
         {
             await new VerifyCS.Test
@@ -978,7 +978,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedPPDirective3()
         {
             await new VerifyCS.Test
@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedPPDirective4()
         {
             await new VerifyCS.Test
