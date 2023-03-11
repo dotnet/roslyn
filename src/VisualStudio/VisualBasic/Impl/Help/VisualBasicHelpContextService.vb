@@ -67,7 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
         Private Shared Function TokenIsHelpKeyword(token As SyntaxToken) As Boolean
             Return token.IsKind(SyntaxKind.SharedKeyword, SyntaxKind.WideningKeyword, SyntaxKind.CTypeKeyword, SyntaxKind.NarrowingKeyword,
                                 SyntaxKind.OperatorKeyword, SyntaxKind.AddHandlerKeyword, SyntaxKind.RemoveHandlerKeyword, SyntaxKind.AnsiKeyword,
-                                SyntaxKind.AutoKeyword, SyntaxKind.UnicodeKeyword, SyntaxKind.HandlesKeyword, SyntaxKind.NotKeyword)
+                                SyntaxKind.AutoKeyword, SyntaxKind.UnicodeKeyword, SyntaxKind.HandlesKeyword, SyntaxKind.NotKeyword, SyntaxKind.DirectCastKeyword, SyntaxKind.TryCastKeyword)
         End Function
 
         Private Shared Function FormatNamespaceOrTypeSymbol(symbol As INamespaceOrTypeSymbol) As String

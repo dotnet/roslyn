@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
@@ -252,14 +251,14 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<CompletionItem> items,
             string filterText)
         {
-            var helper = CompletionHelper.GetHelper(document);
-            var filterDataList = new SegmentedList<MatchResult>(items.Select(
-                item => helper.GetMatchResult(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
+            using var helper = new PatternMatchHelper(filterText);
+            var filterDataList = new SegmentedList<MatchResult>(
+                items.Select(item => helper.GetMatchResult(item, includeMatchSpans: false, CultureInfo.CurrentCulture)));
 
             var builder = s_listOfMatchResultPool.Allocate();
             try
             {
-                FilterItems(helper, filterDataList, filterText, builder);
+                FilterItems(CompletionHelper.GetHelper(document), filterDataList, filterText, builder);
                 return builder.SelectAsArray(result => result.CompletionItem);
             }
             finally
@@ -281,8 +280,8 @@ namespace Microsoft.CodeAnalysis.Completion
             var filteredItems = FilterItems(document, matchResults.SelectAsArray(item => item.CompletionItem), filterText);
 #pragma warning restore RS0030 // Do not used banned APIs
 
-            var helper = CompletionHelper.GetHelper(document);
-            builder.AddRange(filteredItems.Select(item => helper.GetMatchResult(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
+            using var completionPatternMatchers = new PatternMatchHelper(filterText);
+            builder.AddRange(filteredItems.Select(item => completionPatternMatchers.GetMatchResult(item, includeMatchSpans: false, CultureInfo.CurrentCulture)));
         }
 
         /// <summary>

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public static async Task<Hover> CreateDefaultHoverAsync(Document document, QuickInfoItem info, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            var clientSupportsMarkdown = clientCapabilities?.TextDocument?.Hover?.ContentFormat.Contains(MarkupKind.Markdown) == true;
+            var clientSupportsMarkdown = clientCapabilities?.TextDocument?.Hover?.ContentFormat?.Contains(MarkupKind.Markdown) == true;
 
             // Insert line breaks in between sections to ensure we get double spacing between sections.
             var tags = info.Sections

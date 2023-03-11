@@ -554,17 +554,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(Location, useSiteInfo);
         }
 
-        protected override bool HasPointerTypeSyntactically
-        {
-            get
-            {
-                var typeSyntax = GetTypeSyntax(CSharpSyntaxNode);
-                Debug.Assert(typeSyntax is not ScopedTypeSyntax);
-                typeSyntax = typeSyntax.SkipScoped(out _).SkipRef();
-                return typeSyntax.Kind() switch { SyntaxKind.PointerType => true, SyntaxKind.FunctionPointerType => true, _ => false };
-            }
-        }
-
         private static BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)
             => (syntax as IndexerDeclarationSyntax)?.ParameterList;
     }

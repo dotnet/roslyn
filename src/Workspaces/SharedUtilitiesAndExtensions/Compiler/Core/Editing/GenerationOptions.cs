@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
         public static readonly PerLanguageOption2<bool> SeparateImportDirectiveGroups = new(
             "dotnet_separate_import_directive_groups",
-            defaultValue: SyntaxFormattingOptions.CommonOptions.Default.SeparateImportDirectiveGroups,
+            defaultValue: SyntaxFormattingOptions.CommonDefaults.SeparateImportDirectiveGroups,
             group: CodeStyleOptionGroups.Usings,
             isEditorConfigOption: true);
 

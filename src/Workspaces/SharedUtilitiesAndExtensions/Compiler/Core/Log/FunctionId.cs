@@ -589,6 +589,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         // 670-680 for newer rename ids
         Rename_TryApplyRename_WorkspaceChanged = 670,
+        Rename_InlineSession_Cancel_NonDocumentChangedWorkspaceChange = 671,
 
         // 680-690 LSP Initialization info ids.
         LSP_Initialize = 680,

@@ -213,8 +213,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFolders(s_unrelatedDocumentId, folders));
         }
 
-        [Fact, WorkItem(34837, "https://github.com/dotnet/roslyn/issues/34837")]
-        [WorkItem(37125, "https://github.com/dotnet/roslyn/issues/37125")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34837")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37125")]
         public void WithDocumentFilePath()
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
@@ -1372,7 +1372,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectReferences(projectId, new[] { new ProjectReference(projectId) }));
         }
 
-        [Fact, WorkItem(42406, "https://github.com/dotnet/roslyn/issues/42406")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42406")]
         public void WithProjectReferences_ProjectNotInSolution()
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
@@ -1900,7 +1900,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("bar", project.AssemblyName);
         }
 
-        [Fact, WorkItem(543964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543964")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543964")]
         public void MultipleProjectsWithSameDisplayName()
         {
             using var workspace = CreateWorkspace();
@@ -2267,7 +2267,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 #endif
 
-        [Fact, WorkItem(636431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636431")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636431")]
         public async Task TestProjectDependencyLoadingAsync()
         {
             using var workspace = CreateWorkspace();
@@ -2634,7 +2634,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact, WorkItem(542736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
         public void TestDocumentChangedOnDiskIsNotObserved()
         {
             var text1 = "public class A {}";
@@ -2981,7 +2981,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13506")]
-        [WorkItem(13506, "https://github.com/dotnet/roslyn/issues/13506")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13506")]
         public void TestRecoverableSyntaxTreeCSharp()
         {
             var pid = ProjectId.CreateNewId();
@@ -3122,7 +3122,7 @@ End Class";
         [Theory]
         [InlineData(LanguageNames.CSharp)]
         [InlineData(LanguageNames.VisualBasic)]
-        [WorkItem(63834, "https://github.com/dotnet/roslyn/issues/63834")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63834")]
         public void RecoverableTree_With(string language)
         {
             using var workspace = CreateWorkspace();
@@ -3260,7 +3260,7 @@ End Class";
             }
         }
 
-        [Fact, WorkItem(666263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666263")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666263")]
         public async Task TestDocumentFileAccessFailureMissingFile()
         {
             var workspace = new AdhocWorkspace();
@@ -3344,7 +3344,7 @@ public class C : A {
             Assert.Equal(pid1, projectForBaseType.Id);
         }
 
-        [Fact, WorkItem(1088127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088127")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088127")]
         public void TestEncodingRetainedAfterTreeChanged()
         {
             var ws = new AdhocWorkspace();
@@ -3362,10 +3362,26 @@ public class C : A {
         }
 
         [Fact]
+        public void TestProjectWithNoMetadataReferencesHasIncompleteReferences()
+        {
+            var workspace = new AdhocWorkspace();
+            var project = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
+            Assert.False(project.HasSuccessfullyLoadedAsync().Result);
+            Assert.Empty(project.GetCompilationAsync().Result.ExternalReferences);
+        }
+
+        [Fact]
         public void TestProjectWithNoBrokenReferencesHasNoIncompleteReferences()
         {
             var workspace = new AdhocWorkspace();
-            var project1 = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
+            var project1 = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "CSharpProject",
+                    "CSharpProject",
+                    LanguageNames.CSharp,
+                    metadataReferences: new[] { MscorlibRef }));
             var project2 = workspace.AddProject(
                 ProjectInfo.Create(
                     ProjectId.CreateNewId(),
@@ -3373,19 +3389,27 @@ public class C : A {
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(project1.Id) }));
 
             // Nothing should have incomplete references, and everything should build
             Assert.True(project1.HasSuccessfullyLoadedAsync().Result);
             Assert.True(project2.HasSuccessfullyLoadedAsync().Result);
-            Assert.Single(project2.GetCompilationAsync().Result.ExternalReferences);
+            Assert.Equal(2, project2.GetCompilationAsync().Result.ExternalReferences.Length);
         }
 
         [Fact]
         public void TestProjectWithBrokenCrossLanguageReferenceHasIncompleteReferences()
         {
             var workspace = new AdhocWorkspace();
-            var project1 = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
+            var project1 = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "CSharpProject",
+                    "CSharpProject",
+                    LanguageNames.CSharp,
+                    metadataReferences: new[] { MscorlibRef }));
             workspace.AddDocument(project1.Id, "Broken.cs", SourceText.From("class "));
 
             var project2 = workspace.AddProject(
@@ -3395,11 +3419,12 @@ public class C : A {
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(project1.Id) }));
 
             Assert.True(project1.HasSuccessfullyLoadedAsync().Result);
             Assert.False(project2.HasSuccessfullyLoadedAsync().Result);
-            Assert.Empty(project2.GetCompilationAsync().Result.ExternalReferences);
+            Assert.Single(project2.GetCompilationAsync().Result.ExternalReferences);
         }
 
         [Fact]
@@ -3522,7 +3547,14 @@ public class C : A {
         public void TestFrozenPartialProjectAlwaysIsIncomplete()
         {
             var workspace = new AdhocWorkspace();
-            var project1 = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
+            var project1 = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "CSharpProject",
+                    "CSharpProject",
+                    LanguageNames.CSharp,
+                    metadataReferences: new[] { MscorlibRef }));
 
             var project2 = workspace.AddProject(
                 ProjectInfo.Create(
@@ -3531,6 +3563,7 @@ public class C : A {
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(project1.Id) }));
 
             var document = workspace.AddDocument(project2.Id, "Test.cs", SourceText.From(""));
@@ -3577,7 +3610,7 @@ public class C : A {
         }
 
         [Fact]
-        [WorkItem(1467404, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
         public async Task TestFrozenPartialSemanticsHandlesDocumentWithSamePathBeingRemovedAndAdded()
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
@@ -3599,7 +3632,7 @@ public class C : A {
         }
 
         [Fact]
-        [WorkItem(1467404, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
         public async Task TestFrozenPartialSemanticsHandlesRemoveAndAddWithNullPathAndDifferentNames()
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
@@ -3752,7 +3785,7 @@ public class C : A {
             Assert.True(exceptionThrown);
         }
 
-        [Fact, WorkItem(18697, "https://github.com/dotnet/roslyn/issues/18697")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18697")]
         public void TestWithSyntaxTree()
         {
             // get one to get to syntax tree factory
@@ -4034,7 +4067,7 @@ public class C : A {
             Assert.False(finalProvider.TryGetGlobalDiagnosticValue("CA1234", default, out _));
         }
 
-        [Fact, WorkItem(3705, "https://github.com/dotnet/roslyn/issues/3705")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3705")]
         public async Task TestAddingEditorConfigFileWithIsGeneratedCodeOption()
         {
             using var workspace = CreateWorkspace();
@@ -4163,7 +4196,8 @@ class C
                     VersionStamp.Create(),
                     "CSharpProject",
                     "CSharpProject",
-                    LanguageNames.CSharp).WithHasAllInformation(hasAllInformation: false));
+                    LanguageNames.CSharp,
+                    metadataReferences: new[] { MscorlibRef }).WithHasAllInformation(hasAllInformation: false));
 
             vbNormalProject = workspace.AddProject(
                 ProjectInfo.Create(
@@ -4171,7 +4205,8 @@ class C
                     VersionStamp.Create(),
                     "VisualBasicProject",
                     "VisualBasicProject",
-                    LanguageNames.VisualBasic));
+                    LanguageNames.VisualBasic,
+                    metadataReferences: new[] { MscorlibRef }));
 
             dependsOnBrokenProject = workspace.AddProject(
                 ProjectInfo.Create(
@@ -4180,6 +4215,7 @@ class C
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(csBrokenProject.Id), new ProjectReference(vbNormalProject.Id) }));
 
             dependsOnVbNormalProject = workspace.AddProject(
@@ -4189,6 +4225,7 @@ class C
                     "CSharpProject",
                     "CSharpProject",
                     LanguageNames.CSharp,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(vbNormalProject.Id) }));
 
             transitivelyDependsOnBrokenProjects = workspace.AddProject(
@@ -4198,6 +4235,7 @@ class C
                     "CSharpProject",
                     "CSharpProject",
                     LanguageNames.CSharp,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(dependsOnBrokenProject.Id) }));
 
             transitivelyDependsOnNormalProjects = workspace.AddProject(
@@ -4207,6 +4245,7 @@ class C
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(dependsOnVbNormalProject.Id) }));
         }
 

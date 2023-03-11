@@ -19,6 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 MyBase.New(context, filterOutOfScopeLocals, cancellationToken)
             End Sub
 
+            Protected Overrides Function GetLambdaParameterCount(lambdaSyntax As LambdaExpressionSyntax) As Integer
+                Return lambdaSyntax.SubOrFunctionHeader.ParameterList.Parameters.Count
+            End Function
+
             Public Overrides Function GetRecommendedSymbols() As RecommendedSymbols
                 Return New RecommendedSymbols(GetSymbols())
             End Function

@@ -32,14 +32,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
         [Fact]
         public async Task TestWarning1()
         {
-            await TestDiagnosticInfoAsync(@"
-class Program
-{
-    void Main()
-    {
-        var r = /*lang=json,strict*/ ""[|new|] Json()"";
-    }     
-}",
+            await TestDiagnosticInfoAsync("""
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = /*lang=json,strict*/ "[|new|] Json()";
+                    }     
+                }
+                """,
                 globalOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
@@ -49,14 +50,15 @@ class Program
         [Fact]
         public async Task TestWarningInRawString1()
         {
-            await TestDiagnosticInfoAsync(@"
-class Program
-{
-    void Main()
-    {
-        var r = /*lang=json,strict*/ """"""[|new|] Json()"""""";
-    }     
-}",
+            await TestDiagnosticInfoAsync(""""
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = /*lang=json,strict*/ """[|new|] Json()""";
+                    }     
+                }
+                """",
                 globalOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
@@ -66,14 +68,15 @@ class Program
         [Fact]
         public async Task TestWarning2()
         {
-            await TestDiagnosticInfoAsync(@"
-class Program
-{
-    void Main()
-    {
-        var r = /*lang=json*/ ""[|}|]"";
-    }     
-}",
+            await TestDiagnosticInfoAsync("""
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = /*lang=json*/ "[|}|]";
+                    }     
+                }
+                """,
                 globalOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
@@ -84,21 +87,23 @@ class Program
         [Fact]
         public async Task TestJsonDocumentWithTrailingComma()
         {
-            await TestDiagnosticInfoAsync(@"<Workspace>
-    <Project Language=""C#"" CommonReferencesNet6=""true"">
-        <Document>
-using System.Text.Json;
+            await TestDiagnosticInfoAsync("""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet6="true">
+                        <Document>
+                using System.Text.Json;
 
-class Program
-{
-    void Main()
-    {
-        var r = JsonDocument.Parse(@""[1[|,|]]"");
-    }     
-}
-        </Document>
-    </Project>
-</Workspace>",
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = JsonDocument.Parse(@"[1[|,|]]");
+                    }     
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
                 globalOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
@@ -109,21 +114,23 @@ class Program
         [Fact]
         public async Task TestJsonDocumentTrailingCommaDisallowed()
         {
-            await TestDiagnosticInfoAsync(@"<Workspace>
-    <Project Language=""C#"" CommonReferencesNet6=""true"">
-        <Document>
-using System.Text.Json;
+            await TestDiagnosticInfoAsync("""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet6="true">
+                        <Document>
+                using System.Text.Json;
 
-class Program
-{
-    void Main()
-    {
-        var r = JsonDocument.Parse(@""[1[|,|]]"", new JsonDocumentOptions { AllowTrailingCommas = false });
-    }     
-}
-        </Document>
-    </Project>
-</Workspace>",
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = JsonDocument.Parse(@"[1[|,|]]", new JsonDocumentOptions { AllowTrailingCommas = false });
+                    }     
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
                 globalOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
@@ -134,61 +141,67 @@ class Program
         [Fact]
         public async Task TestJsonDocumentTrailingCommaAllowed()
         {
-            await TestDiagnosticMissingAsync(@"<Workspace>
-    <Project Language=""C#"" CommonReferencesNet6=""true"">
-        <Document>
-using System.Text.Json;
+            await TestDiagnosticMissingAsync("""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet6="true">
+                        <Document>
+                using System.Text.Json;
 
-class Program
-{
-    void Main()
-    {
-        var r = JsonDocument.Parse(@""[1[|,|]]"", new JsonDocumentOptions { AllowTrailingCommas = true });
-    }     
-}
-        </Document>
-    </Project>
-</Workspace>");
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = JsonDocument.Parse(@"[1[|,|]]", new JsonDocumentOptions { AllowTrailingCommas = true });
+                    }     
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """);
         }
 
         [Fact]
         public async Task TestJsonDocumentTrailingCommaAllowedImplicitObject()
         {
-            await TestDiagnosticMissingAsync(@"<Workspace>
-    <Project Language=""C#"" CommonReferencesNet6=""true"">
-        <Document>
-using System.Text.Json;
+            await TestDiagnosticMissingAsync("""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet6="true">
+                        <Document>
+                using System.Text.Json;
 
-class Program
-{
-    void Main()
-    {
-        var r = JsonDocument.Parse(@""[1[|,|]]"", new() { AllowTrailingCommas = true });
-    }     
-}
-        </Document>
-    </Project>
-</Workspace>");
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = JsonDocument.Parse(@"[1[|,|]]", new() { AllowTrailingCommas = true });
+                    }     
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """);
         }
 
         [Fact]
         public async Task TestJsonDocumentWithComments()
         {
-            await TestDiagnosticInfoAsync(@"<Workspace>
-    <Project Language=""C#"" CommonReferencesNet6=""true"">
-        <Document>
-using System.Text.Json;
+            await TestDiagnosticInfoAsync("""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet6="true">
+                        <Document>
+                using System.Text.Json;
 
-class Program
-{
-    void Main()
-    {
-        var r = JsonDocument.Parse(@""[1][|/*comment*/|]"");
-    }     
-}
-        </Document>
-    </Project>
-</Workspace>",
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = JsonDocument.Parse(@"[1][|/*comment*/|]");
+                    }     
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
                 globalOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
@@ -199,21 +212,23 @@ class Program
         [Fact]
         public async Task TestJsonDocumentCommentsDisallowed()
         {
-            await TestDiagnosticInfoAsync(@"<Workspace>
-    <Project Language=""C#"" CommonReferencesNet6=""true"">
-        <Document>
-using System.Text.Json;
+            await TestDiagnosticInfoAsync("""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet6="true">
+                        <Document>
+                using System.Text.Json;
 
-class Program
-{
-    void Main()
-    {
-        var r = JsonDocument.Parse(@""[1][|/*comment*/|]"", new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Disallow });
-    }     
-}
-        </Document>
-    </Project>
-</Workspace>",
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = JsonDocument.Parse(@"[1][|/*comment*/|]", new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Disallow });
+                    }     
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
                 globalOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
@@ -224,41 +239,45 @@ class Program
         [Fact]
         public async Task TestJsonDocumentCommentsAllowed()
         {
-            await TestDiagnosticMissingAsync(@"<Workspace>
-    <Project Language=""C#"" CommonReferencesNet6=""true"">
-        <Document>
-using System.Text.Json;
+            await TestDiagnosticMissingAsync("""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet6="true">
+                        <Document>
+                using System.Text.Json;
 
-class Program
-{
-    void Main()
-    {
-        var r = JsonDocument.Parse(@""[1][|/*comment*/|]"", new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Allow });
-    }     
-}
-        </Document>
-    </Project>
-</Workspace>");
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = JsonDocument.Parse(@"[1][|/*comment*/|]", new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Allow });
+                    }     
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """);
         }
 
         [Fact]
         public async Task TestJsonDocumentCommentsAllowedImplicitObject()
         {
-            await TestDiagnosticMissingAsync(@"<Workspace>
-    <Project Language=""C#"" CommonReferencesNet6=""true"">
-        <Document>
-using System.Text.Json;
+            await TestDiagnosticMissingAsync("""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet6="true">
+                        <Document>
+                using System.Text.Json;
 
-class Program
-{
-    void Main()
-    {
-        var r = JsonDocument.Parse(@""[1][|/*comment*/|]"", new() { CommentHandling = JsonCommentHandling.Allow });
-    }     
-}
-        </Document>
-    </Project>
-</Workspace>");
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = JsonDocument.Parse(@"[1][|/*comment*/|]", new() { CommentHandling = JsonCommentHandling.Allow });
+                    }     
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """);
         }
 
         [Fact]

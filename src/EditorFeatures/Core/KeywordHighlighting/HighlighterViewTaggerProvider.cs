@@ -10,13 +10,12 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.BraceMatching;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Highlighting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.KeywordHighlighting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
 
-        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(FeatureOnOffOptions.KeywordHighlighting);
+        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(KeywordHighlightingOptionsStorage.KeywordHighlighting);
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                 return;
             }
 
-            if (!GlobalOptions.GetOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language))
+            if (!GlobalOptions.GetOption(KeywordHighlightingOptionsStorage.KeywordHighlighting, document.Project.Language))
             {
                 return;
             }

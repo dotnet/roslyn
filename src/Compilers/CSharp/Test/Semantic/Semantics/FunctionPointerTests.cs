@@ -33,25 +33,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 using s = delegate*<void>;");
 
             comp.VerifyDiagnostics(
-                // (2,11): error CS1041: Identifier expected; 'delegate' is a keyword
+                // (2,11): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(2, 11),
-                // (2,26): error CS1001: Identifier expected
-                // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(2, 26),
-                // (2,7): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                // using s = delegate*<void>;
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "s").WithArguments("s").WithLocation(2, 7),
-                // (2,11): error CS8805: Program using top-level statements must be an executable.
-                // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "delegate*<void>;").WithLocation(2, 11),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("using type alias").WithLocation(2, 11),
                 // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(2, 11),
+                // (2,7): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "s").WithArguments("s").WithLocation(2, 7),
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using s = delegate*<void>;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = ").WithLocation(2, 1)
-            );
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = delegate*<void>;").WithLocation(2, 1));
         }
 
         [Fact]
