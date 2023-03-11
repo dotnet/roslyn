@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -24,89 +25,32 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// Interaction logic for DocumentOutlineView.xaml
     /// All operations happen on the UI thread for visual studio
     /// </summary>
-    internal sealed partial class DocumentOutlineView : UserControl, IVsCodeWindowEvents, IDisposable
+    internal sealed partial class DocumentOutlineView : UserControl, IDisposable
     {
-        private readonly IVsCodeWindow _codeWindow;
         private readonly IThreadingContext _threadingContext;
+        private readonly VsCodeWindowViewTracker _viewTracker;
         private readonly DocumentOutlineViewModel _viewModel;
-        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
-        private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new();
-        private readonly ComEventSink _codeWindowEventsSink;
 
         public DocumentOutlineView(
-            DocumentOutlineViewModel viewModel,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            IVsCodeWindow codeWindow,
-            IThreadingContext threadingContext)
+            IThreadingContext threadingContext,
+            VsCodeWindowViewTracker viewTracker,
+            DocumentOutlineViewModel viewModel)
         {
-            _codeWindow = codeWindow;
             _threadingContext = threadingContext;
+            _viewTracker = viewTracker;
             _viewModel = viewModel;
-            _editorAdaptersFactoryService = editorAdaptersFactoryService;
+
             DataContext = _viewModel;
             InitializeComponent();
             UpdateSort(SortOption.Location); // Set default sort for top-level items
 
-            // We don't think the shell is initialized lazily, so we'll Debug.Fail(), but if it was we'd still
-            // see the view created later so this will still function.
-            if (ErrorHandler.Failed(codeWindow.GetPrimaryView(out var primaryTextView)))
-                Debug.Fail("GetPrimaryView failed during DocumentOutlineControl initialization.");
-
-            if (ErrorHandler.Failed(StartTrackingView(primaryTextView)))
-                Debug.Fail("StartTrackingView failed during DocumentOutlineControl initialization.");
-
-            if (ErrorHandler.Succeeded(codeWindow.GetSecondaryView(out var secondaryTextView)))
-            {
-                if (ErrorHandler.Failed(StartTrackingView(secondaryTextView)))
-                    Debug.Fail("StartTrackingView failed during DocumentOutlineControl initialization.");
-            }
-
-            _codeWindowEventsSink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
+            viewTracker.CaretMovedOrActiveViewChanged += ViewTracker_CaretMovedOrActiveViewChanged;
         }
 
         public void Dispose()
         {
+            _viewTracker.CaretMovedOrActiveViewChanged -= ViewTracker_CaretMovedOrActiveViewChanged;
             _viewModel.Dispose();
-            _codeWindowEventsSink.Unadvise();
-        }
-
-        int IVsCodeWindowEvents.OnNewView(IVsTextView textView)
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
-
-            return StartTrackingView(textView);
-        }
-
-        int IVsCodeWindowEvents.OnCloseView(IVsTextView textView)
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
-
-            if (_trackedTextViews.TryGetValue(textView, out var view))
-            {
-                // In the split window case, there's two views (each with its own caret position) but only one text buffer.
-                // Unsubscribe to caret position changes once per view.
-                view.Caret.PositionChanged -= Caret_PositionChanged;
-
-                _trackedTextViews.Remove(textView);
-            }
-
-            return VSConstants.S_OK;
-        }
-
-        private int StartTrackingView(IVsTextView textView)
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
-            var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
-            if (wpfTextView is null)
-                return VSConstants.E_FAIL;
-
-            _trackedTextViews.Add(textView, wpfTextView);
-
-            // In the split window case, there's two views (each with its own caret position) but only one text buffer.
-            // Subscribe to caret position changes once per view.
-            wpfTextView.Caret.PositionChanged += Caret_PositionChanged;
-
-            return VSConstants.S_OK;
         }
 
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -171,12 +115,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 _viewModel.IsNavigating = true;
                 try
                 {
-                    _codeWindow.GetLastActiveView(out var textView);
+                    var textView = _viewTracker.GetActiveView();
                     Assumes.NotNull(textView);
-                    var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
-                    Assumes.NotNull(wpfTextView);
-                    wpfTextView.TryMoveCaretToAndEnsureVisible(
-                        symbolModel.Data.SelectionRangeSpan.TranslateTo(wpfTextView.TextSnapshot, SpanTrackingMode.EdgeInclusive).Start);
+                    textView.TryMoveCaretToAndEnsureVisible(
+                        symbolModel.Data.SelectionRangeSpan.TranslateTo(textView.TextSnapshot, SpanTrackingMode.EdgeInclusive).Start);
                 }
                 finally
                 {
@@ -188,12 +130,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// On caret position change, highlight the corresponding symbol node in the window and update the view.
         /// </summary>
-        private void Caret_PositionChanged(object sender, CaretPositionChangedEventArgs e)
+        private void ViewTracker_CaretMovedOrActiveViewChanged(object sender, EventArgs e)
         {
             _threadingContext.ThrowIfNotOnUIThread();
-
-            if (!e.NewPosition.Equals(e.OldPosition))
-                _viewModel.ExpandAndSelectItemAtCaretPosition();
+            _viewModel.ExpandAndSelectItemAtCaretPosition();
         }
     }
 }

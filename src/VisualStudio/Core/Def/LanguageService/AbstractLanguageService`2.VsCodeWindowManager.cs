@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -283,11 +284,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     TaggerEventSources.OnWorkspaceChanged(subjectBuffer, asyncListener),
                     TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer));
 
+                var viewTracker = new VsCodeWindowViewTracker(_codeWindow, threadingContext, editorAdaptersFactoryService);
                 _documentOutlineView = new DocumentOutlineView(
-                    new DocumentOutlineViewModel(languageServiceBroker, asyncListener, eventSource, wpfTextView, subjectBuffer, threadingContext),
-                    editorAdaptersFactoryService,
-                    _codeWindow,
-                    threadingContext);
+                    threadingContext, viewTracker,
+                    new DocumentOutlineViewModel(languageServiceBroker, asyncListener, eventSource, wpfTextView, subjectBuffer, threadingContext));
 
                 _documentOutlineViewHost = new ElementHost
                 {
