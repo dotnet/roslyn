@@ -318,6 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // PROTOTYPE: Should check after indexer lookup
+                // which diagnostics should we report? Maybe just "unsupported type"?
 
                 BoundExpression collectionExpr = new BoundImplicitReceiver(node, inputType.StrippedType());
                 var builder = new ForEachEnumeratorInfo.Builder();
@@ -330,10 +331,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // PROTOTYPE: Construct and embed a buffer type based on ForEachEnumeratorInfo
                         var bufferType = Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_Buffer_T).Construct(elementType);
-                        var bufferCtor = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Buffer_T__ctor).SymbolAsMember(bufferType);
-                        var bufferFromStartMethod = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Buffer_T__TryGetElementFromStart).SymbolAsMember(bufferType);
-                        var bufferFromEndMethod = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Buffer_T__GetElementFromEnd).SymbolAsMember(bufferType);
-                        var bufferInfo = new ListPatternBufferInfo(bufferType, bufferCtor, bufferFromStartMethod, bufferFromEndMethod);
+                        var bufferInfo = new ListPatternBufferInfo(bufferType,
+                            (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Buffer_T__ctor).SymbolAsMember(bufferType),
+                            (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Buffer_T__HasElementAt).SymbolAsMember(bufferType),
+                            (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Buffer_T__GetElementFromStart).SymbolAsMember(bufferType),
+                            (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Buffer_T__GetElementFromEnd).SymbolAsMember(bufferType));
 
                         ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(
                             node.Patterns, inputType: narrowedType, elementType: elementType,
@@ -366,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundIndexableListPattern(
                 syntax: node, lengthAccess: lengthAccess,
-                indexerAccess: indexerAccess, receiverPlaceholder, argumentPlaceholder, 
+                indexerAccess: indexerAccess, receiverPlaceholder, argumentPlaceholder,
                 subpatterns: subpatterns, hasSlice: sawSlice, variable: variableSymbol,
                 variableAccess: variableAccess, inputType: inputType, narrowedType: narrowedType, hasErrors);
         }

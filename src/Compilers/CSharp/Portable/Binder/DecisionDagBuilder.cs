@@ -723,7 +723,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
             RoslynDebug.Assert(rootDecisionDagNode != null);
             var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
-            ;
 #if DEBUG
             // Note that this uses the custom equality in `BoundDagEvaluation`
             // to make "equivalent" evaluation nodes share the same ID.
@@ -1091,6 +1090,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundDagNonNullTest _:
                 case BoundDagTypeTest _:
                     return (values, values, true, true);
+                case BoundDagElementTest t:
+                    return resultForRelation(BinaryOperatorKind.GreaterThan, ConstantValue.Create(t.Index));
                 case BoundDagValueTest t:
                     return resultForRelation(BinaryOperatorKind.Equal, t.Value);
                 case BoundDagRelationalTest t:
@@ -1286,6 +1287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case BoundDagValueTest _:
                 case BoundDagRelationalTest _:
+                case BoundDagElementTest:
                     switch (other)
                     {
                         case BoundDagNonNullTest n2:
@@ -1298,6 +1300,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             foundExplicitNullTest = true;
                             // v == K --> !(v == null)
                             trueTestPermitsTrueOther = false;
+                            break;
+                        case BoundDagElementTest e:
+                            handleRelationWithValue(BinaryOperatorKind.GreaterThan, ConstantValue.Create(e.Index), 
+                                out trueTestPermitsTrueOther, out falseTestPermitsTrueOther, out trueTestImpliesTrueOther, out falseTestImpliesTrueOther);
                             break;
                         case BoundDagRelationalTest r2:
                             handleRelationWithValue(r2.Relation, r2.Value,
@@ -1432,99 +1438,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             Debug.Assert(s1LengthTemp.IsEquivalentTo(s2LengthTemp));
-                            if (s1Index == s2Index)
-                            {
-                                continue;
-                            }
-
-                            if (_forLowering)
+                            if (!checkIndexRelation(s1Index, s2Index, s1LengthTemp))
                             {
                                 break;
-                            }
-
-                            if (s1Index < 0 == s2Index < 0)
-                            {
-                                break;
-                            }
-
-                            if (!state.RemainingValues.TryGetValue(s1LengthTemp, out IValueSet? v) || v is not IValueSet<int> lengthValues)
-                                throw ExceptionUtilities.Unreachable();
-
-                            // We do not expect an empty set here because an indexer evaluation is always preceded by
-                            // a length test of which an impossible match would have made the rest of the tests unreachable.
-                            Debug.Assert(!lengthValues.IsEmpty);
-
-                            // Compute the length value that would make these two indices point to the same element.
-                            int lengthValue = s1Index < 0 ? s2Index - s1Index : s1Index - s2Index;
-                            if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
-                            {
-                                // If the length is known to be exact, the two are considered to point to the same element.
-                                (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(Tests.True.Instance); // Triggers merging of values unconditionally
-                                continue;
-                            }
-
-                            if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
-                            {
-                                // Otherwise, we add a test to make the result conditional on the length value.
-                                (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp)));
-                                continue;
-                            }
-
-                            break;
-                        }
-
-                    case (BoundDagElementEvaluation s1, BoundDagElementEvaluation s2):
-                        {
-                            s1Input = OriginalInput(s1.Input);
-                            s2Input = OriginalInput(s2.Input);
-
-                            var s1Index = s1.Index;
-                            var s2Index = s2.Index;
-                            if (s1Index == s2Index)
-                            {
-                                continue;
-                            }
-
-                            if (_forLowering)
-                            {
-                                break;
-                            }
-
-                            if (s1Index < 0 == s2Index < 0)
-                            {
-                                break;
-                            }
-
-                            int lengthValue = s1Index < 0 ? s2Index - s1Index : s1Index - s2Index;
-
-                            if (new BoundDagElementEvaluation(syntax, lengthValue - 1, s1.BufferInfo, s1.Input).SuccessTemp(_compilation) is var successTemp1 &&
-                                state.RemainingValues.TryGetValue(successTemp1, out IValueSet? successValues1))
-                            {
-                                if (!successValues1.All(BinaryOperatorKind.Equal, ConstantValue.True))
-                                {
-                                    (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.True, successTemp1)));
-                                }
-                                else
-                                {
-                                    (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(Tests.True.Instance);
-                                }
-                            }
-
-                            if (new BoundDagElementEvaluation(syntax, lengthValue, s1.BufferInfo, s1.Input).SuccessTemp(_compilation) is var successTemp2 &&
-                                state.RemainingValues.TryGetValue(successTemp2, out IValueSet? successValues2))
-                            {
-                                if (!successValues2.All(BinaryOperatorKind.Equal, ConstantValue.False))
-                                {
-                                    (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.False, successTemp2)));
-                                }
-                                else
-                                {
-                                    (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(Tests.True.Instance);
-                                }
                             }
 
                             continue;
                         }
+
+                    case (BoundDagElementEvaluation s1, BoundDagElementEvaluation s2):
+                        {
+                            // PROTOTYPE Walk up slice evaluations
+                            s1Input = OriginalInput(s1.Input);
+                            s2Input = OriginalInput(s2.Input);
+                            var s1Index = s1.Index;
+                            var s2Index = s2.Index;
+                            if (!checkIndexRelation(s1Index, s2Index, s1.Input))
+                            {
+                                break;
+                            }
+
+                            continue;
+                        }
+
                     // If the sources are equivalent (ignoring their input), it's still possible to find a pair of indexers that could relate.
                     // For example, the subpatterns in `[.., { E: subpat }] or [{ E: subpat }]` are being applied to the same element in the list.
                     // To account for this scenario, we walk up all the inputs as long as we see equivalent evaluation nodes in the path.
@@ -1539,6 +1475,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             // tests are unrelated
             conditions?.Free();
             return false;
+
+            bool checkIndexRelation(int s1Index, int s2Index, BoundDagTemp lengthTemp)
+            {
+                if (s1Index == s2Index)
+                {
+                    return true;
+                }
+
+                if (_forLowering)
+                {
+                    return false;
+                }
+
+                if (s1Index < 0 == s2Index < 0)
+                {
+                    return false;
+                }
+
+                if (!state.RemainingValues.TryGetValue(lengthTemp, out IValueSet? v) || v is not IValueSet<int> lengthValues)
+                    throw ExceptionUtilities.Unreachable();
+
+                // We do not expect an empty set here because an indexer evaluation is always preceded by
+                // a length test of which an impossible match would have made the rest of the tests unreachable.
+                Debug.Assert(!lengthValues.IsEmpty);
+
+                // Compute the length value that would make these two indices point to the same element.
+                int lengthValue = s1Index < 0 ? s2Index - s1Index : s1Index - s2Index;
+                if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
+                {
+                    // If the length is known to be exact, the two are considered to point to the same element.
+                    (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(Tests.True.Instance); // Triggers merging of values unconditionally
+                    return true;
+                }
+
+                if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
+                {
+                    // Otherwise, we add a test to make the result conditional on the length value.
+                    (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), lengthTemp)));
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         /// <summary>
@@ -2192,6 +2171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Negation is pushed to the level of a single test by demorgan's laws
                 public readonly Tests Negated;
                 private Not(Tests negated) => Negated = negated;
+                public Not(BoundDagTest negated) => Negated = new One(negated);
                 public static Tests Create(Tests negated) => negated switch
                 {
                     Tests.True _ => Tests.False.Instance,

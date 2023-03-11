@@ -10,19 +10,22 @@ internal sealed class ListPatternBufferInfo
 {
     public readonly TypeSymbol BufferType;
     public readonly MethodSymbol Constructor;
-    public readonly MethodSymbol TryGetElementFromStartMethod;
+    public readonly MethodSymbol HasElementAtMethod;
+    public readonly MethodSymbol GetElementFromStartMethod;
     public readonly MethodSymbol GetElementFromEndMethod;
     public TypeSymbol ElementType => GetElementFromEndMethod.ReturnType;
 
     public ListPatternBufferInfo(
         TypeSymbol bufferType,
         MethodSymbol constructor,
-        MethodSymbol tryGetElementFromStartMethod,
+        MethodSymbol hasElementAtMethod,
+        MethodSymbol getElementFromStartMethod,
         MethodSymbol getElementFromEndMethod)
     {
         BufferType = bufferType;
         Constructor = constructor;
-        TryGetElementFromStartMethod = tryGetElementFromStartMethod;
+        HasElementAtMethod = hasElementAtMethod;
+        GetElementFromStartMethod = getElementFromStartMethod;
         GetElementFromEndMethod = getElementFromEndMethod;
     }
 }

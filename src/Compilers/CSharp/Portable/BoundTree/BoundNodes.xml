@@ -1528,6 +1528,10 @@
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="Value" Type="ConstantValue" Null="disallow"/>
   </Node>
+  <Node Name="BoundDagElementTest" Base="BoundDagTest">
+    <Field Name="Index" Type="int"/>
+    <Field Name="BufferInfo" Type="ListPatternBufferInfo"/>
+  </Node>
   <!-- As a decision, an evaluation is considered to always succeed. -->
   <AbstractNode Name="BoundDagEvaluation" Base="BoundDagTest">
   </AbstractNode>

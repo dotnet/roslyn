@@ -419,11 +419,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // We pass the node that will follow so we can permit a test to fall through if appropriate
-                    BoundDecisionDagNode nextNode = ((i + 1) < length) ? nodesToLower[i + 1] : null;
-                    if (nextNode != null && loweredNodes.Contains(nextNode))
-                    {
-                        nextNode = null;
-                    }
+                    BoundDecisionDagNode nextNode =
+                        ((i + 1) < length) &&
+                        nodesToLower[i + 1] is var fallthrough &&
+                        // If the next node in topological ordering is already lowered but it has a label,
+                        // it's going to be lowered individually as well, so a fallthrough is still possible.
+                        (!loweredNodes.Contains(fallthrough) || _dagNodeLabels.ContainsKey(fallthrough))
+                            ? fallthrough : null;
 
                     if (GenerateBufferCtor(node, i, nodesToLower, nextNode))
                     {
@@ -442,11 +444,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundStatement rewrittenBody = _factory.Block(_loweredDecisionDag.ToImmutableAndFree());
                     foreach (BoundDagEnumeratorEvaluation toDispose in _toDispose)
                     {
-                        TypeSymbol enumeratorType = toDispose.EnumeratorInfo.GetEnumeratorInfo.Method.ReturnType;
-                        BoundExpression enumeratorTemp = _tempAllocator.GetTemp(new BoundDagTemp(toDispose.Syntax, enumeratorType, toDispose, index: 0));
-                        rewrittenBody = this._localRewriter.WrapWithTryFinallyDispose(toDispose.Syntax, toDispose.EnumeratorInfo, enumeratorType, enumeratorTemp, rewrittenBody);
+                        BoundDagTemp enumeratorTemp = toDispose.EnumeratorTemp();
+                        rewrittenBody = this._localRewriter.WrapWithTryFinallyDispose(
+                            toDispose.Syntax,
+                            enumeratorInfo: toDispose.EnumeratorInfo,
+                            enumeratorType: enumeratorTemp.Type,
+                            boundEnumeratorVar: _tempAllocator.GetTemp(enumeratorTemp),
+                            rewrittenBody: rewrittenBody);
                     }
 
+                    // PROTOTYPE return this directly or wrap in block (returning a BoundStatement)
                     result = ImmutableArray.Create(rewrittenBody);
                 }
                 else
@@ -454,7 +461,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = _loweredDecisionDag.ToImmutableAndFree();
                 }
                 _loweredDecisionDag = null;
-
                 return result;
 
                 void rewriteConditionalGotosToLeafNodes(ArrayBuilder<BoundStatement> builder)
@@ -493,50 +499,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private bool GenerateBufferCtor(BoundDecisionDagNode node, int indexOfNode, ImmutableArray<BoundDecisionDagNode> nodesToLower, BoundDecisionDagNode nextNode)
             {
-                if (node is not BoundEvaluationDecisionDagNode { Evaluation: BoundDagEnumeratorEvaluation e } evalNode)
+                if (node is not BoundEvaluationDecisionDagNode { Evaluation: BoundDagEnumeratorEvaluation enumeratorEvaluation } evalNode)
                 {
                     return false;
                 }
 
-                if (e.EnumeratorInfo.NeedsDisposal)
+                LowerEnumeratorEvaluation(enumeratorEvaluation, indexOfNode, nodesToLower, out BoundAssignmentOperator sideEffect);
+                if (enumeratorEvaluation.EnumeratorInfo.NeedsDisposal)
                 {
-                    _toDispose.Add(e);
+                    _toDispose.Add(enumeratorEvaluation);
                 }
 
-                BoundDagTemp bufferTemp = e.BufferTemp();
-                int fromStartCount = 0;
-                int fromEndCount = 0;
-                for (int i = indexOfNode + 1; i < nodesToLower.Length; i++)
-                {
-                    if (nodesToLower[i] is BoundEvaluationDecisionDagNode { Evaluation: BoundDagElementEvaluation element } &&
-                        element.Input.Equals(bufferTemp))
-                    {
-                        if (!element.IsFromEnd)
-                            // PROTOTYPE: This might be one too many, because !TryGet counts
-                            fromStartCount = Math.Max(fromStartCount, element.Index+1);
-                        else
-                            fromEndCount = Math.Max(fromEndCount, (-element.Index));
-                    }
-                }
-
-                BoundExpression input = _tempAllocator.GetTemp(e.Input);
-                var getEnumeratorMethod = e.EnumeratorInfo.GetEnumeratorInfo.Method;
-                var callExpr = _factory.Call(input, getEnumeratorMethod);
-                var enumeratorTemp = _tempAllocator.GetTemp(e.EnumeratorTemp());
-                var sideEffect = _factory.AssignmentExpression(
-                    _tempAllocator.GetTemp(bufferTemp),
-                    _factory.New(
-                        e.BufferInfo.Constructor,
-                        ImmutableArray.Create<BoundExpression>(
-                            _factory.AssignmentExpression(enumeratorTemp, callExpr),
-                            _factory.Literal(fromStartCount),
-                            _factory.Literal(fromEndCount))));
-                _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
-                if (nextNode != evalNode.Next)
-                {
-                    _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(evalNode.Next)));
-                }
-
+                GenerateEvaluation(sideEffect, evalNode.Next, nextNode);
                 return true;
             }
 
@@ -554,6 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(node == nodesToLower[indexOfNode]);
                 if (node is BoundTestDecisionDagNode testNode &&
                     testNode.WhenTrue is BoundEvaluationDecisionDagNode evaluationNode &&
+                    // PROTOTYPE: Rewrite {ElementAt(i), GetElementFromStart(i)} sequence as TryGetElementFromStart(i, out t)
                     TryLowerTypeTestAndCast(testNode.Test, evaluationNode.Evaluation, out BoundExpression sideEffect, out BoundExpression test)
                     )
                 {
@@ -1266,19 +1241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             BoundExpression sideEffect = LowerEvaluation(evaluationNode.Evaluation);
                             Debug.Assert(sideEffect != null);
-                            _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
-
-                            // We add a hidden sequence point after the evaluation's side-effect, which may be a call out
-                            // to user code such as `Deconstruct` or a property get, to permit edit-and-continue to
-                            // synchronize on changes.
-                            if (GenerateInstrumentation)
-                                _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
-
-                            if (nextNode != evaluationNode.Next)
-                            {
-                                // We only need a goto if we would not otherwise fall through to the desired state
-                                _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(evaluationNode.Next)));
-                            }
+                            GenerateEvaluation(sideEffect, evaluationNode.Next, nextNode);
                         }
 
                         break;
@@ -1293,6 +1256,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(node.Kind);
+                }
+            }
+
+            private void GenerateEvaluation(BoundExpression sideEffect, BoundDecisionDagNode nextNode, BoundDecisionDagNode fallthrough)
+            {
+                _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
+
+                // We add a hidden sequence point after the evaluation's side-effect, which may be a call out
+                // to user code such as `Deconstruct` or a property get, to permit edit-and-continue to
+                // synchronize on changes.
+                if (GenerateInstrumentation)
+                    _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
+
+                if (nextNode != fallthrough)
+                {
+                    // We only need a goto if we would not otherwise fall through to the desired state
+                    _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(nextNode)));
                 }
             }
         }

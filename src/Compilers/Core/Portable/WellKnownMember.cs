@@ -537,7 +537,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
 
         System_Runtime_CompilerServices_Buffer_T__ctor,
-        System_Runtime_CompilerServices_Buffer_T__TryGetElementFromStart,
+        System_Runtime_CompilerServices_Buffer_T__HasElementAt,
+        System_Runtime_CompilerServices_Buffer_T__GetElementFromStart,
         System_Runtime_CompilerServices_Buffer_T__GetElementFromEnd,
 
         Count

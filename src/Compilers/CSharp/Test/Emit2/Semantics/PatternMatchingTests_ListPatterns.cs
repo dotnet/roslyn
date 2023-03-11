@@ -25,7 +25,11 @@ namespace System.Runtime.CompilerServices
         public Buffer(System.Collections.Generic.IEnumerator<T> enumerator, int bufferFromStart, int bufferFromEnd)
         {
         }
-        public bool TryGetElementFromStart(int index, out T element)
+        public bool HasElementAt(int index)
+        {
+            throw null;
+        }
+        public T GetElementFromStart(int index)
         {
             throw null;
         }
@@ -38,6 +42,143 @@ namespace System.Runtime.CompilerServices
 """;
 
     [Fact]
+    public void EnumerableListPattern_Subsumption()
+    {
+        var source = """
+using System.Collections.Generic;
+class C
+{
+    public int X { get; }
+    public int Y { get; }
+    public C F { get; }
+
+    static void Test(
+        IEnumerable<int> a,
+        IEnumerable<int> b,
+        IEnumerable<object> o,
+        IEnumerable<C> c)
+    {
+        switch (a)
+        {
+            case [.., 0]:
+            case [<0, ..]:
+            case [.., >0]:
+            case [_]: // 1
+                break;
+        };
+        switch (a, b)
+        {
+            case ([.., 42], [.., 43]):
+            case ([42], [43]): // 2
+                break;
+        }
+        switch (a)
+        {
+            case [_] and [.., 1]:
+            case [_] and [1, ..]: // 3
+                break;
+        }
+        switch (a)
+        {
+            case [_] and [1, ..]:
+            case [_] and [.., 1]: // 4
+                break;
+        }
+        switch (a)
+        {
+            case [1, .., 3]:
+            case [1, 2, 3]: // 5
+                break;
+        }
+        switch (a)
+        {
+            case [1, 2, 3]:
+            case [1, .., 3]: // ok
+                break;
+        }
+        switch (a)
+        {
+            case [42]:
+            case [..,42]: // ok
+                break;
+        }
+        switch (a)
+        {
+            case [..,42]:
+            case [42]: // 6
+                break;
+        }
+        switch (a)
+        {
+            case [>0, ..]:
+            case [.., <=0]:
+            case [var unreachable]: // 7
+                    break;
+        }
+        switch (o)
+        {
+            case [null, ..]:
+            case [.., not null]:
+            case [var unreachable]: // 8
+                    break;
+        }
+        switch (o)
+        {
+            case [string, ..]:
+            case [.., not string]:
+            case [var unreachable]: // 9
+                    break;
+        }
+        switch (a)
+        {
+            case [_, > 0, ..]:
+            case [.., <= 0, _]: // ok
+                break;
+        }
+        switch (c)
+        {
+            case [.., {X:> 0, Y:0}]:
+            case [{Y:0, X:> 0}]: // 10
+                break;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(new[] { source, s_bufferSource });
+        comp.VerifyDiagnostics(
+                // (19,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [_]: // 1
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[_]").WithLocation(19, 18),
+                // (25,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case ([42], [43]): // 2
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "([42], [43])").WithLocation(25, 18),
+                // (31,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [_] and [1, ..]: // 3
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[_] and [1, ..]").WithLocation(31, 18),
+                // (37,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [_] and [.., 1]: // 4
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[_] and [.., 1]").WithLocation(37, 18),
+                // (43,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [1, 2, 3]: // 5
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[1, 2, 3]").WithLocation(43, 18),
+                // (61,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [42]: // 6
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[42]").WithLocation(61, 18),
+                // (68,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [var unreachable]: // 7
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[var unreachable]").WithLocation(68, 18),
+                // (75,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [var unreachable]: // 8
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[var unreachable]").WithLocation(75, 18),
+                // (82,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [var unreachable]: // 9
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[var unreachable]").WithLocation(82, 18),
+                // (94,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [{Y:0, X:> 0}]: // 10
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[{Y:0, X:> 0}]").WithLocation(94, 18));
+    }
+
+    [Fact]
     public void EnumerableListPattern()
     {
         var source = """
@@ -45,152 +186,228 @@ using System.Collections.Generic;
 class C
 {
     public bool Test1(IEnumerable<int> seq) => seq is [10, 20];
-    public bool Test2(IEnumerable<int> seq) => seq is [..,2];
-    public bool Test3(IEnumerable<int> seq) => seq is [1,..];
+    public bool Test2(IEnumerable<int> seq) => seq is [..,20];
+    public bool Test3(IEnumerable<int> seq) => seq is [10,..];
     public bool Test4(IEnumerable<int> seq) => seq is [10,..,20];
 }
 """;
         var comp = CreateCompilation(new[] { source, s_bufferSource });
-        AssertEx.Multiple(
-            () => VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
-@"[0]: t0 != null ? [1] : [11]
-[1]: t1 = DagEnumeratorEvaluation(t0); [2]
-[2]: t2 = DagElementEvaluation(t1); [3]
-[3]: t2 == True ? [4] : [11]
-[4]: t2 == 10 ? [5] : [11]
-[5]: t3 = DagElementEvaluation(t1); [6]
-[6]: t3 == True ? [7] : [11]
-[7]: t3 == 20 ? [8] : [11]
-[8]: t4 = DagElementEvaluation(t1); [9]
-[9]: t4 == False ? [10] : [11]
-[10]: leaf <isPatternSuccess> `[10, 20]`
-[11]: leaf <isPatternFailure> `[10, 20]`
-", index: 0)
-        );
         comp.VerifyDiagnostics();
 
         var verifier = CompileAndVerify(comp);
         AssertEx.Multiple(
-            () => verifier.VerifyIL("C.Test4", """
+            () => verifier.VerifyIL("C.Test1", """
 {
-  // Code size       82 (0x52)
+  // Code size       90 (0x5a)
   .maxstack  3
   .locals init (System.Collections.Generic.IEnumerator<int> V_0,
                 System.Runtime.CompilerServices.Buffer<int> V_1,
-                int V_2,
-                int V_3,
-                bool V_4)
+                bool V_2)
   .try
   {
     IL_0000:  ldarg.1
-    IL_0001:  brfalse.s  IL_0039
+    IL_0001:  brfalse.s  IL_0046
     IL_0003:  ldarg.1
     IL_0004:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
     IL_0009:  dup
     IL_000a:  stloc.0
     IL_000b:  ldc.i4.2
-    IL_000c:  ldc.i4.1
-    IL_000d:  newobj     "System.Runtime.CompilerServices.Buffer<int>..ctor(System.Collections.Generic.IEnumerator<int>, int, int)"
-    IL_0012:  stloc.1
-    IL_0013:  ldloc.1
-    IL_0014:  ldc.i4.0
-    IL_0015:  ldloca.s   V_2
-    IL_0017:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.TryGetElementFromStart(int, out int)"
-    IL_001c:  brfalse.s  IL_0039
-    IL_001e:  ldloc.2
-    IL_001f:  ldc.i4.s   10
-    IL_0021:  bne.un.s   IL_0039
-    IL_0023:  ldloc.1
-    IL_0024:  ldc.i4.1
-    IL_0025:  ldloca.s   V_3
-    IL_0027:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.TryGetElementFromStart(int, out int)"
-    IL_002c:  brfalse.s  IL_0039
-    IL_002e:  ldloc.1
-    IL_002f:  ldc.i4.1
-    IL_0030:  callvirt   "int System.Runtime.CompilerServices.Buffer<int>.GetElementFromEnd(int)"
-    IL_0035:  ldc.i4.s   20
-    IL_0037:  beq.s      IL_003b
-    IL_0039:  leave.s    IL_004c
-    IL_003b:  leave.s    IL_0047
-  }
-  finally
-  {
-    IL_003d:  ldloc.0
-    IL_003e:  brfalse.s  IL_0046
-    IL_0040:  ldloc.0
-    IL_0041:  callvirt   "void System.IDisposable.Dispose()"
-    IL_0046:  endfinally
-  }
-  IL_0047:  ldc.i4.1
-  IL_0048:  stloc.s    V_4
-  IL_004a:  br.s       IL_004f
-  IL_004c:  ldc.i4.0
-  IL_004d:  stloc.s    V_4
-  IL_004f:  ldloc.s    V_4
-  IL_0051:  ret
-}
-"""),
-            () => verifier.VerifyIL("C.Test1", """
-{
-  // Code size       87 (0x57)
-  .maxstack  3
-  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
-                System.Runtime.CompilerServices.Buffer<int> V_1,
-                int V_2,
-                int V_3,
-                int V_4,
-                bool V_5)
-  .try
-  {
-    IL_0000:  ldarg.1
-    IL_0001:  brfalse.s  IL_003e
-    IL_0003:  ldarg.1
-    IL_0004:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
-    IL_0009:  dup
-    IL_000a:  stloc.0
-    IL_000b:  ldc.i4.3
     IL_000c:  ldc.i4.0
     IL_000d:  newobj     "System.Runtime.CompilerServices.Buffer<int>..ctor(System.Collections.Generic.IEnumerator<int>, int, int)"
     IL_0012:  stloc.1
     IL_0013:  ldloc.1
     IL_0014:  ldc.i4.0
-    IL_0015:  ldloca.s   V_2
-    IL_0017:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.TryGetElementFromStart(int, out int)"
-    IL_001c:  brfalse.s  IL_003e
-    IL_001e:  ldloc.2
-    IL_001f:  ldc.i4.s   10
-    IL_0021:  bne.un.s   IL_003e
-    IL_0023:  ldloc.1
-    IL_0024:  ldc.i4.1
-    IL_0025:  ldloca.s   V_3
-    IL_0027:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.TryGetElementFromStart(int, out int)"
-    IL_002c:  brfalse.s  IL_003e
-    IL_002e:  ldloc.3
-    IL_002f:  ldc.i4.s   20
-    IL_0031:  bne.un.s   IL_003e
-    IL_0033:  ldloc.1
-    IL_0034:  ldc.i4.2
-    IL_0035:  ldloca.s   V_4
-    IL_0037:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.TryGetElementFromStart(int, out int)"
-    IL_003c:  brfalse.s  IL_0040
-    IL_003e:  leave.s    IL_0051
-    IL_0040:  leave.s    IL_004c
+    IL_0015:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.HasElementAt(int)"
+    IL_001a:  brfalse.s  IL_0046
+    IL_001c:  ldloc.1
+    IL_001d:  ldc.i4.0
+    IL_001e:  callvirt   "int System.Runtime.CompilerServices.Buffer<int>.GetElementFromStart(int)"
+    IL_0023:  ldc.i4.s   10
+    IL_0025:  bne.un.s   IL_0046
+    IL_0027:  ldloc.1
+    IL_0028:  ldc.i4.1
+    IL_0029:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.HasElementAt(int)"
+    IL_002e:  brfalse.s  IL_0046
+    IL_0030:  ldloc.1
+    IL_0031:  ldc.i4.1
+    IL_0032:  callvirt   "int System.Runtime.CompilerServices.Buffer<int>.GetElementFromStart(int)"
+    IL_0037:  ldc.i4.s   20
+    IL_0039:  bne.un.s   IL_0046
+    IL_003b:  ldloc.1
+    IL_003c:  ldc.i4.2
+    IL_003d:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.HasElementAt(int)"
+    IL_0042:  brtrue.s   IL_0046
+    IL_0044:  leave.s    IL_0052
+    IL_0046:  leave.s    IL_0056
   }
   finally
   {
-    IL_0042:  ldloc.0
-    IL_0043:  brfalse.s  IL_004b
-    IL_0045:  ldloc.0
-    IL_0046:  callvirt   "void System.IDisposable.Dispose()"
-    IL_004b:  endfinally
+    IL_0048:  ldloc.0
+    IL_0049:  brfalse.s  IL_0051
+    IL_004b:  ldloc.0
+    IL_004c:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0051:  endfinally
   }
-  IL_004c:  ldc.i4.1
-  IL_004d:  stloc.s    V_5
-  IL_004f:  br.s       IL_0054
-  IL_0051:  ldc.i4.0
-  IL_0052:  stloc.s    V_5
-  IL_0054:  ldloc.s    V_5
-  IL_0056:  ret
+  IL_0052:  ldc.i4.1
+  IL_0053:  stloc.2
+  IL_0054:  br.s       IL_0058
+  IL_0056:  ldc.i4.0
+  IL_0057:  stloc.2
+  IL_0058:  ldloc.2
+  IL_0059:  ret
+}
+"""),
+            () => verifier.VerifyIL("C.Test2", """
+{
+  // Code size       61 (0x3d)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                System.Runtime.CompilerServices.Buffer<int> V_1,
+                bool V_2)
+  .try
+  {
+    IL_0000:  ldarg.1
+    IL_0001:  brfalse.s  IL_0027
+    IL_0003:  ldarg.1
+    IL_0004:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+    IL_0009:  dup
+    IL_000a:  stloc.0
+    IL_000b:  ldc.i4.0
+    IL_000c:  ldc.i4.1
+    IL_000d:  newobj     "System.Runtime.CompilerServices.Buffer<int>..ctor(System.Collections.Generic.IEnumerator<int>, int, int)"
+    IL_0012:  stloc.1
+    IL_0013:  ldloc.1
+    IL_0014:  ldc.i4.0
+    IL_0015:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.HasElementAt(int)"
+    IL_001a:  brfalse.s  IL_0027
+    IL_001c:  ldloc.1
+    IL_001d:  ldc.i4.1
+    IL_001e:  callvirt   "int System.Runtime.CompilerServices.Buffer<int>.GetElementFromEnd(int)"
+    IL_0023:  ldc.i4.s   20
+    IL_0025:  beq.s      IL_0029
+    IL_0027:  leave.s    IL_0039
+    IL_0029:  leave.s    IL_0035
+  }
+  finally
+  {
+    IL_002b:  ldloc.0
+    IL_002c:  brfalse.s  IL_0034
+    IL_002e:  ldloc.0
+    IL_002f:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0034:  endfinally
+  }
+  IL_0035:  ldc.i4.1
+  IL_0036:  stloc.2
+  IL_0037:  br.s       IL_003b
+  IL_0039:  ldc.i4.0
+  IL_003a:  stloc.2
+  IL_003b:  ldloc.2
+  IL_003c:  ret
+}
+"""),
+            () => verifier.VerifyIL("C.Test3", """
+{
+  // Code size       61 (0x3d)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                System.Runtime.CompilerServices.Buffer<int> V_1,
+                bool V_2)
+  .try
+  {
+    IL_0000:  ldarg.1
+    IL_0001:  brfalse.s  IL_0027
+    IL_0003:  ldarg.1
+    IL_0004:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+    IL_0009:  dup
+    IL_000a:  stloc.0
+    IL_000b:  ldc.i4.1
+    IL_000c:  ldc.i4.0
+    IL_000d:  newobj     "System.Runtime.CompilerServices.Buffer<int>..ctor(System.Collections.Generic.IEnumerator<int>, int, int)"
+    IL_0012:  stloc.1
+    IL_0013:  ldloc.1
+    IL_0014:  ldc.i4.0
+    IL_0015:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.HasElementAt(int)"
+    IL_001a:  brfalse.s  IL_0027
+    IL_001c:  ldloc.1
+    IL_001d:  ldc.i4.0
+    IL_001e:  callvirt   "int System.Runtime.CompilerServices.Buffer<int>.GetElementFromStart(int)"
+    IL_0023:  ldc.i4.s   10
+    IL_0025:  beq.s      IL_0029
+    IL_0027:  leave.s    IL_0039
+    IL_0029:  leave.s    IL_0035
+  }
+  finally
+  {
+    IL_002b:  ldloc.0
+    IL_002c:  brfalse.s  IL_0034
+    IL_002e:  ldloc.0
+    IL_002f:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0034:  endfinally
+  }
+  IL_0035:  ldc.i4.1
+  IL_0036:  stloc.2
+  IL_0037:  br.s       IL_003b
+  IL_0039:  ldc.i4.0
+  IL_003a:  stloc.2
+  IL_003b:  ldloc.2
+  IL_003c:  ret
+}
+"""),
+            () => verifier.VerifyIL("C.Test4", """
+{
+  // Code size       81 (0x51)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                System.Runtime.CompilerServices.Buffer<int> V_1,
+                bool V_2)
+  .try
+  {
+    IL_0000:  ldarg.1
+    IL_0001:  brfalse.s  IL_003b
+    IL_0003:  ldarg.1
+    IL_0004:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+    IL_0009:  dup
+    IL_000a:  stloc.0
+    IL_000b:  ldc.i4.1
+    IL_000c:  ldc.i4.1
+    IL_000d:  newobj     "System.Runtime.CompilerServices.Buffer<int>..ctor(System.Collections.Generic.IEnumerator<int>, int, int)"
+    IL_0012:  stloc.1
+    IL_0013:  ldloc.1
+    IL_0014:  ldc.i4.0
+    IL_0015:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.HasElementAt(int)"
+    IL_001a:  brfalse.s  IL_003b
+    IL_001c:  ldloc.1
+    IL_001d:  ldc.i4.0
+    IL_001e:  callvirt   "int System.Runtime.CompilerServices.Buffer<int>.GetElementFromStart(int)"
+    IL_0023:  ldc.i4.s   10
+    IL_0025:  bne.un.s   IL_003b
+    IL_0027:  ldloc.1
+    IL_0028:  ldc.i4.1
+    IL_0029:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.HasElementAt(int)"
+    IL_002e:  brfalse.s  IL_003b
+    IL_0030:  ldloc.1
+    IL_0031:  ldc.i4.1
+    IL_0032:  callvirt   "int System.Runtime.CompilerServices.Buffer<int>.GetElementFromEnd(int)"
+    IL_0037:  ldc.i4.s   20
+    IL_0039:  beq.s      IL_003d
+    IL_003b:  leave.s    IL_004d
+    IL_003d:  leave.s    IL_0049
+  }
+  finally
+  {
+    IL_003f:  ldloc.0
+    IL_0040:  brfalse.s  IL_0048
+    IL_0042:  ldloc.0
+    IL_0043:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0048:  endfinally
+  }
+  IL_0049:  ldc.i4.1
+  IL_004a:  stloc.2
+  IL_004b:  br.s       IL_004f
+  IL_004d:  ldc.i4.0
+  IL_004e:  stloc.2
+  IL_004f:  ldloc.2
+  IL_0050:  ret
 }
 """)
         );

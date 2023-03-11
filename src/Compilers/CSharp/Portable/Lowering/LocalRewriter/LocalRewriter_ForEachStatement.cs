@@ -253,6 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement rewrittenBody)
         {
             Debug.Assert(enumeratorInfo.NeedsDisposal);
+            Debug.Assert(boundEnumeratorVar is BoundLocal);
 
             NamedTypeSymbol? idisposableTypeSymbol = null;
             bool isImplicit = false;

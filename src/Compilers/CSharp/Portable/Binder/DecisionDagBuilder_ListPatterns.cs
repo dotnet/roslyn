@@ -119,51 +119,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tests.Add(new Tests.One(enumeratorEvaluation));
 
                 // PROTOTYPE: tests.Add(!input.TryGetNonEnumeratedCount || count >=/== N)
-                // PROTOTYPE: Could result in suboptimal codegen, as an alternative, it could use Buffer.ProbeCount(N) or some such
+                // Could result in suboptimal codegen, as an alternative, it could use Buffer.ProbeCount(N) or some such
 
                 int index = 0;
                 foreach (BoundPattern subpattern in subpatterns)
                 {
                     if (subpattern is BoundSlicePattern slice)
                     {
-                        for (int j = index, n = subpatterns.Length - 2; j <= n; j++)
+                        if (subpatterns.Length - 2 >= 0)
                         {
-                            var elementEvaluation = new BoundDagElementEvaluation(syntax, j, list.BufferInfo, bufferTemp);
-                            var successTemp = elementEvaluation.SuccessTemp(_compilation);
-                            tests.Add(new Tests.One(elementEvaluation));
-                            tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.True, successTemp)));
+                            tests.Add(new Tests.One(new BoundDagElementTest(syntax, subpatterns.Length - 2, list.BufferInfo, bufferTemp)));
                         }
 
                         index -= subpatterns.Length - 1;
                         if (slice.Pattern is not null)
                         {
                             // PROTOTYPE: Use Buffer.Slice?
-                            // PROTOTYPE: Could return Span/IEnumerable or both and select using explicit type [.. ROS<int>] which is also considered for arrays
+                            // Could return Span/IEnumerable or both and select using explicit type [.. ROS<int>] which is also considered for arrays
                             throw new NotImplementedException();
                         }
                     }
                     else
                     {
+                        if (index >= 0)
+                        {
+                            tests.Add(new Tests.One(new BoundDagElementTest(subpattern.Syntax, index, list.BufferInfo, bufferTemp)));
+                        }
+
                         var elementEvaluation = new BoundDagElementEvaluation(subpattern.Syntax, index++, list.BufferInfo, bufferTemp);
                         var elementTemp = elementEvaluation.ElementTemp();
                         tests.Add(new Tests.One(elementEvaluation));
-
-                        if (!elementEvaluation.IsFromEnd)
-                        {
-                            BoundDagTemp successTemp = elementEvaluation.SuccessTemp(_compilation);
-                            tests.Add(new Tests.One(new BoundDagValueTest(subpattern.Syntax, ConstantValue.True, successTemp)));
-                        }
-
                         tests.Add(MakeTestsAndBindings(elementTemp, subpattern, bindings));
                     }
                 }
 
                 if (!list.HasSlice)
                 {
-                    var elementEvaluation = new BoundDagElementEvaluation(syntax, index, list.BufferInfo, bufferTemp);
-                    var successTemp = elementEvaluation.SuccessTemp(_compilation);
-                    tests.Add(new Tests.One(elementEvaluation));
-                    tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.False, successTemp)));
+                    tests.Add(new Tests.Not(new BoundDagElementTest(syntax, index, list.BufferInfo, bufferTemp)));
                 }
             }
 

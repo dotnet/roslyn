@@ -3693,16 +3693,23 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
-                // System_Runtime_CompilerServices_Buffer_T__TryGetElementFromStart
+                // System_Runtime_CompilerServices_Buffer_T__HasElementAt
                 (byte)MemberFlags.Method,                                                                                                    // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_Buffer_T - WellKnownType.ExtSentinel), // DeclaringTypeId
                 0,                                                                                                                           // Arity
-                    2,                                                                                                                       // Method Signature
+                    1,                                                                                                                       // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,                                                    // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
-                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericTypeParameter, 0,
 
                 // System_Runtime_CompilerServices_Buffer_T__GetElementFromStart
+                (byte)MemberFlags.Method,                                                                                                    // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_Buffer_T - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                                           // Arity
+                    1,                                                                                                                       // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,                                                                         // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                // System_Runtime_CompilerServices_Buffer_T__GetElementFromEnd
                 (byte)MemberFlags.Method,                                                                                                    // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_Buffer_T - WellKnownType.ExtSentinel), // DeclaringTypeId
                 0,                                                                                                                           // Arity
@@ -4170,7 +4177,8 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_MissingMethodException__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute
                 ".ctor",                                    // System_Runtime_CompilerServices_Buffer_T__ctor
-                "TryGetElementFromStart",                   // System_Runtime_CompilerServices_Buffer_T__TryGetElementFromStart
+                "HasElementAt",                             // System_Runtime_CompilerServices_Buffer_T__HasElementAt
+                "GetElementFromStart",                      // System_Runtime_CompilerServices_Buffer_T__GetElementFromStart
                 "GetElementFromEnd",                        // System_Runtime_CompilerServices_Buffer_T__GetElementFromEnd
             };
 

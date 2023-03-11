@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 case (BoundDagValueTest x, BoundDagValueTest y):
                     return x.Value.Equals(y.Value);
+                case (BoundDagElementTest x, BoundDagElementTest y):
+                    return x.Index.Equals(y.Index);
                 case (BoundDagRelationalTest x, BoundDagRelationalTest y):
                     return x.Relation == y.Relation && x.Value.Equals(y.Value);
                 default:

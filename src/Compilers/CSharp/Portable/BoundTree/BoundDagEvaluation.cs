@@ -189,14 +189,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundDagElementEvaluation
     {
-        public BoundDagTemp SuccessTemp(CSharpCompilation compilation)
-        {
-            return new BoundDagTemp(Syntax, compilation.GetSpecialType(SpecialType.System_Boolean), this, index: 0);
-        }
-
         public BoundDagTemp ElementTemp()
         {
-            return new BoundDagTemp(Syntax, BufferInfo.ElementType, this, index: 1);
+            return new BoundDagTemp(Syntax, BufferInfo.ElementType, this, index: 0);
         }
     }
 }
