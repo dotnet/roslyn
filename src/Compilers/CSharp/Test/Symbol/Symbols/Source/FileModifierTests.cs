@@ -3576,6 +3576,7 @@ public class FileModifierTests : CSharpTestBase
         Assert.Null(comp.GetTypeByMetadataName("<>F1__C"));
         Assert.Null(comp.GetTypeByMetadataName("F0__C"));
         Assert.Null(comp.GetTypeByMetadataName("<file>F0__C"));
+        Assert.Null(comp.GetTypeByMetadataName("C"));
 
         // from metadata
         var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
@@ -3585,6 +3586,8 @@ public class FileModifierTests : CSharpTestBase
 
         var metadataType = comp2.GetTypeByMetadataName("<>FE3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855__C");
         Assert.Equal(metadataMember, metadataType);
+
+        Assert.Null(comp2.GetTypeByMetadataName("C"));
     }
 
     [Fact]
@@ -3603,6 +3606,7 @@ public class FileModifierTests : CSharpTestBase
         var sourceType = comp.GetTypeByMetadataName("<>FE3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855__C`1");
         Assert.Equal(sourceMember, sourceType);
         Assert.Null(comp.GetTypeByMetadataName("<>FE3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855__C"));
+        Assert.Null(comp.GetTypeByMetadataName("C`1"));
 
         // from metadata
         var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
@@ -3613,6 +3617,8 @@ public class FileModifierTests : CSharpTestBase
 
         var metadataType = comp2.GetTypeByMetadataName("<>FE3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855__C`1");
         Assert.Equal(metadataMember, metadataType);
+
+        Assert.Null(comp2.GetTypeByMetadataName("C`1"));
     }
 
     [Fact]
@@ -3639,6 +3645,7 @@ public class FileModifierTests : CSharpTestBase
         // However, since we don't actually support nested file types, we don't think we need the API to do the additional lookup
         // when the requested type is nested, and so we end up giving a null here.
         Assert.Null(sourceType);
+        Assert.Null(comp.GetTypeByMetadataName("Outer.C"));
     }
 
     [Fact]
@@ -3661,6 +3668,10 @@ public class FileModifierTests : CSharpTestBase
         var sourceType = comp.GetTypeByMetadataName("<file1>F96B1D9CB33A43D51528FE81EDAFE5AE31358FE749929AC76B76C64B60DEF129D__C");
         Assert.Equal(sourceMember, sourceType);
 
+        var sourceTypeCByMetadataName = comp.GetTypeByMetadataName("C");
+        Assert.Equal("C", sourceTypeCByMetadataName.MetadataName);
+        Assert.False(sourceTypeCByMetadataName is SourceMemberContainerTypeSymbol { IsFileLocal: true });
+
         // from metadata
         var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
         comp2.VerifyDiagnostics();
@@ -3670,6 +3681,9 @@ public class FileModifierTests : CSharpTestBase
 
         var metadataType = comp2.GetTypeByMetadataName("<file1>F96B1D9CB33A43D51528FE81EDAFE5AE31358FE749929AC76B76C64B60DEF129D__C");
         Assert.Equal(metadataMember, metadataType);
+
+        var metadataTypeCByMetadataName = comp2.GetTypeByMetadataName("C");
+        Assert.Equal("C", metadataTypeCByMetadataName.MetadataName);
     }
 
     [CombinatorialData]
@@ -3694,12 +3708,15 @@ public class FileModifierTests : CSharpTestBase
         const string metadataName = "<>FE3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855__C";
         var sourceType = comp.GetTypeByMetadataName(metadataName);
         Assert.Null(sourceType);
+        Assert.Null(comp.GetTypeByMetadataName("C"));
 
         var types = comp.GetTypesByMetadataName(metadataName);
         Assert.Equal(2, types.Length);
         Assert.Equal(firstIsMetadataReference ? "C@<tree 0>" : "C@<unknown>", types[0].ToTestDisplayString());
         Assert.Equal(secondIsMetadataReference ? "C@<tree 0>" : "C@<unknown>", types[1].ToTestDisplayString());
         Assert.NotEqual(types[0], types[1]);
+
+        Assert.Empty(comp.GetTypesByMetadataName("C"));
     }
 
     [Fact]
@@ -3720,9 +3737,13 @@ public class FileModifierTests : CSharpTestBase
         var sourceType = ((Compilation)comp).GetTypeByMetadataName(metadataName);
         Assert.Equal("C@<tree 0>", sourceType.ToTestDisplayString());
 
+        Assert.Null(((Compilation)comp).GetTypeByMetadataName("C"));
+
         var types = comp.GetTypesByMetadataName(metadataName);
         Assert.Equal(1, types.Length);
         Assert.Same(sourceType, types[0]);
+
+        Assert.Empty(comp.GetTypesByMetadataName("C"));
     }
 
     [Fact]

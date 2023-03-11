@@ -992,11 +992,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if (result is SourceMemberContainerTypeSymbol { IsFileLocal: true })
-            {
-                return false;
-            }
-
             Debug.Assert(result.ContainingType is null || IsValidWellKnownType(result.ContainingType),
                 "Checking the containing type is the caller's responsibility.");
 
