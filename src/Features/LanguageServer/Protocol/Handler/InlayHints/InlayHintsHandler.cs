@@ -7,6 +7,7 @@ using System.Composition;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -43,12 +44,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHints
             var textSpan = ProtocolConversions.RangeToTextSpan(request.Range, text);
 
             using var _ = ArrayBuilder<LSP.InlayHint>.GetInstance(out var inlayHints);
-            await AddParameterHintsToBuilderAsync(document, textSpan, inlayHints, cancellationToken).ConfigureAwait(false);
+            await AddParameterHintsToBuilderAsync(document, text, textSpan, inlayHints, cancellationToken).ConfigureAwait(false);
             await AddTypeHintsToBuilderAsync(document, textSpan, inlayHints, cancellationToken).ConfigureAwait(false);
             return inlayHints.ToArray();
         }
 
-        private async Task AddParameterHintsToBuilderAsync(Document document, TextSpan textSpan, ArrayBuilder<LSP.InlayHint> inlayHints, CancellationToken cancellationToken)
+        private async Task AddParameterHintsToBuilderAsync(Document document, SourceText text, TextSpan textSpan, ArrayBuilder<LSP.InlayHint> inlayHints, CancellationToken cancellationToken)
         {
             var inlineParameterService = document.GetRequiredLanguageService<IInlineParameterNameHintsService>();
             var options = new InlineParameterHintsOptions()
@@ -61,8 +62,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHints
 
             foreach (var parameterHint in parameterHints)
             {
+                var linePosition = text.Lines.GetLinePosition(parameterHint.Span.Start);
+                
                 var inlayHint = new LSP.InlayHint
                 {
+                    Position = ProtocolConversions.LinePositionToPosition(linePosition),
+                    Label = ,
+                    Kind = LSP.InlayHintKind.Parameter,
 
                 };
             }
