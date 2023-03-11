@@ -21,7 +21,6 @@ Imports TypeAttributes = System.Reflection.TypeAttributes
 Imports FieldAttributes = System.Reflection.FieldAttributes
 Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
-Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 

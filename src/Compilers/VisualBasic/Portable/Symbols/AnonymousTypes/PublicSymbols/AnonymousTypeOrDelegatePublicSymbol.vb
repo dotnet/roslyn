@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Friend NotInheritable Class AnonymousTypeManager

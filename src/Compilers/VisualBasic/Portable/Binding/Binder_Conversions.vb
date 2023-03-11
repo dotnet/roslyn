@@ -1042,6 +1042,15 @@ DoneWithDiagnostics:
 
             Dim tupleElements As BoundConvertedTupleElements = CreateConversionForTupleElements(tree, sourceType, targetType, convKind, isExplicit)
 
+            Dim targetNamedType = TryCast(targetType, NamedTypeSymbol)
+            If argument.IsNothingLiteral() AndAlso targetNamedType IsNot Nothing AndAlso targetType.IsStructureType() Then
+                ' Check to see if we're creating a default value of a structure with required members
+                If targetNamedType.AllRequiredMembers.Count > 0 OrElse targetNamedType.HasRequiredMembersError Then
+                    Dim structCtor As MethodSymbol = targetNamedType.InstanceConstructors.FirstOrDefault(Function(ctor) ctor.ParameterCount = 0)
+                    CheckRequiredMembersInObjectInitializer(structCtor, targetNamedType, ImmutableArray(Of BoundExpression).Empty, argument.Syntax, diagnostics)
+                End If
+            End If
+
             Return New BoundConversion(tree, argument, convKind, CheckOverflow, isExplicit, constantResult, tupleElements, targetType)
         End Function
 
@@ -1644,11 +1653,6 @@ DoneWithDiagnostics:
                 ' do not lose the original element names in the literal if different from names in the target
                 ' Come back to this, what about locations? (https:'github.com/dotnet/roslyn/issues/11013)
                 targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt)
-
-                If Not destTupleType.AllRequiredMembers.IsEmpty Then
-                    ' '{0}' is an unsupported type.
-                    diagnostics.Add(ERRID.ERR_UnsupportedType1, sourceTuple.Syntax.Location, destTupleType)
-                End If
             End If
 
             Dim convertedArguments = ArrayBuilder(Of BoundExpression).GetInstance(arguments.Length)

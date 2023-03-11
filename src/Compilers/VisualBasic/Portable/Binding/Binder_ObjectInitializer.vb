@@ -517,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return resultExpression
         End Function
 
-        Private Shared Sub CheckRequiredMembersInObjectInitializer(
+        Friend Shared Sub CheckRequiredMembersInObjectInitializer(
             constructor As MethodSymbol,
             containingType As NamedTypeSymbol,
             initializers As ImmutableArray(Of BoundExpression),

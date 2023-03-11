@@ -1405,7 +1405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If declaredOrDefaultBase IsNot Nothing Then
                 ReportUseSiteInfoForBaseType(declaredOrDefaultBase, declaredBase, diagnostics)
 
-                If declaredOrDefaultBase.AllRequiredMembers.Count > 0 Then
+                If declaredOrDefaultBase.AllRequiredMembers.Count > 0 OrElse declaredOrDefaultBase.HasRequiredMembersError Then
                     ' Cannot inherit from '{0}' because it has required members.
                     diagnostics.Add(ERRID.ERR_CannotInheritFromTypeWithRequiredMembers, GetInheritsLocation(Me), declaredOrDefaultBase)
                 End If

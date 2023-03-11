@@ -377,12 +377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       syntax:=node, diagnostics:=diagnostics)
             End If
 
-            Dim tupleTypeOpt As TupleTypeSymbol = If(hasNaturalType, inferredType, Nothing)
-
-            If tupleTypeOpt?.AllRequiredMembers.IsEmpty = False Then
-                ' '{0}' is an unsupported type.
-                diagnostics.Add(ERRID.ERR_UnsupportedType1, node.Location, tupleTypeOpt)
-            End If
+            Dim tupleTypeOpt As NamedTypeSymbol = If(hasNaturalType, inferredType, Nothing)
 
             '' Always track the inferred positions in the bound node, so that conversions don't produce a warning
             '' for "dropped names" when the name was inferred.

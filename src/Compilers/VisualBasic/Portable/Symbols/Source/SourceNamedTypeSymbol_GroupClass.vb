@@ -302,10 +302,11 @@ DoneWithBindingAttributes:
             If Me.TypeKind = TypeKind.Class Then
                 Debug.Assert(MembersHaveBeenCreated)
                 Dim constructorConstraintError As ConstructorConstraintError = HasPublicParameterlessConstructor(Me)
-                Debug.Assert(constructorConstraintError =
-                             If(InferFromSyntaxIfClassWillHavePublicParameterlessConstructor(),
-                                ConstructorConstraintError.None,
-                                ConstructorConstraintError.NoPublicParameterlessConstructor))
+                If InferFromSyntaxIfClassWillHavePublicParameterlessConstructor() Then
+                    Debug.Assert(constructorConstraintError = ConstructorConstraintError.None OrElse constructorConstraintError = ConstructorConstraintError.HasRequiredMembers)
+                Else
+                    Debug.Assert(constructorConstraintError = ConstructorConstraintError.NoPublicParameterlessConstructor)
+                End If
             End If
         End Sub
 #End If

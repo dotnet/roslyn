@@ -1099,14 +1099,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend MustOverride Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
 
+        ''' <summary>
+        ''' Gets all of the required members from this type and all base types. This will be a set of the most derived overrides. If <see cref="HasRequiredMembersError"/> is true,
+        ''' this will be <see cref="ImmutableSegmentedDictionary(Of String, Symbol).Empty"/>.
+        ''' </summary>
         Friend ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
             Get
                 TryCalculateRequiredMembersWithCache(Nothing)
                 Debug.Assert(Not _lazyRequiredMembers.IsDefault)
-                Return _lazyRequiredMembers
+                Return If(_lazyRequiredMembers = s_requiredMembersErrorSentinel, ImmutableSegmentedDictionary(Of String, Symbol).Empty, _lazyRequiredMembers)
             End Get
         End Property
 
+        ''' <summary>
+        ''' True if this or any base type has a required members error, and constructors should be blocked unless attributed with SetsRequiredMembersAttribute. When this is
+        ''' true, <see cref="AllRequiredMembers"/> will be <see cref="ImmutableSegmentedDictionary(Of String, Symbol).Empty"/>
+        ''' </summary>
         Friend ReadOnly Property HasRequiredMembersError As Boolean
             Get
                 TryCalculateRequiredMembersWithCache(Nothing)
@@ -1171,7 +1179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     If (Not member.IsRequired()) OrElse
                        overriddenMember Is Nothing OrElse
-                       overriddenMember.Equals(member, TypeCompareKind.IgnoreTupleNames) Then
+                       (Not overriddenMember.Equals(existingMember, TypeCompareKind.IgnoreTupleNames)) Then
                         Return False
                     End If
                 End If

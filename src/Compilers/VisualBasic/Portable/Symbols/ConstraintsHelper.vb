@@ -1145,21 +1145,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            Dim hasRequiredMembers = type.AllRequiredMembers.Count > 0
+            Dim hasRequiredMembers = type.AllRequiredMembers.Count > 0 OrElse type.HasRequiredMembersError
 
             For Each constructor In type.InstanceConstructors
                 If constructor.ParameterCount = 0 Then
                     If constructor.DeclaredAccessibility <> Accessibility.Public Then
                         Return ConstructorConstraintError.NoPublicParameterlessConstructor
                     ElseIf hasRequiredMembers AndAlso Not constructor.HasSetsRequiredMembers Then
-                        If TypeOf constructor.ContainingType Is SourceMemberContainerTypeSymbol Then
-                            ' There will be an error on inheriting from a type with required members, no need to
-                            ' report other spurious errors here
-                            Debug.Assert(Not constructor.ContainingType.HasAnyDeclaredRequiredMembers)
-                            Return ConstructorConstraintError.None
-                        Else
-                            Return ConstructorConstraintError.HasRequiredMembers
-                        End If
+                        Return ConstructorConstraintError.HasRequiredMembers
                     Else
                         Return ConstructorConstraintError.None
                     End If

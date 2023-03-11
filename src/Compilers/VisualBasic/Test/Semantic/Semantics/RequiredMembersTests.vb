@@ -56,7 +56,149 @@ BC37322: Cannot inherit from 'Base' because it has required members.
 BC37322: Cannot inherit from 'Derived' because it has required members.
     Inherits Derived
     ~~~~~~~~~~~~~~~~
+BC37324: 'VbDerivedBase' cannot satisfy the 'New' constraint on parameter 'T' in the generic type or or method 'Public Sub G(Of T As New)()' because 'VbDerivedBase' has required members.
+        G(Of VbDerivedBase)()
+        ~~~~~~~~~~~~~~~~~~~
+BC37324: 'VbDerivedDerived' cannot satisfy the 'New' constraint on parameter 'T' in the generic type or or method 'Public Sub G(Of T As New)()' because 'VbDerivedDerived' has required members.
+        G(Of VbDerivedDerived)()
+        ~~~~~~~~~~~~~~~~~~~~~~
+
 </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub CannotInheritFromTypesWithRequiredMembers_WithMalformedRequiredMemberList()
+            ' Equivalent to
+            ' public class Base
+            ' {
+            '     public required int P { get; set; }
+            ' }
+            ' public class Derived
+            ' {
+            '     public new required int P { get; set; }
+            '     public Derived() {}
+            ' }
+            Dim il = "
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}"
+
+            Dim ilRef = CompileIL(il)
+
+            Dim vb = CreateCompilation("
+Class VbDerivedDerived
+    Inherits Derived
+End Class
+
+Module M
+    Sub Main()
+        Dim v2 = New VbDerivedDerived()
+        G(Of VbDerivedDerived)()
+    End Sub
+
+    Sub G(Of T As New)()
+    End Sub
+End Module", references:={ilRef})
+
+            vb.AssertTheseDiagnostics(<expected>
+BC37322: Cannot inherit from 'Derived' because it has required members.
+    Inherits Derived
+    ~~~~~~~~~~~~~~~~
+BC37324: 'VbDerivedDerived' cannot satisfy the 'New' constraint on parameter 'T' in the generic type or or method 'Public Sub G(Of T As New)()' because 'VbDerivedDerived' has required members.
+        G(Of VbDerivedDerived)()
+        ~~~~~~~~~~~~~~~~~~~~~~
+                                      </expected>)
         End Sub
 
         Private Shared Function GetCDefinition(hasSetsRequiredMembers As Boolean, Optional typeKind As String = "class") As String
@@ -483,6 +625,77 @@ End Module"
         End Sub
 
         <Fact>
+        Public Sub EnforcedRequiredMembers_StructureNothing_ImplicitCtor()
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers("
+using System.Diagnostics.CodeAnalysis;
+public struct S
+{
+    public required int F;
+}")
+
+            Dim vbCode = $"
+Module M
+    Sub Main()
+        Dim s As S = Nothing
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertTheseDiagnostics(<expected>
+BC37321: Required member 'Public F As Integer' must be set in the object initializer or attribute arguments.
+        Dim s As S = Nothing
+                     ~~~~~~~
+                                        </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub EnforcedRequiredMembers_StructureNothing_ExplicitCtor()
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers("
+using System.Diagnostics.CodeAnalysis;
+public struct S
+{
+    public required int F;
+    public S() {}
+}")
+
+            Dim vbCode = $"
+Module M
+    Sub Main()
+        Dim s As S = Nothing
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertTheseDiagnostics(<expected>
+BC37321: Required member 'Public F As Integer' must be set in the object initializer or attribute arguments.
+        Dim s As S = Nothing
+                     ~~~~~~~
+                                        </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub EnforcedRequiredMembers_StructureNothing_HasSetsRequiredMembers()
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers("
+using System.Diagnostics.CodeAnalysis;
+public struct S
+{
+    public required int F;
+    [SetsRequiredMembers]
+    public S() {}
+}")
+
+            Dim vbCode = $"
+Module M
+    Sub Main()
+        Dim s As S = Nothing
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertNoDiagnostics()
+        End Sub
+
+        <Fact>
         Public Sub EnforcedRequiredMembers_ShadowedFromMetadata_01()
             ' Equivalent to
             ' public class Base
@@ -879,7 +1092,165 @@ BC37323: The required members list for 'Derived' is malformed and cannot be inte
 Module M
     Sub Main()
         Dim d1 = New Derived()
-        Dim d2 = New Derived(1)
+        'Dim d2 = New Derived(1)
+    End Sub
+End Module", {ilRef}, targetFramework:=TargetFramework.Net70)
+
+            comp.AssertTheseDiagnostics(<expected>
+BC37323: The required members list for 'Derived' is malformed and cannot be interpreted.
+        Dim d1 = New Derived()
+                 ~~~~~~~~~~~~~
+                                        </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub EnforcedRequiredMembers_OverriddenFromMetadata()
+            ' Equivalent to
+            ' public class Base
+            ' {
+            '     public virtual int P { get; set; }
+            '     public virtual required modopt(int) int P { get; set; }
+            ' }
+            ' public class Derived
+            ' {
+            '     public override int P { get; set; }
+            '     public Derived() {}
+            ' }
+            Dim il = "
+.class public auto ansi beforefieldinit Base extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+
+    .field private int32 '<Prop>k__BackingField'
+
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance int32 get_Prop () cil managed 
+    {
+        ldarg.0
+        ldfld int32 Base::'<Prop>k__BackingField'
+        ret
+    }
+
+    .method public hidebysig specialname newslot virtual 
+        instance int32 modopt(int32) get_Prop () cil managed 
+    {
+        ldarg.0
+        ldfld int32 Base::'<Prop>k__BackingField'
+        ret
+    }
+
+    .method public hidebysig specialname newslot virtual 
+        instance void set_Prop (
+            int32 'value'
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::'<Prop>k__BackingField'
+        ret
+    }
+
+    .method public hidebysig specialname newslot virtual 
+        instance void set_Prop (
+            int32 modopt(int32) 'value'
+        ) cil managed 
+    {
+        ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
+            01 00 5f 43 6f 6e 73 74 72 75 63 74 6f 72 73 20
+            6f 66 20 74 79 70 65 73 20 77 69 74 68 20 72 65
+            71 75 69 72 65 64 20 6d 65 6d 62 65 72 73 20 61
+            72 65 20 6e 6f 74 20 73 75 70 70 6f 72 74 65 64
+            20 69 6e 20 74 68 69 73 20 76 65 72 73 69 6f 6e
+            20 6f 66 20 79 6f 75 72 20 63 6f 6d 70 69 6c 65
+            72 2e 01 00 00
+        )
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+            01 00 0f 52 65 71 75 69 72 65 64 4d 65 6d 62 65
+            72 73 00 00
+        )
+
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        nop
+        ret
+    }
+
+    .property instance int32 modopt(int32) Prop()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 modopt(int32) Base::get_Prop()
+        .set instance void Base::set_Prop(int32 modopt(int32))
+    }
+
+    .property instance int32 Prop()
+    {
+        .get instance int32 Base::get_Prop()
+        .set instance void Base::set_Prop(int32)
+    }
+
+} // end of class Base
+
+.class public auto ansi beforefieldinit Derived
+    extends Base
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 '<Prop>k__BackingField'
+
+    .method public hidebysig specialname virtual 
+        instance int32 get_Prop () cil managed 
+    {
+        ldarg.0
+        ldfld int32 Derived::'<Prop>k__BackingField'
+        ret
+    }
+
+    .method public hidebysig specialname virtual 
+        instance void set_Prop (
+            int32 'value'
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::'<Prop>k__BackingField'
+        ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void Base::.ctor()
+        nop
+        ret
+    }
+
+    .property instance int32 Prop()
+    {
+        .get instance int32 Derived::get_Prop()
+        .set instance void Derived::set_Prop(int32)
+    }
+
+}"
+
+            Dim ilRef = CompileIL(il)
+
+            Dim comp = CreateCompilation("
+Module M
+    Sub Main()
+        Dim d1 = New Derived()
     End Sub
 End Module", {ilRef}, targetFramework:=TargetFramework.Net70)
 
@@ -1036,6 +1407,136 @@ End Module"
 BC37324: 'C' cannot satisfy the 'New' constraint on parameter 'T' in the generic type or or method 'Public Sub Generic(Of T As New)()' because 'C' has required members.
         Generic(Of C)()
         ~~~~~~~~~~~~~
+                                        </expected>)
+        End Sub
+
+        <Theory>
+        <InlineData("class")>
+        <InlineData("struct")>
+        Public Sub GenericConstrainedToNew_Forbidden_HasRequiredMembersError(typeKind As String)
+            ' Equivalent to
+            ' public class Base
+            ' {
+            '     public required int P { get; set; }
+            ' }
+            ' public class Derived
+            ' {
+            '     public new required int P { get; set; }
+            '     public Derived() {}
+            ' }
+            Dim il = "
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}"
+
+            Dim ilRef = CompileIL(il)
+
+            Dim vbCode = "
+Module M
+    Sub Main()
+        Generic(Of Derived)()
+    End Sub
+
+    Sub Generic(Of T As New)()
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {ilRef})
+            comp.AssertTheseDiagnostics(<expected>
+BC37324: 'Derived' cannot satisfy the 'New' constraint on parameter 'T' in the generic type or or method 'Public Sub Generic(Of T As New)()' because 'Derived' has required members.
+        Generic(Of Derived)()
+        ~~~~~~~~~~~~~~~~~~~
                                         </expected>)
         End Sub
 
@@ -1338,6 +1839,40 @@ namespace System
             => throw null;
     }
 
+    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> where TRest : struct
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+        public T6 Item6;
+        public T7 Item7;
+        public required TRest Rest;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+            this.Item3 = item3;
+            this.Item4 = item4;
+            this.Item5 = item5;
+            this.Item6 = item6;
+            this.Item7 = item7;
+            this.Rest = rest;
+        }
+
+        public static bool operator ==(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> t1, ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> t2)
+            => throw null;
+        public static bool operator !=(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> t1, ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> t2)
+            => throw null;
+
+        public override bool Equals(object o)
+            => throw null;
+        public override int GetHashCode()
+            => throw null;
+    }
+
     namespace Runtime.CompilerServices
     {
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
@@ -1371,55 +1906,139 @@ namespace System
     }
 }
 ", referencedAssemblies:=Basic.Reference.Assemblies.Net461.All)
+            Dim csharpCompReference As MetadataReference = csharpComp.EmitToImageReference()
 
             ' Using Net461 to get a framework without ValueTuple
 
             Dim comp = CreateCompilation("
 Class C
     Sub Main()
-        Dim t1 = (1, 2)
-        Dim t2 As (Integer, Integer) = (3, Nothing)
-        Dim t3 = New (Integer, Integer)(4, 5)
-        Dim t4 = new System.ValueTuple(Of Integer, Integer)(6, 7)
+        Dim t1 = New (Integer, Integer)(1, 2)
+        Dim t2 = new System.ValueTuple(Of Integer, Integer)(3, 4)
+        Dim t3 = new System.ValueTuple(Of Integer, Integer)()
+        Dim t4 As (Integer, Integer) = Nothing 
+        Dim t5 As System.ValueTuple(of integer, integer) = Nothing
     End Sub
-End Class", {csharpComp.EmitToImageReference()}, targetFramework:=TargetFramework.Mscorlib461)
+End Class", {csharpCompReference}, targetFramework:=TargetFramework.Mscorlib461)
 
             comp.AssertTheseDiagnostics(<expected>
-BC30649: '(Integer, Integer)' is an unsupported type.
-        Dim t1 = (1, 2)
-                 ~~~~~~
-BC30649: '(Integer, Integer)' is an unsupported type.
-        Dim t2 As (Integer, Integer) = (3, Nothing)
-                                       ~~~~~~~~~~~~
 BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
-        Dim t3 = New (Integer, Integer)(4, 5)
+        Dim t1 = New (Integer, Integer)(1, 2)
                      ~~~~~~~~~~~~~~~~~~
 BC37321: Required member 'Public AnotherField As Integer' must be set in the object initializer or attribute arguments.
-        Dim t3 = New (Integer, Integer)(4, 5)
+        Dim t1 = New (Integer, Integer)(1, 2)
                      ~~~~~~~~~~~~~~~~~~
 BC37321: Required member 'Public Item1 As Integer' must be set in the object initializer or attribute arguments.
-        Dim t3 = New (Integer, Integer)(4, 5)
+        Dim t1 = New (Integer, Integer)(1, 2)
                      ~~~~~~~~~~~~~~~~~~
 BC37321: Required member 'Public Item2 As Integer' must be set in the object initializer or attribute arguments.
-        Dim t3 = New (Integer, Integer)(4, 5)
+        Dim t1 = New (Integer, Integer)(1, 2)
                      ~~~~~~~~~~~~~~~~~~
 BC37321: Required member 'Public Overloads Property [Property] As Integer' must be set in the object initializer or attribute arguments.
-        Dim t3 = New (Integer, Integer)(4, 5)
+        Dim t1 = New (Integer, Integer)(1, 2)
                      ~~~~~~~~~~~~~~~~~~
 BC37321: Required member 'Public AnotherField As Integer' must be set in the object initializer or attribute arguments.
-        Dim t4 = new System.ValueTuple(Of Integer, Integer)(6, 7)
+        Dim t2 = new System.ValueTuple(Of Integer, Integer)(3, 4)
                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37321: Required member 'Public Item1 As Integer' must be set in the object initializer or attribute arguments.
-        Dim t4 = new System.ValueTuple(Of Integer, Integer)(6, 7)
+        Dim t2 = new System.ValueTuple(Of Integer, Integer)(3, 4)
                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37321: Required member 'Public Item2 As Integer' must be set in the object initializer or attribute arguments.
-        Dim t4 = new System.ValueTuple(Of Integer, Integer)(6, 7)
+        Dim t2 = new System.ValueTuple(Of Integer, Integer)(3, 4)
                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37321: Required member 'Public Overloads Property [Property] As Integer' must be set in the object initializer or attribute arguments.
-        Dim t4 = new System.ValueTuple(Of Integer, Integer)(6, 7)
+        Dim t2 = new System.ValueTuple(Of Integer, Integer)(3, 4)
                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37321: Required member 'Public AnotherField As Integer' must be set in the object initializer or attribute arguments.
+        Dim t3 = new System.ValueTuple(Of Integer, Integer)()
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37321: Required member 'Public Item1 As Integer' must be set in the object initializer or attribute arguments.
+        Dim t3 = new System.ValueTuple(Of Integer, Integer)()
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37321: Required member 'Public Item2 As Integer' must be set in the object initializer or attribute arguments.
+        Dim t3 = new System.ValueTuple(Of Integer, Integer)()
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37321: Required member 'Public Overloads Property [Property] As Integer' must be set in the object initializer or attribute arguments.
+        Dim t3 = new System.ValueTuple(Of Integer, Integer)()
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37321: Required member 'Public AnotherField As Integer' must be set in the object initializer or attribute arguments.
+        Dim t4 As (Integer, Integer) = Nothing 
+                                       ~~~~~~~
+BC37321: Required member 'Public Item1 As Integer' must be set in the object initializer or attribute arguments.
+        Dim t4 As (Integer, Integer) = Nothing 
+                                       ~~~~~~~
+BC37321: Required member 'Public Item2 As Integer' must be set in the object initializer or attribute arguments.
+        Dim t4 As (Integer, Integer) = Nothing 
+                                       ~~~~~~~
+BC37321: Required member 'Public Overloads Property [Property] As Integer' must be set in the object initializer or attribute arguments.
+        Dim t4 As (Integer, Integer) = Nothing 
+                                       ~~~~~~~
+BC37321: Required member 'Public AnotherField As Integer' must be set in the object initializer or attribute arguments.
+        Dim t5 As System.ValueTuple(of integer, integer) = Nothing
+                                                           ~~~~~~~
+BC37321: Required member 'Public Item1 As Integer' must be set in the object initializer or attribute arguments.
+        Dim t5 As System.ValueTuple(of integer, integer) = Nothing
+                                                           ~~~~~~~
+BC37321: Required member 'Public Item2 As Integer' must be set in the object initializer or attribute arguments.
+        Dim t5 As System.ValueTuple(of integer, integer) = Nothing
+                                                           ~~~~~~~
+BC37321: Required member 'Public Overloads Property [Property] As Integer' must be set in the object initializer or attribute arguments.
+        Dim t5 As System.ValueTuple(of integer, integer) = Nothing
+                                                           ~~~~~~~
 
                                         </expected>)
+
+            comp = CreateCompilation("
+Class C
+    Sub Main()
+        Dim t1 = (1, 2)
+        Dim t2 As (Integer, Integer) = (3, Nothing)
+        Dim t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9)
+    End Sub
+End Class
+", {csharpCompReference}, targetFramework:=TargetFramework.Mscorlib461)
+
+            comp.AssertTheseEmitDiagnostics(<expected>
+BC37321: Required member 'Public AnotherField As Integer' must be set in the object initializer or attribute arguments.
+        Dim t1 = (1, 2)
+                 ~~~~~~
+BC37321: Required member 'Public Item1 As Integer' must be set in the object initializer or attribute arguments.
+        Dim t1 = (1, 2)
+                 ~~~~~~
+BC37321: Required member 'Public Item2 As Integer' must be set in the object initializer or attribute arguments.
+        Dim t1 = (1, 2)
+                 ~~~~~~
+BC37321: Required member 'Public Overloads Property [Property] As Integer' must be set in the object initializer or attribute arguments.
+        Dim t1 = (1, 2)
+                 ~~~~~~
+BC37321: Required member 'Public AnotherField As Integer' must be set in the object initializer or attribute arguments.
+        Dim t2 As (Integer, Integer) = (3, Nothing)
+                                       ~~~~~~~~~~~~
+BC37321: Required member 'Public Item1 As Integer' must be set in the object initializer or attribute arguments.
+        Dim t2 As (Integer, Integer) = (3, Nothing)
+                                       ~~~~~~~~~~~~
+BC37321: Required member 'Public Item2 As Integer' must be set in the object initializer or attribute arguments.
+        Dim t2 As (Integer, Integer) = (3, Nothing)
+                                       ~~~~~~~~~~~~
+BC37321: Required member 'Public Overloads Property [Property] As Integer' must be set in the object initializer or attribute arguments.
+        Dim t2 As (Integer, Integer) = (3, Nothing)
+                                       ~~~~~~~~~~~~
+BC37321: Required member 'Public AnotherField As Integer' must be set in the object initializer or attribute arguments.
+        Dim t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9)
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37321: Required member 'Public Item1 As Integer' must be set in the object initializer or attribute arguments.
+        Dim t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9)
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37321: Required member 'Public Item2 As Integer' must be set in the object initializer or attribute arguments.
+        Dim t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9)
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37321: Required member 'Public Overloads Property [Property] As Integer' must be set in the object initializer or attribute arguments.
+        Dim t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9)
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37321: Required member 'Public Rest As (Integer, Integer)' must be set in the object initializer or attribute arguments.
+        Dim t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9)
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                            </expected>)
 
             Dim tree = comp.SyntaxTrees(0)
             Dim tuple = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().First()
@@ -1505,22 +2124,11 @@ Class C
     Sub Main()
         Dim t1 = (1, 2)
         Dim t2 As (Integer, Integer) = (3, Nothing)
-        Dim t3 = New (Integer, Integer)(4, 5)
-        Dim t4 = New System.ValueTuple(Of Integer, Integer)(6, 7)
+        Dim t3 = New System.ValueTuple(Of Integer, Integer)(4, 5)
     End Sub
 End Class", {csharpComp.EmitToImageReference()}, targetFramework:=TargetFramework.Mscorlib461)
 
-            comp.AssertTheseDiagnostics(<expected>
-BC30649: '(Integer, Integer)' is an unsupported type.
-        Dim t1 = (1, 2)
-                 ~~~~~~
-BC30649: '(Integer, Integer)' is an unsupported type.
-        Dim t2 As (Integer, Integer) = (3, Nothing)
-                                       ~~~~~~~~~~~~
-BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
-        Dim t3 = New (Integer, Integer)(4, 5)
-                     ~~~~~~~~~~~~~~~~~~
-                                        </expected>)
+            CompileAndVerify(comp).VerifyDiagnostics()
 
             Dim tree = comp.SyntaxTrees(0)
             Dim tuple = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().First()
@@ -1829,6 +2437,7 @@ public class C2 : C1
 Module M
     Sub Main()
         Dim c = New C2()
+        Dim c2 = New C2() With { .P1 = 1 }
     End Sub
 End Module", {csharpComp.EmitToImageReference()}, targetFramework:=TargetFramework.Net70)
 

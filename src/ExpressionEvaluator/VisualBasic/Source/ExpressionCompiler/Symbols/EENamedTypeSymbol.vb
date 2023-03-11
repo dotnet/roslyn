@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Utilities
 
