@@ -266,28 +266,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Contract.ThrowIfFalse(_documentOutlineView is null);
                 Contract.ThrowIfFalse(_documentOutlineViewHost is null);
 
-                if (ErrorHandler.Failed(_codeWindow.GetLastActiveView(out var textView)))
-                {
-                    Debug.Fail("Unable to get the last active text view. IVsCodeWindow implementation we are given is invalid.");
-                    return;
-                }
-                var wpfTextView = editorAdaptersFactoryService.GetWpfTextView(textView);
-                if (wpfTextView is null)
-                    return;
-
-                // TODO: Hooking the text buffer seems wrong.  How would this work for projections?
-                var subjectBuffer = wpfTextView.TextBuffer;
-
-                var eventSource = TaggerEventSources.Compose(
-                    TaggerEventSources.OnTextChanged(subjectBuffer),
-                    TaggerEventSources.OnParseOptionChanged(subjectBuffer),
-                    TaggerEventSources.OnWorkspaceChanged(subjectBuffer, asyncListener),
-                    TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer));
-
                 var viewTracker = new VsCodeWindowViewTracker(_codeWindow, threadingContext, editorAdaptersFactoryService);
+                var textView = viewTracker.GetActiveView();
                 _documentOutlineView = new DocumentOutlineView(
                     threadingContext, viewTracker,
-                    new DocumentOutlineViewModel(languageServiceBroker, asyncListener, eventSource, wpfTextView, subjectBuffer, threadingContext));
+                    new DocumentOutlineViewModel(textView, threadingContext, languageServiceBroker, asyncListener));
 
                 _documentOutlineViewHost = new ElementHost
                 {

@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -72,21 +73,18 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private bool _isNavigating_doNotAccessDirectly;
 
         public DocumentOutlineViewModel(
-            ILanguageServiceBroker2 languageServiceBroker,
-            IAsynchronousOperationListener asyncListener,
-            ITaggerEventSource taggerEventSource,
             ITextView textView,
-            ITextBuffer textBuffer,
-            IThreadingContext threadingContext)
+            IThreadingContext threadingContext,
+            ILanguageServiceBroker2 languageServiceBroker,
+            IAsynchronousOperationListener asyncListener)
         {
             _languageServiceBroker = languageServiceBroker;
-            _taggerEventSource = taggerEventSource;
             _textView = textView;
-            _textBuffer = textBuffer;
+            _textBuffer = textView.TextBuffer;
             _threadingContext = threadingContext;
 
             // initialize us to an empty state.
-            _lastPresentedViewState_doNotAccessDirectly = CreateEmptyViewState(textBuffer.CurrentSnapshot);
+            _lastPresentedViewState_doNotAccessDirectly = CreateEmptyViewState(_textBuffer.CurrentSnapshot);
 
             _workQueue = new AsyncBatchingWorkQueue(
                 DelayTimeSpan.Medium,
@@ -99,6 +97,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 UpdateSelectionAsync,
                 asyncListener,
                 _threadingContext.DisposalToken);
+
+            _taggerEventSource = TaggerEventSources.Compose(
+                TaggerEventSources.OnTextChanged(_textBuffer),
+                TaggerEventSources.OnParseOptionChanged(_textBuffer),
+                TaggerEventSources.OnWorkspaceChanged(_textBuffer, asyncListener),
+                TaggerEventSources.OnWorkspaceRegistrationChanged(_textBuffer));
 
             _taggerEventSource.Changed += OnEventSourceChanged;
             _taggerEventSource.Connect();
