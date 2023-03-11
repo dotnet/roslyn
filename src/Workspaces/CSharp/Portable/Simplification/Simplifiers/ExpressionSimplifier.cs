@@ -103,14 +103,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // if this node is annotated as being a SpecialType, let's use this information.
             if (memberAccess.HasAnnotations(SpecialTypeAnnotation.Kind))
             {
-                replacementNode = SyntaxFactory.PredefinedType(
-                    SyntaxFactory.Token(
-                        memberAccess.GetLeadingTrivia(),
-                        GetPredefinedKeywordKind(SpecialTypeAnnotation.GetSpecialType(memberAccess.GetAnnotations(SpecialTypeAnnotation.Kind).First())),
-                        memberAccess.GetTrailingTrivia()));
-
-                issueSpan = memberAccess.Span;
-                return true;
+                var replacementToken = TryGetPredefinedKeywordToken(
+                    semanticModel, SpecialTypeAnnotation.GetSpecialType(memberAccess.GetAnnotations(SpecialTypeAnnotation.Kind).First()));
+                if (replacementToken != null)
+                {
+                    replacementNode = CreatePredefinedTypeSyntax(memberAccess, replacementToken.Value);
+                    issueSpan = memberAccess.Span;
+                    return true;
+                }
             }
 
             // See https://github.com/dotnet/roslyn/issues/40974
@@ -121,7 +121,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // in a manner that might end up making things worse or confusing the user.
             var symbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, memberAccess);
             if (symbol == null)
-                return false;
+            {
+                // nameof(X.Y) does not support GetSymbolInfo on X.Y.
+                // use GetMemberGroup instead to see if we can find a real symbol to use here.
+                symbol =
+                    memberAccess.IsNameOfArgumentExpression() &&
+                    semanticModel.GetMemberGroup(memberAccess, cancellationToken) is [ISymbol member, ..]
+                        ? member
+                        : null;
+
+                if (symbol == null)
+                    return false;
+            }
 
             // if this node is on the left side, we could simplify to aliases
             if (!memberAccess.IsRightSideOfDot())
@@ -167,12 +178,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 // Check if the Expression can be replaced by Predefined Type keyword
                 if (PreferPredefinedTypeKeywordInMemberAccess(memberAccess, options, semanticModel))
                 {
-                    if (symbol != null && symbol.IsKind(SymbolKind.NamedType))
+                    if (symbol is INamedTypeSymbol namedType)
                     {
-                        var keywordKind = GetPredefinedKeywordKind(((INamedTypeSymbol)symbol).SpecialType);
-                        if (keywordKind != SyntaxKind.None)
+                        var keywordToken = TryGetPredefinedKeywordToken(semanticModel, namedType.SpecialType);
+                        if (keywordToken != null)
                         {
-                            replacementNode = CreatePredefinedTypeSyntax(memberAccess, keywordKind);
+                            replacementNode = CreatePredefinedTypeSyntax(memberAccess, keywordToken.Value);
 
                             replacementNode = replacementNode
                                 .WithAdditionalAnnotations<TypeSyntax>(new SyntaxAnnotation(

@@ -73,9 +73,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         /// <summary>
         /// IDE supplied options to use for settings not specified in the corresponding editorconfig file.
+        /// These are not available in Code Style layer. Use <see cref="CodeActionOptionsProviders.GetOptionsProvider(CodeFixContext)"/> extension method 
+        /// to access these options in code shared with Code Style layer.
         /// </summary>
         /// <remarks>
-        /// Provider to allow code fix to update documents across multiple projects that differ in language (and hence language specific options).
+        /// This is a <see cref="CodeActionOptionsProvider"/> (rather than <see cref="CodeActionOptions"/> directly)
+        /// to allow code fix to update documents across multiple projects that differ in language (and hence language specific options).
         /// </remarks>
         internal readonly CodeActionOptionsProvider Options;
 

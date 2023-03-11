@@ -104,11 +104,11 @@ internal readonly struct AnalyzerOptionsProvider
     private TValue GetOption<TValue>(PerLanguageOption2<TValue> option, TValue defaultValue)
         => _options.GetOption(option, _language, defaultValue);
 
-    private IdeCodeStyleOptions.CommonOptions FallbackCodeStyleOptions
-        => _fallbackOptions.CodeStyleOptions?.Common ?? IdeCodeStyleOptions.CommonOptions.Default;
+    private IdeCodeStyleOptions FallbackCodeStyleOptions
+        => _fallbackOptions.CodeStyleOptions ?? IdeCodeStyleOptions.CommonDefaults;
 
-    private SimplifierOptions.CommonOptions FallbackSimplifierOptions
-        => _fallbackOptions.CleanupOptions?.SimplifierOptions.Common ?? SimplifierOptions.CommonOptions.Default;
+    private SimplifierOptions FallbackSimplifierOptions
+        => _fallbackOptions.CleanupOptions?.SimplifierOptions ?? SimplifierOptions.CommonDefaults;
 
     internal IOptionsReader GetAnalyzerConfigOptions()
         => _options;

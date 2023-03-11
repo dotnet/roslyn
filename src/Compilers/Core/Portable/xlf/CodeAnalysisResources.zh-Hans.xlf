@@ -104,6 +104,11 @@
         <target state="translated">对于给定的禁止显示描述符，禁止显示的诊断 ID“{0}”与可禁止显示的 ID“{1}”不匹配。</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidInstrumentationKind">
+        <source>Invalid instrumentation kind: {0}</source>
+        <target state="new">Invalid instrumentation kind: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
         <target state="translated">给定操作块不属于当前的分析上下文。</target>
@@ -117,6 +122,11 @@
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
         <target state="translated">参数“{0}”必须是此编译或某些引用程序集的符号。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MethodSymbolExpected">
+        <source>Method symbol expected</source>
+        <target state="new">Method symbol expected</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">

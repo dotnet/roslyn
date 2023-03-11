@@ -20104,14 +20104,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal readonly SyntaxToken? globalKeyword;
         internal readonly SyntaxToken usingKeyword;
         internal readonly SyntaxToken? staticKeyword;
+        internal readonly SyntaxToken? unsafeKeyword;
         internal readonly NameEqualsSyntax? alias;
-        internal readonly NameSyntax name;
+        internal readonly TypeSyntax namespaceOrType;
         internal readonly SyntaxToken semicolonToken;
 
-        internal UsingDirectiveSyntax(SyntaxKind kind, SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal UsingDirectiveSyntax(SyntaxKind kind, SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, SyntaxToken? unsafeKeyword, NameEqualsSyntax? alias, TypeSyntax namespaceOrType, SyntaxToken semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
-            this.SlotCount = 6;
+            this.SlotCount = 7;
             if (globalKeyword != null)
             {
                 this.AdjustFlagsAndWidth(globalKeyword);
@@ -20124,22 +20125,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(staticKeyword);
                 this.staticKeyword = staticKeyword;
             }
+            if (unsafeKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(unsafeKeyword);
+                this.unsafeKeyword = unsafeKeyword;
+            }
             if (alias != null)
             {
                 this.AdjustFlagsAndWidth(alias);
                 this.alias = alias;
             }
-            this.AdjustFlagsAndWidth(name);
-            this.name = name;
+            this.AdjustFlagsAndWidth(namespaceOrType);
+            this.namespaceOrType = namespaceOrType;
             this.AdjustFlagsAndWidth(semicolonToken);
             this.semicolonToken = semicolonToken;
         }
 
-        internal UsingDirectiveSyntax(SyntaxKind kind, SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken, SyntaxFactoryContext context)
+        internal UsingDirectiveSyntax(SyntaxKind kind, SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, SyntaxToken? unsafeKeyword, NameEqualsSyntax? alias, TypeSyntax namespaceOrType, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-            this.SlotCount = 6;
+            this.SlotCount = 7;
             if (globalKeyword != null)
             {
                 this.AdjustFlagsAndWidth(globalKeyword);
@@ -20152,21 +20158,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(staticKeyword);
                 this.staticKeyword = staticKeyword;
             }
+            if (unsafeKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(unsafeKeyword);
+                this.unsafeKeyword = unsafeKeyword;
+            }
             if (alias != null)
             {
                 this.AdjustFlagsAndWidth(alias);
                 this.alias = alias;
             }
-            this.AdjustFlagsAndWidth(name);
-            this.name = name;
+            this.AdjustFlagsAndWidth(namespaceOrType);
+            this.namespaceOrType = namespaceOrType;
             this.AdjustFlagsAndWidth(semicolonToken);
             this.semicolonToken = semicolonToken;
         }
 
-        internal UsingDirectiveSyntax(SyntaxKind kind, SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
+        internal UsingDirectiveSyntax(SyntaxKind kind, SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, SyntaxToken? unsafeKeyword, NameEqualsSyntax? alias, TypeSyntax namespaceOrType, SyntaxToken semicolonToken)
           : base(kind)
         {
-            this.SlotCount = 6;
+            this.SlotCount = 7;
             if (globalKeyword != null)
             {
                 this.AdjustFlagsAndWidth(globalKeyword);
@@ -20179,13 +20190,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(staticKeyword);
                 this.staticKeyword = staticKeyword;
             }
+            if (unsafeKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(unsafeKeyword);
+                this.unsafeKeyword = unsafeKeyword;
+            }
             if (alias != null)
             {
                 this.AdjustFlagsAndWidth(alias);
                 this.alias = alias;
             }
-            this.AdjustFlagsAndWidth(name);
-            this.name = name;
+            this.AdjustFlagsAndWidth(namespaceOrType);
+            this.namespaceOrType = namespaceOrType;
             this.AdjustFlagsAndWidth(semicolonToken);
             this.semicolonToken = semicolonToken;
         }
@@ -20193,8 +20209,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public SyntaxToken? GlobalKeyword => this.globalKeyword;
         public SyntaxToken UsingKeyword => this.usingKeyword;
         public SyntaxToken? StaticKeyword => this.staticKeyword;
+        public SyntaxToken? UnsafeKeyword => this.unsafeKeyword;
         public NameEqualsSyntax? Alias => this.alias;
-        public NameSyntax Name => this.name;
+        public TypeSyntax NamespaceOrType => this.namespaceOrType;
         public SyntaxToken SemicolonToken => this.semicolonToken;
 
         internal override GreenNode? GetSlot(int index)
@@ -20203,9 +20220,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 0 => this.globalKeyword,
                 1 => this.usingKeyword,
                 2 => this.staticKeyword,
-                3 => this.alias,
-                4 => this.name,
-                5 => this.semicolonToken,
+                3 => this.unsafeKeyword,
+                4 => this.alias,
+                5 => this.namespaceOrType,
+                6 => this.semicolonToken,
                 _ => null,
             };
 
@@ -20214,11 +20232,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUsingDirective(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUsingDirective(this);
 
-        public UsingDirectiveSyntax Update(SyntaxToken globalKeyword, SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax alias, NameSyntax name, SyntaxToken semicolonToken)
+        public UsingDirectiveSyntax Update(SyntaxToken globalKeyword, SyntaxToken usingKeyword, SyntaxToken staticKeyword, SyntaxToken unsafeKeyword, NameEqualsSyntax alias, TypeSyntax namespaceOrType, SyntaxToken semicolonToken)
         {
-            if (globalKeyword != this.GlobalKeyword || usingKeyword != this.UsingKeyword || staticKeyword != this.StaticKeyword || alias != this.Alias || name != this.Name || semicolonToken != this.SemicolonToken)
+            if (globalKeyword != this.GlobalKeyword || usingKeyword != this.UsingKeyword || staticKeyword != this.StaticKeyword || unsafeKeyword != this.UnsafeKeyword || alias != this.Alias || namespaceOrType != this.NamespaceOrType || semicolonToken != this.SemicolonToken)
             {
-                var newNode = SyntaxFactory.UsingDirective(globalKeyword, usingKeyword, staticKeyword, alias, name, semicolonToken);
+                var newNode = SyntaxFactory.UsingDirective(globalKeyword, usingKeyword, staticKeyword, unsafeKeyword, alias, namespaceOrType, semicolonToken);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -20232,15 +20250,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new UsingDirectiveSyntax(this.Kind, this.globalKeyword, this.usingKeyword, this.staticKeyword, this.alias, this.name, this.semicolonToken, diagnostics, GetAnnotations());
+            => new UsingDirectiveSyntax(this.Kind, this.globalKeyword, this.usingKeyword, this.staticKeyword, this.unsafeKeyword, this.alias, this.namespaceOrType, this.semicolonToken, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new UsingDirectiveSyntax(this.Kind, this.globalKeyword, this.usingKeyword, this.staticKeyword, this.alias, this.name, this.semicolonToken, GetDiagnostics(), annotations);
+            => new UsingDirectiveSyntax(this.Kind, this.globalKeyword, this.usingKeyword, this.staticKeyword, this.unsafeKeyword, this.alias, this.namespaceOrType, this.semicolonToken, GetDiagnostics(), annotations);
 
         internal UsingDirectiveSyntax(ObjectReader reader)
           : base(reader)
         {
-            this.SlotCount = 6;
+            this.SlotCount = 7;
             var globalKeyword = (SyntaxToken?)reader.ReadValue();
             if (globalKeyword != null)
             {
@@ -20256,15 +20274,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 AdjustFlagsAndWidth(staticKeyword);
                 this.staticKeyword = staticKeyword;
             }
+            var unsafeKeyword = (SyntaxToken?)reader.ReadValue();
+            if (unsafeKeyword != null)
+            {
+                AdjustFlagsAndWidth(unsafeKeyword);
+                this.unsafeKeyword = unsafeKeyword;
+            }
             var alias = (NameEqualsSyntax?)reader.ReadValue();
             if (alias != null)
             {
                 AdjustFlagsAndWidth(alias);
                 this.alias = alias;
             }
-            var name = (NameSyntax)reader.ReadValue();
-            AdjustFlagsAndWidth(name);
-            this.name = name;
+            var namespaceOrType = (TypeSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(namespaceOrType);
+            this.namespaceOrType = namespaceOrType;
             var semicolonToken = (SyntaxToken)reader.ReadValue();
             AdjustFlagsAndWidth(semicolonToken);
             this.semicolonToken = semicolonToken;
@@ -20276,8 +20300,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             writer.WriteValue(this.globalKeyword);
             writer.WriteValue(this.usingKeyword);
             writer.WriteValue(this.staticKeyword);
+            writer.WriteValue(this.unsafeKeyword);
             writer.WriteValue(this.alias);
-            writer.WriteValue(this.name);
+            writer.WriteValue(this.namespaceOrType);
             writer.WriteValue(this.semicolonToken);
         }
 
@@ -21923,6 +21948,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public abstract TypeParameterListSyntax? TypeParameterList { get; }
 
+        public abstract ParameterListSyntax? ParameterList { get; }
+
         /// <summary>Gets the type constraint list.</summary>
         public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses { get; }
 
@@ -21938,17 +21965,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal readonly SyntaxToken keyword;
         internal readonly SyntaxToken identifier;
         internal readonly TypeParameterListSyntax? typeParameterList;
+        internal readonly ParameterListSyntax? parameterList;
         internal readonly BaseListSyntax? baseList;
         internal readonly GreenNode? constraintClauses;
-        internal readonly SyntaxToken openBraceToken;
+        internal readonly SyntaxToken? openBraceToken;
         internal readonly GreenNode? members;
-        internal readonly SyntaxToken closeBraceToken;
+        internal readonly SyntaxToken? closeBraceToken;
         internal readonly SyntaxToken? semicolonToken;
 
-        internal ClassDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken openBraceToken, GreenNode? members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal ClassDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
-            this.SlotCount = 11;
+            this.SlotCount = 12;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -21968,6 +21996,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(typeParameterList);
                 this.typeParameterList = typeParameterList;
             }
+            if (parameterList != null)
+            {
+                this.AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
             if (baseList != null)
             {
                 this.AdjustFlagsAndWidth(baseList);
@@ -21978,15 +22011,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(constraintClauses);
                 this.constraintClauses = constraintClauses;
             }
-            this.AdjustFlagsAndWidth(openBraceToken);
-            this.openBraceToken = openBraceToken;
+            if (openBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
             if (members != null)
             {
                 this.AdjustFlagsAndWidth(members);
                 this.members = members;
             }
-            this.AdjustFlagsAndWidth(closeBraceToken);
-            this.closeBraceToken = closeBraceToken;
+            if (closeBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
             if (semicolonToken != null)
             {
                 this.AdjustFlagsAndWidth(semicolonToken);
@@ -21994,11 +22033,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal ClassDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken openBraceToken, GreenNode? members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
+        internal ClassDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-            this.SlotCount = 11;
+            this.SlotCount = 12;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -22018,6 +22057,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(typeParameterList);
                 this.typeParameterList = typeParameterList;
             }
+            if (parameterList != null)
+            {
+                this.AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
             if (baseList != null)
             {
                 this.AdjustFlagsAndWidth(baseList);
@@ -22028,15 +22072,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(constraintClauses);
                 this.constraintClauses = constraintClauses;
             }
-            this.AdjustFlagsAndWidth(openBraceToken);
-            this.openBraceToken = openBraceToken;
+            if (openBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
             if (members != null)
             {
                 this.AdjustFlagsAndWidth(members);
                 this.members = members;
             }
-            this.AdjustFlagsAndWidth(closeBraceToken);
-            this.closeBraceToken = closeBraceToken;
+            if (closeBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
             if (semicolonToken != null)
             {
                 this.AdjustFlagsAndWidth(semicolonToken);
@@ -22044,10 +22094,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal ClassDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken openBraceToken, GreenNode? members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken)
+        internal ClassDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
           : base(kind)
         {
-            this.SlotCount = 11;
+            this.SlotCount = 12;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -22067,6 +22117,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(typeParameterList);
                 this.typeParameterList = typeParameterList;
             }
+            if (parameterList != null)
+            {
+                this.AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
             if (baseList != null)
             {
                 this.AdjustFlagsAndWidth(baseList);
@@ -22077,15 +22132,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(constraintClauses);
                 this.constraintClauses = constraintClauses;
             }
-            this.AdjustFlagsAndWidth(openBraceToken);
-            this.openBraceToken = openBraceToken;
+            if (openBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
             if (members != null)
             {
                 this.AdjustFlagsAndWidth(members);
                 this.members = members;
             }
-            this.AdjustFlagsAndWidth(closeBraceToken);
-            this.closeBraceToken = closeBraceToken;
+            if (closeBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
             if (semicolonToken != null)
             {
                 this.AdjustFlagsAndWidth(semicolonToken);
@@ -22099,11 +22160,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override SyntaxToken Keyword => this.keyword;
         public override SyntaxToken Identifier => this.identifier;
         public override TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
+        public override ParameterListSyntax? ParameterList => this.parameterList;
         public override BaseListSyntax? BaseList => this.baseList;
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
-        public override SyntaxToken OpenBraceToken => this.openBraceToken;
+        public override SyntaxToken? OpenBraceToken => this.openBraceToken;
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
-        public override SyntaxToken CloseBraceToken => this.closeBraceToken;
+        public override SyntaxToken? CloseBraceToken => this.closeBraceToken;
         public override SyntaxToken? SemicolonToken => this.semicolonToken;
 
         internal override GreenNode? GetSlot(int index)
@@ -22114,12 +22176,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 2 => this.keyword,
                 3 => this.identifier,
                 4 => this.typeParameterList,
-                5 => this.baseList,
-                6 => this.constraintClauses,
-                7 => this.openBraceToken,
-                8 => this.members,
-                9 => this.closeBraceToken,
-                10 => this.semicolonToken,
+                5 => this.parameterList,
+                6 => this.baseList,
+                7 => this.constraintClauses,
+                8 => this.openBraceToken,
+                9 => this.members,
+                10 => this.closeBraceToken,
+                11 => this.semicolonToken,
                 _ => null,
             };
 
@@ -22128,11 +22191,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitClassDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitClassDeclaration(this);
 
-        public ClassDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        public ClassDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, BaseListSyntax baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
-            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
             {
-                var newNode = SyntaxFactory.ClassDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                var newNode = SyntaxFactory.ClassDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -22146,15 +22209,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new ClassDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
+            => new ClassDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.parameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new ClassDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
+            => new ClassDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.parameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
 
         internal ClassDeclarationSyntax(ObjectReader reader)
           : base(reader)
         {
-            this.SlotCount = 11;
+            this.SlotCount = 12;
             var attributeLists = (GreenNode?)reader.ReadValue();
             if (attributeLists != null)
             {
@@ -22179,6 +22242,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 AdjustFlagsAndWidth(typeParameterList);
                 this.typeParameterList = typeParameterList;
             }
+            var parameterList = (ParameterListSyntax?)reader.ReadValue();
+            if (parameterList != null)
+            {
+                AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
             var baseList = (BaseListSyntax?)reader.ReadValue();
             if (baseList != null)
             {
@@ -22191,18 +22260,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 AdjustFlagsAndWidth(constraintClauses);
                 this.constraintClauses = constraintClauses;
             }
-            var openBraceToken = (SyntaxToken)reader.ReadValue();
-            AdjustFlagsAndWidth(openBraceToken);
-            this.openBraceToken = openBraceToken;
+            var openBraceToken = (SyntaxToken?)reader.ReadValue();
+            if (openBraceToken != null)
+            {
+                AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
             var members = (GreenNode?)reader.ReadValue();
             if (members != null)
             {
                 AdjustFlagsAndWidth(members);
                 this.members = members;
             }
-            var closeBraceToken = (SyntaxToken)reader.ReadValue();
-            AdjustFlagsAndWidth(closeBraceToken);
-            this.closeBraceToken = closeBraceToken;
+            var closeBraceToken = (SyntaxToken?)reader.ReadValue();
+            if (closeBraceToken != null)
+            {
+                AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
             var semicolonToken = (SyntaxToken?)reader.ReadValue();
             if (semicolonToken != null)
             {
@@ -22219,6 +22294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             writer.WriteValue(this.keyword);
             writer.WriteValue(this.identifier);
             writer.WriteValue(this.typeParameterList);
+            writer.WriteValue(this.parameterList);
             writer.WriteValue(this.baseList);
             writer.WriteValue(this.constraintClauses);
             writer.WriteValue(this.openBraceToken);
@@ -22241,17 +22317,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal readonly SyntaxToken keyword;
         internal readonly SyntaxToken identifier;
         internal readonly TypeParameterListSyntax? typeParameterList;
+        internal readonly ParameterListSyntax? parameterList;
         internal readonly BaseListSyntax? baseList;
         internal readonly GreenNode? constraintClauses;
-        internal readonly SyntaxToken openBraceToken;
+        internal readonly SyntaxToken? openBraceToken;
         internal readonly GreenNode? members;
-        internal readonly SyntaxToken closeBraceToken;
+        internal readonly SyntaxToken? closeBraceToken;
         internal readonly SyntaxToken? semicolonToken;
 
-        internal StructDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken openBraceToken, GreenNode? members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal StructDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
-            this.SlotCount = 11;
+            this.SlotCount = 12;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -22271,6 +22348,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(typeParameterList);
                 this.typeParameterList = typeParameterList;
             }
+            if (parameterList != null)
+            {
+                this.AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
             if (baseList != null)
             {
                 this.AdjustFlagsAndWidth(baseList);
@@ -22281,15 +22363,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(constraintClauses);
                 this.constraintClauses = constraintClauses;
             }
-            this.AdjustFlagsAndWidth(openBraceToken);
-            this.openBraceToken = openBraceToken;
+            if (openBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
             if (members != null)
             {
                 this.AdjustFlagsAndWidth(members);
                 this.members = members;
             }
-            this.AdjustFlagsAndWidth(closeBraceToken);
-            this.closeBraceToken = closeBraceToken;
+            if (closeBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
             if (semicolonToken != null)
             {
                 this.AdjustFlagsAndWidth(semicolonToken);
@@ -22297,11 +22385,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal StructDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken openBraceToken, GreenNode? members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
+        internal StructDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-            this.SlotCount = 11;
+            this.SlotCount = 12;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -22321,6 +22409,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(typeParameterList);
                 this.typeParameterList = typeParameterList;
             }
+            if (parameterList != null)
+            {
+                this.AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
             if (baseList != null)
             {
                 this.AdjustFlagsAndWidth(baseList);
@@ -22331,15 +22424,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(constraintClauses);
                 this.constraintClauses = constraintClauses;
             }
-            this.AdjustFlagsAndWidth(openBraceToken);
-            this.openBraceToken = openBraceToken;
+            if (openBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
             if (members != null)
             {
                 this.AdjustFlagsAndWidth(members);
                 this.members = members;
             }
-            this.AdjustFlagsAndWidth(closeBraceToken);
-            this.closeBraceToken = closeBraceToken;
+            if (closeBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
             if (semicolonToken != null)
             {
                 this.AdjustFlagsAndWidth(semicolonToken);
@@ -22347,10 +22446,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal StructDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken openBraceToken, GreenNode? members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken)
+        internal StructDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
           : base(kind)
         {
-            this.SlotCount = 11;
+            this.SlotCount = 12;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -22370,6 +22469,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(typeParameterList);
                 this.typeParameterList = typeParameterList;
             }
+            if (parameterList != null)
+            {
+                this.AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
             if (baseList != null)
             {
                 this.AdjustFlagsAndWidth(baseList);
@@ -22380,15 +22484,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(constraintClauses);
                 this.constraintClauses = constraintClauses;
             }
-            this.AdjustFlagsAndWidth(openBraceToken);
-            this.openBraceToken = openBraceToken;
+            if (openBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
             if (members != null)
             {
                 this.AdjustFlagsAndWidth(members);
                 this.members = members;
             }
-            this.AdjustFlagsAndWidth(closeBraceToken);
-            this.closeBraceToken = closeBraceToken;
+            if (closeBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
             if (semicolonToken != null)
             {
                 this.AdjustFlagsAndWidth(semicolonToken);
@@ -22402,11 +22512,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override SyntaxToken Keyword => this.keyword;
         public override SyntaxToken Identifier => this.identifier;
         public override TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
+        public override ParameterListSyntax? ParameterList => this.parameterList;
         public override BaseListSyntax? BaseList => this.baseList;
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
-        public override SyntaxToken OpenBraceToken => this.openBraceToken;
+        public override SyntaxToken? OpenBraceToken => this.openBraceToken;
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
-        public override SyntaxToken CloseBraceToken => this.closeBraceToken;
+        public override SyntaxToken? CloseBraceToken => this.closeBraceToken;
         public override SyntaxToken? SemicolonToken => this.semicolonToken;
 
         internal override GreenNode? GetSlot(int index)
@@ -22417,12 +22528,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 2 => this.keyword,
                 3 => this.identifier,
                 4 => this.typeParameterList,
-                5 => this.baseList,
-                6 => this.constraintClauses,
-                7 => this.openBraceToken,
-                8 => this.members,
-                9 => this.closeBraceToken,
-                10 => this.semicolonToken,
+                5 => this.parameterList,
+                6 => this.baseList,
+                7 => this.constraintClauses,
+                8 => this.openBraceToken,
+                9 => this.members,
+                10 => this.closeBraceToken,
+                11 => this.semicolonToken,
                 _ => null,
             };
 
@@ -22431,11 +22543,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitStructDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitStructDeclaration(this);
 
-        public StructDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        public StructDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, BaseListSyntax baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
-            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
             {
-                var newNode = SyntaxFactory.StructDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                var newNode = SyntaxFactory.StructDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -22449,15 +22561,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new StructDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
+            => new StructDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.parameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new StructDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
+            => new StructDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.parameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
 
         internal StructDeclarationSyntax(ObjectReader reader)
           : base(reader)
         {
-            this.SlotCount = 11;
+            this.SlotCount = 12;
             var attributeLists = (GreenNode?)reader.ReadValue();
             if (attributeLists != null)
             {
@@ -22482,6 +22594,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 AdjustFlagsAndWidth(typeParameterList);
                 this.typeParameterList = typeParameterList;
             }
+            var parameterList = (ParameterListSyntax?)reader.ReadValue();
+            if (parameterList != null)
+            {
+                AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
             var baseList = (BaseListSyntax?)reader.ReadValue();
             if (baseList != null)
             {
@@ -22494,18 +22612,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 AdjustFlagsAndWidth(constraintClauses);
                 this.constraintClauses = constraintClauses;
             }
-            var openBraceToken = (SyntaxToken)reader.ReadValue();
-            AdjustFlagsAndWidth(openBraceToken);
-            this.openBraceToken = openBraceToken;
+            var openBraceToken = (SyntaxToken?)reader.ReadValue();
+            if (openBraceToken != null)
+            {
+                AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
             var members = (GreenNode?)reader.ReadValue();
             if (members != null)
             {
                 AdjustFlagsAndWidth(members);
                 this.members = members;
             }
-            var closeBraceToken = (SyntaxToken)reader.ReadValue();
-            AdjustFlagsAndWidth(closeBraceToken);
-            this.closeBraceToken = closeBraceToken;
+            var closeBraceToken = (SyntaxToken?)reader.ReadValue();
+            if (closeBraceToken != null)
+            {
+                AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
             var semicolonToken = (SyntaxToken?)reader.ReadValue();
             if (semicolonToken != null)
             {
@@ -22522,6 +22646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             writer.WriteValue(this.keyword);
             writer.WriteValue(this.identifier);
             writer.WriteValue(this.typeParameterList);
+            writer.WriteValue(this.parameterList);
             writer.WriteValue(this.baseList);
             writer.WriteValue(this.constraintClauses);
             writer.WriteValue(this.openBraceToken);
@@ -22544,17 +22669,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal readonly SyntaxToken keyword;
         internal readonly SyntaxToken identifier;
         internal readonly TypeParameterListSyntax? typeParameterList;
+        internal readonly ParameterListSyntax? parameterList;
         internal readonly BaseListSyntax? baseList;
         internal readonly GreenNode? constraintClauses;
-        internal readonly SyntaxToken openBraceToken;
+        internal readonly SyntaxToken? openBraceToken;
         internal readonly GreenNode? members;
-        internal readonly SyntaxToken closeBraceToken;
+        internal readonly SyntaxToken? closeBraceToken;
         internal readonly SyntaxToken? semicolonToken;
 
-        internal InterfaceDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken openBraceToken, GreenNode? members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal InterfaceDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
-            this.SlotCount = 11;
+            this.SlotCount = 12;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -22574,6 +22700,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(typeParameterList);
                 this.typeParameterList = typeParameterList;
             }
+            if (parameterList != null)
+            {
+                this.AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
             if (baseList != null)
             {
                 this.AdjustFlagsAndWidth(baseList);
@@ -22584,15 +22715,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(constraintClauses);
                 this.constraintClauses = constraintClauses;
             }
-            this.AdjustFlagsAndWidth(openBraceToken);
-            this.openBraceToken = openBraceToken;
+            if (openBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
             if (members != null)
             {
                 this.AdjustFlagsAndWidth(members);
                 this.members = members;
             }
-            this.AdjustFlagsAndWidth(closeBraceToken);
-            this.closeBraceToken = closeBraceToken;
+            if (closeBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
             if (semicolonToken != null)
             {
                 this.AdjustFlagsAndWidth(semicolonToken);
@@ -22600,11 +22737,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal InterfaceDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken openBraceToken, GreenNode? members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
+        internal InterfaceDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-            this.SlotCount = 11;
+            this.SlotCount = 12;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -22624,6 +22761,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(typeParameterList);
                 this.typeParameterList = typeParameterList;
             }
+            if (parameterList != null)
+            {
+                this.AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
             if (baseList != null)
             {
                 this.AdjustFlagsAndWidth(baseList);
@@ -22634,15 +22776,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(constraintClauses);
                 this.constraintClauses = constraintClauses;
             }
-            this.AdjustFlagsAndWidth(openBraceToken);
-            this.openBraceToken = openBraceToken;
+            if (openBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
             if (members != null)
             {
                 this.AdjustFlagsAndWidth(members);
                 this.members = members;
             }
-            this.AdjustFlagsAndWidth(closeBraceToken);
-            this.closeBraceToken = closeBraceToken;
+            if (closeBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
             if (semicolonToken != null)
             {
                 this.AdjustFlagsAndWidth(semicolonToken);
@@ -22650,10 +22798,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal InterfaceDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken openBraceToken, GreenNode? members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken)
+        internal InterfaceDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
           : base(kind)
         {
-            this.SlotCount = 11;
+            this.SlotCount = 12;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -22673,6 +22821,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(typeParameterList);
                 this.typeParameterList = typeParameterList;
             }
+            if (parameterList != null)
+            {
+                this.AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
             if (baseList != null)
             {
                 this.AdjustFlagsAndWidth(baseList);
@@ -22683,15 +22836,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(constraintClauses);
                 this.constraintClauses = constraintClauses;
             }
-            this.AdjustFlagsAndWidth(openBraceToken);
-            this.openBraceToken = openBraceToken;
+            if (openBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
             if (members != null)
             {
                 this.AdjustFlagsAndWidth(members);
                 this.members = members;
             }
-            this.AdjustFlagsAndWidth(closeBraceToken);
-            this.closeBraceToken = closeBraceToken;
+            if (closeBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
             if (semicolonToken != null)
             {
                 this.AdjustFlagsAndWidth(semicolonToken);
@@ -22705,11 +22864,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override SyntaxToken Keyword => this.keyword;
         public override SyntaxToken Identifier => this.identifier;
         public override TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
+        public override ParameterListSyntax? ParameterList => this.parameterList;
         public override BaseListSyntax? BaseList => this.baseList;
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
-        public override SyntaxToken OpenBraceToken => this.openBraceToken;
+        public override SyntaxToken? OpenBraceToken => this.openBraceToken;
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
-        public override SyntaxToken CloseBraceToken => this.closeBraceToken;
+        public override SyntaxToken? CloseBraceToken => this.closeBraceToken;
         public override SyntaxToken? SemicolonToken => this.semicolonToken;
 
         internal override GreenNode? GetSlot(int index)
@@ -22720,12 +22880,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 2 => this.keyword,
                 3 => this.identifier,
                 4 => this.typeParameterList,
-                5 => this.baseList,
-                6 => this.constraintClauses,
-                7 => this.openBraceToken,
-                8 => this.members,
-                9 => this.closeBraceToken,
-                10 => this.semicolonToken,
+                5 => this.parameterList,
+                6 => this.baseList,
+                7 => this.constraintClauses,
+                8 => this.openBraceToken,
+                9 => this.members,
+                10 => this.closeBraceToken,
+                11 => this.semicolonToken,
                 _ => null,
             };
 
@@ -22734,11 +22895,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterfaceDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterfaceDeclaration(this);
 
-        public InterfaceDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        public InterfaceDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, BaseListSyntax baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
-            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
             {
-                var newNode = SyntaxFactory.InterfaceDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                var newNode = SyntaxFactory.InterfaceDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -22752,15 +22913,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new InterfaceDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
+            => new InterfaceDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.parameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new InterfaceDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
+            => new InterfaceDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.parameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
 
         internal InterfaceDeclarationSyntax(ObjectReader reader)
           : base(reader)
         {
-            this.SlotCount = 11;
+            this.SlotCount = 12;
             var attributeLists = (GreenNode?)reader.ReadValue();
             if (attributeLists != null)
             {
@@ -22785,6 +22946,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 AdjustFlagsAndWidth(typeParameterList);
                 this.typeParameterList = typeParameterList;
             }
+            var parameterList = (ParameterListSyntax?)reader.ReadValue();
+            if (parameterList != null)
+            {
+                AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
             var baseList = (BaseListSyntax?)reader.ReadValue();
             if (baseList != null)
             {
@@ -22797,18 +22964,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 AdjustFlagsAndWidth(constraintClauses);
                 this.constraintClauses = constraintClauses;
             }
-            var openBraceToken = (SyntaxToken)reader.ReadValue();
-            AdjustFlagsAndWidth(openBraceToken);
-            this.openBraceToken = openBraceToken;
+            var openBraceToken = (SyntaxToken?)reader.ReadValue();
+            if (openBraceToken != null)
+            {
+                AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
             var members = (GreenNode?)reader.ReadValue();
             if (members != null)
             {
                 AdjustFlagsAndWidth(members);
                 this.members = members;
             }
-            var closeBraceToken = (SyntaxToken)reader.ReadValue();
-            AdjustFlagsAndWidth(closeBraceToken);
-            this.closeBraceToken = closeBraceToken;
+            var closeBraceToken = (SyntaxToken?)reader.ReadValue();
+            if (closeBraceToken != null)
+            {
+                AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
             var semicolonToken = (SyntaxToken?)reader.ReadValue();
             if (semicolonToken != null)
             {
@@ -22825,6 +22998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             writer.WriteValue(this.keyword);
             writer.WriteValue(this.identifier);
             writer.WriteValue(this.typeParameterList);
+            writer.WriteValue(this.parameterList);
             writer.WriteValue(this.baseList);
             writer.WriteValue(this.constraintClauses);
             writer.WriteValue(this.openBraceToken);
@@ -23057,7 +23231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public SyntaxToken? ClassOrStructKeyword => this.classOrStructKeyword;
         public override SyntaxToken Identifier => this.identifier;
         public override TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
-        public ParameterListSyntax? ParameterList => this.parameterList;
+        public override ParameterListSyntax? ParameterList => this.parameterList;
         public override BaseListSyntax? BaseList => this.baseList;
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
         public override SyntaxToken? OpenBraceToken => this.openBraceToken;
@@ -23222,12 +23396,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal readonly SyntaxToken enumKeyword;
         internal readonly SyntaxToken identifier;
         internal readonly BaseListSyntax? baseList;
-        internal readonly SyntaxToken openBraceToken;
+        internal readonly SyntaxToken? openBraceToken;
         internal readonly GreenNode? members;
-        internal readonly SyntaxToken closeBraceToken;
+        internal readonly SyntaxToken? closeBraceToken;
         internal readonly SyntaxToken? semicolonToken;
 
-        internal EnumDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax? baseList, SyntaxToken openBraceToken, GreenNode? members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal EnumDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax? baseList, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 9;
@@ -23250,15 +23424,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(baseList);
                 this.baseList = baseList;
             }
-            this.AdjustFlagsAndWidth(openBraceToken);
-            this.openBraceToken = openBraceToken;
+            if (openBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
             if (members != null)
             {
                 this.AdjustFlagsAndWidth(members);
                 this.members = members;
             }
-            this.AdjustFlagsAndWidth(closeBraceToken);
-            this.closeBraceToken = closeBraceToken;
+            if (closeBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
             if (semicolonToken != null)
             {
                 this.AdjustFlagsAndWidth(semicolonToken);
@@ -23266,7 +23446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal EnumDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax? baseList, SyntaxToken openBraceToken, GreenNode? members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
+        internal EnumDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax? baseList, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
@@ -23290,15 +23470,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(baseList);
                 this.baseList = baseList;
             }
-            this.AdjustFlagsAndWidth(openBraceToken);
-            this.openBraceToken = openBraceToken;
+            if (openBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
             if (members != null)
             {
                 this.AdjustFlagsAndWidth(members);
                 this.members = members;
             }
-            this.AdjustFlagsAndWidth(closeBraceToken);
-            this.closeBraceToken = closeBraceToken;
+            if (closeBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
             if (semicolonToken != null)
             {
                 this.AdjustFlagsAndWidth(semicolonToken);
@@ -23306,7 +23492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal EnumDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax? baseList, SyntaxToken openBraceToken, GreenNode? members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken)
+        internal EnumDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax? baseList, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
           : base(kind)
         {
             this.SlotCount = 9;
@@ -23329,15 +23515,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(baseList);
                 this.baseList = baseList;
             }
-            this.AdjustFlagsAndWidth(openBraceToken);
-            this.openBraceToken = openBraceToken;
+            if (openBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
             if (members != null)
             {
                 this.AdjustFlagsAndWidth(members);
                 this.members = members;
             }
-            this.AdjustFlagsAndWidth(closeBraceToken);
-            this.closeBraceToken = closeBraceToken;
+            if (closeBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
             if (semicolonToken != null)
             {
                 this.AdjustFlagsAndWidth(semicolonToken);
@@ -23351,10 +23543,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public SyntaxToken EnumKeyword => this.enumKeyword;
         public override SyntaxToken Identifier => this.identifier;
         public override BaseListSyntax? BaseList => this.baseList;
-        public override SyntaxToken OpenBraceToken => this.openBraceToken;
+        public override SyntaxToken? OpenBraceToken => this.openBraceToken;
         /// <summary>Gets the members declaration list.</summary>
         public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax> Members => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.members));
-        public override SyntaxToken CloseBraceToken => this.closeBraceToken;
+        public override SyntaxToken? CloseBraceToken => this.closeBraceToken;
         /// <summary>Gets the optional semicolon token.</summary>
         public override SyntaxToken? SemicolonToken => this.semicolonToken;
 
@@ -23429,18 +23621,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 AdjustFlagsAndWidth(baseList);
                 this.baseList = baseList;
             }
-            var openBraceToken = (SyntaxToken)reader.ReadValue();
-            AdjustFlagsAndWidth(openBraceToken);
-            this.openBraceToken = openBraceToken;
+            var openBraceToken = (SyntaxToken?)reader.ReadValue();
+            if (openBraceToken != null)
+            {
+                AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
             var members = (GreenNode?)reader.ReadValue();
             if (members != null)
             {
                 AdjustFlagsAndWidth(members);
                 this.members = members;
             }
-            var closeBraceToken = (SyntaxToken)reader.ReadValue();
-            AdjustFlagsAndWidth(closeBraceToken);
-            this.closeBraceToken = closeBraceToken;
+            var closeBraceToken = (SyntaxToken?)reader.ReadValue();
+            if (closeBraceToken != null)
+            {
+                AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
             var semicolonToken = (SyntaxToken?)reader.ReadValue();
             if (semicolonToken != null)
             {
@@ -35737,7 +35935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update((SyntaxToken)Visit(node.ExternKeyword), (SyntaxToken)Visit(node.AliasKeyword), (SyntaxToken)Visit(node.Identifier), (SyntaxToken)Visit(node.SemicolonToken));
 
         public override CSharpSyntaxNode VisitUsingDirective(UsingDirectiveSyntax node)
-            => node.Update((SyntaxToken)Visit(node.GlobalKeyword), (SyntaxToken)Visit(node.UsingKeyword), (SyntaxToken)Visit(node.StaticKeyword), (NameEqualsSyntax)Visit(node.Alias), (NameSyntax)Visit(node.Name), (SyntaxToken)Visit(node.SemicolonToken));
+            => node.Update((SyntaxToken)Visit(node.GlobalKeyword), (SyntaxToken)Visit(node.UsingKeyword), (SyntaxToken)Visit(node.StaticKeyword), (SyntaxToken)Visit(node.UnsafeKeyword), (NameEqualsSyntax)Visit(node.Alias), (TypeSyntax)Visit(node.NamespaceOrType), (SyntaxToken)Visit(node.SemicolonToken));
 
         public override CSharpSyntaxNode VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.NamespaceKeyword), (NameSyntax)Visit(node.Name), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Externs), VisitList(node.Usings), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
@@ -35770,13 +35968,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update(VisitList(node.AttributeLists), (SyntaxToken)Visit(node.VarianceKeyword), (SyntaxToken)Visit(node.Identifier));
 
         public override CSharpSyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
 
         public override CSharpSyntaxNode VisitStructDeclaration(StructDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
 
         public override CSharpSyntaxNode VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
 
         public override CSharpSyntaxNode VisitRecordDeclaration(RecordDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.ClassOrStructKeyword), (SyntaxToken)Visit(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
@@ -39243,7 +39441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new ExternAliasDirectiveSyntax(SyntaxKind.ExternAliasDirective, externKeyword, aliasKeyword, identifier, semicolonToken, this.context);
         }
 
-        public UsingDirectiveSyntax UsingDirective(SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
+        public UsingDirectiveSyntax UsingDirective(SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, SyntaxToken? unsafeKeyword, NameEqualsSyntax? alias, TypeSyntax namespaceOrType, SyntaxToken semicolonToken)
         {
 #if DEBUG
             if (globalKeyword != null)
@@ -39257,12 +39455,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             if (usingKeyword == null) throw new ArgumentNullException(nameof(usingKeyword));
             if (usingKeyword.Kind != SyntaxKind.UsingKeyword) throw new ArgumentException(nameof(usingKeyword));
-            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (staticKeyword != null)
+            {
+                switch (staticKeyword.Kind)
+                {
+                    case SyntaxKind.StaticKeyword:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(staticKeyword));
+                }
+            }
+            if (unsafeKeyword != null)
+            {
+                switch (unsafeKeyword.Kind)
+                {
+                    case SyntaxKind.UnsafeKeyword:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(unsafeKeyword));
+                }
+            }
+            if (namespaceOrType == null) throw new ArgumentNullException(nameof(namespaceOrType));
             if (semicolonToken == null) throw new ArgumentNullException(nameof(semicolonToken));
             if (semicolonToken.Kind != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
 #endif
 
-            return new UsingDirectiveSyntax(SyntaxKind.UsingDirective, globalKeyword, usingKeyword, staticKeyword, alias, name, semicolonToken, this.context);
+            return new UsingDirectiveSyntax(SyntaxKind.UsingDirective, globalKeyword, usingKeyword, staticKeyword, unsafeKeyword, alias, namespaceOrType, semicolonToken, this.context);
         }
 
         public NamespaceDeclarationSyntax NamespaceDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> externs, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> usings, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken)
@@ -39468,17 +39684,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public ClassDeclarationSyntax ClassDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken)
+        public ClassDeclarationSyntax ClassDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
         {
 #if DEBUG
             if (keyword == null) throw new ArgumentNullException(nameof(keyword));
             if (keyword.Kind != SyntaxKind.ClassKeyword) throw new ArgumentException(nameof(keyword));
             if (identifier == null) throw new ArgumentNullException(nameof(identifier));
             if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
-            if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
-            if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
-            if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
-            if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            if (openBraceToken != null)
+            {
+                switch (openBraceToken.Kind)
+                {
+                    case SyntaxKind.OpenBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(openBraceToken));
+                }
+            }
+            if (closeBraceToken != null)
+            {
+                switch (closeBraceToken.Kind)
+                {
+                    case SyntaxKind.CloseBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(closeBraceToken));
+                }
+            }
             if (semicolonToken != null)
             {
                 switch (semicolonToken.Kind)
@@ -39490,20 +39720,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 #endif
 
-            return new ClassDeclarationSyntax(SyntaxKind.ClassDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
+            return new ClassDeclarationSyntax(SyntaxKind.ClassDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
         }
 
-        public StructDeclarationSyntax StructDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken)
+        public StructDeclarationSyntax StructDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
         {
 #if DEBUG
             if (keyword == null) throw new ArgumentNullException(nameof(keyword));
             if (keyword.Kind != SyntaxKind.StructKeyword) throw new ArgumentException(nameof(keyword));
             if (identifier == null) throw new ArgumentNullException(nameof(identifier));
             if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
-            if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
-            if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
-            if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
-            if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            if (openBraceToken != null)
+            {
+                switch (openBraceToken.Kind)
+                {
+                    case SyntaxKind.OpenBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(openBraceToken));
+                }
+            }
+            if (closeBraceToken != null)
+            {
+                switch (closeBraceToken.Kind)
+                {
+                    case SyntaxKind.CloseBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(closeBraceToken));
+                }
+            }
             if (semicolonToken != null)
             {
                 switch (semicolonToken.Kind)
@@ -39515,20 +39759,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 #endif
 
-            return new StructDeclarationSyntax(SyntaxKind.StructDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
+            return new StructDeclarationSyntax(SyntaxKind.StructDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
         }
 
-        public InterfaceDeclarationSyntax InterfaceDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken)
+        public InterfaceDeclarationSyntax InterfaceDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
         {
 #if DEBUG
             if (keyword == null) throw new ArgumentNullException(nameof(keyword));
             if (keyword.Kind != SyntaxKind.InterfaceKeyword) throw new ArgumentException(nameof(keyword));
             if (identifier == null) throw new ArgumentNullException(nameof(identifier));
             if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
-            if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
-            if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
-            if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
-            if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            if (openBraceToken != null)
+            {
+                switch (openBraceToken.Kind)
+                {
+                    case SyntaxKind.OpenBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(openBraceToken));
+                }
+            }
+            if (closeBraceToken != null)
+            {
+                switch (closeBraceToken.Kind)
+                {
+                    case SyntaxKind.CloseBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(closeBraceToken));
+                }
+            }
             if (semicolonToken != null)
             {
                 switch (semicolonToken.Kind)
@@ -39540,7 +39798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 #endif
 
-            return new InterfaceDeclarationSyntax(SyntaxKind.InterfaceDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
+            return new InterfaceDeclarationSyntax(SyntaxKind.InterfaceDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
         }
 
         public RecordDeclarationSyntax RecordDeclaration(SyntaxKind kind, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken? classOrStructKeyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
@@ -39597,17 +39855,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new RecordDeclarationSyntax(kind, attributeLists.Node, modifiers.Node, keyword, classOrStructKeyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
         }
 
-        public EnumDeclarationSyntax EnumDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax? baseList, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken)
+        public EnumDeclarationSyntax EnumDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax? baseList, SyntaxToken? openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
         {
 #if DEBUG
             if (enumKeyword == null) throw new ArgumentNullException(nameof(enumKeyword));
             if (enumKeyword.Kind != SyntaxKind.EnumKeyword) throw new ArgumentException(nameof(enumKeyword));
             if (identifier == null) throw new ArgumentNullException(nameof(identifier));
             if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
-            if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
-            if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
-            if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
-            if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            if (openBraceToken != null)
+            {
+                switch (openBraceToken.Kind)
+                {
+                    case SyntaxKind.OpenBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(openBraceToken));
+                }
+            }
+            if (closeBraceToken != null)
+            {
+                switch (closeBraceToken.Kind)
+                {
+                    case SyntaxKind.CloseBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(closeBraceToken));
+                }
+            }
             if (semicolonToken != null)
             {
                 switch (semicolonToken.Kind)
@@ -44398,7 +44670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new ExternAliasDirectiveSyntax(SyntaxKind.ExternAliasDirective, externKeyword, aliasKeyword, identifier, semicolonToken);
         }
 
-        public static UsingDirectiveSyntax UsingDirective(SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
+        public static UsingDirectiveSyntax UsingDirective(SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, SyntaxToken? unsafeKeyword, NameEqualsSyntax? alias, TypeSyntax namespaceOrType, SyntaxToken semicolonToken)
         {
 #if DEBUG
             if (globalKeyword != null)
@@ -44412,12 +44684,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             if (usingKeyword == null) throw new ArgumentNullException(nameof(usingKeyword));
             if (usingKeyword.Kind != SyntaxKind.UsingKeyword) throw new ArgumentException(nameof(usingKeyword));
-            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (staticKeyword != null)
+            {
+                switch (staticKeyword.Kind)
+                {
+                    case SyntaxKind.StaticKeyword:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(staticKeyword));
+                }
+            }
+            if (unsafeKeyword != null)
+            {
+                switch (unsafeKeyword.Kind)
+                {
+                    case SyntaxKind.UnsafeKeyword:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(unsafeKeyword));
+                }
+            }
+            if (namespaceOrType == null) throw new ArgumentNullException(nameof(namespaceOrType));
             if (semicolonToken == null) throw new ArgumentNullException(nameof(semicolonToken));
             if (semicolonToken.Kind != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
 #endif
 
-            return new UsingDirectiveSyntax(SyntaxKind.UsingDirective, globalKeyword, usingKeyword, staticKeyword, alias, name, semicolonToken);
+            return new UsingDirectiveSyntax(SyntaxKind.UsingDirective, globalKeyword, usingKeyword, staticKeyword, unsafeKeyword, alias, namespaceOrType, semicolonToken);
         }
 
         public static NamespaceDeclarationSyntax NamespaceDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> externs, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> usings, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken)
@@ -44623,17 +44913,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static ClassDeclarationSyntax ClassDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken)
+        public static ClassDeclarationSyntax ClassDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
         {
 #if DEBUG
             if (keyword == null) throw new ArgumentNullException(nameof(keyword));
             if (keyword.Kind != SyntaxKind.ClassKeyword) throw new ArgumentException(nameof(keyword));
             if (identifier == null) throw new ArgumentNullException(nameof(identifier));
             if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
-            if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
-            if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
-            if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
-            if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            if (openBraceToken != null)
+            {
+                switch (openBraceToken.Kind)
+                {
+                    case SyntaxKind.OpenBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(openBraceToken));
+                }
+            }
+            if (closeBraceToken != null)
+            {
+                switch (closeBraceToken.Kind)
+                {
+                    case SyntaxKind.CloseBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(closeBraceToken));
+                }
+            }
             if (semicolonToken != null)
             {
                 switch (semicolonToken.Kind)
@@ -44645,20 +44949,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 #endif
 
-            return new ClassDeclarationSyntax(SyntaxKind.ClassDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
+            return new ClassDeclarationSyntax(SyntaxKind.ClassDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
         }
 
-        public static StructDeclarationSyntax StructDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken)
+        public static StructDeclarationSyntax StructDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
         {
 #if DEBUG
             if (keyword == null) throw new ArgumentNullException(nameof(keyword));
             if (keyword.Kind != SyntaxKind.StructKeyword) throw new ArgumentException(nameof(keyword));
             if (identifier == null) throw new ArgumentNullException(nameof(identifier));
             if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
-            if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
-            if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
-            if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
-            if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            if (openBraceToken != null)
+            {
+                switch (openBraceToken.Kind)
+                {
+                    case SyntaxKind.OpenBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(openBraceToken));
+                }
+            }
+            if (closeBraceToken != null)
+            {
+                switch (closeBraceToken.Kind)
+                {
+                    case SyntaxKind.CloseBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(closeBraceToken));
+                }
+            }
             if (semicolonToken != null)
             {
                 switch (semicolonToken.Kind)
@@ -44670,20 +44988,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 #endif
 
-            return new StructDeclarationSyntax(SyntaxKind.StructDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
+            return new StructDeclarationSyntax(SyntaxKind.StructDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
         }
 
-        public static InterfaceDeclarationSyntax InterfaceDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken)
+        public static InterfaceDeclarationSyntax InterfaceDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
         {
 #if DEBUG
             if (keyword == null) throw new ArgumentNullException(nameof(keyword));
             if (keyword.Kind != SyntaxKind.InterfaceKeyword) throw new ArgumentException(nameof(keyword));
             if (identifier == null) throw new ArgumentNullException(nameof(identifier));
             if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
-            if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
-            if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
-            if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
-            if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            if (openBraceToken != null)
+            {
+                switch (openBraceToken.Kind)
+                {
+                    case SyntaxKind.OpenBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(openBraceToken));
+                }
+            }
+            if (closeBraceToken != null)
+            {
+                switch (closeBraceToken.Kind)
+                {
+                    case SyntaxKind.CloseBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(closeBraceToken));
+                }
+            }
             if (semicolonToken != null)
             {
                 switch (semicolonToken.Kind)
@@ -44695,7 +45027,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 #endif
 
-            return new InterfaceDeclarationSyntax(SyntaxKind.InterfaceDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
+            return new InterfaceDeclarationSyntax(SyntaxKind.InterfaceDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
         }
 
         public static RecordDeclarationSyntax RecordDeclaration(SyntaxKind kind, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken? classOrStructKeyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
@@ -44752,17 +45084,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new RecordDeclarationSyntax(kind, attributeLists.Node, modifiers.Node, keyword, classOrStructKeyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
         }
 
-        public static EnumDeclarationSyntax EnumDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax? baseList, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken)
+        public static EnumDeclarationSyntax EnumDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax? baseList, SyntaxToken? openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
         {
 #if DEBUG
             if (enumKeyword == null) throw new ArgumentNullException(nameof(enumKeyword));
             if (enumKeyword.Kind != SyntaxKind.EnumKeyword) throw new ArgumentException(nameof(enumKeyword));
             if (identifier == null) throw new ArgumentNullException(nameof(identifier));
             if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
-            if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
-            if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
-            if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
-            if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            if (openBraceToken != null)
+            {
+                switch (openBraceToken.Kind)
+                {
+                    case SyntaxKind.OpenBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(openBraceToken));
+                }
+            }
+            if (closeBraceToken != null)
+            {
+                switch (closeBraceToken.Kind)
+                {
+                    case SyntaxKind.CloseBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(closeBraceToken));
+                }
+            }
             if (semicolonToken != null)
             {
                 switch (semicolonToken.Kind)

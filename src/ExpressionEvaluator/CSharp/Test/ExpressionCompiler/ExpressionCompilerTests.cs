@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         /// <summary>
         /// Each assembly should have a unique MVID and assembly name.
         /// </summary>
-        [Fact, WorkItem(1029280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029280")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029280")]
         public void UniqueModuleVersionId()
         {
             var source =
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         /// <summary>
         /// Diagnostics should be formatted with the CurrentUICulture.
         /// </summary>
-        [Fact, WorkItem(941599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941599")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941599")]
         public void FormatterCultureInfo()
         {
             var previousCulture = Thread.CurrentThread.CurrentCulture;
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         /// copy/paste of (simple cases of) RHS of assignment in Watch window,
         /// not to allow arbitrary syntax after the semicolon, not even comments.
         /// </summary>
-        [Fact, WorkItem(950242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/950242")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/950242")]
         public void TrailingSemicolon()
         {
             var source =
@@ -1090,7 +1090,7 @@ class B : A
         /// The custom modifiers are not copied to the corresponding
         /// local in the generated method since there is no need.
         /// </remarks>
-        [Fact, WorkItem(884627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884627")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884627")]
         public void LocalType_CustomModifiers()
         {
             var source =
@@ -1130,7 +1130,7 @@ class B : A
 }");
         }
 
-        [Fact, WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")]
         public void LocalType_ByRefOrPinned()
         {
             var source = @"
@@ -1281,7 +1281,7 @@ class B : A
             });
         }
 
-        [Fact, WorkItem(1034549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034549")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034549")]
         public void AssignLocal()
         {
             var source =
@@ -2041,7 +2041,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(986227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")]
         public void RewriteCatchLocal()
         {
             var source =
@@ -2127,7 +2127,7 @@ class C<T>
             });
         }
 
-        [Fact, WorkItem(986227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")]
         public void RewriteSequenceTemps()
         {
             var source =
@@ -2324,7 +2324,7 @@ class C
         /// the expression compiler and so an await expression would not
         /// normally be allowed.
         /// </remarks>
-        [Fact, WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
         public void Await()
         {
             var source = @"
@@ -2359,7 +2359,7 @@ class C
         /// <remarks>
         /// This would be illegal in any non-debugger context.
         /// </remarks>
-        [Fact, WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
         public void AwaitInUnsafeContext()
         {
             var source = @"
@@ -2402,7 +2402,7 @@ class C
         /// for variables declared within the expression.
         /// </summary>
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/549")]
-        [WorkItem(549, "https://github.com/dotnet/roslyn/issues/549")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/549")]
         public void FlowAnalysis()
         {
             var source =
@@ -2610,7 +2610,7 @@ class C<T>
             });
         }
 
-        [Fact, WorkItem(976847, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/976847")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/976847")]
         public void VarArgMethod()
         {
             var source =
@@ -2721,8 +2721,7 @@ class C<T>
         object y;
     }
 }";
-            ResultProperties resultProperties;
-            string error;
+
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
@@ -2732,13 +2731,40 @@ class C<T>
 {
     object x = y;
     return y;
-}))(x, y)",
-                resultProperties: out resultProperties,
-                error: out error);
-            // Currently generating errors but this seems unnecessary and
-            // an extra burden for the user. Consider allowing names
-            // inside the expression that shadow names outside.
-            Assert.Equal("error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
+}))(x)");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (object V_0) //y
+  IL_0000:  ldsfld     ""System.Func<object, object> <>x.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_000e:  ldftn      ""object <>x.<>c.<<>m0>b__0_0(object)""
+  IL_0014:  newobj     ""System.Func<object, object>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Func<object, object> <>x.<>c.<>9__0_0""
+  IL_001f:  ldarg.0
+  IL_0020:  callvirt   ""object System.Func<object, object>.Invoke(object)""
+  IL_0025:  ret
+}");
+
+            var data = testData.GetMethodData("<>x.<>c.<<>m0>b__0_0(object)");
+
+            Assert.False(data.Method.IsStatic);
+            Assert.Equal("System.Object <>x.<>c.<<>m0>b__0_0(System.Object y)", ((Symbol)data.Method).ToTestDisplayString());
+            data.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
         }
 
         [Fact]
@@ -2887,7 +2913,7 @@ class B : A
 }");
         }
 
-        [Fact, WorkItem(905986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/905986")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/905986")]
         public void EvaluateLambdaClosedOverBase()
         {
             var source =
@@ -3054,7 +3080,7 @@ class B : A
             });
         }
 
-        [Fact, WorkItem(994485, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994485")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994485")]
         public void Repro994485()
         {
             var source = @"
@@ -3187,7 +3213,7 @@ class B : A
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30767")]
-        [WorkItem(30767, "https://github.com/dotnet/roslyn/issues/30767")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30767")]
         public void EvaluateCapturedLocalsOutsideLambda_PlusNullable()
         {
             var source =
@@ -3463,7 +3489,7 @@ class B : A
         /// be used interchangeably with existing instances.
         /// </summary>
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/3188")]
-        [WorkItem(3188, "https://github.com/dotnet/roslyn/issues/3188")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3188")]
         public void EvaluateExistingAnonymousType_2()
         {
             var source =
@@ -3641,7 +3667,7 @@ class C
         /// <summary>
         /// DiagnosticsPass must be run on evaluation method.
         /// </summary>
-        [Fact, WorkItem(530404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530404")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530404")]
         public void DiagnosticsPass()
         {
             var source =
@@ -3669,7 +3695,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(935651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/935651")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/935651")]
         public void EvaluatePropertySet()
         {
             var source =
@@ -3809,7 +3835,7 @@ class C
         /// <summary>
         /// Netmodules with same name.
         /// </summary>
-        [Fact, WorkItem(30031, "https://github.com/dotnet/roslyn/issues/30031")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30031")]
         public void NetModuleDuplicateReferences()
         {
             // Netmodule 0
@@ -4065,7 +4091,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(958448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")]
         public void ConditionalAttribute()
         {
             var source =
@@ -4099,7 +4125,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(958448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")]
         public void ConditionalAttribute_CollectionInitializer()
         {
             var source =
@@ -4259,7 +4285,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(984509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984509")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984509")]
         public void LambdaContainingIncrementOperator()
         {
             var source =
@@ -4384,7 +4410,7 @@ class C<T>
 }");
         }
 
-        [Fact, WorkItem(1000946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1000946")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1000946")]
         public void BaseExpression()
         {
             var source = @"
@@ -4443,7 +4469,7 @@ struct S
 }");
         }
 
-        [Fact, WorkItem(1010922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010922")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010922")]
         public void IntOverflow()
         {
             var source = @"
@@ -4490,7 +4516,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")]
         public void AssignmentConversion()
         {
             var source = @"
@@ -4542,7 +4568,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(1016530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016530")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016530")]
         public void EvaluateStatement()
         {
             var source = @"
@@ -4563,7 +4589,7 @@ class C
             Assert.Equal("error CS8115: A throw expression is not allowed in this context.", error);
         }
 
-        [Fact, WorkItem(1016555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016555")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016555")]
         public void UnmatchedCloseAndOpenParens()
         {
             var source =
@@ -4589,7 +4615,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
         public void DateTimeFieldConstant()
         {
             var source =
@@ -4625,7 +4651,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
         public void DecimalFieldConstant()
         {
             var source = @"
@@ -4663,7 +4689,7 @@ struct S
 }");
         }
 
-        [Fact, WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         public void IteratorParameter()
         {
             var source =
@@ -4697,7 +4723,7 @@ struct S
             });
         }
 
-        [Fact, WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         public void IteratorGenericLocal()
         {
             var source =
@@ -4733,7 +4759,7 @@ struct S
             });
         }
 
-        [Fact, WorkItem(1028808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028808")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028808")]
         public void StaticLambdaInDisplayClass()
         {
             var source =
@@ -5014,6 +5040,43 @@ class C
         }
 
         [Fact]
+        public void UsingAliasToNonNamedType()
+        {
+            var source = @"
+using A = int;
+
+class C
+{
+    int M()
+    {
+        A.Parse(""0"");
+        return 1;
+    }
+}
+";
+            var expectedIL = @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldstr      ""0""
+  IL_0005:  call       ""int int.Parse(string)""
+  IL_000a:  ret
+}
+";
+
+            var comp = CreateCompilation(source);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                var testData = new CompilationTestData();
+                var result = context.CompileExpression(@"A.Parse(""0"")", out var error, testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(expectedIL);
+            });
+        }
+
+        [Fact]
         public void ExternAliasForMultipleAssemblies()
         {
             var source = @"
@@ -5071,7 +5134,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(1055825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1055825")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1055825")]
         public void FieldLikeEvent()
         {
             var source = @"
@@ -5174,7 +5237,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(1055825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1055825")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1055825")]
         public void FieldLikeEvent_WinRT()
         {
             var ilSource = @"
@@ -5319,7 +5382,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(1079749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079749")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079749")]
         public void RangeVariableError()
         {
             var source =
@@ -5353,7 +5416,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(1079762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079762")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079762")]
         public void Bug1079762()
         {
             var source =
@@ -5389,7 +5452,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(1079762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079762")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079762")]
         public void LambdaParameter()
         {
             var source =
@@ -5420,7 +5483,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
         public void StaticTypeImport()
         {
             var source = @"
@@ -5455,7 +5518,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")]
         public void NonStateMachineTypeParameter()
         {
             var source = @"
@@ -5488,7 +5551,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")]
         public void StateMachineTypeParameter()
         {
             var source = @"
@@ -5524,7 +5587,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(1085642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085642")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085642")]
         public void ModuleWithBadImageFormat()
         {
             var source = @"
@@ -5561,7 +5624,7 @@ class C
             }
         }
 
-        [Fact, WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")]
         public void MissingType()
         {
             var libSource = @"
@@ -5623,7 +5686,7 @@ public class C
             });
         }
 
-        [Fact, WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")]
         public void UseSiteWarning()
         {
             var signedDllOptions = TestOptions.SigningReleaseDll.
@@ -5685,7 +5748,7 @@ public class Source
             });
         }
 
-        [Fact, WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")]
         public void ObsoleteAttribute()
         {
             var source = @"
@@ -5714,7 +5777,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")]
         public void DeprecatedAttribute()
         {
             var source = @"
@@ -5774,7 +5837,7 @@ namespace Windows.Foundation.Metadata
             });
         }
 
-        [Fact, WorkItem(1089591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089591")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089591")]
         public void BadPdb_MissingMethod()
         {
             var source = @"
@@ -5806,7 +5869,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(1108133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108133")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108133")]
         public void SymUnmanagedReaderNotImplemented()
         {
             var source = @"
@@ -5837,7 +5900,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(1115543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115543")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115543")]
         public void MethodTypeParameterInLambda()
         {
             var source = @"
@@ -5877,7 +5940,7 @@ public class C<T>
             });
         }
 
-        [Fact, WorkItem(1136085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1136085")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1136085")]
         public void TypeofOpenGenericType()
         {
             var source = @"
@@ -6024,7 +6087,7 @@ public class C
         /// <summary>
         /// Ignore accessibility in lambda rewriter.
         /// </summary>
-        [Fact, WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1618")]
         public void LambdaRewriterIgnoreAccessibility()
         {
             var source =
@@ -6160,7 +6223,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(3309, "https://github.com/dotnet/roslyn/issues/3309")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3309")]
         public void NullAnonymousTypeInstance()
         {
             var source =
@@ -6187,7 +6250,7 @@ class C
         /// DkmClrInstructionAddress.ILOffset is set to uint.MaxValue
         /// if the instruction does not map to an IL offset.
         /// </summary>
-        [Fact, WorkItem(1185315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185315")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185315")]
         public void NoILOffset()
         {
             var source =
@@ -6261,7 +6324,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(4098, "https://github.com/dotnet/roslyn/issues/4098")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4098")]
         public void SelectAnonymousType()
         {
             var source =
@@ -6334,7 +6397,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(2501, "https://github.com/dotnet/roslyn/issues/2501")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2501")]
         public void ImportsInAsyncLambda()
         {
             var source =
@@ -6560,7 +6623,7 @@ public class Test
 
         // https://github.com/dotnet/roslyn/issues/30033: EnsureNullableAttributeExists is not called.
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30033")]
-        [WorkItem(30033, "https://github.com/dotnet/roslyn/issues/30033")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30033")]
         public void EmitNullableAttribute_ExpressionType()
         {
             var source =
@@ -6607,7 +6670,7 @@ public class Test
         // because CSharpCompilationExtensions.IsFeatureEnabled() fails when there
         // the Compilation contains no syntax trees.
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30034")]
-        [WorkItem(30034, "https://github.com/dotnet/roslyn/issues/30034")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30034")]
         public void EmitNullableAttribute_LambdaParameters()
         {
             var source =
@@ -6650,7 +6713,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(22206, "https://github.com/dotnet/roslyn/issues/22206")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22206")]
         public void RefReturnNonRefLocal()
         {
             var source = @"
@@ -6987,7 +7050,893 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(65165, "https://github.com/dotnet/roslyn/issues/65165")]
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_01()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        var d1 = () =>
+        {
+            x += z;
+        };
+
+        d1();
+
+        var d2 = () =>
+        {
+            sbyte x = 0;
+            int y = x;
+
+            var d3 = () =>
+            {
+                y += z;
+            };
+
+            x = -100;
+#line 100
+            z += x;
+#line 200
+            return d3;
+        };
+
+        d2()();
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_0.<Test>b__1",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+            sbyte V_1, //x
+            System.Action V_2, //d3
+            System.Action V_3)
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_02()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        var d1 = () =>
+        {
+            x += z;
+        };
+
+        d1();
+
+        var d2 = () =>
+        {
+            sbyte x = 0;
+            int y = x;
+
+            var d3 = () =>
+            {
+#line 100
+                y += z;
+#line 200
+            };
+
+            x = -100;
+            z += x;
+
+            return d3;
+        };
+
+        d2()();
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_1.<Test>b__2",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
+  IL_0006:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_03()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        var d1 = () =>
+        {
+            x += z;
+        };
+
+        d1();
+
+        var d2 = (sbyte x) =>
+        {
+            int y = x;
+
+            var d3 = (short x) =>
+            {
+                y += z;
+            };
+
+            x = -100;
+#line 100
+            z += x;
+#line 200
+            return d3;
+        };
+
+        d2(-100)(-200);
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_0.<Test>b__1",
+                atLineNumber: 100,
+                expr: "x");
+
+            var data = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(data.Method.IsStatic);
+            Assert.Equal("System.SByte <>x.<>m0(C.<>c__DisplayClass0_0 <>4__this, System.SByte x)", ((Symbol)data.Method).ToTestDisplayString());
+            data.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+                System.Action<short> V_1, //d3
+                System.Action<short> V_2)
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_04()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        var d1 = () =>
+        {
+            x += z;
+        };
+
+        d1();
+
+        var d2 = (sbyte x) =>
+        {
+            int y = x;
+
+            var d3 = (short x) =>
+            {
+#line 100
+                y += z;
+#line 200
+            };
+
+            x = -100;
+            z += x;
+
+            return d3;
+        };
+
+        d2(-100)(-200);
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_1.<Test>b__2",
+                atLineNumber: 100,
+                expr: "x");
+
+            var data = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(data.Method.IsStatic);
+            Assert.Equal("System.Int16 <>x.<>m0(C.<>c__DisplayClass0_1 <>4__this, System.Int16 x)", ((Symbol)data.Method).ToTestDisplayString());
+            data.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_05()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        byte x = 0;
+#line 100
+        byte l1 = 1;
+#line 200
+
+        var d1 = () =>
+        {
+            x += l1;
+        };
+
+        var d2 = () =>
+        {
+            short x = 0;
+            short l2 = l1;
+            var d3 = () =>
+            {
+                x += l2;
+            };
+
+            var d4 = () =>
+            {
+                int x = 0;
+                int l3 = 3 + l2;
+            };
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.Test",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                System.Action V_1, //d1
+                System.Action V_2) //d2
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""byte C.<>c__DisplayClass0_0.x""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_06()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        byte x = 0;
+        byte l1 = 1;
+
+        var d1 = () =>
+        {
+            x += l1;
+        };
+
+        var d2 = () =>
+        {
+            short x = 0;
+#line 100
+            short l2 = l1;
+#line 200
+            var d3 = () =>
+            {
+                x += l2;
+            };
+
+            var d4 = () =>
+            {
+                int x = 0;
+                int l3 = 3 + l2;
+            };
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_0.<Test>b__1",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+            System.Action V_1, //d3
+            System.Action V_2) //d4
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""short C.<>c__DisplayClass0_1.x""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_07()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        byte x = 0;
+        byte l1 = 1;
+
+        var d1 = () =>
+        {
+            x += l1;
+        };
+
+        var d2 = () =>
+        {
+            short x = 0;
+            short l2 = l1;
+
+            var d3 = () =>
+            {
+                x += l2;
+            };
+
+            var d4 = () =>
+            {
+                int x = 0;
+#line 100
+                int l3 = 3 + l2;
+#line 200
+            };
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_1.<Test>b__3",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x
+                int V_1) //l3
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_11()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        void d1()
+        {
+            x += z;
+        };
+
+        void d2()
+        {
+            sbyte x = 0;
+            int y = x;
+
+            void d3()
+            {
+                y += z;
+            };
+
+            x = -100;
+#line 100
+            z += x;
+#line 200
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<Test>g__d2|0_1",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+                sbyte V_1) //x
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_12()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        void d1()
+        {
+            x += z;
+        };
+
+        void d2()
+        {
+            sbyte x = 0;
+            int y = x;
+
+            void d3()
+            {
+#line 100
+                y += z;
+#line 200
+            };
+
+            x = -100;
+            z += x;
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<Test>g__d3|0_2",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_13()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        void d1()
+        {
+            x += z;
+        };
+
+        void d2(sbyte x)
+        {
+            int y = x;
+
+            void d3(short x)
+            {
+                y += z;
+            };
+
+            x = -100;
+#line 100
+            z += x;
+#line 200
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<Test>g__d2|0_1",
+                atLineNumber: 100,
+                expr: "x");
+
+            var data = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(data.Method.IsStatic);
+            Assert.Equal("System.SByte <>x.<>m0(System.SByte x, ref C.<>c__DisplayClass0_0 value)", ((Symbol)data.Method).ToTestDisplayString());
+            data.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_14()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        void d1()
+        {
+            x += z;
+        };
+
+        void d2(sbyte x)
+        {
+            int y = x;
+
+            void d3(short x)
+            {
+#line 100
+                y += z;
+#line 200
+            };
+
+            x = -100;
+            z += x;
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<Test>g__d3|0_2",
+                atLineNumber: 100,
+                expr: "x");
+
+            var data = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(data.Method.IsStatic);
+            Assert.Equal("System.Int16 <>x.<>m0(System.Int16 x, ref C.<>c__DisplayClass0_0 value, ref C.<>c__DisplayClass0_1 value)", ((Symbol)data.Method).ToTestDisplayString());
+            data.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_15()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        byte x = 0;
+#line 100
+        byte l1 = 1;
+#line 200
+
+        void d1()
+        {
+            x += l1;
+        };
+
+        void d2()
+        {
+            short x = 0;
+            short l2 = l1;
+
+            void d3()
+            {
+                x += l2;
+            };
+
+            void d4()
+            {
+                int x = 0;
+                int l3 = 3 + l2;
+            };
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.Test",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""byte C.<>c__DisplayClass0_0.x""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_16()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        byte x = 0;
+        byte l1 = 1;
+
+        void d1()
+        {
+            x += l1;
+        };
+
+        void d2()
+        {
+            short x = 0;
+#line 100
+            short l2 = l1;
+#line 200
+
+            void d3()
+            {
+                x += l2;
+            };
+
+            void d4()
+            {
+                int x = 0;
+                int l3 = 3 + l2;
+            };
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<Test>g__d2|0_1",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""short C.<>c__DisplayClass0_1.x""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_17()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        byte x = 0;
+        byte l1 = 1;
+
+        void d1()
+        {
+            x += l1;
+        };
+
+        void d2()
+        {
+            short x = 0;
+            short l2 = l1;
+
+            void d3()
+            {
+                x += l2;
+            };
+
+            void d4()
+            {
+                int x = 0;
+#line 100
+                int l3 = 3 + l2;
+#line 200
+            };
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<Test>g__d4|0_3",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x
+                int V_1) //l3
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [WorkItem(67188, "https://github.com/dotnet/roslyn/issues/67188")]
+        public void CapturingAndShadowing_18()
+        {
+            var source =
+@"class C
+{
+    void Test(byte x)
+    {
+        byte l1 = 1;
+
+        void d1()
+        {
+            x += l1;
+        };
+
+        d1();
+#line 100
+        var d2 = (int x) => x;
+#line 200
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.Test",
+                atLineNumber: 100,
+                expr: "(int x) => x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+            System.Func<int, int> V_1) //d2
+  IL_0000:  ldsfld     ""System.Func<int, int> <>x.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_000e:  ldftn      ""int <>x.<>c.<<>m0>b__0_0(int)""
+  IL_0014:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Func<int, int> <>x.<>c.<>9__0_0""
+  IL_001f:  ret
+}");
+
+            var data = testData.GetMethodData("<>x.<>c.<<>m0>b__0_0(int)");
+
+            Assert.False(data.Method.IsStatic);
+            Assert.Equal("System.Int32 <>x.<>c.<<>m0>b__0_0(System.Int32 x)", ((Symbol)data.Method).ToTestDisplayString());
+            data.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65165")]
         public void EEMethodSymbol_DeclaringSyntaxReferences()
         {
             var source = @"
@@ -7008,6 +7957,406 @@ class Program
   IL_0007:  ret
 }
 """);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_01_EvaluateCapturedParameterInsideCapturingInstanceMethod()
+        {
+            var source =
+@"class C(int y)
+{
+    int M()
+    {
+        return y;
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M",
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            // https://github.com/dotnet/roslyn/issues/67107: There should be no error and IL should refer to a field 
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+            //            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            //@"{
+            //}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_02_EvaluateCapturedParameterInsideNonCapturingInstanceMethod()
+        {
+            var source =
+@"class C(int y)
+{
+    int M1()
+    {
+        return y;
+    }
+
+    void M2()
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M2",
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            // https://github.com/dotnet/roslyn/issues/67107: There should be no error and IL should refer to a field 
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+            //            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            //@"{
+            //}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_03_EvaluateCapturedParameterInsideInstanceConstructor()
+        {
+            var source =
+@"class C(int y)
+{
+    C() : this(1)
+    {
+    }
+
+    int M()
+    {
+        return y;
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor()",
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
+            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_04_EvaluateCapturedParameterInsideInstanceConstructorInitializer()
+        {
+            var source =
+@"class C(int y)
+{
+    C() :
+#line 100
+          this(1)
+#line 200
+    {
+    }
+
+    int M()
+    {
+        return y;
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor()",
+                atLineNumber: 100,
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
+            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_05_EvaluateNotCapturedParameterInsideInstanceMethod()
+        {
+            var source =
+@"class C(int y)
+{
+    void M()
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M",
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_06_EvaluateNotCapturedParameterInsideInstanceConstructor()
+        {
+            var source =
+@"class C(int y)
+{
+    C() : this(1)
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor()",
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_07_EvaluateNotCapturedParameterInsideInstanceConstructorInitializer()
+        {
+            var source =
+@"class C(int y)
+{
+    C() :
+#line 100
+          this(1)
+#line 200
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor()",
+                atLineNumber: 100,
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_08_EvaluateCapturedParameterInsideInstanceFieldInitializer()
+        {
+            var source =
+@"class C(int y)
+{
+#line 100
+    int Y = y;
+#line 200
+    int M() => y;
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor",
+                atLineNumber: 100,
+                expr: "y");
+
+            // https://github.com/dotnet/roslyn/issues/67107: Should access the field instead.
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_09_EvaluateCapturedParameterInsidePrimaryConstructorInitializer()
+        {
+            var source =
+@"class C(int y) : 
+#line 100
+                   Base(1)
+#line 200
+{
+    int M() => y;
+}
+
+class Base(int x);
+";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor",
+                atLineNumber: 100,
+                expr: "y");
+
+            // https://github.com/dotnet/roslyn/issues/67107: Should access the field instead.
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_10_EvaluateNotCapturedParameterInsideInstanceFieldInitializer()
+        {
+            var source =
+@"class C(int y)
+{
+#line 100
+    int Y = y;
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor",
+                atLineNumber: 100,
+                expr: "y");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_11_EvaluateNotCapturedParameterInsidePrimaryConstructorInitializer()
+        {
+            var source =
+@"class C(int y) : 
+#line 100
+                   Base(1)
+#line 200
+{
+}
+
+class Base(int x);
+";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor",
+                atLineNumber: 100,
+                expr: "y");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_12_EvaluateCapturedParameterInsideStaticMethod()
+        {
+            var source =
+@"class C(int y)
+{
+    int M1()
+    {
+        return y;
+    }
+
+    static void M2()
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M2",
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
+            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_13_EvaluateNotCapturedParameterInsideStaticMethod()
+        {
+            var source =
+@"class C(int y)
+{
+    static void M()
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M",
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
+            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_14_EvaluateCapturedParameterInsideStaticFieldInitializer()
+        {
+            var source =
+@"class C(int y)
+{
+#line 100
+    static int Y = 1;
+#line 200
+    int M() => y;
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..cctor",
+                atLineNumber: 100,
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
+            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_15_EvaluateNotCapturedParameterInsideStaticFieldInitializer()
+        {
+            var source =
+@"class C(int y)
+{
+#line 100
+    static int Y = 1;
+#line 200
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..cctor",
+                atLineNumber: 100,
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
+            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
         }
     }
 }

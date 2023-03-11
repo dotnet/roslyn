@@ -5,7 +5,9 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rewritten.Kind == BoundKind.Block)
             {
                 var block = (BoundBlock)rewritten;
-                return block.Update(block.Locals, block.LocalFunctions, block.HasUnsafeModifier, ImmutableArray.Create(InstrumentFieldOrPropertyInitializer(block.Statements.Single(), syntax)));
+                return block.Update(block.Locals, block.LocalFunctions, block.HasUnsafeModifier, block.Instrumentation, ImmutableArray.Create(InstrumentFieldOrPropertyInitializer(block.Statements.Single(), syntax)));
             }
 
             return InstrumentFieldOrPropertyInitializer(rewritten, syntax);
@@ -140,39 +142,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddSequencePoint(base.InstrumentYieldReturnStatement(original, rewritten));
         }
 
-        public override BoundStatement? CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol? synthesizedLocal)
+        public override void InstrumentBlock(BoundBlock original, LocalRewriter rewriter, ref TemporaryArray<LocalSymbol> additionalLocals, out BoundStatement? prologue, out BoundStatement? epilogue, out BoundBlockInstrumentation? instrumentation)
         {
-            var previous = base.CreateBlockPrologue(original, out synthesizedLocal);
-            if (original.Syntax.Kind() == SyntaxKind.Block && !original.WasCompilerGenerated)
-            {
-                var oBspan = ((BlockSyntax)original.Syntax).OpenBraceToken.Span;
-                return new BoundSequencePointWithSpan(original.Syntax, previous, oBspan);
-            }
-            else if (previous != null)
-            {
-                return new BoundSequencePoint(original.Syntax, previous);
-            }
+            base.InstrumentBlock(original, rewriter, ref additionalLocals, out var previousPrologue, out var previousEpilogue, out instrumentation);
 
-            return null;
-        }
+            prologue = previousPrologue;
+            epilogue = previousEpilogue;
 
-        public override BoundStatement? CreateBlockEpilogue(BoundBlock original)
-        {
-            var previous = base.CreateBlockEpilogue(original);
-
-            if (original.Syntax.Kind() == SyntaxKind.Block && !original.WasCompilerGenerated)
+            if (original.Syntax is BlockSyntax blockSyntax && !original.WasCompilerGenerated)
             {
+                prologue = new BoundSequencePointWithSpan(original.Syntax, previousPrologue, blockSyntax.OpenBraceToken.Span);
+
                 // no need to mark "}" on the outermost block
                 // as it cannot leave it normally. The block will have "return" at the end.
                 SyntaxNode? parent = original.Syntax.Parent;
                 if (parent == null || !(parent.IsAnonymousFunction() || parent is BaseMethodDeclarationSyntax))
                 {
-                    var cBspan = ((BlockSyntax)original.Syntax).CloseBraceToken.Span;
-                    return new BoundSequencePointWithSpan(original.Syntax, previous, cBspan);
+                    epilogue = new BoundSequencePointWithSpan(original.Syntax, previousEpilogue, blockSyntax.CloseBraceToken.Span);
                 }
             }
+            else if (original == rewriter.CurrentMethodBody)
+            {
+                if (previousPrologue != null)
+                {
+                    prologue = BoundSequencePoint.CreateHidden(previousPrologue);
+                }
+                else if (rewriter.Factory.TopLevelMethod is SynthesizedSimpleProgramEntryPointSymbol)
+                {
+                    prologue = BoundSequencePoint.CreateHidden();
+                }
 
-            return previous;
+                if (previousEpilogue != null)
+                {
+                    epilogue = BoundSequencePoint.CreateHidden(previousEpilogue);
+                }
+            }
         }
 
         public override BoundExpression InstrumentDoStatementCondition(BoundDoStatement original, BoundExpression rewrittenCondition, SyntheticBoundNodeFactory factory)
@@ -334,12 +338,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   span);
         }
 
-        public override BoundStatement InstrumentLocalInitialization(BoundLocalDeclaration original, BoundStatement rewritten)
+        public override BoundStatement InstrumentUserDefinedLocalInitialization(BoundLocalDeclaration original, BoundStatement rewritten)
         {
             return AddSequencePoint(original.Syntax.Kind() == SyntaxKind.VariableDeclarator ?
                                         (VariableDeclaratorSyntax)original.Syntax :
                                         ((LocalDeclarationStatementSyntax)original.Syntax).Declaration.Variables.First(),
-                                    base.InstrumentLocalInitialization(original, rewritten));
+                                    base.InstrumentUserDefinedLocalInitialization(original, rewritten));
         }
 
         public override BoundStatement InstrumentLockTargetCapture(BoundLockStatement original, BoundStatement lockTargetCapture)
@@ -394,15 +398,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     base.InstrumentUsingTargetCapture(original, usingTargetCapture));
         }
 
-        public override BoundExpression InstrumentCatchClauseFilter(BoundCatchBlock original, BoundExpression rewrittenFilter, SyntheticBoundNodeFactory factory)
+        public override void InstrumentCatchBlock(
+            BoundCatchBlock original,
+            ref BoundExpression? rewrittenSource,
+            ref BoundStatementList? rewrittenFilterPrologue,
+            ref BoundExpression? rewrittenFilter,
+            ref BoundBlock rewrittenBody,
+            ref TypeSymbol? rewrittenType,
+            SyntheticBoundNodeFactory factory)
         {
-            rewrittenFilter = base.InstrumentCatchClauseFilter(original, rewrittenFilter, factory);
+            base.InstrumentCatchBlock(
+                original,
+                ref rewrittenSource,
+                ref rewrittenFilterPrologue,
+                ref rewrittenFilter,
+                ref rewrittenBody,
+                ref rewrittenType,
+                factory);
+
+            if (original.WasCompilerGenerated || rewrittenFilter is null)
+            {
+                return;
+            }
 
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the condition are being executed.
-            CatchFilterClauseSyntax? filterClause = ((CatchClauseSyntax)original.Syntax).Filter;
-            Debug.Assert(filterClause is { });
-            return AddConditionSequencePoint(new BoundSequencePointExpression(filterClause, rewrittenFilter, rewrittenFilter.Type), filterClause, factory);
+
+            var filterClause = ((CatchClauseSyntax)original.Syntax).Filter;
+            Debug.Assert(filterClause is not null);
+
+            rewrittenFilter = AddConditionSequencePoint(new BoundSequencePointExpression(filterClause, rewrittenFilter, rewrittenFilter.Type), filterClause, factory);
         }
 
         public override BoundExpression InstrumentSwitchStatementExpression(BoundStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)

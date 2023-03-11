@@ -82,17 +82,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.Formatting
             {
                 FormattingOptions = new CSharpSyntaxFormattingOptions()
                 {
-                    Common = new()
+                    LineFormatting = new()
                     {
-                        LineFormatting = new()
-                        {
-                            UseTabs = useTabs,
-                            TabSize = tabSize,
-                            IndentationSize = indentationSize,
-                            NewLine = newLine
-                        },
-                        SeparateImportDirectiveGroups = separateImportDirectiveGroups,
+                        UseTabs = useTabs,
+                        TabSize = tabSize,
+                        IndentationSize = indentationSize,
+                        NewLine = newLine
                     },
+                    SeparateImportDirectiveGroups = separateImportDirectiveGroups,
                     Spacing =
                         (spacingAfterMethodDeclarationName ? SpacePlacement.AfterMethodDeclarationName : 0) |
                         (spaceBetweenEmptyMethodDeclarationParentheses ? SpacePlacement.BetweenEmptyMethodDeclarationParentheses : 0) |

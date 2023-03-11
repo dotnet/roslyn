@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImportOnPaste;
 using Microsoft.CodeAnalysis.AddMissingImports;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Completion;
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             var language = args.SubjectBuffer.GetLanguageName();
 
             // If the feature is not explicitly enabled we can exit early
-            if (language is null || !_globalOptions.GetOption(FeatureOnOffOptions.AddImportsOnPaste, language))
+            if (language is null || !_globalOptions.GetOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste, language))
             {
                 nextCommandHandler();
                 return;

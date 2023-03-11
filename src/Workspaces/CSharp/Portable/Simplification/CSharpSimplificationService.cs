@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             => CSharpSimplifierOptions.Default;
 
         public override SimplifierOptions GetSimplifierOptions(IOptionsReader options, SimplifierOptions? fallbackOptions)
-            => options.GetCSharpSimplifierOptions((CSharpSimplifierOptions?)fallbackOptions);
+            => new CSharpSimplifierOptions(options, (CSharpSimplifierOptions?)fallbackOptions);
 
         public override SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation? annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool>? expandInsideNode, bool expandParameter, CancellationToken cancellationToken)
         {

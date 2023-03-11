@@ -49,11 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 // 1. Check for Predefined Types
                 if (symbol is INamedTypeSymbol namedSymbol)
                 {
-                    var keywordKind = GetPredefinedKeywordKind(namedSymbol.SpecialType);
-
-                    if (keywordKind != SyntaxKind.None)
+                    var keywordToken = TryGetPredefinedKeywordToken(semanticModel, namedSymbol.SpecialType);
+                    if (keywordToken != null)
                     {
-                        replacementNode = CreateReplacement(crefSyntax, keywordKind);
+                        replacementNode = TypeCref(CreatePredefinedTypeSyntax(crefSyntax, keywordToken.Value))
+                            .WithAdditionalAnnotations(new SyntaxAnnotation(nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)));
                         replacementNode = crefSyntax.CopyAnnotationsTo(replacementNode);
 
                         // we want to show the whole name expression as unnecessary
@@ -67,13 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return CanSimplifyWithReplacement(
                 crefSyntax, semanticModel, memberCref,
                 out replacementNode, out issueSpan, cancellationToken);
-        }
-
-        private static TypeCrefSyntax CreateReplacement(QualifiedCrefSyntax crefSyntax, SyntaxKind keywordKind)
-        {
-            var annotation = new SyntaxAnnotation(nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess));
-            var token = Token(crefSyntax.GetLeadingTrivia(), keywordKind, crefSyntax.GetTrailingTrivia());
-            return TypeCref(PredefinedType(token)).WithAdditionalAnnotations(annotation);
         }
 
         public static bool CanSimplifyWithReplacement(

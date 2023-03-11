@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttribute;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -47,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Remote
             RemoteServiceCallbackId callbackId,
             Checksum solutionChecksum,
             DocumentId? priorityDocument,
+            bool useFrozenSnapshots,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var service = solution.Services.GetRequiredService<IDesignerAttributeDiscoveryService>();
                     return service.ProcessSolutionAsync(
-                        solution, priorityDocument, new CallbackWrapper(_callback, callbackId), cancellationToken);
+                        solution, priorityDocument, useFrozenSnapshots, new CallbackWrapper(_callback, callbackId), cancellationToken);
                 },
                 cancellationToken);
         }

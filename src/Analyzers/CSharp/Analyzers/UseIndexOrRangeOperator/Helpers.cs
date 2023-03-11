@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         /// <summary>
         /// Find an `int MyType.Count` or `int MyType.Length` property.
         /// </summary>
-        public static IPropertySymbol TryGetLengthOrCountProperty(ITypeSymbol namedType)
+        public static IPropertySymbol? TryGetLengthOrCountProperty(ITypeSymbol namedType)
             => TryGetNoArgInt32Property(namedType, nameof(string.Length)) ??
                TryGetNoArgInt32Property(namedType, nameof(ICollection.Count));
 
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         /// Tried to find a public, non-static, int-returning property in the given type with the
         /// specified <paramref name="name"/>.
         /// </summary>
-        public static IPropertySymbol TryGetNoArgInt32Property(ITypeSymbol type, string name)
+        public static IPropertySymbol? TryGetNoArgInt32Property(ITypeSymbol type, string name)
             => type.GetMembers(name)
                    .OfType<IPropertySymbol>()
                    .Where(p => IsPublicInstance(p) &&
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         /// provided <paramref name="parameterType"/> and must return the provided <paramref
         /// name="returnType"/>.
         /// </summary>
-        public static IPropertySymbol GetIndexer(ITypeSymbol type, ITypeSymbol parameterType, ITypeSymbol returnType)
+        public static IPropertySymbol? GetIndexer(ITypeSymbol type, ITypeSymbol parameterType, ITypeSymbol returnType)
             => type.GetMembers(WellKnownMemberNames.Indexer)
                    .OfType<IPropertySymbol>()
                    .Where(p => p.IsIndexer &&
