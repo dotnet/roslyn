@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolutio
             }.RunAsync();
         }
 
-        [Fact, WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23847")]
         public async Task TestTakeTop_TopCommentedOut()
         {
             var source = """
@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolutio
             }.RunAsync();
         }
 
-        [Fact, WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23847")]
         public async Task TestTakeTop_SecondMiddleAndBottomCommentedOut()
         {
             var source = """
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolutio
             }.RunAsync();
         }
 
-        [Fact, WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23847")]
         public async Task TestTakeTop_TopInString()
         {
             var source = """
@@ -670,7 +670,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolutio
             }.RunAsync();
         }
 
-        [Fact, WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23847")]
         public async Task TestTakeBottom_TopInString()
         {
             var source = """
@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolutio
             }.RunAsync();
         }
 
-        [Fact, WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23847")]
         public async Task TestMissingWithMiddleMarkerAtTopOfFile()
         {
             var source = """
@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolutio
             }.RunAsync();
         }
 
-        [Fact, WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23847")]
         public async Task TestMissingWithMiddleMarkerAtBottomOfFile()
         {
             var source = """
@@ -755,7 +755,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolutio
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21107")]
         public async Task TestFixAll1()
         {
             var source = """
@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolutio
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21107")]
         public async Task TestFixAll2()
         {
             var source = """
@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolutio
             }.RunAsync();
         }
 
-        [Fact, WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21107")]
         public async Task TestFixAll3()
         {
             var source = """

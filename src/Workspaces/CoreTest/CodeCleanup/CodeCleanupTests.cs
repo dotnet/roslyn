@@ -287,7 +287,7 @@ Imports System.Diagnostics
             VerifyRange(code, LanguageNames.VisualBasic);
         }
 
-        [Fact, WorkItem(774295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774295")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774295")]
         public async Task DontCrash_VB_2()
         {
             var code = @"
@@ -325,7 +325,7 @@ End Class
             Assert.Equal(document, cleanDocument);
         }
 
-        [Fact, WorkItem(547075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547075")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547075")]
         public void TestCodeCleanupWithinNonStructuredTrivia()
         {
             var code = @"

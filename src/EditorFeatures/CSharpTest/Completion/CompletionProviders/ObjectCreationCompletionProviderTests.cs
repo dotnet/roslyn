@@ -49,7 +49,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "<anonymous type: string Goo, int Bar>");
         }
 
-        [Fact, WorkItem(854497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854497")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854497")]
         public async Task NotVoid()
         {
             var markup = @"
@@ -64,7 +64,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "void");
         }
 
-        [Fact, WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         public async Task InYieldReturn()
         {
             var markup =
@@ -81,7 +81,7 @@ class Program
             await VerifyItemExistsAsync(markup, "FieldAccessException");
         }
 
-        [Fact, WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         public async Task InAsyncMethodReturnStatement()
         {
             var markup =
@@ -162,7 +162,7 @@ class Program
             await VerifySendEnterThroughToEnterAsync(markup, "D", sendThroughEnterOption: EnterKeyRule.Always, expected: true);
         }
 
-        [Fact, WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         public async Task SuggestAlias()
         {
             var markup = @"
@@ -177,7 +177,7 @@ class Program
             await VerifyItemExistsAsync(markup, "D");
         }
 
-        [Fact, WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         public async Task SuggestAlias2()
         {
             var markup = @"
@@ -197,7 +197,7 @@ class Program
             await VerifyItemExistsAsync(markup, "D");
         }
 
-        [Fact, WorkItem(1075275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075275")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075275")]
         public async Task CommitAlias()
         {
             var markup = @"
@@ -222,7 +222,7 @@ class Program
             await VerifyProviderCommitAsync(markup, "D", expected, '(');
         }
 
-        [Fact, WorkItem(1090377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090377")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090377")]
         public async Task AfterNewFollowedByAssignment()
         {
             var markup = @"
@@ -247,7 +247,7 @@ class Goo
             await VerifyItemExistsAsync(markup, "Location");
         }
 
-        [Fact, WorkItem(1090377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090377")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090377")]
         public async Task AfterNewFollowedByAssignment_GrandParentIsSimpleAssignment()
         {
             var markup = @"
@@ -262,7 +262,7 @@ class Program
             await VerifyItemExistsAsync(markup, "Program");
         }
 
-        [Fact, WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2836")]
         public async Task AfterNewFollowedBySimpleAssignment_GrandParentIsEqualsValueClause()
         {
             var markup = @"
@@ -278,7 +278,7 @@ class Program
             await VerifyItemExistsAsync(markup, "Program");
         }
 
-        [Fact, WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2836")]
         public async Task AfterNewFollowedByCompoundAssignment_GrandParentIsEqualsValueClause()
         {
             var markup = @"
@@ -294,7 +294,7 @@ class Program
             await VerifyItemExistsAsync(markup, "Program");
         }
 
-        [Fact, WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2836")]
         public async Task AfterNewFollowedByCompoundAssignment_GrandParentIsEqualsValueClause2()
         {
             var markup = @"
@@ -310,7 +310,7 @@ class Program
             await VerifyItemExistsAsync(markup, "Program");
         }
 
-        [Fact, WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4115")]
         public async Task CommitObjectWithParenthesis1()
         {
             var markup = @"
@@ -334,7 +334,7 @@ class C
             await VerifyProviderCommitAsync(markup, "object", expected, '(');
         }
 
-        [Fact, WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4115")]
         public async Task CommitObjectWithParenthesis2()
         {
             var markup = @"
@@ -362,7 +362,7 @@ class C
             await VerifyProviderCommitAsync(markup, "object", expected, '(');
         }
 
-        [Fact, WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4115")]
         public async Task DontCommitObjectWithOpenBrace1()
         {
             var markup = @"
@@ -386,7 +386,7 @@ class C
             await VerifyProviderCommitAsync(markup, "object", expected, '{');
         }
 
-        [Fact, WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4115")]
         public async Task DontCommitObjectWithOpenBrace2()
         {
             var markup = @"
@@ -414,7 +414,7 @@ class C
             await VerifyProviderCommitAsync(markup, "object", expected, '{');
         }
 
-        [Fact, WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4310")]
         public async Task InExpressionBodiedProperty()
         {
             var markup =
@@ -426,7 +426,7 @@ class C
             await VerifyItemExistsAsync(markup, "object");
         }
 
-        [Fact, WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4310")]
         public async Task InExpressionBodiedMethod()
         {
             var markup =
@@ -438,7 +438,7 @@ class C
             await VerifyItemExistsAsync(markup, "object");
         }
 
-        [Fact, WorkItem(15804, "https://github.com/dotnet/roslyn/issues/15804")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15804")]
         public async Task BeforeAttributeParsedAsImplicitArray()
         {
             var markup =
@@ -453,7 +453,7 @@ class C
             await VerifyItemExistsAsync(markup, "Program");
         }
 
-        [Fact, WorkItem(14084, "https://github.com/dotnet/roslyn/issues/14084")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14084")]
         public async Task InMethodCallBeforeAssignment1()
         {
             var markup =
@@ -476,7 +476,7 @@ class C
             await VerifyItemExistsAsync(markup, "TimeSpan");
         }
 
-        [Fact, WorkItem(14084, "https://github.com/dotnet/roslyn/issues/14084")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14084")]
         public async Task InMethodCallBeforeAssignment2()
         {
             var markup =
@@ -499,7 +499,7 @@ class C
             await VerifyItemExistsAsync(markup, "TimeSpan");
         }
 
-        [Fact, WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2644")]
         public async Task InPropertyWithSameNameAsGenericTypeArgument1()
         {
             var markup =
@@ -523,7 +523,7 @@ class C
             await VerifyItemExistsAsync(markup, "List<Bar>");
         }
 
-        [Fact, WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2644")]
         public async Task InPropertyWithSameNameAsGenericTypeArgument2()
         {
             var markup =
@@ -542,7 +542,7 @@ class C
             await VerifyItemExistsAsync(markup, "List<Bar>");
         }
 
-        [Fact, WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2644")]
         public async Task InPropertyWithSameNameAsGenericTypeArgument3()
         {
             var markup =
@@ -561,7 +561,7 @@ class C
             await VerifyItemExistsAsync(markup, "List<Bar>");
         }
 
-        [Fact, WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2644")]
         public async Task InPropertyWithSameNameAsGenericTypeArgument4()
         {
             var markup =
@@ -585,7 +585,7 @@ class C
             await VerifyItemExistsAsync(markup, "C<A>");
         }
 
-        [Fact, WorkItem(21674, "https://github.com/dotnet/roslyn/issues/21674")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21674")]
         public async Task PropertyWithSameNameAsOtherType()
         {
             var markup =

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
     public partial class CSharpUseNotPatternTests
     {
-        [Fact, WorkItem(50690, "https://github.com/dotnet/roslyn/issues/50690")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50690")]
         public async Task BinaryIsExpression()
         {
             await new VerifyCS.Test
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             }.RunAsync();
         }
 
-        [Fact, WorkItem(50690, "https://github.com/dotnet/roslyn/issues/50690")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50690")]
         public async Task ConstantPattern()
         {
             await new VerifyCS.Test
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             }.RunAsync();
         }
 
-        [Fact, WorkItem(64292, "https://github.com/dotnet/roslyn/issues/64292")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64292")]
         public async Task BooleanValueConstantPattern()
         {
             await new VerifyCS.Test
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             }.RunAsync();
         }
 
-        [Fact, WorkItem(64292, "https://github.com/dotnet/roslyn/issues/64292")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64292")]
         public async Task NonBooleanValueConstantPattern()
         {
             await new VerifyCS.Test
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             }.RunAsync();
         }
 
-        [Fact, WorkItem(46699, "https://github.com/dotnet/roslyn/issues/46699")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46699")]
         public async Task UseNotPattern()
         {
             await new VerifyCS.Test
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             }.RunAsync();
         }
 
-        [Fact, WorkItem(50690, "https://github.com/dotnet/roslyn/issues/50690")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50690")]
         public async Task BinaryIsObject()
         {
             await new VerifyCS.Test
