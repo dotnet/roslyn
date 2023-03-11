@@ -3,7 +3,7 @@
 <#
 .SYNOPSIS
     Installs the .NET SDK specified in the global.json file at the root of this repository,
-    along with supporting .NET Core runtimes used for testing.
+    along with supporting .NET runtimes used for testing.
 .DESCRIPTION
     This MAY not require elevation, as the SDK and runtimes are installed locally to this repo location,
     unless `-InstallLocality machine` is specified.
@@ -15,6 +15,8 @@
     When using 'repo', environment variables are set to cause the locally installed dotnet SDK to be used.
     Per-repo can lead to file locking issues when dotnet.exe is left running as a build server and can be mitigated by running `dotnet build-server shutdown`.
     Per-machine requires elevation and will download and install all SDKs and runtimes to machine-wide locations so all applications can find it.
+.PARAMETER SdkOnly
+    Skips installing the runtime.
 .PARAMETER IncludeX86
     Installs a x86 SDK and runtimes in addition to the x64 ones. Only supported on Windows. Ignored on others.
 #>
@@ -22,6 +24,7 @@
 Param (
     [ValidateSet('repo','user','machine')]
     [string]$InstallLocality='user',
+    [switch]$SdkOnly,
     [switch]$IncludeX86
 )
 
@@ -43,37 +46,39 @@ if (!$arch) { # Windows Powershell leaves this blank
     if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { $arch = 'ARM64' }
 }
 
-# Search for all .NET Core runtime versions referenced from MSBuild projects and arrange to install them.
+# Search for all .NET runtime versions referenced from MSBuild projects and arrange to install them.
 $runtimeVersions = @()
 $windowsDesktopRuntimeVersions = @()
-Get-ChildItem "$PSScriptRoot\..\src\*.*proj","$PSScriptRoot\..\test\*.*proj","$PSScriptRoot\..\Directory.Build.props" -Recurse |% {
-    $projXml = [xml](Get-Content -Path $_)
-    $pg = $projXml.Project.PropertyGroup
-    if ($pg) {
-        $targetFrameworks = @()
-        $tf = $pg.TargetFramework
-        $targetFrameworks += $tf
-        $tfs = $pg.TargetFrameworks
-        if ($tfs) {
-            $targetFrameworks = $tfs -Split ';'
+if (!$SdkOnly) {
+    Get-ChildItem "$PSScriptRoot\..\src\*.*proj","$PSScriptRoot\..\test\*.*proj","$PSScriptRoot\..\Directory.Build.props" -Recurse |% {
+        $projXml = [xml](Get-Content -Path $_)
+        $pg = $projXml.Project.PropertyGroup
+        if ($pg) {
+            $targetFrameworks = @()
+            $tf = $pg.TargetFramework
+            $targetFrameworks += $tf
+            $tfs = $pg.TargetFrameworks
+            if ($tfs) {
+                $targetFrameworks = $tfs -Split ';'
+            }
         }
-    }
-    $targetFrameworks |? { $_ -match 'net(?:coreapp)?(\d+\.\d+)' } |% {
-        $v = $Matches[1]
-        $runtimeVersions += $v
-        if ($v -ge '3.0' -and -not ($IsMacOS -or $IsLinux)) {
-            $windowsDesktopRuntimeVersions += $v
+        $targetFrameworks |? { $_ -match 'net(?:coreapp)?(\d+\.\d+)' } |% {
+            $v = $Matches[1]
+            $runtimeVersions += $v
+            if ($v -ge '3.0' -and -not ($IsMacOS -or $IsLinux)) {
+                $windowsDesktopRuntimeVersions += $v
+            }
         }
-    }
 
-	# Add target frameworks of the form: netXX
-	$targetFrameworks |? { $_ -match 'net(\d+\.\d+)' } |% {
-        $v = $Matches[1]
-        $runtimeVersions += $v
-        if (-not ($IsMacOS -or $IsLinux)) {
-            $windowsDesktopRuntimeVersions += $v
+        # Add target frameworks of the form: netXX
+        $targetFrameworks |? { $_ -match 'net(\d+\.\d+)' } |% {
+            $v = $Matches[1]
+            $runtimeVersions += $v
+            if (-not ($IsMacOS -or $IsLinux)) {
+                $windowsDesktopRuntimeVersions += $v
+            }
         }
-	}
+    }
 }
 
 Function Get-FileFromWeb([Uri]$Uri, $OutDir) {
@@ -92,18 +97,24 @@ Function Get-FileFromWeb([Uri]$Uri, $OutDir) {
 }
 
 Function Get-InstallerExe(
-    [Version]$Version,
+    $Version,
     $Architecture,
     [ValidateSet('Sdk','Runtime','WindowsDesktop')]
     [string]$sku
 ) {
     # Get the latest/actual version for the specified one
-    if ($Version.Build -eq -1) {
+    $TypedVersion = $null
+    if (![Version]::TryParse($Version, [ref] $TypedVersion)) {
+        Write-Error "Unable to parse $Version into an a.b.c.d version. This version cannot be installed machine-wide."
+        exit 1
+    }
+
+    if ($TypedVersion.Build -eq -1) {
         $versionInfo = -Split (Invoke-WebRequest -Uri "https://dotnetcli.blob.core.windows.net/dotnet/$sku/$Version/latest.version" -UseBasicParsing)
         $Version = $versionInfo[-1]
     }
 
-    $majorMinor = "$($Version.Major).$($Version.Minor)"
+    $majorMinor = "$($TypedVersion.Major).$($TypedVersion.Minor)"
     $ReleasesFile = Join-Path $DotNetInstallScriptRoot "$majorMinor\releases.json"
     if (!(Test-Path $ReleasesFile)) {
         Get-FileFromWeb -Uri "https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/$majorMinor/releases.json" -OutDir (Split-Path $ReleasesFile) | Out-Null
@@ -139,9 +150,9 @@ Function Get-InstallerExe(
 }
 
 Function Install-DotNet($Version, $Architecture, [ValidateSet('Sdk','Runtime','WindowsDesktop')][string]$sku = 'Sdk') {
-    Write-Host "Downloading .NET Core $sku $Version..."
+    Write-Host "Downloading .NET $sku $Version..."
     $Installer = Get-InstallerExe -Version $Version -Architecture $Architecture -sku $sku
-    Write-Host "Installing .NET Core $sku $Version..."
+    Write-Host "Installing .NET $sku $Version..."
     cmd /c start /wait $Installer /install /passive /norestart
     if ($LASTEXITCODE -eq 3010) {
         Write-Verbose "Restart required"
@@ -233,10 +244,10 @@ if ($IncludeX86) {
 }
 
 if ($IsMacOS -or $IsLinux) {
-    $DownloadUri = "https://raw.githubusercontent.com/dotnet/install-scripts/781752509a890ca7520f1182e8bae71f9a53d754/src/dotnet-install.sh"
+    $DownloadUri = "https://raw.githubusercontent.com/dotnet/install-scripts/88bd34f089b8a023e3523f22c92abd0ab88e4409/src/dotnet-install.sh"
     $DotNetInstallScriptPath = "$DotNetInstallScriptRoot/dotnet-install.sh"
 } else {
-    $DownloadUri = "https://raw.githubusercontent.com/dotnet/install-scripts/781752509a890ca7520f1182e8bae71f9a53d754/src/dotnet-install.ps1"
+    $DownloadUri = "https://raw.githubusercontent.com/dotnet/install-scripts/88bd34f089b8a023e3523f22c92abd0ab88e4409/src/dotnet-install.ps1"
     $DotNetInstallScriptPath = "$DotNetInstallScriptRoot/dotnet-install.ps1"
 }
 
@@ -284,7 +295,7 @@ if ($IncludeX86) {
 $dotnetRuntimeSwitches = $switches + '-Runtime','dotnet'
 
 $runtimeVersions | Sort-Object -Unique |% {
-    if ($PSCmdlet.ShouldProcess(".NET Core $Arch runtime $_", "Install")) {
+    if ($PSCmdlet.ShouldProcess(".NET $Arch runtime $_", "Install")) {
         $anythingInstalled = $true
         Invoke-Expression -Command "$DotNetInstallScriptPathExpression -Channel $_ -Architecture $arch -InstallDir $DotNetInstallDir $dotnetRuntimeSwitches"
 
@@ -297,7 +308,7 @@ $runtimeVersions | Sort-Object -Unique |% {
     }
 
     if ($IncludeX86) {
-        if ($PSCmdlet.ShouldProcess(".NET Core x86 runtime $_", "Install")) {
+        if ($PSCmdlet.ShouldProcess(".NET x86 runtime $_", "Install")) {
             $anythingInstalled = $true
             Invoke-Expression -Command "$DotNetInstallScriptPathExpression -Channel $_ -Architecture x86 -InstallDir $DotNetX86InstallDir $dotnetRuntimeSwitches"
 
@@ -314,7 +325,7 @@ $runtimeVersions | Sort-Object -Unique |% {
 $windowsDesktopRuntimeSwitches = $switches + '-Runtime','windowsdesktop'
 
 $windowsDesktopRuntimeVersions | Sort-Object -Unique |% {
-    if ($PSCmdlet.ShouldProcess(".NET Core WindowsDesktop $arch runtime $_", "Install")) {
+    if ($PSCmdlet.ShouldProcess(".NET WindowsDesktop $arch runtime $_", "Install")) {
         $anythingInstalled = $true
         Invoke-Expression -Command "$DotNetInstallScriptPathExpression -Channel $_ -Architecture $arch -InstallDir $DotNetInstallDir $windowsDesktopRuntimeSwitches"
 
@@ -327,7 +338,7 @@ $windowsDesktopRuntimeVersions | Sort-Object -Unique |% {
     }
 
     if ($IncludeX86) {
-        if ($PSCmdlet.ShouldProcess(".NET Core WindowsDesktop x86 runtime $_", "Install")) {
+        if ($PSCmdlet.ShouldProcess(".NET WindowsDesktop x86 runtime $_", "Install")) {
             $anythingInstalled = $true
             Invoke-Expression -Command "$DotNetInstallScriptPathExpression -Channel $_ -Architecture x86 -InstallDir $DotNetX86InstallDir $windowsDesktopRuntimeSwitches"
 
@@ -346,5 +357,5 @@ if ($PSCmdlet.ShouldProcess("Set DOTNET environment variables to discover these 
 }
 
 if ($anythingInstalled -and ($InstallLocality -ne 'machine') -and !$env:TF_BUILD -and !$env:GITHUB_ACTIONS) {
-    Write-Warning ".NET Core runtimes or SDKs were installed to a non-machine location. Perform your builds or open Visual Studio from this same environment in order for tools to discover the location of these dependencies."
+    Write-Warning ".NET runtimes or SDKs were installed to a non-machine location. Perform your builds or open Visual Studio from this same environment in order for tools to discover the location of these dependencies."
 }
