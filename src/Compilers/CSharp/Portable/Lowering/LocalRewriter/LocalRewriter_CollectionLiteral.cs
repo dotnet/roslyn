@@ -65,22 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
 
-            var syntax = node.Syntax;
-            var collectionType = node.Type;
-
-            BoundExpression rewrittenReceiver;
-            if (collectionType is TypeParameterSymbol typeParameter)
-            {
-                // PROTOTYPE: If we support _inExpressionLambda, see VisitNewT()
-                // which does not call MakeNewT() in that case.
-                rewrittenReceiver = MakeNewT(syntax, typeParameter);
-            }
-            else
-            {
-                var collectionCreation = node.CollectionCreation;
-                Debug.Assert(collectionCreation is { });
-                rewrittenReceiver = VisitExpression(collectionCreation);
-            }
+            var rewrittenReceiver = VisitExpression(node.CollectionCreation);
 
             // Create a temp for the collection.
             BoundAssignmentOperator assignmentToTemp;
@@ -93,15 +78,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var initializer in initializers)
             {
-                BoundExpression? rewrittenInitializer;
-                switch (initializer)
-                {
-                    case BoundCollectionElementInitializer element:
-                        rewrittenInitializer = MakeCollectionInitializer(temp, element);
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(initializer.Kind);
-                }
+                var rewrittenInitializer = initializer is BoundCollectionElementInitializer element
+                    ? MakeCollectionInitializer(temp, element)
+                    : throw ExceptionUtilities.UnexpectedValue(initializer.Kind);
                 if (rewrittenInitializer != null)
                 {
                     sideEffects.Add(rewrittenInitializer);
@@ -111,11 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             RemovePlaceholderReplacement(node.Placeholder);
 
             return new BoundSequence(
-                syntax,
+                node.Syntax,
                 ImmutableArray.Create(temp.LocalSymbol),
                 sideEffects.ToImmutableAndFree(),
                 temp,
-                collectionType);
+                node.Type);
         }
     }
 }

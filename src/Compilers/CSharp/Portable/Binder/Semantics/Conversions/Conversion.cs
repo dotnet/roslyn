@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true if the conversion is an implicit collection creation expression conversion.
+        /// Returns true if the conversion is an implicit collection literal expression conversion.
         /// </summary>
         public bool IsCollectionLiteral => Kind == ConversionKind.CollectionLiteral;
 

@@ -1931,6 +1931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node)
         {
+            // PROTOTYPE: How should unconverted collection literals be handled?
             return null;
         }
 

@@ -465,10 +465,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isSpanType(TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
             {
-                if (targetType is NamedTypeSymbol { TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var typeArgument] } namedType
+                if (targetType is NamedTypeSymbol { Arity: 1 } namedType
                     && TypeSymbol.Equals(namedType.OriginalDefinition, Compilation.GetWellKnownType(spanType), TypeCompareKind.AllIgnoreOptions))
                 {
-                    elementType = typeArgument.Type;
+                    elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
                     return true;
                 }
                 elementType = null;
@@ -491,8 +491,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundArrayOrSpanCollectionLiteralExpression(
                     syntax,
                     spanConstructor,
-                    naturalTypeOpt: null, // PROTOTYPE: Support natural type.
-                    wasTargetTyped: true, // PROTOTYPE: Support natural type.
+                    naturalTypeOpt: null,
+                    wasTargetTyped: true,
                     implicitReceiver,
                     builder.ToImmutableAndFree(),
                     targetType)
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<BoundExpression> elements,
                 BindingDiagnosticBag diagnostics)
             {
-                BoundExpression? collectionCreation = null;
+                BoundExpression collectionCreation;
                 if (targetType is NamedTypeSymbol namedType)
                 {
                     var analyzedArguments = AnalyzedArguments.GetInstance();
@@ -513,12 +513,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionCreation.WasCompilerGenerated = true;
                     analyzedArguments.Free();
                 }
+                else if (targetType is TypeParameterSymbol typeParameter)
+                {
+                    var arguments = AnalyzedArguments.GetInstance();
+                    collectionCreation = BindTypeParameterCreationExpression(syntax, typeParameter, arguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
+                    arguments.Free();
+                }
+                else
+                {
+                    collectionCreation = new BoundBadExpression(syntax, LookupResultKind.NotCreatable, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, targetType);
+                }
 
                 bool hasEnumerableInitializerType = collectionTypeImplementsIEnumerable(targetType, syntax, diagnostics);
-                if (!hasEnumerableInitializerType
-                    && !syntax.HasErrors
-                    && !targetType.IsErrorType()
-                    && collectionCreation?.HasErrors != true)
+                if (!hasEnumerableInitializerType && !targetType.IsErrorType())
                 {
                     Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
                 }
@@ -562,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var allInterfaces = targetType is TypeParameterSymbol typeParameter
                     ? typeParameter.AllEffectiveInterfacesNoUseSiteDiagnostics
                     : targetType.AllInterfacesNoUseSiteDiagnostics;
-                return allInterfaces.Any(t => ienumerableType.Equals(t, TypeCompareKind.AllIgnoreOptions));
+                return allInterfaces.Any(static (a, b) => a.Equals(b, TypeCompareKind.AllIgnoreOptions), ienumerableType);
             }
 
             BoundExpression convertArrayElement(BoundExpression element, TypeSymbol elementType, BindingDiagnosticBag diagnostics)

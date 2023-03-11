@@ -1860,8 +1860,7 @@
   </Node>
 
   <Node Name="BoundCollectionInitializerCollectionLiteralExpression" Base="BoundCollectionLiteralExpression">
-    <!-- CollectionCreation will be null for type parameters. -->
-    <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
+    <Field Name="CollectionCreation" Type="BoundExpression" Null="disallow" SkipInVisitor="true"/>
   </Node>
 
   <!-- 

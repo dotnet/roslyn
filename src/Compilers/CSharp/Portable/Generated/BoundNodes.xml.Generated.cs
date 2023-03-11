@@ -6203,10 +6203,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionInitializerCollectionLiteralExpression : BoundCollectionLiteralExpression
     {
-        public BoundCollectionInitializerCollectionLiteralExpression(SyntaxNode syntax, BoundExpression? collectionCreation, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
+        public BoundCollectionInitializerCollectionLiteralExpression(SyntaxNode syntax, BoundExpression collectionCreation, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.CollectionInitializerCollectionLiteralExpression, syntax, naturalTypeOpt, wasTargetTyped, placeholder, initializers, type, hasErrors || collectionCreation.HasErrors() || placeholder.HasErrors() || initializers.HasErrors())
         {
 
+            RoslynDebug.Assert(collectionCreation is object, "Field 'collectionCreation' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(placeholder is object, "Field 'placeholder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(!initializers.IsDefault, "Field 'initializers' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6214,12 +6215,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CollectionCreation = collectionCreation;
         }
 
-        public BoundExpression? CollectionCreation { get; }
+        public BoundExpression CollectionCreation { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionInitializerCollectionLiteralExpression(this);
 
-        public BoundCollectionInitializerCollectionLiteralExpression Update(BoundExpression? collectionCreation, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type)
+        public BoundCollectionInitializerCollectionLiteralExpression Update(BoundExpression collectionCreation, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type)
         {
             if (collectionCreation != this.CollectionCreation || !TypeSymbol.Equals(naturalTypeOpt, this.NaturalTypeOpt, TypeCompareKind.ConsiderEverything) || wasTargetTyped != this.WasTargetTyped || placeholder != this.Placeholder || initializers != this.Initializers || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
@@ -11319,7 +11320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitCollectionInitializerCollectionLiteralExpression(BoundCollectionInitializerCollectionLiteralExpression node)
         {
-            BoundExpression? collectionCreation = node.CollectionCreation;
+            BoundExpression collectionCreation = node.CollectionCreation;
             BoundObjectOrCollectionValuePlaceholder placeholder = node.Placeholder;
             ImmutableArray<BoundExpression> initializers = this.VisitList(node.Initializers);
             TypeSymbol? naturalTypeOpt = this.VisitType(node.NaturalTypeOpt);
@@ -13489,7 +13490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitCollectionInitializerCollectionLiteralExpression(BoundCollectionInitializerCollectionLiteralExpression node)
         {
             TypeSymbol? naturalTypeOpt = GetUpdatedSymbol(node, node.NaturalTypeOpt);
-            BoundExpression? collectionCreation = node.CollectionCreation;
+            BoundExpression collectionCreation = node.CollectionCreation;
             BoundObjectOrCollectionValuePlaceholder placeholder = node.Placeholder;
             ImmutableArray<BoundExpression> initializers = this.VisitList(node.Initializers);
             BoundCollectionInitializerCollectionLiteralExpression updatedNode;

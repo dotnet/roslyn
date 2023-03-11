@@ -287,6 +287,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (7,25): error CS0144: Cannot create an instance of the abstract type or interface 'IEnumerable'
                 //         IEnumerable x = [];
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "[]").WithArguments("System.Collections.IEnumerable").WithLocation(7, 25),
+                // (7,25): error CS9500: Cannot initialize type 'IEnumerable' with a collection literal because the type is not constructible.
+                //         IEnumerable x = [];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.IEnumerable").WithLocation(7, 25),
                 // (8,30): error CS0144: Cannot create an instance of the abstract type or interface 'IEnumerable<int>'
                 //         IEnumerable<int> y = [];
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "[]").WithArguments("System.Collections.Generic.IEnumerable<int>").WithLocation(8, 30),
@@ -714,6 +717,256 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void InterfaceType()
+        {
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Runtime.InteropServices;
+
+                [ComImport]
+                [Guid("1FC6664D-C61E-4131-81CD-A3EE0DD6098F")]
+                [CoClass(typeof(C))]
+                interface I : IEnumerable
+                {
+                    void Add(int i);
+                }
+
+                class C : I
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    void I.Add(int i) { }
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        I i;
+                        i = new() { };
+                        i = new() { 1, 2 };
+                        i = [];
+                        i = [3, 4];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (26,13): error CS0144: Cannot create an instance of the abstract type or interface 'I'
+                //         i = [];
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "[]").WithArguments("I").WithLocation(26, 13),
+                // (27,13): error CS0144: Cannot create an instance of the abstract type or interface 'I'
+                //         i = [3, 4];
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "[3, 4]").WithArguments("I").WithLocation(27, 13));
+        }
+
+        [Fact]
+        public void EnumType_01()
+        {
+            string source = """
+                enum E { }
+                class Program
+                {
+                    static void Main()
+                    {
+                        E e;
+                        e = [];
+                        e = [1, 2];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,13): error CS9500: Cannot initialize type 'E' with a collection literal because the type is not constructible.
+                //         e = [];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("E").WithLocation(7, 13),
+                // (8,13): error CS9500: Cannot initialize type 'E' with a collection literal because the type is not constructible.
+                //         e = [1, 2];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("E").WithLocation(8, 13));
+        }
+
+        [Fact]
+        public void EnumType_02()
+        {
+            string sourceA = """
+                namespace System
+                {
+                    public class Object { }
+                    public abstract class ValueType { }
+                    public class String { }
+                    public class Type { }
+                    public struct Void { }
+                    public struct Boolean { }
+                    public struct Int32 { }
+                    public struct Enum : System.Collections.IEnumerable { }
+                }
+                namespace System.Collections
+                {
+                    public interface IEnumerable { }
+                }
+                """;
+            string sourceB = """
+                enum E { }
+                class Program
+                {
+                    static void Main()
+                    {
+                        E e;
+                        e = [];
+                        e = [1, 2];
+                    }
+                }
+                """;
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute());
+            comp.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // (8,14): error CS1061: 'E' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'E' could be found (are you missing a using directive or an assembly reference?)
+                //         e = [1, 2];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "1").WithArguments("E", "Add").WithLocation(8, 14),
+                // (8,17): error CS1061: 'E' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'E' could be found (are you missing a using directive or an assembly reference?)
+                //         e = [1, 2];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "2").WithArguments("E", "Add").WithLocation(8, 17));
+        }
+
+        [Fact]
+        public void DelegateType_01()
+        {
+            string source = """
+                delegate void D();
+                class Program
+                {
+                    static void Main()
+                    {
+                        D d;
+                        d = [];
+                        d = [1, 2];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,13): error CS7036: There is no argument given that corresponds to the required parameter 'object' of 'D.D(object, IntPtr)'
+                //         d = [];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[]").WithArguments("object", "D.D(object, System.IntPtr)").WithLocation(7, 13),
+                // (7,13): error CS9500: Cannot initialize type 'D' with a collection literal because the type is not constructible.
+                //         d = [];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("D").WithLocation(7, 13),
+                // (8,13): error CS7036: There is no argument given that corresponds to the required parameter 'object' of 'D.D(object, IntPtr)'
+                //         d = [1, 2];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[1, 2]").WithArguments("object", "D.D(object, System.IntPtr)").WithLocation(8, 13),
+                // (8,13): error CS9500: Cannot initialize type 'D' with a collection literal because the type is not constructible.
+                //         d = [1, 2];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("D").WithLocation(8, 13));
+        }
+
+        [Fact]
+        public void DelegateType_02()
+        {
+            string sourceA = """
+                namespace System
+                {
+                    public class Object { }
+                    public abstract class ValueType { }
+                    public class String { }
+                    public class Type { }
+                    public struct Void { }
+                    public struct Boolean { }
+                    public struct Int32 { }
+                    public struct IntPtr { }
+                    public abstract class Delegate : System.Collections.IEnumerable { }
+                    public abstract class MulticastDelegate : Delegate { }
+                }
+                namespace System.Collections
+                {
+                    public interface IEnumerable { }
+                }
+                """;
+            string sourceB = """
+                delegate void D();
+                class Program
+                {
+                    static void Main()
+                    {
+                        D d;
+                        d = [];
+                        d = [1, 2];
+                    }
+                }
+                """;
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute());
+            comp.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // (7,13): error CS7036: There is no argument given that corresponds to the required parameter 'object' of 'D.D(object, IntPtr)'
+                //         d = [];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[]").WithArguments("object", "D.D(object, System.IntPtr)").WithLocation(7, 13),
+                // (8,13): error CS7036: There is no argument given that corresponds to the required parameter 'object' of 'D.D(object, IntPtr)'
+                //         d = [1, 2];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[1, 2]").WithArguments("object", "D.D(object, System.IntPtr)").WithLocation(8, 13),
+                // (8,14): error CS1061: 'D' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'D' could be found (are you missing a using directive or an assembly reference?)
+                //         d = [1, 2];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "1").WithArguments("D", "Add").WithLocation(8, 14),
+                // (8,17): error CS1061: 'D' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'D' could be found (are you missing a using directive or an assembly reference?)
+                //         d = [1, 2];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "2").WithArguments("D", "Add").WithLocation(8, 17));
+        }
+
+        [Fact]
+        public void PointerType()
+        {
+            string source = """
+                class Program
+                {
+                    unsafe static void Main()
+                    {
+                        int* x = [];
+                        int* y = [1, 2];
+                        var z = (int*)[3];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // (5,18): error CS9500: Cannot initialize type 'int*' with a collection literal because the type is not constructible.
+                //         int* x = [];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("int*").WithLocation(5, 18),
+                // (6,18): error CS9500: Cannot initialize type 'int*' with a collection literal because the type is not constructible.
+                //         int* y = [1, 2];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("int*").WithLocation(6, 18),
+                // (7,23): error CS9500: Cannot initialize type 'int*' with a collection literal because the type is not constructible.
+                //         var z = (int*)[3];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[3]").WithArguments("int*").WithLocation(7, 23));
+        }
+
+        [Fact]
+        public void FunctionPointerType()
+        {
+            string source = """
+                class Program
+                {
+                    unsafe static void Main()
+                    {
+                        delegate*<void> x = [];
+                        delegate*<void> y = [1, 2];
+                        var z = (delegate*<void>)[3];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // (5,29): error CS9500: Cannot initialize type 'delegate*<void>' with a collection literal because the type is not constructible.
+                //         delegate*<void> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("delegate*<void>").WithLocation(5, 29),
+                // (6,29): error CS9500: Cannot initialize type 'delegate*<void>' with a collection literal because the type is not constructible.
+                //         delegate*<void> y = [1, 2];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("delegate*<void>").WithLocation(6, 29),
+                // (7,34): error CS9500: Cannot initialize type 'delegate*<void>' with a collection literal because the type is not constructible.
+                //         var z = (delegate*<void>)[3];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[3]").WithArguments("delegate*<void>").WithLocation(7, 34));
+        }
+
+        [Fact]
         public void CollectionInitializerType_01()
         {
             string source = """
@@ -865,9 +1118,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (2,5): error CS1729: 'C' does not contain a constructor that takes 0 arguments
                 // c = [];
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[]").WithArguments("C", "0").WithLocation(2, 5),
+                // (2,5): error CS9500: Cannot initialize type 'C' with a collection literal because the type is not constructible.
+                // c = [];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("C").WithLocation(2, 5),
                 // (3,5): error CS1729: 'C' does not contain a constructor that takes 0 arguments
                 // c = [1, 2];
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[1, 2]").WithArguments("C", "0").WithLocation(3, 5));
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[1, 2]").WithArguments("C", "0").WithLocation(3, 5),
+                // (3,5): error CS9500: Cannot initialize type 'C' with a collection literal because the type is not constructible.
+                // c = [1, 2];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("C").WithLocation(3, 5));
         }
 
         [Fact]
@@ -1449,7 +1708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [InlineData("class")]
         [InlineData("struct")]
-        public void CollectionInitializerType_TypeParameter_01(string type)
+        public void TypeParameter_01(string type)
         {
             string source = $$"""
                 using System;
@@ -1520,7 +1779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void CollectionInitializerType_TypeParameter_02()
+        public void TypeParameter_02()
         {
             string source = """
                 using System.Collections;
@@ -1546,6 +1805,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (16,57): error CS9500: Cannot initialize type 'T?' with a collection literal because the type is not constructible.
                 //     static T? Create2<T, U>() where T : struct, I<U> => [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("T?").WithLocation(16, 57));
+        }
+
+        [Fact]
+        public void TypeParameter_03()
+        {
+            string source = """
+                using System.Collections;
+                class Program
+                {
+                    static T Create1<T, U>() where T : IEnumerable => []; // 1
+                    static T Create2<T, U>() where T : class, IEnumerable => []; // 2
+                    static T Create3<T, U>() where T : struct, IEnumerable => [];
+                    static T Create4<T, U>() where T : IEnumerable, new() => [];
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,55): error CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
+                //     static T Create1<T, U>() where T : IEnumerable => []; // 1
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "[]").WithArguments("T").WithLocation(4, 55),
+                // (5,62): error CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
+                //     static T Create2<T, U>() where T : class, IEnumerable => []; // 2
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "[]").WithArguments("T").WithLocation(5, 62));
+        }
+
+        [Fact]
+        public void TypeParameter_04()
+        {
+            string source = """
+                using System.Collections;
+                interface IAdd : IEnumerable
+                {
+                    void Add(int i);
+                }
+                class Program
+                {
+                    static T Create1<T>() where T : IAdd => [1]; // 1
+                    static T Create2<T>() where T : class, IAdd => [2]; // 2
+                    static T Create3<T>() where T : struct, IAdd => [3];
+                    static T Create4<T>() where T : IAdd, new() => [4];
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,45): error CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
+                //     static T Create1<T>() where T : IAdd => [1]; // 1
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "[1]").WithArguments("T").WithLocation(8, 45),
+                // (9,52): error CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
+                //     static T Create2<T>() where T : class, IAdd => [2]; // 2
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "[2]").WithArguments("T").WithLocation(9, 52));
         }
 
         [Fact]
