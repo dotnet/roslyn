@@ -7813,13 +7813,13 @@ class Program
 			.maxstack 8
 			IL_0000: ldarg.0
 			IL_0001: ldfld class C1 C1/'<>c__DisplayClass1_0'::'<>4__this'
-			IL_0006: ldfld int32 C1::'<p1>PC__BackingField'
+			IL_0006: ldfld int32 C1::'<p1>P'
 			IL_000b: ret
 		} // end of method '<>c__DisplayClass1_0'::'<.ctor>b__1'
 	} // end of class <>c__DisplayClass1_0
 	// Fields
 	.field public int32 F1
-	.field private int32 '<p1>PC__BackingField'
+	.field private int32 '<p1>P'
 	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
@@ -7845,7 +7845,7 @@ class Program
 		)
 		IL_0000: ldarg.0
 		IL_0001: ldarg.1
-		IL_0002: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: stfld int32 C1::'<p1>P'
 		IL_0007: newobj instance void C1/'<>c__DisplayClass1_0'::.ctor()
 		IL_000c: stloc.0
 		IL_000d: ldloc.0
@@ -7876,7 +7876,7 @@ class Program
 		IL_0043: stfld class [mscorlib]System.Action C1::E2
 		IL_0048: ldarg.0
 		IL_0049: ldarg.0
-		IL_004a: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_004a: ldfld int32 C1::'<p1>P'
 		IL_004f: ldarg.2
 		IL_0050: ldloc.0
 		IL_0051: ldftn instance int32 C1/'<>c__DisplayClass1_0'::'<.ctor>b__1'()
@@ -7891,7 +7891,7 @@ class Program
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0001: ldfld int32 C1::'<p1>P'
 		IL_0006: ret
 	} // end of method C1::get_P1
 	.method public hidebysig specialname 
@@ -7905,12 +7905,12 @@ class Program
 		)
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: add
 		IL_0009: stloc.0
 		IL_000a: ldloc.0
-		IL_000b: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000b: stfld int32 C1::'<p1>P'
 		IL_0010: ldloc.0
 		IL_0011: ret
 	} // end of method C1::get_P2
@@ -7925,12 +7925,12 @@ class Program
 		)
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: stloc.0
 		IL_0008: ldloc.0
 		IL_0009: ldc.i4.1
 		IL_000a: add
-		IL_000b: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000b: stfld int32 C1::'<p1>P'
 		IL_0010: ldloc.0
 		IL_0011: ret
 	} // end of method C1::M1
@@ -7944,10 +7944,10 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: add
-		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0009: stfld int32 C1::'<p1>P'
 		IL_000e: ret
 	} // end of method C1::add_E1
 	.method private hidebysig specialname 
@@ -8062,10 +8062,10 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: sub
-		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0009: stfld int32 C1::'<p1>P'
 		IL_000e: ret
 	} // end of method C1::'<remove_E1>g__local|12_0'
 	.method private hidebysig 
@@ -8079,10 +8079,10 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: add
-		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0009: stfld int32 C1::'<p1>P'
 		IL_000e: ret
 	} // end of method C1::'<M2>b__16_0'
 	// Events
@@ -8169,7 +8169,7 @@ class Program
 {
 	// Fields
 	.field public int32 F1
-	.field private int32 '<p1>PC__BackingField'
+	.field private int32 '<p1>P'
 	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
@@ -8187,7 +8187,7 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.1
-		IL_0002: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: stfld int32 C1::'<p1>P'
 		IL_0007: ldarg.0
 		IL_0008: ldarg.2
 		IL_0009: ldc.i4.1
@@ -8212,7 +8212,7 @@ class Program
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0001: ldfld int32 C1::'<p1>P'
 		IL_0006: ret
 	} // end of method C1::get_P1
 	.method public hidebysig specialname 
@@ -8226,12 +8226,12 @@ class Program
 		)
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: add
 		IL_0009: stloc.0
 		IL_000a: ldloc.0
-		IL_000b: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000b: stfld int32 C1::'<p1>P'
 		IL_0010: ldloc.0
 		IL_0011: ret
 	} // end of method C1::get_P2
@@ -8246,12 +8246,12 @@ class Program
 		)
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: stloc.0
 		IL_0008: ldloc.0
 		IL_0009: ldc.i4.1
 		IL_000a: add
-		IL_000b: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000b: stfld int32 C1::'<p1>P'
 		IL_0010: ldloc.0
 		IL_0011: ret
 	} // end of method C1::M1
@@ -8265,10 +8265,10 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: add
-		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0009: stfld int32 C1::'<p1>P'
 		IL_000e: ret
 	} // end of method C1::add_E1
 	.method private hidebysig specialname 
@@ -11237,7 +11237,7 @@ class Program
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  stfld      ""int C1.<p1>PC__BackingField""
+  IL_0002:  stfld      ""int C1.<p1>P""
   IL_0007:  ldarg.0
   IL_0008:  ldarg.0
   IL_0009:  ldftn      ""int C1.<.ctor>b__2_0()""
@@ -11311,7 +11311,7 @@ class Program
   .locals init (C1.<>c__DisplayClass2_0 V_0) //CS$<>8__locals0
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  stfld      ""int C1.<p1>PC__BackingField""
+  IL_0002:  stfld      ""int C1.<p1>P""
   IL_0007:  newobj     ""C1.<>c__DisplayClass2_0..ctor()""
   IL_000c:  stloc.0
   IL_000d:  ldloc.0
@@ -11388,7 +11388,7 @@ class Program
   .locals init (C1.<>c__DisplayClass2_0 V_0) //CS$<>8__locals0
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  stfld      ""int C1.<p1>PC__BackingField""
+  IL_0002:  stfld      ""int C1.<p1>P""
   IL_0007:  newobj     ""C1.<>c__DisplayClass2_0..ctor()""
   IL_000c:  stloc.0
   IL_000d:  ldloc.0
@@ -11396,7 +11396,7 @@ class Program
   IL_000f:  stfld      ""int C1.<>c__DisplayClass2_0.p2""
   IL_0014:  ldarg.0
   IL_0015:  ldarg.0
-  IL_0016:  ldfld      ""int C1.<p1>PC__BackingField""
+  IL_0016:  ldfld      ""int C1.<p1>P""
   IL_001b:  stfld      ""int C1.F1""
   IL_0020:  ldarg.0
   IL_0021:  ldloc.0
@@ -13085,10 +13085,10 @@ class Program(string x, int y)
                 int V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldfld      ""string Program.<x>PC__BackingField""
+  IL_0002:  ldfld      ""string Program.<x>P""
   IL_0007:  stloc.1
   IL_0008:  ldarg.0
-  IL_0009:  ldfld      ""int Program.<y>PC__BackingField""
+  IL_0009:  ldfld      ""int Program.<y>P""
   IL_000e:  stloc.2
   IL_000f:  ldc.i4.1
   IL_0010:  brtrue.s   IL_0013
@@ -13404,17 +13404,17 @@ class Program
   .locals init (int V_0,
                 int V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C1.<p2>PC__BackingField""
+  IL_0001:  ldfld      ""int C1.<p2>P""
   IL_0006:  stloc.0
   IL_0007:  ldarg.0
-  IL_0008:  ldfld      ""int C1.<p1>PC__BackingField""
+  IL_0008:  ldfld      ""int C1.<p1>P""
   IL_000d:  stloc.1
   IL_000e:  ldarg.0
   IL_000f:  ldloc.0
-  IL_0010:  stfld      ""int C1.<p1>PC__BackingField""
+  IL_0010:  stfld      ""int C1.<p1>P""
   IL_0015:  ldarg.0
   IL_0016:  ldloc.1
-  IL_0017:  stfld      ""int C1.<p2>PC__BackingField""
+  IL_0017:  stfld      ""int C1.<p2>P""
   IL_001c:  ret
 }
 ");
@@ -14826,7 +14826,7 @@ class Program
 {
 	// Fields
 	.field public int32 F1
-	.field private int32 '<p1>PC__BackingField'
+	.field private int32 '<p1>P'
 	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
@@ -14844,7 +14844,7 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.1
-		IL_0002: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: stfld int32 C1::'<p1>P'
 		IL_0007: ldarg.0
 		IL_0008: ldarg.2
 		IL_0009: ldc.i4.1
@@ -14862,7 +14862,7 @@ class Program
 		IL_001d: stfld int32 C1::F3
 		IL_0022: ldarg.0
 		IL_0023: ldarg.0
-		IL_0024: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0024: ldfld int32 C1::'<p1>P'
 		IL_0029: ldarg.2
 		IL_002a: ldarg.0
 		IL_002b: ldftn instance int32 C1::'<.ctor>b__1_0'()
@@ -14877,7 +14877,7 @@ class Program
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0001: ldfld int32 C1::'<p1>P'
 		IL_0006: ret
 	} // end of method C1::get_P1
 	.method public hidebysig specialname 
@@ -14891,12 +14891,12 @@ class Program
 		)
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: add
 		IL_0009: stloc.0
 		IL_000a: ldloc.0
-		IL_000b: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000b: stfld int32 C1::'<p1>P'
 		IL_0010: ldloc.0
 		IL_0011: ret
 	} // end of method C1::get_P2
@@ -14911,12 +14911,12 @@ class Program
 		)
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: stloc.0
 		IL_0008: ldloc.0
 		IL_0009: ldc.i4.1
 		IL_000a: add
-		IL_000b: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000b: stfld int32 C1::'<p1>P'
 		IL_0010: ldloc.0
 		IL_0011: ret
 	} // end of method C1::M1
@@ -14930,10 +14930,10 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: add
-		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0009: stfld int32 C1::'<p1>P'
 		IL_000e: ret
 	} // end of method C1::add_E1
 	.method private hidebysig specialname 
@@ -14969,7 +14969,7 @@ class Program
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0001: ldfld int32 C1::'<p1>P'
 		IL_0006: ret
 	} // end of method C1::'<.ctor>b__1_0'
 	.method private hidebysig 
@@ -14983,10 +14983,10 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: sub
-		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0009: stfld int32 C1::'<p1>P'
 		IL_000e: ret
 	} // end of method C1::'<remove_E1>g__local|12_0'
 	.method private hidebysig 
@@ -15000,10 +15000,10 @@ class Program
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
-		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0002: ldfld int32 C1::'<p1>P'
 		IL_0007: ldc.i4.1
 		IL_0008: add
-		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0009: stfld int32 C1::'<p1>P'
 		IL_000e: ret
 	} // end of method C1::'<M2>b__13_0'
 	// Events
