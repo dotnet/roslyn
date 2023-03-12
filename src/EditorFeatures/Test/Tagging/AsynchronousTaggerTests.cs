@@ -58,17 +58,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 return new List<ITagSpan<TestTag>>() { new TagSpan<TestTag>(span, new TestTag()) };
             }
 
-            var asyncListener = new AsynchronousOperationListener();
-
             WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
+
+            var asyncListenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+            var asyncListener = (AsynchronousOperationListener)asyncListenerProvider.GetListener("Tagger");
+            var threadingContext = workspace.GetService<IThreadingContext>();
 
             var eventSource = CreateEventSource();
             var taggerProvider = new TestTaggerProvider(
-                workspace.GetService<IThreadingContext>(),
+                threadingContext,
                 tagProducer,
                 eventSource,
                 workspace.GetService<IGlobalOptionService>(),
-                asyncListener);
+                asyncListener,
+                TaggerMainThreadManager.GetManager(threadingContext, asyncListenerProvider));
 
             var document = workspace.Documents.First();
             var textBuffer = document.GetTextBuffer();
@@ -157,8 +160,9 @@ class Program
                 Callback callback,
                 ITaggerEventSource eventSource,
                 IGlobalOptionService globalOptions,
-                IAsynchronousOperationListener asyncListener)
-                : base(threadingContext, globalOptions, visibilityTracker: null, asyncListener)
+                IAsynchronousOperationListener asyncListener,
+                TaggerMainThreadManager mainThreadManager)
+                : base(threadingContext, globalOptions, visibilityTracker: null, asyncListener, mainThreadManager)
             {
                 _callback = callback;
                 _eventSource = eventSource;

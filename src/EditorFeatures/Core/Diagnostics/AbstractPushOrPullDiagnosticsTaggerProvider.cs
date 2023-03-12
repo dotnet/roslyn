@@ -40,7 +40,8 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
         IDiagnosticAnalyzerService analyzerService,
         IGlobalOptionService globalOptions,
         ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListener listener)
+        IAsynchronousOperationListener listener,
+        TaggerMainThreadManager mainThreadManager)
     {
         GlobalOptions = globalOptions;
 
@@ -62,12 +63,12 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
         if (globalOptions.GetOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging))
         {
             _underlyingTaggerProvider = new PullDiagnosticsTaggerProvider(
-                this, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listener);
+                this, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listener, mainThreadManager);
         }
         else
         {
             _underlyingTaggerProvider = new PushDiagnosticsTaggerProvider(
-                this, threadingContext, diagnosticService, globalOptions, visibilityTracker, listener);
+                this, threadingContext, diagnosticService, globalOptions, visibilityTracker, listener, mainThreadManager);
         }
     }
 

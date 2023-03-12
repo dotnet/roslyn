@@ -52,8 +52,9 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
             IDiagnosticAnalyzerService analyzerService,
             IGlobalOptionService globalOptions,
             ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListener listener)
-            : base(threadingContext, globalOptions, visibilityTracker, listener)
+            IAsynchronousOperationListener listener,
+            TaggerMainThreadManager mainThreadManager)
+            : base(threadingContext, globalOptions, visibilityTracker, listener, mainThreadManager)
         {
             _callback = callback;
             _diagnosticKind = diagnosticKind;

@@ -19,7 +19,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider asyncListenerProvider,
             VSTypeScriptGlobalOptions globalOptions)
-            : base(threadingContext, globalOptions.Service, visibilityTracker: null, asyncListenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(
+                  threadingContext,
+                  globalOptions.Service,
+                  visibilityTracker: null,
+                  asyncListenerProvider.GetListener(FeatureAttribute.Classification),
+                  TaggerMainThreadManager.GetManager(threadingContext, asyncListenerProvider))
         {
         }
 
@@ -28,7 +33,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             VSTypeScriptGlobalOptions globalOptions,
             ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider asyncListenerProvider)
-            : base(threadingContext, globalOptions.Service, visibilityTracker, asyncListenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(
+                  threadingContext,
+                  globalOptions.Service,
+                  visibilityTracker,
+                  asyncListenerProvider.GetListener(FeatureAttribute.Classification),
+                  TaggerMainThreadManager.GetManager(threadingContext, asyncListenerProvider))
         {
         }
     }

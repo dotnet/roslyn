@@ -10,12 +10,15 @@ using System.Diagnostics;
 #endif
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Elfie.Serialization;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -38,7 +41,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected readonly IAsynchronousOperationListener AsyncListener;
         protected readonly IThreadingContext ThreadingContext;
         protected readonly IGlobalOptionService GlobalOptions;
+
         private readonly ITextBufferVisibilityTracker? _visibilityTracker;
+        private readonly TaggerMainThreadManager _mainThreadManager;
 
         /// <summary>
         /// The behavior the tagger engine will have when text changes happen to the subject buffer
@@ -119,12 +124,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptions,
             ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListener asyncListener)
+            IAsynchronousOperationListener asyncListener,
+            TaggerMainThreadManager mainThreadManager)
         {
             ThreadingContext = threadingContext;
             GlobalOptions = globalOptions;
             AsyncListener = asyncListener;
             _visibilityTracker = visibilityTracker;
+            _mainThreadManager = mainThreadManager;
 
 #if DEBUG
             StackTrace = new StackTrace().ToString();

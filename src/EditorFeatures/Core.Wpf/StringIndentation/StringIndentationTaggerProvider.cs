@@ -50,7 +50,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
             IGlobalOptionService globalOptions,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.StringIndentation))
+            : base(
+                  threadingContext,
+                  globalOptions,
+                  visibilityTracker,
+                  listenerProvider.GetListener(FeatureAttribute.StringIndentation),
+                  TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
         }

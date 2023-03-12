@@ -172,13 +172,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private async ValueTask ProcessEventChangeAsync(ImmutableSegmentedList<bool> changes, CancellationToken cancellationToken)
             {
-                await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-                // no point preceding if we're already disposed.  We check this on the UI thread so that we will know
-                // about any prior disposal on the UI thread.
-                if (cancellationToken.IsCancellationRequested)
-                    return;
-
                 // If any of the requests was high priority, then compute at that speed.
                 var highPriority = changes.Contains(true);
                 await RecomputeTagsAsync(highPriority, cancellationToken).ConfigureAwait(false);
@@ -196,69 +189,94 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </param>
             private async Task RecomputeTagsAsync(bool highPriority, CancellationToken cancellationToken)
             {
+                var isVisible = true;
+                var spansToTag = ImmutableArray<DocumentSnapshotSpan>.Empty;
+                SnapshotPoint? caretPosition = null;
+                ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees = null!;
+                object? oldState = null;
+                TextChangeRange? textChangeRange = null;
+
+                // Enqueue work to a queue that will all tagger main thread work together in the near future. This let's
+                // us avoid hammering the dispatcher queue with lots of work that causes contention.  Additionally, use
+                // a no-throw awaitable so that in the common case where we cancel before, we don't throw an exception
+                // that can exacerbate cross process debugging scenarios.
+                await _dataSource._mainThreadManager.PerformWorkOnMainThreadAsync(() =>
+                {
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
+
+                    isVisible = _visibilityTracker is null || _visibilityTracker.IsVisible(_subjectBuffer);
+
+                    // Make a copy of all the data we need while we're on the foreground.  Then switch to a threadpool
+                    // thread to do the computation. Finally, once new tags have been computed, then we update our state
+                    // again on the foreground.
+                    spansToTag = GetSpansAndDocumentsToTag();
+                    caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
+                    oldTagTrees = this.CachedTagTrees;
+                    oldState = this.State;
+
+                    textChangeRange = this.AccumulatedTextChanges;
+                    this.AccumulatedTextChanges = null;
+                }, cancellationToken).NoThrowAwaitable();
+
+                // Since we don't ever throw above, check and see if the await completed due to cancellation and do not
+                // proceed.
+                if (cancellationToken.IsCancellationRequested)
+                    return;
+
                 // if we're tagging documents that are not visible, then introduce a long delay so that we avoid
                 // consuming machine resources on work the user isn't likely to see.  ConfigureAwait(true) so that if
                 // we're on the UI thread that we stay on it.
                 //
                 // Don't do this for explicit high priority requests as the caller wants the UI updated as quickly as
                 // possible.
-                if (!highPriority)
+                if (!highPriority && !isVisible)
                 {
                     await _visibilityTracker.DelayWhileNonVisibleAsync(
                         _dataSource.ThreadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(true);
                 }
 
-                await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                if (cancellationToken.IsCancellationRequested)
-                    return;
-
                 using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, cancellationToken))
                 {
-                    // Make a copy of all the data we need while we're on the foreground.  Then switch to a threadpool
-                    // thread to do the computation. Finally, once new tags have been computed, then we update our state
-                    // again on the foreground.
-                    var spansToTag = GetSpansAndDocumentsToTag();
-                    var caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
-                    var oldTagTrees = this.CachedTagTrees;
-                    var oldState = this.State;
-
-                    var textChangeRange = this.AccumulatedTextChanges;
-                    this.AccumulatedTextChanges = null;
-
                     // Technically not necessary since we ConfigureAwait(false) right above this.  But we want to ensure
                     // we're always moving to the threadpool here in case the above code ever changes.
                     await TaskScheduler.Default;
 
-                    cancellationToken.ThrowIfCancellationRequested();
+                    if (cancellationToken.IsCancellationRequested)
+                        return;
 
                     // Create a context to store pass the information along and collect the results.
-                    var context = new TaggerContext<TTag>(
-                        oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees);
+                    var context = new TaggerContext<TTag>(oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees);
                     await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
 
-                    cancellationToken.ThrowIfCancellationRequested();
+                    if (cancellationToken.IsCancellationRequested)
+                        return;
 
                     // Process the result to determine what changed.
                     var newTagTrees = ComputeNewTagTrees(oldTagTrees, context);
                     var bufferToChanges = ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, cancellationToken);
 
                     // Then switch back to the UI thread to update our state and kick off the work to notify the editor.
-                    await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    // Like at the start of this method, use a shared UI queue so that several taggers can switch to the
+                    // UI thread at once.
+                    await _dataSource._mainThreadManager.PerformWorkOnMainThreadAsync(() =>
+                    {
+                        _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
-                    // Once we assign our state, we're uncancellable.  We must report the changed information
-                    // to the editor.  The only case where it's ok not to is if the tagger itself is disposed.
-                    cancellationToken = CancellationToken.None;
+                        // Once we start assigning  our state, we're uncancellable.  We must report the changed
+                        // information to the editor.  The only case where it's ok not to is if the tagger itself is
+                        // disposed.  Nothing should actually check cancellation at this point.  But this ensures that
+                        // if that happens, we don't corrupt state by only partially updating.
+                        cancellationToken = CancellationToken.None;
 
-                    this.CachedTagTrees = newTagTrees;
-                    this.State = context.State;
+                        this.CachedTagTrees = newTagTrees;
+                        this.State = context.State;
 
-                    OnTagsChangedForBuffer(bufferToChanges, highPriority);
+                        OnTagsChangedForBuffer(bufferToChanges, highPriority);
 
-                    // Once we've computed tags, pause ourselves if we're no longer visible.  That way we don't consume any
-                    // machine resources that the user won't even notice.
-                    PauseIfNotVisible();
+                        // Once we've computed tags, pause ourselves if we're no longer visible.  That way we don't consume any
+                        // machine resources that the user won't even notice.
+                        PauseIfNotVisible();
+                    }, cancellationToken).ConfigureAwait(false);
                 }
             }
 
