@@ -73,6 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal InferredLambdaReturnType InferredReturnType { get; }
 
+        internal bool InAnonymousFunctionConversion { get; private set; }
+
         MethodSymbol IBoundLambdaOrFunction.Symbol { get { return Symbol; } }
 
         SyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
@@ -87,6 +89,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax is ExpressionSyntax && LambdaUtilities.IsLambdaBody(syntax, allowReducedLambdas: true) || // query lambdas
                 LambdaUtilities.IsQueryPairLambda(syntax)                                                       // "pair" lambdas in queries
             );
+        }
+
+        internal BoundLambda WithInAnonymousFunctionConversion()
+        {
+            if (InAnonymousFunctionConversion)
+            {
+                return this;
+            }
+
+            var result = (BoundLambda)MemberwiseClone();
+            result.InAnonymousFunctionConversion = true;
+            return result;
         }
 
         public TypeWithAnnotations GetInferredReturnType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)

@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.HideBase
                 """);
         }
 
-        [Fact, WorkItem(18391, "https://github.com/dotnet/roslyn/issues/18391")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18391")]
         public async Task TestAddNewToConstant()
         {
             await TestInRegularAndScriptAsync(
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.HideBase
                 """);
         }
 
-        [Fact, WorkItem(14455, "https://github.com/dotnet/roslyn/issues/14455")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14455")]
         public async Task TestAddNewToConstantInternalFields()
         {
             await TestInRegularAndScriptAsync(

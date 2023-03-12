@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FileHeaders
         [Theory]
         [InlineData("\n")]
         [InlineData("\r\n")]
-        [WorkItem(1414432, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1414432")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1414432")]
         public async Task TestNoFileHeaderAsync(string lineEnding)
         {
             var testCode = """

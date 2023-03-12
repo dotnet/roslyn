@@ -44,7 +44,7 @@ End Namespace
             Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
         End Function
 
-        <Fact, WorkItem(62283, "https://github.com/dotnet/roslyn/issues/62283")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62283")>
         Public Async Function TestMoveField_MultipleDeclarators() As Task
             Dim initialMarkup = "
 Class Program
@@ -3024,7 +3024,7 @@ End Namespace"
 
 #Region "Invalid Code Tests"
         <Fact>
-        <WorkItem(66489, "https://github.com/dotnet/roslyn/issues/66489")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66489")>
         Public Async Function TestCSharpCodeInVB() As Task
             Dim initialMarkup = "
                 CompoundInstrumenter compound [||]"

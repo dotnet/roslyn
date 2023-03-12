@@ -305,7 +305,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(1710519, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1710519")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1710519")]
         public async Task TestGetSemanticTokensRange_RegexWithComment_IncludeSyntacticClassificationsAsync()
         {
             var markup =

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
         public void TestStandardProperty(AnalyzerProperty property)
             => VerifyCS.VerifyStandardProperty(property);
 
-        [Fact, WorkItem(31582, "https://github.com/dotnet/roslyn/issues/31582")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31582")]
         public async Task FieldReadViaSuppression()
         {
             var code = """
@@ -397,7 +397,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(31572, "https://github.com/dotnet/roslyn/issues/31572")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31572")]
         public async Task EntryPointMethodNotFlagged_05()
         {
             var code = """
@@ -722,7 +722,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(30965, "https://github.com/dotnet/roslyn/issues/30965")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30965")]
         public async Task EventIsUnused_ExplicitInterfaceImplementation()
         {
             var code = """
@@ -744,7 +744,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(30894, "https://github.com/dotnet/roslyn/issues/30894")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30894")]
         public async Task WriteOnlyProperty_NotWritten()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -761,7 +761,7 @@ class MyClass
                 """);
         }
 
-        [Fact, WorkItem(30894, "https://github.com/dotnet/roslyn/issues/30894")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30894")]
         public async Task WriteOnlyProperty_Written()
         {
             var code = """
@@ -1225,7 +1225,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(32488, "https://github.com/dotnet/roslyn/issues/32488")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32488")]
         public async Task FieldInNameOf()
         {
             var code = """
@@ -1239,7 +1239,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(33765, "https://github.com/dotnet/roslyn/issues/33765")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33765")]
         public async Task GenericFieldInNameOf()
         {
             var code = """
@@ -1253,7 +1253,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31581")]
         public async Task MethodInNameOf()
         {
             var code = """
@@ -1267,7 +1267,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(33765, "https://github.com/dotnet/roslyn/issues/33765")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33765")]
         public async Task GenericMethodInNameOf()
         {
             var code = """
@@ -1281,7 +1281,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31581")]
         public async Task PropertyInNameOf()
         {
             var code = """
@@ -1295,7 +1295,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(32522, "https://github.com/dotnet/roslyn/issues/32522")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32522")]
         public async Task TestDynamicInvocation()
         {
             var code = """
@@ -1309,7 +1309,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(32522, "https://github.com/dotnet/roslyn/issues/32522")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32522")]
         public async Task TestDynamicObjectCreation()
         {
             var code = """
@@ -1323,7 +1323,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(32522, "https://github.com/dotnet/roslyn/issues/32522")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32522")]
         public async Task TestDynamicIndexerAccess()
         {
             var code = """
@@ -1388,7 +1388,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(48247, "https://github.com/dotnet/roslyn/issues/48247")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48247")]
         public async Task GenericMethodInDocComment()
         {
             var code = """
@@ -1423,7 +1423,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(33994, "https://github.com/dotnet/roslyn/issues/33994")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33994")]
         public async Task PropertyIsOnlyWritten()
         {
             var source =
@@ -1624,7 +1624,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(30397, "https://github.com/dotnet/roslyn/issues/30397")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30397")]
         public async Task FieldIsIncrementedAndValueUsed()
         {
             var code = """
@@ -1638,7 +1638,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(30397, "https://github.com/dotnet/roslyn/issues/30397")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30397")]
         public async Task FieldIsIncrementedAndValueUsed_02()
         {
             var code = """
@@ -1708,7 +1708,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
         public async Task PropertyIsIncrementedAndValueDropped_VerifyAnalizerMessage()
         {
             var code = """
@@ -1725,7 +1725,7 @@ class MyClass
                 .WithArguments("MyClass.P"));
         }
 
-        [Fact, WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
         public async Task PropertyIsIncrementedAndValueDropped_NoDiagnosticWhenPropertyIsReadSomewhereElse()
         {
             var code = """
@@ -1768,7 +1768,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
         public async Task IndexerIsIncrementedAndValueDropped_VerifyAnalizerMessage()
         {
             var code = """
@@ -1785,7 +1785,7 @@ class MyClass
                 .WithArguments("MyClass.this"));
         }
 
-        [Fact, WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
         public async Task IndexerIsIncrementedAndValueDropped_NoDiagnosticWhenIndexerIsReadSomewhereElse()
         {
             var code = """
@@ -1884,7 +1884,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
         public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalizerMessage()
         {
             var code = """
@@ -1901,7 +1901,7 @@ class MyClass
                 .WithArguments("MyClass.P"));
         }
 
-        [Fact, WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
         public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_NoDiagnosticWhenPropertyIsReadSomewhereElse()
         {
             var code = """
@@ -1944,7 +1944,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
         public async Task IndexerIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalyzerMessage()
         {
             var code = """
@@ -1961,7 +1961,7 @@ class MyClass
                 .WithArguments("MyClass.this"));
         }
 
-        [Fact, WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
         public async Task IndexerIsTargetOfCompoundAssignmentAndValueDropped_NoDiagnosticWhenIndexerIsReadSomewhereElse()
         {
             var code = """
@@ -2706,7 +2706,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(30886, "https://github.com/dotnet/roslyn/issues/30886")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30886")]
         public async Task SerializableConstructor_TypeImplementsISerializable()
         {
             var code = """
@@ -2731,7 +2731,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(30886, "https://github.com/dotnet/roslyn/issues/30886")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30886")]
         public async Task SerializableConstructor_BaseTypeImplementsISerializable()
         {
             var code = """
@@ -2778,7 +2778,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(30887, "https://github.com/dotnet/roslyn/issues/30887")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30887")]
         public async Task ShouldSerializePropertyMethod()
         {
             var code = """
@@ -2796,7 +2796,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(38491, "https://github.com/dotnet/roslyn/issues/38491")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38491")]
         public async Task ResetPropertyMethod()
         {
             var code = """
@@ -2814,7 +2814,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(30377, "https://github.com/dotnet/roslyn/issues/30377")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30377")]
         public async Task EventHandlerMethod()
         {
             var code = """
@@ -2831,7 +2831,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(32727, "https://github.com/dotnet/roslyn/issues/32727")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32727")]
         public async Task NestedStructLayoutTypeWithReference()
         {
             var code = """
@@ -3023,7 +3023,7 @@ class MyClass
             }.RunAsync();
         }
 
-        [Fact, WorkItem(32702, "https://github.com/dotnet/roslyn/issues/32702")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32702")]
         public async Task UsedExtensionMethod_ReferencedFromPartialMethod()
         {
             var source1 = """
@@ -3082,7 +3082,7 @@ class MyClass
             }.RunAsync();
         }
 
-        [Fact, WorkItem(32842, "https://github.com/dotnet/roslyn/issues/32842")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32842")]
         public async Task FieldIsRead_NullCoalesceAssignment()
         {
             var code = """
@@ -3096,7 +3096,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(32842, "https://github.com/dotnet/roslyn/issues/32842")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32842")]
         public async Task FieldIsNotRead_NullCoalesceAssignment()
         {
             var code = """
@@ -3110,7 +3110,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(37213, "https://github.com/dotnet/roslyn/issues/37213")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37213")]
         public async Task UsedPrivateExtensionMethod()
         {
             var code = """
@@ -3124,7 +3124,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(30884, "https://github.com/dotnet/roslyn/issues/30884")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30884")]
         public async Task TestMessageForConstructor()
         {
             await VerifyCS.VerifyAnalyzerAsync(

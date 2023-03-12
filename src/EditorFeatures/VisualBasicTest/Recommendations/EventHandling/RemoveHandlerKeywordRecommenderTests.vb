@@ -42,7 +42,7 @@ Dim x
             VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "RemoveHandler")
         End Sub
 
-        <Fact, WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         Public Sub RemoveHandlerInCustomEventTest()
             Dim code = <File>
 Public Class Z
@@ -54,7 +54,7 @@ End Class</File>
             VerifyRecommendationsContain(code, "RemoveHandler")
         End Sub
 
-        <Fact, WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         Public Sub NotRemoveHandlerInCustomEventWithRemoveHandlerTest()
             Dim code = <File>
 Public Class Z

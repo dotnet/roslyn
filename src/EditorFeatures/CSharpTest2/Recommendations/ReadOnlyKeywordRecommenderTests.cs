@@ -100,7 +100,7 @@ $$");
 $$");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestFileKeywordInsideNamespace()
         {
             await VerifyKeywordAsync(
@@ -109,7 +109,7 @@ file $$
 }");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestFileKeywordInsideNamespaceBeforeClass()
         {
             await VerifyKeywordAsync(
@@ -269,7 +269,7 @@ $$");
         public async Task TestAfterPublic()
             => await VerifyKeywordAsync(@"public $$");
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestAfterFile()
             => await VerifyKeywordAsync(SourceCodeKind.Regular, @"file $$");
 
@@ -395,7 +395,7 @@ $$");
             => await VerifyKeywordAsync(@"$$ ref struct { }");
 
         [Fact]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         public async Task TestAfterNew()
             => await VerifyAbsenceAsync(@"new $$");
 
@@ -543,7 +543,7 @@ class Program
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25569")]
         [CombinatorialData]
         public async Task TestRefReadonlyInStatementContext(bool topLevelStatement)
         {

@@ -1120,7 +1120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
-        [Fact, WorkItem(29398, "https://github.com/dotnet/roslyn/issues/29398")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29398")]
         public async Task LocalFunctionNamedFormat()
         {
             await TestDiagnosticMissingAsync("""
