@@ -516,6 +516,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(6, 21));
         }
 
+        [Fact]
+        public void Array_05()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[,] z = [[1, 2], [3, 4]];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,20): error CS9500: Cannot initialize type 'int[*,*]' with a collection literal because the type is not constructible.
+                //         int[,] z = [[1, 2], [3, 4]];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[[1, 2], [3, 4]]").WithArguments("int[*,*]").WithLocation(5, 20),
+                // (5,21): error CS9500: Cannot initialize type 'int' with a collection literal because the type is not constructible.
+                //         int[,] z = [[1, 2], [3, 4]];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("int").WithLocation(5, 21),
+                // (5,29): error CS9500: Cannot initialize type 'int' with a collection literal because the type is not constructible.
+                //         int[,] z = [[1, 2], [3, 4]];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[3, 4]").WithArguments("int").WithLocation(5, 29));
+        }
+
         [ConditionalTheory(typeof(CoreClrOnly))]
         [CombinatorialData]
         public void Span_01(bool useReadOnlySpan)
@@ -684,6 +709,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,28): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         return ref F2<int>([]);
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "[]").WithLocation(6, 28));
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [CombinatorialData]
+        public void Span_05(bool useReadOnlySpan)
+        {
+            string spanType = useReadOnlySpan ? "ReadOnlySpan" : "Span";
+            string source = $$"""
+                using System;
+                class Program
+                {
+                    static ref readonly {{spanType}}<int> F1()
+                    {
+                        return ref F2<int>([]);
+                    }
+                    static ref readonly {{spanType}}<T> F2<T>(scoped in {{spanType}}<T> s)
+                    {
+                        throw null;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -2314,6 +2362,60 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         public void PrimaryConstructorParameters_02()
+        {
+            string source = """
+                using System;
+                class C(int x, int y, int z)
+                {
+                    Func<int[]> F = () => [x, y];
+                    Func<int[]> M() => () => [y];
+                    static void Main()
+                    {
+                        var c = new C(1, 2, 3);
+                        c.F().Report();
+                        c.M()().Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, GetCollectionExtensions() }, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(2,27): warning CS9113: Parameter 'z' is unread.
+                // class C(int x, int y, int z)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "z").WithArguments("z").WithLocation(2, 27));
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "[1, 2], [2], ");
+            verifier.VerifyIL("C..ctor(int, int, int)",
+                """
+                {
+                  // Code size       52 (0x34)
+                  .maxstack  3
+                  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.2
+                  IL_0002:  stfld      "int C.<y>PC__BackingField"
+                  IL_0007:  newobj     "C.<>c__DisplayClass0_0..ctor()"
+                  IL_000c:  stloc.0
+                  IL_000d:  ldloc.0
+                  IL_000e:  ldarg.1
+                  IL_000f:  stfld      "int C.<>c__DisplayClass0_0.x"
+                  IL_0014:  ldloc.0
+                  IL_0015:  ldarg.0
+                  IL_0016:  stfld      "C C.<>c__DisplayClass0_0.<>4__this"
+                  IL_001b:  ldarg.0
+                  IL_001c:  ldloc.0
+                  IL_001d:  ldftn      "int[] C.<>c__DisplayClass0_0.<.ctor>b__0()"
+                  IL_0023:  newobj     "System.Func<int[]>..ctor(object, System.IntPtr)"
+                  IL_0028:  stfld      "System.Func<int[]> C.F"
+                  IL_002d:  ldarg.0
+                  IL_002e:  call       "object..ctor()"
+                  IL_0033:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void PrimaryConstructorParameters_03()
         {
             string source = """
                 using System.Collections.Generic;
