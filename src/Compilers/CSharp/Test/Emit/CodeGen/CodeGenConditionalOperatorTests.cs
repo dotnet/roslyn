@@ -151,6 +151,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 """);
         }
 
+        [Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")]
+        public void Branchless_NonBinaryCondition()
+        {
+            // public static class C { public static bool M() => -1; }
+            var source1 = """
+                .class public auto ansi abstract sealed beforefieldinit C
+                    extends System.Object
+                {
+                    .method public hidebysig static bool M () cil managed
+                    {
+                        .maxstack 8
+                        ldc.i4.m1
+                        ret
+                    }
+                }
+                """;
+            var source2 = """
+                System.Console.WriteLine(D.M1());
+                System.Console.WriteLine(D.M2());
+
+                class D
+                {
+                    public static int M1() => C.M() ? 1 : 0;
+                    public static int M2() => C.M() ? 0 : 1;
+                }
+                """;
+            var comp = CreateCompilationWithIL(source2, source1);
+            var verifier = CompileAndVerify(comp, expectedOutput: """
+                1
+                0
+                """);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyMethodBody("D.M1", """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  // sequence point: C.M() ? 1 : 0
+                  IL_0000:  call       "bool C.M()"
+                  IL_0005:  brtrue.s   IL_0009
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ret
+                  IL_0009:  ldc.i4.1
+                  IL_000a:  ret
+                }
+                """);
+        }
+
         [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void ConditionalDelegateInterfaceUnification1()
         {
