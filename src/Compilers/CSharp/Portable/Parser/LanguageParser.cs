@@ -5604,9 +5604,8 @@ parse_member_name:;
 
             // Scan for a type argument list. If we think it's a type argument list
             // then assume it is unless we see specific tokens following it.
-            SyntaxToken lastTokenOfList = null;
             ScanTypeFlags possibleTypeArgumentFlags = ScanPossibleTypeArgumentList(
-                ref lastTokenOfList, out bool isDefinitelyTypeArgumentList);
+                out var greaterThanToken, out bool isDefinitelyTypeArgumentList);
 
             if (possibleTypeArgumentFlags == ScanTypeFlags.NotType)
             {
@@ -5622,7 +5621,7 @@ parse_member_name:;
             // was not a type argument list, we must have scanned the entire thing up through
             // the closing greater-than token. In that case we will disambiguate based on the
             // token that follows it.
-            Debug.Assert(lastTokenOfList.Kind == SyntaxKind.GreaterThanToken);
+            Debug.Assert(greaterThanToken.Kind == SyntaxKind.GreaterThanToken);
 
             switch (this.CurrentToken.Kind)
             {
@@ -5702,7 +5701,7 @@ parse_member_name:;
         }
 
         private ScanTypeFlags ScanPossibleTypeArgumentList(
-            ref SyntaxToken lastTokenOfList,
+            out SyntaxToken greaterThanToken,
             out bool isDefinitelyTypeArgumentList)
         {
             isDefinitelyTypeArgumentList = false;
@@ -5718,9 +5717,9 @@ parse_member_name:;
                 var start = this.EatToken();
                 while (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     this.EatToken();
-                var end = this.EatToken();
+                greaterThanToken = this.EatToken();
                 Debug.Assert(start.Kind == SyntaxKind.LessThanToken);
-                Debug.Assert(end.Kind == SyntaxKind.GreaterThanToken);
+                Debug.Assert(greaterThanToken.Kind == SyntaxKind.GreaterThanToken);
 
                 return ScanTypeFlags.GenericTypeOrMethod;
             }
@@ -5734,20 +5733,20 @@ parse_member_name:;
                 // Type arguments cannot contain attributes, so if this is an open square, we early out and assume it is not a type argument
                 if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
                 {
-                    lastTokenOfList = null;
+                    greaterThanToken = null;
                     return ScanTypeFlags.NotType;
                 }
 
                 if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
                 {
-                    lastTokenOfList = EatToken();
+                    greaterThanToken = EatToken();
                     return result;
                 }
 
                 switch (this.ScanType(out _))
                 {
                     case ScanTypeFlags.NotType:
-                        lastTokenOfList = null;
+                        greaterThanToken = null;
                         return ScanTypeFlags.NotType;
 
                     case ScanTypeFlags.MustBeType:
@@ -5835,11 +5834,11 @@ parse_member_name:;
 
             if (this.CurrentToken.Kind != SyntaxKind.GreaterThanToken)
             {
-                lastTokenOfList = null;
+                greaterThanToken = null;
                 return ScanTypeFlags.NotType;
             }
 
-            lastTokenOfList = this.EatToken();
+            greaterThanToken = this.EatToken();
             return result;
         }
 
@@ -6455,7 +6454,7 @@ parse_member_name:;
             lastTokenOfType = this.EatToken();
             if (this.CurrentToken.Kind == SyntaxKind.LessThanToken)
             {
-                return this.ScanPossibleTypeArgumentList(ref lastTokenOfType, out _);
+                return this.ScanPossibleTypeArgumentList(out lastTokenOfType, out _);
             }
             else
             {
