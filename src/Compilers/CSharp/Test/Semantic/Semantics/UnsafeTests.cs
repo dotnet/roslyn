@@ -681,12 +681,12 @@ unsafe class C<T>
                 },
                 new[]
                 {
-                    // (3,24): error CS0306: The type 'int*' may not be used as a type argument
-                    //      void Test(I<int*> i);
-                    Diagnostic(ErrorCode.ERR_BadTypeArgument, "i").WithArguments("int*").WithLocation(3, 24),
-                    // (8,24): error CS0306: The type 'int*' may not be used as a type argument
-                    //      void Test(C<int*> c) { }
-                    Diagnostic(ErrorCode.ERR_BadTypeArgument, "c").WithArguments("int*").WithLocation(8, 24)
+                    // (3,30): error CS0306: The type 'int*' may not be used as a type argument
+                    //     unsafe void Test(I<int*> i);
+                    Diagnostic(ErrorCode.ERR_BadTypeArgument, "i").WithArguments("int*"),
+                    // (8,30): error CS0306: The type 'int*' may not be used as a type argument
+                    //     unsafe void Test(C<int*> c) { }
+                    Diagnostic(ErrorCode.ERR_BadTypeArgument, "c").WithArguments("int*"),
                 });
         }
 
