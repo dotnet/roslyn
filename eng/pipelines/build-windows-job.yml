@@ -45,7 +45,7 @@ jobs:
     - task: NuGetAuthenticate@1
       displayName: 🔏 Authenticate NuGet feeds
       inputs:
-        nuGetServiceConnections: azure-public/roslyn
+        nuGetServiceConnections: dnceng-public/roslyn
         forceReinstallCredentialProvider: true
 
     - task: PowerShell@2
