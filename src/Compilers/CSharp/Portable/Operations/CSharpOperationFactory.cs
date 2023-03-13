@@ -1250,6 +1250,8 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             else
             {
+                // PROTOTYPE: Decide public API shape. Will we always initialize the span
+                // with an array, and is it reasonable to expose this in the IOperation?
                 var array = new ArrayCreationOperation(
                     dimensionSizes,
                     initializer,

@@ -3708,6 +3708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ArrayOrSpanCollectionLiteralExpression:
                 case BoundKind.CollectionInitializerCollectionLiteralExpression:
+                    // PROTOTYPE: Revisit if spans may be optimized to avoid heap allocation.
                     return CallingMethodScope;
 
                 default:
@@ -4190,6 +4191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ArrayOrSpanCollectionLiteralExpression:
                 case BoundKind.CollectionInitializerCollectionLiteralExpression:
+                    // PROTOTYPE: Revisit if spans may be optimized to avoid heap allocation.
                     return true;
 
                 default:
