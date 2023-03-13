@@ -10136,5 +10136,356 @@ class C
             comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
             Assert.Equal(ManagedKind.Unmanaged, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKindNoUseSiteDiagnostics);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfPointers_CSharp11_UnsafeOn()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*>;
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfPointers_CSharp11_UnsafeOff()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*>;
+";
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfPointers_CSharp11_UseSite1_UnsafeOn()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*>;
+
+class C
+{
+    void M(X x)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfPointers_CSharp11_UseSite1_UnsafeOff()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*>;
+
+class C
+{
+    void M(X x)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfPointers_CSharp11_UseSite2_UnsafeOn()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*>;
+
+class C
+{
+    unsafe void M(X x)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfPointers_CSharp11_UseSite2_UnsafeOff()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*>;
+
+class C
+{
+    unsafe void M(X x)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfPointers_CSharp12_UnsafeOn()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*>;
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfPointers_CSharp12_UnsafeOff()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*>;
+";
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfPointers_CSharp12_UseSite1_UnsafeOn()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*>;
+
+class C
+{
+    void M(X x)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfPointers_CSharp12_UseSite1_UnsafeOff()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*>;
+
+class C
+{
+    void M(X x)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfPointers_CSharp12_UseSite2_UnsafeOn()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*>;
+
+class C
+{
+    unsafe void M(X x)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfPointers_CSharp12_UseSite2_UnsafeOff()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*>;
+
+class C
+{
+    unsafe void M(X x)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfArrayOfPointers_CSharp11_UnsafeOn()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*[]>;
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfArrayOfPointers_CSharp11_UnsafeOff()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*[]>;
+";
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfArrayOfPointers_CSharp11_UseSite1_UnsafeOn()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*[]>;
+
+class C
+{
+    void M(X x)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfArrayOfPointers_CSharp11_UseSite1_UnsafeOff()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*[]>;
+
+class C
+{
+    void M(X x)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfArrayOfPointers_CSharp11_UseSite2_UnsafeOn()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*[]>;
+
+class C
+{
+    unsafe void M(X x)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfArrayOfPointers_CSharp11_UseSite2_UnsafeOff()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*[]>;
+
+class C
+{
+    unsafe void M(X x)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfArrayOfPointers_CSharp12_UnsafeOn()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*[]>;
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfArrayOfPointers_CSharp12_UnsafeOff()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*[]>;
+";
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfArrayOfPointers_CSharp12_UseSite1_UnsafeOn()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*[]>;
+
+class C
+{
+    void M(X x)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfArrayOfPointers_CSharp12_UseSite1_UnsafeOff()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*[]>;
+class C
+{
+    void M(X x)
+    {
+    }
+";
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfArrayOfPointers_CSharp12_UseSite2_UnsafeOn()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*[]>;
+
+class C
+{
+    unsafe void M(X x)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void AliasToGenericOfArrayOfPointers_CSharp12_UseSite2_UnsafeOff()
+        {
+            var csharp = @"
+using X = System.Collections.Generic.List<int*[]>;
+class C
+{
+    unsafe void M(X x)
+    {
+    }
+";
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
     }
 }

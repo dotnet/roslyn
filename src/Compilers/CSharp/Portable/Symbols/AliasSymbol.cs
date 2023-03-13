@@ -393,6 +393,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.CheckUnsafeModifier(DeclarationModifiers.Unsafe, usingDirective.UnsafeKeyword.GetLocation(), diagnostics);
                 flags |= BinderFlags.UnsafeRegion;
             }
+            //else
+            //{
+            //    // Prior to C#12, allow the alias to be an unsafe region.  This allows us to maintain compat with prior
+            //    // versions of the compiler that allowed `using X = List<int*[]>` to be written.
+            //    if (((CSharpParseOptions)syntax.SyntaxTree.Options).LanguageVersion < LanguageVersion.Preview)
+            //        flags |= BinderFlags.UnsafeRegion;
+            //}
 
             var declarationBinder = ContainingSymbol.DeclaringCompilation
                 .GetBinderFactory(syntax.SyntaxTree)
