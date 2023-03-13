@@ -7,7 +7,6 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageService
@@ -22,8 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Class VisualBasicCodeGenerationService
         Inherits AbstractCodeGenerationService(Of VisualBasicCodeGenerationContextInfo)
 
-        Public Sub New(provider As HostLanguageServices)
-            MyBase.New(provider.GetService(Of ISymbolDeclarationService)())
+        Public Sub New(languageServices As LanguageServices)
+            MyBase.New(languageServices)
         End Sub
 
         Public Overrides ReadOnly Property DefaultOptions As CodeGenerationOptions
@@ -33,7 +32,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Property
 
         Public Overrides Function GetCodeGenerationOptions(options As IOptionsReader, fallbackOptions As CodeGenerationOptions) As CodeGenerationOptions
-            Return options.GetVisualBasicCodeGenerationOptions(DirectCast(fallbackOptions, VisualBasicCodeGenerationOptions))
+            Return New VisualBasicCodeGenerationOptions(options, DirectCast(fallbackOptions, VisualBasicCodeGenerationOptions))
+        End Function
+
+        Public Overrides Function GetInfo(context As CodeGenerationContext, options As CodeGenerationOptions, parseOptions As ParseOptions) As VisualBasicCodeGenerationContextInfo
+            Return New VisualBasicCodeGenerationContextInfo(context, DirectCast(options, VisualBasicCodeGenerationOptions), Me)
         End Function
 
         Public Overloads Overrides Function GetDestination(containerNode As SyntaxNode) As CodeGenerationDestination

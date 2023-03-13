@@ -37,286 +37,341 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         public async Task TestMissingWithSyntaxError()
         {
             await TestMissingAsync(
-@"class C {
-    void Bar() {
-        if ([||]i && (j && )
-    }
-}");
+                """
+                class C {
+                    void Bar() {
+                        if ([||]i && (j && )
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMissingWithSelection()
         {
             await TestMissingAsync(
-@"class C {
-    void Bar() {
-        if ([|i|] && j) {
-        }
-    }
-}");
+                """
+                class C {
+                    void Bar() {
+                        if ([|i|] && j) {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMissingBeforeExpr()
         {
             await TestMissingAsync(
-@"class C {
-    void Bar() {
-        [||]if (i && j) {
-        }
-    }
-}");
+                """
+                class C {
+                    void Bar() {
+                        [||]if (i && j) {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMissingWithSingleExpr()
         {
             await TestMissingAsync(
-@"class C {
-    void Bar() {
-        if ([||]i) {
-        }
-    }
-}");
+                """
+                class C {
+                    void Bar() {
+                        if ([||]i) {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMissingWithMultiLineExpression()
         {
             await TestMissingAsync(
-@"class C {
-    void Bar() {
-        if ([||]i && (j +
-            k)) {
-        }
-    }
-}");
+                """
+                class C {
+                    void Bar() {
+                        if ([||]i && (j +
+                            k)) {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMissingWithMultiLineExpr2()
         {
             await TestMissingAsync(
-@"class C {
-    void Bar() {
-        if ([||]i && @""
-        "") {
-        }
-    }
-}");
+                """
+                class C {
+                    void Bar() {
+                        if ([||]i && @"
+                        ") {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestInIf()
         {
             await TestEndOfLine(
-@"class C {
-    void Bar() {
-        if ([||]i && j) {
-        }
-    }
-}",
-@"class C {
-    void Bar() {
-        if (i &&
-            j) {
-        }
-    }
-}");
+                """
+                class C {
+                    void Bar() {
+                        if ([||]i && j) {
+                        }
+                    }
+                }
+                """,
+                """
+                class C {
+                    void Bar() {
+                        if (i &&
+                            j) {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestInIf_IncludingOp()
         {
             await TestBeginningOfLine(
-@"class C {
-    void Bar() {
-        if ([||]i && j) {
-        }
-    }
-}",
-@"class C {
-    void Bar() {
-        if (i
-            && j) {
-        }
-    }
-}");
+                """
+                class C {
+                    void Bar() {
+                        if ([||]i && j) {
+                        }
+                    }
+                }
+                """,
+                """
+                class C {
+                    void Bar() {
+                        if (i
+                            && j) {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestInIf2()
         {
             await TestEndOfLine(
-@"class C {
-    void Bar() {
-        if (i[||] && j) {
-        }
-    }
-}",
-@"class C {
-    void Bar() {
-        if (i &&
-            j) {
-        }
-    }
-}");
+                """
+                class C {
+                    void Bar() {
+                        if (i[||] && j) {
+                        }
+                    }
+                }
+                """,
+                """
+                class C {
+                    void Bar() {
+                        if (i &&
+                            j) {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestInIf3()
         {
             await TestEndOfLine(
-@"class C {
-    void Bar() {
-        if (i [||]&& j) {
-        }
-    }
-}",
-@"class C {
-    void Bar() {
-        if (i &&
-            j) {
-        }
-    }
-}");
+                """
+                class C {
+                    void Bar() {
+                        if (i [||]&& j) {
+                        }
+                    }
+                }
+                """,
+                """
+                class C {
+                    void Bar() {
+                        if (i &&
+                            j) {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestInIf4()
         {
             await TestEndOfLine(
-@"class C {
-    void Bar() {
-        if (i &&[||] j) {
-        }
-    }
-}",
-@"class C {
-    void Bar() {
-        if (i &&
-            j) {
-        }
-    }
-}");
+                """
+                class C {
+                    void Bar() {
+                        if (i &&[||] j) {
+                        }
+                    }
+                }
+                """,
+                """
+                class C {
+                    void Bar() {
+                        if (i &&
+                            j) {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestInIf5()
         {
             await TestEndOfLine(
-@"class C {
-    void Bar() {
-        if (i && [||]j) {
-        }
-    }
-}",
-@"class C {
-    void Bar() {
-        if (i &&
-            j) {
-        }
-    }
-}");
+                """
+                class C {
+                    void Bar() {
+                        if (i && [||]j) {
+                        }
+                    }
+                }
+                """,
+                """
+                class C {
+                    void Bar() {
+                        if (i &&
+                            j) {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestTwoExprWrappingCases_End()
         {
             await TestAllWrappingCasesAsync(
-@"class C {
-    void Bar() {
-        if ([||]i && j) {
-        }
-    }
-}",
+                """
+                class C {
+                    void Bar() {
+                        if ([||]i && j) {
+                        }
+                    }
+                }
+                """,
 EndOfLine,
-@"class C {
+"""
+class C {
     void Bar() {
         if (i &&
             j) {
         }
     }
-}");
+}
+""");
         }
 
         [Fact]
         public async Task TestTwoExprWrappingCases_Beginning()
         {
             await TestAllWrappingCasesAsync(
-@"class C {
-    void Bar() {
-        if ([||]i && j) {
-        }
-    }
-}",
+                """
+                class C {
+                    void Bar() {
+                        if ([||]i && j) {
+                        }
+                    }
+                }
+                """,
 BeginningOfLine,
-@"class C {
+"""
+class C {
     void Bar() {
         if (i
             && j) {
         }
     }
-}");
+}
+""");
         }
 
         [Fact]
         public async Task TestThreeExprWrappingCases_End()
         {
             await TestAllWrappingCasesAsync(
-@"class C {
-    void Bar() {
-        if ([||]i && j || k) {
-        }
-    }
-}",
+                """
+                class C {
+                    void Bar() {
+                        if ([||]i && j || k) {
+                        }
+                    }
+                }
+                """,
 EndOfLine,
-@"class C {
+"""
+class C {
     void Bar() {
         if (i &&
             j ||
             k) {
         }
     }
-}");
+}
+""");
         }
 
         [Fact]
         public async Task TestThreeExprWrappingCases_Beginning()
         {
             await TestAllWrappingCasesAsync(
-@"class C {
-    void Bar() {
-        if ([||]i && j || k) {
-        }
-    }
-}",
+                """
+                class C {
+                    void Bar() {
+                        if ([||]i && j || k) {
+                        }
+                    }
+                }
+                """,
 BeginningOfLine,
-@"class C {
+"""
+class C {
     void Bar() {
         if (i
             && j
             || k) {
         }
     }
-}");
+}
+""");
         }
 
         [Fact]
         public async Task Test_AllOptions_NoInitialMatches_End()
         {
             await TestAllWrappingCasesAsync(
-@"class C {
-    void Bar() {
-        if (
-            [||]i   &&
-                j
-                 ||   k) {
-        }
-    }
-}",
+                """
+                class C {
+                    void Bar() {
+                        if (
+                            [||]i   &&
+                                j
+                                 ||   k) {
+                        }
+                    }
+                }
+                """,
 EndOfLine,
-@"class C {
+"""
+class C {
     void Bar() {
         if (
             i &&
@@ -324,31 +379,37 @@ EndOfLine,
             k) {
         }
     }
-}",
-@"class C {
+}
+""",
+"""
+class C {
     void Bar() {
         if (
             i && j || k) {
         }
     }
-}");
+}
+""");
         }
 
         [Fact]
         public async Task Test_AllOptions_NoInitialMatches_Beginning()
         {
             await TestAllWrappingCasesAsync(
-@"class C {
-    void Bar() {
-        if (
-            [||]i   &&
-                j
-                 ||   k) {
-        }
-    }
-}",
+                """
+                class C {
+                    void Bar() {
+                        if (
+                            [||]i   &&
+                                j
+                                 ||   k) {
+                        }
+                    }
+                }
+                """,
 BeginningOfLine,
-@"class C {
+"""
+class C {
     void Bar() {
         if (
             i
@@ -356,328 +417,405 @@ BeginningOfLine,
             || k) {
         }
     }
-}",
-@"class C {
+}
+""",
+"""
+class C {
     void Bar() {
         if (
             i && j || k) {
         }
     }
-}");
+}
+""");
         }
 
         [Fact]
         public async Task Test_DoNotOfferExistingOption1()
         {
             await TestAllWrappingCasesAsync(
-@"class C {
-    void Bar() {
-        if ([||]a &&
-            b) {
-        }
-    }
-}",
-@"class C {
-    void Bar() {
-        if (a
-            && b) {
-        }
-    }
-}",
-@"class C {
-    void Bar() {
-        if (a && b) {
-        }
-    }
-}");
+                """
+                class C {
+                    void Bar() {
+                        if ([||]a &&
+                            b) {
+                        }
+                    }
+                }
+                """,
+                """
+                class C {
+                    void Bar() {
+                        if (a
+                            && b) {
+                        }
+                    }
+                }
+                """,
+                """
+                class C {
+                    void Bar() {
+                        if (a && b) {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task Test_DoNotOfferExistingOption2_End()
         {
             await TestAllWrappingCasesAsync(
-@"class C {
-    void Bar() {
-        if ([||]a
-            && b) {
-        }
-    }
-}",
+                """
+                class C {
+                    void Bar() {
+                        if ([||]a
+                            && b) {
+                        }
+                    }
+                }
+                """,
 EndOfLine,
-@"class C {
+"""
+class C {
     void Bar() {
         if (a &&
             b) {
         }
     }
-}",
-@"class C {
+}
+""",
+"""
+class C {
     void Bar() {
         if (a && b) {
         }
     }
-}");
+}
+""");
         }
 
         [Fact]
         public async Task Test_DoNotOfferExistingOption2_Beginning()
         {
             await TestAllWrappingCasesAsync(
-@"class C {
-    void Bar() {
-        if ([||]a
-            && b) {
-        }
-    }
-}",
+                """
+                class C {
+                    void Bar() {
+                        if ([||]a
+                            && b) {
+                        }
+                    }
+                }
+                """,
 BeginningOfLine,
-@"class C {
+"""
+class C {
     void Bar() {
         if (a && b) {
         }
     }
-}");
+}
+""");
         }
 
         [Fact]
         public async Task TestInLocalInitializer_Beginning()
         {
             await TestAllWrappingCasesAsync(
-@"class C {
-    void Goo() {
-        var v = [||]a && b && c;
-    }
-}",
+                """
+                class C {
+                    void Goo() {
+                        var v = [||]a && b && c;
+                    }
+                }
+                """,
 BeginningOfLine,
-@"class C {
+"""
+class C {
     void Goo() {
         var v = a
             && b
             && c;
     }
-}",
-@"class C {
+}
+""",
+"""
+class C {
     void Goo() {
         var v = a
                 && b
                 && c;
     }
-}");
+}
+""");
         }
 
         [Fact]
         public async Task TestInLocalInitializer_End()
         {
             await TestAllWrappingCasesAsync(
-@"class C {
-    void Goo() {
-        var v = [||]a && b && c;
-    }
-}",
+                """
+                class C {
+                    void Goo() {
+                        var v = [||]a && b && c;
+                    }
+                }
+                """,
 EndOfLine,
-@"class C {
+"""
+class C {
     void Goo() {
         var v = a &&
             b &&
             c;
     }
-}",
-@"class C {
+}
+""",
+"""
+class C {
     void Goo() {
         var v = a &&
                 b &&
                 c;
     }
-}");
+}
+""");
         }
 
         [Fact]
         public async Task TestInField_Beginning()
         {
             await TestAllWrappingCasesAsync(
-@"class C {
-    bool v = [||]a && b && c;
-}",
+                """
+                class C {
+                    bool v = [||]a && b && c;
+                }
+                """,
 BeginningOfLine,
-@"class C {
+"""
+class C {
     bool v = a
         && b
         && c;
-}",
-@"class C {
+}
+""",
+"""
+class C {
     bool v = a
              && b
              && c;
-}");
+}
+""");
         }
 
         [Fact]
         public async Task TestInField_End()
         {
             await TestAllWrappingCasesAsync(
-@"class C {
-    bool v = [||]a && b && c;
-}",
+                """
+                class C {
+                    bool v = [||]a && b && c;
+                }
+                """,
 EndOfLine,
-@"class C {
+"""
+class C {
     bool v = a &&
         b &&
         c;
-}",
-@"class C {
+}
+""",
+"""
+class C {
     bool v = a &&
              b &&
              c;
-}");
+}
+""");
         }
 
         [Fact]
         public async Task TestAddition_End()
         {
             await TestAllWrappingCasesAsync(
-@"class C {
-    void Bar() {
-        var goo = [||]""now"" + ""is"" + ""the"" + ""time"";
-    }
-}",
+                """
+                class C {
+                    void Bar() {
+                        var goo = [||]"now" + "is" + "the" + "time";
+                    }
+                }
+                """,
 EndOfLine,
-@"class C {
+"""
+class C {
     void Bar() {
-        var goo = ""now"" +
-            ""is"" +
-            ""the"" +
-            ""time"";
+        var goo = "now" +
+            "is" +
+            "the" +
+            "time";
     }
-}",
-@"class C {
+}
+""",
+"""
+class C {
     void Bar() {
-        var goo = ""now"" +
-                  ""is"" +
-                  ""the"" +
-                  ""time"";
+        var goo = "now" +
+                  "is" +
+                  "the" +
+                  "time";
     }
-}");
+}
+""");
         }
 
         [Fact]
         public async Task TestAddition_Beginning()
         {
             await TestAllWrappingCasesAsync(
-@"class C {
-    void Bar() {
-        var goo = [||]""now"" + ""is"" + ""the"" + ""time"";
-    }
-}",
+                """
+                class C {
+                    void Bar() {
+                        var goo = [||]"now" + "is" + "the" + "time";
+                    }
+                }
+                """,
 BeginningOfLine,
-@"class C {
+"""
+class C {
     void Bar() {
-        var goo = ""now""
-            + ""is""
-            + ""the""
-            + ""time"";
+        var goo = "now"
+            + "is"
+            + "the"
+            + "time";
     }
-}",
-@"class C {
+}
+""",
+"""
+class C {
     void Bar() {
-        var goo = ""now""
-                  + ""is""
-                  + ""the""
-                  + ""time"";
+        var goo = "now"
+                  + "is"
+                  + "the"
+                  + "time";
     }
-}");
+}
+""");
         }
 
         [Fact]
         public async Task TestUnderscoreName_End()
         {
             await TestEndOfLine(
-@"class C {
-    void Bar() {
-        if ([||]i is var _ && _ != null) {
-        }
-    }
-}",
-@"class C {
-    void Bar() {
-        if (i is var _ &&
-            _ != null) {
-        }
-    }
-}");
+                """
+                class C {
+                    void Bar() {
+                        if ([||]i is var _ && _ != null) {
+                        }
+                    }
+                }
+                """,
+                """
+                class C {
+                    void Bar() {
+                        if (i is var _ &&
+                            _ != null) {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestUnderscoreName_Beginning()
         {
             await TestBeginningOfLine(
-@"class C {
-    void Bar() {
-        if ([||]i is var _ && _ != null) {
-        }
-    }
-}",
-@"class C {
-    void Bar() {
-        if (i is var _
-            && _ != null) {
-        }
-    }
-}");
+                """
+                class C {
+                    void Bar() {
+                        if ([||]i is var _ && _ != null) {
+                        }
+                    }
+                }
+                """,
+                """
+                class C {
+                    void Bar() {
+                        if (i is var _
+                            && _ != null) {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestInField_Already_Wrapped_Beginning()
         {
             await TestAllWrappingCasesAsync(
-@"class C {
-    bool v =
-        [||]a && b && c;
-}",
+                """
+                class C {
+                    bool v =
+                        [||]a && b && c;
+                }
+                """,
 BeginningOfLine,
-@"class C {
+"""
+class C {
     bool v =
         a
         && b
         && c;
-}");
+}
+""");
         }
 
         [Fact]
         public async Task TestInField_Already_Wrapped_End()
         {
             await TestAllWrappingCasesAsync(
-@"class C {
-    bool v =
-        [||]a && b && c;
-}",
+                """
+                class C {
+                    bool v =
+                        [||]a && b && c;
+                }
+                """,
 EndOfLine,
-@"class C {
+"""
+class C {
     bool v =
         a &&
         b &&
         c;
-}");
+}
+""");
         }
 
-        [Fact, WorkItem(34127, "https://github.com/dotnet/roslyn/issues/34127")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34127")]
         public async Task TestWrapLowerPrecedenceInLargeBinary()
         {
             await TestAllWrappingCasesAsync(
-@"class C
-{
-    bool v = [||]a + b + c + d == x * y * z;
-}",
+                """
+                class C
+                {
+                    bool v = [||]a + b + c + d == x * y * z;
+                }
+                """,
 EndOfLine,
-@"class C
+"""
+class C
 {
     bool v = a + b + c + d ==
         x * y * z;
-}",
-@"class C
+}
+""",
+"""
+class C
 {
     bool v = a + b + c + d ==
              x * y * z;
-}");
+}
+""");
         }
     }
 }

@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AnonymousType = 'f',
         TransparentIdentifier = 'h',
         AnonymousTypeField = 'i',
+        StateMachineStateIdField = 'I',
         AnonymousTypeTypeParameter = 'j',
         AutoPropertyBackingField = 'k',
         IteratorCurrentThreadIdField = 'l',

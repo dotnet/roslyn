@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -233,81 +234,84 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodBodyFactory.Literal(dynamicAnalysisSpans.Length)));
         }
 
-        public override BoundStatement? CreateBlockPrologue(BoundBlock original, out LocalSymbol? synthesizedLocal)
+        public override void InstrumentBlock(BoundBlock original, LocalRewriter rewriter, ref TemporaryArray<LocalSymbol> additionalLocals, out BoundStatement? prologue, out BoundStatement? epilogue, out BoundBlockInstrumentation? instrumentation)
         {
-            BoundStatement? previousPrologue = base.CreateBlockPrologue(original, out synthesizedLocal);
-            if (_methodBody == original)
+            base.InstrumentBlock(original, rewriter, ref additionalLocals, out var previousPrologue, out epilogue, out instrumentation);
+
+            // only instrument method body block:
+            if (original != rewriter.CurrentMethodBody)
             {
-                _dynamicAnalysisSpans = _spansBuilder.ToImmutableAndFree();
-                // In the future there will be multiple analysis kinds.
-                const int analysisKind = 0;
-
-                ArrayTypeSymbol modulePayloadType =
-                    ArrayTypeSymbol.CreateCSharpArray(_methodBodyFactory.Compilation.Assembly, TypeWithAnnotations.Create(_payloadType));
-
-                // Synthesize the initialization of the instrumentation payload array, using concurrency-safe code:
-                //
-                // var payload = PID.PayloadRootField[methodIndex];
-                // if (payload == null)
-                //     payload = Instrumentation.CreatePayload(mvid, methodIndex, fileIndexOrIndices, ref PID.PayloadRootField[methodIndex], payloadLength);
-
-                BoundStatement payloadInitialization =
-                    _methodBodyFactory.Assignment(
-                        _methodBodyFactory.Local(_methodPayload),
-                        _methodBodyFactory.ArrayAccess(
-                            _methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType),
-                            ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method))));
-
-                BoundExpression mvid = _methodBodyFactory.ModuleVersionId();
-                BoundExpression methodToken = _methodBodyFactory.MethodDefIndex(_method);
-
-                BoundExpression payloadSlot =
-                    _methodBodyFactory.ArrayAccess(
-                        _methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType),
-                        ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method)));
-
-                BoundStatement createPayloadCall =
-                    GetCreatePayloadStatement(
-                        _dynamicAnalysisSpans,
-                        _methodBody.Syntax,
-                        _methodPayload,
-                        _createPayloadForMethodsSpanningSingleFile,
-                        _createPayloadForMethodsSpanningMultipleFiles,
-                        mvid,
-                        methodToken,
-                        payloadSlot,
-                        _methodBodyFactory,
-                        _debugDocumentProvider);
-
-                BoundExpression payloadNullTest =
-                    _methodBodyFactory.Binary(
-                        BinaryOperatorKind.ObjectEqual,
-                        _methodBodyFactory.SpecialType(SpecialType.System_Boolean),
-                        _methodBodyFactory.Local(_methodPayload),
-                        _methodBodyFactory.Null(_payloadType));
-
-                BoundStatement payloadIf = _methodBodyFactory.If(payloadNullTest, createPayloadCall);
-
-                Debug.Assert(synthesizedLocal == null);
-                synthesizedLocal = _methodPayload;
-
-                ArrayBuilder<BoundStatement> prologueStatements = ArrayBuilder<BoundStatement>.GetInstance(previousPrologue == null ? 3 : 4);
-                prologueStatements.Add(payloadInitialization);
-                prologueStatements.Add(payloadIf);
-                if (_methodEntryInstrumentation != null)
-                {
-                    prologueStatements.Add(_methodEntryInstrumentation);
-                }
-
-                if (previousPrologue != null)
-                {
-                    prologueStatements.Add(previousPrologue);
-                }
-
-                return _methodBodyFactory.StatementList(prologueStatements.ToImmutableAndFree());
+                prologue = previousPrologue;
+                return;
             }
 
-            return previousPrologue;
+            _dynamicAnalysisSpans = _spansBuilder.ToImmutableAndFree();
+            // In the future there will be multiple analysis kinds.
+            const int analysisKind = 0;
+
+            ArrayTypeSymbol modulePayloadType =
+                ArrayTypeSymbol.CreateCSharpArray(_methodBodyFactory.Compilation.Assembly, TypeWithAnnotations.Create(_payloadType));
+
+            // Synthesize the initialization of the instrumentation payload array, using concurrency-safe code:
+            //
+            // var payload = PID.PayloadRootField[methodIndex];
+            // if (payload == null)
+            //     payload = Instrumentation.CreatePayload(mvid, methodIndex, fileIndexOrIndices, ref PID.PayloadRootField[methodIndex], payloadLength);
+
+            BoundStatement payloadInitialization =
+                _methodBodyFactory.Assignment(
+                    _methodBodyFactory.Local(_methodPayload),
+                    _methodBodyFactory.ArrayAccess(
+                        _methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType),
+                        ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method))));
+
+            BoundExpression mvid = _methodBodyFactory.ModuleVersionId();
+            BoundExpression methodToken = _methodBodyFactory.MethodDefIndex(_method);
+
+            BoundExpression payloadSlot =
+                _methodBodyFactory.ArrayAccess(
+                    _methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType),
+                    ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method)));
+
+            BoundStatement createPayloadCall =
+                GetCreatePayloadStatement(
+                    _dynamicAnalysisSpans,
+                    _methodBody.Syntax,
+                    _methodPayload,
+                    _createPayloadForMethodsSpanningSingleFile,
+                    _createPayloadForMethodsSpanningMultipleFiles,
+                    mvid,
+                    methodToken,
+                    payloadSlot,
+                    _methodBodyFactory,
+                    _debugDocumentProvider);
+
+            BoundExpression payloadNullTest =
+                _methodBodyFactory.Binary(
+                    BinaryOperatorKind.ObjectEqual,
+                    _methodBodyFactory.SpecialType(SpecialType.System_Boolean),
+                    _methodBodyFactory.Local(_methodPayload),
+                    _methodBodyFactory.Null(_payloadType));
+
+            BoundStatement payloadIf = _methodBodyFactory.If(payloadNullTest, createPayloadCall);
+
+            additionalLocals.Add(_methodPayload);
+
+            var prologueStatements = ArrayBuilder<BoundStatement>.GetInstance(2 + (_methodEntryInstrumentation != null ? 1 : 0) + (previousPrologue != null ? 1 : 0));
+
+            prologueStatements.Add(payloadInitialization);
+            prologueStatements.Add(payloadIf);
+            if (_methodEntryInstrumentation != null)
+            {
+                prologueStatements.Add(_methodEntryInstrumentation);
+            }
+
+            if (previousPrologue != null)
+            {
+                prologueStatements.Add(previousPrologue);
+            }
+
+            prologue = _methodBodyFactory.StatementList(prologueStatements.ToImmutableAndFree());
         }
 
         public ImmutableArray<SourceSpan> DynamicAnalysisSpans => _dynamicAnalysisSpans;
@@ -377,9 +381,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddDynamicAnalysis(original, base.InstrumentWhileStatementConditionalGotoStartOrBreak(original, ifConditionGotoStart));
         }
 
-        public override BoundStatement InstrumentLocalInitialization(BoundLocalDeclaration original, BoundStatement rewritten)
+        public override BoundStatement InstrumentUserDefinedLocalInitialization(BoundLocalDeclaration original, BoundStatement rewritten)
         {
-            return AddDynamicAnalysis(original, base.InstrumentLocalInitialization(original, rewritten));
+            return AddDynamicAnalysis(original, base.InstrumentUserDefinedLocalInitialization(original, rewritten));
         }
 
         public override BoundStatement InstrumentLockTargetCapture(BoundLockStatement original, BoundStatement lockTargetCapture)

@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     /// </summary>
     public partial class AbstractCodeModelObject
     {
-        private static CodeGenerationContextInfo GetCodeGenerationContextInfo(
+        private CodeGenerationContextInfo GetCodeGenerationContextInfo(
             SyntaxNode containerNode,
             CodeGenerationOptions options,
             EnvDTE.vsCMAccess access = EnvDTE.vsCMAccess.vsCMAccessDefault,
@@ -26,10 +26,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var generateDefaultAccessibility = (access & EnvDTE.vsCMAccess.vsCMAccessDefault) == 0;
 
-            return options.GetInfo(
+            return CodeGenerationService.GetInfo(
                 new CodeGenerationContext(
                     generateDefaultAccessibility: generateDefaultAccessibility,
                     generateMethodBodies: generateMethodBodies),
+                options,
                 containerNode.SyntaxTree.Options);
         }
 

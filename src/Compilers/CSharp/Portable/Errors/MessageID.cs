@@ -262,6 +262,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Missing = MessageBase + 12830,
         IDS_FeatureLambdaOptionalParameters = MessageBase + 12831,
         IDS_FeatureLambdaParamsArray = MessageBase + 12832,
+
+        IDS_FeaturePrimaryConstructors = MessageBase + 12833,
+        IDS_FeatureUsingTypeAlias = MessageBase + 12834,
         IDS_FeatureCollectionLiterals = MessageBase + 12900, // PROTOTYPE: Update message number.
     }
 
@@ -389,6 +392,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# preview features.
                 case MessageID.IDS_FeatureLambdaOptionalParameters: // semantic check
                 case MessageID.IDS_FeatureLambdaParamsArray: // semantic check
+                case MessageID.IDS_FeaturePrimaryConstructors: // declaration table check
+                case MessageID.IDS_FeatureUsingTypeAlias: // semantic check
                 case MessageID.IDS_FeatureCollectionLiterals: // semantic check
                     return LanguageVersion.Preview;
 

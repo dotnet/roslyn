@@ -2432,8 +2432,6 @@ namespace Microsoft.CodeAnalysis
         internal abstract bool CompileMethods(
             CommonPEModuleBuilder moduleBuilder,
             bool emittingPdb,
-            bool emitMetadataOnly,
-            bool emitTestCoverageData,
             DiagnosticBag diagnostics,
             Predicate<ISymbolInternal>? filterOpt,
             CancellationToken cancellationToken);
@@ -2568,8 +2566,6 @@ namespace Microsoft.CodeAnalysis
                 return CompileMethods(
                     moduleBuilder,
                     emittingPdb,
-                    emitMetadataOnly: false,
-                    emitTestCoverageData: false,
                     diagnostics: diagnostics,
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
@@ -2919,8 +2915,6 @@ namespace Microsoft.CodeAnalysis
                     success = CompileMethods(
                         moduleBeingBuilt,
                         emittingPdb: pdbStream != null || embedPdb,
-                        emitMetadataOnly: options.EmitMetadataOnly,
-                        emitTestCoverageData: options.EmitTestCoverageData,
                         diagnostics: diagnostics,
                         filterOpt: null,
                         cancellationToken: cancellationToken);
@@ -3239,7 +3233,7 @@ namespace Microsoft.CodeAnalysis
                         emitOptions.EmitMetadataOnly,
                         emitOptions.IncludePrivateMembers,
                         deterministic,
-                        emitOptions.EmitTestCoverageData,
+                        emitOptions.InstrumentationKinds.Contains(InstrumentationKind.TestCoverage),
                         privateKeyOpt,
                         cancellationToken))
                     {
@@ -3407,6 +3401,8 @@ namespace Microsoft.CodeAnalysis
                         definitionMap,
                         changes,
                         cancellationToken);
+
+                    moduleBeingBuilt.TestData?.SetMetadataWriter(writer);
 
                     writer.WriteMetadataAndIL(
                         nativePdbWriter,
@@ -3746,5 +3742,14 @@ namespace Microsoft.CodeAnalysis
 
             return foundVersion;
         }
+
+        /// <summary>
+        /// Determines whether the runtime this <see cref="Compilation"/> is targeting supports a particular capability.
+        /// </summary>
+        /// <remarks>Returns <see langword="false"/> if an unknown capability is passed in.</remarks>
+        public bool SupportsRuntimeCapability(RuntimeCapability capability)
+            => SupportsRuntimeCapabilityCore(capability);
+
+        private protected abstract bool SupportsRuntimeCapabilityCore(RuntimeCapability capability);
     }
 }

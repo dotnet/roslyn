@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
         {
             protected override int CodeActionIndex => 4;
 
-            [WorkItem(39664, "https://github.com/dotnet/roslyn/issues/39664")]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/39664")]
             [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_Empty_Error()
             {
@@ -106,7 +106,7 @@ dotnet_diagnostic.IDE0037.severity = error
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [WorkItem(39664, "https://github.com/dotnet/roslyn/issues/39664")]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/39664")]
             [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_BothRulesExist_Error()
             {
@@ -190,7 +190,7 @@ dotnet_diagnostic.IDE0037.severity = error
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [WorkItem(39664, "https://github.com/dotnet/roslyn/issues/39664")]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/39664")]
             [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_OneRuleExists_Error()
             {
@@ -268,7 +268,7 @@ dotnet_diagnostic.IDE0037.severity = error
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [WorkItem(39664, "https://github.com/dotnet/roslyn/issues/39664")]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/39664")]
             [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_AllPossibleEntriesExist_Error()
             {

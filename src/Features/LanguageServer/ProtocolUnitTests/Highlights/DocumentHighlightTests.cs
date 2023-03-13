@@ -49,7 +49,7 @@ class A
             AssertJsonEquals(expected, results);
         }
 
-        [Fact, WorkItem(59120, "https://github.com/dotnet/roslyn/issues/59120")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59120")]
         public async Task TestGetDocumentHighlightAsync_Keywords()
         {
             var markup =

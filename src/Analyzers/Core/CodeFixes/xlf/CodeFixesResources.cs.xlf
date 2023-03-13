@@ -27,6 +27,31 @@
         <target state="translated">Přidat hlavičku souboru</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_member_name">
+        <source>Add member name</source>
+        <target state="new">Add member name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_param_nodes">
+        <source>Add missing param nodes</source>
+        <target state="new">Add missing param nodes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_0">
+        <source>Add parameter to '{0}'</source>
+        <target state="new">Add parameter to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
+        <source>Add parameter to '{0}' (and overrides/implementations)</source>
+        <target state="new">Add parameter to '{0}' (and overrides/implementations)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_to_0">
+        <source>Add to '{0}'</source>
+        <target state="new">Add to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
         <source>Alias ambiguous type '{0}'</source>
         <target state="translated">Alias nejednoznačného typu {0}</target>
@@ -57,9 +82,24 @@
         <target state="translated">Nastavit jako statickou</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_method_synchronous">
+        <source>Make method synchronous</source>
+        <target state="new">Make method synchronous</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_type_partial">
         <source>Make type partial</source>
         <target state="translated">Nastavit typ jako částečný</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
+        <source>Related method signatures found in metadata will not be updated.</source>
+        <target state="new">Related method signatures found in metadata will not be updated.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_async_modifier">
+        <source>Remove 'async' modifier</source>
+        <target state="new">Remove 'async' modifier</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">
@@ -72,9 +112,34 @@
         <target state="translated">Odebrat redundantní přiřazení</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_tag">
+        <source>Remove tag</source>
+        <target state="new">Remove tag</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suppress_or_configure_issues">
         <source>Suppress or configure issues</source>
         <target state="translated">Potlačit nebo konfigurovat problémy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_0">
+        <source>Take '{0}'</source>
+        <target state="new">Take '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_both">
+        <source>Take both</source>
+        <target state="new">Take both</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_bottom">
+        <source>Take bottom</source>
+        <target state="new">Take bottom</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_top">
+        <source>Take top</source>
+        <target state="new">Take top</target>
         <note />
       </trans-unit>
       <trans-unit id="Update_suppression_format">
