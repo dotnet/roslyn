@@ -360,7 +360,19 @@ namespace Microsoft.CodeAnalysis.Testing
             var diagnostics = new List<DiagnosticResult>(explicitDiagnostics.Select(diagnostic => diagnostic.WithDefaultPath(defaultPath)));
             foreach ((var filename, var content) in sources)
             {
-                TestFileMarkupParser.GetPositionsAndSpans(content.ToString(), out var output, out var positions, out var namedSpans);
+                string output;
+                ImmutableArray<int> positions;
+                ImmutableDictionary<string, ImmutableArray<TextSpan>> namedSpans;
+                if (markupOptions.HasFlag(MarkupOptions.TreatPositionIndicatorsAsCode))
+                {
+                    positions = ImmutableArray<int>.Empty;
+                    TestFileMarkupParser.GetSpans(content.ToString(), treatPositionIndicatorsAsCode: true, out output, out namedSpans);
+                }
+                else
+                {
+                    TestFileMarkupParser.GetPositionsAndSpans(content.ToString(), out output, out positions, out namedSpans);
+                }
+
                 sourceFiles.Add((filename, content.Replace(new TextSpan(0, content.Length), output)));
                 if (positions.IsEmpty && namedSpans.IsEmpty)
                 {
