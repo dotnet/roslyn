@@ -9,8 +9,16 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-// Specify the VS workspaces we know we need (host, misc, metadata as source) and MSBuild for VSCode.
-[ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host, WorkspaceKind.MiscellaneousFiles, WorkspaceKind.MetadataAsSource, WorkspaceKind.MSBuild, WorkspaceKind.Interactive), Shared]
+[ExportEventListener(
+    WellKnownEventListeners.Workspace,
+    WorkspaceKind.Host,
+    WorkspaceKind.MiscellaneousFiles,
+    WorkspaceKind.MetadataAsSource,
+    // TODO(cyrusn): Why does LSP need to know about the msbuild workspace?  It's a workspace that is used in console
+    // apps, not rich server scenarios.
+    WorkspaceKind.MSBuild,
+    // TODO(cyrusn): Why does LSP need to know about the interactive workspace? Does LSP work in interactive buffers?
+    WorkspaceKind.Interactive), Shared]
 internal class LspWorkspaceRegistrationEventListener : IEventListener<object>, IEventListenerStoppable
 {
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
