@@ -2031,7 +2031,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            // PROTOTYPE: // 2 should be reported as an error (compare with array initializer: new object[] { null }).
+            // PROTOTYPE: // 2 should be reported as a warning (compare with array initializer: new object[] { null }).
             comp.VerifyEmitDiagnostics(
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
                 //         x[0].ToString(); // 1
@@ -2260,6 +2260,113 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (11,16): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         s = (S)[3, 4];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[3, 4]").WithArguments("S").WithLocation(11, 16));
+        }
+
+        [Fact]
+        public void PrimaryConstructorParameters_01()
+        {
+            string source = """
+                struct S(int x, int y, int z)
+                {
+                    int[] F = [x, y];
+                    int[] M() => [y];
+                    static void Main()
+                    {
+                        var s = new S(1, 2, 3);
+                        s.F.Report();
+                        s.M().Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, GetCollectionExtensions() }, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(1,28): warning CS9113: Parameter 'z' is unread.
+                // struct S(int x, int y, int z)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "z").WithArguments("z").WithLocation(1, 28));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "[1, 2], [2], ");
+            verifier.VerifyIL("S..ctor(int, int, int)",
+                """
+                {
+                  // Code size       33 (0x21)
+                  .maxstack  5
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.2
+                  IL_0002:  stfld      "int S.<y>PC__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldc.i4.2
+                  IL_0009:  newarr     "int"
+                  IL_000e:  dup
+                  IL_000f:  ldc.i4.0
+                  IL_0010:  ldarg.1
+                  IL_0011:  stelem.i4
+                  IL_0012:  dup
+                  IL_0013:  ldc.i4.1
+                  IL_0014:  ldarg.0
+                  IL_0015:  ldfld      "int S.<y>PC__BackingField"
+                  IL_001a:  stelem.i4
+                  IL_001b:  stfld      "int[] S.F"
+                  IL_0020:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void PrimaryConstructorParameters_02()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class A(int[] x, List<int> y)
+                {
+                    public int[] X = x;
+                    public List<int> Y = y;
+                }
+                class B(int x, int y, int z) : A([y, z], [z])
+                {
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var b = new B(1, 2, 3);
+                        b.X.Report();
+                        b.Y.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, GetCollectionExtensions() }, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(7,13): warning CS9113: Parameter 'x' is unread.
+                // class B(int x, int y, int z) : A([y, z], [z])
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(7, 13));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "[2, 3], [3], ");
+            verifier.VerifyIL("B..ctor(int, int, int)",
+                """
+                {
+                  // Code size       33 (0x21)
+                  .maxstack  5
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.2
+                  IL_0002:  newarr     "int"
+                  IL_0007:  dup
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  ldarg.2
+                  IL_000a:  stelem.i4
+                  IL_000b:  dup
+                  IL_000c:  ldc.i4.1
+                  IL_000d:  ldarg.3
+                  IL_000e:  stelem.i4
+                  IL_000f:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_0014:  dup
+                  IL_0015:  ldarg.3
+                  IL_0016:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                  IL_001b:  call       "A..ctor(int[], System.Collections.Generic.List<int>)"
+                  IL_0020:  ret
+                }
+                """);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]

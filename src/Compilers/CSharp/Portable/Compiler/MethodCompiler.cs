@@ -2084,11 +2084,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // These nodes do not have anything interesting for us
                                 return false;
 
-                            case CollectionCreationExpressionSyntax:
-                                // PROTOTYPE: Remove this case after binding of collection literals is added,
-                                // and test primary constructor parameters referenced in collection literals.
-                                return false;
-
                             case ExpressionSyntax expression:
                                 if (SyntaxFacts.IsInTypeOnlyContext(expression) &&
                                     !(expression.Parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.IsExpression } isExpression &&
