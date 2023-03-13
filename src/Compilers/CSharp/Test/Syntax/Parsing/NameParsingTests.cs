@@ -832,10 +832,120 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            UsingTree(source);
+            UsingTree(source,
+                // (5,11): error CS1525: Invalid expression term ','
+                //         M<,>();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(5, 11),
+                // (5,11): error CS1002: ; expected
+                //         M<,>();
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(5, 11),
+                // (5,11): error CS1513: } expected
+                //         M<,>();
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(5, 11),
+                // (5,12): error CS1525: Invalid expression term '>'
+                //         M<,>();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(5, 12),
+                // (5,14): error CS1525: Invalid expression term ')'
+                //         M<,>();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(5, 14));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.TypeParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.TypeParameter);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T1");
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.TypeParameter);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T2");
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.LessThanExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "M");
+                                    }
+                                    N(SyntaxKind.LessThanToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.GreaterThanExpression);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                    N(SyntaxKind.ParenthesizedExpression);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
 
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics(
+                 // (5,11): error CS1525: Invalid expression term ','
+                 //         M<,>();
+                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(5, 11),
+                 // (5,11): error CS1002: ; expected
+                 //         M<,>();
+                 Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(5, 11),
+                 // (5,11): error CS1513: } expected
+                 //         M<,>();
+                 Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(5, 11),
+                 // (5,12): error CS1525: Invalid expression term '>'
+                 //         M<,>();
+                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(5, 12),
+                 // (5,14): error CS1525: Invalid expression term ')'
+                 //         M<,>();
+                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(5, 14));
         }
     }
 }
