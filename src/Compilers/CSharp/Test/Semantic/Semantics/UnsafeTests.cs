@@ -10917,7 +10917,6 @@ class C
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 17));
         }
 
-
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
         public void AliasToGenericOfArrayOfPointers_CSharp12_UnsafeOn()
         {
@@ -11030,7 +11029,6 @@ class C
                 //     unsafe void M(X x)
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(5, 17));
         }
-
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
         public void UnsafeAliasToGenericOfArrayOfPointers_CSharp12_UnsafeOn()
