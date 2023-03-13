@@ -1335,11 +1335,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<TypeWithAnnotations> BindTypeArguments(SeparatedSyntaxList<TypeSyntax> typeArguments, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             Debug.Assert(typeArguments.Count > 0);
-            var args = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+            var args = ArrayBuilder<TypeWithAnnotations>.GetInstance(typeArguments.Count);
             foreach (var argSyntax in typeArguments)
-            {
                 args.Add(BindTypeArgument(argSyntax, diagnostics, basesBeingResolved));
-            }
 
             return args.ToImmutableAndFree();
         }
@@ -1354,8 +1352,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // still want to report the error that you need to be in an unsafe context.  So, to maintain compat, we only
             // do the suppression if you're on C# 11 and prior.  In later versions we do the correct check.
             var binder = ((CSharpParseOptions)typeArgument.SyntaxTree.Options).LanguageVersion < LanguageVersion.Preview
-                ? this
-                : this.WithAdditionalFlags(BinderFlags.SuppressUnsafeDiagnostics);
+                ? this.WithAdditionalFlags(BinderFlags.SuppressUnsafeDiagnostics)
+                : this;
 
             var arg = typeArgument.Kind() == SyntaxKind.OmittedTypeArgument
                 ? TypeWithAnnotations.Create(UnboundArgumentErrorTypeSymbol.Instance)
