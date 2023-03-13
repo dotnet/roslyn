@@ -4,10 +4,8 @@
 
 using System;
 using System.Composition;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -15,7 +13,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using StreamJsonRpc;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHints
@@ -45,11 +42,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHints
 
             using var _ = ArrayBuilder<LSP.InlayHint>.GetInstance(out var inlayHints);
             await AddParameterHintsToBuilderAsync(document, text, textSpan, inlayHints, cancellationToken).ConfigureAwait(false);
-            await AddTypeHintsToBuilderAsync(document, textSpan, inlayHints, cancellationToken).ConfigureAwait(false);
+            //await AddTypeHintsToBuilderAsync(document, textSpan, inlayHints, cancellationToken).ConfigureAwait(false);
             return inlayHints.ToArray();
         }
 
-        private async Task AddParameterHintsToBuilderAsync(Document document, SourceText text, TextSpan textSpan, ArrayBuilder<LSP.InlayHint> inlayHints, CancellationToken cancellationToken)
+        private static async Task AddParameterHintsToBuilderAsync(Document document, SourceText text, TextSpan textSpan, ArrayBuilder<LSP.InlayHint> inlayHints, CancellationToken cancellationToken)
         {
             var inlineParameterService = document.GetRequiredLanguageService<IInlineParameterNameHintsService>();
             var options = new InlineParameterHintsOptions()
@@ -63,18 +60,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHints
             foreach (var parameterHint in parameterHints)
             {
                 var linePosition = text.Lines.GetLinePosition(parameterHint.Span.Start);
-                
+                LSP.TextEdit[]? textEdits = null;
+                if (parameterHint.ReplacementTextChange.HasValue)
+                {
+                    var textEdit = ProtocolConversions.TextChangeToTextEdit(parameterHint.ReplacementTextChange.Value, text);
+                    textEdits = new LSP.TextEdit[] { textEdit };
+                }
+
                 var inlayHint = new LSP.InlayHint
                 {
                     Position = ProtocolConversions.LinePositionToPosition(linePosition),
-                    Label = ,
+                    Label = "test",
                     Kind = LSP.InlayHintKind.Parameter,
-
+                    TextEdits = textEdits,
+                    ToolTip = null,
+                    PaddingLeft = false,
+                    PaddingRight = false
                 };
+
+                inlayHints.Add(inlayHint);
             }
         }
 
-        private async Task AddTypeHintsToBuilderAsync(Document document, TextSpan textSpan, ArrayBuilder<InlayHint> inlayHints, CancellationToken cancellationToken)
+        /*private async Task AddTypeHintsToBuilderAsync(Document document, TextSpan textSpan, ArrayBuilder<InlayHint> inlayHints, CancellationToken cancellationToken)
         {
             var inlineTypeService = document.GetRequiredLanguageService<IInlineTypeHintsService>();
             var options = new InlineTypeHintsOptions()
@@ -92,6 +100,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHints
 
                 };
             }
-        }
+        }*/
     }
 }
