@@ -818,5 +818,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(SyntaxFacts.ContainsDroppedIdentifierCharacters("\u200d"));
             Assert.True(SyntaxFacts.ContainsDroppedIdentifierCharacters("a\u200d"));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67277")]
+        public void ParseGenericNameInvocationWithOmittedTypeArguments()
+        {
+            var source = """
+                class C
+                {
+                    void M<T1, T2>()
+                    {
+                        M<,>();
+                    }
+                }
+                """;
+
+            UsingTree(source);
+            EOF();
+
+            CreateCompilation(source).VerifyDiagnostics();
+        }
     }
 }
