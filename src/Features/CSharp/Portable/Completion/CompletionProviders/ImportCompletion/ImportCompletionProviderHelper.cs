@@ -25,6 +25,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public static async Task<ImmutableArray<string>> GetImportedNamespacesAsync(SyntaxContext context, CancellationToken cancellationToken)
         {
+            var scopes = context.SemanticModel.GetImportScopes(context.Position, cancellationToken);
+
+            var usingsBuilder = ImmutableArray.CreateBuilder<string>();
+
+            foreach (var scope in scopes)
+            {
+                foreach (var import in scope.Imports)
+                {
+                    if (import.NamespaceOrType is INamespaceSymbol @namespace)
+                    {
+                        usingsBuilder.Add(GetNamespaceName(@namespace));
+                    }
+                }
+            }
+
+            return usingsBuilder.ToImmutable();
+
             // The location is the containing node of the LeftToken, or the compilation unit itself if LeftToken
             // indicates the beginning of the document (i.e. no parent).
             var location = context.LeftToken.Parent ?? context.SyntaxTree.GetRoot(cancellationToken);

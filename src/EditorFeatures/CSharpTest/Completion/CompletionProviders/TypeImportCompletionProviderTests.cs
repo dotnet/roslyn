@@ -1733,7 +1733,7 @@ $$";
             await VerifyTypeImportItemIsAbsentAsync(markup, "Task", inlineDescription: "System.Threading.Tasks");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/59088")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/58473")]
         public async Task TestGlobalUsingsInUserDocument()
         {
