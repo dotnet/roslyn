@@ -15,6 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using System.Diagnostics.Contracts;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal partial class LanguageParser : SyntaxParser
@@ -5705,137 +5706,141 @@ parse_member_name:;
             out bool isDefinitelyTypeArgumentList)
         {
             isDefinitelyTypeArgumentList = false;
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.LessThanToken);
 
-            if (this.CurrentToken.Kind == SyntaxKind.LessThanToken)
+            // If we have `X<>`, or `X<,>` or `X<,,,,,,>` then none of these are legal expression or types. However,
+            // it seems likelier that they are invalid open-types in an expression context, versus expressions
+            // missing values (note that we only support this when the open name does have the final `>` token).
+            if (IsOpenName())
             {
-                ScanTypeFlags result = ScanTypeFlags.GenericTypeOrExpression;
+                isDefinitelyTypeArgumentList = true;
 
-                // If we have `X<>`, or `X<,>` or `X<,,,,,,>` then none of these are legal expression or types. However,
-                // it seems likelier that they are invalid open-types in an expression context, versus expressions
-                // missing values (note that we only support this when the open name does have the final `>` token).
-                if (IsOpenName(out lastTokenOfList))
-                {
-                    isDefinitelyTypeArgumentList = true;
-                    return ScanTypeFlags.GenericTypeOrMethod;
-                }
-
-                do
-                {
+                var start = this.EatToken();
+                while (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     this.EatToken();
+                var end = this.EatToken();
+                Debug.Assert(start.Kind == SyntaxKind.LessThanToken);
+                Debug.Assert(end.Kind == SyntaxKind.GreaterThanToken);
 
-                    // Type arguments cannot contain attributes, so if this is an open square, we early out and assume it is not a type argument
-                    if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
-                    {
-                        lastTokenOfList = null;
-                        return ScanTypeFlags.NotType;
-                    }
+                return ScanTypeFlags.GenericTypeOrMethod;
+            }
 
-                    if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
-                    {
-                        lastTokenOfList = EatToken();
-                        return result;
-                    }
+            ScanTypeFlags result = ScanTypeFlags.GenericTypeOrExpression;
 
-                    switch (this.ScanType(out _))
-                    {
-                        case ScanTypeFlags.NotType:
-                            lastTokenOfList = null;
-                            return ScanTypeFlags.NotType;
+            do
+            {
+                this.EatToken();
 
-                        case ScanTypeFlags.MustBeType:
-                            // We're currently scanning a possible type-argument list.  But we're
-                            // not sure if this is actually a type argument list, or is maybe some
-                            // complex relational expression with <'s and >'s.  One thing we can
-                            // tell though is that if we have a predefined type (like 'int' or 'string')
-                            // before a comma or > then this is definitely a type argument list. i.e.
-                            // if you have:
-                            // 
-                            //      var v = ImmutableDictionary<int,
-                            //
-                            // then there's no legal interpretation of this as an expression (since a
-                            // standalone predefined type is not a valid simple term.  Contrast that
-                            // with :
-                            //
-                            //  var v = ImmutableDictionary<Int32,
-                            //
-                            // Here this might actually be a relational expression and the comma is meant
-                            // to separate out the variable declarator 'v' from the next variable.
-                            //
-                            // Note: we check if we got 'MustBeType' which triggers for predefined types,
-                            // (int, string, etc.), or array types (Goo[], A<T>[][] etc.), or pointer types
-                            // of things that must be types (int*, void**, etc.).
-                            isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
-                            result = ScanTypeFlags.GenericTypeOrMethod;
-                            break;
-
-                        // case ScanTypeFlags.TupleType:
-                        // It would be nice if we saw a tuple to state that we definitely had a 
-                        // type argument list.  However, there are cases where this would not be
-                        // true.  For example:
-                        //
-                        // public class C
-                        // {
-                        //     public static void Main()
-                        //     {
-                        //         XX X = default;
-                        //         int a = 1, b = 2;
-                        //         bool z = X < (a, b), w = false;
-                        //     }
-                        // }
-                        //
-                        // struct XX
-                        // {
-                        //     public static bool operator <(XX x, (int a, int b) arg) => true;
-                        //     public static bool operator >(XX x, (int a, int b) arg) => false;
-                        // }
-
-                        case ScanTypeFlags.NullableType:
-                            // See above.  If we have X<Y?,  or X<Y?>, then this is definitely a type argument list.
-                            isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
-                            if (isDefinitelyTypeArgumentList)
-                            {
-                                result = ScanTypeFlags.GenericTypeOrMethod;
-                            }
-
-                            // Note: we intentionally fall out without setting 'result'. 
-                            // Seeing a nullable type (not followed by a , or > ) is not enough 
-                            // information for us to determine what this is yet.  i.e. the user may have:
-                            //
-                            //      X < Y ? Z : W
-                            //
-                            // We'd see a nullable type here, but this is definitely not a type arg list.
-
-                            break;
-
-                        case ScanTypeFlags.GenericTypeOrExpression:
-                            // See above.  If we have  X<Y<Z>,  then this would definitely be a type argument list.
-                            // However, if we have  X<Y<Z>> then this might not be type argument list.  This could just
-                            // be some sort of expression where we're comparing, and then shifting values.
-                            if (!isDefinitelyTypeArgumentList)
-                            {
-                                isDefinitelyTypeArgumentList = this.CurrentToken.Kind == SyntaxKind.CommaToken;
-                                result = ScanTypeFlags.GenericTypeOrMethod;
-                            }
-                            break;
-
-                        case ScanTypeFlags.GenericTypeOrMethod:
-                            result = ScanTypeFlags.GenericTypeOrMethod;
-                            break;
-                    }
-                }
-                while (this.CurrentToken.Kind == SyntaxKind.CommaToken);
-
-                if (this.CurrentToken.Kind != SyntaxKind.GreaterThanToken)
+                // Type arguments cannot contain attributes, so if this is an open square, we early out and assume it is not a type argument
+                if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
                 {
                     lastTokenOfList = null;
                     return ScanTypeFlags.NotType;
                 }
 
-                lastTokenOfList = this.EatToken();
-                return result;
+                if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
+                {
+                    lastTokenOfList = EatToken();
+                    return result;
+                }
+
+                switch (this.ScanType(out _))
+                {
+                    case ScanTypeFlags.NotType:
+                        lastTokenOfList = null;
+                        return ScanTypeFlags.NotType;
+
+                    case ScanTypeFlags.MustBeType:
+                        // We're currently scanning a possible type-argument list.  But we're
+                        // not sure if this is actually a type argument list, or is maybe some
+                        // complex relational expression with <'s and >'s.  One thing we can
+                        // tell though is that if we have a predefined type (like 'int' or 'string')
+                        // before a comma or > then this is definitely a type argument list. i.e.
+                        // if you have:
+                        // 
+                        //      var v = ImmutableDictionary<int,
+                        //
+                        // then there's no legal interpretation of this as an expression (since a
+                        // standalone predefined type is not a valid simple term.  Contrast that
+                        // with :
+                        //
+                        //  var v = ImmutableDictionary<Int32,
+                        //
+                        // Here this might actually be a relational expression and the comma is meant
+                        // to separate out the variable declarator 'v' from the next variable.
+                        //
+                        // Note: we check if we got 'MustBeType' which triggers for predefined types,
+                        // (int, string, etc.), or array types (Goo[], A<T>[][] etc.), or pointer types
+                        // of things that must be types (int*, void**, etc.).
+                        isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
+                        result = ScanTypeFlags.GenericTypeOrMethod;
+                        break;
+
+                    // case ScanTypeFlags.TupleType:
+                    // It would be nice if we saw a tuple to state that we definitely had a 
+                    // type argument list.  However, there are cases where this would not be
+                    // true.  For example:
+                    //
+                    // public class C
+                    // {
+                    //     public static void Main()
+                    //     {
+                    //         XX X = default;
+                    //         int a = 1, b = 2;
+                    //         bool z = X < (a, b), w = false;
+                    //     }
+                    // }
+                    //
+                    // struct XX
+                    // {
+                    //     public static bool operator <(XX x, (int a, int b) arg) => true;
+                    //     public static bool operator >(XX x, (int a, int b) arg) => false;
+                    // }
+
+                    case ScanTypeFlags.NullableType:
+                        // See above.  If we have X<Y?,  or X<Y?>, then this is definitely a type argument list.
+                        isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
+                        if (isDefinitelyTypeArgumentList)
+                        {
+                            result = ScanTypeFlags.GenericTypeOrMethod;
+                        }
+
+                        // Note: we intentionally fall out without setting 'result'. 
+                        // Seeing a nullable type (not followed by a , or > ) is not enough 
+                        // information for us to determine what this is yet.  i.e. the user may have:
+                        //
+                        //      X < Y ? Z : W
+                        //
+                        // We'd see a nullable type here, but this is definitely not a type arg list.
+
+                        break;
+
+                    case ScanTypeFlags.GenericTypeOrExpression:
+                        // See above.  If we have  X<Y<Z>,  then this would definitely be a type argument list.
+                        // However, if we have  X<Y<Z>> then this might not be type argument list.  This could just
+                        // be some sort of expression where we're comparing, and then shifting values.
+                        if (!isDefinitelyTypeArgumentList)
+                        {
+                            isDefinitelyTypeArgumentList = this.CurrentToken.Kind == SyntaxKind.CommaToken;
+                            result = ScanTypeFlags.GenericTypeOrMethod;
+                        }
+                        break;
+
+                    case ScanTypeFlags.GenericTypeOrMethod:
+                        result = ScanTypeFlags.GenericTypeOrMethod;
+                        break;
+                }
+            }
+            while (this.CurrentToken.Kind == SyntaxKind.CommaToken);
+
+            if (this.CurrentToken.Kind != SyntaxKind.GreaterThanToken)
+            {
+                lastTokenOfList = null;
+                return ScanTypeFlags.NotType;
             }
 
-            return ScanTypeFlags.NonGenericTypeOrExpression;
+            lastTokenOfList = this.EatToken();
+            return result;
         }
 
         private bool DetermineIfDefinitelyTypeArgumentList(bool isDefinitelyTypeArgumentList)
@@ -5852,7 +5857,7 @@ parse_member_name:;
         private void ParseTypeArgumentList(out SyntaxToken open, SeparatedSyntaxListBuilder<TypeSyntax> types, out SyntaxToken close)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.LessThanToken);
-            var isOpenName = this.IsOpenName(out _);
+            var isOpenName = this.IsOpenName();
             open = this.EatToken(SyntaxKind.LessThanToken);
             open = CheckFeatureAvailability(open, MessageID.IDS_FeatureGenerics);
 
@@ -5977,23 +5982,14 @@ parse_member_name:;
         private bool IsEndOfTypeArgumentList()
             => this.CurrentToken.Kind == SyntaxKind.GreaterThanToken;
 
-        private bool IsOpenName(out SyntaxToken greaterThanToken)
+        private bool IsOpenName()
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.LessThanToken);
             var n = 1;
             while (this.PeekToken(n).Kind == SyntaxKind.CommaToken)
-            {
                 n++;
-            }
 
-            greaterThanToken = this.PeekToken(n);
-            if (greaterThanToken.Kind != SyntaxKind.GreaterThanToken)
-            {
-                greaterThanToken = null;
-                return false;
-            }
-
-            return true;
+            return this.PeekToken(n).Kind == SyntaxKind.GreaterThanToken;
         }
 
         private void ParseMemberName(
