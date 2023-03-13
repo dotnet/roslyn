@@ -164,7 +164,7 @@
       "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[Validation]"
+      "insertionTitlePrefix": "[17.6P3]"
     },
     "dev/jorobich/fix-pr-val": {
       "nugetKind": [
