@@ -292,7 +292,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             var checksumAlgorithm = SourceHashAlgorithms.Default;
             var fileLoader = new WorkspaceFileTextLoader(Services.SolutionServices, filePath, defaultEncoding: null);
-            return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(filePath, fileLoader, languageInformation, checksumAlgorithm, Services.SolutionServices, _metadataReferences);
+            return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
+                this, filePath, fileLoader, languageInformation, checksumAlgorithm, Services.SolutionServices, _metadataReferences);
         }
 
         private void DetachFromDocument(string moniker)
