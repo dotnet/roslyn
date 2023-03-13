@@ -4317,7 +4317,7 @@ public class A { }
         }
 
         [Fact]
-        public void CS0306ERR_BadTypeArgument01()
+        public void CS0306ERR_BadTypeArgument01_A()
         {
             var source =
 @"using System;
@@ -4345,6 +4345,73 @@ static class S
 }
 ";
             CreateCompilationWithMscorlib46(source).VerifyDiagnostics(
+                // (7,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         new C<int*>();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(7, 15),
+                // (7,15): error CS0306: The type 'int*' may not be used as a type argument
+                //         new C<int*>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(7, 15),
+                // (8,15): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                //         new C<ArgIterator>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(8, 15),
+                // (9,15): error CS0306: The type 'RuntimeArgumentHandle' may not be used as a type argument
+                //         new C<RuntimeArgumentHandle>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(9, 15),
+                // (10,15): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //         new C<TypedReference>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(10, 15),
+                // (11,9): error CS0306: The type 'int*' may not be used as a type argument
+                //         F<int*>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<int*>").WithArguments("int*").WithLocation(11, 9),
+                // (11,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         F<int*>();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(11, 11),
+                // (12,11): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                //         o.E<object, ArgIterator>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "E<object, ArgIterator>").WithArguments("System.ArgIterator").WithLocation(12, 11),
+                // (14,13): error CS0306: The type 'RuntimeArgumentHandle' may not be used as a type argument
+                //         a = F<RuntimeArgumentHandle>;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<RuntimeArgumentHandle>").WithArguments("System.RuntimeArgumentHandle").WithLocation(14, 13),
+                // (15,13): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //         a = o.E<T, TypedReference>;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "o.E<T, TypedReference>").WithArguments("System.TypedReference").WithLocation(15, 13),
+                // (16,34): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //         Console.WriteLine(typeof(TypedReference?));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference?").WithArguments("System.TypedReference").WithLocation(16, 34),
+                // (17,43): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //         Console.WriteLine(typeof(Nullable<TypedReference>));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(17, 43));
+        }
+
+        [Fact]
+        public void CS0306ERR_BadTypeArgument01_CSharp11_A()
+        {
+            var source =
+@"using System;
+class C<T>
+{
+    static void F<U>() { }
+    static void M(object o)
+    {
+        new C<int*>();
+        new C<ArgIterator>();
+        new C<RuntimeArgumentHandle>();
+        new C<TypedReference>();
+        F<int*>();
+        o.E<object, ArgIterator>();
+        Action a;
+        a = F<RuntimeArgumentHandle>;
+        a = o.E<T, TypedReference>;
+        Console.WriteLine(typeof(TypedReference?));
+        Console.WriteLine(typeof(Nullable<TypedReference>));
+    }
+}
+static class S
+{
+    internal static void E<T, U>(this object o) { }
+}
+";
+            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (7,15): error CS0306: The type 'int*' may not be used as a type argument
                 //         new C<int*>();
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(7, 15),
@@ -4377,6 +4444,68 @@ static class S
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(17, 43));
         }
 
+        [Fact]
+        public void CS0306ERR_BadTypeArgument01_B()
+        {
+            var source =
+@"using System;
+class C<T>
+{
+    static void F<U>() { }
+    unsafe static void M(object o)
+    {
+        new C<int*>();
+        F<int*>();
+    }
+}
+static class S
+{
+    internal static void E<T, U>(this object o) { }
+}
+";
+            CreateCompilationWithMscorlib46(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1),
+                // (7,15): error CS0306: The type 'int*' may not be used as a type argument
+                //         new C<int*>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(7, 15),
+                // (8,9): error CS0306: The type 'int*' may not be used as a type argument
+                //         F<int*>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<int*>").WithArguments("int*").WithLocation(8, 9));
+        }
+
+        [Fact]
+        public void CS0306ERR_BadTypeArgument01_CSharp11_B()
+        {
+            var source =
+@"using System;
+class C<T>
+{
+    static void F<U>() { }
+    unsafe static void M(object o)
+    {
+        new C<int*>();
+        F<int*>();
+    }
+}
+static class S
+{
+    internal static void E<T, U>(this object o) { }
+}
+";
+            CreateCompilationWithMscorlib46(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1),
+                // (7,15): error CS0306: The type 'int*' may not be used as a type argument
+                //         new C<int*>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(7, 15),
+                // (8,9): error CS0306: The type 'int*' may not be used as a type argument
+                //         F<int*>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<int*>").WithArguments("int*").WithLocation(8, 9));
+        }
+
         /// <summary>
         /// Bad type arguments for aliases should be reported at the
         /// alias declaration rather than at the use. (Note: This differs
@@ -4401,6 +4530,44 @@ class C<T>
     }
 }";
             CreateCompilationWithMscorlib46(source).VerifyDiagnostics(
+                // (2,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using COfIntPtr = C<int*>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 21),
+                // (2,7): error CS0306: The type 'int*' may not be used as a type argument
+                // using COfIntPtr = C<int*>;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfIntPtr").WithArguments("int*").WithLocation(2, 7),
+                // (3,7): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                // using COfArgIterator = C<System.ArgIterator>; // unused
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfArgIterator").WithArguments("System.ArgIterator").WithLocation(3, 7),
+                // (10,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         COfObject.F<int*>();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 21),
+                // (10,19): error CS0306: The type 'int*' may not be used as a type argument
+                //         COfObject.F<int*>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<int*>").WithArguments("int*").WithLocation(10, 19),
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using COfArgIterator = C<System.ArgIterator>; // unused
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using COfArgIterator = C<System.ArgIterator>;").WithLocation(3, 1));
+        }
+
+        [Fact]
+        public void CS0306ERR_BadTypeArgument02_CSharp11()
+        {
+            var source =
+@"using COfObject = C<object>;
+using COfIntPtr = C<int*>;
+using COfArgIterator = C<System.ArgIterator>; // unused
+class C<T>
+{
+    static void F<U>() { }
+    static void M()
+    {
+        new COfIntPtr();
+        COfObject.F<int*>();
+        COfIntPtr.F<object>();
+    }
+}";
+            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (3,7): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 // using COfArgIterator = C<System.ArgIterator>; // unused
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfArgIterator").WithArguments("System.ArgIterator").WithLocation(3, 7),
