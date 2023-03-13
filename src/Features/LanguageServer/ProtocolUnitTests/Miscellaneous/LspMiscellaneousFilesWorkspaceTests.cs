@@ -170,6 +170,7 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
 
         // Make sure doc was removed from misc workspace.
         Assert.False(miscWorkspace.CurrentSolution.ContainsDocument(miscDocument.Id));
+        Assert.Null(GetMiscellaneousDocument(testLspServer));
     }
 
     [Fact]
@@ -198,6 +199,7 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
         await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
 
         await testLspServer.CloseDocumentAsync(looseFileUri).ConfigureAwait(false);
+        Assert.Null(GetMiscellaneousDocument(testLspServer));
     }
 
     private static async Task AssertFileInMiscWorkspaceAsync(TestLspServer testLspServer, Uri fileUri)
