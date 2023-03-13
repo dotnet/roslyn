@@ -587,6 +587,11 @@
         <target state="translated">運算式樹狀架構不得包含 with 運算式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionMethodInExtension">
+        <source>Extension methods are not allowed in extension types.</source>
+        <target state="new">Extension methods are not allowed in extension types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExtensionMissingUnderlyingType">
         <source>No part of a partial extension '{0}' includes an underlying type specification.</source>
         <target state="new">No part of a partial extension '{0}' includes an underlying type specification.</target>

@@ -296,6 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Pointer:
                 case TypeKind.Dynamic:
                 case TypeKind.FunctionPointer:
+                case TypeKind.Extension:
                     return false;
                 default:
                     return true;

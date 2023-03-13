@@ -587,6 +587,11 @@
         <target state="translated">Uma árvore de expressão não pode conter uma expressão with.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionMethodInExtension">
+        <source>Extension methods are not allowed in extension types.</source>
+        <target state="new">Extension methods are not allowed in extension types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExtensionMissingUnderlyingType">
         <source>No part of a partial extension '{0}' includes an underlying type specification.</source>
         <target state="new">No part of a partial extension '{0}' includes an underlying type specification.</target>

@@ -275,7 +275,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Symbol containingSymbol = this.ContainingSymbol;
             DeclarationModifiers defaultAccess;
-            bool inExtension = containingSymbol is NamedTypeSymbol { IsExtension: true };
 
             // note: we give a specific diagnostic when a file-local type is nested
             var allowedModifiers = DeclarationModifiers.AccessibilityMask | DeclarationModifiers.File;
@@ -302,13 +301,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Class:
                 case TypeKind.Submission:
-                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Sealed
+                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract
                         | DeclarationModifiers.Unsafe;
-
-                    if (!inExtension)
-                    {
-                        allowedModifiers |= DeclarationModifiers.Abstract;
-                    }
 
                     if (!this.IsRecord)
                     {

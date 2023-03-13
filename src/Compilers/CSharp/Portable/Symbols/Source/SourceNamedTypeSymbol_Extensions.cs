@@ -449,7 +449,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var underlyingTypeWithAnnotations = underlyingTypeBinder.BindType(underlyingTypeSyntax, diagnostics, basesBeingResolved);
 
                 TypeSymbol underlyingType = underlyingTypeWithAnnotations.Type;
-                checkStatic(diagnostics, location, underlyingType);
+                if (underlyingType.IsStatic && !this.IsStatic)
+                {
+                    diagnostics.Add(ErrorCode.ERR_StaticBaseTypeOnInstanceExtension, location, this, underlyingType);
+                }
 
                 if (IsRestrictedExtensionUnderlyingType(underlyingType))
                 {
@@ -484,7 +487,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     TypeWithAnnotations baseTypeWithAnnotations = baseBinder.BindType(typeSyntax, diagnostics, basesBeingResolved);
                     TypeSymbol baseType = baseTypeWithAnnotations.Type;
-                    checkStatic(diagnostics, location, baseType);
 
                     switch (baseType.TypeKind)
                     {
@@ -514,14 +516,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             isExplicit = syntax.ImplicitOrExplicitKeyword.IsKind(SyntaxKind.ExplicitKeyword);
             return new ExtensionInfo(partUnderlyingType, partBaseExtensions.ToImmutableAndFree());
-
-            void checkStatic(BindingDiagnosticBag diagnostics, Location location, TypeSymbol baseType)
-            {
-                if (baseType.IsStatic && !this.IsStatic)
-                {
-                    diagnostics.Add(ErrorCode.ERR_StaticBaseTypeOnInstanceExtension, location, this, baseType);
-                }
-            }
 
             Binder adjustBinder(ExtensionDeclarationSyntax syntax, Binder baseBinder)
             {

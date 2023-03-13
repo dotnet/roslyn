@@ -7469,4 +7469,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DuplicateExtensionWithDifferencesInBaseList" xml:space="preserve">
     <value>'{0}' is already listed in the base extension list on type '{2}' as '{1}'.</value>
   </data>
+  <data name="ERR_ExtensionMethodInExtension" xml:space="preserve">
+    <value>Extension methods are not allowed in extension types.</value>
+  </data>
 </root>

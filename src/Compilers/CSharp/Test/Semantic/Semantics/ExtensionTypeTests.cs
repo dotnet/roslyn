@@ -180,6 +180,20 @@ explicit extension R for UnderlyingClass
     }
 
     [Fact]
+    public void ForClass_WithReadonlyField()
+    {
+        var src = """
+class C { }
+static explicit extension R for C
+{
+    public static readonly int Field = 0;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
     public void ForClass_WithoutStaticField()
     {
         var src = """
@@ -420,6 +434,7 @@ explicit extension R for UnderlyingType { }
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Empty(r.GetMembers());
+        // PROTOTYPE verify PE symbol too
     }
 
     [Fact]
@@ -1052,26 +1067,69 @@ partial explicit extension R for UnderlyingClass
         Assert.False(r.GetEvent("Virtual").IsVirtual);
     }
 
-    [Fact]
-    public void Members_ExtensionMethod()
+    [Theory, CombinatorialData]
+    public void Members_ExtensionMethod_DisallowedInExtensionTypes(bool isStatic, bool isExplicit)
     {
-        var src = """
-class UnderlyingClass { }
-explicit extension R1 for UnderlyingClass
+        var staticKeyword = isStatic ? "static " : "";
+        var keyword = isExplicit ? "explicit" : "implicit";
+
+        var text = $$"""
+public class C { }
+
+public {{staticKeyword}}{{keyword}} extension R1 for C
 {
-    public void M(this int i) { } // 1
+    static void M(this int i) { } // 1
 }
 """;
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(text);
         comp.VerifyDiagnostics(
-            // (2,20): error CS1106: Extension method must be defined in a non-generic static class
-            // explicit extension R1 for UnderlyingClass
-            Diagnostic(ErrorCode.ERR_BadExtensionAgg, "R1").WithLocation(2, 20)
+            // (5,17): error CS9221: Extension methods are not allowed in extension types.
+            //     static void M(this int i) { } // 1
+            Diagnostic(ErrorCode.ERR_ExtensionMethodInExtension, "M").WithLocation(5, 17)
             );
     }
 
     [Fact]
-    public void Members_Delegate()
+    public void Members_ExtensionMethod_StaticExtension_StaticMethod_InThisParameter()
+    {
+        var src = """
+class UnderlyingClass { }
+static explicit extension R1 for UnderlyingClass
+{
+    public static void M(in this int i) { } // 1
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (4,24): error CS9221: Extension methods are not allowed in extension types.
+            //     public static void M(in this int i) { } // 1
+            Diagnostic(ErrorCode.ERR_ExtensionMethodInExtension, "M").WithLocation(4, 24)
+            );
+    }
+
+    [Fact]
+    public void Members_ExtensionMethod_DisallowExtensionThisParameter()
+    {
+        var text = $$"""
+public class C { }
+
+public implicit extension R for C { }
+
+public static class E
+{
+    static void M(this R r) { } // 1
+}
+""";
+        var comp = CreateCompilation(text);
+        comp.VerifyDiagnostics(
+            // (7,24): error CS1103: The first parameter of an extension method cannot be of type 'R'
+            //     static void M(this R r) { } // 1
+            Diagnostic(ErrorCode.ERR_BadTypeforThis, "R").WithArguments("R").WithLocation(7, 24)
+            );
+    }
+
+    [Fact]
+    public void TypeMembers_Delegate()
     {
         var src = """
 explicit extension R for int
@@ -1089,7 +1147,7 @@ explicit extension R for int
     }
 
     [Fact]
-    public void Members_Struct()
+    public void TypeMembers_Struct()
     {
         var src = """
 explicit extension R for int
@@ -1106,7 +1164,7 @@ explicit extension R for int
     }
 
     [Fact]
-    public void Members_Struct_AllowedModifiers()
+    public void TypeMembers_Struct_AllowedModifiers()
     {
         var src = """
 explicit extension R for int
@@ -1163,7 +1221,7 @@ partial explicit extension R2 for int
     }
 
     [Fact]
-    public void Members_Struct_DisallowedModifiers()
+    public void TypeMembers_Struct_DisallowedModifiers()
     {
         var src = """
 explicit extension R for int
@@ -1218,7 +1276,7 @@ explicit extension R for int
     }
 
     [Fact]
-    public void Members_Class_AllowedModifiers()
+    public void TypeMembers_Class_AllowedModifiers()
     {
         var src = """
 explicit extension R for int
@@ -1236,6 +1294,7 @@ explicit extension R for int
     partial class Partial { }
     sealed class Sealed { }
     static class Static { }
+    abstract class Abstract { }
 }
 """;
         // PROTOTYPE should warn that `new` isn't required
@@ -1264,22 +1323,22 @@ explicit extension R for int
         Assert.Equal(Accessibility.ProtectedAndInternal, r.GetTypeMember("PrivateProtected").DeclaredAccessibility);
         Assert.Equal(Accessibility.ProtectedOrInternal, r.GetTypeMember("InternalProtected").DeclaredAccessibility);
         Assert.True(r.GetTypeMember("Sealed").IsSealed);
+        Assert.True(r.GetTypeMember("Abstract").IsAbstract);
     }
 
     [Fact]
-    public void Members_Class_DisallowedModifiers()
+    public void TypeMembers_Class_DisallowedModifiers()
     {
         var src = """
 explicit extension R for int
 {
     async class Async { } // 1
-    abstract class Abstract { } // 2
-    override class Override { } // 3
-    virtual class Virtual { } // 4
-    required class Required { } // 5
-    file class File { } // 6
-    readonly class Readonly { } // 7
-    static record StaticRecord { } // 8
+    override class Override { } // 2
+    virtual class Virtual { } // 3
+    required class Required { } // 4
+    file class File { } // 5
+    readonly class Readonly { } // 6
+    static record StaticRecord { } // 7
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
@@ -1287,38 +1346,34 @@ explicit extension R for int
             // (3,17): error CS0106: The modifier 'async' is not valid for this item
             //     async class Async { } // 1
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "Async").WithArguments("async").WithLocation(3, 17),
-            // (4,20): error CS0106: The modifier 'abstract' is not valid for this item
-            //     abstract class Abstract { } // 2
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Abstract").WithArguments("abstract").WithLocation(4, 20),
-            // (5,20): error CS0106: The modifier 'override' is not valid for this item
-            //     override class Override { } // 3
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Override").WithArguments("override").WithLocation(5, 20),
-            // (6,19): error CS0106: The modifier 'virtual' is not valid for this item
-            //     virtual class Virtual { } // 4
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Virtual").WithArguments("virtual").WithLocation(6, 19),
-            // (7,20): error CS0106: The modifier 'required' is not valid for this item
-            //     required class Required { } // 5
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Required").WithArguments("required").WithLocation(7, 20),
-            // (8,16): error CS9054: File-local type 'R.File' must be defined in a top level type; 'R.File' is a nested type.
-            //     file class File { } // 6
-            Diagnostic(ErrorCode.ERR_FileTypeNested, "File").WithArguments("R.File").WithLocation(8, 16),
-            // (9,20): error CS0106: The modifier 'readonly' is not valid for this item
-            //     readonly class Readonly { } // 7
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Readonly").WithArguments("readonly").WithLocation(9, 20),
-            // (10,19): error CS0106: The modifier 'static' is not valid for this item
-            //     static record StaticRecord { } // 8
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "StaticRecord").WithArguments("static").WithLocation(10, 19)
+            // (4,20): error CS0106: The modifier 'override' is not valid for this item
+            //     override class Override { } // 2
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Override").WithArguments("override").WithLocation(4, 20),
+            // (5,19): error CS0106: The modifier 'virtual' is not valid for this item
+            //     virtual class Virtual { } // 3
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Virtual").WithArguments("virtual").WithLocation(5, 19),
+            // (6,20): error CS0106: The modifier 'required' is not valid for this item
+            //     required class Required { } // 4
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Required").WithArguments("required").WithLocation(6, 20),
+            // (7,16): error CS9054: File-local type 'R.File' must be defined in a top level type; 'R.File' is a nested type.
+            //     file class File { } // 5
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "File").WithArguments("R.File").WithLocation(7, 16),
+            // (8,20): error CS0106: The modifier 'readonly' is not valid for this item
+            //     readonly class Readonly { } // 6
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Readonly").WithArguments("readonly").WithLocation(8, 20),
+            // (9,19): error CS0106: The modifier 'static' is not valid for this item
+            //     static record StaticRecord { } // 7
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "StaticRecord").WithArguments("static").WithLocation(9, 19)
             );
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        Assert.False(r.GetTypeMember("Abstract").IsAbstract);
         Assert.False(r.GetTypeMember("Override").IsOverride);
         Assert.False(r.GetTypeMember("Virtual").IsVirtual);
         Assert.False(r.GetTypeMember("Readonly").IsReadOnly);
     }
 
     [Fact]
-    public void Members_Interface_AllowedModifiers()
+    public void TypeMembers_Interface_AllowedModifiers()
     {
         var src = """
 explicit extension R for int
@@ -1364,7 +1419,7 @@ explicit extension R for int
     }
 
     [Fact]
-    public void Members_Interface_DisallowedModifiers()
+    public void TypeMembers_Interface_DisallowedModifiers()
     {
         var src = """
 explicit extension R for int
@@ -3689,12 +3744,12 @@ explicit extension R1<T> for C { }
 explicit extension R2<T1, T2> for C : R1<T1>, R1<T2> { }
 
 interface I1<T> { }
-interface I2<T1, T2> : I1<T1>, I1<T2> { }
+interface I2<T1, T2> : I1<T1>, I1<T2> { } // 1
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (6,11): error CS0695: 'I2<T1, T2>' cannot implement both 'I1<T1>' and 'I1<T2>' because they may unify for some type parameter substitutions
-            // interface I2<T1, T2> : I1<T1>, I1<T2> { }
+            // interface I2<T1, T2> : I1<T1>, I1<T2> { } // 1
             Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "I2").WithArguments("I2<T1, T2>", "I1<T1>", "I1<T2>").WithLocation(6, 11)
             );
     }
@@ -3779,11 +3834,7 @@ static explicit extension StaticExtension for UnderlyingClass { }
 explicit extension R for UnderlyingClass : StaticExtension { }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics(
-            // (3,44): error CS9206: Instance extension 'R' cannot extend type 'StaticExtension' because it is static.
-            // explicit extension R for UnderlyingClass : StaticExtension { }
-            Diagnostic(ErrorCode.ERR_StaticBaseTypeOnInstanceExtension, "StaticExtension").WithArguments("R", "StaticExtension").WithLocation(3, 44)
-            );
+        comp.VerifyDiagnostics();
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("StaticExtension", r.BaseExtensionsNoUseSiteDiagnostics.Single().ToTestDisplayString());

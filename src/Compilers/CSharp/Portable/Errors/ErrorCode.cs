@@ -2180,6 +2180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DuplicateExtensionWithTupleNamesInBaseList = 9218,
         ERR_DuplicateExtensionWithDifferencesInBaseList = 9219,
         ERR_DuplicateExtensionInBaseList = 9220,
+        ERR_ExtensionMethodInExtension = 9221,
         #endregion
 
         // Note: you will need to do the following after adding warnings:
