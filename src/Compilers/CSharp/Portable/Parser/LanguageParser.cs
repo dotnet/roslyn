@@ -5701,7 +5701,8 @@ parse_member_name:;
         }
 
         private ScanTypeFlags ScanPossibleTypeArgumentList(
-            ref SyntaxToken lastTokenOfList, out bool isDefinitelyTypeArgumentList)
+            ref SyntaxToken lastTokenOfList,
+            out bool isDefinitelyTypeArgumentList)
         {
             isDefinitelyTypeArgumentList = false;
 
@@ -5709,9 +5710,18 @@ parse_member_name:;
             {
                 ScanTypeFlags result = ScanTypeFlags.GenericTypeOrExpression;
 
+                // If we have `X<>`, or `X<,>` or `X<,,,,,,>` then none of these are legal expression or types. However,
+                // it seems likelier that they are invalid open-types in an expression context, versus expressions
+                // missing values (note that we only support this when the open name does have the final `>` token).
+                if (IsOpenName(out lastTokenOfList))
+                {
+                    isDefinitelyTypeArgumentList = true;
+                    return ScanTypeFlags.GenericTypeOrMethod;
+                }
+
                 do
                 {
-                    lastTokenOfList = this.EatToken();
+                    this.EatToken();
 
                     // Type arguments cannot contain attributes, so if this is an open square, we early out and assume it is not a type argument
                     if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
@@ -5726,7 +5736,7 @@ parse_member_name:;
                         return result;
                     }
 
-                    switch (this.ScanType(out lastTokenOfList))
+                    switch (this.ScanType(out _))
                     {
                         case ScanTypeFlags.NotType:
                             lastTokenOfList = null;
@@ -5842,10 +5852,11 @@ parse_member_name:;
         private void ParseTypeArgumentList(out SyntaxToken open, SeparatedSyntaxListBuilder<TypeSyntax> types, out SyntaxToken close)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.LessThanToken);
+            var isOpenName = this.IsOpenName(out _);
             open = this.EatToken(SyntaxKind.LessThanToken);
             open = CheckFeatureAvailability(open, MessageID.IDS_FeatureGenerics);
 
-            if (this.IsOpenName())
+            if (isOpenName)
             {
                 // NOTE: trivia will be attached to comma, not omitted type argument
                 var omittedTypeArgumentInstance = _syntaxFactory.OmittedTypeArgument(SyntaxFactory.Token(SyntaxKind.OmittedTypeArgumentToken));
@@ -5966,21 +5977,23 @@ parse_member_name:;
         private bool IsEndOfTypeArgumentList()
             => this.CurrentToken.Kind == SyntaxKind.GreaterThanToken;
 
-        private bool IsOpenName()
+        private bool IsOpenName(out SyntaxToken greaterThanToken)
         {
-            bool isOpen = true;
-            int n = 0;
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.LessThanToken);
+            var n = 1;
             while (this.PeekToken(n).Kind == SyntaxKind.CommaToken)
             {
                 n++;
             }
 
-            if (this.PeekToken(n).Kind != SyntaxKind.GreaterThanToken)
+            greaterThanToken = this.PeekToken(n);
+            if (greaterThanToken.Kind != SyntaxKind.GreaterThanToken)
             {
-                isOpen = false;
+                greaterThanToken = null;
+                return false;
             }
 
-            return isOpen;
+            return true;
         }
 
         private void ParseMemberName(

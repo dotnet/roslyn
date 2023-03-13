@@ -832,22 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            UsingTree(source,
-                // (5,11): error CS1525: Invalid expression term ','
-                //         M<,>();
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(5, 11),
-                // (5,11): error CS1002: ; expected
-                //         M<,>();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(5, 11),
-                // (5,11): error CS1513: } expected
-                //         M<,>();
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(5, 11),
-                // (5,12): error CS1525: Invalid expression term '>'
-                //         M<,>();
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(5, 12),
-                // (5,14): error CS1525: Invalid expression term ')'
-                //         M<,>();
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(5, 14));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -886,36 +871,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.LessThanExpression);
+                                N(SyntaxKind.InvocationExpression);
                                 {
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.GenericName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "M");
+                                        N(SyntaxKind.TypeArgumentList);
+                                        {
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.OmittedTypeArgument);
+                                            {
+                                                N(SyntaxKind.OmittedTypeArgumentToken);
+                                            }
+                                            N(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.OmittedTypeArgument);
+                                            {
+                                                N(SyntaxKind.OmittedTypeArgumentToken);
+                                            }
+                                            N(SyntaxKind.GreaterThanToken);
+                                        }
                                     }
-                                    N(SyntaxKind.LessThanToken);
-                                    M(SyntaxKind.IdentifierName);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.ExpressionStatement);
-                            {
-                                N(SyntaxKind.GreaterThanExpression);
-                                {
-                                    M(SyntaxKind.IdentifierName);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.GreaterThanToken);
-                                    N(SyntaxKind.ParenthesizedExpression);
+                                    N(SyntaxKind.ArgumentList);
                                     {
                                         N(SyntaxKind.OpenParenToken);
-                                        M(SyntaxKind.IdentifierName);
-                                        {
-                                            M(SyntaxKind.IdentifierToken);
-                                        }
                                         N(SyntaxKind.CloseParenToken);
                                     }
                                 }
@@ -931,21 +909,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
-                 // (5,11): error CS1525: Invalid expression term ','
-                 //         M<,>();
-                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(5, 11),
-                 // (5,11): error CS1002: ; expected
-                 //         M<,>();
-                 Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(5, 11),
-                 // (5,11): error CS1513: } expected
-                 //         M<,>();
-                 Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(5, 11),
-                 // (5,12): error CS1525: Invalid expression term '>'
-                 //         M<,>();
-                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(5, 12),
-                 // (5,14): error CS1525: Invalid expression term ')'
-                 //         M<,>();
-                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(5, 14));
+                // (5,9): error CS0305: Using the generic method group 'M' requires 2 type arguments
+                //         M<,>();
+                Diagnostic(ErrorCode.ERR_BadArity, "M<,>").WithArguments("M", "method group", "2").WithLocation(5, 9));
         }
     }
 }
