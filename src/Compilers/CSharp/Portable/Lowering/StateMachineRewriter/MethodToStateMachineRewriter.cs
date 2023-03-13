@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -49,7 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///       but such caching would not save as much indirection and could actually
         ///       be done at JIT level, possibly more efficiently)
         /// </summary>
-        protected readonly LocalSymbol cachedThis;
+        protected readonly LocalSymbol? cachedThis;
+
+        protected readonly FieldSymbol? instanceIdField;
 
         /// <summary>
         /// Allocates resumable states, i.e. states that resume execution of the state machine after await expression or yield return.
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A pool of fields used to hoist locals. They appear in this set when not in scope,
         /// so that members of this set may be allocated to locals when the locals come into scope.
         /// </summary>
-        private Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>> _lazyAvailableReusableHoistedFields;
+        private Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>? _lazyAvailableReusableHoistedFields;
 
         /// <summary>
         /// Fields allocated for temporary variables are given unique names distinguished by a number at the end.
@@ -93,16 +93,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly ArrayBuilder<StateMachineStateDebugInfo> _stateDebugInfoBuilder;
 
+        // Instrumentation related bound nodes:
+        protected BoundBlockInstrumentation? instrumentation;
+
         // new:
         public MethodToStateMachineRewriter(
             SyntheticBoundNodeFactory F,
             MethodSymbol originalMethod,
             FieldSymbol state,
+            FieldSymbol? instanceIdField,
             Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
-            VariableSlotAllocator slotAllocatorOpt,
+            VariableSlotAllocator? slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
             BindingDiagnosticBag diagnostics)
             : base(slotAllocatorOpt, F.CompilationState, diagnostics)
@@ -117,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.F = F;
             this.stateField = state;
+            this.instanceIdField = instanceIdField;
             this.cachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), syntax: F.Syntax, kind: SynthesizedLocalKind.StateMachineCachedState);
             this.OriginalMethod = originalMethod;
             _hoistedVariables = hoistedVariables;
@@ -130,13 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // create cache local for reference type "this" in Release
             var thisParameter = originalMethod.ThisParameter;
-            CapturedSymbolReplacement thisProxy;
-            if ((object)thisParameter != null &&
+            CapturedSymbolReplacement? thisProxy;
+            if (thisParameter is not null &&
                 thisParameter.Type.IsReferenceType &&
                 proxies.TryGetValue(thisParameter, out thisProxy) &&
                 F.Compilation.Options.OptimizationLevel == OptimizationLevel.Release)
             {
                 BoundExpression thisProxyReplacement = thisProxy.Replacement(F.Syntax, frameType => F.This());
+                Debug.Assert(thisProxyReplacement.Type is not null);
                 this.cachedThis = F.SynthesizedLocal(thisProxyReplacement.Type, syntax: F.Syntax, kind: SynthesizedLocalKind.FrameCache);
             }
 
@@ -151,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 firstState: FirstIncreasingResumableState,
                 increasing: true);
         }
+#nullable disable
 
         protected abstract StateMachineState FirstIncreasingResumableState { get; }
         protected abstract string EncMissingStateMessage { get; }
@@ -328,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var translatedStatement = wrapped();
-            var variableCleanup = ArrayBuilder<BoundAssignmentOperator>.GetInstance();
+            var variableCleanup = ArrayBuilder<BoundExpression>.GetInstance();
 
             // produce cleanup code for all fields of locals defined by this block
             // as well as all proxies allocated by VisitAssignmentOperator within this block:
@@ -414,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private void AddVariableCleanup(ArrayBuilder<BoundAssignmentOperator> cleanup, FieldSymbol field)
+        private void AddVariableCleanup(ArrayBuilder<BoundExpression> cleanup, FieldSymbol field)
         {
             if (MightContainReferences(field.Type))
             {
@@ -689,8 +696,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            return PossibleIteratorScope(node.Locals, () => (BoundStatement)base.VisitBlock(node));
+            if (node.Instrumentation != null)
+            {
+                // Stash away the instrumentation node, it will be used when generating MoveNext method.
+                instrumentation = (BoundBlockInstrumentation)Visit(node.Instrumentation);
+            }
+
+            return PossibleIteratorScope(node.Locals, () => VisitBlock(node, removeInstrumentation: true));
         }
+
+        public override BoundNode VisitStateMachineInstanceId(BoundStateMachineInstanceId node)
+            => F.Field(F.This(), instanceIdField);
 
         public override BoundNode VisitScope(BoundScope node)
         {

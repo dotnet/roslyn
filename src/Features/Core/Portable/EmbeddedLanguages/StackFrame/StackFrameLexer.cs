@@ -57,12 +57,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             return new(text);
         }
 
-        public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : default;
+        public readonly VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : default;
 
-        public VirtualCharSequence GetSubSequenceToCurrentPos(int start)
+        public readonly VirtualCharSequence GetSubSequenceToCurrentPos(int start)
             => GetSubSequence(start, Position);
 
-        public VirtualCharSequence GetSubSequence(int start, int end)
+        public readonly VirtualCharSequence GetSubSequence(int start, int end)
             => Text.GetSubSequence(TextSpan.FromBounds(start, end));
 
         public StackFrameTrivia? TryScanRemainingTrivia()
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 trailingTrivia: CreateTrivia(trailingWhitespace));
         }
 
-        public StackFrameToken CurrentCharAsToken()
+        public readonly StackFrameToken CurrentCharAsToken()
         {
             if (Position == Text.Length)
             {
@@ -429,10 +429,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             return builder.ToImmutable();
         }
 
-        private bool IsStringAtPosition(string val)
+        private readonly bool IsStringAtPosition(string val)
            => IsAtStartOfText(Position, val);
 
-        private bool IsAtStartOfText(int position, string val)
+        private readonly bool IsAtStartOfText(int position, string val)
         {
             for (var i = 0; i < val.Length; i++)
             {

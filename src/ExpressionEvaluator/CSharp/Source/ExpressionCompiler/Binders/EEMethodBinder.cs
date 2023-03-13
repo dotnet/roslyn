@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _targetParameters = method.Parameters;
 
             // Note that we never expect this InMethodBinder to find candidate symbols which may be file-local, and therefore pass 'associatedFileIdentifier: null' to the BuckStopsHereBinder.
-            _sourceBinder = new InMethodBinder(substitutedSourceMethod, new BuckStopsHereBinder(next.Compilation, associatedFileIdentifier: null));
+            _sourceBinder = new InMethodBinder(substitutedSourceMethod, new BuckStopsHereBinder(next.Compilation, associatedFileIdentifier: null).WithAdditionalFlags(BinderFlags.InEEMethodBinder));
         }
 
         internal override void LookupSymbolsInSingleBinder(LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)

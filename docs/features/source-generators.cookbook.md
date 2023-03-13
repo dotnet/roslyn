@@ -2,8 +2,10 @@
 
 ## Summary
 
-> **Note**: The design for the source generator proposal is still under review. This document uses only one possible syntax, and
-> it is expected to change without notice as the feature evolves.
+> **Warning**: Source generators implementing `ISourceGenerator` have been deprecated
+> in favor of [incremental generators](incremental-generators.md).
+> This document has not been fully updated to reflect that.
+> You should implement `IIncrementalGenerator` instead of `ISourceGenerator`.
 
 This document aims to be a guide to help the creation of source generators by providing a series of guidelines for common patterns.
 It also aims to set out what types of generators are possible under the current design, and what is expected to be explicitly out 

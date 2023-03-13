@@ -13,6 +13,7 @@ internal enum SpacePlacementWithinParentheses
     Expressions = 1,
     TypeCasts = 1 << 1,
     ControlFlowStatements = 1 << 2,
+    All = (1 << 3) - 1
 }
 
 internal static partial class Extensions

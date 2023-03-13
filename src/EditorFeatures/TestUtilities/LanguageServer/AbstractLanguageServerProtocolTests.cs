@@ -292,8 +292,8 @@ namespace Roslyn.Test.Utilities
         private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, IEnumerable<string>? customTags = null)
             => new CodeActionResolveData(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri));
 
-        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, LSP.ClientCapabilities clientCapabilities)
-            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, new InitializationOptions { ClientCapabilities = clientCapabilities });
+        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, LSP.ClientCapabilities clientCapabilities, bool callInitialized = true)
+            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, new InitializationOptions { ClientCapabilities = clientCapabilities, CallInitialized = callInitialized });
 
         private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, InitializationOptions? initializationOptions = null)
             => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, initializationOptions);
@@ -551,6 +551,11 @@ namespace Roslyn.Test.Utilities
                     Capabilities = initializationOptions.ClientCapabilities,
                 }, CancellationToken.None);
 
+                if (initializationOptions.CallInitialized)
+                {
+                    await server.ExecuteRequestAsync<LSP.InitializedParams, object?>(LSP.Methods.InitializedName, new LSP.InitializedParams { }, CancellationToken.None);
+                }
+
                 return server;
             }
 
@@ -563,6 +568,8 @@ namespace Roslyn.Test.Utilities
                 {
                     Capabilities = clientCapabilities,
                 }, CancellationToken.None);
+
+                await server.ExecuteRequestAsync<LSP.InitializedParams, object?>(LSP.Methods.InitializedName, new LSP.InitializedParams { }, CancellationToken.None);
 
                 return server;
             }

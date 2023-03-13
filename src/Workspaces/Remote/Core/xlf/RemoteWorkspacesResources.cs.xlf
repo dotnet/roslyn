@@ -82,6 +82,11 @@
         <target state="translated">Míra dědičnosti</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_KeepAlive">
+        <source>Keep alive service</source>
+        <target state="new">Keep alive service</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_LegacySolutionEventsAggregation">
         <source>Solution Events</source>
         <target state="translated">Události řešení</target>

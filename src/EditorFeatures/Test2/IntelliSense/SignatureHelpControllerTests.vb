@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             GetMocks(controller).PresenterSession.Verify(Sub(p) p.SelectPreviousItem(), Times.Once)
         End Sub
 
-        <WpfFact, WorkItem(985007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/985007")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/985007")>
         Public Sub UpKeyShouldNotCrashWhenSessionIsDismissed()
             Dim options = New SignatureHelpOptions()
 
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             GetMocks(controller).PresenterSession.Verify(Sub(p) p.Dismiss(), Times.Once)
         End Sub
 
-        <WpfFact, WorkItem(179726, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
+        <WpfFact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
         Public Sub DownKeyShouldNotBlockOnModelComputation()
             Dim options = New SignatureHelpOptions()
             Dim mre = New ManualResetEvent(False)
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.False(handled)
         End Sub
 
-        <WpfFact, WorkItem(179726, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
+        <WpfFact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
         Public Sub UpKeyShouldNotBlockOnModelComputation()
             Dim options = New SignatureHelpOptions()
             Dim mre = New ManualResetEvent(False)
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.False(handled)
         End Sub
 
-        <WpfFact, WorkItem(179726, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
+        <WpfFact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
         Public Async Function UpKeyShouldBlockOnRecomputationAfterPresentation() As Task
             Dim options = New SignatureHelpOptions()
             Dim workspace = CreateWorkspace()
@@ -209,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             GetMocks(controller).PresenterSession.Verify(Sub(p) p.SelectNextItem(), Times.Once)
         End Sub
 
-        <WorkItem(1181, "https://github.com/dotnet/roslyn/issues/1181")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1181")>
         <WpfFact>
         Public Sub UpAndDownKeysShouldStillNavigateWhenDuplicateItemsAreFiltered()
             Dim item = CreateItems(1).Single()
@@ -247,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.Equal(2, GetMocks(controller).Provider.GetItemsCount)
         End Sub
 
-        <WpfFact, WorkItem(959116, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/959116")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/959116")>
         Public Sub TypingNonTriggerCharacterShouldNotRequestDocument()
             Dim controller = CreateController(CreateWorkspace(), triggerSession:=False)
 

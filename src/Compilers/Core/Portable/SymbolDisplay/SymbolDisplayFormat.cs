@@ -228,7 +228,8 @@ namespace Microsoft.CodeAnalysis
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes | SymbolDisplayCompilerInternalOptions.UseValueTuple);
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.ExpandValueTuple);
 
         /// <summary>
         /// A succinct format for displaying symbols.
@@ -255,8 +256,10 @@ namespace Microsoft.CodeAnalysis
                 kindOptions: SymbolDisplayKindOptions.IncludeMemberKeyword,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames | SymbolDisplayCompilerInternalOptions.UseValueTuple);
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                    SymbolDisplayMiscellaneousOptions.ExpandValueTuple,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames);
 
         /// <summary>
         /// Used to normalize explicit interface implementation member names.

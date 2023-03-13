@@ -81,6 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 // Both normal usings.  Place them in groups if their first namespace
                 // component differs.
+                Contract.ThrowIfNull(using1.Name);
+                Contract.ThrowIfNull(using2.Name);
                 var name1 = using1.Name.GetFirstToken().ValueText;
                 var name2 = using2.Name.GetFirstToken().ValueText;
                 return name1 != name2;

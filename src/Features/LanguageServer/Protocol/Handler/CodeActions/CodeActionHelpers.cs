@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// </remarks>
         public static async Task<VSInternalCodeAction[]> GetVSCodeActionsAsync(
             CodeActionParams request,
-            CodeActionsCache codeActionsCache,
             Document document,
             CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
@@ -43,7 +42,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             if (actionSets.IsDefaultOrEmpty)
                 return Array.Empty<VSInternalCodeAction>();
 
-            await codeActionsCache.UpdateActionSetsAsync(document, request.Range, actionSets, cancellationToken).ConfigureAwait(false);
             var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Each suggested action set should have a unique set number, which is used for grouping code actions together.
@@ -83,7 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             SourceText documentText,
             IUnifiedSuggestedAction suggestedAction,
             LSP.CodeActionKind codeActionKind,
-            UnifiedSuggestedActionSetPriority setPriority,
+            CodeActionPriority setPriority,
             LSP.Range? applicableRange,
             int currentSetNumber,
             ref int currentHighestSetNumber,
@@ -177,7 +175,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// Used by CodeActionResolveHandler and RunCodeActionHandler.
         /// </remarks>
         public static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
-            CodeActionsCache codeActionsCache,
             Document document,
             LSP.Range selection,
             CodeActionOptionsProvider fallbackOptions,
@@ -189,8 +186,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 document, fallbackOptions, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
             if (actionSets.IsDefaultOrEmpty)
                 return ImmutableArray<CodeAction>.Empty;
-
-            await codeActionsCache.UpdateActionSetsAsync(document, selection, actionSets, cancellationToken).ConfigureAwait(false);
 
             var _ = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
             foreach (var set in actionSets)
@@ -230,7 +225,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 }
             }
 
-            return CodeAction.CodeActionWithNestedActions.Create(
+            return CodeAction.Create(
                 codeAction.Title, nestedActions.ToImmutable(), codeAction.IsInlinable, codeAction.Priority);
         }
 
@@ -269,13 +264,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 _ => throw ExceptionUtilities.UnexpectedValue(categoryName)
             };
 
-        private static LSP.VSInternalPriorityLevel? UnifiedSuggestedActionSetPriorityToPriorityLevel(UnifiedSuggestedActionSetPriority priority)
+        private static LSP.VSInternalPriorityLevel? UnifiedSuggestedActionSetPriorityToPriorityLevel(CodeActionPriority priority)
             => priority switch
             {
-                UnifiedSuggestedActionSetPriority.Lowest => LSP.VSInternalPriorityLevel.Lowest,
-                UnifiedSuggestedActionSetPriority.Low => LSP.VSInternalPriorityLevel.Low,
-                UnifiedSuggestedActionSetPriority.Medium => LSP.VSInternalPriorityLevel.Normal,
-                UnifiedSuggestedActionSetPriority.High => LSP.VSInternalPriorityLevel.High,
+                CodeActionPriority.Lowest => LSP.VSInternalPriorityLevel.Lowest,
+                CodeActionPriority.Low => LSP.VSInternalPriorityLevel.Low,
+                CodeActionPriority.Medium => LSP.VSInternalPriorityLevel.Normal,
+                CodeActionPriority.High => LSP.VSInternalPriorityLevel.High,
                 _ => throw ExceptionUtilities.UnexpectedValue(priority)
             };
 

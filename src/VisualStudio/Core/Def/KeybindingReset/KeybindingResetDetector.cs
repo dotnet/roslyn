@@ -60,8 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         private static readonly Guid s_resharperCommandGroup = new("47F03277-5055-4922-899C-0F7F30D26BF1");
 
         private static readonly ImmutableArray<OptionKey2> s_statusOptions = ImmutableArray.Create<OptionKey2>(
-            new OptionKey2(KeybindingResetOptions.ReSharperStatus),
-            new OptionKey2(KeybindingResetOptions.NeedsReset));
+            new OptionKey2(KeybindingResetOptionsStorage.ReSharperStatus),
+            new OptionKey2(KeybindingResetOptionsStorage.NeedsReset));
 
         private readonly IGlobalOptionService _globalOptions;
         private readonly System.IServiceProvider _serviceProvider;
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         public Task InitializeAsync()
         {
             // Immediately bail if the user has asked to never see this bar again.
-            if (_globalOptions.GetOption(KeybindingResetOptions.NeverShowAgain))
+            if (_globalOptions.GetOption(KeybindingResetOptionsStorage.NeverShowAgain))
             {
                 return Task.CompletedTask;
             }
@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         {
             AssertIsForeground();
 
-            if (!_globalOptions.GetOption(KeybindingResetOptions.EnabledFeatureFlag))
+            if (!_globalOptions.GetOption(KeybindingResetOptionsStorage.EnabledFeatureFlag))
             {
                 return;
             }
@@ -218,8 +218,8 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
             }
 
             _globalOptions.SetGlobalOptions(ImmutableArray.Create(
-                KeyValuePairUtil.Create(new OptionKey2(KeybindingResetOptions.ReSharperStatus), (object)currentStatus),
-                KeyValuePairUtil.Create(new OptionKey2(KeybindingResetOptions.NeedsReset), (object)needsReset)));
+                KeyValuePairUtil.Create(new OptionKey2(KeybindingResetOptionsStorage.ReSharperStatus), (object)currentStatus),
+                KeyValuePairUtil.Create(new OptionKey2(KeybindingResetOptionsStorage.NeedsReset), (object)needsReset)));
 
             if (needsReset)
             {
@@ -353,7 +353,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 
             KeybindingsResetLogger.Log("KeybindingsReset");
 
-            _globalOptions.SetGlobalOption(KeybindingResetOptions.NeedsReset, false);
+            _globalOptions.SetGlobalOption(KeybindingResetOptionsStorage.NeedsReset, false);
         }
 
         private void OpenExtensionsHyperlink()
@@ -363,13 +363,13 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
             VisualStudioNavigateToLinkService.StartBrowser(KeybindingsFwLink);
 
             KeybindingsResetLogger.Log("ExtensionsLink");
-            _globalOptions.SetGlobalOption(KeybindingResetOptions.NeedsReset, false);
+            _globalOptions.SetGlobalOption(KeybindingResetOptionsStorage.NeedsReset, false);
         }
 
         private void NeverShowAgain()
         {
-            _globalOptions.SetGlobalOption(KeybindingResetOptions.NeverShowAgain, true);
-            _globalOptions.SetGlobalOption(KeybindingResetOptions.NeedsReset, false);
+            _globalOptions.SetGlobalOption(KeybindingResetOptionsStorage.NeverShowAgain, true);
+            _globalOptions.SetGlobalOption(KeybindingResetOptionsStorage.NeedsReset, false);
             KeybindingsResetLogger.Log("NeverShowAgain");
 
             // The only external references to this object are as callbacks, which are removed by the Shutdown method.

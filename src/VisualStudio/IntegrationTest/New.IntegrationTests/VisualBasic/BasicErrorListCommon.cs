@@ -108,7 +108,7 @@ End Namespace
                 string.Join(Environment.NewLine, actualContents));
         }
 
-        [IdeFact, WorkItem(1643350, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1643350")]
+        [IdeFact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1643350")]
         public virtual async Task BuildErrorsInClosedFiles()
         {
             // Enter code with compiler error.

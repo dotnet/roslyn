@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
     {
         private readonly IEditorFormatMap _editorFormatMap;
 
-        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(FeatureOnOffOptions.StringIdentation);
+        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(StringIndentationOptionsStorage.StringIdentation);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
             if (document == null)
                 return;
 
-            if (!GlobalOptions.GetOption(FeatureOnOffOptions.StringIdentation, document.Project.Language))
+            if (!GlobalOptions.GetOption(StringIndentationOptionsStorage.StringIdentation, document.Project.Language))
                 return;
 
             var service = document.GetLanguageService<IStringIndentationService>();

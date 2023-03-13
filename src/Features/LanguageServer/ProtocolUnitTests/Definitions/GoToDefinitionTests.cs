@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
             Assert.Empty(results);
         }
 
-        [Fact, WorkItem(1264627, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1264627")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1264627")]
         public async Task TestGotoDefinitionAsync_NoResultsOnNamespace()
         {
             var markup =
