@@ -865,13 +865,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     var executableNodeActionsByKind = GetNodeActionsByKind(syntaxNodeActions);
                     var syntaxNodesToAnalyze = (IEnumerable<SyntaxNode>)getNodesToAnalyze(executableBlocks);
-                    ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode);
+                    ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter, isSupportedDiagnostic, isGeneratedCode, hasCodeBlockStartOrSymbolStartActions: startActions.Any());
                 }
                 else if (operationActions != null)
                 {
                     var operationActionsByKind = GetOperationActionsByKind(operationActions);
                     var operationsToAnalyze = (IEnumerable<IOperation>)getNodesToAnalyze(executableBlocks);
-                    ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode);
+                    ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter, isSupportedDiagnostic, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions: startActions.Any());
                 }
             }
 
@@ -968,7 +968,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
            Func<SyntaxNode, TLanguageKindEnum> getKind,
            TextSpan filterSpan,
            ISymbol declaredSymbol,
-           bool isGeneratedCode)
+           bool isGeneratedCode,
+           bool hasCodeBlockStartOrSymbolStartActions)
            where TLanguageKindEnum : struct
         {
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
@@ -980,7 +981,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var diagReporter = GetAddSemanticDiagnostic(model.SyntaxTree, filterSpan, analyzer);
 
             using var _ = PooledDelegates.GetPooledFunction((d, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d), (self: this, analyzer), out Func<Diagnostic, bool> isSupportedDiagnostic);
-            ExecuteSyntaxNodeActions(nodesToAnalyze, nodeActionsByKind, analyzer, declaredSymbol, model, getKind, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode);
+            ExecuteSyntaxNodeActions(nodesToAnalyze, nodeActionsByKind, analyzer, declaredSymbol, model, getKind, diagReporter, isSupportedDiagnostic, isGeneratedCode, hasCodeBlockStartOrSymbolStartActions);
             diagReporter.Free();
         }
 
@@ -991,9 +992,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ISymbol containingSymbol,
             SemanticModel model,
             Func<SyntaxNode, TLanguageKindEnum> getKind,
-            Action<Diagnostic> addDiagnostic,
+            AnalyzerDiagnosticReporter diagReporter,
             Func<Diagnostic, bool> isSupportedDiagnostic,
-            bool isGeneratedCode)
+            bool isGeneratedCode,
+            bool hasCodeBlockStartOrSymbolStartActions)
             where TLanguageKindEnum : struct
         {
             Debug.Assert(nodeActionsByKind.Any());
@@ -1010,9 +1012,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     Debug.Assert(!actionsForKind.IsEmpty, $"Unexpected empty action collection in {nameof(nodeActionsByKind)}");
                     if (ShouldExecuteNode(node, analyzer))
                     {
+                        // If analyzer hasn't registered any CodeBlockStart or SymbolStart actions, then update the filter span
+                        // for local diagnostics to be the callback node's full span.
+                        // For this case, any diagnostic reported in node's callback outside it's full span will be considered
+                        // a non-local diagnostic.
+                        if (!hasCodeBlockStartOrSymbolStartActions)
+                            diagReporter.FilterSpanForLocalDiagnostics = node.FullSpan;
+
                         foreach (var action in actionsForKind)
                         {
-                            ExecuteSyntaxNodeAction(action, node, containingSymbol, model, addDiagnostic, isSupportedDiagnostic, isGeneratedCode);
+                            ExecuteSyntaxNodeAction(action, node, containingSymbol, model, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode);
                         }
                     }
                 }
@@ -1057,7 +1066,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SemanticModel model,
             TextSpan filterSpan,
             ISymbol declaredSymbol,
-            bool isGeneratedCode)
+            bool isGeneratedCode,
+            bool hasOperationBlockStartOrSymbolStartActions)
         {
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
                 IsAnalyzerSuppressedForTree(analyzer, model.SyntaxTree))
@@ -1068,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var diagReporter = GetAddSemanticDiagnostic(model.SyntaxTree, filterSpan, analyzer);
 
             using var _ = PooledDelegates.GetPooledFunction((d, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d), (self: this, analyzer), out Func<Diagnostic, bool> isSupportedDiagnostic);
-            ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, model, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode);
+            ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, model, diagReporter, isSupportedDiagnostic, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions);
             diagReporter.Free();
         }
 
@@ -1078,9 +1088,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             ISymbol containingSymbol,
             SemanticModel model,
-            Action<Diagnostic> addDiagnostic,
+            AnalyzerDiagnosticReporter diagReporter,
             Func<Diagnostic, bool> isSupportedDiagnostic,
-            bool isGeneratedCode)
+            bool isGeneratedCode,
+            bool hasOperationBlockStartOrSymbolStartActions)
         {
             Debug.Assert(operationActionsByKind != null);
             Debug.Assert(operationActionsByKind.Any());
@@ -1097,9 +1108,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     Debug.Assert(!actionsForKind.IsEmpty, $"Unexpected empty action collection in {nameof(operationActionsByKind)}");
                     if (ShouldExecuteOperation(operation, analyzer))
                     {
+                        // If analyzer hasn't registered any OperationBlockStart or SymbolStart actions, then update
+                        // the filter span for local diagnostics to be the callback operation's full span.
+                        // For this case, any diagnostic reported in operation's callback outside it's full span
+                        // will be considered a non-local diagnostic.
+                        if (!hasOperationBlockStartOrSymbolStartActions)
+                            diagReporter.FilterSpanForLocalDiagnostics = operation.Syntax.FullSpan;
+
                         foreach (var action in actionsForKind)
                         {
-                            ExecuteOperationAction(action, operation, containingSymbol, model, addDiagnostic, isSupportedDiagnostic, isGeneratedCode);
+                            ExecuteOperationAction(action, operation, containingSymbol, model, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode);
                         }
                     }
                 }

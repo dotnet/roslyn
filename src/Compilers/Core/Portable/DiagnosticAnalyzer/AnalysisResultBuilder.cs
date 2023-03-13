@@ -395,6 +395,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 currentDiagnostics.Clear();
             }
+            else
+            {
+                // Always de-dupe diagnostic to add
+                diagnostics = diagnostics.WhereAsArray(d => !currentDiagnostics.Contains(d));
+            }
 
             currentDiagnostics.AddRange(diagnostics);
         }
