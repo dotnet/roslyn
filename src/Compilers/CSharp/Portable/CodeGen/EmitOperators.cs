@@ -471,13 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // this will leave a value on the stack which conforms to sense, ie:(condition == sense)
         private void EmitCondExpr(BoundExpression condition, bool sense)
         {
-            while (condition.Kind == BoundKind.UnaryOperator)
-            {
-                var unOp = (BoundUnaryOperator)condition;
-                Debug.Assert(unOp.OperatorKind == UnaryOperatorKind.BoolLogicalNegation);
-                condition = unOp.Operand;
-                sense = !sense;
-            }
+            RemoveNegation(ref condition, ref sense);
 
             Debug.Assert(condition.Type.SpecialType == SpecialType.System_Boolean);
 
@@ -504,6 +498,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitIsSense(sense);
 
             return;
+        }
+
+        private static void RemoveNegation(ref BoundExpression condition, ref bool sense)
+        {
+            while (condition is BoundUnaryOperator unOp)
+            {
+                Debug.Assert(unOp.OperatorKind == UnaryOperatorKind.BoolLogicalNegation);
+                condition = unOp.Operand;
+                sense = !sense;
+            }
         }
 
         private void EmitUnaryCheckedOperatorExpression(BoundUnaryOperator expression, bool used)

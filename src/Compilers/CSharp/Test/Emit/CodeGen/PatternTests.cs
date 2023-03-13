@@ -5891,7 +5891,7 @@ class C
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1", @"
     {
-      // Code size       32 (0x20)
+      // Code size       35 (0x23)
       .maxstack  2
       .locals init (bool V_0)
       IL_0000:  ldarg.0
@@ -5914,32 +5914,31 @@ class C
       IL_001c:  ldc.i4.0
       IL_001d:  stloc.0
       IL_001e:  ldloc.0
-      IL_001f:  ret
+      IL_001f:  ldc.i4.0
+      IL_0020:  cgt.un
+      IL_0022:  ret
     }
 ");
             compVerifier.VerifyIL("C.M2", @"
     {
-      // Code size       30 (0x1e)
+      // Code size       25 (0x19)
       .maxstack  2
       IL_0000:  ldarg.0
       IL_0001:  ldc.i4.s   65
       IL_0003:  blt.s      IL_000a
       IL_0005:  ldarg.0
       IL_0006:  ldc.i4.s   90
-      IL_0008:  ble.s      IL_001c
+      IL_0008:  ble.s      IL_0017
       IL_000a:  ldarg.0
       IL_000b:  ldc.i4.s   97
-      IL_000d:  blt.s      IL_0019
+      IL_000d:  blt.s      IL_0014
       IL_000f:  ldarg.0
       IL_0010:  ldc.i4.s   122
-      IL_0012:  cgt
+      IL_0012:  ble.s      IL_0017
       IL_0014:  ldc.i4.0
-      IL_0015:  ceq
-      IL_0017:  br.s       IL_001a
-      IL_0019:  ldc.i4.0
-      IL_001a:  br.s       IL_001d
-      IL_001c:  ldc.i4.1
-      IL_001d:  ret
+      IL_0015:  br.s       IL_0018
+      IL_0017:  ldc.i4.1
+      IL_0018:  ret
     }
 ");
 
@@ -5948,7 +5947,7 @@ class C
             compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1", @"
     {
-      // Code size       30 (0x1e)
+      // Code size       33 (0x21)
       .maxstack  2
       .locals init (bool V_0)
       IL_0000:  ldarg.0
@@ -5970,32 +5969,31 @@ class C
       IL_001a:  ldc.i4.0
       IL_001b:  stloc.0
       IL_001c:  ldloc.0
-      IL_001d:  ret
+      IL_001d:  ldc.i4.0
+      IL_001e:  cgt.un
+      IL_0020:  ret
     }
 ");
             compVerifier.VerifyIL("C.M2", @"
     {
-      // Code size       28 (0x1c)
+      // Code size       24 (0x18)
       .maxstack  2
       IL_0000:  ldarg.0
       IL_0001:  ldc.i4.s   65
       IL_0003:  blt.s      IL_000a
       IL_0005:  ldarg.0
       IL_0006:  ldc.i4.s   90
-      IL_0008:  ble.s      IL_001a
+      IL_0008:  ble.s      IL_0016
       IL_000a:  ldarg.0
       IL_000b:  ldc.i4.s   97
-      IL_000d:  blt.s      IL_0018
+      IL_000d:  blt.s      IL_0014
       IL_000f:  ldarg.0
       IL_0010:  ldc.i4.s   122
-      IL_0012:  cgt
+      IL_0012:  ble.s      IL_0016
       IL_0014:  ldc.i4.0
-      IL_0015:  ceq
+      IL_0015:  ret
+      IL_0016:  ldc.i4.1
       IL_0017:  ret
-      IL_0018:  ldc.i4.0
-      IL_0019:  ret
-      IL_001a:  ldc.i4.1
-      IL_001b:  ret
     }
 ");
         }

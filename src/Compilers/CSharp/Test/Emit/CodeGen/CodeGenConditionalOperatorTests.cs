@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             verifier.VerifyDiagnostics();
             verifier.VerifyMethodBody("C.M", """
                 {
-                  // Code size      100 (0x64)
+                  // Code size      103 (0x67)
                   .maxstack  2
                   // sequence point: Write(x == y ? 1 : 0);
                   IL_0000:  ldarg.0
@@ -132,21 +132,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                   IL_0043:  call       "void System.Console.Write(int)"
                   // sequence point: Write(!b ? 0 : 1);
                   IL_0048:  ldarg.2
-                  IL_0049:  call       "void System.Console.Write(int)"
+                  IL_0049:  ldc.i4.0
+                  IL_004a:  cgt.un
+                  IL_004c:  call       "void System.Console.Write(int)"
                   // sequence point: Write(x <= y ? true : false);
-                  IL_004e:  ldarg.0
-                  IL_004f:  ldarg.1
-                  IL_0050:  cgt
-                  IL_0052:  ldc.i4.0
-                  IL_0053:  ceq
-                  IL_0055:  call       "void System.Console.Write(bool)"
+                  IL_0051:  ldarg.0
+                  IL_0052:  ldarg.1
+                  IL_0053:  cgt
+                  IL_0055:  ldc.i4.0
+                  IL_0056:  ceq
+                  IL_0058:  call       "void System.Console.Write(bool)"
                   // sequence point: Write(x <= y ? false : true);
-                  IL_005a:  ldarg.0
-                  IL_005b:  ldarg.1
-                  IL_005c:  cgt
-                  IL_005e:  call       "void System.Console.Write(bool)"
+                  IL_005d:  ldarg.0
+                  IL_005e:  ldarg.1
+                  IL_005f:  cgt
+                  IL_0061:  call       "void System.Console.Write(bool)"
                   // sequence point: }
-                  IL_0063:  ret
+                  IL_0066:  ret
                 }
                 """);
         }
@@ -185,15 +187,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             verifier.VerifyDiagnostics();
             verifier.VerifyMethodBody("D.M1", """
                 {
-                  // Code size       11 (0xb)
-                  .maxstack  1
+                  // Code size        9 (0x9)
+                  .maxstack  2
                   // sequence point: C.M() ? 1 : 0
                   IL_0000:  call       "bool C.M()"
-                  IL_0005:  brtrue.s   IL_0009
-                  IL_0007:  ldc.i4.0
+                  IL_0005:  ldc.i4.0
+                  IL_0006:  cgt.un
                   IL_0008:  ret
-                  IL_0009:  ldc.i4.1
-                  IL_000a:  ret
                 }
                 """);
         }
