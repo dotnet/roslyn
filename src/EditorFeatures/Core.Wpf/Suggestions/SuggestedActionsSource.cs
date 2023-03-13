@@ -245,13 +245,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         _ => throw ExceptionUtilities.Unreachable()
                     };
 
-                static SuggestedActionSetPriority ConvertToSuggestedActionSetPriority(UnifiedSuggestedActionSetPriority unifiedSuggestedActionSetPriority)
-                    => unifiedSuggestedActionSetPriority switch
+                static SuggestedActionSetPriority ConvertToSuggestedActionSetPriority(CodeActionPriority priority)
+                    => priority switch
                     {
-                        UnifiedSuggestedActionSetPriority.Lowest => SuggestedActionSetPriority.None,
-                        UnifiedSuggestedActionSetPriority.Low => SuggestedActionSetPriority.Low,
-                        UnifiedSuggestedActionSetPriority.Medium => SuggestedActionSetPriority.Medium,
-                        UnifiedSuggestedActionSetPriority.High => SuggestedActionSetPriority.High,
+                        CodeActionPriority.Lowest => SuggestedActionSetPriority.None,
+                        CodeActionPriority.Low => SuggestedActionSetPriority.Low,
+                        CodeActionPriority.Medium => SuggestedActionSetPriority.Medium,
+                        CodeActionPriority.High => SuggestedActionSetPriority.High,
                         _ => throw ExceptionUtilities.Unreachable(),
                     };
             }

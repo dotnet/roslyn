@@ -1014,7 +1014,7 @@ namespace System.Diagnostics.CodeAnalysis
                 return new SyntaxTree[] { };
             }
 
-            return sources.Select(src => Parse(src, options: options)).ToArray();
+            return sources.Select((src, index) => Parse(src, filename: $"{index}.cs", options: options)).ToArray();
         }
 
         public static SyntaxTree ParseWithRoundTripCheck(string text, CSharpParseOptions options = null)

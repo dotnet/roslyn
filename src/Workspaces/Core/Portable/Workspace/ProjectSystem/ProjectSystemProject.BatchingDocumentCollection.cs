@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                     else
                     {
                         _project._projectSystemProjectFactory.ApplyChangeToWorkspace(w => _documentAddAction(w, documentInfo));
-                        _project._projectSystemProjectFactory.RaiseOnDocumentsAdded(ImmutableArray.Create(fullPath));
+                        _project._projectSystemProjectFactory.RaiseOnDocumentsAddedMaybeAsync(useAsync: false, ImmutableArray.Create(fullPath)).VerifyCompleted();
                     }
                 }
 
@@ -475,6 +475,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                             // so, it is okay for us to call regular ".Result" on a task here.
                             var fileInfo = fileInfoProvider.GetDynamicFileInfoAsync(
                                 _project.Id, _project._filePath, projectSystemFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+
+                            Contract.ThrowIfNull(fileInfo, "We previously received a dynamic file for this path, and we're responding to a change, so we expect to get a new one.");
 
                             // Right now we're only supporting dynamic files as actual source files, so it's OK to call GetDocument here
                             var attributes = w.CurrentSolution.GetRequiredDocument(documentId).State.Attributes;

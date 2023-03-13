@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
@@ -122,6 +123,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 _ when type == typeof(int) => (int)value! == 0 ? 1 : 0,
                 _ when type == typeof(long) => (long)value! == 0 ? 1L : 0L,
                 _ when type.IsEnum => GetDifferentEnumValue(type, value!),
+                _ when Nullable.GetUnderlyingType(type) is { IsEnum: true } underlying => value is null ? Enum.ToObject(underlying, 1) : null,
                 ICodeStyleOption codeStyle => codeStyle
                     .WithValue(GetDifferentValue(codeStyle.GetType().GetGenericArguments()[0], codeStyle.Value!)!)
                     .WithNotification((codeStyle.Notification == NotificationOption2.Error) ? NotificationOption2.Warning : NotificationOption2.Error),
@@ -144,26 +146,34 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return defaultValue.Equals(zero) ? Enum.ToObject(type, 1) : zero;
         }
 
-        /// <summary>
-        /// True if the type is a type of an option value.
-        /// </summary>
-        public static bool IsOptionValueType(Type type)
-            => type == typeof(bool) ||
-               type == typeof(string) ||
-               type == typeof(int) ||
-               type == typeof(long) ||
-               type == typeof(bool?) ||
-               type == typeof(int?) ||
-               type == typeof(long?) ||
-               type.IsEnum ||
-               typeof(ICodeStyleOption).IsAssignableFrom(type) ||
-               type == typeof(NamingStylePreferences) ||
-               type == typeof(ImmutableArray<bool>) ||
-               type == typeof(ImmutableArray<string>) ||
-               type == typeof(ImmutableArray<int>) ||
-               type == typeof(ImmutableArray<long>);
+        public static NamingStylePreferences GetNonDefaultNamingStylePreference()
+        {
+            var symbolSpecification = new SymbolSpecification(
+                Guid.NewGuid(),
+                "Name",
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)),
+                accessibilityList: default,
+                modifiers: default);
 
-        public static Type GetNonNullableType(Type type)
-            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) ? type.GetGenericArguments()[0] : type;
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.PascalCase,
+                name: "Name",
+                prefix: "",
+                suffix: "",
+                wordSeparator: "");
+
+            var namingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = symbolSpecification.ID,
+                NamingStyleID = namingStyle.ID,
+                EnforcementLevel = ReportDiagnostic.Error
+            };
+
+            return new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
+        }
     }
 }

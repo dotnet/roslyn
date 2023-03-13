@@ -101,11 +101,26 @@ namespace Microsoft.CodeAnalysis
 
             return displayParts.SelectAsArray(d =>
                 new TaggedText(
-                    SymbolDisplayPartKindTags.GetTag(d.Kind),
+                    GetTag(d),
                     d.ToString(),
                     style,
                     includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? GetNavigationTarget(d.Symbol) : null,
                     includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? getNavigationHint(d.Symbol) : null));
+        }
+
+        private static string GetTag(SymbolDisplayPart part)
+        {
+            // We don't actually have any specific classifications for aliases.  So if the compiler passed us that kind,
+            // attempt to map to the corresponding namespace/named-type kind that matches the underlying alias target.
+            if (part is { Symbol: IAliasSymbol alias, Kind: SymbolDisplayPartKind.AliasName })
+            {
+                if (alias.Target is INamespaceSymbol)
+                    return SymbolDisplayPartKindTags.GetTag(SymbolDisplayPartKind.NamespaceName);
+                else if (alias.Target is INamedTypeSymbol namedType)
+                    return SymbolDisplayPartKindTags.GetTag(namedType.GetSymbolDisplayPartKind());
+            }
+
+            return SymbolDisplayPartKindTags.GetTag(part.Kind);
         }
 
         private static string GetNavigationTarget(ISymbol symbol)

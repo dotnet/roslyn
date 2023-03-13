@@ -751,7 +751,7 @@ enum Color : long
 }");
         }
 
-        [Fact, WorkItem(528312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528312")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528312")]
         public async Task TestGenerateAfterEnumWithLongMinValueInHex()
         {
             await TestInRegularAndScriptAsync(
@@ -782,7 +782,7 @@ enum Color : long
 }");
         }
 
-        [Fact, WorkItem(528312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528312")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528312")]
         public async Task TestGenerateAfterPositiveLongInHex()
         {
             await TestInRegularAndScriptAsync(
@@ -1536,7 +1536,7 @@ enum Weekday
 }");
         }
 
-        [Fact, WorkItem(540919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540919")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540919")]
         public async Task TestKeyword()
         {
             await TestInRegularAndScriptAsync(
@@ -1567,7 +1567,7 @@ enum Color
 }");
         }
 
-        [Fact, WorkItem(544333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544333")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544333")]
         public async Task TestNotAfterPointer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1632,7 +1632,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(545903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545903")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545903")]
         public async Task TestNoOctal()
         {
             await TestInRegularAndScriptAsync(
@@ -1657,7 +1657,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(546654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546654")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546654")]
         public async Task TestLastValueDoesNotHaveInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -1688,7 +1688,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(49679, "https://github.com/dotnet/roslyn/issues/49679")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49679")]
         public async Task TestWithLeftShift_Long()
         {
             await TestInRegularAndScriptAsync(
@@ -1719,7 +1719,7 @@ enum Color : long
 }");
         }
 
-        [Fact, WorkItem(49679, "https://github.com/dotnet/roslyn/issues/49679")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49679")]
         public async Task TestWithLeftShift_UInt()
         {
             await TestInRegularAndScriptAsync(
@@ -1750,7 +1750,7 @@ enum Color : uint
 }");
         }
 
-        [Fact, WorkItem(49679, "https://github.com/dotnet/roslyn/issues/49679")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49679")]
         public async Task TestWithLeftShift_ULong()
         {
             await TestInRegularAndScriptAsync(
@@ -1779,6 +1779,84 @@ enum Color : ulong
     Green = 1UL << 0,
     Blue = 1UL << 1
 }");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5468")]
+        public async Task TestWithColorColorConflict1()
+        {
+            await TestInRegularAndScriptAsync(
+@"enum Color
+{
+    Blue,
+    Green
+}
+
+class Sample1
+{
+    Color Color => Color.[|Red|];
+
+    void Method()
+    {
+        if (Color == Color.Red) { } 
+    }
+}
+",
+@"enum Color
+{
+    Blue,
+    Green,
+    Red
+}
+
+class Sample1
+{
+    Color Color => Color.Red;
+
+    void Method()
+    {
+        if (Color == Color.Red) { } 
+    }
+}
+");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5468")]
+        public async Task TestWithColorColorConflict2()
+        {
+            await TestInRegularAndScriptAsync(
+@"enum Color
+{
+    Blue,
+    Green
+}
+
+class Sample1
+{
+    Color Color => Color.Red;
+
+    void Method()
+    {
+        if (Color == Color.[|Red|]) { } 
+    }
+}
+",
+@"enum Color
+{
+    Blue,
+    Green,
+    Red
+}
+
+class Sample1
+{
+    Color Color => Color.Red;
+
+    void Method()
+    {
+        if (Color == Color.Red) { } 
+    }
+}
+");
         }
     }
 }

@@ -67,5 +67,20 @@ namespace Microsoft.CodeAnalysis.CodeLens
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Version);
             return hashCode;
         }
+
+        public string GetDescription()
+        {
+            var referenceWord = Count == 1
+                ? FeaturesResources._0_reference_unquoted
+                : FeaturesResources._0_references_unquoted;
+
+            var description = string.Format(referenceWord, GetCappedReferenceCountString());
+            return description;
+        }
+
+        public string GetToolTip(string? codeElementKind)
+            => string.Format(FeaturesResources.This_0_has_1_references, codeElementKind, GetCappedReferenceCountString());
+
+        private string GetCappedReferenceCountString() => $"{Count}{(IsCapped ? "+" : string.Empty)}";
     }
 }

@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsContain(<NamespaceDeclaration>|</NamespaceDeclaration>, "Namespace")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub NestedNamespaceFollowsTypeDeclarationTest()
             Dim code =
 <File>
@@ -36,7 +36,7 @@ End Namespace
             VerifyRecommendationsContain(code, "Namespace")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub NamespaceFollowsNamespaceTest()
             Dim code =
 <File>
@@ -50,7 +50,7 @@ End Namespace
             VerifyRecommendationsContain(code, "Namespace")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub NamespaceFollowsNamespaceWithoutMatchingEndTest()
             Dim code =
 <File>
@@ -60,7 +60,7 @@ Namespace N1
             VerifyRecommendationsContain(code, "Namespace")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub NamespaceFollowsMismatchedEnd1Test()
             Dim code =
 <File>
@@ -72,7 +72,7 @@ End Namespace
             VerifyRecommendationsContain(code, "Namespace")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub NamespaceFollowsMismatchedEnd2Test()
             Dim code =
 <File>
@@ -83,7 +83,7 @@ End Class
             VerifyRecommendationsContain(code, "Namespace")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub NamespaceFollowsMismatchedEnd3Test()
             Dim code =
 <File>
@@ -93,7 +93,7 @@ End Class
             VerifyRecommendationsContain(code, "Namespace")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub NamespaceFollowsMismatchedEnd4Test()
             Dim code =
 <File>
