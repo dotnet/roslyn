@@ -10602,6 +10602,21 @@ class C1 { }
         }
 
         [Fact]
+        public void GenericAttributePointerArray_CSharp11_1()
+        {
+            // Legal in C#11.  Allowed for back compat
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+[Attr<int*[]>] // 1
+class C1 { }
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void GenericAttributePointerArray_2()
         {
             var source = @"
