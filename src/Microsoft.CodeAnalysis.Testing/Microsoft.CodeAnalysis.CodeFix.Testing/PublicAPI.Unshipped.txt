@@ -28,6 +28,7 @@ Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllCheck = Microsoft.
 Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInDocumentCheck = 1 -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
 Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInProjectCheck = 2 -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
 Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInSolutionCheck = 4 -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
+Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipLocalDiagnosticCheck = 16 -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
 Microsoft.CodeAnalysis.Testing.CodeFixValidationMode
 Microsoft.CodeAnalysis.Testing.CodeFixValidationMode.Full = 2 -> Microsoft.CodeAnalysis.Testing.CodeFixValidationMode
 Microsoft.CodeAnalysis.Testing.CodeFixValidationMode.None = 0 -> Microsoft.CodeAnalysis.Testing.CodeFixValidationMode
