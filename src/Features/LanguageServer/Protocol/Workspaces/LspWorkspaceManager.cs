@@ -68,13 +68,13 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
     private readonly string _hostWorkspaceKind;
     private readonly ILspLogger _logger;
-    private readonly LspMiscellaneousFilesWorkspace _lspMiscellaneousFilesWorkspace;
+    private readonly LspMiscellaneousFilesWorkspace? _lspMiscellaneousFilesWorkspace;
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
     private readonly RequestTelemetryLogger _requestTelemetryLogger;
 
     public LspWorkspaceManager(
         ILspLogger logger,
-        LspMiscellaneousFilesWorkspace lspMiscellaneousFilesWorkspace,
+        LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         RequestTelemetryLogger requestTelemetryLogger)
     {
@@ -123,7 +123,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _cachedLspSolutions.Clear();
 
         // Also remove it from our loose files workspace if it is still there.
-        _lspMiscellaneousFilesWorkspace.TryRemoveMiscellaneousDocument(uri);
+        _lspMiscellaneousFilesWorkspace?.TryRemoveMiscellaneousDocument(uri);
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -205,8 +205,9 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
         var uri = textDocumentIdentifier.Uri;
-        // Add the document to our loose files workspace if its open.
-        if (_trackedDocuments.ContainsKey(uri))
+
+        // Add the document to our loose files workspace (if we have one) if its open.
+        if (_trackedDocuments.ContainsKey(uri) && _lspMiscellaneousFilesWorkspace != null)
         {
             var miscDocument = _lspMiscellaneousFilesWorkspace.AddMiscellaneousDocument(uri, _trackedDocuments[uri], _logger);
             if (miscDocument is not null)
@@ -224,8 +225,9 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Ensure that the loose files workspace is searched last.
         var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
         registeredWorkspaces = registeredWorkspaces
-            .Where(workspace => workspace is not LspMiscellaneousFilesWorkspace)
-            .Concat(registeredWorkspaces.Where(workspace => workspace is LspMiscellaneousFilesWorkspace)).ToImmutableArray();
+            .Where(workspace => workspace.Kind != WorkspaceKind.MiscellaneousFiles)
+            .Concat(registeredWorkspaces.Where(workspace => workspace.Kind == WorkspaceKind.MiscellaneousFiles))
+            .ToImmutableArray();
 
         using var _ = ArrayBuilder<(Workspace, Solution, bool)>.GetInstance(out var solutions);
         foreach (var workspace in registeredWorkspaces)
@@ -361,7 +363,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         public TestAccessor(LspWorkspaceManager manager)
             => _manager = manager;
 
-        public LspMiscellaneousFilesWorkspace GetLspMiscellaneousFilesWorkspace()
+        public LspMiscellaneousFilesWorkspace? GetLspMiscellaneousFilesWorkspace()
             => _manager._lspMiscellaneousFilesWorkspace;
 
         public bool IsWorkspaceRegistered(Workspace workspace)
