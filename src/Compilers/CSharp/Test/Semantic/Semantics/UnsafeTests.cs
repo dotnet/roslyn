@@ -8637,7 +8637,6 @@ unsafe class C<T> : A
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b").WithLocation(8, 30));
         }
 
-
         [WorkItem(544003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
         [WorkItem(544232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
         [Fact]
@@ -8862,7 +8861,6 @@ unsafe class C<T> : A
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c").WithLocation(17, 28));
         }
 
-
         [WorkItem(544003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
         [WorkItem(544232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
         [Fact]
@@ -9034,7 +9032,6 @@ unsafe class C<T> : A
                 //     private static C<string*[]> c;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c").WithLocation(13, 33));
         }
-
 
         [Fact]
         [WorkItem(37051, "https://github.com/dotnet/roslyn/issues/37051")]
@@ -10676,7 +10673,6 @@ class C
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("int*").WithLocation(6, 21));
         }
 
-
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
         public void AliasToGenericOfPointers_CSharp12_UnsafeOn()
         {
@@ -10821,7 +10817,6 @@ class C
                 //     unsafe void M(X x)
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("int*").WithLocation(6, 21));
         }
-
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
         public void AliasToGenericOfArrayOfPointers_CSharp11_UnsafeOn()
