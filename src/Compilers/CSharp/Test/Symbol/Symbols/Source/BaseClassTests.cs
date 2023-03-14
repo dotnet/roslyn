@@ -2298,7 +2298,7 @@ class Derived : Base
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=174789")]
-        public void CyclePointer_CSharp12_A()
+        public void CyclePointer_CSharp12_NoUnsafeSwitch()
         {
             var text =
 @"class A<T>
@@ -2338,7 +2338,7 @@ unsafe class Derived : Base
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=174789")]
-        public void CyclePointer_CSharp12_B()
+        public void CyclePointer_CSharp12_UnsafeSwitch()
         {
             var text =
 @"class A<T>
