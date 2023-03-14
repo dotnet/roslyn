@@ -8532,8 +8532,8 @@ unsafe class Test
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "px").WithArguments("Test.px"));
         }
 
-        [Fact, WorkItem(544003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
-        public void PointerTypesAsTypeArgs_CSharp11_A()
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
+        public void PointerTypesAsTypeArgs_CSharp11_NoUnsafeModifier()
         {
             string text = @"
 class A
@@ -8556,8 +8556,8 @@ class C<T> : A
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
         }
 
-        [Fact, WorkItem(544003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
-        public void PointerTypesAsTypeArgs_CSharp11_B()
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
+        public void PointerTypesAsTypeArgs_CSharp11_UnsafeModifier()
         {
             string text = @"
 class A
@@ -8583,8 +8583,8 @@ unsafe class C<T> : A
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b").WithLocation(8, 30));
         }
 
-        [Fact, WorkItem(544003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
-        public void PointerTypesAsTypeArgs_CSharp12_A()
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
+        public void PointerTypesAsTypeArgs_CSharp12_NoUnsafeModifier()
         {
             string text = @"
 class A
@@ -8610,8 +8610,8 @@ class C<T> : A
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expected);
         }
 
-        [Fact, WorkItem(544003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
-        public void PointerTypesAsTypeArgs_CSharp12_B()
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
+        public void PointerTypesAsTypeArgs_CSharp12_UnsafeModifier()
         {
             string text = @"
 class A
@@ -8637,10 +8637,10 @@ unsafe class C<T> : A
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b").WithLocation(8, 30));
         }
 
-        [WorkItem(544003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
-        [WorkItem(544232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
         [Fact]
-        public void PointerTypesAsTypeArgs2_CSharp11_A()
+        public void PointerTypesAsTypeArgs2_CSharp11_NoUnsafeModifier()
         {
             string text = @"
 class A
@@ -8684,10 +8684,10 @@ class C<T> : A
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
         }
 
-        [WorkItem(544003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
-        [WorkItem(544232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
         [Fact]
-        public void PointerTypesAsTypeArgs2_CSharp11_B()
+        public void PointerTypesAsTypeArgs2_CSharp11_UnsafeModifier()
         {
             string text = @"
 class A
@@ -8746,10 +8746,10 @@ unsafe class C<T> : A
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c").WithLocation(17, 28));
         }
 
-        [WorkItem(544003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
-        [WorkItem(544232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
         [Fact]
-        public void PointerTypesAsTypeArgs2_CSharp12_A()
+        public void PointerTypesAsTypeArgs2_CSharp12_NoUnsafeModifier()
         {
             string text = @"
 class A
@@ -8799,10 +8799,10 @@ class C<T> : A
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expected);
         }
 
-        [WorkItem(544003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
-        [WorkItem(544232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
         [Fact]
-        public void PointerTypesAsTypeArgs2_CSharp12_B()
+        public void PointerTypesAsTypeArgs2_CSharp12_UnsafeModifier()
         {
             string text = @"
 class A
@@ -8861,10 +8861,10 @@ unsafe class C<T> : A
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c").WithLocation(17, 28));
         }
 
-        [WorkItem(544003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
-        [WorkItem(544232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
         [Fact]
-        public void PointerTypesAsTypeArgs3_CSharp11_A()
+        public void PointerTypesAsTypeArgs3_CSharp11_NoUnsafeModifier()
         {
             string text = @"
 class A
@@ -8898,10 +8898,10 @@ class C<T> : A
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
         }
 
-        [WorkItem(544003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
-        [WorkItem(544232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
         [Fact]
-        public void PointerTypesAsTypeArgs3_CSharp11_B()
+        public void PointerTypesAsTypeArgs3_CSharp11_UnsafeModifier()
         {
             string text = @"
 class A
@@ -8944,10 +8944,10 @@ unsafe class C<T> : A
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c").WithLocation(13, 33));
         }
 
-        [WorkItem(544003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
-        [WorkItem(544232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
         [Fact]
-        public void PointerTypesAsTypeArgs3_CSharp12_A()
+        public void PointerTypesAsTypeArgs3_CSharp12_NoUnsafeModifier()
         {
             string text = @"
 class A
@@ -8987,10 +8987,10 @@ class C<T> : A
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expected);
         }
 
-        [WorkItem(544003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
-        [WorkItem(544232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
         [Fact]
-        public void PointerTypesAsTypeArgs3_CSharp12_B()
+        public void PointerTypesAsTypeArgs3_CSharp12_UnsafeModifier()
         {
             string text = @"
 class A
