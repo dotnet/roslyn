@@ -11890,7 +11890,7 @@ class C<T> {}
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
-        public void Attribute_GenericObjectConstant_Enum_ConstructorArgument_A([CombinatorialValues("class", "struct")] string kind)
+        public void Attribute_GenericObjectConstant_Enum_ConstructorArgument_NoUnsafeModifier([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
                 class A<T> : System.Attribute
@@ -11916,7 +11916,7 @@ class C<T> {}
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
-        public void Attribute_GenericObjectConstant_Enum_ConstructorArgument_B([CombinatorialValues("class", "struct")] string kind)
+        public void Attribute_GenericObjectConstant_Enum_ConstructorArgument_UnsafeModifier([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
                 class A<T> : System.Attribute
