@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.BraceCompletion;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Indentation;
@@ -115,18 +114,24 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             if (closingPointLine - openingPointLine == 1)
             {
                 // Handling syntax tree directly to avoid parsing in potentially UI blocking code-path
-                var closingToken = document.Root.FindTokenOnLeftOfPosition(context.ClosingPoint);
-                var newLineString = options.FormattingOptions.NewLine;
-                newLineEdit = new TextChange(new TextSpan(closingToken.FullSpan.Start, 0), newLineString);
+                var closingToken = document.Root.FindToken(closingPoint - 1);
+                Debug.Assert(IsValidClosingBraceToken(closingToken));
 
-                var generator = document.LanguageServices.GetRequiredService<SyntaxGeneratorInternal>();
-                var endOfLine = generator.EndOfLine(newLineString);
+                var newClosingToken = closingToken.WithPrependedLeadingTrivia(
+                    SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(options.FormattingOptions.NewLine)));
 
-                var rootToFormat = document.Root.ReplaceToken(closingToken, closingToken.WithPrependedLeadingTrivia(endOfLine));
-                document = document.WithChangedRoot(rootToFormat, cancellationToken);
+                var rootToFormat = document.Root.ReplaceToken(closingToken, newClosingToken);
+
+                newClosingToken = rootToFormat.FindToken(closingPoint - 1, findInsideTrivia: true);
+                Debug.Assert(IsValidClosingBraceToken(newClosingToken));
 
                 // Modify the closing point location to adjust for the newly inserted line.
-                closingPoint += newLineString.Length;
+                closingPoint = newClosingToken.Span.End;
+
+                var textChangeLength = newClosingToken.Span.End - closingToken.Span.End;
+                newLineEdit = new TextChange(new TextSpan(closingToken.FullSpan.Start, 0), newClosingToken.ToFullString()[..textChangeLength]);
+
+                document = document.WithChangedRoot(rootToFormat, cancellationToken);
             }
 
             // Format the text that contains the newly inserted line.
@@ -147,11 +152,21 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // Set the caret position to the properly indented column in the desired line.
             var caretPosition = GetIndentedLinePosition(newDocument, newDocument.Text, desiredCaretLine.LineNumber, options, cancellationToken);
 
-            // The new line edit is calculated against the original text, d0, to get text d1.
-            // The formatting edits are calculated against d1 to get text d2.
-            // Merge the formatting and new line edits into a set of whitespace only text edits that all apply to d0.
-            var overallChanges = newLineEdit != null ? GetMergedChanges(newLineEdit.Value, formattingChanges, newDocument.Text) : formattingChanges;
-            return new BraceCompletionResult(overallChanges, caretPosition);
+            return new BraceCompletionResult(GetOverallChanges(), caretPosition);
+
+            ImmutableArray<TextChange> GetOverallChanges()
+            {
+                // The new line edit is calculated against the original text, d0, to get text d1.
+                // The formatting edits are calculated against d1 to get text d2.
+                // Merge the formatting and new line edits into a set of whitespace only text edits that all apply to d0.
+                if (!newLineEdit.HasValue)
+                    return formattingChanges;
+
+                if (formattingChanges.IsEmpty)
+                    return ImmutableArray.Create(newLineEdit.Value);
+
+                return GetMergedChanges(newLineEdit.Value, formattingChanges, newDocument.Text);
+            }
 
             static TextLine GetLineBetweenCurlys(int closingPosition, SourceText text)
             {
