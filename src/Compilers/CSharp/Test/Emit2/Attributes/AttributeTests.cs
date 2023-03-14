@@ -10602,7 +10602,7 @@ class C1 { }
         }
 
         [Fact]
-        public void GenericAttributePointerArray_CSharp11_1()
+        public void GenericAttributePointerArray_CSharp11()
         {
             // Legal in C#11.  Allowed for back compat
             var source = @"
@@ -10617,7 +10617,7 @@ class C1 { }
         }
 
         [Fact]
-        public void GenericAttributePointerArray_2()
+        public void GenericAttributePointerArray_CSharp12_A()
         {
             var source = @"
 using System;
@@ -10626,12 +10626,12 @@ class Attr<T> : Attribute { }
 [Attr<int*[]>] // 1
 unsafe class C1 { }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
         }
 
         [Fact]
-        public void GenericAttributePointerArray_3()
+        public void GenericAttributePointerArray_CSharp12_B()
         {
             var source = @"
 using System;
@@ -10643,7 +10643,7 @@ unsafe class C
     class C1 { }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
         }
 
