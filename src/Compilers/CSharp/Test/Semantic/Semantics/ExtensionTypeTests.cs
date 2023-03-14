@@ -54,6 +54,8 @@ public class ExtensionTypeTests : CompilingTestBase
 
         if (type.ExtensionUnderlyingTypeNoUseSiteDiagnostics is { } underlyingType)
         {
+            // PROTOTYPE consider whether we want to expose invalid underlying types
+            // in context of public APIs
             VerifyNotExtension<TypeSymbol>(underlyingType);
         }
 
