@@ -16693,8 +16693,8 @@ public interface ISomeInterface
                 Diagnostic(ErrorCode.ERR_DeriveFromDynamic, "dynamic").WithArguments("ErrorCode"));
         }
 
-        [Fact, WorkItem(552740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552740")]
-        public void CS1966ERR_DeriveFromConstructedDynamic()
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552740")]
+        public void CS1966ERR_DeriveFromConstructedDynamic_CSharp11()
         {
             var text = @"
 interface I<T> { }
@@ -16709,7 +16709,56 @@ class E1 : I<dynamic> {}
 class E2 : I<C<dynamic>.D*[]> {}
 
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (11,12): error CS1966: 'E2': cannot implement a dynamic interface 'I<C<dynamic>.D*[]>'
+                // class E2 : I<C<dynamic>.D*[]> {}
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<C<dynamic>.D*[]>").WithArguments("E2", "I<C<dynamic>.D*[]>"),
+                // (10,12): error CS1966: 'E1': cannot implement a dynamic interface 'I<dynamic>'
+                // class E1 : I<dynamic> {}
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<dynamic>").WithArguments("E1", "I<dynamic>"));
+        }
+
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552740")]
+        public void CS1966ERR_DeriveFromConstructedDynamic_CSharp12_A()
+        {
+            var text = @"
+interface I<T> { }
+
+class C<T>
+{
+    public enum D { }
+}
+
+class E1 : I<dynamic> {}
+unsafe class E2 : I<C<dynamic>.D*[]> {}
+";
+            CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (10,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class E2 : I<C<dynamic>.D*[]> {}
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "E2").WithLocation(10, 14),
+                // (9,12): error CS1966: 'E1': cannot implement a dynamic interface 'I<dynamic>'
+                // class E1 : I<dynamic> {}
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<dynamic>").WithArguments("E1", "I<dynamic>").WithLocation(9, 12),
+                // (10,19): error CS1966: 'E2': cannot implement a dynamic interface 'I<C<dynamic>.D*[]>'
+                // unsafe class E2 : I<C<dynamic>.D*[]> {}
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<C<dynamic>.D*[]>").WithArguments("E2", "I<C<dynamic>.D*[]>").WithLocation(10, 19));
+        }
+
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552740")]
+        public void CS1966ERR_DeriveFromConstructedDynamic_CSharp12_B()
+        {
+            var text = @"
+interface I<T> { }
+
+class C<T>
+{
+    public enum D { }
+}
+
+class E1 : I<dynamic> {}
+unsafe class E2 : I<C<dynamic>.D*[]> {}
+";
+            CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (11,12): error CS1966: 'E2': cannot implement a dynamic interface 'I<C<dynamic>.D*[]>'
                 // class E2 : I<C<dynamic>.D*[]> {}
                 Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<C<dynamic>.D*[]>").WithArguments("E2", "I<C<dynamic>.D*[]>"),

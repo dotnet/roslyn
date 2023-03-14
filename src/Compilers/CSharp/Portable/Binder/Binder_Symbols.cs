@@ -1337,7 +1337,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(typeArguments.Count > 0);
             var args = ArrayBuilder<TypeWithAnnotations>.GetInstance(typeArguments.Count);
             foreach (var argSyntax in typeArguments)
+            {
                 args.Add(BindTypeArgument(argSyntax, diagnostics, basesBeingResolved));
+            }
 
             return args.ToImmutableAndFree();
         }
