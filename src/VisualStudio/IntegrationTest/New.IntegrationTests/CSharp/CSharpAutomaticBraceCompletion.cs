@@ -779,7 +779,7 @@ HangMitigatingCancellationToken);
 
         [IdeTheory, CombinatorialData]
         [Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        [WorkItem(18104, "https://github.com/dotnet/roslyn/issues/18104")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18104")]
         public async Task CompleteStatementTriggersCompletion(bool showCompletionInArgumentLists)
         {
             await SetUpEditorAsync(@"

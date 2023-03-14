@@ -87,6 +87,8 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
     }
 
+    public EventHandler<EventArgs>? LspTextChanged;
+
     #region Implementation of IDocumentChangeTracker
 
     /// <summary>
@@ -102,6 +104,8 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         // If LSP changed, we need to compare against the workspace again to get the updated solution.
         _cachedLspSolutions.Clear();
+
+        LspTextChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -120,6 +124,8 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         // Also remove it from our loose files workspace if it is still there.
         _lspMiscellaneousFilesWorkspace.TryRemoveMiscellaneousDocument(uri);
+
+        LspTextChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -135,6 +141,8 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         // If LSP changed, we need to compare against the workspace again to get the updated solution.
         _cachedLspSolutions.Clear();
+
+        LspTextChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public ImmutableDictionary<Uri, SourceText> GetTrackedLspText() => _trackedDocuments;
@@ -171,6 +179,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     public async Task<(Workspace?, Solution?, Document?)> GetLspDocumentInfoAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
     {
         // Get the LSP view of all the workspace solutions.
+        var uri = textDocumentIdentifier.Uri;
         var lspSolutions = await GetLspSolutionsAsync(cancellationToken).ConfigureAwait(false);
 
         // Find the matching document from the LSP solutions.
@@ -187,6 +196,11 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
                 _logger.LogInformation($"{document.FilePath} found in workspace {workspaceKind}");
 
+                // As we found the document in a non-misc workspace, also attempt to remove it from the misc workspace
+                // if it happens to be in there as well.
+                if (workspace != _lspMiscellaneousFilesWorkspace)
+                    _lspMiscellaneousFilesWorkspace.TryRemoveMiscellaneousDocument(uri);
+
                 return (workspace, document.Project.Solution, document);
             }
         }
@@ -196,7 +210,6 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _logger.LogError($"Could not find '{textDocumentIdentifier.Uri}'.  Searched {searchedWorkspaceKinds}");
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
-        var uri = textDocumentIdentifier.Uri;
         // Add the document to our loose files workspace if its open.
         if (_trackedDocuments.ContainsKey(uri))
         {

@@ -219,7 +219,7 @@ Public MustInherit Class A
 End Class", HangMitigatingCancellationToken);
         }
 
-        [IdeFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
         public async Task VerifyAttributeRename()
         {
             var markup = @"
@@ -246,7 +246,7 @@ Public Class Custom$$Attribute
 End Class", HangMitigatingCancellationToken);
         }
 
-        [IdeFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
         public async Task VerifyAttributeRenameWhileRenameClasss()
         {
             var markup = @"
@@ -274,7 +274,7 @@ Public Class Custom$$Attribute
 End Class", HangMitigatingCancellationToken);
         }
 
-        [IdeFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
         public async Task VerifyAttributeRenameWhileRenameAttribute()
         {
             var markup = @"
@@ -309,7 +309,7 @@ Public Class CustomAttribute
 End Class", HangMitigatingCancellationToken);
         }
 
-        [IdeFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
         public async Task VerifyAttributeRenameWhileRenameAttributeClass()
         {
             var markup = @"
@@ -344,7 +344,7 @@ Public Class Custom$$Attribute
 End Class", HangMitigatingCancellationToken);
         }
 
-        [IdeFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
         public async Task VerifyAttributeCapitalizedRename()
         {
             var markup = @"
@@ -371,7 +371,7 @@ Public Class CustomAttribute$$
 End Class", HangMitigatingCancellationToken);
         }
 
-        [IdeFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
         public async Task VerifyAttributeNotCapitalizedRename()
         {
             var markup = @"

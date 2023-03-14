@@ -101,7 +101,7 @@ class Program
             }
         }
 
-        [IdeFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
         public async Task VerifyAttributeRename()
         {
             var markup = @"
@@ -130,7 +130,7 @@ class Custom$$Attribute : Attribute
 ", HangMitigatingCancellationToken);
         }
 
-        [IdeFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
         public async Task VerifyAttributeRenameWhileRenameClasss()
         {
             var markup = @"
@@ -159,7 +159,7 @@ class Custom$$Attribute : Attribute
 ", HangMitigatingCancellationToken);
         }
 
-        [IdeFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
         public async Task VerifyAttributeRenameWhileRenameAttribute()
         {
             var markup = @"
@@ -198,7 +198,7 @@ class CustomAttribute : Attribute
 ", HangMitigatingCancellationToken);
         }
 
-        [IdeFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
         public async Task VerifyAttributeRenameWhileRenameAttributeClass()
         {
             var markup = @"
@@ -612,7 +612,7 @@ class Program
 }", HangMitigatingCancellationToken);
         }
 
-        [IdeFact, WorkItem(39617, "https://github.com/dotnet/roslyn/issues/39617")]
+        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/39617")]
         public async Task VerifyRenameCaseChange()
         {
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Program.cs",

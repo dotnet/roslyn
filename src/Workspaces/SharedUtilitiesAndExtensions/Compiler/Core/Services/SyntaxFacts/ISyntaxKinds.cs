@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int CloseBraceToken { get; }
         int? CloseBracketToken { get; }
         int CloseParenToken { get; }
+        int CommaToken { get; }
         int ColonToken { get; }
         int DotToken { get; }
         int EndOfFileToken { get; }
@@ -119,6 +120,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         #region expressions
 
+        int AddressOfExpression { get; }
         int AnonymousObjectCreationExpression { get; }
         int ArrayCreationExpression { get; }
         int AwaitExpression { get; }

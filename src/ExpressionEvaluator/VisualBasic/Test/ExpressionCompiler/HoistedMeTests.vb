@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
     Public Class HoistedMeTests
         Inherits ExpressionCompilerTestBase
 
-        <Fact, WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")>
         Public Sub InstanceIterator_NoCapturing()
             Const source = "
 Class C
@@ -41,7 +41,7 @@ End Class
             VerifyHasMe(source, "C.VB$StateMachine_1_F.MoveNext", "C", expectedIL)
         End Sub
 
-        <Fact, WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")>
         Public Sub InstanceAsync_NoCapturing()
             Const source = "
 Imports System
@@ -69,7 +69,7 @@ End Class
             VerifyHasMe(source, "C.VB$StateMachine_1_F.MoveNext", "C", expectedIL)
         End Sub
 
-        <Fact, WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")>
         Public Sub InstanceLambda_NoCapturing()
             Const source = "
 Class C
@@ -451,7 +451,7 @@ End Module
             VerifyNoMe(source, "M._Closure$__0-0._Lambda$__0")
         End Sub
 
-        <Fact, WorkItem(1072296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072296")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072296")>
         Public Sub OldStyleNonCapturingLambda()
             Const ilSource = "
 .class public auto ansi C
@@ -487,8 +487,8 @@ End Module
             VerifyNoMe(context)
         End Sub
 
-        <Fact, WorkItem(1069554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069554")>
-        <WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069554")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")>
         Public Sub LambdaLocations_HasThis()
             Const source = "
 Imports System
@@ -561,7 +561,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1069554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069554")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069554")>
         Public Sub LambdaLocations_NoThis()
             Const source = "
 Imports System
@@ -712,7 +712,7 @@ End Module
                             })
         End Sub
 
-        <Fact, WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
         Public Sub InstanceMembersInIterator()
             Const source = "
 Class C
@@ -748,7 +748,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
         Public Sub InstanceMembersInLambda()
             Const source = "
 Class C
@@ -782,7 +782,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
         Public Sub InstanceMembersInAsync()
             Const source = "
 Imports System

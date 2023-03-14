@@ -268,7 +268,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(47754, "https://github.com/dotnet/roslyn/issues/47754")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47754")>
         Public Async Function TestExternalDiagnostics_CompilationEndAnalyzer(hasCompilationEndTag As Boolean) As Task
             Using workspace = TestWorkspace.CreateCSharp(String.Empty, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
@@ -488,7 +488,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <Fact, WorkItem(64659, "https://github.com/dotnet/roslyn/issues/64659")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64659")>
         Public Async Function TestExternalDiagnostics_BuildOnlyClearedOnDocumentChanged() As Task
             Using workspace = TestWorkspace.CreateCSharp("class C { }", composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)

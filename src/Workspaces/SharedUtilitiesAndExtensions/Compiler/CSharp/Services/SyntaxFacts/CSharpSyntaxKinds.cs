@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int CloseBraceToken => (int)SyntaxKind.CloseBraceToken;
         public int? CloseBracketToken => (int)SyntaxKind.CloseBracketToken;
         public int CloseParenToken => (int)SyntaxKind.CloseParenToken;
+        public int CommaToken => (int)SyntaxKind.CommaToken;
         public int ColonToken => (int)SyntaxKind.ColonToken;
         public int CharacterLiteralToken => (int)SyntaxKind.CharacterLiteralToken;
         public int DotToken => (int)SyntaxKind.DotToken;
@@ -76,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int StringLiteralExpression => (int)SyntaxKind.StringLiteralExpression;
         public int TrueLiteralExpression => (int)SyntaxKind.TrueLiteralExpression;
 
+        public int AddressOfExpression => (int)SyntaxKind.AddressOfExpression;
         public int AnonymousObjectCreationExpression => (int)SyntaxKind.AnonymousObjectCreationExpression;
         public int ArrayCreationExpression => (int)SyntaxKind.ArrayCreationExpression;
         public int AwaitExpression => (int)SyntaxKind.AwaitExpression;

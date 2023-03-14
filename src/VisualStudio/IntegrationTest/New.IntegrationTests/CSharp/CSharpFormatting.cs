@@ -273,7 +273,7 @@ class Program
 
         [IdeFact]
         [Trait(Traits.Feature, Traits.Features.EditorConfig)]
-        [WorkItem(15003, "https://github.com/dotnet/roslyn/issues/15003")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15003")]
         public async Task ApplyEditorConfigAndFormatDocument()
         {
             var markup = @"

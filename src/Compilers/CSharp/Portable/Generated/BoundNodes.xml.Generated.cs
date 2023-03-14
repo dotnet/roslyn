@@ -73,7 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         AwaitableInfo,
         AwaitExpression,
         TypeOfOperator,
+        BlockInstrumentation,
         MethodDefIndex,
+        LocalId,
+        ParameterId,
+        StateMachineInstanceId,
         MaximumMethodDefIndex,
         InstrumentationPayloadRoot,
         ModuleVersionId,
@@ -2209,6 +2213,40 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundBlockInstrumentation : BoundNode
+    {
+        public BoundBlockInstrumentation(SyntaxNode syntax, LocalSymbol local, BoundStatement prologue, BoundStatement epilogue, bool hasErrors = false)
+            : base(BoundKind.BlockInstrumentation, syntax, hasErrors || prologue.HasErrors() || epilogue.HasErrors())
+        {
+
+            RoslynDebug.Assert(local is object, "Field 'local' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(prologue is object, "Field 'prologue' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(epilogue is object, "Field 'epilogue' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Local = local;
+            this.Prologue = prologue;
+            this.Epilogue = epilogue;
+        }
+
+        public LocalSymbol Local { get; }
+        public BoundStatement Prologue { get; }
+        public BoundStatement Epilogue { get; }
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitBlockInstrumentation(this);
+
+        public BoundBlockInstrumentation Update(LocalSymbol local, BoundStatement prologue, BoundStatement epilogue)
+        {
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(local, this.Local) || prologue != this.Prologue || epilogue != this.Epilogue)
+            {
+                var result = new BoundBlockInstrumentation(this.Syntax, local, prologue, epilogue, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal sealed partial class BoundMethodDefIndex : BoundExpression
     {
         public BoundMethodDefIndex(SyntaxNode syntax, MethodSymbol method, TypeSymbol type, bool hasErrors)
@@ -2242,6 +2280,127 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(method, this.Method) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundMethodDefIndex(this.Syntax, method, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundLocalId : BoundExpression
+    {
+        public BoundLocalId(SyntaxNode syntax, LocalSymbol local, FieldSymbol? hoistedField, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.LocalId, syntax, type, hasErrors)
+        {
+
+            RoslynDebug.Assert(local is object, "Field 'local' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Local = local;
+            this.HoistedField = hoistedField;
+        }
+
+        public BoundLocalId(SyntaxNode syntax, LocalSymbol local, FieldSymbol? hoistedField, TypeSymbol type)
+            : base(BoundKind.LocalId, syntax, type)
+        {
+
+            RoslynDebug.Assert(local is object, "Field 'local' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Local = local;
+            this.HoistedField = hoistedField;
+        }
+
+        public new TypeSymbol Type => base.Type!;
+        public LocalSymbol Local { get; }
+        public FieldSymbol? HoistedField { get; }
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitLocalId(this);
+
+        public BoundLocalId Update(LocalSymbol local, FieldSymbol? hoistedField, TypeSymbol type)
+        {
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(local, this.Local) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(hoistedField, this.HoistedField) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundLocalId(this.Syntax, local, hoistedField, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundParameterId : BoundExpression
+    {
+        public BoundParameterId(SyntaxNode syntax, ParameterSymbol parameter, FieldSymbol? hoistedField, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ParameterId, syntax, type, hasErrors)
+        {
+
+            RoslynDebug.Assert(parameter is object, "Field 'parameter' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Parameter = parameter;
+            this.HoistedField = hoistedField;
+        }
+
+        public BoundParameterId(SyntaxNode syntax, ParameterSymbol parameter, FieldSymbol? hoistedField, TypeSymbol type)
+            : base(BoundKind.ParameterId, syntax, type)
+        {
+
+            RoslynDebug.Assert(parameter is object, "Field 'parameter' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Parameter = parameter;
+            this.HoistedField = hoistedField;
+        }
+
+        public new TypeSymbol Type => base.Type!;
+        public ParameterSymbol Parameter { get; }
+        public FieldSymbol? HoistedField { get; }
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitParameterId(this);
+
+        public BoundParameterId Update(ParameterSymbol parameter, FieldSymbol? hoistedField, TypeSymbol type)
+        {
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(parameter, this.Parameter) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(hoistedField, this.HoistedField) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundParameterId(this.Syntax, parameter, hoistedField, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundStateMachineInstanceId : BoundExpression
+    {
+        public BoundStateMachineInstanceId(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.StateMachineInstanceId, syntax, type, hasErrors)
+        {
+
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+        }
+
+        public BoundStateMachineInstanceId(SyntaxNode syntax, TypeSymbol type)
+            : base(BoundKind.StateMachineInstanceId, syntax, type)
+        {
+
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+        }
+
+        public new TypeSymbol Type => base.Type!;
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitStateMachineInstanceId(this);
+
+        public BoundStateMachineInstanceId Update(TypeSymbol type)
+        {
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundStateMachineInstanceId(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -3031,8 +3190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBlock : BoundStatementList
     {
-        public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, bool hasUnsafeModifier, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
-            : base(BoundKind.Block, syntax, statements, hasErrors || statements.HasErrors())
+        public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, bool hasUnsafeModifier, BoundBlockInstrumentation? instrumentation, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
+            : base(BoundKind.Block, syntax, statements, hasErrors || instrumentation.HasErrors() || statements.HasErrors())
         {
 
             RoslynDebug.Assert(!locals.IsDefault, "Field 'locals' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -3042,20 +3201,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Locals = locals;
             this.LocalFunctions = localFunctions;
             this.HasUnsafeModifier = hasUnsafeModifier;
+            this.Instrumentation = instrumentation;
         }
 
         public ImmutableArray<LocalSymbol> Locals { get; }
         public ImmutableArray<LocalFunctionSymbol> LocalFunctions { get; }
         public bool HasUnsafeModifier { get; }
+        public BoundBlockInstrumentation? Instrumentation { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitBlock(this);
 
-        public BoundBlock Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, bool hasUnsafeModifier, ImmutableArray<BoundStatement> statements)
+        public BoundBlock Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, bool hasUnsafeModifier, BoundBlockInstrumentation? instrumentation, ImmutableArray<BoundStatement> statements)
         {
-            if (locals != this.Locals || localFunctions != this.LocalFunctions || hasUnsafeModifier != this.HasUnsafeModifier || statements != this.Statements)
+            if (locals != this.Locals || localFunctions != this.LocalFunctions || hasUnsafeModifier != this.HasUnsafeModifier || instrumentation != this.Instrumentation || statements != this.Statements)
             {
-                var result = new BoundBlock(this.Syntax, locals, localFunctions, hasUnsafeModifier, statements, this.HasErrors);
+                var result = new BoundBlock(this.Syntax, locals, localFunctions, hasUnsafeModifier, instrumentation, statements, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8456,8 +8617,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitAwaitExpression((BoundAwaitExpression)node, arg);
                 case BoundKind.TypeOfOperator:
                     return VisitTypeOfOperator((BoundTypeOfOperator)node, arg);
+                case BoundKind.BlockInstrumentation:
+                    return VisitBlockInstrumentation((BoundBlockInstrumentation)node, arg);
                 case BoundKind.MethodDefIndex:
                     return VisitMethodDefIndex((BoundMethodDefIndex)node, arg);
+                case BoundKind.LocalId:
+                    return VisitLocalId((BoundLocalId)node, arg);
+                case BoundKind.ParameterId:
+                    return VisitParameterId((BoundParameterId)node, arg);
+                case BoundKind.StateMachineInstanceId:
+                    return VisitStateMachineInstanceId((BoundStateMachineInstanceId)node, arg);
                 case BoundKind.MaximumMethodDefIndex:
                     return VisitMaximumMethodDefIndex((BoundMaximumMethodDefIndex)node, arg);
                 case BoundKind.InstrumentationPayloadRoot:
@@ -8851,7 +9020,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitAwaitableInfo(BoundAwaitableInfo node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitAwaitExpression(BoundAwaitExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitTypeOfOperator(BoundTypeOfOperator node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitBlockInstrumentation(BoundBlockInstrumentation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitMethodDefIndex(BoundMethodDefIndex node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitLocalId(BoundLocalId node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitParameterId(BoundParameterId node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitStateMachineInstanceId(BoundStateMachineInstanceId node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitMaximumMethodDefIndex(BoundMaximumMethodDefIndex node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitInstrumentationPayloadRoot(BoundInstrumentationPayloadRoot node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitModuleVersionId(BoundModuleVersionId node, A arg) => this.DefaultVisit(node, arg);
@@ -9075,7 +9248,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitAwaitableInfo(BoundAwaitableInfo node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitAwaitExpression(BoundAwaitExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitTypeOfOperator(BoundTypeOfOperator node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitBlockInstrumentation(BoundBlockInstrumentation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitLocalId(BoundLocalId node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitParameterId(BoundParameterId node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitStateMachineInstanceId(BoundStateMachineInstanceId node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitMaximumMethodDefIndex(BoundMaximumMethodDefIndex node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitInstrumentationPayloadRoot(BoundInstrumentationPayloadRoot node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitModuleVersionId(BoundModuleVersionId node) => this.DefaultVisit(node);
@@ -9466,7 +9643,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.SourceType);
             return null;
         }
+        public override BoundNode? VisitBlockInstrumentation(BoundBlockInstrumentation node)
+        {
+            this.Visit(node.Prologue);
+            this.Visit(node.Epilogue);
+            return null;
+        }
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node) => null;
+        public override BoundNode? VisitLocalId(BoundLocalId node) => null;
+        public override BoundNode? VisitParameterId(BoundParameterId node) => null;
+        public override BoundNode? VisitStateMachineInstanceId(BoundStateMachineInstanceId node) => null;
         public override BoundNode? VisitMaximumMethodDefIndex(BoundMaximumMethodDefIndex node) => null;
         public override BoundNode? VisitInstrumentationPayloadRoot(BoundInstrumentationPayloadRoot node) => null;
         public override BoundNode? VisitModuleVersionId(BoundModuleVersionId node) => null;
@@ -9529,6 +9715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitStepThroughSequencePoint(BoundStepThroughSequencePoint node) => null;
         public override BoundNode? VisitBlock(BoundBlock node)
         {
+            this.Visit(node.Instrumentation);
             this.VisitList(node.Statements);
             return null;
         }
@@ -10559,10 +10746,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(sourceType, node.GetTypeFromHandle, type);
         }
+        public override BoundNode? VisitBlockInstrumentation(BoundBlockInstrumentation node)
+        {
+            BoundStatement prologue = (BoundStatement)this.Visit(node.Prologue);
+            BoundStatement epilogue = (BoundStatement)this.Visit(node.Epilogue);
+            return node.Update(node.Local, prologue, epilogue);
+        }
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(node.Method, type);
+        }
+        public override BoundNode? VisitLocalId(BoundLocalId node)
+        {
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(node.Local, node.HoistedField, type);
+        }
+        public override BoundNode? VisitParameterId(BoundParameterId node)
+        {
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(node.Parameter, node.HoistedField, type);
+        }
+        public override BoundNode? VisitStateMachineInstanceId(BoundStateMachineInstanceId node)
+        {
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(type);
         }
         public override BoundNode? VisitMaximumMethodDefIndex(BoundMaximumMethodDefIndex node)
         {
@@ -10679,8 +10887,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitStepThroughSequencePoint(BoundStepThroughSequencePoint node) => node;
         public override BoundNode? VisitBlock(BoundBlock node)
         {
+            BoundBlockInstrumentation? instrumentation = (BoundBlockInstrumentation?)this.Visit(node.Instrumentation);
             ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
-            return node.Update(node.Locals, node.LocalFunctions, node.HasUnsafeModifier, statements);
+            return node.Update(node.Locals, node.LocalFunctions, node.HasUnsafeModifier, instrumentation, statements);
         }
         public override BoundNode? VisitScope(BoundScope node)
         {
@@ -12333,6 +12542,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
+        public override BoundNode? VisitBlockInstrumentation(BoundBlockInstrumentation node)
+        {
+            LocalSymbol local = GetUpdatedSymbol(node, node.Local);
+            BoundStatement prologue = (BoundStatement)this.Visit(node.Prologue);
+            BoundStatement epilogue = (BoundStatement)this.Visit(node.Epilogue);
+            return node.Update(local, prologue, epilogue);
+        }
+
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
         {
             MethodSymbol method = GetUpdatedSymbol(node, node.Method);
@@ -12347,6 +12564,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 updatedNode = node.Update(method, node.Type);
             }
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitLocalId(BoundLocalId node)
+        {
+            LocalSymbol local = GetUpdatedSymbol(node, node.Local);
+            FieldSymbol? hoistedField = GetUpdatedSymbol(node, node.HoistedField);
+            BoundLocalId updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(local, hoistedField, infoAndType.Type!);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(local, hoistedField, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitParameterId(BoundParameterId node)
+        {
+            ParameterSymbol parameter = GetUpdatedSymbol(node, node.Parameter);
+            FieldSymbol? hoistedField = GetUpdatedSymbol(node, node.HoistedField);
+            BoundParameterId updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(parameter, hoistedField, infoAndType.Type!);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(parameter, hoistedField, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitStateMachineInstanceId(BoundStateMachineInstanceId node)
+        {
+            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                return node;
+            }
+
+            BoundStateMachineInstanceId updatedNode = node.Update(infoAndType.Type!);
+            updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
 
@@ -12620,8 +12885,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<LocalSymbol> locals = GetUpdatedArray(node, node.Locals);
             ImmutableArray<LocalFunctionSymbol> localFunctions = GetUpdatedArray(node, node.LocalFunctions);
+            BoundBlockInstrumentation? instrumentation = (BoundBlockInstrumentation?)this.Visit(node.Instrumentation);
             ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
-            return node.Update(locals, localFunctions, node.HasUnsafeModifier, statements);
+            return node.Update(locals, localFunctions, node.HasUnsafeModifier, instrumentation, statements);
         }
 
         public override BoundNode? VisitScope(BoundScope node)
@@ -14652,9 +14918,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
+        public override TreeDumperNode VisitBlockInstrumentation(BoundBlockInstrumentation node, object? arg) => new TreeDumperNode("blockInstrumentation", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("local", node.Local, null),
+            new TreeDumperNode("prologue", null, new TreeDumperNode[] { Visit(node.Prologue, null) }),
+            new TreeDumperNode("epilogue", null, new TreeDumperNode[] { Visit(node.Epilogue, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
         public override TreeDumperNode VisitMethodDefIndex(BoundMethodDefIndex node, object? arg) => new TreeDumperNode("methodDefIndex", null, new TreeDumperNode[]
         {
             new TreeDumperNode("method", node.Method, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitLocalId(BoundLocalId node, object? arg) => new TreeDumperNode("localId", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("local", node.Local, null),
+            new TreeDumperNode("hoistedField", node.HoistedField, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitParameterId(BoundParameterId node, object? arg) => new TreeDumperNode("parameterId", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("parameter", node.Parameter, null),
+            new TreeDumperNode("hoistedField", node.HoistedField, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitStateMachineInstanceId(BoundStateMachineInstanceId node, object? arg) => new TreeDumperNode("stateMachineInstanceId", null, new TreeDumperNode[]
+        {
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
@@ -14849,6 +15148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("locals", node.Locals, null),
             new TreeDumperNode("localFunctions", node.LocalFunctions, null),
             new TreeDumperNode("hasUnsafeModifier", node.HasUnsafeModifier, null),
+            new TreeDumperNode("instrumentation", null, new TreeDumperNode[] { Visit(node.Instrumentation, null) }),
             new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null)),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }

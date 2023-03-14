@@ -185,7 +185,7 @@ End Namespace
             Await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst:=False, separateImportDirectiveGroups:=False)
         End Function
 
-        <WpfFact, WorkItem(42221, "https://github.com/dotnet/roslyn/pull/42221")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/pull/42221")>
         Public Async Function AddMissingImports_AddImportsUngrouped_SeparateImportGroupsPasteContainsMultipleMissingImports() As Task '
             Dim code = "
 Imports System
@@ -318,7 +318,7 @@ End Namespace
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(31768, "https://github.com/dotnet/roslyn/issues/31768")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/31768")>
         <WpfFact>
         Public Async Function AddMissingImports_AddMultipleImports_NoPreviousImports() As Task
             Dim code = "
@@ -361,7 +361,7 @@ End Namespace
             Await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst:=False, separateImportDirectiveGroups:=False)
         End Function
 
-        <WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/39155")>
         <WpfFact>
         Public Async Function AddMissingImports_Extension() As Task
             Dim code = "
@@ -403,7 +403,7 @@ End Namespace
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/39155")>
         <WpfFact>
         Public Async Function AddMissingImports_Extension_Overload() As Task
             Dim code = "
@@ -457,7 +457,7 @@ End Namespace
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/39155")>
         <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46291")>
         Public Async Function AddMissingImports_Extension_Await() As Task
             Dim code = "
@@ -523,7 +523,7 @@ End Namespace
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/39155")>
         <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46291")>
         Public Async Function AddMissingImports_Extension_Await_Overload() As Task
             Dim code = "
@@ -603,7 +603,7 @@ End Namespace
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/39155")>
         <WpfFact>
         Public Async Function AddMissingImports_Extension_Select() As Task
             Dim code = "
@@ -649,7 +649,7 @@ End Namespace
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/39155")>
         <WpfFact>
         Public Async Function AddMissingImports_Extension_Select_Overload() As Task
             Dim code = "

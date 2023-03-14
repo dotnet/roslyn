@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class FormattingCommandHandlerTests
 
-        <WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub TypingUsingStatementsProperlyAligns1()
             Using state = TestStateFactory.CreateCSharpTestState(

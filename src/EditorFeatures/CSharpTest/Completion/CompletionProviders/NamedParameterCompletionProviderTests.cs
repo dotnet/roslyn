@@ -217,7 +217,7 @@ class Goo
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, WorkItem(544292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544292")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544292")]
         public async Task NotInCollectionInitializers()
         {
             var markup = @"
@@ -234,7 +234,7 @@ class Goo
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, WorkItem(544191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544191")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544191")]
         public async Task FilteringOverloadsByCallSite()
         {
             var markup = @"
@@ -280,7 +280,7 @@ class Class1
             await VerifyItemExistsAsync(markup, "character", displayTextSuffix: ":");
         }
 
-        [Fact, WorkItem(544191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544191")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544191")]
         public async Task FilteringOverloadsByCallSiteComplex()
         {
             var markup = @"
@@ -373,7 +373,7 @@ class Goo
             await VerifyItemIsAbsentAsync(markup, "str", displayTextSuffix: ":");
         }
 
-        [Fact, WorkItem(529369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529369")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529369")]
         public async Task VerbatimIdentifierNotAKeyword()
         {
             var markup = @"
@@ -388,7 +388,7 @@ class Program
             await VerifyItemExistsAsync(markup, "integer", displayTextSuffix: ":");
         }
 
-        [Fact, WorkItem(544209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544209")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544209")]
         public async Task DescriptionStringInMethodOverloads()
         {
             var markup = @"

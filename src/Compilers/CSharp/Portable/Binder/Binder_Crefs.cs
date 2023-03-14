@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     name: memberName,
                     arity: arity,
                     basesBeingResolved: null,
-                    options: LookupOptions.AllMethodsOnArityZero,
+                    options: LookupOptions.AllMethodsOnArityZero | LookupOptions.MustNotBeParameter,
                     diagnose: false,
                     useSiteInfo: ref useSiteInfo);
 

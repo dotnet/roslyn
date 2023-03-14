@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
             }.RunAsync();
         }
 
-        [Fact, WorkItem(36467, "https://github.com/dotnet/roslyn/issues/36467")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36467")]
         public async Task TestNotSuggestedWhenRightHandIsThrowExpression()
         {
             var code = """
@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(35870, "https://github.com/dotnet/roslyn/issues/35870")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35870")]
         public async Task TestRightExpressionOnNextLine()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 """);
         }
 
-        [Fact, WorkItem(35870, "https://github.com/dotnet/roslyn/issues/35870")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35870")]
         public async Task TestRightExpressionSeparatedWithSeveralLines()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -897,7 +897,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 """);
         }
 
-        [Fact, WorkItem(33382, "https://github.com/dotnet/roslyn/issues/33382")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33382")]
         public async Task TestNotOnObjectInitializer()
         {
             var code = """
@@ -918,7 +918,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49294")]
         public async Task TestNotOnImplicitObjectInitializer()
         {
             var code = """
@@ -939,7 +939,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49294")]
         public async Task TestNotOnRecord()
         {
             var code = """
@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
             }.RunAsync();
         }
 
-        [Fact, WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38137")]
         public async Task TestParenthesizedExpression()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -986,7 +986,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 """);
         }
 
-        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrement()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -1008,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 """);
         }
 
-        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestDecrement()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -1030,7 +1030,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 """);
         }
 
-        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestMinusIncrement()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -1052,7 +1052,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 """);
         }
 
-        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementDouble()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -1074,7 +1074,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 """);
         }
 
-        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementNotOnString()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -1096,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 """);
         }
 
-        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementChar()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -1118,7 +1118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 """);
         }
 
-        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementEnum()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -1142,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 """);
         }
 
-        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementDecimal()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -1164,7 +1164,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 """);
         }
 
-        [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
         [InlineData("byte")]
         [InlineData("short")]
         [InlineData("long")]
@@ -1196,7 +1196,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
             }.RunAsync();
         }
 
-        [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
         [InlineData("byte")]
         [InlineData("short")]
         [InlineData("long")]
@@ -1228,7 +1228,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
             }.RunAsync();
         }
 
-        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementLoopVariable()
         {
             await VerifyCS.VerifyCodeFixAsync("""

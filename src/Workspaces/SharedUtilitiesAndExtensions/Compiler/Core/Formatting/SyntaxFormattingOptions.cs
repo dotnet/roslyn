@@ -60,13 +60,13 @@ internal interface SyntaxFormattingOptionsProvider :
 internal static partial class SyntaxFormattingOptionsProviders
 {
 #if !CODE_STYLE
-    public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this IOptionsReader options, SyntaxFormattingOptions? fallbackOptions, LanguageServices languageServices)
+    public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this IOptionsReader options, LanguageServices languageServices, SyntaxFormattingOptions? fallbackOptions)
         => languageServices.GetRequiredService<ISyntaxFormattingService>().GetFormattingOptions(options, fallbackOptions);
 
     public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptions? fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetSyntaxFormattingOptions(fallbackOptions, document.Project.Services);
+        return configOptions.GetSyntaxFormattingOptions(document.Project.Services, fallbackOptions);
     }
 
     public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)

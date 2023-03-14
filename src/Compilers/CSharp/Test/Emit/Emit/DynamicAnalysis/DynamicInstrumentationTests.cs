@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
         public void HelpersInstrumentation()
         {
             string source = @"
-using System;
-
 public class Program
 {
     public static void Main(string[] args)
@@ -690,8 +688,6 @@ True
         public void NonStaticImplicitBlockMethodsCoverage()
         {
             string source = @"
-using System;
-
 public class Program
 {
     public int Prop { get; }
@@ -962,8 +958,6 @@ public class D
         public void MultipleFilesCoverage()
         {
             string source = @"
-using System;
-
 public class Program
 {
 #line 10 ""File1.cs""
@@ -1142,7 +1136,6 @@ True
         public void UsingAndFixedCoverage()
         {
             string source = @"
-using System;
 using System.IO;
 
 public class Program
@@ -1426,8 +1419,6 @@ True
         public void PatternsCoverage()
         {
             string source = @"
-using System;
-
 public class C
 {
     public static void Main()
@@ -1461,7 +1452,7 @@ public class C
 }
 
 class Person { public string Name; }
-class Teacher : Person { public string Subject; }
+class Teacher : Person { public string Subject = string.Empty; }
 class Student : Person { public double GPA; }
 
     // Methods 7 and 9 are implicit constructors.
@@ -1513,7 +1504,7 @@ True
 ";
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
-            verifier.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Subject").WithArguments("Teacher.Subject", "null").WithLocation(37, 40));
+            verifier.VerifyDiagnostics();
         }
 
         /// <see cref="DynamicAnalysisResourceTests.TestPatternSpans_WithSharedWhenExpression"/>
@@ -2034,8 +2025,6 @@ True
         public void TestFieldInitializerCoverage()
         {
             string source = @"
-using System;
-
 public class C
 {
     public static void Main()                                   // Method 1
@@ -2214,8 +2203,6 @@ True
         public void TestImplicitConstructorCoverage()
         {
             string source = @"
-using System;
-
 public class C
 {
     public static void Main()                                   // Method 1
@@ -2946,7 +2933,6 @@ class C
         public void ExcludeFromCodeCoverageAttribute_CustomDefinition_Good()
         {
             string source = @"
-using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace System.Diagnostics.CodeAnalysis
@@ -2983,7 +2969,6 @@ class D
         public void ExcludeFromCodeCoverageAttribute_CustomDefinition_Bad()
         {
             string source = @"
-using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace System.Diagnostics.CodeAnalysis
