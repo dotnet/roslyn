@@ -478,6 +478,7 @@ public sealed class MakeStructMemberReadOnlyTests
     {
         await new VerifyCS.Test
         {
+            CodeFixTestBehaviors = CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
             TestCode = """
             struct S
             {

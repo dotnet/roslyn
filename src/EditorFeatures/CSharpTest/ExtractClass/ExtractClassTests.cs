@@ -49,7 +49,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
 
             protected override Workspace CreateWorkspaceImpl()
             {
-                return TestWorkspace.Create(WorkspaceKind, LanguageNames.CSharp, this.CreateCompilationOptions(), this.CreateParseOptions());
+                var unusedCompilationOptions = new CSharpCompilationOptions(OutputKind.NetModule);
+                var unusedParseOptions = new CSharpParseOptions(LanguageVersion.CSharp1);
+                return TestWorkspace.Create(WorkspaceKind, LanguageNames.CSharp, unusedCompilationOptions, unusedParseOptions);
             }
         }
 
