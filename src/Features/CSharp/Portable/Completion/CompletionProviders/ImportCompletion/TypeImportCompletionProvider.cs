@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
-        protected override async Task<ImmutableArray<string>> GetImportedNamespacesAsync(
+        protected override ImmutableArray<string> GetImportedNamespaces(
             SyntaxContext syntaxContext,
             CancellationToken cancellationToken)
             => ImportCompletionProviderHelper.GetImportedNamespaces(syntaxContext, cancellationToken);
