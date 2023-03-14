@@ -115,15 +115,13 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             {
                 // Handling syntax tree directly to avoid parsing in potentially UI blocking code-path
                 var closingToken = document.Root.FindToken(closingPoint - 1);
-                Debug.Assert(IsValidClosingBraceToken(closingToken));
 
                 var newClosingToken = closingToken.WithPrependedLeadingTrivia(
                     SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(options.FormattingOptions.NewLine)));
 
                 var rootToFormat = document.Root.ReplaceToken(closingToken, newClosingToken);
 
-                newClosingToken = rootToFormat.FindToken(closingPoint - 1, findInsideTrivia: true);
-                Debug.Assert(IsValidClosingBraceToken(newClosingToken));
+                newClosingToken = rootToFormat.FindToken(closingPoint - 1);
 
                 // Modify the closing point location to adjust for the newly inserted line.
                 closingPoint = newClosingToken.Span.End;
