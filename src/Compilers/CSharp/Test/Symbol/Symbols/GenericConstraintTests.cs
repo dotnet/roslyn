@@ -6987,9 +6987,8 @@ partial class Class4
                 );
         }
 
-        [Fact]
-        [WorkItem(278264, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=278264")]
-        public void IntPointerConstraintIntroducedBySubstitution()
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=278264")]
+        public void IntPointerConstraintIntroducedBySubstitution_CSharp11()
         {
             string source = @"
 class R1<T1>
@@ -7009,12 +7008,71 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             compilation.VerifyDiagnostics(
                 // (6,7): error CS0306: The type 'int*' may not be used as a type argument
                 // class R2 : R1<int *>
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 7)
                 );
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=278264")]
+        public void IntPointerConstraintIntroducedBySubstitution_CSharp12_A()
+        {
+            string source = @"
+class R1<T1>
+{
+    public virtual void f<T2>() where T2 : T1 { }
+}
+unsafe class R2 : R1<int*>
+{
+    public override void f<T2>() { }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        R2 r = new R2();
+        r.f<int>();
+    }
+}";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            compilation.VerifyDiagnostics(
+                // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class R2 : R1<int*>
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "R2").WithLocation(6, 14),
+                // (6,14): error CS0306: The type 'int*' may not be used as a type argument
+                // unsafe class R2 : R1<int*>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 14));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=278264")]
+        public void IntPointerConstraintIntroducedBySubstitution_CSharp12_B()
+        {
+            string source = @"
+class R1<T1>
+{
+    public virtual void f<T2>() where T2 : T1 { }
+}
+unsafe class R2 : R1<int*>
+{
+    public override void f<T2>() { }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        R2 r = new R2();
+        r.f<int>();
+    }
+}";
+
+            var compilation = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+            compilation.VerifyDiagnostics(
+                // (6,14): error CS0306: The type 'int*' may not be used as a type argument
+                // unsafe class R2 : R1<int*>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 14));
         }
 
         [Fact]
