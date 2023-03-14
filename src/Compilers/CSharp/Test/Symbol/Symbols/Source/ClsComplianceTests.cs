@@ -405,7 +405,7 @@ public class Generic<T>
         }
 
         [Fact]
-        public void WRN_CLS_BadBase_CSharp12_A()
+        public void WRN_CLS_BadBase_CSharp12_NoUnsafeModifier()
         {
             var source = @"
 using System;
@@ -442,7 +442,7 @@ public class Generic<T>
         }
 
         [Fact]
-        public void WRN_CLS_BadBase_CSharp12_B()
+        public void WRN_CLS_BadBase_CSharp12_UnsafeModifier()
         {
             var source = @"
 using System;
@@ -542,7 +542,7 @@ public class Generic<T> { }
         }
 
         [Fact]
-        public void WRN_CLS_BadBase_OtherAssemblies_CSharp12_A()
+        public void WRN_CLS_BadBase_OtherAssemblies_CSharp12_NoUnsafeSwitch()
         {
             var libSource1 = @"
 public class Bad1
@@ -611,7 +611,7 @@ public class Generic<T> { }
         }
 
         [Fact]
-        public void WRN_CLS_BadBase_OtherAssemblies_CSharp12_B()
+        public void WRN_CLS_BadBase_OtherAssemblies_CSharp12_UnsafeSwitch()
         {
             var libSource1 = @"
 public class Bad1
@@ -780,7 +780,7 @@ public interface Generic<T> { }
         }
 
         [Fact]
-        public void WRN_CLS_BadInterface_Interface_CSharp12_A()
+        public void WRN_CLS_BadInterface_Interface_CSharp12_NoUnsafeSwitch()
         {
             var source = @"
 using System;
@@ -833,7 +833,7 @@ public interface Generic<T> { }
         }
 
         [Fact]
-        public void WRN_CLS_BadInterface_Interface_CSharp12_B()
+        public void WRN_CLS_BadInterface_Interface_CSharp12_UnsafeSwitch()
         {
             var source = @"
 using System;
@@ -910,7 +910,7 @@ public interface Generic<T> { }
         }
 
         [Fact]
-        public void WRN_CLS_BadInterface_Class_CSharp12_A()
+        public void WRN_CLS_BadInterface_Class_CSharp12_NoUnsafeSwitch()
         {
             var source = @"
 using System;
@@ -946,7 +946,7 @@ public interface Generic<T> { }
         }
 
         [Fact]
-        public void WRN_CLS_BadInterface_Class_CSharp12_B()
+        public void WRN_CLS_BadInterface_Class_CSharp12_UnsafeSwitch()
         {
             var source = @"
 using System;
