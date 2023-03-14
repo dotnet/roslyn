@@ -203,10 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(_localEscapeScopes?.ContainsKey(local) == true);
 
-            if (_localEscapeScopes?.ContainsKey(local) == true)
-            {
-                _localEscapeScopes[local] = (refEscapeScope, valEscapeScope);
-            }
+            AddOrSetLocalScopes(local, refEscapeScope, valEscapeScope);
         }
 
         private void AddPlaceholderScope(BoundValuePlaceholderBase placeholder, uint valEscapeScope)
@@ -417,8 +414,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Binder.CallingMethodScope;
             }
 
+            Debug.Assert(_localEscapeScopes?.ContainsKey(local) != true);
+
+            AddOrSetLocalScopes(local, refEscapeScope, valEscapeScope);
+        }
+
+        private void AddOrSetLocalScopes(LocalSymbol local, uint refEscapeScope, uint valEscapeScope)
+        {
             _localEscapeScopes ??= new Dictionary<LocalSymbol, (uint RefEscapeScope, uint ValEscapeScope)>();
-            _localEscapeScopes.Add(local, (refEscapeScope, valEscapeScope));
+            _localEscapeScopes[local] = (refEscapeScope, valEscapeScope);
         }
 
 #pragma warning disable IDE0060
