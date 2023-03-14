@@ -10626,7 +10626,7 @@ class Attr<T> : Attribute { }
 [Attr<int*[]>] // 1
 unsafe class C1 { }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
         }
 
@@ -10643,7 +10643,7 @@ unsafe class C
     class C1 { }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
         }
 
