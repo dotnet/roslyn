@@ -755,7 +755,7 @@ class Test
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
-        public void TestAliasToGenericWithPointer_CSharp11_A()
+        public void TestAliasToGenericWithPointer_CSharp11_NoElementAccess()
         {
             var text =
 @"
@@ -774,7 +774,7 @@ class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
-        public void TestAliasToGenericWithPointer_CSharp11_B()
+        public void TestAliasToGenericWithPointer_CSharp11_ElementAccess1()
         {
             var text =
 @"
@@ -797,7 +797,7 @@ class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
-        public void TestAliasToGenericWithPointer_CSharp11_C()
+        public void TestAliasToGenericWithPointer_CSharp11_ElementAccess2()
         {
             var text =
 @"
@@ -823,7 +823,7 @@ class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
-        public void TestAliasToGenericWithPointer_CSharp12_UnsafeOff_A()
+        public void TestAliasToGenericWithPointer_CSharp12_UnsafeOff_NoUnsafeSwitch()
         {
             var text =
 @"
@@ -843,7 +843,7 @@ class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
-        public void TestAliasToGenericWithPointer_CSharp12_UnsafeOn_A()
+        public void TestAliasToGenericWithPointer_CSharp12_UnsafeOn_UnsafeSwitch()
         {
             var text =
 @"
@@ -863,7 +863,7 @@ class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
-        public void TestAliasToGenericWithPointer_CSharp12_UnsafeOff_B()
+        public void TestAliasToGenericWithPointer_CSharp12_UnsafeOff_NoUnsafeSwitch2()
         {
             var text =
 @"
@@ -886,7 +886,7 @@ class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
-        public void TestAliasToGenericWithPointer_CSharp12_UnsafeOn_B()
+        public void TestAliasToGenericWithPointer_CSharp12_UnsafeOn_UnsafeSwitch2()
         {
             var text =
 @"
