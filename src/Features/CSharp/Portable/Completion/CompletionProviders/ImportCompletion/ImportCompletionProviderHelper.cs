@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var scopes = context.SemanticModel.GetImportScopes(context.Position, cancellationToken);
 
-            var usingsBuilder = ImmutableArray.CreateBuilder<string>();
+            using var _ = ArrayBuilder<string>.GetInstance(out var usingsBuilder);
 
             foreach (var scope in scopes)
             {
