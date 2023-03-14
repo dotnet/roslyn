@@ -6581,7 +6581,7 @@ unsafe class C<T>
     public void F<U, V>() where U : IA<C<V>.E*[]> { }
 }
 class D<T> : C<T>, IB { }";
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [WorkItem(578350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578350")]
