@@ -755,8 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BadExpression(node);
 
                 case SyntaxKind.CollectionCreationExpression:
-                    // PROTOTYPE: Implement binding for this.
-                    return BadExpression(node);
+                    return BindCollectionLiteralExpression((CollectionCreationExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.NullableType:
                     // Not reachable during method body binding, but
@@ -4482,6 +4481,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private BoundExpression BindCollectionLiteralExpression(CollectionCreationExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
+        {
+            MessageID.IDS_FeatureCollectionLiterals.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
+
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(syntax.Elements.Count);
+            foreach (var element in syntax.Elements)
+            {
+                builder.Add(bindElement(element, diagnostics));
+            }
+            return new BoundUnconvertedCollectionLiteralExpression(syntax, builder.ToImmutableAndFree(), this);
+
+            BoundExpression bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics)
+            {
+                switch (syntax)
+                {
+                    case ExpressionElementSyntax expressionElementSyntax:
+                        return BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue);
+
+                    case DictionaryElementSyntax dictionaryElementSyntax:
+                        _ = BindValue(dictionaryElementSyntax.KeyExpression, diagnostics, BindValueKind.RValue);
+                        _ = BindValue(dictionaryElementSyntax.ValueExpression, diagnostics, BindValueKind.RValue);
+                        Error(diagnostics, ErrorCode.ERR_CollectionLiteralElementNotImplemented, syntax);
+                        return BadExpression(syntax);
+
+                    case SpreadElementSyntax spreadElementSyntax:
+                        _ = BindValue(spreadElementSyntax.Expression, diagnostics, BindValueKind.RValue);
+                        Error(diagnostics, ErrorCode.ERR_CollectionLiteralElementNotImplemented, syntax);
+                        return BadExpression(syntax);
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
+                }
+            }
+        }
+
         private BoundExpression BindDelegateCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, BindingDiagnosticBag diagnostics)
         {
             AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
@@ -4756,7 +4790,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundBadExpression(node, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol?>(type), children.ToImmutableAndFree(), type) { WasCompilerGenerated = wasCompilerGenerated };
         }
-#nullable disable
 
         private BoundObjectInitializerExpressionBase BindInitializerExpression(
             InitializerExpressionSyntax syntax,
@@ -4788,6 +4821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.Unreachable();
             }
         }
+#nullable disable
 
         private BoundExpression BindInitializerExpressionOrValue(
             ExpressionSyntax syntax,
@@ -5971,8 +6005,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+#nullable enable
         private BoundExpression BindTypeParameterCreationExpression(
-            SyntaxNode node, TypeParameterSymbol typeParameter, AnalyzedArguments analyzedArguments, InitializerExpressionSyntax initializerOpt,
+            SyntaxNode node, TypeParameterSymbol typeParameter, AnalyzedArguments analyzedArguments, InitializerExpressionSyntax? initializerOpt,
             SyntaxNode typeSyntax, bool wasTargetTyped, BindingDiagnosticBag diagnostics)
         {
             if (!typeParameter.HasConstructorConstraint && !typeParameter.IsValueType)
@@ -5998,6 +6033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return MakeBadExpressionForObjectCreation(node, typeParameter, analyzedArguments, initializerOpt, typeSyntax, diagnostics);
         }
+#nullable disable
 
         /// <summary>
         /// Given the type containing constructors, gets the list of candidate instance constructors and uses overload resolution to determine which one should be called.

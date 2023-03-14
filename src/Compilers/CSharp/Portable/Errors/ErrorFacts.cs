@@ -2307,6 +2307,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadRefInUsingAlias:
                 case ErrorCode.ERR_BadUnsafeInUsingDirective:
                 case ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias:
+                case ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible:
+                case ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral:
+                case ErrorCode.ERR_CollectionLiteralElementNotImplemented:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

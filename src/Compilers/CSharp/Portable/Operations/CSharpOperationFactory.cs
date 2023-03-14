@@ -100,6 +100,12 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundArrayCreationOperation((BoundArrayCreation)boundNode);
                 case BoundKind.ArrayInitialization:
                     return CreateBoundArrayInitializationOperation((BoundArrayInitialization)boundNode);
+                case BoundKind.CollectionInitializerCollectionLiteralExpression:
+                    return CreateBoundCollectionInitializerCollectionLiteralExpression((BoundCollectionInitializerCollectionLiteralExpression)boundNode);
+                case BoundKind.ArrayOrSpanCollectionLiteralExpression:
+                    return CreateBoundArrayOrSpanCollectionLiteralExpression((BoundArrayOrSpanCollectionLiteralExpression)boundNode);
+                case BoundKind.UnconvertedCollectionLiteralExpression:
+                    return CreateBoundUnconvertedCollectionLiteralExpression((BoundUnconvertedCollectionLiteralExpression)boundNode);
                 case BoundKind.DefaultLiteral:
                     return CreateBoundDefaultLiteralOperation((BoundDefaultLiteral)boundNode);
                 case BoundKind.DefaultExpression:
@@ -1212,6 +1218,109 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = boundArrayInitialization.Syntax;
             bool isImplicit = boundArrayInitialization.WasCompilerGenerated;
             return new ArrayInitializerOperation(elementValues, _semanticModel, syntax, isImplicit);
+        }
+
+        // PROTOTYPE: Decide public API shape.
+        private IOperation CreateBoundArrayOrSpanCollectionLiteralExpression(BoundArrayOrSpanCollectionLiteralExpression boundCollectionLiteralExpression)
+        {
+            SyntaxNode syntax = boundCollectionLiteralExpression.Syntax;
+            ITypeSymbol? collectionType = boundCollectionLiteralExpression.GetPublicTypeSymbol();
+            bool isImplicit = boundCollectionLiteralExpression.WasCompilerGenerated;
+            var spanConstructor = boundCollectionLiteralExpression.SpanConstructor.GetPublicSymbol();
+            var initializer = new ArrayInitializerOperation(
+                CreateFromArray<BoundExpression, IOperation>(boundCollectionLiteralExpression.Initializers),
+                _semanticModel,
+                syntax,
+                isImplicit: true);
+            ImmutableArray<IOperation> dimensionSizes = ImmutableArray.Create<IOperation>(new LiteralOperation(
+                _semanticModel,
+                syntax,
+                _semanticModel.Compilation.GetSpecialType(SpecialType.System_Int32),
+                ConstantValue.Create(boundCollectionLiteralExpression.Initializers.Length),
+                isImplicit: true));
+            if (spanConstructor is null)
+            {
+                return new ArrayCreationOperation(
+                    dimensionSizes,
+                    initializer,
+                    _semanticModel,
+                    syntax,
+                    collectionType,
+                    isImplicit: isImplicit);
+            }
+            else
+            {
+                // PROTOTYPE: Decide public API shape. Will we always initialize the span
+                // with an array, and is it reasonable to expose this in the IOperation?
+                var array = new ArrayCreationOperation(
+                    dimensionSizes,
+                    initializer,
+                    _semanticModel,
+                    syntax,
+                    spanConstructor.Parameters[0].Type,
+                    isImplicit: true);
+                IArgumentOperation constructorArgument = new ArgumentOperation(
+                    ArgumentKind.Explicit,
+                    spanConstructor.Parameters[0],
+                    array,
+                    OperationFactory.IdentityConversion,
+                    OperationFactory.IdentityConversion,
+                    _semanticModel,
+                    syntax,
+                    isImplicit: true);
+                return new ObjectCreationOperation(
+                    spanConstructor,
+                    initializer: null,
+                    ImmutableArray.Create(constructorArgument),
+                    _semanticModel,
+                    syntax,
+                    collectionType,
+                    constantValue: null,
+                    isImplicit);
+            }
+        }
+
+        private IOperation CreateBoundCollectionInitializerCollectionLiteralExpression(BoundCollectionInitializerCollectionLiteralExpression boundCollectionLiteralExpression)
+        {
+            SyntaxNode syntax = boundCollectionLiteralExpression.Syntax;
+            ITypeSymbol? collectionType = boundCollectionLiteralExpression.GetPublicTypeSymbol();
+            bool isImplicit = boundCollectionLiteralExpression.WasCompilerGenerated;
+            var initializer = new ObjectOrCollectionInitializerOperation(
+                CreateFromArray<BoundExpression, IOperation>(boundCollectionLiteralExpression.Initializers),
+                _semanticModel,
+                syntax,
+                collectionType,
+                isImplicit: true);
+            if (collectionType is ITypeParameterSymbol)
+            {
+                return new TypeParameterObjectCreationOperation(initializer, _semanticModel, syntax, collectionType, isImplicit: isImplicit);
+            }
+            else if (boundCollectionLiteralExpression.CollectionCreation is BoundObjectCreationExpression collectionCreation)
+            {
+                return new ObjectCreationOperation(
+                    collectionCreation.Constructor.GetPublicSymbol(),
+                    initializer,
+                    DeriveArguments(collectionCreation),
+                    _semanticModel,
+                    syntax,
+                    collectionType,
+                    constantValue: null,
+                    isImplicit: isImplicit);
+            }
+            else
+            {
+                // PROTOTYPE: Temporary until natural type is supported.
+                return new InvalidOperation(ImmutableArray.Create<IOperation>(initializer), _semanticModel, syntax, collectionType, constantValue: null, isImplicit);
+            }
+        }
+
+        private IOperation CreateBoundUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression boundCollectionLiteralExpression)
+        {
+            SyntaxNode syntax = boundCollectionLiteralExpression.Syntax;
+            ITypeSymbol? collectionType = boundCollectionLiteralExpression.GetPublicTypeSymbol();
+            bool isImplicit = boundCollectionLiteralExpression.WasCompilerGenerated;
+            var children = CreateFromArray<BoundExpression, IOperation>(boundCollectionLiteralExpression.Initializers);
+            return new InvalidOperation(children, _semanticModel, syntax, collectionType, constantValue: null, isImplicit);
         }
 
         private IDefaultValueOperation CreateBoundDefaultLiteralOperation(BoundDefaultLiteral boundDefaultLiteral)

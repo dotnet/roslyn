@@ -265,6 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeaturePrimaryConstructors = MessageBase + 12833,
         IDS_FeatureUsingTypeAlias = MessageBase + 12834,
+        IDS_FeatureCollectionLiterals = MessageBase + 12900, // PROTOTYPE: Update message number.
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -393,6 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureLambdaParamsArray: // semantic check
                 case MessageID.IDS_FeaturePrimaryConstructors: // declaration table check
                 case MessageID.IDS_FeatureUsingTypeAlias: // semantic check
+                case MessageID.IDS_FeatureCollectionLiterals: // semantic check
                     return LanguageVersion.Preview;
 
                 // C# 11.0 features.

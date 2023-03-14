@@ -571,6 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.NoConversion;
         }
 
+        // PROTOTYPE: Ensure collection literal conversions are not considered standard implicit conversions.
         private static bool IsStandardImplicitConversionFromExpression(ConversionKind kind)
         {
             if (IsStandardImplicitConversionFromType(kind))
@@ -1094,6 +1095,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.UnconvertedObjectCreationExpression:
                     return Conversion.ObjectCreation;
+
+                case BoundKind.UnconvertedCollectionLiteralExpression:
+                    return Conversion.CollectionLiteral;
             }
 
             return Conversion.NoConversion;

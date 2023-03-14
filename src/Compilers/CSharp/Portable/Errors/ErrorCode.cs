@@ -2186,6 +2186,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadRefInUsingAlias = 9130,
         ERR_BadUnsafeInUsingDirective = 9131,
         ERR_BadNullableReferenceTypeInUsingAlias = 9132,
+
+        ERR_CollectionLiteralTargetTypeNotConstructible = 9500, // PROTOTYPE: Update error numbers.
+        ERR_ExpressionTreeContainsCollectionLiteral = 9501,
+        ERR_CollectionLiteralElementNotImplemented = 9502, // PROTOTYPE: Temporary error until feature has been implemented.
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

@@ -1919,9 +1919,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
-
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, node.Constructor);
             VisitRvalue(node.InitializerExpressionOpt);
+            return null;
+        }
+
+        public override BoundNode VisitArrayOrSpanCollectionLiteralExpression(BoundArrayOrSpanCollectionLiteralExpression node)
+        {
+            VisitCollectionLiteralExpression(node);
+            return null;
+        }
+
+        public override BoundNode VisitCollectionInitializerCollectionLiteralExpression(BoundCollectionInitializerCollectionLiteralExpression node)
+        {
+            VisitCollectionLiteralExpression(node);
+            return null;
+        }
+
+        protected virtual void VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
+        {
+            foreach (var initializer in node.Initializers)
+            {
+                VisitRvalue(initializer);
+            }
+        }
+
+        public override BoundNode VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node)
+        {
+            // PROTOTYPE: How should unconverted collection literals be handled?
             return null;
         }
 
