@@ -6,6 +6,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -751,6 +752,154 @@ class Test
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+        }
+
+        [Fact]
+        public void TestAliasToGenericWithPointer_CSharp11_A()
+        {
+            var text =
+@"
+// Legal in C# 11
+using X = System.Collections.Generic.List<int*[]>;
+
+class C
+{
+    // Also legal
+    void M(X x)
+    {
+    }
+}
+";
+            CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestAliasToGenericWithPointer_CSharp11_B()
+        {
+            var text =
+@"
+// Legal in C# 11
+using X = System.Collections.Generic.List<int*[]>;
+
+class C
+{
+    // Also legal
+    void M(X x)
+    {
+        var y = x[0];
+    }
+}
+";
+            CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (10,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var y = x[0];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0]").WithLocation(10, 17));
+        }
+
+        [Fact]
+        public void TestAliasToGenericWithPointer_CSharp11_C()
+        {
+            var text =
+@"
+// Legal in C# 11
+using X = System.Collections.Generic.List<int*[]>;
+
+class C
+{
+    // Also legal
+    void M(X x)
+    {
+        var y = x[0][0];
+    }
+}
+";
+            CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (10,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var y = x[0][0];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0]").WithLocation(10, 17),
+                // (10,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var y = x[0][0];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0][0]").WithLocation(10, 17));
+        }
+
+        [Fact]
+        public void TestAliasToGenericWithPointer_CSharp12_UnsafeOff_A()
+        {
+            var text =
+@"
+using X = System.Collections.Generic.List<int*[]>;
+
+class C
+{
+    void M(X x)
+    {
+    }
+}
+";
+            CreateCompilation(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using X = System.Collections.Generic.List<int*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43));
+        }
+
+        [Fact]
+        public void TestAliasToGenericWithPointer_CSharp12_UnsafeOn_A()
+        {
+            var text =
+@"
+using X = System.Collections.Generic.List<int*[]>;
+
+class C
+{
+    void M(X x)
+    {
+    }
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using X = System.Collections.Generic.List<int*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43));
+        }
+
+        [Fact]
+        public void TestAliasToGenericWithPointer_CSharp12_UnsafeOff_B()
+        {
+            var text =
+@"
+using unsafe X = System.Collections.Generic.List<int*[]>;
+
+class C
+{
+    unsafe void M(X x)
+    {
+    }
+}
+";
+            CreateCompilation(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // using unsafe X = System.Collections.Generic.List<int*[]>;
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7),
+                // (6,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     unsafe void M(X x)
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 17));
+        }
+
+        [Fact]
+        public void TestAliasToGenericWithPointer_CSharp12_UnsafeOn_B()
+        {
+            var text =
+@"
+using unsafe X = System.Collections.Generic.List<int*[]>;
+
+class C
+{
+    unsafe void M(X x)
+    {
+    }
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
     }
 }
