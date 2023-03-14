@@ -58,10 +58,10 @@ using s = delegate*<void>;";
         }
 
         [Fact]
-        public void UsingAliasTest_CSharp12_UnsafeModifier()
+        public void UsingAliasTest_UnsafeModifier()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
-using unsafe s = delegate*<void>;", options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+using unsafe s = delegate*<void>;", options: TestOptions.UnsafeDebugDll);
 
             comp.VerifyDiagnostics(
                 // (2,14): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
@@ -106,7 +106,7 @@ using s = System.Collections.Generic.List<delegate*<void>[]>;";
             var src = @"
 using unsafe s = System.Collections.Generic.List<delegate*<void>[]>;";
 
-            var comp = CreateCompilationWithFunctionPointers(src, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithFunctionPointers(src);
             comp.VerifyDiagnostics(
                 // (2,14): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // using unsafe s = System.Collections.Generic.List<delegate*<void>[]>;
