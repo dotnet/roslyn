@@ -331,7 +331,7 @@ function Make-BootstrapBuild([string]$bootstrapToolset = "") {
     $packageName = "Microsoft.Net.Compilers.Toolset.Framework"
   }
   else {
-    throw "Unsupported bootstrap toolset $bootstrapToloset"
+    throw "Unsupported bootstrap toolset $bootstrapToolset"
   }
 
   Run-MSBuild $projectPath "/restore /t:Pack /p:RoslynEnforceCodeStyle=false /p:RunAnalyzersDuringBuild=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false /p:PublishWindowsPdb=false" -logFileName "Bootstrap" -configuration $bootstrapConfiguration
