@@ -7037,7 +7037,7 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             compilation.VerifyDiagnostics(
                 // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe class R2 : R1<int*>
