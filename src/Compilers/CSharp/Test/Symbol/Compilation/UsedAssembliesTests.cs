@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -249,8 +250,11 @@ public class C2
         }
 
         private Compilation AssertUsedAssemblyReferences(string source, MetadataReference[] references, params MetadataReference[] expected)
+            => AssertUsedAssemblyReferences(source, references, expected, parseOptions: null);
+
+        private Compilation AssertUsedAssemblyReferences(string source, MetadataReference[] references, MetadataReference[] expected, CSharpParseOptions parseOptions)
         {
-            Compilation comp = CreateCompilation(source, references: references);
+            Compilation comp = CreateCompilation(source, parseOptions: parseOptions, references: references);
             AssertUsedAssemblyReferences(comp, expected, references);
             return comp;
         }
@@ -3629,7 +3633,8 @@ public class C2
 
             void verify(MetadataReference reference0, MetadataReference reference1, string source)
             {
-                AssertUsedAssemblyReferences(source, reference0, reference1);
+                var references = new[] { reference0, reference1 };
+                AssertUsedAssemblyReferences(source, references, references, parseOptions: TestOptions.Regular11);
             }
         }
 
