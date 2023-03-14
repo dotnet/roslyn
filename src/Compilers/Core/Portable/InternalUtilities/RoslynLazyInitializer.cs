@@ -12,9 +12,7 @@ namespace Roslyn.Utilities
     {
         /// <inheritdoc cref="LazyInitializer.EnsureInitialized{T}(ref T)"/>
         public static T EnsureInitialized<
-#if NET6_0_OR_GREATER
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
-#endif
         T>([NotNull] ref T? target) where T : class
             => LazyInitializer.EnsureInitialized<T>(ref target!);
 
@@ -24,9 +22,7 @@ namespace Roslyn.Utilities
 
         /// <inheritdoc cref="LazyInitializer.EnsureInitialized{T}(ref T, ref bool, ref object)"/>
         public static T EnsureInitialized<
-#if NET6_0_OR_GREATER
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
-#endif
         T>([NotNull] ref T? target, ref bool initialized, [NotNullIfNotNull(nameof(syncLock))] ref object? syncLock)
             => LazyInitializer.EnsureInitialized<T>(ref target!, ref initialized, ref syncLock);
 

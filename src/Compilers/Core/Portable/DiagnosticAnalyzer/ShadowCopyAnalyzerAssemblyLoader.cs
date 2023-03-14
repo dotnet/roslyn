@@ -16,9 +16,7 @@ using System.Runtime.Loader;
 
 namespace Microsoft.CodeAnalysis
 {
-#if NET6_0_OR_GREATER
     [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.AnalyzerReflectionLoadMessage)]
-#endif
     internal sealed class ShadowCopyAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
         /// <summary>

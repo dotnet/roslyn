@@ -1684,9 +1684,7 @@ namespace Microsoft.Cci
             };
         }
 
-#if NET6_0_OR_GREATER
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
-#endif
         public void WriteMetadataAndIL(PdbWriter nativePdbWriterOpt, Stream metadataStream, Stream ilStream, Stream portablePdbStreamOpt, out MetadataSizes metadataSizes)
         {
             Debug.Assert(nativePdbWriterOpt == null ^ portablePdbStreamOpt == null);

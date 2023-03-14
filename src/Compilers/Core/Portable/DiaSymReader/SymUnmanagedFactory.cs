@@ -164,9 +164,7 @@ namespace Microsoft.DiaSymReader
             return lazyType;
         }
 
-#if NET6_0_OR_GREATER
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
-#endif
         internal static object CreateObject(bool createReader, bool useAlternativeLoadPath, bool useComRegistry, out string moduleName, out Exception loadException)
         {
             object instance = null;

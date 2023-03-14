@@ -15,9 +15,7 @@ using System.Runtime.Loader;
 
 namespace Microsoft.CodeAnalysis
 {
-#if NET6_0_OR_GREATER
     [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.AnalyzerReflectionLoadMessage)]
-#endif
     internal partial class AnalyzerAssemblyLoader
     {
         private readonly AssemblyLoadContext _compilerLoadContext;
@@ -73,9 +71,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-#if NET6_0_OR_GREATER
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.AnalyzerReflectionLoadMessage)]
-#endif
         internal sealed class DirectoryLoadContext : AssemblyLoadContext
         {
             internal string Directory { get; }
@@ -115,7 +111,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Next prefer registered dependencies from other directories. Ideally this would not
-                // be necessary but msbuild target defaults have caused a number of customers to 
+                // be necessary but msbuild target defaults have caused a number of customers to
                 // fall into this path. See discussion here for where it comes up
                 // https://github.com/dotnet/roslyn/issues/56442
                 if (_loader.GetBestPath(assemblyName) is string bestRealPath)

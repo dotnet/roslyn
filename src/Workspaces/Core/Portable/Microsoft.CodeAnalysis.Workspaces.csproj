@@ -31,6 +31,7 @@
   </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Remove="Storage\SQLite\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\TrimWarningMessages.cs" Link="Diagnostics\CompilerShared\AnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.cs" Link="Diagnostics\CompilerShared\AnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.Core.cs" Link="Diagnostics\CompilerShared\AnalyzerAssemblyLoader.Core.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.Desktop.cs" Link="Diagnostics\CompilerShared\AnalyzerAssemblyLoader.Desktop.cs" />

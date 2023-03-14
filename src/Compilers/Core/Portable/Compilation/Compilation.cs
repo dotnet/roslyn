@@ -2623,9 +2623,7 @@ namespace Microsoft.CodeAnalysis
 
         // 1.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         [EditorBrowsable(EditorBrowsableState.Never)]
-#if NET6_0_OR_GREATER
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
-#endif
         public EmitResult Emit(
             Stream peStream,
             Stream? pdbStream,
@@ -2650,9 +2648,7 @@ namespace Microsoft.CodeAnalysis
 
         // 1.3 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         [EditorBrowsable(EditorBrowsableState.Never)]
-#if NET6_0_OR_GREATER
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
-#endif
         public EmitResult Emit(
             Stream peStream,
             Stream pdbStream,
@@ -2677,9 +2673,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // 2.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
-#if NET6_0_OR_GREATER
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
-#endif
         public EmitResult Emit(
             Stream peStream,
             Stream? pdbStream,
@@ -2741,9 +2735,7 @@ namespace Microsoft.CodeAnalysis
         /// Only supported when emitting Portable PDBs.
         /// </param>
         /// <param name="cancellationToken">To cancel the emit process.</param>
-#if NET6_0_OR_GREATER
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
-#endif
         public EmitResult Emit(
             Stream peStream,
             Stream? pdbStream = null,
@@ -2772,9 +2764,7 @@ namespace Microsoft.CodeAnalysis
                 cancellationToken);
         }
 
-#if NET6_0_OR_GREATER
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
-#endif
         internal EmitResult Emit(
             Stream peStream,
             Stream? pdbStream,
@@ -2892,9 +2882,7 @@ namespace Microsoft.CodeAnalysis
         /// This overload is only intended to be directly called by tests that want to pass <paramref name="testData"/>.
         /// The map is used for storing a list of methods and their associated IL.
         /// </summary>
-#if NET6_0_OR_GREATER
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
-#endif
         internal EmitResult Emit(
             Stream peStream,
             Stream? metadataPEStream,
@@ -3009,9 +2997,7 @@ namespace Microsoft.CodeAnalysis
         /// subsequent Edit and Continue.
         /// </summary>
         [Obsolete("UpdatedMethods is now part of EmitDifferenceResult, so you should use an overload that doesn't take it.")]
-#if NET6_0_OR_GREATER
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
-#endif
         public EmitDifferenceResult EmitDifference(
             EmitBaseline baseline,
             IEnumerable<SemanticEdit> edits,
@@ -3032,9 +3018,7 @@ namespace Microsoft.CodeAnalysis
         /// subsequent Edit and Continue.
         /// </summary>
         [Obsolete("UpdatedMethods is now part of EmitDifferenceResult, so you should use an overload that doesn't take it.")]
-#if NET6_0_OR_GREATER
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
-#endif
         public EmitDifferenceResult EmitDifference(
             EmitBaseline baseline,
             IEnumerable<SemanticEdit> edits,
@@ -3062,9 +3046,7 @@ namespace Microsoft.CodeAnalysis
         /// of the current compilation is returned as an EmitBaseline for use in a
         /// subsequent Edit and Continue.
         /// </summary>
-#if NET6_0_OR_GREATER
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
-#endif
         public EmitDifferenceResult EmitDifference(
             EmitBaseline baseline,
             IEnumerable<SemanticEdit> edits,
@@ -3111,9 +3093,7 @@ namespace Microsoft.CodeAnalysis
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
-#if NET6_0_OR_GREATER
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
-#endif
         internal abstract EmitDifferenceResult EmitDifference(
             EmitBaseline baseline,
             IEnumerable<SemanticEdit> edits,
@@ -3186,9 +3166,7 @@ namespace Microsoft.CodeAnalysis
 
         internal bool IsEmitDeterministic => this.Options.Deterministic;
 
-#if NET6_0_OR_GREATER
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
-#endif
         internal bool SerializeToPeStream(
             CommonPEModuleBuilder moduleBeingBuilt,
             EmitStreamProvider peStreamProvider,
@@ -3341,9 +3319,7 @@ namespace Microsoft.CodeAnalysis
             return auxStream;
         }
 
-#if NET6_0_OR_GREATER
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
-#endif
         internal static bool SerializePeToStream(
             CommonPEModuleBuilder moduleBeingBuilt,
             DiagnosticBag metadataDiagnostics,
@@ -3407,9 +3383,7 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-#if NET6_0_OR_GREATER
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
-#endif
         internal EmitBaseline? SerializeToDeltaStreams(
             CommonPEModuleBuilder moduleBeingBuilt,
             EmitBaseline baseline,
