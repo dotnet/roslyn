@@ -40,6 +40,9 @@
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>Compiler\InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\TrimWarningMessages.cs">
+      <Link>Compiler\InternalUtilities\TrimWarningMessages.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\RequiresUnreferencedCodeAttribute.cs">
       <Link>Compiler\InternalUtilities\RequiresUnreferencedCodeAttribute.cs</Link>
     </Compile>

@@ -51,8 +51,8 @@
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>Compiler\InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
-      <Link>Compiler\InternalUtilities\ReflectionUtilities.cs</Link>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\TrimWarningMessages.cs">
+      <Link>Compiler\InternalUtilities\TrimWarningMessages.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\Dependencies\PooledObjects\ObjectPool`1.cs">
       <Link>Compiler\InternalUtilities\ObjectPool`1.cs</Link>
