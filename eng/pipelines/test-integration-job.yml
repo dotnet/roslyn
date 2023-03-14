@@ -23,11 +23,7 @@ steps:
   - ${{ if eq(parameters.skipCheckout, false) }}:
     - template: checkout-windows-task.yml
 
-  - task: NuGetAuthenticate@1
-    displayName: 🔏 Authenticate NuGet feeds
-    inputs:
-      nuGetServiceConnections: azure-public/roslyn
-      forceReinstallCredentialProvider: true
+  - template: azure-public-roslyn-auth.yml
 
   - task: PowerShell@2
     displayName: Build and Test

@@ -69,6 +69,12 @@ jobs:
     clean: all
 
   steps:
+  - task: NuGetAuthenticate@1
+    displayName: 🔏 Authenticate NuGet feeds
+    inputs:
+      nuGetServiceConnections: azure-public/roslyn
+      forceReinstallCredentialProvider: true
+      
   - template: /eng/common/templates/steps/source-build.yml
     parameters:
       platform: ${{ parameters.platform }}
