@@ -5787,9 +5787,8 @@ class B : A<S>
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.Void").WithLocation(6, 7));
         }
 
-        [WorkItem(11243, "DevDiv_Projects/Roslyn")]
-        [Fact]
-        public void ConstraintGenericForPoint()
+        [Fact, WorkItem(11243, "DevDiv_Projects/Roslyn")]
+        public void ConstraintGenericForPoint_CSharp11()
         {
             var source = @"
 class A
@@ -5810,7 +5809,59 @@ class @c
 ";
             // NOTE: we don't report that object* and void* are invalid type arguments, since validation
             // is performed on A.I, not on F<object*>.I or G<void*>.I.
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(11243, "DevDiv_Projects/Roslyn")]
+        public void ConstraintGenericForPoint_CSharp12_A()
+        {
+            var source = @"
+class A
+{
+    public interface I { }
+}
+unsafe class F<T> : A where T : F<object*>.I
+{
+}
+
+unsafe class G<T> : A where T : G<void*>.I
+{
+}
+class @c
+{
+    static void Main() { }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class F<T> : A where T : F<object*>.I
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "F").WithLocation(6, 14),
+                // (10,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class G<T> : A where T : G<void*>.I
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "G").WithLocation(10, 14));
+        }
+
+        [Fact, WorkItem(11243, "DevDiv_Projects/Roslyn")]
+        public void ConstraintGenericForPoint_CSharp12_B()
+        {
+            var source = @"
+class A
+{
+    public interface I { }
+}
+unsafe class F<T> : A where T : F<object*>.I
+{
+}
+
+unsafe class G<T> : A where T : G<void*>.I
+{
+}
+class @c
+{
+    static void Main() { }
+}
+";
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [WorkItem(545460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545460")]
