@@ -52,8 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             {
                 var compilation = compilationContext.Compilation;
                 var expressionType = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName!);
-                compilationContext.RegisterSyntaxNodeAction(
-                    syntaxContext => AnalyzeSyntaxNode(syntaxContext, expressionType), SyntaxKind.Argument);
+                compilationContext.RegisterCodeBlockStartAction<SyntaxKind>(blockStartContext =>
+                    blockStartContext.RegisterSyntaxNodeAction(
+                        syntaxContext => AnalyzeSyntaxNode(syntaxContext, expressionType), SyntaxKind.Argument));
             });
         }
 

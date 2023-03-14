@@ -43,11 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(SyntaxNodeAction,
-                SyntaxKind.EqualsExpression,
-                SyntaxKind.NotEqualsExpression,
-                SyntaxKind.IsExpression,
-                SyntaxKind.IsPatternExpression);
+            => context.RegisterCodeBlockStartAction<SyntaxKind>(blockStartContext =>
+                blockStartContext.RegisterSyntaxNodeAction(SyntaxNodeAction,
+                    SyntaxKind.EqualsExpression,
+                    SyntaxKind.NotEqualsExpression,
+                    SyntaxKind.IsExpression,
+                    SyntaxKind.IsPatternExpression));
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
