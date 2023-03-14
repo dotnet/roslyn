@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Prior to C#12, allow the alias to be an unsafe region.  This allows us to maintain compat with prior
                 // versions of the compiler that allowed `using X = List<int*[]>` to be written.  In 12.0 and onwards
                 // though, we require the code to explicitly contain the `unsafe` keyword.
-                if (((CSharpParseOptions)syntax.SyntaxTree.Options).LanguageVersion < LanguageVersion.Preview)
+                if (((CSharpParseOptions)syntax.SyntaxTree.Options).LanguageVersion < MessageID.IDS_FeatureUsingTypeAlias.RequiredVersion())
                     flags |= BinderFlags.UnsafeRegion;
             }
 
