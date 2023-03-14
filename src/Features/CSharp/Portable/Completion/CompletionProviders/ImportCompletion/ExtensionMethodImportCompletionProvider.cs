@@ -36,10 +36,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
-        protected override Task<ImmutableArray<string>> GetImportedNamespacesAsync(
+        protected override async Task<ImmutableArray<string>> GetImportedNamespacesAsync(
             SyntaxContext syntaxContext,
             CancellationToken cancellationToken)
-            => ImportCompletionProviderHelper.GetImportedNamespacesAsync(syntaxContext, cancellationToken);
+            => ImportCompletionProviderHelper.GetImportedNamespaces(syntaxContext, cancellationToken);
 
         protected override bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token)
         {

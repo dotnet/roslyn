@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal static class ImportCompletionProviderHelper
     {
-        public static async Task<ImmutableArray<string>> GetImportedNamespacesAsync(SyntaxContext context, CancellationToken cancellationToken)
+        public static ImmutableArray<string> GetImportedNamespaces(SyntaxContext context, CancellationToken cancellationToken)
         {
             var scopes = context.SemanticModel.GetImportScopes(context.Position, cancellationToken);
 
