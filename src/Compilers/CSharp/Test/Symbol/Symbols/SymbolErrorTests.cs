@@ -16719,7 +16719,7 @@ class E2 : I<C<dynamic>.D*[]> {}
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552740")]
-        public void CS1966ERR_DeriveFromConstructedDynamic_CSharp12_A()
+        public void CS1966ERR_DeriveFromConstructedDynamic_CSharp12_NoUnsafeSwitch()
         {
             var text = @"
 interface I<T> { }
@@ -16745,7 +16745,7 @@ unsafe class E2 : I<C<dynamic>.D*[]> {}
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552740")]
-        public void CS1966ERR_DeriveFromConstructedDynamic_CSharp12_B()
+        public void CS1966ERR_DeriveFromConstructedDynamic_CSharp12_UnsafeSwitch()
         {
             var text = @"
 interface I<T> { }
