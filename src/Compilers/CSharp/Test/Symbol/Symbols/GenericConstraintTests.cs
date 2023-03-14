@@ -6568,7 +6568,7 @@ unsafe class C<T>
     public void F<U>() where U : IA<E*[]> { }
 }
 class D : C<int>, IB { }";
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
             source =
 @"interface IA<T> { }
 unsafe interface IB
