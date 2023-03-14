@@ -100,6 +100,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// ]
         public static ImmutableArray<DocumentSymbolData> CreateDocumentSymbolData(JToken token, ITextSnapshot textSnapshot)
         {
+            // If we get no value results back, treat that as empty results.  That way we don't keep showing stale
+            // results if the server starts returning nothing.
             var documentSymbols = token.ToObject<RoslynDocumentSymbol[]>() ?? Array.Empty<RoslynDocumentSymbol>();
 
             // Obtain a flat list of all the document symbols sorted by location in the document.
