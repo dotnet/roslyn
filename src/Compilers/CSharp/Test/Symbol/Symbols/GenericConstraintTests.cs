@@ -6525,7 +6525,7 @@ class C<T>
     public void F<U>() where U : IA<E*[]> { }
 }
 class D : C<int>, IB { }";
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (4,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void F<T>() where T : IA<C<int>.E*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C<int>.E*").WithLocation(4, 30),
