@@ -14,10 +14,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
     WorkspaceKind.Host,
     WorkspaceKind.MiscellaneousFiles,
     WorkspaceKind.MetadataAsSource,
-    // TODO(cyrusn): Why does LSP need to know about the msbuild workspace?  It's a workspace that is used in console
-    // apps, not rich server scenarios.
-    WorkspaceKind.MSBuild,
-    // TODO(cyrusn): Why does LSP need to know about the interactive workspace? Does LSP work in interactive buffers?
     WorkspaceKind.Interactive), Shared]
 internal class LspWorkspaceRegistrationEventListener : IEventListener<object>, IEventListenerStoppable
 {
