@@ -2,6 +2,9 @@
 <Project>
 
   <PropertyGroup>
+    <_RoslynShouldLoad Condition="'$(MSBuildRuntimeType)' == 'Full'">true</_RoslynShouldLoad>
+  </PropertyGroup>
+
     <_RoslynTargetDirectoryName>net472</_RoslynTargetDirectoryName>   
     <_RoslynTasksDirectory>$(MSBuildThisFileDirectory)..\tasks\$(_RoslynTargetDirectoryName)\</_RoslynTasksDirectory>
     <RoslynTasksAssembly>$(_RoslynTasksDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll</RoslynTasksAssembly> 
