@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         /// <summary>
         /// Emits boolean expression without branching if possible (i.e., no logical operators, only comparisons).
-        /// Leaves a value on the stack which conforms to sense, i.e., <c>condition == sense</c>.
+        /// Leaves a boolean (int32) value on the stack which conforms to sense, i.e., <c>condition == sense</c>.
         /// </summary>
         private bool TryEmitCompExpr(BoundExpression condition, bool sense)
         {

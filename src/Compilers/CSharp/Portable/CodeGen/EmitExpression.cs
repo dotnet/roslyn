@@ -3490,6 +3490,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 isConsequenceOne != isAlternativeOne &&
                 TryEmitCompExpr(expr.Condition, sense: isConsequenceOne))
             {
+                var toType = expr.Type.PrimitiveTypeCode;
+                if (toType != Cci.PrimitiveTypeCode.Boolean)
+                {
+                    _builder.EmitNumericConversion(Cci.PrimitiveTypeCode.Int32, toType, @checked: false);
+                }
                 return;
             }
 
