@@ -10617,7 +10617,7 @@ class C1 { }
         }
 
         [Fact]
-        public void GenericAttributePointerArray_CSharp12_A()
+        public void GenericAttributePointerArray_CSharp12_UnsafeOuter()
         {
             var source = @"
 using System;
@@ -10631,7 +10631,7 @@ unsafe class C1 { }
         }
 
         [Fact]
-        public void GenericAttributePointerArray_CSharp12_B()
+        public void GenericAttributePointerArray_CSharp12_UnsafeInner()
         {
             var source = @"
 using System;
