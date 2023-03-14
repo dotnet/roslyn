@@ -4344,7 +4344,7 @@ static class S
     internal static void E<T, U>(this object o) { }
 }
 ";
-            CreateCompilationWithMscorlib46(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (7,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         new C<int*>();
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(7, 15),
@@ -4463,7 +4463,7 @@ static class S
     internal static void E<T, U>(this object o) { }
 }
 ";
-            CreateCompilationWithMscorlib46(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // using System;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1),
@@ -4529,7 +4529,7 @@ class C<T>
         COfIntPtr.F<object>();
     }
 }";
-            CreateCompilationWithMscorlib46(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (2,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using COfIntPtr = C<int*>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 21),
@@ -16732,7 +16732,7 @@ class C<T>
 class E1 : I<dynamic> {}
 unsafe class E2 : I<C<dynamic>.D*[]> {}
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (10,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe class E2 : I<C<dynamic>.D*[]> {}
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "E2").WithLocation(10, 14),
@@ -16758,7 +16758,7 @@ class C<T>
 class E1 : I<dynamic> {}
 unsafe class E2 : I<C<dynamic>.D*[]> {}
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (11,12): error CS1966: 'E2': cannot implement a dynamic interface 'I<C<dynamic>.D*[]>'
                 // class E2 : I<C<dynamic>.D*[]> {}
                 Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<C<dynamic>.D*[]>").WithArguments("E2", "I<C<dynamic>.D*[]>"),
