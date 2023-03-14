@@ -67,7 +67,7 @@ namespace BuildValidator
             }
 
             using var _ = logger.BeginScope("Assembly Location Cache Population");
-            var map = new Dictionary<string, List<string>>();
+            var nameToLocationsMap = new Dictionary<string, List<string>>();
             foreach (var directory in directories)
             {
                 logger.LogInformation($"Searching {directory.FullName}");
@@ -77,17 +77,17 @@ namespace BuildValidator
 
                 foreach (var fileInfo in allFiles)
                 {
-                    if (!map.TryGetValue(fileInfo.Name, out var list))
+                    if (!nameToLocationsMap.TryGetValue(fileInfo.Name, out var locations))
                     {
-                        list = new();
-                        map[fileInfo.Name] = list;
+                        locations = new();
+                        nameToLocationsMap[fileInfo.Name] = locations;
                     }
 
-                    list.Add(fileInfo.FullName);
+                    locations.Add(fileInfo.FullName);
                 }
             }
 
-            return new LocalReferenceResolver(map, logger);
+            return new LocalReferenceResolver(nameToLocationsMap, logger);
         }
 
         public static DirectoryInfo GetNugetCacheDirectory()
@@ -149,7 +149,7 @@ namespace BuildValidator
 
         private void EnsureCachePopulated(string fileName)
         {
-            if (!_nameToLocationsMap.TryGetValue(fileName, out var list))
+            if (!_nameToLocationsMap.TryGetValue(fileName, out var locations))
             {
                 return;
             }
@@ -158,7 +158,7 @@ namespace BuildValidator
 
             using var _ = _logger.BeginScope($"Populating {fileName}");
             var assemblyInfoList = new List<AssemblyInfo>();
-            foreach (var filePath in list)
+            foreach (var filePath in locations)
             {
                 if (Util.GetPortableExecutableInfo(filePath) is not { } peInfo)
                 {
