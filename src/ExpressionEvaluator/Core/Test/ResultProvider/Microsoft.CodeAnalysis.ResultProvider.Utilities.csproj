@@ -30,6 +30,9 @@
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs">
       <Link>Compiler\InternalUtilities\Debug.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\DynamicallyAccessedMembersAttribute.cs">
+      <Link>Compiler\InternalUtilities\DynamicallyAccessedMembersAttribute.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs">
       <Link>Compiler\InternalUtilities\FailFast.cs</Link>
     </Compile>
@@ -44,6 +47,9 @@
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs">
       <Link>Compiler\InternalUtilities\NullableAttributes.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
+      <Link>Compiler\InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>Compiler\InternalUtilities\ReflectionUtilities.cs</Link>
