@@ -500,6 +500,45 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return;
         }
 
+        /// <summary>
+        /// Emits boolean expression without branching if possible (i.e., no logical operators, only comparisons).
+        /// Leaves a value on the stack which conforms to sense, i.e., <c>condition == sense</c>.
+        /// </summary>
+        private bool TryEmitCompExpr(BoundExpression condition, bool sense)
+        {
+            RemoveNegation(ref condition, ref sense);
+
+            Debug.Assert(condition.Type.SpecialType == SpecialType.System_Boolean);
+
+            if (condition.ConstantValueOpt is { } constantValue)
+            {
+                Debug.Assert(constantValue.Discriminator == ConstantValueTypeDiscriminator.Boolean);
+                _builder.EmitBoolConstant(constantValue.BooleanValue == sense);
+                return true;
+            }
+
+            if (condition is BoundBinaryOperator binOp)
+            {
+                // Intentionally don't optimize logical operators, they need branches to short-circuit.
+                if (binOp.OperatorKind.IsComparison())
+                {
+                    EmitBinaryCondOperator(binOp, sense: sense);
+                    return true;
+                }
+            }
+            else
+            {
+                EmitExpression(condition, used: true);
+
+                // Convert to 1 or 0 (although `condition` is of type `bool`, it can return any integer).
+                _builder.EmitOpCode(ILOpCode.Ldc_i4_0);
+                _builder.EmitOpCode(sense ? ILOpCode.Cgt_un : ILOpCode.Ceq);
+                return true;
+            }
+
+            return false;
+        }
+
         private static void RemoveNegation(ref BoundExpression condition, ref bool sense)
         {
             while (condition is BoundUnaryOperator unOp)

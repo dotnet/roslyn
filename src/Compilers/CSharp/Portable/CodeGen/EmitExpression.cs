@@ -3487,39 +3487,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (used &&
                 hasIntegralValueZeroOrOne(expr.Consequence, out var isConsequenceOne) &&
                 hasIntegralValueZeroOrOne(expr.Alternative, out var isAlternativeOne) &&
-                isConsequenceOne != isAlternativeOne)
+                isConsequenceOne != isAlternativeOne &&
+                TryEmitCompExpr(expr.Condition, sense: isConsequenceOne))
             {
-                var condition = expr.Condition;
-                var sense = isConsequenceOne;
-                RemoveNegation(ref condition, ref sense);
-
-                Debug.Assert(condition.Type.SpecialType == SpecialType.System_Boolean);
-
-                if (condition.ConstantValueOpt is { } constantValue)
-                {
-                    Debug.Assert(constantValue.Discriminator == ConstantValueTypeDiscriminator.Boolean);
-                    _builder.EmitBoolConstant(constantValue.BooleanValue == sense);
-                    return;
-                }
-
-                if (condition is BoundBinaryOperator binOp)
-                {
-                    // Intentionally don't optimize logical operators, they need branches to short-circuit.
-                    if (binOp.OperatorKind.IsComparison())
-                    {
-                        EmitBinaryCondOperator(binOp, sense: sense);
-                        return;
-                    }
-                }
-                else
-                {
-                    EmitExpression(condition, used: true);
-
-                    // Convert to 1 or 0 (although `condition` is of type `bool`, it can return any integer).
-                    _builder.EmitOpCode(ILOpCode.Ldc_i4_0);
-                    _builder.EmitOpCode(sense ? ILOpCode.Cgt_un : ILOpCode.Ceq);
-                    return;
-                }
+                return;
             }
 
             object consequenceLabel = new object();
