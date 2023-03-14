@@ -27,15 +27,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void UsingAliasTest()
+        public void UsingAliasTest_CSharp11()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
-using s = delegate*<void>;");
+using s = delegate*<void>;", parseOptions: TestOptions.Regular11);
 
             comp.VerifyDiagnostics(
                 // (2,11): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("using type alias").WithLocation(2, 11),
+                // (2,7): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "s").WithArguments("s").WithLocation(2, 7),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = delegate*<void>;").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void UsingAliasTest_CSharp12_NoUnsafeModifier()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using s = delegate*<void>;", parseOptions: TestOptions.RegularNext);
+
+            comp.VerifyDiagnostics(
                 // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(2, 11),
@@ -45,6 +60,68 @@ using s = delegate*<void>;");
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = delegate*<void>;").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void UsingAliasTest_CSharp12_UnsafeModifier()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using unsafe s = delegate*<void>;", options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+
+            comp.VerifyDiagnostics(
+                // (2,14): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using unsafe s = delegate*<void>;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "s").WithArguments("s").WithLocation(2, 14),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using unsafe s = delegate*<void>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe s = delegate*<void>;").WithLocation(2, 1));
+        }
+        [Fact]
+        public void UsingAliasTest_TypeArgument_CSharp11()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using s = System.Collections.Generic.List<delegate*<void>[]>;", parseOptions: TestOptions.Regular11);
+
+            comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using s = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "s").WithArguments("s").WithLocation(2, 7),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using s = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = System.Collections.Generic.List<delegate*<void>[]>;").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void UsingAliasTest_TypeArgument_CSharp12_NoUnsafeModifier()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using s = System.Collections.Generic.List<delegate*<void>[]>;", parseOptions: TestOptions.RegularNext);
+
+            comp.VerifyDiagnostics(
+                // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using s = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(2, 43),
+                // (2,7): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using s = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "s").WithArguments("s").WithLocation(2, 7),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using s = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = System.Collections.Generic.List<delegate*<void>[]>;").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void UsingAliasTest_TypeArgument_CSharp12_UnsafeModifier()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using unsafe s = System.Collections.Generic.List<delegate*<void>[]>;", options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+
+            comp.VerifyDiagnostics(
+                // (2,14): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using unsafe s = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "s").WithArguments("s").WithLocation(2, 14),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using unsafe s = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe s = System.Collections.Generic.List<delegate*<void>[]>;").WithLocation(2, 1));
         }
 
         [Fact]
