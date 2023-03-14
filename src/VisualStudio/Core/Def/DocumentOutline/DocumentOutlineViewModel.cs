@@ -127,6 +127,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private void OnEventSourceChanged(object sender, TaggerEventArgs e)
             => _workQueue.AddWork(default(VoidResult), cancelExistingWork: true);
 
+        /// <summary>
+        /// Keeps track if we're currently in the middle of navigating or not.  For example, when the user clicks on an
+        /// item, we will navigate to it.  That will then kick of a caret move.  This flag helps us realize the caret move
+        /// is not user driven, so we don't then start the work to go expand/select something.
+        /// </summary>
+        /// <remarks>This property is not bound to the UI.</remarks>
         public bool IsNavigating
         {
             get
@@ -143,61 +149,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
-        public SortOption SortOption
-        {
-            get
-            {
-                _threadingContext.ThrowIfNotOnUIThread();
-                return _sortOption_doNotAccessDirectly;
-            }
-
-            set
-            {
-                // Called from WPF.
-
-                _threadingContext.ThrowIfNotOnUIThread();
-                SetProperty(ref _sortOption_doNotAccessDirectly, value);
-
-                // We do not need to update our views here.  Sorting is handled entirely by WPF using
-                // DocumentSymbolDataViewModelSorter.
-            }
-        }
-
-        public string SearchText
-        {
-            get
-            {
-                _threadingContext.ThrowIfNotOnUIThread();
-                return _searchText_doNotAccessDirectly;
-            }
-
-            set
-            {
-                // setting this happens from wpf itself.  So once this changes, kick off the work to actually filter down our models.
-
-                _threadingContext.ThrowIfNotOnUIThread();
-                _searchText_doNotAccessDirectly = value;
-
-                _workQueue.AddWork(default(VoidResult), cancelExistingWork: true);
-            }
-        }
-
-        public ImmutableArray<DocumentSymbolDataViewModel> DocumentSymbolViewModelItems
-        {
-            get
-            {
-                _threadingContext.ThrowIfNotOnUIThread();
-                return _documentSymbolViewModelItems_doNotAccessDirectly;
-            }
-
-            // Setting this only happens from within this type once we've computed new items or filtered down the existing set.
-            private set
-            {
-                _threadingContext.ThrowIfNotOnUIThread();
-                SetProperty(ref _documentSymbolViewModelItems_doNotAccessDirectly, value);
-            }
-        }
-
+        /// <summary>
+        /// Keeps track of all the inputs/computed-state for the last values we presented on the UI.  Used so we can
+        /// track prior state forward (like which nodes are expanded).
+        /// </summary>
+        /// <remarks>This property is not bound to the UI.</remarks>
         private DocumentOutlineViewState LastPresentedViewState
         {
             get
@@ -213,16 +169,64 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
-        private void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-        private void SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
+        /// <remarks>This property is bound to the UI.  However, it is only read/written by the UI.  We only act as
+        /// storage for the value.  When the value changes, the sorting is actually handled by
+        /// DocumentSymbolDataViewModelSorter.</remarks>
+        public SortOption SortOption
         {
-            if (EqualityComparer<T>.Default.Equals(field, value))
-                return;
+            get
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                return _sortOption_doNotAccessDirectly;
+            }
 
-            field = value;
-            NotifyPropertyChanged(propertyName);
+            set
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                _sortOption_doNotAccessDirectly = value;
+            }
+        }
+
+        /// <remarks>This property is bound to the UI.  However, it is read/written by the UI, and also read by us when
+        /// computing the model to know what to filter it down to.</remarks>
+        public string SearchText
+        {
+            get
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                return _searchText_doNotAccessDirectly;
+            }
+
+            set
+            {
+                // Called from WPF.  When this changes, kick off the work to actually filter down our models.
+
+                _threadingContext.ThrowIfNotOnUIThread();
+                _searchText_doNotAccessDirectly = value;
+
+                _workQueue.AddWork(default(VoidResult), cancelExistingWork: true);
+            }
+        }
+
+        /// <remarks>This property is bound to the UI.  It is only read by the UI, but can be read/written by us.</remarks>
+        public ImmutableArray<DocumentSymbolDataViewModel> DocumentSymbolViewModelItems
+        {
+            get
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                return _documentSymbolViewModelItems_doNotAccessDirectly;
+            }
+
+            // Setting this only happens from within this type once we've computed new items or filtered down the existing set.
+            private set
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                if (_documentSymbolViewModelItems_doNotAccessDirectly == value)
+                    return;
+
+                _documentSymbolViewModelItems_doNotAccessDirectly = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DocumentSymbolViewModelItems)));
+            }
         }
 
         public void ExpandOrCollapseAll(bool shouldExpand)
