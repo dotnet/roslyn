@@ -10518,7 +10518,7 @@ class C { }
         }
 
         [Fact]
-        public void GenericAttributeRestrictedTypeArgument_A()
+        public void GenericAttributeRestrictedTypeArgument_CSharp12_NoUnsafeModifier()
         {
             var source = @"
 using System;
@@ -10553,7 +10553,7 @@ class C3 { }
         }
 
         [Fact]
-        public void GenericAttributeRestrictedTypeArgument_B()
+        public void GenericAttributeRestrictedTypeArgument_CSharp12_UnsafeModifier()
         {
             var source = @"
 using System;
