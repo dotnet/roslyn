@@ -199,7 +199,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 // As we found the document in a non-misc workspace, also attempt to remove it from the misc workspace
                 // if it happens to be in there as well.
                 if (workspace != _lspMiscellaneousFilesWorkspace)
-                    _lspMiscellaneousFilesWorkspace.TryRemoveMiscellaneousDocument(uri);
+                    _lspMiscellaneousFilesWorkspace?.TryRemoveMiscellaneousDocument(uri);
 
                 return (workspace, document.Project.Solution, document);
             }
