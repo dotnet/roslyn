@@ -10518,7 +10518,7 @@ class C { }
         }
 
         [Fact]
-        public void GenericAttributeRestrictedTypeArgument_CSharp12_NoUnsafeModifier()
+        public void GenericAttributeRestrictedTypeArgument_NoUnsafeContext()
         {
             var source = @"
 using System;
@@ -10553,7 +10553,7 @@ class C3 { }
         }
 
         [Fact]
-        public void GenericAttributeRestrictedTypeArgument_CSharp12_UnsafeModifier()
+        public void GenericAttributeRestrictedTypeArgument_UnsafeContext()
         {
             var source = @"
 using System;
@@ -10585,7 +10585,7 @@ unsafe class Outer
         }
 
         [Fact]
-        public void GenericAttributePointerArray_1()
+        public void GenericAttributePointerArray()
         {
             var source = @"
 using System;
@@ -10599,25 +10599,20 @@ class C1 { }
                 // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [Attr<int*[]>] // 1
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7));
-        }
 
-        [Fact]
-        public void GenericAttributePointerArray_CSharp11()
-        {
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<int*[]>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7));
+
             // Legal in C#11.  Allowed for back compat
-            var source = @"
-using System;
-class Attr<T> : Attribute { }
-
-[Attr<int*[]>] // 1
-class C1 { }
-";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics();
         }
 
         [Fact]
-        public void GenericAttributePointerArray_CSharp12_UnsafeOuter()
+        public void GenericAttributePointerArray_OnUnsafeType()
         {
             var source = @"
 using System;
@@ -10626,12 +10621,12 @@ class Attr<T> : Attribute { }
 [Attr<int*[]>] // 1
 unsafe class C1 { }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics();
         }
 
         [Fact]
-        public void GenericAttributePointerArray_CSharp12_UnsafeInner()
+        public void GenericAttributePointerArray_InUnsafeType()
         {
             var source = @"
 using System;
@@ -10643,7 +10638,7 @@ unsafe class C
     class C1 { }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics();
         }
 

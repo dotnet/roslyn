@@ -755,7 +755,7 @@ class Test
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
-        public void TestAliasToGenericWithPointer_CSharp11_NoElementAccess()
+        public void TestAliasToGenericWithPointer_NoElementAccess()
         {
             var text =
 @"
@@ -771,10 +771,15 @@ class C
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (3,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using X = System.Collections.Generic.List<int*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 43));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
-        public void TestAliasToGenericWithPointer_CSharp11_ElementAccess1()
+        public void TestAliasToGenericWithPointer_ElementAccess1()
         {
             var text =
 @"
@@ -797,10 +802,9 @@ class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
-        public void TestAliasToGenericWithPointer_CSharp11_ElementAccess2()
+        public void TestAliasToGenericWithPointer_ElementAccess2()
         {
-            var text =
-@"
+            var text = @"
 // Legal in C# 11
 using X = System.Collections.Generic.List<int*[]>;
 
@@ -820,13 +824,23 @@ class C
                 // (10,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var y = x[0][0];
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0][0]").WithLocation(10, 17));
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (3,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using X = System.Collections.Generic.List<int*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 43),
+                // (10,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var y = x[0][0];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0]").WithLocation(10, 17),
+                // (10,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var y = x[0][0];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0][0]").WithLocation(10, 17));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
-        public void TestAliasToGenericWithPointer_CSharp12_UnsafeOff_NoUnsafeSwitch()
+        public void TestAliasToGenericWithPointer()
         {
-            var text =
-@"
+            var text = @"
 using X = System.Collections.Generic.List<int*[]>;
 
 class C
@@ -836,37 +850,21 @@ class C
     }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
+                // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using X = System.Collections.Generic.List<int*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43));
+
+            CreateCompilation(text).VerifyDiagnostics(
                 // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using X = System.Collections.Generic.List<int*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
-        public void TestAliasToGenericWithPointer_CSharp12_UnsafeOn_UnsafeSwitch()
+        public void TestAliasToGenericWithPointer_UnsafeAlias()
         {
-            var text =
-@"
-using X = System.Collections.Generic.List<int*[]>;
-
-class C
-{
-    void M(X x)
-    {
-    }
-}
-";
-            CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
-                // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                // using X = System.Collections.Generic.List<int*[]>;
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43));
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
-        public void TestAliasToGenericWithPointer_CSharp12_UnsafeOff_NoUnsafeSwitch2()
-        {
-            var text =
-@"
+            var text = @"
 using unsafe X = System.Collections.Generic.List<int*[]>;
 
 class C
@@ -876,30 +874,15 @@ class C
     }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // using unsafe X = System.Collections.Generic.List<int*[]>;
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7),
                 // (6,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 //     unsafe void M(X x)
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 17));
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
-        public void TestAliasToGenericWithPointer_CSharp12_UnsafeOn_UnsafeSwitch2()
-        {
-            var text =
-@"
-using unsafe X = System.Collections.Generic.List<int*[]>;
-
-class C
-{
-    unsafe void M(X x)
-    {
-    }
-}
-";
-            CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
     }
 }

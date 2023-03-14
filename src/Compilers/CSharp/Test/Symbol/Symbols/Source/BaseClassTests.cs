@@ -2261,7 +2261,7 @@ class Derived : Base
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=174789")]
-        public void CyclePointer_CSharp11()
+        public void CyclePointer()
         {
             var text =
 @"class A<T>
@@ -2298,7 +2298,7 @@ class Derived : Base
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=174789")]
-        public void CyclePointer_CSharp12_NoUnsafeSwitch()
+        public void CyclePointer_UnsafeContext()
         {
             var text =
 @"class A<T>
@@ -2335,27 +2335,8 @@ unsafe class Derived : Base
                 // (12,11): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('Base.C')
                 //     class E : A<C*>.B { }
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "E").WithArguments("Base.C").WithLocation(12, 11));
-        }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=174789")]
-        public void CyclePointer_CSharp12_UnsafeSwitch()
-        {
-            var text =
-@"class A<T>
-{
-    internal class B { }
-}
-class Base
-{
-    protected class C { }
-    private class D { }
-}
-unsafe class Derived : Base
-{
-    class E : A<C*>.B { }
-    class F : A<D*>.B { }
-}";
-            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // (13,17): error CS0122: 'Base.D' is inaccessible due to its protection level
                 //     class F : A<D*>.B { }

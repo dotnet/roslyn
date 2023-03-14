@@ -402,33 +402,7 @@ public class Generic<T>
                 // (10,14): warning CS3009: 'B': base type 'Generic<int*[]>' is not CLS-compliant
                 // public class B : Generic<int*[]>
                 Diagnostic(ErrorCode.WRN_CLS_BadBase, "B").WithArguments("B", "Generic<int*[]>"));
-        }
 
-        [Fact]
-        public void WRN_CLS_BadBase_CSharp12_NoUnsafeModifier()
-        {
-            var source = @"
-using System;
-
-[assembly:CLSCompliant(true)]
-
-public class A : Bad
-{
-}
-
-public class B : Generic<int*[]>
-{
-}
-
-[CLSCompliant(false)]
-public class Bad
-{
-}
-
-public class Generic<T>
-{
-}
-";
             CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (10,26): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // public class B : Generic<int*[]>
@@ -442,7 +416,7 @@ public class Generic<T>
         }
 
         [Fact]
-        public void WRN_CLS_BadBase_CSharp12_UnsafeModifier()
+        public void WRN_CLS_BadBase_UnsafeContext()
         {
             var source = @"
 using System;
@@ -466,7 +440,7 @@ public class Generic<T>
 {
 }
 ";
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,14): warning CS3009: 'A': base type 'Bad' is not CLS-compliant
                 // public class A : Bad
                 Diagnostic(ErrorCode.WRN_CLS_BadBase, "A").WithArguments("A", "Bad"),
@@ -476,7 +450,7 @@ public class Generic<T>
         }
 
         [Fact]
-        public void WRN_CLS_BadBase_OtherAssemblies_CSharp11()
+        public void WRN_CLS_BadBase_OtherAssemblies()
         {
             var libSource1 = @"
 public class Bad1
@@ -542,7 +516,7 @@ public class Generic<T> { }
         }
 
         [Fact]
-        public void WRN_CLS_BadBase_OtherAssemblies_CSharp12_NoUnsafeSwitch()
+        public void WRN_CLS_BadBase_OtherAssemblies_UnsafeContext()
         {
             var libSource1 = @"
 public class Bad1
@@ -585,11 +559,32 @@ public class B2 : Generic<Bad2> { }
 
 public class Generic<T> { }
 ";
-            var lib1 = CreateCompilation(libSource1, assemblyName: "lib1", parseOptions: TestOptions.RegularNext).EmitToImageReference();
-            var lib2 = CreateCompilation(libSource2, assemblyName: "lib2", parseOptions: TestOptions.RegularNext).EmitToImageReference();
-            var lib3 = CreateCompilation(libSource3, assemblyName: "lib3", parseOptions: TestOptions.RegularNext).EmitToImageReference();
+            var lib1 = CreateCompilation(libSource1, assemblyName: "lib1", options: TestOptions.UnsafeDebugDll).EmitToImageReference();
+            var lib2 = CreateCompilation(libSource2, assemblyName: "lib2", options: TestOptions.UnsafeDebugDll).EmitToImageReference();
+            var lib3 = CreateCompilation(libSource3, assemblyName: "lib3", options: TestOptions.UnsafeDebugDll).EmitToImageReference();
 
-            CreateCompilation(source, new[] { lib1, lib2, lib3 }, TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(source, new[] { lib1, lib2, lib3 }, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,14): warning CS3009: 'A1': base type 'Bad1' is not CLS-compliant
+                // public class A1 : Bad1 { }
+                Diagnostic(ErrorCode.WRN_CLS_BadBase, "A1").WithArguments("A1", "Bad1"),
+                // (7,14): warning CS3009: 'A2': base type 'Bad2' is not CLS-compliant
+                // public class A2 : Bad2 { }
+                Diagnostic(ErrorCode.WRN_CLS_BadBase, "A2").WithArguments("A2", "Bad2"),
+                // (8,14): warning CS3009: 'A3': base type 'Bad3' is not CLS-compliant
+                // public class A3 : Bad3 { }
+                Diagnostic(ErrorCode.WRN_CLS_BadBase, "A3").WithArguments("A3", "Bad3"),
+                // (10,14): warning CS3009: 'B1': base type 'Generic<int*[]>' is not CLS-compliant
+                // public class B1 : Generic<int*[]> { }
+                Diagnostic(ErrorCode.WRN_CLS_BadBase, "B1").WithArguments("B1", "Generic<int*[]>"),
+                // (11,14): warning CS3009: 'B2': base type 'Generic<Bad2>' is not CLS-compliant
+                // public class B2 : Generic<Bad2> { }
+                Diagnostic(ErrorCode.WRN_CLS_BadBase, "B2").WithArguments("B2", "Generic<Bad2>"));
+
+            lib1 = CreateCompilation(libSource1, assemblyName: "lib1").EmitToImageReference();
+            lib2 = CreateCompilation(libSource2, assemblyName: "lib2").EmitToImageReference();
+            lib3 = CreateCompilation(libSource3, assemblyName: "lib3").EmitToImageReference();
+
+            CreateCompilation(source, new[] { lib1, lib2, lib3 }, TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (10,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe public class B1 : Generic<int*[]> { }
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "B1").WithLocation(10, 21),
@@ -608,72 +603,6 @@ public class Generic<T> { }
                 // (11,14): warning CS3009: 'B2': base type 'Generic<Bad2>' is not CLS-compliant
                 // public class B2 : Generic<Bad2> { }
                 Diagnostic(ErrorCode.WRN_CLS_BadBase, "B2").WithArguments("B2", "Generic<Bad2>").WithLocation(11, 14));
-        }
-
-        [Fact]
-        public void WRN_CLS_BadBase_OtherAssemblies_CSharp12_UnsafeSwitch()
-        {
-            var libSource1 = @"
-public class Bad1
-{
-}
-";
-
-            var libSource2 = @"
-using System;
-
-[assembly:CLSCompliant(true)]
-
-[CLSCompliant(false)]
-public class Bad2
-{
-}
-";
-
-            var libSource3 = @"
-using System;
-
-[assembly:CLSCompliant(false)]
-
-public class Bad3
-{
-}
-";
-
-            var source = @"
-using System;
-
-[assembly:CLSCompliant(true)]
-
-public class A1 : Bad1 { }
-public class A2 : Bad2 { }
-public class A3 : Bad3 { }
-
-unsafe public class B1 : Generic<int*[]> { }
-public class B2 : Generic<Bad2> { }
-
-public class Generic<T> { }
-";
-            var lib1 = CreateCompilation(libSource1, assemblyName: "lib1", options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).EmitToImageReference();
-            var lib2 = CreateCompilation(libSource2, assemblyName: "lib2", options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).EmitToImageReference();
-            var lib3 = CreateCompilation(libSource3, assemblyName: "lib3", options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).EmitToImageReference();
-
-            CreateCompilation(source, new[] { lib1, lib2, lib3 }, TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
-                // (6,14): warning CS3009: 'A1': base type 'Bad1' is not CLS-compliant
-                // public class A1 : Bad1 { }
-                Diagnostic(ErrorCode.WRN_CLS_BadBase, "A1").WithArguments("A1", "Bad1"),
-                // (7,14): warning CS3009: 'A2': base type 'Bad2' is not CLS-compliant
-                // public class A2 : Bad2 { }
-                Diagnostic(ErrorCode.WRN_CLS_BadBase, "A2").WithArguments("A2", "Bad2"),
-                // (8,14): warning CS3009: 'A3': base type 'Bad3' is not CLS-compliant
-                // public class A3 : Bad3 { }
-                Diagnostic(ErrorCode.WRN_CLS_BadBase, "A3").WithArguments("A3", "Bad3"),
-                // (10,14): warning CS3009: 'B1': base type 'Generic<int*[]>' is not CLS-compliant
-                // public class B1 : Generic<int*[]> { }
-                Diagnostic(ErrorCode.WRN_CLS_BadBase, "B1").WithArguments("B1", "Generic<int*[]>"),
-                // (11,14): warning CS3009: 'B2': base type 'Generic<Bad2>' is not CLS-compliant
-                // public class B2 : Generic<Bad2> { }
-                Diagnostic(ErrorCode.WRN_CLS_BadBase, "B2").WithArguments("B2", "Generic<Bad2>"));
         }
 
         [Fact]
@@ -780,7 +709,7 @@ public interface Generic<T> { }
         }
 
         [Fact]
-        public void WRN_CLS_BadInterface_Interface_CSharp12_NoUnsafeSwitch()
+        public void WRN_CLS_BadInterface_Interface_UnsafeContext()
         {
             var source = @"
 using System;
@@ -805,7 +734,7 @@ public interface Bad { }
 
 public interface Generic<T> { }
 ";
-            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (8,25): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe public interface B : Generic<int*[]> { }
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "B").WithLocation(8, 25),
@@ -830,34 +759,7 @@ public interface Generic<T> { }
                 // (14,25): warning CS3027: 'E' is not CLS-compliant because base interface 'Generic<int*[]>' is not CLS-compliant
                 // unsafe public interface E : Bad, Generic<int*[]> { }
                 Diagnostic(ErrorCode.WRN_CLS_BadInterface, "E").WithArguments("E", "Generic<int*[]>").WithLocation(14, 25));
-        }
 
-        [Fact]
-        public void WRN_CLS_BadInterface_Interface_CSharp12_UnsafeSwitch()
-        {
-            var source = @"
-using System;
-
-[assembly:CLSCompliant(true)]
-
-public interface A : Bad { }
-
-unsafe public interface B : Generic<int*[]> { }
-
-public interface C : Good, Bad { }
-
-public interface D : Bad, Good { }
-
-unsafe public interface E : Bad, Generic<int*[]> { }
-
-[CLSCompliant(true)]
-public interface Good { }
-
-[CLSCompliant(false)]
-public interface Bad { }
-
-public interface Generic<T> { }
-";
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (6,18): warning CS3027: 'A' is not CLS-compliant because base interface 'Bad' is not CLS-compliant
                 // public interface A : Bad { }
@@ -910,7 +812,7 @@ public interface Generic<T> { }
         }
 
         [Fact]
-        public void WRN_CLS_BadInterface_Class_CSharp12_NoUnsafeSwitch()
+        public void WRN_CLS_BadInterface_Class_UnsafeContext()
         {
             var source = @"
 using System;
@@ -943,34 +845,7 @@ public interface Generic<T> { }
                 // (14,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe public class E : Bad, Generic<int*[]> { }
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "E").WithLocation(14, 21));
-        }
 
-        [Fact]
-        public void WRN_CLS_BadInterface_Class_CSharp12_UnsafeSwitch()
-        {
-            var source = @"
-using System;
-
-[assembly:CLSCompliant(true)]
-
-public class A : Bad { }
-
-unsafe public class B : Generic<int*[]> { }
-
-public class C : Good, Bad { }
-
-public class D : Bad, Good { }
-
-unsafe public class E : Bad, Generic<int*[]> { }
-
-[CLSCompliant(true)]
-public interface Good { }
-
-[CLSCompliant(false)]
-public interface Bad { }
-
-public interface Generic<T> { }
-";
             // Implemented interfaces are not required to be compliant - only inherited ones.
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
