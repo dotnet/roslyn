@@ -23,6 +23,12 @@ steps:
   - ${{ if eq(parameters.skipCheckout, false) }}:
     - template: checkout-windows-task.yml
 
+  - task: NuGetAuthenticate@1
+    displayName: 🔏 Authenticate NuGet feeds
+    inputs:
+      nuGetServiceConnections: azure-public/roslyn
+      forceReinstallCredentialProvider: true
+
   - task: PowerShell@2
     displayName: Build and Test
     inputs:

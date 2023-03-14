@@ -34,6 +34,12 @@ jobs:
   steps:
     - template: checkout-unix-task.yml
 
+    - task: NuGetAuthenticate@1
+      displayName: 🔏 Authenticate NuGet feeds
+      inputs:
+        nuGetServiceConnections: azure-public/roslyn
+        forceReinstallCredentialProvider: true
+
     - script: ./eng/build.sh --ci --restore --prepareMachine --binaryLog --configuration ${{ parameters.configuration }}
       displayName: Restore
 
