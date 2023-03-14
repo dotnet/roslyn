@@ -3484,7 +3484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(expr.ConstantValueOpt == null, "Constant value should have been emitted directly");
 
             // Generate branchless IL for (b ? 1 : 0).
-            if (used &&
+            if (used && _ilEmitStyle != ILEmitStyle.Debug &&
                 hasIntegralValueZeroOrOne(expr.Consequence, out var isConsequenceOne) &&
                 hasIntegralValueZeroOrOne(expr.Alternative, out var isAlternativeOne) &&
                 isConsequenceOne != isAlternativeOne &&
