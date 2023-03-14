@@ -7068,7 +7068,7 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+            var compilation = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
             compilation.VerifyDiagnostics(
                 // (6,14): error CS0306: The type 'int*' may not be used as a type argument
                 // unsafe class R2 : R1<int*>
