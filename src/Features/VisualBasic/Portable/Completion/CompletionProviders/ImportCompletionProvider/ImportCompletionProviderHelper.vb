@@ -11,27 +11,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
     Friend NotInheritable Class ImportCompletionProviderHelper
 
-        Public Shared Async Function GetImportedNamespacesAsync(syntaxContext As SyntaxContext, token As CancellationToken) As Task(Of ImmutableArray(Of String))
+        Public Shared Function GetImportedNamespaces(syntaxContext As SyntaxContext, token As CancellationToken) As ImmutableArray(Of String)
+            Dim scopes = syntaxContext.SemanticModel.GetImportScopes(syntaxContext.Position, token)
 
-            ' The location Is the containing node of the LeftToken, Or the compilation unit itself if LeftToken
-            ' indicates the beginning of the document (i.e. no parent).
-            Dim Location = If(syntaxContext.LeftToken.Parent, Await syntaxContext.SyntaxTree.GetRootAsync(token).ConfigureAwait(False))
+            Dim usingsBuilder = ArrayBuilder(Of String).GetInstance()
 
-            Dim builder = ArrayBuilder(Of String).GetInstance()
-
-            ' Get namespaces from import directives
-            Dim importsInScope = syntaxContext.SemanticModel.GetImportNamespacesInScope(Location)
-            For Each import As INamespaceSymbol In importsInScope
-                builder.Add(import.ToDisplayString(SymbolDisplayFormats.NameFormat))
+            For Each scope In scopes
+                For Each import In scope.Imports
+                    If TypeOf import.NamespaceOrType Is INamespaceSymbol Then
+                        usingsBuilder.Add(DirectCast(import.NamespaceOrType, INamespaceSymbol).ToDisplayString(SymbolDisplayFormats.NameFormat))
+                    End If
+                Next
             Next
 
-            ' Get global imports from compilation option
-            Dim vbOptions = DirectCast(syntaxContext.SemanticModel.Compilation.Options, VisualBasicCompilationOptions)
-            For Each globalImport As GlobalImport In vbOptions.GlobalImports
-                builder.Add(globalImport.Name)
-            Next
-
-            Return builder.ToImmutableAndFree()
+            Return usingsBuilder.ToImmutableAndFree()
         End Function
     End Class
 End Namespace

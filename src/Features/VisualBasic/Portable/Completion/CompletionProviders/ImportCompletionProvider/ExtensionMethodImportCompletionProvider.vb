@@ -37,13 +37,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Property
 
         Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
-            Return CompletionUtilities.IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
+            Return IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
         End Function
 
-        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerCharsAndParen
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CommonTriggerCharsAndParen
 
-        Protected Overrides Function GetImportedNamespacesAsync(syntaxContext As SyntaxContext, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of String))
-            Return ImportCompletionProviderHelper.GetImportedNamespacesAsync(syntaxContext, cancellationToken)
+        Protected Overrides Async Function GetImportedNamespacesAsync(syntaxContext As SyntaxContext, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of String))
+            Return ImportCompletionProviderHelper.GetImportedNamespaces(syntaxContext, cancellationToken)
         End Function
 
         Protected Overrides Function IsFinalSemicolonOfUsingOrExtern(directive As SyntaxNode, token As SyntaxToken) As Boolean
