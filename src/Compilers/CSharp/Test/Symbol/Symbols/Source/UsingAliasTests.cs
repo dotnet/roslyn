@@ -836,7 +836,7 @@ class C
     }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using X = System.Collections.Generic.List<int*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43));
@@ -856,7 +856,7 @@ class C
     }
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using X = System.Collections.Generic.List<int*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43));
@@ -876,7 +876,7 @@ class C
     }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // using unsafe X = System.Collections.Generic.List<int*[]>;
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7),
@@ -899,7 +899,7 @@ class C
     }
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
     }
 }

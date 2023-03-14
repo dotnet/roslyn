@@ -2315,7 +2315,7 @@ unsafe class Derived : Base
     class E : A<C*>.B { }
     class F : A<D*>.B { }
 }";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // (10,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe class Derived : Base
@@ -2355,7 +2355,7 @@ unsafe class Derived : Base
     class E : A<C*>.B { }
     class F : A<D*>.B { }
 }";
-            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // (13,17): error CS0122: 'Base.D' is inaccessible due to its protection level
                 //     class F : A<D*>.B { }

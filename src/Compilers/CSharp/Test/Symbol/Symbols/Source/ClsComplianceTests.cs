@@ -429,7 +429,7 @@ public class Generic<T>
 {
 }
 ";
-            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (10,26): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // public class B : Generic<int*[]>
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 26),
@@ -466,7 +466,7 @@ public class Generic<T>
 {
 }
 ";
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (6,14): warning CS3009: 'A': base type 'Bad' is not CLS-compliant
                 // public class A : Bad
                 Diagnostic(ErrorCode.WRN_CLS_BadBase, "A").WithArguments("A", "Bad"),
@@ -585,11 +585,11 @@ public class B2 : Generic<Bad2> { }
 
 public class Generic<T> { }
 ";
-            var lib1 = CreateCompilation(libSource1, assemblyName: "lib1", parseOptions: TestOptions.RegularPreview).EmitToImageReference();
-            var lib2 = CreateCompilation(libSource2, assemblyName: "lib2", parseOptions: TestOptions.RegularPreview).EmitToImageReference();
-            var lib3 = CreateCompilation(libSource3, assemblyName: "lib3", parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+            var lib1 = CreateCompilation(libSource1, assemblyName: "lib1", parseOptions: TestOptions.RegularNext).EmitToImageReference();
+            var lib2 = CreateCompilation(libSource2, assemblyName: "lib2", parseOptions: TestOptions.RegularNext).EmitToImageReference();
+            var lib3 = CreateCompilation(libSource3, assemblyName: "lib3", parseOptions: TestOptions.RegularNext).EmitToImageReference();
 
-            CreateCompilation(source, new[] { lib1, lib2, lib3 }, TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, new[] { lib1, lib2, lib3 }, TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (10,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe public class B1 : Generic<int*[]> { }
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "B1").WithLocation(10, 21),
@@ -654,11 +654,11 @@ public class B2 : Generic<Bad2> { }
 
 public class Generic<T> { }
 ";
-            var lib1 = CreateCompilation(libSource1, assemblyName: "lib1", options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
-            var lib2 = CreateCompilation(libSource2, assemblyName: "lib2", options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
-            var lib3 = CreateCompilation(libSource3, assemblyName: "lib3", options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+            var lib1 = CreateCompilation(libSource1, assemblyName: "lib1", options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).EmitToImageReference();
+            var lib2 = CreateCompilation(libSource2, assemblyName: "lib2", options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).EmitToImageReference();
+            var lib3 = CreateCompilation(libSource3, assemblyName: "lib3", options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).EmitToImageReference();
 
-            CreateCompilation(source, new[] { lib1, lib2, lib3 }, TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, new[] { lib1, lib2, lib3 }, TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (6,14): warning CS3009: 'A1': base type 'Bad1' is not CLS-compliant
                 // public class A1 : Bad1 { }
                 Diagnostic(ErrorCode.WRN_CLS_BadBase, "A1").WithArguments("A1", "Bad1"),
@@ -805,7 +805,7 @@ public interface Bad { }
 
 public interface Generic<T> { }
 ";
-            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (8,25): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe public interface B : Generic<int*[]> { }
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "B").WithLocation(8, 25),
@@ -858,7 +858,7 @@ public interface Bad { }
 
 public interface Generic<T> { }
 ";
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (6,18): warning CS3027: 'A' is not CLS-compliant because base interface 'Bad' is not CLS-compliant
                 // public interface A : Bad { }
                 Diagnostic(ErrorCode.WRN_CLS_BadInterface, "A").WithArguments("A", "Bad"),
@@ -936,7 +936,7 @@ public interface Bad { }
 public interface Generic<T> { }
 ";
             // Implemented interfaces are not required to be compliant - only inherited ones.
-            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (8,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe public class B : Generic<int*[]> { }
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "B").WithLocation(8, 21),
@@ -972,7 +972,7 @@ public interface Bad { }
 public interface Generic<T> { }
 ";
             // Implemented interfaces are not required to be compliant - only inherited ones.
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [Fact]
