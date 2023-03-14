@@ -5813,7 +5813,7 @@ class @c
         }
 
         [Fact, WorkItem(11243, "DevDiv_Projects/Roslyn")]
-        public void ConstraintGenericForPoint_CSharp12_A()
+        public void ConstraintGenericForPoint_CSharp12_NoUnsafeSwitch()
         {
             var source = @"
 class A
@@ -5842,7 +5842,7 @@ class @c
         }
 
         [Fact, WorkItem(11243, "DevDiv_Projects/Roslyn")]
-        public void ConstraintGenericForPoint_CSharp12_B()
+        public void ConstraintGenericForPoint_CSharp12_UnsafeSwitch()
         {
             var source = @"
 class A
@@ -6511,7 +6511,7 @@ class D<T> : C<T>, IB { }";
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577251")]
-        public void Bug577251_CSharp12_A()
+        public void Bug577251_CSharp12_NoUnsafeSwitch()
         {
             var source =
 @"interface IA<T> { }
@@ -6554,7 +6554,7 @@ class D<T> : C<T>, IB { }";
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577251")]
-        public void Bug577251_CSharp12_B()
+        public void Bug577251_CSharp12_UnsafeSwitch()
         {
             var source =
 @"interface IA<T> { }
@@ -7017,7 +7017,7 @@ class Program
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=278264")]
-        public void IntPointerConstraintIntroducedBySubstitution_CSharp12_A()
+        public void IntPointerConstraintIntroducedBySubstitution_CSharp12_NoUnsafeSwitch()
         {
             string source = @"
 class R1<T1>
@@ -7048,7 +7048,7 @@ class Program
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=278264")]
-        public void IntPointerConstraintIntroducedBySubstitution_CSharp12_B()
+        public void IntPointerConstraintIntroducedBySubstitution_CSharp12_UnsafeSwitch()
         {
             string source = @"
 class R1<T1>
