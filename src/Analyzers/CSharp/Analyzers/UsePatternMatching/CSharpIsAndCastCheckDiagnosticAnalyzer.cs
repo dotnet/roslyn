@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 if (context.Compilation.LanguageVersion() < LanguageVersion.CSharp7)
                     return;
 
-                context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IsExpression);
+                context.RegisterCodeBlockStartAction<SyntaxKind>(blockStartContext =>
+                    blockStartContext.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IsExpression));
             });
         }
 
