@@ -184,6 +184,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\TrimWarningMessages.cs">
+      <Link>InternalUtilities\ReflectionUtilities.cs</Link>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\RequiresUnreferencedCodeAttribute.cs">
       <Link>InternalUtilities\RequiresUnreferencedCodeAttribute.cs</Link>
     </Compile>

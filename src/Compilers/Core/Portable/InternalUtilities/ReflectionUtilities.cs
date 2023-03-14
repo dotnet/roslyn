@@ -15,7 +15,7 @@ namespace Roslyn.Utilities
     {
         private static readonly Type Missing = typeof(void);
 
-        [RequiresUnreferencedCode("Loading arbitrary type by name")]
+        [RequiresUnreferencedCode(TrimWarningMessages.LoadsTypeByName)]
         public static Type? TryGetType(string assemblyQualifiedName)
         {
             try
@@ -29,7 +29,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        [RequiresUnreferencedCode("Loading arbitrary type by name")]
+        [RequiresUnreferencedCode(TrimWarningMessages.LoadsTypeByName)]
         public static Type? TryGetType([NotNull] ref Type? lazyType, string assemblyQualifiedName)
         {
             if (lazyType == null)
@@ -44,7 +44,7 @@ namespace Roslyn.Utilities
         /// Find a <see cref="Type"/> instance by first probing the contract name and then the name as it
         /// would exist in mscorlib.  This helps satisfy both the CoreCLR and Desktop scenarios.
         /// </summary>
-        [RequiresUnreferencedCode("Loading arbitrary type by name")]
+        [RequiresUnreferencedCode(TrimWarningMessages.LoadsTypeByName)]
         public static Type? GetTypeFromEither(string contractName, string desktopName)
         {
             var type = TryGetType(contractName);
@@ -57,7 +57,7 @@ namespace Roslyn.Utilities
             return type;
         }
 
-        [RequiresUnreferencedCode("Loading arbitrary type by name")]
+        [RequiresUnreferencedCode(TrimWarningMessages.LoadsTypeByName)]
         public static Type? GetTypeFromEither([NotNull] ref Type? lazyType, string contractName, string desktopName)
         {
             if (lazyType == null)
