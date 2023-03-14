@@ -46,23 +46,20 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 {
     /// <summary>
     /// A cache from workspace to the last solution we returned for LSP.
-    /// 
-    /// The forkedFromVersion is not null when the solution was created from a fork of the workspace with LSP text applied on top.
-    /// It is null when LSP reuses the workspace solution (the LSP text matches the contents of the workspace).
-    /// 
-    /// Access to this is gauranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
+    /// <para/> The forkedFromVersion is not null when the solution was created from a fork of the workspace with LSP
+    /// text applied on top. It is null when LSP reuses the workspace solution (the LSP text matches the contents of the
+    /// workspace).
+    /// <para/> Access to this is guaranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
     private readonly Dictionary<Workspace, (int? forkedFromVersion, Solution solution)> _cachedLspSolutions = new();
 
     /// <summary>
-    /// Stores the current source text for each URI that is being tracked by LSP.
-    /// Each time an LSP text sync notification comes in, this source text is updated to match.
-    /// Used as the backing implementation for the <see cref="IDocumentChangeTracker"/>.
-    /// 
-    /// Note that the text here is tracked regardless of whether or not we found a matching roslyn document
-    /// for the URI.
-    /// 
-    /// Access to this is gauranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
+    /// Stores the current source text for each URI that is being tracked by LSP. Each time an LSP text sync
+    /// notification comes in, this source text is updated to match. Used as the backing implementation for the <see
+    /// cref="IDocumentChangeTracker"/>.
+    /// <para/> Note that the text here is tracked regardless of whether or not we found a matching roslyn document for
+    /// the URI.
+    /// <para/> Access to this is guaranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
     private ImmutableDictionary<Uri, SourceText> _trackedDocuments = ImmutableDictionary<Uri, SourceText>.Empty;
 
