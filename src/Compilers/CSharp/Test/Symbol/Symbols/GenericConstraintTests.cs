@@ -5832,7 +5832,7 @@ class @c
     static void Main() { }
 }
 ";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe class F<T> : A where T : F<object*>.I
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "F").WithLocation(6, 14),
