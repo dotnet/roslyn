@@ -17,60 +17,58 @@
              Background="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
              platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}">
     <UserControl.Resources>
-        <!-- This CollectionViewSource allows us to sort items in the tree with the minimal number of draw calls.
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../VSThemeDictionary.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- This CollectionViewSource allows us to sort items in the tree with the minimal number of draw calls.
              With IsLiveSortingRequested set to "True" sorting happens on notify-property-change for our data, 
              most of which is boolean property changes.
-        -->
-        <CollectionViewSource
-            x:Key="DocumentSymbolItems"
-            IsLiveSortingRequested="True"
-            Source="{Binding DocumentSymbolViewModelItems}" />
-        <!-- An instance of our custom sorter, This uses ImmutableArray's sort methods instead of linq 
+             -->
+            <CollectionViewSource
+                x:Key="DocumentSymbolItems"
+                IsLiveSortingRequested="True"
+                Source="{Binding DocumentSymbolViewModelItems}" />
+            
+            <!-- An instance of our custom sorter, This uses ImmutableArray's sort methods instead of linq 
              which uses far less memory.
-        -->
-        <self:DocumentSymbolDataViewModelSorter x:Key="ItemSorter"/>
-        <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogCheckBoxStyleKey}}" />
-        <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogComboBoxStyleKey}}" />
-        <Style TargetType="Label" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogLabelStyleKey}}" />
-        <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogRadioButtonStyleKey}}" />
-        <Style TargetType="Hyperlink" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogHyperlinkStyleKey}}" />
-        <Style TargetType="GridViewColumnHeader" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogGridViewColumnHeaderStyleKey}}" />
-        <Style TargetType="ListBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListBoxStyleKey}}" />
-        <Style TargetType="ListView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListViewStyleKey}}" />
-        <Style TargetType="ScrollBar" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ScrollBarStyleKey}}" />
+            -->
+            <self:DocumentSymbolDataViewModelSorter x:Key="ItemSorter"/>
 
-        <Style TargetType="TabControl">
-            <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="0" />
-        </Style>
+            <Style TargetType="TabControl">
+                <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="0" />
+            </Style>
 
-        <Style TargetType="Button" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogButtonStyleKey}}">
-            <Setter Property="HorizontalContentAlignment" Value="Left" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Width" Value="20" />
-            <Setter Property="Padding" Value="5" />
-            <Setter Property="Margin" Value="0,0,0,3" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="HorizontalContentAlignment" Value="Left" />
-                    <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonHoverBrushKey}}" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
+            <Style TargetType="Button" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogButtonStyleKey}}">
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Width" Value="20" />
+                <Setter Property="Padding" Value="5" />
+                <Setter Property="Margin" Value="0,0,0,3" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonHoverBrushKey}}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
 
-        <Style TargetType="TreeView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewStyleKey}}" >
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="0, 5, 0, 0" />
-            <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
-            <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
-        </Style>
+            <Style TargetType="TreeView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewStyleKey}}" >
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="0, 5, 0, 0" />
+                <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
+                <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
+            </Style>
 
-        <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTextBoxStyleKey}}" >
-            <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
-            <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
-        </Style>
+            <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTextBoxStyleKey}}" >
+                <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
+                <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
+            </Style>
+        </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
