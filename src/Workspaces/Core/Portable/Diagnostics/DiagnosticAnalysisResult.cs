@@ -79,6 +79,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             Debug.Assert(!semanticLocals.Values.Any(item => item.IsDefault));
             Debug.Assert(!nonLocals.Values.Any(item => item.IsDefault));
 
+            // [Experiment] Ignore non-locals
+            nonLocals = ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty;
+
             ProjectId = projectId;
             Version = version;
             FromBuild = fromBuild;
