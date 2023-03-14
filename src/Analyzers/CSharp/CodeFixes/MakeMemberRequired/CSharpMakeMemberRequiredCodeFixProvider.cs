@@ -94,7 +94,7 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider : SyntaxEditorBase
         {
             // Public is the highest accessibility. So in order to be accessible outside, member accessibility must be only public
             SymbolVisibility.Public => accessibility is Accessibility.Public,
-            // In order to be accessible from an internal type member must have internal accessibility or higher
+            // In order to be accessible from an internal type, a member must have internal accessibility or higher
             SymbolVisibility.Internal => accessibility is >= Accessibility.Internal,
             // Private containing type visibility means it is nested in some other type.
             // In such case member must be accessible to the outer type of containing one.
