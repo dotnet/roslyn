@@ -6428,9 +6428,8 @@ public interface IC<T> : IB where T : IB { }";
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("IA", "e521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 7));
         }
 
-        [WorkItem(577251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577251")]
-        [Fact]
-        public void Bug577251()
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577251")]
+        public void Bug577251_CSharp11()
         {
             var source =
 @"interface IA<T> { }
@@ -6444,7 +6443,7 @@ class C<T>
     public void F<U>() where U : IA<E*[]> { }
 }
 class D : C<int>, IB { }";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
             source =
 @"interface IA<T> { }
 interface IB
@@ -6457,7 +6456,81 @@ class C<T>
     public void F<U, V>() where U : IA<C<V>.E*[]> { }
 }
 class D<T> : C<T>, IB { }";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577251")]
+        public void Bug577251_CSharp12_A()
+        {
+            var source =
+@"interface IA<T> { }
+interface IB
+{
+    void F<T>() where T : IA<C<int>.E*[]>;
+}
+class C<T>
+{
+    public enum E { }
+    public void F<U>() where U : IA<E*[]> { }
+}
+class D : C<int>, IB { }";
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (4,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void F<T>() where T : IA<C<int>.E*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C<int>.E*").WithLocation(4, 30),
+                // (9,37): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     public void F<U>() where U : IA<E*[]> { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "E*").WithLocation(9, 37));
+            source =
+@"interface IA<T> { }
+interface IB
+{
+    void F<T, U>() where T : IA<C<U>.E*[]>;
+}
+class C<T>
+{
+    public enum E { }
+    public void F<U, V>() where U : IA<C<V>.E*[]> { }
+}
+class D<T> : C<T>, IB { }";
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (4,33): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void F<T, U>() where T : IA<C<U>.E*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C<U>.E*").WithLocation(4, 33),
+                // (9,40): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     public void F<U, V>() where U : IA<C<V>.E*[]> { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C<V>.E*").WithLocation(9, 40));
+        }
+
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577251")]
+        public void Bug577251_CSharp12_B()
+        {
+            var source =
+@"interface IA<T> { }
+unsafe interface IB
+{
+    void F<T>() where T : IA<C<int>.E*[]>;
+}
+unsafe class C<T>
+{
+    public enum E { }
+    public void F<U>() where U : IA<E*[]> { }
+}
+class D : C<int>, IB { }";
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            source =
+@"interface IA<T> { }
+unsafe interface IB
+{
+    void F<T, U>() where T : IA<C<U>.E*[]>;
+}
+unsafe class C<T>
+{
+    public enum E { }
+    public void F<U, V>() where U : IA<C<V>.E*[]> { }
+}
+class D<T> : C<T>, IB { }";
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [WorkItem(578350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578350")]
