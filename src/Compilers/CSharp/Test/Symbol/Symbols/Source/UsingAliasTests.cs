@@ -754,7 +754,7 @@ class Test
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
         public void TestAliasToGenericWithPointer_CSharp11_A()
         {
             var text =
@@ -773,7 +773,7 @@ class C
             CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
         public void TestAliasToGenericWithPointer_CSharp11_B()
         {
             var text =
@@ -796,7 +796,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0]").WithLocation(10, 17));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
         public void TestAliasToGenericWithPointer_CSharp11_C()
         {
             var text =
@@ -822,7 +822,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0][0]").WithLocation(10, 17));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
         public void TestAliasToGenericWithPointer_CSharp12_UnsafeOff_A()
         {
             var text =
@@ -842,7 +842,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
         public void TestAliasToGenericWithPointer_CSharp12_UnsafeOn_A()
         {
             var text =
@@ -862,7 +862,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
         public void TestAliasToGenericWithPointer_CSharp12_UnsafeOff_B()
         {
             var text =
@@ -885,7 +885,7 @@ class C
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 17));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
         public void TestAliasToGenericWithPointer_CSharp12_UnsafeOn_B()
         {
             var text =
