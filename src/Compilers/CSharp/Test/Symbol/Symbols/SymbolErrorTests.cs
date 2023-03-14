@@ -4317,7 +4317,7 @@ public class A { }
         }
 
         [Fact]
-        public void CS0306ERR_BadTypeArgument01_A()
+        public void CS0306ERR_BadTypeArgument01_CSharp12()
         {
             var source =
 @"using System;
@@ -4384,7 +4384,7 @@ static class S
         }
 
         [Fact]
-        public void CS0306ERR_BadTypeArgument01_CSharp11_A()
+        public void CS0306ERR_BadTypeArgument01_CSharp11()
         {
             var source =
 @"using System;
@@ -4445,7 +4445,7 @@ static class S
         }
 
         [Fact]
-        public void CS0306ERR_BadTypeArgument01_B()
+        public void CS0306ERR_BadTypeArgument01_CSharp12_UnsafeSwitch()
         {
             var source =
 @"using System;
@@ -4476,7 +4476,7 @@ static class S
         }
 
         [Fact]
-        public void CS0306ERR_BadTypeArgument01_CSharp11_B()
+        public void CS0306ERR_BadTypeArgument01_CSharp11_UnsafeSwitch()
         {
             var source =
 @"using System;
@@ -4513,7 +4513,7 @@ static class S
         /// reported if there are no uses of the alias.)
         /// </summary>
         [Fact]
-        public void CS0306ERR_BadTypeArgument02()
+        public void CS0306ERR_BadTypeArgument02_CSharp12()
         {
             var source =
 @"using COfObject = C<object>;
