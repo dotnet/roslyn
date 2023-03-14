@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -14,6 +12,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         private readonly IClientLanguageServerManager _clientLanguageServerManager;
         private readonly IAsynchronousOperationListener _asynchronousOperationListener;
         private readonly Guid _registrationId;
-        private static readonly ImmutableArray<string> s_supportedLanguages = ImmutableArray.Create(LanguageNames.CSharp, LanguageNames.VisualBasic);
+        public static readonly ImmutableArray<string> s_supportedLanguages = ImmutableArray.Create(LanguageNames.CSharp, LanguageNames.VisualBasic);
 
         public DidChangeConfigurationNotificationHandler(
             ILspLogger logger,
@@ -72,10 +71,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                 if (option is IPerLanguageValuedOption)
                 {
                     // It is expected for IPerLanguageOptions, client should gives us the result for both VB and CSharp.
+                    var configurationObject = JsonConvert.DeserializeObject<JObject>(configurationValue);
                     foreach (var languageName in s_supportedLanguages)
                     {
-                        if (configurationValue.SelectToken(languageName) != null
-                            && TryParseValueFromClient(configurationValue[languageName]!.ToString(), option, out var perLanguageResult))
+                        var languageOptionValue = configurationObject?.Value<string>(languageName);
+                        if (languageOptionValue != null && TryParseValueFromClient(languageOptionValue, option, out var perLanguageResult))
                         {
                             _globalOptionService.SetGlobalOption(new OptionKey2(option, languageName), perLanguageResult);
                         }
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             }
         }
 
-        private async Task<ImmutableArray<JToken>> GetConfigurationsAsync(ImmutableArray<ConfigurationItem> configurationItems, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<string>> GetConfigurationsAsync(ImmutableArray<ConfigurationItem> configurationItems, CancellationToken cancellationToken)
         {
             try
             {
@@ -109,14 +109,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 
                 // Failed to get result from client.
                 Contract.ThrowIfNull(options);
-                return options.SelectAsArray(token => token);
+                return options.SelectAsArray(token => token.ToString());
             }
             catch (Exception e)
             {
                 _lspLogger.LogException(e, $"Exception occurs when make {Methods.WorkspaceConfigurationName}.");
             }
 
-            return ImmutableArray<JToken>.Empty;
+            return ImmutableArray<string>.Empty;
         }
 
         private bool TryParseValueFromClient(string value, IOption2 option, out object? result)
@@ -164,8 +164,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             }
 
             // All options send to the client should have group name and config name.
-            RoslynDebug.Assert(string.IsNullOrEmpty(groupFullName));
-            RoslynDebug.Assert(string.IsNullOrEmpty(option.Definition.ConfigName));
+            RoslynDebug.Assert(!string.IsNullOrEmpty(groupFullName));
+            RoslynDebug.Assert(!string.IsNullOrEmpty(option.Definition.ConfigName));
             return string.Concat(groupFullName, '.', option.Definition.ConfigName);
         }
     }

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.ServiceModel.PeerResolvers;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +16,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
@@ -27,9 +25,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Configuration
     public class DidChangeConfigurationNotificationHandlerTest : AbstractLanguageServerProtocolTests
     {
         // A regex help to check the message we send to client.
-        // It should look like "feature group.feature_name"
-        // "feature group" part is separated by space, and the feature name is separated by "_"
-        private static readonly string s_clientSideSectionPattern = @"^([\w\s]+)\.([\w_]+)$";
+        // It should look like "feature_group.feature_name"
+        private static readonly string s_clientSideSectionPattern = @"^([\w_]+)\.([\w_]+)$";
 
         public DidChangeConfigurationNotificationHandlerTest(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
         {
@@ -60,7 +57,7 @@ public class A { }";
             // Let client has non-default values for all options.
             foreach (var option in DidChangeConfigurationNotificationHandler.SupportedOptions)
             {
-                clientCallbackTarget.MockClientSideValues.Add(GenerateNonDefaultValueString(option));
+                clientCallbackTarget.MockClientSideValues.Add(GenerateNonDefaultValue(option));
             }
 
             // 1. When initialized, server should register workspace/didChangeConfiguration if client support DynamicRegistration
@@ -80,7 +77,7 @@ public class A { }";
             clientCallbackTarget.MockClientSideValues.Clear();
             foreach (var option in DidChangeConfigurationNotificationHandler.SupportedOptions)
             {
-                clientCallbackTarget.MockClientSideValues.Add(ConvertToString(option.DefaultValue));
+                clientCallbackTarget.MockClientSideValues.Add(GenerateDefaultValue(option));
             }
 
             await server.ExecuteRequestAsync<DidChangeConfigurationParams, object>(Methods.WorkspaceDidChangeConfigurationName, new DidChangeConfigurationParams(), CancellationToken.None).ConfigureAwait(false);
@@ -93,29 +90,29 @@ public class A { }";
             var globalOptionService = workspace.GetService<IGlobalOptionService>();
             var supportedOptions = DidChangeConfigurationNotificationHandler.SupportedOptions;
             Assert.Equal(supportedOptions.Length, expectedValues.Count);
-            var optionKeys = supportedOptions.SelectAsArray(
-                option =>
-                {
-                    if (option is ISingleValuedOption singleValuedOption)
-                    {
-                        return new OptionKey2(singleValuedOption);
-                    }
-                    else if (option is IPerLanguageValuedOption perLanguageValuedOption)
-                    {
-                        return new OptionKey2(perLanguageValuedOption, LanguageNames.CSharp);
-                    }
-
-                    throw ExceptionUtilities.UnexpectedValue(nameof(option.Type));
-                });
-
-            var optionValuesInServer = globalOptionService.GetOptions(optionKeys);
             for (var i = 0; i < expectedValues.Count; i++)
             {
                 var option = supportedOptions[i];
-                var optionValue = optionValuesInServer[i];
-                var stringValue = expectedValues[i];
-                Assert.True(option.Definition.Serializer.TryParse(stringValue, out var result));
-                Assert.Equal(result, optionValue);
+                var valueFromClient = expectedValues[i];
+                if (option is IPerLanguageValuedOption)
+                {
+                    var perLanguageOptionValues = JsonConvert.DeserializeObject<JObject>(valueFromClient);
+                    Assert.NotNull(perLanguageOptionValues);
+                    foreach (var languageName in DidChangeConfigurationNotificationHandler.s_supportedLanguages)
+                    {
+                        var perLanguageOptionValue = perLanguageOptionValues?[languageName]?.ToString();
+                        Assert.NotNull(perLanguageOptionValue);
+                        Assert.True(option.Definition.Serializer.TryParse(perLanguageOptionValue!, out var result));
+                        var valueInServer = globalOptionService.GetOption<object>(new OptionKey2(option, languageName));
+                        Assert.Equal(result, valueInServer);
+                    }
+                }
+                else
+                {
+                    Assert.True(option.Definition.Serializer.TryParse(valueFromClient, out var result));
+                    var valueInServer = globalOptionService.GetOption<object>(new OptionKey2(option, null));
+                    Assert.Equal(result, valueInServer);
+                }
             }
         }
 
@@ -132,10 +129,41 @@ public class A { }";
                 _ => value.ToString()
             };
 
-        private static string GenerateNonDefaultValueString(IOption2 option)
+        private static string GenerateNonDefaultValue(IOption2 option)
         {
             var nonDefaultValue = GetNonDefaultValue(option);
-            return ConvertToString(nonDefaultValue);
+            if (option is IPerLanguageValuedOption)
+            {
+                var perLanguageOption = new JObject
+                {
+                    ["C#"] = ConvertToString(nonDefaultValue),
+                    ["Visual Basic"] = ConvertToString(nonDefaultValue)
+                };
+                return perLanguageOption.ToString();
+
+            }
+            else
+            {
+                return ConvertToString(nonDefaultValue);
+            }
+        }
+
+        private static string GenerateDefaultValue(IOption2 option)
+        {
+            if (option is IPerLanguageValuedOption)
+            {
+                var perLanguageOption = new JObject
+                {
+                    ["C#"] = ConvertToString(option.DefaultValue),
+                    ["Visual Basic"] = ConvertToString(option.DefaultValue)
+                };
+                return perLanguageOption.ToString();
+
+            }
+            else
+            {
+                return ConvertToString(option.DefaultValue);
+            }
         }
 
         private static object? GetNonDefaultValue(IOption2 option)
