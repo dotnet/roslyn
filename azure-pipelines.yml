@@ -298,8 +298,6 @@ stages:
         parameters:
           configuration: Release
     steps:
-      - template: eng/pipelines/checkout-windows-task.yml
-
       - template: eng/pipelines/build-bootstrap.yml
         parameters:
           bootstrapToolset: 
@@ -316,8 +314,6 @@ stages:
         parameters:
           configuration: Release
     steps:
-      - template: eng/pipelines/checkout-windows-task.yml
-
       - template: eng/pipelines/build-bootstrap.yml
         parameters:
           bootstrapToolset: Framework
