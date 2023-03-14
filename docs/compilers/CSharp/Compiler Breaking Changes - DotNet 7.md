@@ -2,9 +2,11 @@
 
 ## Pointers must always be in unsafe contexts.
 
+***Introduced in Visual Studio 2022 version 17.6***
+
 In earlier SDKs, the compiler would occasionally allow locations where pointers could be referenced, without explicitly marking that location as unsafe.  For example `using X = List<int*[]>;`.  Now, the `unsafe` modifier must be present (e.g. `using unsafe X = List<int*[]>;`) to be legal.
 
-This rule only takes effect if the language version is chosen as C#12 or higher.  Language versions lower than this get the previous behavior that allowed this code.
+This rule only takes effect if the language version is chosen as C# 12 or higher.  Language versions lower than this get the previous behavior that allowed this code.
 
 ## System.TypedReference considered managed
 

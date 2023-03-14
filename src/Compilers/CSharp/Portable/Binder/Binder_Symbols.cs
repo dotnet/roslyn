@@ -1353,7 +1353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // preventing the latter check for something like `List<int*[]>`.  Here, this is a legal generic type, but we 
             // still want to report the error that you need to be in an unsafe context.  So, to maintain compat, we only
             // do the suppression if you're on C# 11 and prior.  In later versions we do the correct check.
-            var binder = ((CSharpParseOptions)typeArgument.SyntaxTree.Options).LanguageVersion < MessageID.IDS_FeatureUsingTypeAlias.RequiredVersion()
+            var binder = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingTypeAlias)
                 ? this.WithAdditionalFlags(BinderFlags.SuppressUnsafeDiagnostics)
                 : this;
 

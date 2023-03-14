@@ -5832,7 +5832,7 @@ class @c
     static void Main() { }
 }
 ";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe class F<T> : A where T : F<object*>.I
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "F").WithLocation(6, 14),
@@ -5861,7 +5861,7 @@ class @c
     static void Main() { }
 }
 ";
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [WorkItem(545460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545460")]
@@ -6525,7 +6525,7 @@ class C<T>
     public void F<U>() where U : IA<E*[]> { }
 }
 class D : C<int>, IB { }";
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (4,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void F<T>() where T : IA<C<int>.E*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C<int>.E*").WithLocation(4, 30),
@@ -6544,7 +6544,7 @@ class C<T>
     public void F<U, V>() where U : IA<C<V>.E*[]> { }
 }
 class D<T> : C<T>, IB { }";
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (4,33): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void F<T, U>() where T : IA<C<U>.E*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C<U>.E*").WithLocation(4, 33),
@@ -6568,7 +6568,7 @@ unsafe class C<T>
     public void F<U>() where U : IA<E*[]> { }
 }
 class D : C<int>, IB { }";
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
             source =
 @"interface IA<T> { }
 unsafe interface IB
@@ -6581,7 +6581,7 @@ unsafe class C<T>
     public void F<U, V>() where U : IA<C<V>.E*[]> { }
 }
 class D<T> : C<T>, IB { }";
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [WorkItem(578350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578350")]
@@ -7068,7 +7068,7 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+            var compilation = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
             compilation.VerifyDiagnostics(
                 // (6,14): error CS0306: The type 'int*' may not be used as a type argument
                 // unsafe class R2 : R1<int*>
