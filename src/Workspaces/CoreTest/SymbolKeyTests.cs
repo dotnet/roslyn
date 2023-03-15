@@ -283,7 +283,7 @@ public class C
             TestRoundTrip(symbols, compilation);
         }
 
-        [Fact, WorkItem(14364, "https://github.com/dotnet/roslyn/issues/14364")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14364")]
         public void TestVBParameterizedEvent()
         {
             var source = @"
@@ -672,7 +672,7 @@ public class C<S, T>
             TestRoundTrip(constructed, compilation);
         }
 
-        [Fact, WorkItem(235912, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
         public void TestNestedGenericType()
         {
             var source = @"
@@ -692,7 +692,7 @@ public class A<TOuter>
             TestRoundTrip(inner, compilation);
         }
 
-        [Fact, WorkItem(235912, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
         public void TestNestedGenericType1()
         {
             var source = @"
@@ -743,7 +743,7 @@ public class A<T1>
             TestRoundTrip(a_b_m_datetime, compilation);
         }
 
-        [Fact, WorkItem(235912, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
         public void TestGenericTypeTypeParameter()
         {
             var source = @"class C<T> { }";
@@ -757,7 +757,7 @@ public class A<T1>
             TestRoundTrip(typeParameter, compilation);
         }
 
-        [Fact, WorkItem(235912, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
         public void TestGenericMethodTypeParameter()
         {
             var source = @"class C { void M<T>() { } }";
@@ -771,7 +771,7 @@ public class A<T1>
             TestRoundTrip(typeParameter, compilation);
         }
 
-        [Fact, WorkItem(11193, "https://github.com/dotnet/roslyn/issues/11193")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11193")]
         public async Task TestGetInteriorSymbolsDoesNotCrashOnSpeculativeSemanticModel()
         {
             var markup = @"
@@ -815,7 +815,7 @@ class C
             Assert.NotEqual(default, SymbolKey.Create(xSymbol));
         }
 
-        [Fact, WorkItem(11193, "https://github.com/dotnet/roslyn/issues/11193")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11193")]
         public async Task TestGetInteriorSymbolsDoesNotCrashOnSpeculativeSemanticModel_InProperty()
         {
             var markup = @"
@@ -889,7 +889,7 @@ public class C
             }
         }
 
-        [Fact, WorkItem(377839, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=377839")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=377839")]
         public void TestConstructedMethodInsideLocalFunctionWithTypeParameters()
         {
             var source = @"
@@ -930,7 +930,7 @@ class C
             Assert.True(tested);
         }
 
-        [Fact, WorkItem(17702, "https://github.com/dotnet/roslyn/issues/17702")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17702")]
         public void TestTupleWithLocalTypeReferences1()
         {
             var source = @"
@@ -967,7 +967,7 @@ class C
             Assert.True(method.Parameters[0].Type.IsTupleType);
         }
 
-        [Fact, WorkItem(17702, "https://github.com/dotnet/roslyn/issues/17702")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17702")]
         public void TestTupleWithLocalTypeReferences2()
         {
             var source = @"
@@ -1004,7 +1004,7 @@ class C
             Assert.True(method.Parameters[0].Type.IsTupleType);
         }
 
-        [Fact, WorkItem(14365, "https://github.com/dotnet/roslyn/issues/14365")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14365")]
         public void TestErrorType_CSharp()
         {
             var source = @"
@@ -1040,7 +1040,7 @@ class C
             Assert.True(SymbolEquivalenceComparer.Instance.Equals(propType, found));
         }
 
-        [Fact, WorkItem(14365, "https://github.com/dotnet/roslyn/issues/14365")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14365")]
         public void TestErrorType_VB()
         {
             var source = @"
@@ -1075,7 +1075,7 @@ end class";
             Assert.True(SymbolEquivalenceComparer.Instance.Equals(propType, found));
         }
 
-        [Fact, WorkItem(14365, "https://github.com/dotnet/roslyn/issues/14365")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14365")]
         public void TestErrorTypeInNestedNamespace()
         {
             var source1 = @"
@@ -1125,7 +1125,7 @@ class X
             Assert.True(SymbolEquivalenceComparer.Instance.Equals(propType, found));
         }
 
-        [Fact, WorkItem(14365, "https://github.com/dotnet/roslyn/issues/14365")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14365")]
         public void TestErrorTypeInNestedNamespace_VB()
         {
             var source1 = @"

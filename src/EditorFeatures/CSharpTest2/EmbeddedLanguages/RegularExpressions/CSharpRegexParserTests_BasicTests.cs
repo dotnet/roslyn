@@ -2080,7 +2080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 </Tree>", RegexOptions.IgnorePatternWhitespace);
         }
 
-        [Fact, WorkItem(41425, "https://github.com/dotnet/roslyn/issues/41425")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41425")]
         public void TestLegalOpenCloseBrace1()
         {
             Test(@"@""{}""", @"<Tree>
@@ -2098,7 +2098,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 </Tree>", RegexOptions.None);
         }
 
-        [Fact, WorkItem(41425, "https://github.com/dotnet/roslyn/issues/41425")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41425")]
         public void TestLegalOpenCloseBrace2()
         {
             Test(@"@""{1, 2}""", @"<Tree>
@@ -2116,7 +2116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 </Tree>", RegexOptions.None);
         }
 
-        [Fact, WorkItem(41425, "https://github.com/dotnet/roslyn/issues/41425")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41425")]
         public void TestDanglingNumericQuantifier1()
         {
             Test(@"@""{1}""", $@"<Tree>
@@ -2140,7 +2140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 </Tree>", RegexOptions.None);
         }
 
-        [Fact, WorkItem(41425, "https://github.com/dotnet/roslyn/issues/41425")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41425")]
         public void TestDanglingNumericQuantifier2()
         {
             Test(@"@""{1,2}""", $@"<Tree>

@@ -1217,7 +1217,7 @@ class D
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(7855, "https://github.com/dotnet/Roslyn/issues/7855")]
+        [WorkItem("https://github.com/dotnet/Roslyn/issues/7855")]
         public async Task DottedPattern7(TestHost testHost, Composition composition)
         {
             var source = "namespace Goo { namespace Bar { class Baz<X,Y,Z> { void Quux() { } } } }";
@@ -1234,7 +1234,7 @@ class D
             });
         }
 
-        [Theory, WorkItem(46267, "https://github.com/dotnet/roslyn/issues/46267")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/46267")]
         [CombinatorialData]
         public async Task DottedPatternMatchKind(TestHost testHost, Composition composition)
         {
@@ -1253,8 +1253,8 @@ class D
             });
         }
 
-        [Fact, WorkItem(1174255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174255")]
-        [WorkItem(8009, "https://github.com/dotnet/roslyn/issues/8009")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174255")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8009")]
         public async Task NavigateToGeneratedFiles()
         {
             using var workspace = TestWorkspace.Create(@"
@@ -1297,7 +1297,7 @@ class D
             VerifyNavigateToResultItems(expectedItems, items);
         }
 
-        [Theory, WorkItem(11474, "https://github.com/dotnet/roslyn/pull/11474")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/11474")]
         [CombinatorialData]
         public async Task FindFuzzy1(TestHost testHost, Composition composition)
         {
@@ -1314,7 +1314,7 @@ testHost, composition, @"class C
             });
         }
 
-        [Theory, WorkItem(18843, "https://github.com/dotnet/roslyn/issues/18843")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/18843")]
         [CombinatorialData]
         public async Task Test__arglist(TestHost testHost, Composition composition)
         {
@@ -1607,7 +1607,7 @@ public partial class C
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(59231, "https://github.com/dotnet/roslyn/issues/59231")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/59231")]
         public async Task FindMethodWithTuple(TestHost testHost, Composition composition)
         {
             await TestAsync(
@@ -1627,7 +1627,7 @@ testHost, composition, @"class Goo
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(57873, "https://github.com/dotnet/roslyn/issues/57873")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57873")]
         public async Task FindRecordMember1(TestHost testHost, Composition composition)
         {
             await TestAsync(
@@ -1642,7 +1642,7 @@ testHost, composition, @"record Goo(int Member)
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(57873, "https://github.com/dotnet/roslyn/issues/57873")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57873")]
         public async Task FindRecordMember2(TestHost testHost, Composition composition)
         {
             await TestAsync(
@@ -1658,7 +1658,7 @@ testHost, composition, @"record Goo(int Member)
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(57873, "https://github.com/dotnet/roslyn/issues/57873")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57873")]
         public async Task FindRecordMember3(TestHost testHost, Composition composition)
         {
             await TestAsync(

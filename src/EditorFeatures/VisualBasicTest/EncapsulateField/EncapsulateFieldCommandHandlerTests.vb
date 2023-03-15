@@ -83,7 +83,7 @@ End Class</File>.ConvertTestSourceTag()
             End Using
         End Function
 
-        <WorkItem(1086632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1086632")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1086632")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Async Function EncapsulateTwoFields() As Task
             Dim text = "

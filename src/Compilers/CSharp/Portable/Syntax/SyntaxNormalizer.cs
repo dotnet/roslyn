@@ -654,7 +654,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
             }
 
-            if (token.IsKind(SyntaxKind.GreaterThanToken) && token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList))
+            if (token.IsKind(SyntaxKind.GreaterThanToken) &&
+                token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList) &&
+                token.Parent.Parent?.Parent is not UsingDirectiveSyntax)
             {
                 return true;
             }
@@ -677,11 +679,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.QuestionToken)
-                && (token.Parent.IsKind(SyntaxKind.ConditionalExpression) || token.Parent is TypeSyntax)
-                && !token.Parent.Parent.IsKind(SyntaxKind.TypeArgumentList))
+            if (token.IsKind(SyntaxKind.QuestionToken))
             {
-                return true;
+                if (token.Parent.IsKind(SyntaxKind.ConditionalExpression) || token.Parent is TypeSyntax)
+                {
+                    if (token.Parent.Parent?.Kind() is not SyntaxKind.TypeArgumentList and not SyntaxKind.UsingDirective)
+                    {
+                        return true;
+                    }
+                }
             }
 
             if (token.IsKind(SyntaxKind.ColonToken))

@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         #region expressions
 
+        int AddressOfExpression { get; }
         int AnonymousObjectCreationExpression { get; }
         int ArrayCreationExpression { get; }
         int AwaitExpression { get; }

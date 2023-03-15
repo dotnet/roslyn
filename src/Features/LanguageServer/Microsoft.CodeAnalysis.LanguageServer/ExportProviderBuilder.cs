@@ -51,19 +51,13 @@ internal sealed class ExportProviderBuilder
         // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
         // Currently we are expecting the following:
         //     "----- CompositionError level 1 ------
-        //     Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddMissingImports.CSharpAddMissingImportsRefactoringProvider.ctor(pasteTrackingService): expected exactly 1 export matching constraints:
-        //         Contract name: Microsoft.CodeAnalysis.PasteTracking.IPasteTrackingService
-        //         TypeIdentityName: Microsoft.CodeAnalysis.PasteTracking.IPasteTrackingService
-        //     but found 0.
-        //         part definition Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddMissingImports.CSharpAddMissingImportsRefactoringProvider
-
         //     Microsoft.CodeAnalysis.ExternalAccess.Pythia.PythiaSignatureHelpProvider.ctor(implementation): expected exactly 1 export matching constraints:
         //         Contract name: Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api.IPythiaSignatureHelpProviderImplementation
         //         TypeIdentityName: Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api.IPythiaSignatureHelpProviderImplementation
         //     but found 0.
         //         part definition Microsoft.CodeAnalysis.ExternalAccess.Pythia.PythiaSignatureHelpProvider
         var erroredParts = configuration.CompositionErrors.FirstOrDefault()?.SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name) ?? Enumerable.Empty<string>();
-        var expectedErroredParts = new string[] { "CSharpAddMissingImportsRefactoringProvider", "PythiaSignatureHelpProvider" };
+        var expectedErroredParts = new string[] { "PythiaSignatureHelpProvider" };
         if (erroredParts.Count() != expectedErroredParts.Length || !erroredParts.All(part => expectedErroredParts.Contains(part)))
         {
             configuration.ThrowOnErrors();

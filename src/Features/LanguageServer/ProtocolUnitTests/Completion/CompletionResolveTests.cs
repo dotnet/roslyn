@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             AssertJsonEquals(expected, results);
         }
 
-        [Fact, WorkItem(51125, "https://github.com/dotnet/roslyn/issues/51125")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51125")]
         public async Task TestResolveOverridesCompletionItemAsync()
         {
             var markup =
@@ -119,7 +119,7 @@ class B : A
     }", results.TextEdit.NewText);
         }
 
-        [Fact, WorkItem(51125, "https://github.com/dotnet/roslyn/issues/51125")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51125")]
         public async Task TestResolveOverridesCompletionItem_SnippetsEnabledAsync()
         {
             var markup =
@@ -164,7 +164,7 @@ class B : A
     }", results.TextEdit.NewText);
         }
 
-        [Fact, WorkItem(51125, "https://github.com/dotnet/roslyn/issues/51125")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51125")]
         public async Task TestResolveOverridesCompletionItem_SnippetsEnabled_CaretOutOfSnippetScopeAsync()
         {
             var markup =
