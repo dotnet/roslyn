@@ -23,6 +23,8 @@ steps:
   - ${{ if eq(parameters.skipCheckout, false) }}:
     - template: checkout-windows-task.yml
 
+  - template: /eng/common/templates/steps/azure-public-roslyn-auth.yml
+
   - task: PowerShell@2
     displayName: Build and Test
     inputs:

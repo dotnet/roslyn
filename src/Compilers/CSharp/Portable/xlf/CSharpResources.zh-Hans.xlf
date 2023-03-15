@@ -2012,6 +2012,16 @@
         <target state="translated">指针元素访问</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AddressOfInAsync">
+        <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
+        <target state="new">The '&amp;' operator should not be used on parameters or local variables in async methods.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AddressOfInAsync_Title">
+        <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
+        <target state="new">The '&amp;' operator should not be used on parameters or local variables in async methods.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">包含类型“{1}”的程序集“{0}”引用了 .NET Framework，而此操作不受支持。</target>
@@ -10360,23 +10370,23 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat">
-        <source>The specified version string does not conform to the required format - major[.minor[.build[.revision]]]</source>
-        <target state="translated">指定版本字符串不符合所需格式 - major[.minor[.build[.revision]]]</target>
+        <source>The specified version string '{0}' does not conform to the required format - major[.minor[.build[.revision]]]</source>
+        <target state="new">The specified version string '{0}' does not conform to the required format - major[.minor[.build[.revision]]]</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
-        <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
-        <target state="translated">指定的版本字符串包含通配符，这与确定性不兼容。请删除版本字符串中的通配符，或禁用此编译的确定性。</target>
+        <source>The specified version string '{0}' contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
+        <target state="new">The specified version string '{0}' contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
-        <source>The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)</source>
-        <target state="translated">指定的版本字符串不符合所需格式 - major.minor.build.revision (不带通配符)</target>
+        <source>The specified version string '{0}' does not conform to the required format - major.minor.build.revision (without wildcards)</source>
+        <target state="new">The specified version string '{0}' does not conform to the required format - major.minor.build.revision (without wildcards)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat">
-        <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">指定版本字符串不符合建议格式 - major.minor.build.revision</target>
+        <source>The specified version string '{0}' does not conform to the recommended format - major.minor.build.revision</source>
+        <target state="new">The specified version string '{0}' does not conform to the recommended format - major.minor.build.revision</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat_Title">
