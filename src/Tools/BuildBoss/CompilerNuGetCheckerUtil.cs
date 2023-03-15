@@ -128,7 +128,7 @@ namespace BuildBoss
 
             allGood &= VerifyPackageCore(
                 textWriter,
-                FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers.Framework"),
+                FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers.Toolset.Framework"),
                 (@"tasks\net472", GetProjectOutputDirectory("csc", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("vbc", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("csi", "net472")),
