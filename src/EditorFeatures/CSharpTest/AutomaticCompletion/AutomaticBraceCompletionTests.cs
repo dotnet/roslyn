@@ -1675,6 +1675,7 @@ $$";
 
 }";
 
+            // Those option ensures no additional formatting would happen around added braces, including indention of added newline
             var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { FormattingOptions2.SmartIndent, FormattingOptions2.IndentStyle.None },

@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         /// Annotation used to find the closing brace location after formatting changes are applied.
         /// The closing brace location is then used as the caret location.
         /// </summary>
-        private static readonly SyntaxAnnotation s_closingBraceSyntaxAnnotation = new(nameof(s_closingBraceSyntaxAnnotation));
+        private static readonly SyntaxAnnotation s_closingBraceFormatAnnotation = new(nameof(s_closingBraceFormatAnnotation));
+        private static readonly SyntaxAnnotation s_closingBraceNewlineAnnotation = new(nameof(s_closingBraceNewlineAnnotation));
 
         protected abstract ImmutableArray<AbstractFormattingRule> GetBraceFormattingIndentationRulesAfterReturn(IndentationOptions options);
 
@@ -114,22 +115,18 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             if (closingPointLine - openingPointLine == 1)
             {
                 // Handling syntax tree directly to avoid parsing in potentially UI blocking code-path
-                var closingToken = document.Root.FindToken(closingPoint - 1);
-
-                var newClosingToken = closingToken.WithPrependedLeadingTrivia(
-                    SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(options.FormattingOptions.NewLine)));
+                var closingToken = FindClosingBraceToken(document.Root, closingPoint);
+                var annotatedNewline = SyntaxFactory.EndOfLine(options.FormattingOptions.NewLine)
+                    .WithAdditionalAnnotations(SpecializedCollections.SingletonEnumerable(s_closingBraceNewlineAnnotation));
+                var newClosingToken = closingToken.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(annotatedNewline));
 
                 var rootToFormat = document.Root.ReplaceToken(closingToken, newClosingToken);
-
-                newClosingToken = rootToFormat.FindToken(closingPoint - 1);
-
-                // Modify the closing point location to adjust for the newly inserted line.
-                closingPoint = newClosingToken.Span.End;
-
-                var textChangeLength = newClosingToken.Span.End - closingToken.Span.End;
-                newLineEdit = new TextChange(new TextSpan(closingToken.FullSpan.Start, 0), newClosingToken.ToFullString()[..textChangeLength]);
-
+                annotatedNewline = rootToFormat.GetAnnotatedTrivia(s_closingBraceNewlineAnnotation).Single();
                 document = document.WithChangedRoot(rootToFormat, cancellationToken);
+
+                // Calculate text change for adding a newline and adjust closing point location.
+                closingPoint = annotatedNewline.Token.Span.End;
+                newLineEdit = new TextChange(new TextSpan(annotatedNewline.SpanStart, 0), annotatedNewline.ToString());
             }
 
             // Format the text that contains the newly inserted line.
@@ -160,6 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 if (!newLineEdit.HasValue)
                     return formattingChanges;
 
+                // Depending on options, we might not get any formatting change.
+                // In this case, the newline edit is the only change.
                 if (formattingChanges.IsEmpty)
                     return ImmutableArray.Create(newLineEdit.Value);
 
@@ -178,8 +177,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 var indentation = indentationService.GetIndentation(document, lineNumber, options, cancellationToken);
 
                 var baseLinePosition = sourceText.Lines.GetLinePosition(indentation.BasePosition);
-                var offsetOfBacePosition = baseLinePosition.Character;
-                var totalOffset = offsetOfBacePosition + indentation.Offset;
+                var offsetOfBasePosition = baseLinePosition.Character;
+                var totalOffset = offsetOfBasePosition + indentation.Offset;
                 var indentedLinePosition = new LinePosition(lineNumber, totalOffset);
                 return indentedLinePosition;
             }
@@ -260,19 +259,24 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             }
 
             var newRoot = result.GetFormattedRoot(cancellationToken);
-            var newClosingPoint = newRoot.GetAnnotatedTokens(s_closingBraceSyntaxAnnotation).Single().SpanStart + 1;
+            var newClosingPoint = newRoot.GetAnnotatedTokens(s_closingBraceFormatAnnotation).Single().SpanStart + 1;
 
             var textChanges = result.GetTextChanges(cancellationToken).ToImmutableArray();
             return (newRoot, textChanges, newClosingPoint);
 
             SyntaxNode GetSyntaxRootWithAnnotatedClosingBrace(SyntaxNode originalRoot, int closingBraceEndPoint)
             {
-                var closeBraceToken = originalRoot.FindToken(closingBraceEndPoint - 1);
-                Debug.Assert(IsValidClosingBraceToken(closeBraceToken));
-
-                var newCloseBraceToken = closeBraceToken.WithAdditionalAnnotations(s_closingBraceSyntaxAnnotation);
+                var closeBraceToken = FindClosingBraceToken(originalRoot, closingBraceEndPoint);
+                var newCloseBraceToken = closeBraceToken.WithAdditionalAnnotations(s_closingBraceFormatAnnotation);
                 return originalRoot.ReplaceToken(closeBraceToken, newCloseBraceToken);
             }
+        }
+
+        private SyntaxToken FindClosingBraceToken(SyntaxNode root, int closingBraceEndPoint)
+        {
+            var closeBraceToken = root.FindToken(closingBraceEndPoint - 1);
+            Debug.Assert(IsValidClosingBraceToken(closeBraceToken));
+            return closeBraceToken;
         }
     }
 }
