@@ -1,0 +1,3 @@
+<Project>
+    <Import Project="$(MSBuildThisFileDirectory)Microsoft.Net.Compilers.Toolset.Framework.props" />
+</Project>

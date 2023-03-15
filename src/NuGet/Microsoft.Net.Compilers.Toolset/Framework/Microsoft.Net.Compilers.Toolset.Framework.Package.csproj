@@ -4,7 +4,7 @@
     <TargetFramework>net472</TargetFramework>
 
     <IsPackable>true</IsPackable>
-    <NuspecPackageId>Microsoft.Net.Compilers.Framework</NuspecPackageId>
+    <NuspecPackageId>Microsoft.Net.Compilers.Toolset.Framework</NuspecPackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
     <PackageDescription>
@@ -21,7 +21,6 @@
     <NoWarn>$(NoWarn);NU5100;NU5128</NoWarn>
 
     <_DependsOn>InitializeDesktopCompilerArtifacts</_DependsOn>
-    <_DependsOn Condition="'$(TargetFramework)' == 'net6.0'">InitializeCoreClrCompilerArtifacts</_DependsOn>
   </PropertyGroup>
 
   <ItemGroup>

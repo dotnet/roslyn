@@ -505,7 +505,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Comp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Package", "src\NuGet\Microsoft.Net.Compilers.Toolset\AnyCpu\Microsoft.Net.Compilers.Toolset.Package.csproj", "{6131713D-DFB4-49B5-8010-50071FED3E85}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Package.Arm64", "src\NuGet\Microsoft.Net.Compilers.Toolset\arm64\Microsoft.Net.Compilers.Toolset.Package.Arm64.csproj", "{A9A8ADE5-F123-4109-9FA4-4B92F1657043}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Arm64.Package", "src\NuGet\Microsoft.Net.Compilers.Toolset\arm64\Microsoft.Net.Compilers.Toolset.Arm64.Package.csproj", "{A9A8ADE5-F123-4109-9FA4-4B92F1657043}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GenerateRulesMissingDocumentation", "src\Tools\GenerateRulesMissingDocumentation\GenerateRulesMissingDocumentation.csproj", "{039CB167-3A6F-4B90-B6E8-14178D11D687}"
 EndProject
@@ -525,7 +525,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Exte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests", "src\Tools\ExternalAccess\RazorCompilerTest\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests.csproj", "{828FD0DB-9927-42AC-B6C2-D1514965D6C3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Framework.Package", "src\NuGet\Microsoft.Net.Compilers.Toolset\Framework\Microsoft.Net.Compilers.Framework.Package.csproj", "{521ADC3E-CC15-414B-9356-D87C5BCF3A24}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Framework.Package", "src\NuGet\Microsoft.Net.Compilers.Toolset\Framework\Microsoft.Net.Compilers.Toolset.Framework.Package.csproj", "{521ADC3E-CC15-414B-9356-D87C5BCF3A24}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
