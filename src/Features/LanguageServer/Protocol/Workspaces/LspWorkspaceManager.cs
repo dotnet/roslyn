@@ -208,9 +208,9 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
         // Add the document to our loose files workspace (if we have one) if it iss open.
-        if (_trackedDocuments.ContainsKey(uri) && _lspMiscellaneousFilesWorkspace != null)
+        if (_trackedDocuments.TryGetValue(uri, out var trackedText))
         {
-            var miscDocument = _lspMiscellaneousFilesWorkspace.AddMiscellaneousDocument(uri, _trackedDocuments[uri], _logger);
+            var miscDocument = _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, trackedText, _logger);
             if (miscDocument is not null)
                 return (_lspMiscellaneousFilesWorkspace, miscDocument.Project.Solution, miscDocument);
         }
