@@ -1332,6 +1332,13 @@ public class C
             var methods = GetDeclaredSymbols(compilation).OfType<IMethodSymbol>();
             var symbols = methods.SelectMany(ms => GetInteriorSymbols(ms, compilation)).Where(s => SymbolKey.IsBodyLevelSymbol(s)).ToList();
             Assert.Equal(25, symbols.Count);
+
+            // Ensure we have coverage for all our body symbols.
+            Assert.True(symbols.Any(s => s is ILocalSymbol));
+            Assert.True(symbols.Any(s => s is ILabelSymbol));
+            Assert.True(symbols.Any(s => s is IRangeVariableSymbol));
+            Assert.True(symbols.Any(s => s.IsLocalFunction()));
+
             TestRoundTrip(symbols, compilation);
 
             var syntaxTree = compilation.SyntaxTrees.Single();
