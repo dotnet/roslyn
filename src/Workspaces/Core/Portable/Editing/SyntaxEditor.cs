@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.Editing
     {
         private readonly SyntaxGenerator _generator;
         private readonly List<Change> _changes = new();
-        private bool _allowEditsOnLazilyCreatedTrackedNewNodes;
-        private HashSet<SyntaxNode>? _lazyTrackedNewNodesOpt;
 
         /// <summary>
         /// Creates a new <see cref="SyntaxEditor"/> instance.
@@ -53,32 +51,6 @@ namespace Microsoft.CodeAnalysis.Editing
             _generator = generator;
         }
 
-        [return: NotNullIfNotNull(nameof(node))]
-        private SyntaxNode? ApplyTrackingToNewNode(SyntaxNode? node)
-        {
-            if (node == null)
-            {
-                return null;
-            }
-
-            _lazyTrackedNewNodesOpt ??= new HashSet<SyntaxNode>();
-            foreach (var descendant in node.DescendantNodesAndSelf())
-            {
-                _lazyTrackedNewNodesOpt.Add(descendant);
-            }
-
-            return node.TrackNodes(node.DescendantNodesAndSelf());
-        }
-
-        private IEnumerable<SyntaxNode> ApplyTrackingToNewNodes(IEnumerable<SyntaxNode> nodes)
-        {
-            foreach (var node in nodes)
-            {
-                var result = ApplyTrackingToNewNode(node);
-                yield return result;
-            }
-        }
-
         /// <summary>
         /// The <see cref="SyntaxNode"/> that was specified when the <see cref="SyntaxEditor"/> was constructed.
         /// </summary>
@@ -99,9 +71,7 @@ namespace Microsoft.CodeAnalysis.Editing
             var newRoot = OriginalRoot.TrackNodes(nodes);
 
             foreach (var change in _changes)
-            {
                 newRoot = change.Apply(newRoot, _generator);
-            }
 
             return newRoot;
         }
@@ -143,36 +113,27 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             CheckNodeInOriginalTreeOrTracked(node);
             if (computeReplacement == null)
-            {
                 throw new ArgumentNullException(nameof(computeReplacement));
-            }
 
-            _allowEditsOnLazilyCreatedTrackedNewNodes = true;
-            _changes.Add(new ReplaceChange(node, computeReplacement, this));
+            _changes.Add(new ReplaceChange(node, computeReplacement));
         }
 
         internal void ReplaceNode(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, IEnumerable<SyntaxNode>> computeReplacement)
         {
             CheckNodeInOriginalTreeOrTracked(node);
             if (computeReplacement == null)
-            {
                 throw new ArgumentNullException(nameof(computeReplacement));
-            }
 
-            _allowEditsOnLazilyCreatedTrackedNewNodes = true;
-            _changes.Add(new ReplaceWithCollectionChange(node, computeReplacement, this));
+            _changes.Add(new ReplaceWithCollectionChange(node, computeReplacement));
         }
 
         internal void ReplaceNode<TArgument>(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> computeReplacement, TArgument argument)
         {
             CheckNodeInOriginalTreeOrTracked(node);
             if (computeReplacement == null)
-            {
                 throw new ArgumentNullException(nameof(computeReplacement));
-            }
 
-            _allowEditsOnLazilyCreatedTrackedNewNodes = true;
-            _changes.Add(new ReplaceChange<TArgument>(node, computeReplacement, argument, this));
+            _changes.Add(new ReplaceChange<TArgument>(node, computeReplacement, argument));
         }
 
         /// <summary>
@@ -184,12 +145,9 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             CheckNodeInOriginalTreeOrTracked(node);
             if (node == newNode)
-            {
                 return;
-            }
 
-            newNode = ApplyTrackingToNewNode(newNode);
-            _changes.Add(new ReplaceChange(node, (n, g) => newNode, this));
+            _changes.Add(new ReplaceChange(node, (n, g) => newNode));
         }
 
         /// <summary>
@@ -201,11 +159,8 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             CheckNodeInOriginalTreeOrTracked(node);
             if (newNodes == null)
-            {
                 throw new ArgumentNullException(nameof(newNodes));
-            }
 
-            newNodes = ApplyTrackingToNewNodes(newNodes);
             _changes.Add(new InsertChange(node, newNodes, isBefore: true));
         }
 
@@ -226,11 +181,8 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             CheckNodeInOriginalTreeOrTracked(node);
             if (newNodes == null)
-            {
                 throw new ArgumentNullException(nameof(newNodes));
-            }
 
-            newNodes = ApplyTrackingToNewNodes(newNodes);
             _changes.Add(new InsertChange(node, newNodes, isBefore: false));
         }
 
@@ -245,30 +197,10 @@ namespace Microsoft.CodeAnalysis.Editing
         private void CheckNodeInOriginalTreeOrTracked(SyntaxNode node)
         {
             if (node == null)
-            {
                 throw new ArgumentNullException(nameof(node));
-            }
 
             if (OriginalRoot.Contains(node))
-            {
-                // Node is contained in the original tree.
                 return;
-            }
-
-            if (_allowEditsOnLazilyCreatedTrackedNewNodes)
-            {
-                // This could be a node that is handed to us lazily from one of the prior edits
-                // which support lazy replacement nodes, we conservatively avoid throwing here.
-                // If this was indeed an unsupported node, syntax editor will throw an exception later
-                // when attempting to compute changed root.
-                return;
-            }
-
-            if (_lazyTrackedNewNodesOpt?.Contains(node) == true)
-            {
-                // Node is one of the new nodes, which is already tracked and supported.
-                return;
-            }
 
             throw new ArgumentException(WorkspacesResources.The_node_is_not_part_of_the_tree, nameof(node));
         }
@@ -284,9 +216,7 @@ namespace Microsoft.CodeAnalysis.Editing
             {
                 var currentNode = root.GetCurrentNode(OriginalNode);
                 if (currentNode is null)
-                {
                     Contract.Fail($"GetCurrentNode returned null with the following node: {OriginalNode}");
-                }
 
                 return Apply(root, currentNode, generator);
             }
@@ -325,78 +255,53 @@ namespace Microsoft.CodeAnalysis.Editing
         private sealed class ReplaceChange : Change
         {
             private readonly Func<SyntaxNode, SyntaxGenerator, SyntaxNode?> _modifier;
-            private readonly SyntaxEditor _editor;
 
             public ReplaceChange(
                 SyntaxNode node,
-                Func<SyntaxNode, SyntaxGenerator, SyntaxNode?> modifier,
-                SyntaxEditor editor)
+                Func<SyntaxNode, SyntaxGenerator, SyntaxNode?> modifier)
                 : base(node)
             {
                 Contract.ThrowIfNull(node);
                 _modifier = modifier;
-                _editor = editor;
             }
 
             protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
-            {
-                var newNode = _modifier(currentNode, generator);
-                newNode = _editor.ApplyTrackingToNewNode(newNode);
-                return ValidateNewRoot(generator.ReplaceNode(root, currentNode, newNode));
-            }
+                => ValidateNewRoot(generator.ReplaceNode(root, currentNode, _modifier(currentNode, generator)));
         }
 
         private sealed class ReplaceWithCollectionChange : Change
         {
             private readonly Func<SyntaxNode, SyntaxGenerator, IEnumerable<SyntaxNode>> _modifier;
-            private readonly SyntaxEditor _editor;
 
             public ReplaceWithCollectionChange(
                 SyntaxNode node,
-                Func<SyntaxNode, SyntaxGenerator, IEnumerable<SyntaxNode>> modifier,
-                SyntaxEditor editor)
+                Func<SyntaxNode, SyntaxGenerator, IEnumerable<SyntaxNode>> modifier)
                 : base(node)
             {
                 _modifier = modifier;
-                _editor = editor;
             }
 
             protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
-            {
-                var newNodes = _modifier(currentNode, generator).ToList();
-                for (var i = 0; i < newNodes.Count; i++)
-                {
-                    newNodes[i] = _editor.ApplyTrackingToNewNode(newNodes[i]);
-                }
-
-                return SyntaxGenerator.ReplaceNode(root, currentNode, newNodes);
-            }
+                => SyntaxGenerator.ReplaceNode(root, currentNode, _modifier(currentNode, generator));
         }
 
         private sealed class ReplaceChange<TArgument> : Change
         {
             private readonly Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> _modifier;
             private readonly TArgument _argument;
-            private readonly SyntaxEditor _editor;
 
             public ReplaceChange(
                 SyntaxNode node,
                 Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> modifier,
-                TArgument argument,
-                SyntaxEditor editor)
+                TArgument argument)
                 : base(node)
             {
                 _modifier = modifier;
                 _argument = argument;
-                _editor = editor;
             }
 
             protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
-            {
-                var newNode = _modifier(currentNode, generator, _argument);
-                newNode = _editor.ApplyTrackingToNewNode(newNode);
-                return ValidateNewRoot(generator.ReplaceNode(root, currentNode, newNode));
-            }
+                => ValidateNewRoot(generator.ReplaceNode(root, currentNode, _modifier(currentNode, generator, _argument)));
         }
 
         private sealed class InsertChange : Change
