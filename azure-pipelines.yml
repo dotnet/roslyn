@@ -300,7 +300,7 @@ stages:
     steps:
       - template: eng/pipelines/build-bootstrap.yml
         parameters:
-          bootstrapToolset: 
+          bootstrapToolset: AnyCpu
 
   - job: Correctness_Bootstrap_Build_Framework
     dependsOn: Determine_Changes
