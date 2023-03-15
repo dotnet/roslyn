@@ -50,6 +50,8 @@ parameters:
 steps:
   - checkout: none
 
+  - template: /eng/common/templates/steps/azure-public-roslyn-auth.yml
+  
   - task: NuGetCommand@2
     displayName: 'Install RIT from Azure Artifacts'
     inputs:

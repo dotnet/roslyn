@@ -2721,8 +2721,7 @@ class C<T>
         object y;
     }
 }";
-            ResultProperties resultProperties;
-            string error;
+
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
@@ -2732,13 +2731,40 @@ class C<T>
 {
     object x = y;
     return y;
-}))(x, y)",
-                resultProperties: out resultProperties,
-                error: out error);
-            // Currently generating errors but this seems unnecessary and
-            // an extra burden for the user. Consider allowing names
-            // inside the expression that shadow names outside.
-            Assert.Equal("error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
+}))(x)");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (object V_0) //y
+  IL_0000:  ldsfld     ""System.Func<object, object> <>x.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_000e:  ldftn      ""object <>x.<>c.<<>m0>b__0_0(object)""
+  IL_0014:  newobj     ""System.Func<object, object>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Func<object, object> <>x.<>c.<>9__0_0""
+  IL_001f:  ldarg.0
+  IL_0020:  callvirt   ""object System.Func<object, object>.Invoke(object)""
+  IL_0025:  ret
+}");
+
+            var data = testData.GetMethodData("<>x.<>c.<<>m0>b__0_0(object)");
+
+            Assert.False(data.Method.IsStatic);
+            Assert.Equal("System.Object <>x.<>c.<<>m0>b__0_0(System.Object y)", ((Symbol)data.Method).ToTestDisplayString());
+            data.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
         }
 
         [Fact]
@@ -7024,6 +7050,892 @@ class Program
 }");
         }
 
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_01()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        var d1 = () =>
+        {
+            x += z;
+        };
+
+        d1();
+
+        var d2 = () =>
+        {
+            sbyte x = 0;
+            int y = x;
+
+            var d3 = () =>
+            {
+                y += z;
+            };
+
+            x = -100;
+#line 100
+            z += x;
+#line 200
+            return d3;
+        };
+
+        d2()();
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_0.<Test>b__1",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+            sbyte V_1, //x
+            System.Action V_2, //d3
+            System.Action V_3)
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_02()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        var d1 = () =>
+        {
+            x += z;
+        };
+
+        d1();
+
+        var d2 = () =>
+        {
+            sbyte x = 0;
+            int y = x;
+
+            var d3 = () =>
+            {
+#line 100
+                y += z;
+#line 200
+            };
+
+            x = -100;
+            z += x;
+
+            return d3;
+        };
+
+        d2()();
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_1.<Test>b__2",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
+  IL_0006:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_03()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        var d1 = () =>
+        {
+            x += z;
+        };
+
+        d1();
+
+        var d2 = (sbyte x) =>
+        {
+            int y = x;
+
+            var d3 = (short x) =>
+            {
+                y += z;
+            };
+
+            x = -100;
+#line 100
+            z += x;
+#line 200
+            return d3;
+        };
+
+        d2(-100)(-200);
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_0.<Test>b__1",
+                atLineNumber: 100,
+                expr: "x");
+
+            var data = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(data.Method.IsStatic);
+            Assert.Equal("System.SByte <>x.<>m0(C.<>c__DisplayClass0_0 <>4__this, System.SByte x)", ((Symbol)data.Method).ToTestDisplayString());
+            data.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+                System.Action<short> V_1, //d3
+                System.Action<short> V_2)
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_04()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        var d1 = () =>
+        {
+            x += z;
+        };
+
+        d1();
+
+        var d2 = (sbyte x) =>
+        {
+            int y = x;
+
+            var d3 = (short x) =>
+            {
+#line 100
+                y += z;
+#line 200
+            };
+
+            x = -100;
+            z += x;
+
+            return d3;
+        };
+
+        d2(-100)(-200);
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_1.<Test>b__2",
+                atLineNumber: 100,
+                expr: "x");
+
+            var data = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(data.Method.IsStatic);
+            Assert.Equal("System.Int16 <>x.<>m0(C.<>c__DisplayClass0_1 <>4__this, System.Int16 x)", ((Symbol)data.Method).ToTestDisplayString());
+            data.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_05()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        byte x = 0;
+#line 100
+        byte l1 = 1;
+#line 200
+
+        var d1 = () =>
+        {
+            x += l1;
+        };
+
+        var d2 = () =>
+        {
+            short x = 0;
+            short l2 = l1;
+            var d3 = () =>
+            {
+                x += l2;
+            };
+
+            var d4 = () =>
+            {
+                int x = 0;
+                int l3 = 3 + l2;
+            };
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.Test",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                System.Action V_1, //d1
+                System.Action V_2) //d2
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""byte C.<>c__DisplayClass0_0.x""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_06()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        byte x = 0;
+        byte l1 = 1;
+
+        var d1 = () =>
+        {
+            x += l1;
+        };
+
+        var d2 = () =>
+        {
+            short x = 0;
+#line 100
+            short l2 = l1;
+#line 200
+            var d3 = () =>
+            {
+                x += l2;
+            };
+
+            var d4 = () =>
+            {
+                int x = 0;
+                int l3 = 3 + l2;
+            };
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_0.<Test>b__1",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+            System.Action V_1, //d3
+            System.Action V_2) //d4
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""short C.<>c__DisplayClass0_1.x""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_07()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        byte x = 0;
+        byte l1 = 1;
+
+        var d1 = () =>
+        {
+            x += l1;
+        };
+
+        var d2 = () =>
+        {
+            short x = 0;
+            short l2 = l1;
+
+            var d3 = () =>
+            {
+                x += l2;
+            };
+
+            var d4 = () =>
+            {
+                int x = 0;
+#line 100
+                int l3 = 3 + l2;
+#line 200
+            };
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_1.<Test>b__3",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x
+                int V_1) //l3
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_11()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        void d1()
+        {
+            x += z;
+        };
+
+        void d2()
+        {
+            sbyte x = 0;
+            int y = x;
+
+            void d3()
+            {
+                y += z;
+            };
+
+            x = -100;
+#line 100
+            z += x;
+#line 200
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<Test>g__d2|0_1",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+                sbyte V_1) //x
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_12()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        void d1()
+        {
+            x += z;
+        };
+
+        void d2()
+        {
+            sbyte x = 0;
+            int y = x;
+
+            void d3()
+            {
+#line 100
+                y += z;
+#line 200
+            };
+
+            x = -100;
+            z += x;
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<Test>g__d3|0_2",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_13()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        void d1()
+        {
+            x += z;
+        };
+
+        void d2(sbyte x)
+        {
+            int y = x;
+
+            void d3(short x)
+            {
+                y += z;
+            };
+
+            x = -100;
+#line 100
+            z += x;
+#line 200
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<Test>g__d2|0_1",
+                atLineNumber: 100,
+                expr: "x");
+
+            var data = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(data.Method.IsStatic);
+            Assert.Equal("System.SByte <>x.<>m0(System.SByte x, ref C.<>c__DisplayClass0_0 value)", ((Symbol)data.Method).ToTestDisplayString());
+            data.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_14()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        void d1()
+        {
+            x += z;
+        };
+
+        void d2(sbyte x)
+        {
+            int y = x;
+
+            void d3(short x)
+            {
+#line 100
+                y += z;
+#line 200
+            };
+
+            x = -100;
+            z += x;
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<Test>g__d3|0_2",
+                atLineNumber: 100,
+                expr: "x");
+
+            var data = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(data.Method.IsStatic);
+            Assert.Equal("System.Int16 <>x.<>m0(System.Int16 x, ref C.<>c__DisplayClass0_0 value, ref C.<>c__DisplayClass0_1 value)", ((Symbol)data.Method).ToTestDisplayString());
+            data.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_15()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        byte x = 0;
+#line 100
+        byte l1 = 1;
+#line 200
+
+        void d1()
+        {
+            x += l1;
+        };
+
+        void d2()
+        {
+            short x = 0;
+            short l2 = l1;
+
+            void d3()
+            {
+                x += l2;
+            };
+
+            void d4()
+            {
+                int x = 0;
+                int l3 = 3 + l2;
+            };
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.Test",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""byte C.<>c__DisplayClass0_0.x""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_16()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        byte x = 0;
+        byte l1 = 1;
+
+        void d1()
+        {
+            x += l1;
+        };
+
+        void d2()
+        {
+            short x = 0;
+#line 100
+            short l2 = l1;
+#line 200
+
+            void d3()
+            {
+                x += l2;
+            };
+
+            void d4()
+            {
+                int x = 0;
+                int l3 = 3 + l2;
+            };
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<Test>g__d2|0_1",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""short C.<>c__DisplayClass0_1.x""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_17()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        byte x = 0;
+        byte l1 = 1;
+
+        void d1()
+        {
+            x += l1;
+        };
+
+        void d2()
+        {
+            short x = 0;
+            short l2 = l1;
+
+            void d3()
+            {
+                x += l2;
+            };
+
+            void d4()
+            {
+                int x = 0;
+#line 100
+                int l3 = 3 + l2;
+#line 200
+            };
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<Test>g__d4|0_3",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x
+                int V_1) //l3
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [WorkItem(67188, "https://github.com/dotnet/roslyn/issues/67188")]
+        public void CapturingAndShadowing_18()
+        {
+            var source =
+@"class C
+{
+    void Test(byte x)
+    {
+        byte l1 = 1;
+
+        void d1()
+        {
+            x += l1;
+        };
+
+        d1();
+#line 100
+        var d2 = (int x) => x;
+#line 200
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.Test",
+                atLineNumber: 100,
+                expr: "(int x) => x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+            System.Func<int, int> V_1) //d2
+  IL_0000:  ldsfld     ""System.Func<int, int> <>x.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_000e:  ldftn      ""int <>x.<>c.<<>m0>b__0_0(int)""
+  IL_0014:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Func<int, int> <>x.<>c.<>9__0_0""
+  IL_001f:  ret
+}");
+
+            var data = testData.GetMethodData("<>x.<>c.<<>m0>b__0_0(int)");
+
+            Assert.False(data.Method.IsStatic);
+            Assert.Equal("System.Int32 <>x.<>c.<<>m0>b__0_0(System.Int32 x)", ((Symbol)data.Method).ToTestDisplayString());
+            data.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65165")]
         public void EEMethodSymbol_DeclaringSyntaxReferences()
         {
@@ -7047,37 +7959,908 @@ class Program
 """);
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_00100_CapturedParameterInsideCapturingInstanceMethod(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    int M()
+    {
+#line 100
+        ;
+#line 200
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(" + (isStruct ? "ref " : "") + "C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<y>P""
+  IL_0006:  ret
+}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_00200_CapturedParameterShadowedByLocalInsideCapturingInstanceMethod(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    int M()
+    {
+        {
+#line 100
+            string y = null;
+#line 200
+        }
+
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(" + (isStruct ? "ref " : "") + "C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (string V_0, //y
+                int V_1)
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+        }
+
         [Fact]
-        public void PrimaryConstructors_01_EvaluateCapturedParameterInsideCapturingInstanceMethod()
+        public void PrimaryConstructors_00300_CapturedParameterShadowedByLocalInsideCapturingInstanceMethod()
         {
             var source =
 @"class C(int y)
 {
     int M()
     {
+        {
+#line 100
+            string y = null;
+#line 200
+            var d = () => y;
+            _ = d().Length;
+        }
+
         return y;
     }
 }";
+
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass2_0 V_0, //CS$<>8__locals0
+            System.Func<string> V_1, //d
+            int V_2)
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""string C.<>c__DisplayClass2_0.y""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_00400_CapturedParameterInsideLambdaInInstanceMethod_NoDisplayClass()
+        {
+            var source =
+@"class C(int y)
+{
+    int M()
+    {
+        var d = () =>
+                {
+                    this.ToString();
+#line 100
+                    ;
+#line 200
+                };
+
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>b__2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<y>P""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_00500_CapturedParameterInsideLambdaInInstanceMethod_WithDisplayClass()
+        {
+            var source =
+@"class C<T>(T y)
+{
+    T M(string x)
+    {
+        var d = () =>
+                {
+                    this.ToString();
+                    x.ToString();
+#line 100
+                    ;
+#line 200
+                };
+
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass2_0.<M>b__0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x<T>.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("T <>x<T>.<>m0(C<T>.<>c__DisplayClass2_0 <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C<T> C<T>.<>c__DisplayClass2_0.<>4__this""
+  IL_0006:  ldfld      ""T C<T>.<y>P""
+  IL_000b:  ret
+}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_00600_CapturedParameterInsideStaticLambdaInInstanceMethod(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    int M()
+    {
+        var d = static (string x) =>
+                {
+                    x.ToString();
+#line 100
+                    ;
+#line 200
+                };
+
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c.<M>b__2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
                 expr: "y",
                 resultProperties: out _,
                 error: out string error);
 
-            // https://github.com/dotnet/roslyn/issues/67107: There should be no error and IL should refer to a field 
             Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
-            //            testData.GetMethodData("<>x.<>m0").VerifyIL(
-            //@"{
-            //}");
         }
 
         [Fact]
-        public void PrimaryConstructors_02_EvaluateCapturedParameterInsideNonCapturingInstanceMethod()
+        public void PrimaryConstructors_00700_CapturedParameterShadowedByParameterInsideLambdaInInstanceMethod()
         {
             var source =
 @"class C(int y)
+{
+    int M()
+    {
+        var d = (string y) =>
+                {
+                    y.ToString();
+                    this.ToString();
+#line 100
+                    ;
+#line 200
+                };
+
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>b__2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(C <>4__this, System.String y)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_00800_CapturedParameterShadowedByParameterInsideLambdaInInstanceMethod()
+        {
+            var source =
+@"class C(int y)
+{
+    int M()
+    {
+        var d = (string y) =>
+                {
+                    y.ToString();
+                    this.ToString();
+
+                    var d1 = () => y;
+                    _ = d1().Length;
+#line 100
+                    ;
+#line 200
+                };
+
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>b__2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(C <>4__this, System.String y)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass2_0 V_0, //CS$<>8__locals0
+                System.Func<string> V_1) //d1
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""string C.<>c__DisplayClass2_0.y""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_00900_CapturedParameterShadowedByLocalInsideLambdaInInstanceMethod()
+        {
+            var source =
+@"class C(int y)
+{
+    int M()
+    {
+        var d = (string x) =>
+                {
+                    string y = x;
+                    y.ToString();
+                    this.ToString();
+#line 100
+                    ;
+#line 200
+                };
+
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>b__2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(C <>4__this, System.String x)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (string V_0) //y
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_01000_CapturedParameterShadowedByLocalInsideLambdaInInstanceMethod()
+        {
+            var source =
+@"class C(int y)
+{
+    int M()
+    {
+        var d = (string x) =>
+                {
+                    string y = x;
+                    y.ToString();
+                    this.ToString();
+
+                    var d1 = () => y;
+                    _ = d1().Length;
+#line 100
+                    ;
+#line 200
+                };
+
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>b__2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(C <>4__this, System.String x)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass2_0 V_0, //CS$<>8__locals0
+                System.Func<string> V_1) //d1
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""string C.<>c__DisplayClass2_0.y""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_01100_CapturedParameterInsideLocalFunctionInInstanceMethod_NoDisplayClass()
+        {
+            var source =
+@"class C(int y)
+{
+    int M()
+    {
+        void d()
+        {
+            this.ToString();
+#line 100
+            ;
+#line 200
+        }
+
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>g__d|2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<y>P""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_01200_CapturedParameterInsideLocalFunctionInInstanceMethod_WithDisplayClass()
+        {
+            var source =
+@"class C(int y)
+{
+    int M(string x)
+    {
+        void d()
+        {
+            this.ToString();
+            x.ToString();
+#line 100
+            ;
+#line 200
+        }
+
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>g__d|2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C <>4__this, ref C.<>c__DisplayClass2_0 value)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<y>P""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_01201_CapturedParameterInsideLocalFunctionInInstanceMethod_WithDisplayClass()
+        {
+            var source =
+@"class C(int value)
+{
+    int M(string x)
+    {
+        void d()
+        {
+            this.ToString();
+            x.ToString();
+#line 100
+            ;
+#line 200
+        }
+
+        return value;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>g__d|2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "value");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C <>4__this, ref C.<>c__DisplayClass2_0 value)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<value>P""
+  IL_0006:  ret
+}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_01300_CapturedParameterInsideStaticLocalFunctionInInstanceMethod(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    int M()
+    {
+        static void d(string x)
+        {
+            x.ToString();
+#line 100
+            ;
+#line 200
+        }
+
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>g__d|2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_01400_CapturedParameterShadowedByParameterInsideLocalFunctionInInstanceMethod()
+        {
+            var source =
+@"class C(int y)
+{
+    int M()
+    {
+        void d(string y)
+        {
+            y.ToString();
+            this.ToString();
+#line 100
+            ;
+#line 200
+        }
+
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>g__d|2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(C <>4__this, System.String y)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_01401_CapturedParameterShadowedByParameterInsideLocalFunctionInInstanceMethod()
+        {
+            var source =
+@"class C(int y)
+{
+    int M(int x)
+    {
+        void d(string y)
+        {
+            y.ToString();
+            x.ToString();
+            this.ToString();
+#line 100
+            ;
+#line 200
+        }
+
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>g__d|2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(C <>4__this, System.String y, ref C.<>c__DisplayClass2_0 value)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_01402_CapturedParameterShadowedByParameterInsideLocalFunctionInInstanceMethod()
+        {
+            var source =
+@"class C(int value)
+{
+    int M(int x)
+    {
+        void d(string value)
+        {
+            value.ToString();
+            x.ToString();
+            this.ToString();
+#line 100
+            ;
+#line 200
+        }
+
+        return value;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>g__d|2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "value");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(C <>4__this, System.String value, ref C.<>c__DisplayClass2_0 value)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_01500_CapturedParameterShadowedByLocalInsideLocalFunctionInInstanceMethod()
+        {
+            var source =
+@"class C(int y)
+{
+    int M()
+    {
+        void d(string x)
+        {
+            string y = x;
+            y.ToString();
+            this.ToString();
+#line 100
+            ;
+#line 200
+        }
+
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>g__d|2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(C <>4__this, System.String x)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (string V_0) //y
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_01501_CapturedParameterShadowedByLocalInsideLocalFunctionInInstanceMethod()
+        {
+            var source =
+@"class C(int y)
+{
+    int M(int z)
+    {
+        void d(string x)
+        {
+            string y = x;
+            y.ToString();
+            z.ToString();
+            this.ToString();
+#line 100
+            ;
+#line 200
+        }
+
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>g__d|2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(C <>4__this, System.String x, ref C.<>c__DisplayClass2_0 value)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (string V_0) //y
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_01502_CapturedParameterShadowedByLocalInsideLocalFunctionInInstanceMethod()
+        {
+            var source =
+@"class C(int value)
+{
+    int M(int z)
+    {
+        void d(string x)
+        {
+            string value = x;
+            value.ToString();
+            z.ToString();
+            this.ToString();
+#line 100
+            ;
+#line 200
+        }
+
+        return value;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>g__d|2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "value");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(C <>4__this, System.String x, ref C.<>c__DisplayClass2_0 value)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (string V_0) //value
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_01503_CapturedParameterShadowedByLocalInsideLocalFunctionInInstanceMethod()
+        {
+            var source =
+@"class C(int y)
+{
+    int M(int z)
+    {
+        void d(string value)
+        {
+            string y = value;
+            y.ToString();
+            z.ToString();
+            this.ToString();
+#line 100
+            ;
+#line 200
+        }
+
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>g__d|2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(C <>4__this, System.String value, ref C.<>c__DisplayClass2_0 value)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (string V_0) //y
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_01600_CapturedParameterInsideNonCapturingInstanceMethod(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
 {
     int M1()
     {
@@ -7086,272 +8869,259 @@ class Program
 
     void M2()
     {
+#line 100
+        ;
+#line 200
     }
 }";
+
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M2",
-                expr: "y",
-                resultProperties: out _,
-                error: out string error);
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
 
-            // https://github.com/dotnet/roslyn/issues/67107: There should be no error and IL should refer to a field 
-            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
-            //            testData.GetMethodData("<>x.<>m0").VerifyIL(
-            //@"{
-            //}");
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(" + (isStruct ? "ref " : "") + "C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<y>P""
+  IL_0006:  ret
+}");
         }
 
-        [Fact]
-        public void PrimaryConstructors_03_EvaluateCapturedParameterInsideInstanceConstructor()
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_01601_CapturedParameterInsideNonCapturingInstanceMethod(bool isStruct)
         {
             var source =
-@"class C(int y)
+(isStruct ? "struct" : "class") + @" C<T>(T y)
 {
-    C() : this(1)
-    {
-    }
-
-    int M()
+    T M1()
     {
         return y;
     }
+
+    void M2()
+    {
+#line 100
+        ;
+#line 200
+    }
 }";
+
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C..ctor()",
-                expr: "y",
-                resultProperties: out _,
-                error: out string error);
+                methodName: "C.M2",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
 
-            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
-            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
-            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+            var methodData = testData.GetMethodData("<>x<T>.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("T <>x<T>.<>m0(" + (isStruct ? "ref " : "") + "C<T> <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""T C<T>.<y>P""
+  IL_0006:  ret
+}");
         }
 
-        [Fact]
-        public void PrimaryConstructors_04_EvaluateCapturedParameterInsideInstanceConstructorInitializer()
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_01700_CapturedParameterShadowedByParameterInsideNonCapturingInstanceMethod(bool isStruct)
         {
             var source =
-@"class C(int y)
+(isStruct ? "struct" : "class") + @" C(int y)
 {
-    C() :
-#line 100
-          this(1)
-#line 200
-    {
-    }
-
-    int M()
+    int M1()
     {
         return y;
     }
-}";
-            var testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C..ctor()",
-                atLineNumber: 100,
-                expr: "y",
-                resultProperties: out _,
-                error: out string error);
 
-            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
-            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
-            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
-        }
-
-        [Fact]
-        public void PrimaryConstructors_05_EvaluateNotCapturedParameterInsideInstanceMethod()
-        {
-            var source =
-@"class C(int y)
-{
-    void M()
+    void M2(string y)
     {
+#line 100
+        ;
+#line 200
     }
 }";
+
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C.M",
-                expr: "y",
-                resultProperties: out _,
-                error: out string error);
+                methodName: "C.M2",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
 
-            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(" + (isStruct ? "ref " : "") + "C <>4__this, System.String y)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
         }
 
-        [Fact]
-        public void PrimaryConstructors_06_EvaluateNotCapturedParameterInsideInstanceConstructor()
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_01800_CapturedParameterShadowedByParameterInsideNonCapturingInstanceMethod(bool isStruct)
         {
             var source =
-@"class C(int y)
+(isStruct ? "struct" : "class") + @" C(int y)
 {
-    C() : this(1)
+    int M1()
     {
+        return y;
+    }
+
+    void M2(string y)
+    {
+        var d = () => y;
+        _ = d().Length;
+#line 100
+        ;
+#line 200
     }
 }";
+
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C..ctor()",
-                expr: "y",
-                resultProperties: out _,
-                error: out string error);
+                methodName: "C.M2",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
 
-            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(" + (isStruct ? "ref " : "") + "C <>4__this, System.String y)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass3_0 V_0, //CS$<>8__locals0
+                System.Func<string> V_1) //d
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""string C.<>c__DisplayClass3_0.y""
+  IL_0006:  ret
+}");
         }
 
-        [Fact]
-        public void PrimaryConstructors_07_EvaluateNotCapturedParameterInsideInstanceConstructorInitializer()
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_01900_CapturedParameterShadowedByLocalInsideNonCapturingInstanceMethod(bool isStruct)
         {
             var source =
-@"class C(int y)
+(isStruct ? "struct" : "class") + @" C(int y)
 {
-    C() :
-#line 100
-          this(1)
-#line 200
+    int M1()
     {
+        return y;
+    }
+
+    void M2()
+    {
+        string y = null;
+#line 100
+        ;
+#line 200
     }
 }";
+
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C..ctor()",
-                atLineNumber: 100,
-                expr: "y",
-                resultProperties: out _,
-                error: out string error);
+                methodName: "C.M2",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
 
-            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(" + (isStruct ? "ref " : "") + "C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (string V_0) //y
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
         }
 
-        [Fact]
-        public void PrimaryConstructors_08_EvaluateCapturedParameterInsideInstanceFieldInitializer()
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_02000_CapturedParameterShadowedByLocalInsideNonCapturingInstanceMethod(bool isStruct)
         {
             var source =
-@"class C(int y)
+(isStruct ? "struct" : "class") + @" C(int y)
 {
+    int M1()
+    {
+        return y;
+    }
+
+    void M2()
+    {
+        string y = null;
+        var d = () => y;
+        _ = d().Length;
 #line 100
-    int Y = y;
+        ;
 #line 200
-    int M() => y;
+    }
 }";
+
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C..ctor",
-                atLineNumber: 100,
+                methodName: "C.M2",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
                 expr: "y");
 
-            // https://github.com/dotnet/roslyn/issues/67107: Should access the field instead.
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(" + (isStruct ? "ref " : "") + "C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
 @"
 {
-  // Code size        2 (0x2)
+  // Code size        7 (0x7)
   .maxstack  1
-  IL_0000:  ldarg.1
-  IL_0001:  ret
+  .locals init (C.<>c__DisplayClass3_0 V_0, //CS$<>8__locals0
+                System.Func<string> V_1) //d
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""string C.<>c__DisplayClass3_0.y""
+  IL_0006:  ret
 }");
         }
 
-        [Fact]
-        public void PrimaryConstructors_09_EvaluateCapturedParameterInsidePrimaryConstructorInitializer()
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_02100_CapturedParameterInsideStaticMethod(bool isStruct)
         {
             var source =
-@"class C(int y) : 
-#line 100
-                   Base(1)
-#line 200
-{
-    int M() => y;
-}
-
-class Base(int x);
-";
-            var testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C..ctor",
-                atLineNumber: 100,
-                expr: "y");
-
-            // https://github.com/dotnet/roslyn/issues/67107: Should access the field instead.
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"
-{
-  // Code size        2 (0x2)
-  .maxstack  1
-  IL_0000:  ldarg.1
-  IL_0001:  ret
-}");
-        }
-
-        [Fact]
-        public void PrimaryConstructors_10_EvaluateNotCapturedParameterInsideInstanceFieldInitializer()
-        {
-            var source =
-@"class C(int y)
-{
-#line 100
-    int Y = y;
-}";
-            var testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C..ctor",
-                atLineNumber: 100,
-                expr: "y");
-
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"
-{
-  // Code size        2 (0x2)
-  .maxstack  1
-  IL_0000:  ldarg.1
-  IL_0001:  ret
-}");
-        }
-
-        [Fact]
-        public void PrimaryConstructors_11_EvaluateNotCapturedParameterInsidePrimaryConstructorInitializer()
-        {
-            var source =
-@"class C(int y) : 
-#line 100
-                   Base(1)
-#line 200
-{
-}
-
-class Base(int x);
-";
-            var testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C..ctor",
-                atLineNumber: 100,
-                expr: "y");
-
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"
-{
-  // Code size        2 (0x2)
-  .maxstack  1
-  IL_0000:  ldarg.1
-  IL_0001:  ret
-}");
-        }
-
-        [Fact]
-        public void PrimaryConstructors_12_EvaluateCapturedParameterInsideStaticMethod()
-        {
-            var source =
-@"class C(int y)
+(isStruct ? "struct" : "class") + @" C(int y)
 {
     int M1()
     {
@@ -7360,91 +9130,1568 @@ class Base(int x);
 
     static void M2()
     {
+#line 100
+        ;
+#line 200
     }
 }";
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M2",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
                 expr: "y",
                 resultProperties: out _,
                 error: out string error);
 
-            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
-            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
             Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_02200_CapturedParameterInsideLambdaInStaticMethod(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    int M1()
+    {
+        return y;
+    }
+
+    static void M2(string x)
+    {
+        var d = () =>
+                {
+#line 100
+                    ;
+#line 200
+                    x.ToString();
+                };
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass3_0.<M2>b__0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_02300_CapturedParameterInsideLocalFunctionInStaticMethod(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    int M1()
+    {
+        return y;
+    }
+
+    static void M2(string x)
+    {
+        void d()
+        {
+#line 100
+            ;
+#line 200
+            x.ToString();
+        }
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M2>g__d|3_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_02400_CapturedParameterInsideInstanceFieldInitializer(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C<T>(T y)
+{
+#line 100
+    T Y = y;
+#line 200
+    T M() => y;
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor(T)",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x<T>.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("T <>x<T>.<>m0(" + (isStruct ? "out " : "") + "C<T> <>4__this, T y)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""T C<T>.<y>P""
+  IL_0006:  ret
+}");
+        }
+
         [Fact]
-        public void PrimaryConstructors_13_EvaluateNotCapturedParameterInsideStaticMethod()
+        public void PrimaryConstructors_02500_CapturedParameterInsideInstanceFieldInitializer()
         {
             var source =
 @"class C(int y)
 {
-    static void M()
+#line 100
+    int Y = y;
+#line 200
+    int M() => y;
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "() => y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Object <>x.<>m0(C <>4__this, System.Int32 y)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  IL_0000:  newobj     ""<>x.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldarg.0
+  IL_0007:  stfld      ""C <>x.<>c__DisplayClass0_0.<>4__this""
+  IL_000c:  ldftn      ""int <>x.<>c__DisplayClass0_0.<<>m0>b__0()""
+  IL_0012:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_0017:  ret
+}");
+
+            methodData = testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0");
+
+            Assert.False(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>c__DisplayClass0_0.<<>m0>b__0()", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C <>x.<>c__DisplayClass0_0.<>4__this""
+  IL_0006:  ldfld      ""int C.<y>P""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void CaptureNotCapturedParameterInLambda()
+        {
+            var source =
+@"class C
+{
+    static void M(S y)
     {
+#line 100
+        ;
+#line 200
     }
-}";
+}
+
+struct S
+{
+    public int y;
+}
+";
+
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
+                atLineNumber: 100,
+                expr: "() => y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Object <>x.<>m0(S y)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  IL_0000:  newobj     ""<>x.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldarg.0
+  IL_0007:  stfld      ""S <>x.<>c__DisplayClass0_0.y""
+  IL_000c:  ldftn      ""S <>x.<>c__DisplayClass0_0.<<>m0>b__0()""
+  IL_0012:  newobj     ""System.Func<S>..ctor(object, System.IntPtr)""
+  IL_0017:  ret
+}");
+
+            methodData = testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0");
+
+            Assert.False(methodData.Method.IsStatic);
+            AssertEx.Equal("S <>x.<>c__DisplayClass0_0.<<>m0>b__0()", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S <>x.<>c__DisplayClass0_0.y""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_02600_CapturedParameterInsideInstanceFieldInitializer()
+        {
+            var source =
+@"struct C(int y)
+{
+#line 100
+    int Y = y;
+#line 200
+    int M() => y;
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor(Int32)",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "() => y");
+
+            // It looks like we are pretty liberal with capturing new things in EE by value
+            // (see CaptureNotCapturedParameterInLambda).
+            // Here, we are pretty much doing the same thing by copying the struct value into 
+            // a display class. Similar code would case an error (cannot capture struct parameter)
+            // during a regular compilation. It is probably not worth the effort trying to 
+            // make this scenario an error in EE.
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Object <>x.<>m0(out C <>4__this, System.Int32 y)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  IL_0000:  newobj     ""<>x.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldarg.0
+  IL_0007:  ldobj      ""C""
+  IL_000c:  stfld      ""C <>x.<>c__DisplayClass0_0.<>4__this""
+  IL_0011:  ldftn      ""int <>x.<>c__DisplayClass0_0.<<>m0>b__0()""
+  IL_0017:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_001c:  ret
+}");
+
+            methodData = testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0");
+
+            Assert.False(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>c__DisplayClass0_0.<<>m0>b__0()", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""C <>x.<>c__DisplayClass0_0.<>4__this""
+  IL_0006:  ldfld      ""int C.<y>P""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_02700_CapturedParameterInsideLambdaInInstanceFieldInitializer_NoDisplayClass()
+        {
+            var source =
+@"class C(int y)
+{
+    System.Func<int> Y = () =>
+                         {
+#line 100
+                            return y;
+#line 200
+                         };
+
+    int M() => y;
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<.ctor>b__0_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<y>P""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_02800_CapturedParameterInsideLambdaInInstanceFieldInitializer_WithDisplayClass()
+        {
+            var source =
+@"class C(int y, int x)
+{
+    System.Func<int> Y = () =>
+                         {
+#line 100
+                            return y + x;
+#line 200
+                         };
+
+    int M() => y;
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_0.<.ctor>b__0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C.<>c__DisplayClass0_0 <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C C.<>c__DisplayClass0_0.<>4__this""
+  IL_0006:  ldfld      ""int C.<y>P""
+  IL_000b:  ret
+}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_02900_CapturedParameterInsideLambdaInInstanceFieldInitializer(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y, int x)
+{
+    System.Func<int> Y = () =>
+                         {
+#line 100
+                            return x;
+#line 200
+                         };
+
+    int M() => y;
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_0.<.ctor>b__0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
                 expr: "y",
                 resultProperties: out _,
                 error: out string error);
 
-            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
-            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_03000_CapturedParameterInsideLambdaInInstanceFieldInitializer(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    System.Func<int> Y = () =>
+                         {
+#line 100
+                            return 1;
+#line 200
+                         };
+
+    int M() => y;
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c.<.ctor>b__0_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_03100_CapturedParameterInsideLambdaInInstanceFieldInitializer(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    System.Func<int> Y = static () =>
+                         {
+#line 100
+                            return 1;
+#line 200
+                         };
+
+    int M() => y;
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c.<.ctor>b__0_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
             Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
         }
 
         [Fact]
-        public void PrimaryConstructors_14_EvaluateCapturedParameterInsideStaticFieldInitializer()
+        public void PrimaryConstructors_03200_CapturedParameterShadowedByParameterInsideLambdaInInstanceFieldInitializer()
         {
             var source =
-@"class C(int y)
+@"class C(int y, int x)
+{
+    System.Func<string, int> Y = (string y) =>
+                         {
+#line 100
+                            return y.Length + x;
+#line 200
+                         };
+
+    int M() => y + x;
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<.ctor>b__0_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(C <>4__this, System.String y)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_03300_CapturedParameterShadowedByParameterInsideLambdaInInstanceFieldInitializer()
+        {
+            var source =
+@"class C(int y, int x)
+{
+    System.Func<string, int> Y = (string y) =>
+                         {
+                            var d = () => y;
+                            _ = d().Length;
+#line 100
+                            return y.Length + x;
+#line 200
+                         };
+
+    int M() => y + x;
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<.ctor>b__0_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(C <>4__this, System.String y)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                System.Func<string> V_1, //d
+                int V_2)
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""string C.<>c__DisplayClass0_0.y""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_03400_CapturedParameterShadowedByLocalInsideLambdaInInstanceFieldInitializer()
+        {
+            var source =
+@"class C(int y, int x)
+{
+    System.Func<string, int> Y = (string z) =>
+                         {
+                            string y = z;
+#line 100   
+                            return y.Length + x;
+#line 200
+                         };
+
+    int M() => y + x;
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<.ctor>b__0_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(C <>4__this, System.String z)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (string V_0, //y
+                int V_1)
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_03500_CapturedParameterShadowedByLocalInsideLambdaInInstanceFieldInitializer()
+        {
+            var source =
+@"class C(int y, int x)
+{
+    System.Func<string, int> Y = (string z) =>
+                         {
+                            string y = z;
+                            var d = () => y;
+                            _ = d().Length;
+#line 100   
+                            return y.Length + x;
+#line 200
+                         };
+
+    int M() => y + x;
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<.ctor>b__0_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.String <>x.<>m0(C <>4__this, System.String z)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                System.Func<string> V_1, //d
+                int V_2)
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""string C.<>c__DisplayClass0_0.y""
+  IL_0006:  ret
+}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_03600_CapturedParameterInsideStaticFieldInitializer(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
 {
 #line 100
     static int Y = 1;
 #line 200
     int M() => y;
 }";
+
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C..cctor",
-                atLineNumber: 100,
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
                 expr: "y",
                 resultProperties: out _,
                 error: out string error);
 
-            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
-            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
             Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
         }
 
         [Fact]
-        public void PrimaryConstructors_15_EvaluateNotCapturedParameterInsideStaticFieldInitializer()
+        public void PrimaryConstructors_03700_CapturedParameterInsidePrimaryConstructorInitializer()
+        {
+            var source =
+@"class C(int y) : 
+#line 100
+                   Base(1)
+#line 200
+{
+    int M() => y;
+}
+
+class Base(int x);
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C <>4__this, System.Int32 y)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<y>P""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void ThisInsideInstanceFieldInitializer()
+        {
+            var source =
+@"class C
+{
+#line 100
+    int Y = 1;
+#line 200
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor",
+                atLineNumber: 100,
+                expr: "this");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("C <>x.<>m0(C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_03800_ThisInLambdaUsingCapturedParameterInsideInstanceFieldInitializer_NoDisplayClass()
         {
             var source =
 @"class C(int y)
+{
+    System.Func<int> Y = () =>
+                         {
+#line 100
+                             return y;
+#line 200
+                         };
+
+    int M() => y;
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<.ctor>b__0_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "this");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            // In EE 'this' is not hidden in instance initializers (see ThisInsideInstanceFieldInitializer).
+            // Since the lambda has 'this', we are not hiding it in the lambda either.
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("C <>x.<>m0(C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_03900_ThisInLambdaUsingCapturedParameterInsideInstanceFieldInitializer_WithDisplayClass()
+        {
+            var source =
+@"class C(int y, int x)
+{
+    System.Func<int> Y = () =>
+                         {
+#line 100
+                             return y + x;
+#line 200
+                         };
+
+    int M() => y;
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_0.<.ctor>b__0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "this");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            // In EE 'this' is not hidden in instance initializers (see ThisInsideInstanceFieldInitializer).
+            // Since the lambda has 'this', we are not hiding it in the lambda either.
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("C <>x.<>m0(C.<>c__DisplayClass0_0 <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C C.<>c__DisplayClass0_0.<>4__this""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_04000_ThisInLambdaUsingCapturedParameterInsidePrimaryConstructorInitializer_NoDisplayClass()
+        {
+            var source =
+@"class C(int y)
+                  : Base(() =>
+                         {
+#line 100
+                             return y;
+#line 200
+                         })
+{
+    int M() => y;
+}
+
+class Base(System.Func<int> x);
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<.ctor>b__0_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "this");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("C <>x.<>m0(C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_04100_ThisInLambdaUsingCapturedParameterInsidePrimaryConstructorInitializer_WithDisplayClass()
+        {
+            var source =
+@"class C(int y, int x)
+                  : Base(() =>
+                         {
+#line 100
+                             return y + x;
+#line 200
+                         })
+{
+    int M() => y;
+}
+
+class Base(System.Func<int> x);
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_0.<.ctor>b__0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "this");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("C <>x.<>m0(C.<>c__DisplayClass0_0 <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C C.<>c__DisplayClass0_0.<>4__this""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_04200_InstanceMemberInLambdaUsingCapturedParameterInsideInstanceFieldInitializer_NoDisplayClass()
+        {
+            var source =
+@"class C(int y)
+{
+    System.Func<int> Y = () =>
+                         {
+#line 100
+                             return y;
+#line 200
+                         };
+
+    int M() => y;
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<.ctor>b__0_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "M()");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  callvirt   ""int C.M()""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_04300_InstanceMemberInLambdaUsingCapturedParameterInsideInstanceFieldInitializer_WithDisplayClass()
+        {
+            var source =
+@"class C(int y, int x)
+{
+    System.Func<int> Y = () =>
+                         {
+#line 100
+                             return y + x;
+#line 200
+                         };
+
+    int M() => y;
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_0.<.ctor>b__0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "M()");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C.<>c__DisplayClass0_0 <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C C.<>c__DisplayClass0_0.<>4__this""
+  IL_0006:  callvirt   ""int C.M()""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_04400_InstanceMemberInLambdaUsingCapturedParameterInsidePrimaryConstructorInitializer_NoDisplayClass()
+        {
+            var source =
+@"class C(int y)
+                  : Base(() =>
+                         {
+#line 100
+                             return y;
+#line 200
+                         })
+{
+    int M() => y;
+}
+
+class Base(System.Func<int> x);
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<.ctor>b__0_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "M()");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  callvirt   ""int C.M()""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_04500_InstanceMemberInLambdaUsingCapturedParameterPrimaryConstructorInitializer_WithDisplayClass()
+        {
+            var source =
+@"class C(int y, int x)
+                  : Base(() =>
+                         {
+#line 100
+                             return y + x;
+#line 200
+                         })
+{
+    int M() => y;
+}
+
+class Base(System.Func<int> x);
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_0.<.ctor>b__0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "M()");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C.<>c__DisplayClass0_0 <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C C.<>c__DisplayClass0_0.<>4__this""
+  IL_0006:  callvirt   ""int C.M()""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_04600_ThisInLambdaUsingNotCapturedParameterInsideInstanceFieldInitializer()
+        {
+            var source =
+@"class C(int y)
+{
+    System.Func<int> Y = () =>
+                         {
+#line 100
+                             return y;
+#line 200
+                         };
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_0.<.ctor>b__0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "this",
+                resultProperties: out _,
+                error: out string error);
+
+            Assert.Equal("error CS0027: Keyword 'this' is not available in the current context", error);
+        }
+
+        [Fact]
+        public void ThisInsideInstanceConstructorInitializer()
+        {
+            var source =
+@"class C
+{
+    C(int x) {}
+
+    C() :
+#line 100
+          this(1)
+#line 200
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor()",
+                atLineNumber: 100,
+                expr: "this");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("C <>x.<>m0(C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_04700_CapturedParameterInsideRegularInstanceConstructor(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    public C() : this(1)
+    {
+#line 100
+        ;
+#line 200
+    }
+
+    int M()
+    {
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor()",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            // We are not hiding 'this' in initializers even though language doesn't allow allow accessing it,
+            // see ThisInsideInstanceFieldInitializer/ThisInsideInstanceConstructorInitializer.
+            // Let's not hide captured parameters in the constructor body too.
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(" + (isStruct ? "out " : "") + "C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<y>P""
+  IL_0006:  ret
+}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_04800_CapturedParameterShadowedByParameterInsideRegularConstructor(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    C(byte y) : this(0)
+    {
+#line 100
+        _ = y;
+#line 200
+    }
+
+    int M() => y;
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor(Byte)",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Byte <>x.<>m0(" + (isStruct ? "out " : "") + "C <>4__this, System.Byte y)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_04900_CapturedParameterInsideRegularInstanceConstructorInitializer(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    public C() :
+#line 100
+          this(1)
+#line 200
+    {
+    }
+
+    int M()
+    {
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor()",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            // We are not hiding 'this' in this context even though language doesn't allow accessing it,
+            // see ThisInsideInstanceFieldInitializer/ThisInsideInstanceConstructorInitializer.
+            // Let's not hide captured parameters either.
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(" + (isStruct ? "out " : "") + "C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<y>P""
+  IL_0006:  ret
+}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_05000_CapturedParameterShadowedByParameterInsideRegularConstructorInitializer(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y) 
+{
+    C(byte y) :
+#line 100
+                this((int)y)
+#line 200
+    {
+    }
+
+    int M() => y;
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor(Byte)",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Byte <>x.<>m0(" + (isStruct ? "out " : "") + "C <>4__this, System.Byte y)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_05100_NotCapturedParameterInsideInstanceMethod(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    void M()
+    {
+#line 100
+        ;
+#line 200
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_05200_NotCapturedParameterInsideStaticMethod(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    static void M()
+    {
+#line 100
+        ;
+#line 200
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_05300_NotCapturedParameterInsideInstanceFieldInitializer(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+#line 100
+    int Y = y;
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor(Int32)",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(" + (isStruct ? "out " : "") + "C <>4__this, System.Int32 y)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_05400_NotCapturedParameterInsideStaticFieldInitializer(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
 {
 #line 100
     static int Y = 1;
 #line 200
 }";
+
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C..cctor",
-                atLineNumber: 100,
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
                 expr: "y",
                 resultProperties: out _,
                 error: out string error);
 
-            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
-            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
             Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_05500_NotCapturedParameterInsidePrimaryConstructorInitializer()
+        {
+            var source =
+@"class C(int y) : 
+#line 100
+                   Base(1)
+#line 200
+{
+}
+
+class Base(int x);
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C <>4__this, System.Int32 y)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_05600_NotCapturedParameterInsideRegularInstanceConstructor(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    public C() : this(1)
+    {
+#line 100
+        ;
+#line 200
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor()",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_05700_NotCapturedParameterInsideRegularInstanceConstructorInitializer(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    public C() :
+#line 100
+          this(1)
+#line 200
+    {
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor()",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_05800_NotCapturedParameterShadowedByMemberInsideInstanceMethod(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    int y = y;
+
+    void M()
+    {
+#line 100
+        ;
+#line 200
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(" + (isStruct ? "ref " : "") + "C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.y""
+  IL_0006:  ret
+}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_05900_NotCapturedParameterShadowedByMemberInsideStaticMethod(bool isStruct)
+        {
+            var source =
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    static int y = 1;
+
+    static void M()
+    {
+#line 100
+        ;
+#line 200
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0()", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  ldsfld     ""int C.y""
+  IL_0005:  ret
+}");
         }
     }
 }

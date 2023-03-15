@@ -33,6 +33,8 @@ jobs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
 
+    - template: /eng/common/templates/steps/azure-public-roslyn-auth.yml
+
     - task: BatchScript@1
       displayName: Rehydrate RunTests
       inputs:

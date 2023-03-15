@@ -13,6 +13,8 @@ parameters:
   platform: {}
 
 steps:
+- template: azure-public-roslyn-auth.yml
+
 # Build. Keep it self-contained for simple reusability. (No source-build-specific job variables.)
 - script: |
     set -x
