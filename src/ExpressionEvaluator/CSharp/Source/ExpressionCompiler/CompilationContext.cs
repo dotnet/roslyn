@@ -92,12 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                 GetDisplayClassVariables(
                     currentFrame,
+                    currentSourceMethod,
                     _locals,
                     inScopeHoistedLocalSlots,
+                    isPrimaryConstructor: methodDebugInfo.IsPrimaryConstructor,
                     _sourceMethodParametersInOrder,
-                    // This is a special handling for async MoveNext method.
-                    // Parameters are not declared by it, and, therefore, display variables corresponding to them will be those declared outside.  
-                    parametersAreOutside: currentFrame.ParameterCount == 0,
                     out var displayClassVariableNamesOutsideInOrder,
                     out var displayClassVariableNamesInsideInOrder,
                     out _displayClassVariables);
@@ -1322,7 +1321,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     foreach (var p in sourceMethod.Parameters)
                     {
-                        parameterNamesInOrder.Add(p.Name);
+                        var parameterName = p.Name;
+
+                        if (GeneratedNameParser.GetKind(parameterName) == GeneratedNameKind.None &&
+                            !IsDisplayClassParameter(p))
+                        {
+                            parameterNamesInOrder.Add(parameterName);
+                        }
                     }
                 }
             }
@@ -1336,11 +1341,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// local identifiers (those from source) in the binder.
         /// </summary>
         private static void GetDisplayClassVariables(
-            MethodSymbol method,
+            MethodSymbol currentFrame,
+            MethodSymbol? currentSourceMethod,
             ImmutableArray<LocalSymbol> locals,
             ImmutableSortedSet<int> inScopeHoistedLocalSlots,
+            bool isPrimaryConstructor,
             ImmutableArray<string> parameterNamesInOrder,
-            bool parametersAreOutside,
             out ImmutableArray<string> displayClassVariableNamesOutsideInOrder,
             out ImmutableArray<string> displayClassVariableNamesInsideInOrder,
             out ImmutableDictionary<string, DisplayClassVariable> displayClassVariables)
@@ -1350,7 +1356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // class immediately within any particular method.
             var displayClassInstancesOutside = ArrayBuilder<DisplayClassInstanceAndFields>.GetInstance();
 
-            foreach (var parameter in method.Parameters)
+            foreach (var parameter in currentFrame.Parameters)
             {
                 if (GeneratedNameParser.GetKind(parameter.Name) == GeneratedNameKind.TransparentIdentifier ||
                     IsDisplayClassParameter(parameter))
@@ -1360,10 +1366,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
             }
 
-            if (IsDisplayClassType(method.ContainingType) && !method.IsStatic)
+            if (IsDisplayClassType(currentFrame.ContainingType) && !currentFrame.IsStatic)
             {
                 // Add "this" display class instance.
-                var instance = new DisplayClassInstanceFromParameter(method.ThisParameter);
+                var instance = new DisplayClassInstanceFromParameter(currentFrame.ThisParameter);
                 displayClassInstancesOutside.Add(new DisplayClassInstanceAndFields(instance));
             }
 
@@ -1398,14 +1404,56 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             displayClassTypes.Free();
 
+            // This is a special handling for async MoveNext method.
+            // Parameters are not declared by it, and, therefore, display variables corresponding to them will be those declared outside.  
+            bool parametersAreOutside = currentFrame.ParameterCount == 0 && !parameterNamesInOrder.IsEmpty;
+
             var displayClassVariablesBuilder = PooledDictionary<string, DisplayClassVariable>.GetInstance();
+            var displayClassVariableNamesOutsideInOrderBuilder = ArrayBuilder<string>.GetInstance();
+            var displayClassVariableNamesInsideInOrderBuilder = ArrayBuilder<string>.GetInstance();
 
             // Locals inside shadow locals outside
-            buildResult(displayClassInstancesInside, inScopeHoistedLocalSlots, parametersAreOutside ? ImmutableArray<string>.Empty : parameterNamesInOrder, displayClassVariablesBuilder, out displayClassVariableNamesInsideInOrder);
-            buildResult(displayClassInstancesOutside, inScopeHoistedLocalSlots, parametersAreOutside ? parameterNamesInOrder : ImmutableArray<string>.Empty, displayClassVariablesBuilder, out displayClassVariableNamesOutsideInOrder);
+            buildResult(displayClassInstancesInside, inScopeHoistedLocalSlots, parametersAreOutside ? ImmutableArray<string>.Empty : parameterNamesInOrder, displayClassVariablesBuilder, displayClassVariableNamesInsideInOrderBuilder);
+
+            // Let's add captured Primary Constructor parameters.
+            bool checkForPrimaryConstructor = true;
+
+            if (!currentFrame.IsStatic && isPrimaryConstructor)
+            {
+                checkForPrimaryConstructor = !tryAddCapturedPrimaryConstructorParameters(currentFrame, shadowingParameterNames: ImmutableArray<string>.Empty,
+                                                                                         possiblyCapturingType: currentFrame.ContainingType,
+                                                                                         possiblyCapturingTypeInstance: (Instance: null, Fields: ConsList<FieldSymbol>.Empty),
+                                                                                         displayClassVariablesBuilder, displayClassVariableNamesInsideInOrderBuilder);
+            }
+
+            buildResult(displayClassInstancesOutside, inScopeHoistedLocalSlots, parametersAreOutside ? parameterNamesInOrder : ImmutableArray<string>.Empty, displayClassVariablesBuilder, displayClassVariableNamesOutsideInOrderBuilder);
+
+            // ExtendBinderChain will place Primary Constructor parameters added below below InContainerBinder, rather than above it.
+            // However, since they are captured, they were not shadowed by any member at compile time.
+            // In theory, a shadowing member could be added into a base class after the build,
+            // but it is probably fine to shadow that member in EE. The member could still be accessed
+            // with qualification, but there wouldn't be a way to access captured parameter
+            // if we were to shadow it.
+            if (!isPrimaryConstructor && checkForPrimaryConstructor && currentFrame == currentSourceMethod && !currentFrame.IsStatic)
+            {
+                checkForPrimaryConstructor = !tryAddCapturedPrimaryConstructorParameters(currentFrame, shadowingParameterNames: parameterNamesInOrder,
+                                                                                         possiblyCapturingType: currentFrame.ContainingType,
+                                                                                         possiblyCapturingTypeInstance: (Instance: null, Fields: ConsList<FieldSymbol>.Empty),
+                                                                                         displayClassVariablesBuilder, displayClassVariableNamesOutsideInOrderBuilder);
+            }
+
+            if (checkForPrimaryConstructor && displayClassVariablesBuilder.Values.FirstOrDefault(v => v.Kind == DisplayClassVariableKind.This) is { } thisProxy)
+            {
+                tryAddCapturedPrimaryConstructorParameters(currentFrame, shadowingParameterNames: parameterNamesInOrder, possiblyCapturingType: thisProxy.Type,
+                                                           possiblyCapturingTypeInstance: (Instance: thisProxy.DisplayClassInstance, Fields: thisProxy.DisplayClassFields),
+                                                           displayClassVariablesBuilder, displayClassVariableNamesOutsideInOrderBuilder);
+            }
 
             displayClassVariables = displayClassVariablesBuilder.ToImmutableDictionary();
             displayClassVariablesBuilder.Free();
+
+            displayClassVariableNamesOutsideInOrder = displayClassVariableNamesOutsideInOrderBuilder.ToImmutableAndFree();
+            displayClassVariableNamesInsideInOrder = displayClassVariableNamesInsideInOrderBuilder.ToImmutableAndFree();
 
             displayClassInstancesOutside.Free();
             displayClassInstancesInside.Free();
@@ -1415,7 +1463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 ImmutableSortedSet<int> inScopeHoistedLocalSlots,
                 ImmutableArray<string> parameterNamesInOrder,
                 Dictionary<string, DisplayClassVariable> displayClassVariablesBuilder,
-                out ImmutableArray<string> displayClassVariableNamesInOrder)
+                ArrayBuilder<string> displayClassVariableNamesInOrderBuilder)
             {
                 if (displayClassInstances.Any())
                 {
@@ -1426,8 +1474,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     }
 
                     // The locals are the set of all fields from the display classes.
-                    var displayClassVariableNamesInOrderBuilder = ArrayBuilder<string>.GetInstance();
-
                     foreach (var instance in displayClassInstances)
                     {
                         GetDisplayClassVariables(
@@ -1438,13 +1484,47 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             instance);
                     }
 
-                    displayClassVariableNamesInOrder = displayClassVariableNamesInOrderBuilder.ToImmutableAndFree();
                     parameterNames.Free();
                 }
-                else
+            }
+
+            static bool tryAddCapturedPrimaryConstructorParameters(
+                MethodSymbol currentFrame,
+                ImmutableArray<string> shadowingParameterNames,
+                TypeSymbol possiblyCapturingType,
+                (DisplayClassInstance? Instance, ConsList<FieldSymbol> Fields) possiblyCapturingTypeInstance,
+                PooledDictionary<string, DisplayClassVariable> displayClassVariablesBuilder,
+                ArrayBuilder<string> displayClassVariableNamesInOrderBuilder)
+            {
+                bool sawCapturedParameters = false;
+
+                foreach (var field in possiblyCapturingType.GetMembers().OfType<FieldSymbol>())
                 {
-                    displayClassVariableNamesInOrder = ImmutableArray<string>.Empty;
+                    if (!field.IsStatic && GeneratedNameParser.TryParsePrimaryConstructorParameterFieldName(field.Name, out string? parameterName))
+                    {
+                        sawCapturedParameters = true;
+
+                        if (!displayClassVariablesBuilder.ContainsKey(parameterName) &&
+                            !shadowingParameterNames.Contains(parameterName))
+                        {
+                            if (possiblyCapturingTypeInstance.Instance is null)
+                            {
+                                Debug.Assert((object)possiblyCapturingType == currentFrame.ContainingType);
+                                Debug.Assert(possiblyCapturingTypeInstance.Fields.IsEmpty());
+                                possiblyCapturingTypeInstance.Instance = new DisplayClassInstanceFromParameter(currentFrame.ThisParameter);
+                            }
+
+                            DisplayClassVariable variable = new DisplayClassVariable(parameterName, DisplayClassVariableKind.Parameter,
+                                                                                     possiblyCapturingTypeInstance.Instance,
+                                                                                     possiblyCapturingTypeInstance.Fields.Prepend(field));
+
+                            displayClassVariablesBuilder.Add(parameterName, variable);
+                            displayClassVariableNamesInOrderBuilder.Add(parameterName);
+                        }
+                    }
                 }
+
+                return sawCapturedParameters;
             }
         }
 
@@ -1813,7 +1893,8 @@ REPARSE:
                 : this(instance, ConsList<FieldSymbol>.Empty)
             {
                 Debug.Assert(IsDisplayClassType(instance.Type) ||
-                    GeneratedNameParser.GetKind(instance.Type.Name) == GeneratedNameKind.AnonymousType);
+                    GeneratedNameParser.GetKind(instance.Type.Name) == GeneratedNameKind.AnonymousType ||
+                    instance.Type.GetMembers().OfType<FieldSymbol>().Any(static f => GeneratedNameParser.TryParsePrimaryConstructorParameterFieldName(f.Name, out _)));
             }
 
             private DisplayClassInstanceAndFields(DisplayClassInstance instance, ConsList<FieldSymbol> fields)
