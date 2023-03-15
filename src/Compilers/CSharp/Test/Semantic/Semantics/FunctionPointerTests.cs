@@ -60,60 +60,69 @@ using s = delegate*<void>;";
         [Fact]
         public void UsingAliasTest_UnsafeModifier()
         {
-            var comp = CreateCompilationWithFunctionPointers(@"
-using unsafe s = delegate*<void>;", options: TestOptions.UnsafeDebugDll);
+            var src = @"
+using unsafe S = delegate*<void>;";
+
+            var comp = CreateCompilationWithFunctionPointers(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
 
             comp.VerifyDiagnostics(
-                // (2,14): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                // using unsafe s = delegate*<void>;
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "s").WithArguments("s").WithLocation(2, 14),
+                // (2,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // using unsafe S = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7),
                 // (2,1): hidden CS8019: Unnecessary using directive.
-                // using unsafe s = delegate*<void>;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe s = delegate*<void>;").WithLocation(2, 1));
+                // using unsafe S = delegate*<void>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe S = delegate*<void>;").WithLocation(2, 1));
+
+            comp = CreateCompilationWithFunctionPointers(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using unsafe S = delegate*<void>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe S = delegate*<void>;").WithLocation(2, 1));
         }
 
         [Fact]
         public void UsingAliasTest_TypeArgument()
         {
             var src = @"
-using s = System.Collections.Generic.List<delegate*<void>[]>;";
+using S = System.Collections.Generic.List<delegate*<void>[]>;";
 
             var comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (2,7): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                // using s = System.Collections.Generic.List<delegate*<void>[]>;
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "s").WithArguments("s").WithLocation(2, 7),
                 // (2,1): hidden CS8019: Unnecessary using directive.
-                // using s = System.Collections.Generic.List<delegate*<void>[]>;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = System.Collections.Generic.List<delegate*<void>[]>;").WithLocation(2, 1));
+                // using S = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using S = System.Collections.Generic.List<delegate*<void>[]>;").WithLocation(2, 1));
 
             comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
-                // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                // using s = System.Collections.Generic.List<delegate*<void>[]>;
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(2, 43),
-                // (2,7): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                // using s = System.Collections.Generic.List<delegate*<void>[]>;
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "s").WithArguments("s").WithLocation(2, 7),
                 // (2,1): hidden CS8019: Unnecessary using directive.
-                // using s = System.Collections.Generic.List<delegate*<void>[]>;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = System.Collections.Generic.List<delegate*<void>[]>;").WithLocation(2, 1));
+                // using S = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using S = System.Collections.Generic.List<delegate*<void>[]>;").WithLocation(2, 1),
+                // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using S = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(2, 43));
         }
 
         [Fact]
         public void UsingAliasTest_TypeArgument_UnsafeModifier()
         {
             var src = @"
-using unsafe s = System.Collections.Generic.List<delegate*<void>[]>;";
+using unsafe S = System.Collections.Generic.List<delegate*<void>[]>;";
 
-            var comp = CreateCompilationWithFunctionPointers(src);
+            var comp = CreateCompilationWithFunctionPointers(src, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
-                // (2,14): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                // using unsafe s = System.Collections.Generic.List<delegate*<void>[]>;
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "s").WithArguments("s").WithLocation(2, 14),
+                // (2,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // using unsafe S = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7),
                 // (2,1): hidden CS8019: Unnecessary using directive.
-                // using unsafe s = System.Collections.Generic.List<delegate*<void>[]>;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe s = System.Collections.Generic.List<delegate*<void>[]>;").WithLocation(2, 1));
+                // using unsafe S = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe S = System.Collections.Generic.List<delegate*<void>[]>;").WithLocation(2, 1));
+
+            comp = CreateCompilationWithFunctionPointers(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using unsafe S = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe S = System.Collections.Generic.List<delegate*<void>[]>;").WithLocation(2, 1));
         }
 
         [Fact]
