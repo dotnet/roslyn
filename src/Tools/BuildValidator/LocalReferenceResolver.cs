@@ -13,7 +13,6 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Rebuild;
 using Microsoft.Extensions.Logging;
 
@@ -31,12 +30,6 @@ namespace BuildValidator
         private readonly Dictionary<Guid, AssemblyInfo> _mvidMap = new();
 
         /// <summary>
-        /// Map file names to all of the paths it exists at. This map is depopulated as we realize
-        /// the information from these file locations.
-        /// </summary>
-        private readonly Dictionary<string, List<string>> _nameToLocationsMap = new();
-
-        /// <summary>
         /// This maps a given file name to all of the <see cref="AssemblyInfo"/> that we ever considered 
         /// for that file name. It's useful for diagnostic purposes to see where we may have missed a
         /// reference lookup.
@@ -45,49 +38,24 @@ namespace BuildValidator
         private readonly HashSet<DirectoryInfo> _indexDirectories = new();
         private readonly ILogger _logger;
 
-        private LocalReferenceResolver(Dictionary<string, List<string>> nameToLocationsMap, ILogger logger)
+        public LocalReferenceResolver(Options options, ILoggerFactory loggerFactory)
         {
-            _nameToLocationsMap = nameToLocationsMap;
-            _logger = logger;
-        }
-
-        public static LocalReferenceResolver Create(Options options, ILoggerFactory loggerFactory)
-        {
-            var logger = loggerFactory.CreateLogger<LocalReferenceResolver>();
-            var directories = new List<DirectoryInfo>();
+            _logger = loggerFactory.CreateLogger<LocalReferenceResolver>();
             foreach (var path in options.AssembliesPaths)
             {
-                directories.Add(new DirectoryInfo(path));
+                _indexDirectories.Add(new DirectoryInfo(path));
             }
-
-            directories.Add(GetNugetCacheDirectory());
+            _indexDirectories.Add(GetNugetCacheDirectory());
             foreach (var path in options.ReferencesPaths)
             {
-                directories.Add(new DirectoryInfo(path));
+                _indexDirectories.Add(new DirectoryInfo(path));
             }
 
-            using var _ = logger.BeginScope("Assembly Location Cache Population");
-            var map = new Dictionary<string, List<string>>();
-            foreach (var directory in directories)
+            using var _ = _logger.BeginScope("Assembly Reference Search Paths");
+            foreach (var directory in _indexDirectories)
             {
-                logger.LogInformation($"Searching {directory.FullName}");
-                var allFiles = directory
-                    .EnumerateFiles("*.dll", SearchOption.AllDirectories)
-                    .Concat(directory.EnumerateFiles("*.exe", SearchOption.AllDirectories));
-
-                foreach (var fileInfo in allFiles)
-                {
-                    if (!map.TryGetValue(fileInfo.Name, out var list))
-                    {
-                        list = new();
-                        map[fileInfo.Name] = list;
-                    }
-
-                    list.Add(fileInfo.FullName);
-                }
+                _logger.LogInformation($@"""{directory.FullName}""");
             }
-
-            return new LocalReferenceResolver(map, logger);
         }
 
         public static DirectoryInfo GetNugetCacheDirectory()
@@ -143,46 +111,50 @@ namespace BuildValidator
 
         public bool TryGetAssemblyInfo(MetadataReferenceInfo metadataReferenceInfo, [NotNullWhen(true)] out AssemblyInfo? assemblyInfo)
         {
-            EnsureCachePopulated(metadataReferenceInfo.FileName);
+            if (_mvidMap.TryGetValue(metadataReferenceInfo.ModuleVersionId, out assemblyInfo))
+            {
+                return true;
+            }
+
+            if (_nameMap.TryGetValue(metadataReferenceInfo.FileName, out var _))
+            {
+                // The file name of this reference has already been searched for and none of them 
+                // had the correct MVID (else the _mvidMap lookup would succeed). No reason to do 
+                // more work here.
+                return false;
+            }
+
+            var list = new List<AssemblyInfo>();
+
+            foreach (var directory in _indexDirectories)
+            {
+                foreach (var fileInfo in directory.EnumerateFiles(metadataReferenceInfo.FileName, SearchOption.AllDirectories))
+                {
+                    if (Util.GetPortableExecutableInfo(fileInfo.FullName) is not { } peInfo)
+                    {
+                        _logger.LogWarning($@"Could not read MVID from ""{fileInfo.FullName}""");
+                        continue;
+                    }
+
+                    if (peInfo.IsReadyToRun)
+                    {
+                        _logger.LogInformation($@"Skipping ReadyToRun image ""{fileInfo.FullName}""");
+                        continue;
+                    }
+
+                    var currentInfo = new AssemblyInfo(fileInfo.FullName, peInfo.Mvid);
+                    list.Add(currentInfo);
+
+                    if (!_mvidMap.ContainsKey(peInfo.Mvid))
+                    {
+                        _logger.LogTrace($"Caching [{peInfo.Mvid}, {fileInfo.FullName}]");
+                        _mvidMap[peInfo.Mvid] = currentInfo;
+                    }
+                }
+            }
+
+            _nameMap[metadataReferenceInfo.FileName] = list;
             return _mvidMap.TryGetValue(metadataReferenceInfo.ModuleVersionId, out assemblyInfo);
-        }
-
-        private void EnsureCachePopulated(string fileName)
-        {
-            if (!_nameToLocationsMap.TryGetValue(fileName, out var list))
-            {
-                return;
-            }
-
-            _nameToLocationsMap.Remove(fileName);
-
-            using var _ = _logger.BeginScope($"Populating {fileName}");
-            var assemblyInfoList = new List<AssemblyInfo>();
-            foreach (var filePath in list)
-            {
-                if (Util.GetPortableExecutableInfo(filePath) is not { } peInfo)
-                {
-                    _logger.LogWarning($@"Could not read MVID from ""{filePath}""");
-                    continue;
-                }
-
-                if (peInfo.IsReadyToRun)
-                {
-                    _logger.LogInformation($@"Skipping ReadyToRun image ""{filePath}""");
-                    continue;
-                }
-
-                var currentInfo = new AssemblyInfo(filePath, peInfo.Mvid);
-                assemblyInfoList.Add(currentInfo);
-
-                if (!_mvidMap.ContainsKey(peInfo.Mvid))
-                {
-                    _logger.LogTrace($"Caching [{peInfo.Mvid}, {filePath}]");
-                    _mvidMap[peInfo.Mvid] = currentInfo;
-                }
-            }
-
-            _nameMap[fileName] = assemblyInfoList;
         }
     }
 }
