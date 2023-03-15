@@ -42,13 +42,17 @@ namespace Microsoft.CodeAnalysis.Editing
     /// The 'current' root is then returned.
     /// </item>
     /// </list>
-    /// 
-    /// Because of the above approach, it is an error for a client of the editor to add a change that updates a parent
+    /// </summary>
+    /// <remarks>
+    /// The above editing strategy makes it an error for a client of the editor to add a change that updates a parent
     /// node and then adds a change that updates a child node (unless the parent change is certain to contain the
     /// child), and attempting this will throw at runtime.  If a client ever needs to update both a child and a parent,
     /// it <em>should</em> add the child change first, and then the parent change.  And the parent change should pass an
     /// appropriate 'compute' callback so it will see the results of the child change.
-    /// </summary>
+    /// <para/> If a client wants to make a replacement, then find the <em>value</em> <see cref="SyntaxNode"/> put into
+    /// the tree, that can be done by adding a dedicated annotation to that node and then looking it back up in the
+    /// 'current' node passed to a 'compute' callback.
+    /// </remarks>
     public class SyntaxEditor
     {
         private readonly SyntaxGenerator _generator;
