@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var transformedTree in context.TransformedTrees)
                     {
                         var newTree = transformedTree.NewTree;
-                        
+
                         // Update the compilation and indices.
                         if (transformedTree.OldTree != null)
                         {
@@ -626,8 +626,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (oldTree != null)
                             {
+                                // Either it was already marked as modified, or the text of the tree changed.
+                                bool isModified = (oldTreeToNewTrees.TryGetValue(oldTree, out var tuple) && tuple.IsModified)
+                                    || !oldTree.GetText(cancellationToken).ContentEquals(newTree.GetText(cancellationToken));
+
                                 // Update the index mapping old trees to new trees.
-                                oldTreeToNewTrees[oldTree] = (newTree!,true);
+                                oldTreeToNewTrees[oldTree] = (newTree!, isModified);
                             }
                             else
                             {
