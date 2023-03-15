@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         private readonly IClientLanguageServerManager _clientLanguageServerManager;
         private readonly IAsynchronousOperationListener _asynchronousOperationListener;
         private readonly Guid _registrationId;
+
+        /// <summary>
+        /// All the global <see cref="ConfigurationItem.Section"/> needs to be refreshed from the client. 
+        /// </summary>
+        private readonly ImmutableArray<ConfigurationItem> _configurationItems;
         public static readonly ImmutableArray<string> s_supportedLanguages = ImmutableArray.Create(LanguageNames.CSharp, LanguageNames.VisualBasic);
 
         public DidChangeConfigurationNotificationHandler(
@@ -40,6 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             _clientLanguageServerManager = clientLanguageServerManager;
             _registrationId = Guid.NewGuid();
             _asynchronousOperationListener = asynchronousOperationListener;
+            _configurationItems = GenerateGlobalConfigurationItems();
         }
 
         public bool MutatesSolutionState => true;
@@ -54,56 +60,62 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 
         private async Task RefreshOptionsAsync(CancellationToken cancellationToken)
         {
-            var configurationItems = SupportedOptions.SelectAsArray(
-                option => new ConfigurationItem() { ScopeUri = null, Section = GenerateSection(option) });
-            var configurationsFromClient = await GetConfigurationsAsync(configurationItems, cancellationToken).ConfigureAwait(false);
+            var configurationsFromClient = await GetConfigurationsAsync(cancellationToken).ConfigureAwait(false);
             if (configurationsFromClient.IsEmpty)
             {
                 // Failed to get values from client, do nothing.
                 return;
             }
 
-            RoslynDebug.Assert(configurationsFromClient.Length == SupportedOptions.Length);
+            // We always fetch VB and C# value from client if the option is IPerLanguageValuedOption.
+            RoslynDebug.Assert(configurationsFromClient.Length == SupportedOptions.Sum(option => option is IPerLanguageValuedOption ? 2 : 1));
+            var optionsToRefresh = SupportedOptions.SelectManyAsArray(option => option is IPerLanguageValuedOption
+                ? s_supportedLanguages.SelectAsArray(language => (option, language))
+                : SpecializedCollections.SingletonEnumerable((option, string.Empty)));
+
+            // LSP ensures the order of result from client should match the order we sent from server.
             for (var i = 0; i < configurationsFromClient.Length; i++)
             {
-                var option = SupportedOptions[i];
-                var configurationValue = configurationsFromClient[i];
-                if (option is IPerLanguageValuedOption)
+                var valueFromClient = configurationsFromClient[i];
+                if (valueFromClient.Equals("null", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    // It is expected for IPerLanguageOptions, client should gives us the result for both VB and CSharp.
-                    var configurationObject = JsonConvert.DeserializeObject<JObject>(configurationValue);
-                    foreach (var languageName in s_supportedLanguages)
-                    {
-                        var languageOptionValue = configurationObject?.Value<string>(languageName);
-                        if (languageOptionValue != null && TryParseValueFromClient(languageOptionValue, option, out var perLanguageResult))
-                        {
-                            _globalOptionService.SetGlobalOption(new OptionKey2(option, languageName), perLanguageResult);
-                        }
-                        else
-                        {
-                            _lspLogger.LogError($"Failed to update option: {option.Name} for language: {languageName}.");
-                        }
-                    }
+                    // Configuration doesn't exist in client.
+                    continue;
+                }
+
+                var (option, languageName) = optionsToRefresh[i];
+                if (option is IPerLanguageValuedOption perLanguageValuedOption)
+                {
+                    SetOption(option, valueFromClient, languageName);
                 }
                 else
                 {
-                    if (TryParseValueFromClient(configurationValue.ToString(), option, out var result))
-                    {
-                        _globalOptionService.SetGlobalOption(new OptionKey2(option, language: null), result);
-                    }
-                    else
-                    {
-                        _lspLogger.LogError($"Failed to update option: {option.Name}.");
-                    }
+                    SetOption(option, valueFromClient);
                 }
             }
         }
 
-        private async Task<ImmutableArray<string>> GetConfigurationsAsync(ImmutableArray<ConfigurationItem> configurationItems, CancellationToken cancellationToken)
+        private void SetOption(IOption2 option, string valueFromClient, string? languageName = null)
+        {
+            var optionValue = JsonConvert.DeserializeObject<JObject>(valueFromClient)?.SelectToken("optionValue")?.Value<string>();
+            if (optionValue != null && option.Definition.Serializer.TryParse(optionValue, out var result))
+            {
+                if (option is IPerLanguageValuedOption && languageName != null)
+                {
+                    _globalOptionService.SetGlobalOption(new OptionKey2(option, language: languageName), result);
+                }
+                else
+                {
+                    _globalOptionService.SetGlobalOption(new OptionKey2(option, language: null), result);
+                }
+            }
+        }
+
+        private async Task<ImmutableArray<string>> GetConfigurationsAsync(CancellationToken cancellationToken)
         {
             try
             {
-                var configurationParams = new ConfigurationParams() { Items = configurationItems.AsArray() };
+                var configurationParams = new ConfigurationParams() { Items = _configurationItems.AsArray() };
                 var options = await _clientLanguageServerManager.SendRequestAsync<ConfigurationParams, JArray>(
                     Methods.WorkspaceConfigurationName, configurationParams, cancellationToken).ConfigureAwait(false);
 
@@ -119,18 +131,45 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             return ImmutableArray<string>.Empty;
         }
 
-        private bool TryParseValueFromClient(string value, IOption2 option, out object? result)
+        private static ImmutableArray<ConfigurationItem> GenerateGlobalConfigurationItems()
         {
-            if (!option.Definition.Serializer.TryParse(value, out result))
+            using var _ = ArrayBuilder<ConfigurationItem>.GetInstance(out var builder);
+            foreach (var option in SupportedOptions)
             {
-                _lspLogger.LogError($"Failed to parse client value: {value} to type: {option.Definition.Type}.");
-                return false;
+                var fullOptionName = GenerateFullNameForOption(option);
+                if (option is IPerLanguageValuedOption)
+                {
+                    builder.Add(new ConfigurationItem()
+                    {
+                        Section = string.Concat("csharp.", fullOptionName),
+                    });
+                    builder.Add(new ConfigurationItem()
+                    {
+                        Section = string.Concat("visual_basic.", fullOptionName),
+                    });
+                }
+                else
+                {
+                    builder.Add(new ConfigurationItem()
+                    {
+                        Section = fullOptionName,
+                    });
+                }
             }
 
-            return true;
+            return builder.ToImmutable();
         }
 
-        private static string GenerateSection(IOption2 option)
+        private static string GenerateFullNameForOption(IOption2 option)
+        {
+            var optionGroupName = GenerateOptionGroupName(option);
+            // All options send to the client should have group name and config name.
+            RoslynDebug.Assert(!string.IsNullOrEmpty(optionGroupName));
+            RoslynDebug.Assert(!string.IsNullOrEmpty(option.Definition.ConfigName));
+            return string.Concat(optionGroupName, '.', option.Definition.ConfigName);
+        }
+
+        private static string GenerateOptionGroupName(IOption2 option)
         {
             using var pooledStack = SharedPools.Default<Stack<string>>().GetPooledObject();
             var stack = pooledStack.Object;
@@ -156,6 +195,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 
                     stringBuilder.Append(stack.Pop());
                 }
+
                 groupFullName = stringBuilder.ToString();
             }
             finally
@@ -163,10 +203,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                 pooledStringBuilder.Free();
             }
 
-            // All options send to the client should have group name and config name.
-            RoslynDebug.Assert(!string.IsNullOrEmpty(groupFullName));
-            RoslynDebug.Assert(!string.IsNullOrEmpty(option.Definition.ConfigName));
-            return string.Concat(groupFullName, '.', option.Definition.ConfigName);
+            return groupFullName;
         }
     }
 }
