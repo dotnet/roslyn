@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MiscellaneousFilesWorkspace.  In
             // those cases, we do not need to add an additional workspace to manage new files we hear about.  So only
             // add the LspMiscellaneousFilesWorkspace for hosts that have not already brought their own.
-            if (serverKind != WellKnownLspServerKinds.CSharpVisualBasicLspServer)
+            if (serverKind == WellKnownLspServerKinds.CSharpVisualBasicLspServer)
                 AddBaseService<LspMiscellaneousFilesWorkspace>(new LspMiscellaneousFilesWorkspace(hostServices));
 
             return baseServices.ToImmutableDictionary();
