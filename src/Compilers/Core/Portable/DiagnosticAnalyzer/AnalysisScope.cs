@@ -90,13 +90,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 Debug.Assert(filterFile.HasValue);
                 Debug.Assert(filterFile.Value.SourceTree != null);
-                Debug.Assert(filterSpanOpt.Value.Length <= filterFile.Value.SourceTree.Length);
 
-                // PERF: Clear out filter span if the span length is equal to the entire tree span.
+                // PERF: Clear out filter span if the span length is equal to the entire tree span, and the filter span starts at 0.
                 //       We are basically analyzing the entire tree, and clearing out the filter span
                 //       avoids span intersection checks for each symbol/node/operation in the tree
                 //       to determine if it falls in the analysis scope.
-                if (filterSpanOpt.Value.Length == filterFile.Value.SourceTree.Length)
+                if (filterSpanOpt.Value.Start == 0 && filterSpanOpt.Value.Length == filterFile.Value.SourceTree.Length)
                 {
                     filterSpanOpt = null;
                 }
@@ -135,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public AnalysisScope WithFilterSpan(TextSpan? filterSpan)
-            => new(SyntaxTrees, AdditionalFiles, Analyzers, IsPartialAnalysis, FilterFileOpt, filterSpan, IsSyntacticSingleFileAnalysis, ConcurrentAnalysis, CategorizeDiagnostics);
+            => new AnalysisScope(SyntaxTrees, AdditionalFiles, Analyzers, IsPartialAnalysis, FilterFileOpt, filterSpan, IsSyntacticSingleFileAnalysis, ConcurrentAnalysis, CategorizeDiagnostics);
 
         public static bool ShouldSkipSymbolAnalysis(SymbolDeclaredCompilationEvent symbolEvent)
         {
