@@ -293,7 +293,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("y", tt.Elements[1].Identifier.ToString());
             Assert.Equal(2, tt.Elements.Count);
 
-
             tt = (TupleTypeSyntax)tt.Elements[1].Type;
 
             Assert.Equal("(U k, V l, W m)", tt.ToString());
@@ -2685,7 +2684,13 @@ class C
         using await var x = null;
     }
 }
-");
+",
+                // (6,15): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //         using await var x = null;
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(6, 15),
+                // (6,25): error CS1002: ; expected
+                //         using await var x = null;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(6, 25));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -3454,7 +3459,7 @@ class C
             tree.GetDiagnostics(root).Verify(
                 // (7,36): error CS1003: Syntax error, 'when' expected
                 //         catch (System.Exception e) if (true) { }
-                CSharpTestBase.Diagnostic(ErrorCode.ERR_SyntaxError, "if").WithArguments("when", "if").WithLocation(7, 36));
+                CSharpTestBase.Diagnostic(ErrorCode.ERR_SyntaxError, "if").WithArguments("when").WithLocation(7, 36));
 
             var filterClause = root.DescendantNodes().OfType<CatchFilterClauseSyntax>().Single();
             Assert.Equal(SyntaxKind.WhenKeyword, filterClause.WhenKeyword.Kind());
@@ -3591,7 +3596,7 @@ System.Console.WriteLine(true)";
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 1),
                 // (1,1): error CS1003: Syntax error, '(' expected
                 // else {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(").WithLocation(1, 1),
                 // (1,1): error CS1525: Invalid expression term 'else'
                 // else {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 1),
@@ -3645,7 +3650,7 @@ System.Console.WriteLine(true)";
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 3),
                 // (1,3): error CS1003: Syntax error, '(' expected
                 // { else {} else {} }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 3),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(").WithLocation(1, 3),
                 // (1,3): error CS1525: Invalid expression term 'else'
                 // { else {} else {} }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 3),
@@ -3663,7 +3668,7 @@ System.Console.WriteLine(true)";
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 11),
                 // (1,11): error CS1003: Syntax error, '(' expected
                 // { else {} else {} }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(").WithLocation(1, 11),
                 // (1,11): error CS1525: Invalid expression term 'else'
                 // { else {} else {} }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 11),
@@ -3749,7 +3754,7 @@ System.Console.WriteLine(true)";
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 23),
                 // (1,23): error CS1003: Syntax error, '(' expected
                 // { if (a) { } else { } else { } }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 23),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(").WithLocation(1, 23),
                 // (1,23): error CS1525: Invalid expression term 'else'
                 // { if (a) { } else { } else { } }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 23),
@@ -3832,7 +3837,7 @@ System.Console.WriteLine(true)";
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 8),
                 // (1,8): error CS1003: Syntax error, '(' expected
                 // if (a) else {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 8),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(").WithLocation(1, 8),
                 // (1,8): error CS1525: Invalid expression term 'else'
                 // if (a) else {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 8),
@@ -4179,7 +4184,7 @@ System.Console.WriteLine(true)";
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "*").WithLocation(1, 7),
                 // (1,7): error CS1003: Syntax error, ',' expected
                 // int []* p;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "*").WithArguments(",", "*").WithLocation(1, 7)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "*").WithArguments(",").WithLocation(1, 7)
                 );
             N(SyntaxKind.LocalDeclarationStatement);
             {
@@ -4243,6 +4248,491 @@ System.Console.WriteLine(true)";
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(66971, "https://github.com/dotnet/roslyn/issues/66971")]
+        public void ParseCaseWithoutSwitch()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        case int when SomeTest():
+                            Console.WriteLine("answer");
+                            break;
+                        }
+                    }
+                }
+                """,
+                // (4,6): error CS1003: Syntax error, 'switch' expected
+                //     {
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("switch").WithLocation(4, 6));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchStatement);
+                            {
+                                M(SyntaxKind.SwitchKeyword);
+                                M(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                                M(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SwitchSection);
+                                {
+                                    N(SyntaxKind.CasePatternSwitchLabel);
+                                    {
+                                        N(SyntaxKind.CaseKeyword);
+                                        N(SyntaxKind.TypePattern);
+                                        {
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                        }
+                                        N(SyntaxKind.WhenClause);
+                                        {
+                                            N(SyntaxKind.WhenKeyword);
+                                            N(SyntaxKind.InvocationExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "SomeTest");
+                                                }
+                                                N(SyntaxKind.ArgumentList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.ColonToken);
+                                    }
+                                    N(SyntaxKind.ExpressionStatement);
+                                    {
+                                        N(SyntaxKind.InvocationExpression);
+                                        {
+                                            N(SyntaxKind.SimpleMemberAccessExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Console");
+                                                }
+                                                N(SyntaxKind.DotToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "WriteLine");
+                                                }
+                                            }
+                                            N(SyntaxKind.ArgumentList);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.Argument);
+                                                {
+                                                    N(SyntaxKind.StringLiteralExpression);
+                                                    {
+                                                        N(SyntaxKind.StringLiteralToken, "\"answer\"");
+                                                    }
+                                                }
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
+                                    N(SyntaxKind.BreakStatement);
+                                    {
+                                        N(SyntaxKind.BreakKeyword);
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(66971, "https://github.com/dotnet/roslyn/issues/66971")]
+        public void ParseErrantStatementInCase1()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        switch (expr)
+                        {
+                            int i;
+
+                            case int when SomeTest():
+                                Console.WriteLine("answer");
+                                break;
+                        }
+                    }
+                }
+                """,
+                // (6,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 10),
+                // (7,19): error CS1003: Syntax error, 'switch' expected
+                //             int i;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("switch").WithLocation(7, 19));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchStatement);
+                            {
+                                N(SyntaxKind.SwitchKeyword);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "expr");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.OpenBraceToken);
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "i");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.SwitchStatement);
+                            {
+                                M(SyntaxKind.SwitchKeyword);
+                                M(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                                M(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SwitchSection);
+                                {
+                                    N(SyntaxKind.CasePatternSwitchLabel);
+                                    {
+                                        N(SyntaxKind.CaseKeyword);
+                                        N(SyntaxKind.TypePattern);
+                                        {
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                        }
+                                        N(SyntaxKind.WhenClause);
+                                        {
+                                            N(SyntaxKind.WhenKeyword);
+                                            N(SyntaxKind.InvocationExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "SomeTest");
+                                                }
+                                                N(SyntaxKind.ArgumentList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.ColonToken);
+                                    }
+                                    N(SyntaxKind.ExpressionStatement);
+                                    {
+                                        N(SyntaxKind.InvocationExpression);
+                                        {
+                                            N(SyntaxKind.SimpleMemberAccessExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Console");
+                                                }
+                                                N(SyntaxKind.DotToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "WriteLine");
+                                                }
+                                            }
+                                            N(SyntaxKind.ArgumentList);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.Argument);
+                                                {
+                                                    N(SyntaxKind.StringLiteralExpression);
+                                                    {
+                                                        N(SyntaxKind.StringLiteralToken, "\"answer\"");
+                                                    }
+                                                }
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
+                                    N(SyntaxKind.BreakStatement);
+                                    {
+                                        N(SyntaxKind.BreakKeyword);
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(66971, "https://github.com/dotnet/roslyn/issues/66971")]
+        public void ParseErrantStatementInCase2()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        switch (new object())
+                        {
+                            bool SomeTest() => o is 42;
+
+                            case int when SomeTest():
+                                Console.WriteLine("answer");
+                                break;
+                        }
+                    }
+                }
+                """,
+                // (6,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 10),
+                // (7,40): error CS1003: Syntax error, 'switch' expected
+                //             bool SomeTest() => o is 42;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("switch").WithLocation(7, 40));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchStatement);
+                            {
+                                N(SyntaxKind.SwitchKeyword);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.ObjectCreationExpression);
+                                {
+                                    N(SyntaxKind.NewKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.ObjectKeyword);
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.OpenBraceToken);
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                            N(SyntaxKind.LocalFunctionStatement);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.BoolKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "SomeTest");
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.ArrowExpressionClause);
+                                {
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.IsPatternExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "o");
+                                        }
+                                        N(SyntaxKind.IsKeyword);
+                                        N(SyntaxKind.ConstantPattern);
+                                        {
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "42");
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.SwitchStatement);
+                            {
+                                M(SyntaxKind.SwitchKeyword);
+                                M(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                                M(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SwitchSection);
+                                {
+                                    N(SyntaxKind.CasePatternSwitchLabel);
+                                    {
+                                        N(SyntaxKind.CaseKeyword);
+                                        N(SyntaxKind.TypePattern);
+                                        {
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                        }
+                                        N(SyntaxKind.WhenClause);
+                                        {
+                                            N(SyntaxKind.WhenKeyword);
+                                            N(SyntaxKind.InvocationExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "SomeTest");
+                                                }
+                                                N(SyntaxKind.ArgumentList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.ColonToken);
+                                    }
+                                    N(SyntaxKind.ExpressionStatement);
+                                    {
+                                        N(SyntaxKind.InvocationExpression);
+                                        {
+                                            N(SyntaxKind.SimpleMemberAccessExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Console");
+                                                }
+                                                N(SyntaxKind.DotToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "WriteLine");
+                                                }
+                                            }
+                                            N(SyntaxKind.ArgumentList);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.Argument);
+                                                {
+                                                    N(SyntaxKind.StringLiteralExpression);
+                                                    {
+                                                        N(SyntaxKind.StringLiteralToken, "\"answer\"");
+                                                    }
+                                                }
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
+                                    N(SyntaxKind.BreakStatement);
+                                    {
+                                        N(SyntaxKind.BreakKeyword);
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
             }
             EOF();
         }

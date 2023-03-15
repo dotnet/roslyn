@@ -8,7 +8,7 @@ namespace Roslyn.Utilities
 {
     internal partial class BKTree
     {
-        private struct Node
+        private readonly struct Node
         {
             /// <summary>
             /// The string this node corresponds to.  Specifically, this span is the range of

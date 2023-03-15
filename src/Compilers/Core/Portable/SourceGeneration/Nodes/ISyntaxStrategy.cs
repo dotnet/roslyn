@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.SourceGeneration;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis
 
     internal interface ISyntaxInputBuilder
     {
-        void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken);
+        void VisitTree(Lazy<SyntaxNode> root, EntryState state, Lazy<SemanticModel>? model, CancellationToken cancellationToken);
 
         void SaveStateAndFree(StateTableStore.Builder tableStoreBuilder);
     }

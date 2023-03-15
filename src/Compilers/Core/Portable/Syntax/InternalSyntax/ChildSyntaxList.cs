@@ -41,7 +41,9 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         }
 
         // for debugging
+#pragma warning disable IDE0051 // Remove unused private members
         private GreenNode[] Nodes
+#pragma warning restore IDE0051 // Remove unused private members
         {
             get
             {

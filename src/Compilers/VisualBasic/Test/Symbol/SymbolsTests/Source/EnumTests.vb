@@ -198,7 +198,6 @@ BC30439: Constant expression not representable in type 'Byte'.
 
 </errors>)
 
-
             comp = CompilationUtils.CreateCompilationWithMscorlib40(text, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(comp, <errors>
@@ -496,7 +495,8 @@ BC30396: 'NotInheritable' is not valid on an Enum declaration.
             End Enum
             Shared Sub Main()
                 Dim S As Suits = CType(2, Suits)
-                Console.WriteLine(S.ToString())     ' ValueE
+                Console.WriteLine(S = Suits.ValueB)
+                Console.WriteLine(S = Suits.ValueE)
                 Dim S1 As Suits = CType(-1, Suits)
                 Console.WriteLine(S1.ToString())        ' 255
             End Sub
@@ -505,8 +505,9 @@ BC30396: 'NotInheritable' is not valid on an Enum declaration.
 </compilation>
 
             VerifyEnumsValue(text, "c1.Suits", 1, 2, 4, 2, 2)
-            Dim expectedOutput = <![CDATA[
-ValueE
+
+            Dim expectedOutput = <![CDATA[True
+True
 -1
 ]]>
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(text, TestOptions.ReleaseExe)
@@ -981,7 +982,6 @@ End Enum
                     Diagnostic(ERRID.ERR_InvInsideEnum, "goo:"))
         End Sub
 
-
         <WorkItem(540557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540557")>
         <Fact>
         Public Sub EnumInDifferentFile()
@@ -1004,7 +1004,6 @@ Module M1
 End Module
 
     </file>
-
     <file name="color.vb">
 Public Enum Color    
     red    

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
             {
                 using (Logger.LogBlock(FunctionId.DocumentState_ComputeChecksumsAsync, FilePath, cancellationToken))
                 {
-                    var serializer = solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
+                    var serializer = solutionServices.GetRequiredService<ISerializerService>();
 
                     var infoChecksum = serializer.CreateChecksum(Attributes, cancellationToken);
                     var serializableText = await SerializableSourceText.FromTextDocumentStateAsync(this, cancellationToken).ConfigureAwait(false);
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Since this method is expected to be called on every nested expression of the argument, it doesn't
         /// need to recurse (directly).
         /// </remarks>
-        internal static bool CanBeValidAttributeArgument(ExpressionSyntax node, Binder typeBinder)
+        internal static bool CanBeValidAttributeArgument(ExpressionSyntax node)
         {
             Debug.Assert(node != null);
             switch (node.Kind())
@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //  Literals (including the null literal).
                 case SyntaxKind.NumericLiteralExpression:
                 case SyntaxKind.StringLiteralExpression:
+                case SyntaxKind.Utf8StringLiteralExpression:
+                case SyntaxKind.InterpolatedStringExpression:
                 case SyntaxKind.CharacterLiteralExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.FalseLiteralExpression:
@@ -123,6 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ModuloExpression:
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
+                case SyntaxKind.UnsignedRightShiftExpression:
                 case SyntaxKind.BitwiseAndExpression:
                 case SyntaxKind.BitwiseOrExpression:
                 case SyntaxKind.ExclusiveOrExpression:

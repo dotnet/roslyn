@@ -4,14 +4,12 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
@@ -25,14 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
         public UseExpressionBodyDiagnosticAnalyzer()
-            : base(GetSupportedDescriptorsWithOptions(), LanguageNames.CSharp)
+            : base(GetSupportedDescriptorsWithOptions())
         {
             _syntaxKinds = _helpers.SelectMany(h => h.SyntaxKinds).ToImmutableArray();
         }
 
-        private static ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption> GetSupportedDescriptorsWithOptions()
+        private static ImmutableDictionary<DiagnosticDescriptor, IOption2> GetSupportedDescriptorsWithOptions()
         {
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticDescriptor, ILanguageSpecificOption>();
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticDescriptor, IOption2>();
             foreach (var helper in _helpers)
             {
                 var descriptor = CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle);
@@ -50,10 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var options = context.Options;
-            var syntaxTree = context.Node.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-            var optionSet = options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
+            var options = context.GetCSharpAnalyzerOptions().GetCodeGenerationOptions();
 
             var nodeKind = context.Node.Kind();
 
@@ -63,13 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 var grandparent = context.Node.GetRequiredParent().GetRequiredParent();
 
                 if (grandparent.Kind() == SyntaxKind.PropertyDeclaration &&
-                    AnalyzeSyntax(optionSet, grandparent, UseExpressionBodyForPropertiesHelper.Instance) != null)
+                    AnalyzeSyntax(options, grandparent, UseExpressionBodyForPropertiesHelper.Instance) != null)
                 {
                     return;
                 }
 
                 if (grandparent.Kind() == SyntaxKind.IndexerDeclaration &&
-                    AnalyzeSyntax(optionSet, grandparent, UseExpressionBodyForIndexersHelper.Instance) != null)
+                    AnalyzeSyntax(options, grandparent, UseExpressionBodyForIndexersHelper.Instance) != null)
                 {
                     return;
                 }
@@ -79,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 if (helper.SyntaxKinds.Contains(nodeKind))
                 {
-                    var diagnostic = AnalyzeSyntax(optionSet, context.Node, helper);
+                    var diagnostic = AnalyzeSyntax(options, context.Node, helper);
                     if (diagnostic != null)
                     {
                         context.ReportDiagnostic(diagnostic);
@@ -90,12 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         private static Diagnostic? AnalyzeSyntax(
-            OptionSet optionSet, SyntaxNode declaration, UseExpressionBodyHelper helper)
+            CSharpCodeGenerationOptions options, SyntaxNode declaration, UseExpressionBodyHelper helper)
         {
-            var preferExpressionBodiedOption = optionSet.GetOption(helper.Option);
-            var severity = preferExpressionBodiedOption.Notification.Severity;
+            var preference = helper.GetExpressionBodyPreference(options);
+            var severity = preference.Notification.Severity;
 
-            if (helper.CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: true))
+            if (helper.CanOfferUseExpressionBody(preference, declaration, forAnalyzer: true))
             {
                 var location = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden
                     ? declaration.GetLocation()
@@ -108,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                     location, severity, additionalLocations: additionalLocations, properties: properties);
             }
 
-            if (helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: true, out var fixesError, out var expressionBody))
+            if (helper.CanOfferUseBlockBody(preference, declaration, forAnalyzer: true, out var fixesError, out var expressionBody))
             {
                 // They have an expression body.  Create a diagnostic to convert it to a block
                 // if they don't want expression bodies for this member.  

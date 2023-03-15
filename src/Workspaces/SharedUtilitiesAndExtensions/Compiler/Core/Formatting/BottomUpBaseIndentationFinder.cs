@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return Math.Max(0, indentationLevel + extraSpaces);
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private (int indentation, IndentBlockOperation? operation) GetIndentationRuleOfCurrentPosition(

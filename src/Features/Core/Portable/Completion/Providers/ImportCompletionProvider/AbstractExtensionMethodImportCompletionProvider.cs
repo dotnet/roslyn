@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -11,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
@@ -27,6 +26,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfExtensionMethodImportCompletionItem();
 
+        protected override void WarmUpCacheInBackground(Document document)
+        {
+            _ = ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None);
+        }
+
         protected override async Task AddCompletionItemsAsync(
             CompletionContext completionContext,
             SyntaxContext syntaxContext,
@@ -38,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
                 {
-                    var ticks = Environment.TickCount;
+
                     var inferredTypes = completionContext.CompletionOptions.TargetTypedCompletionFilter
                         ? syntaxContext.InferredTypes
                         : ImmutableArray<ITypeSymbol>.Empty;
@@ -49,23 +53,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         receiverTypeSymbol,
                         namespaceInScope,
                         inferredTypes,
-                        forceIndexCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
+                        forceCacheCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
                         hideAdvancedMembers: completionContext.CompletionOptions.HideAdvancedMembers,
                         cancellationToken).ConfigureAwait(false);
 
-                    if (result is null)
-                        return;
-
-                    var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
-                    completionContext.AddItems(result.CompletionItems.Select(i => Convert(i, receiverTypeKey)));
-
-                    // report telemetry:
-                    var totalTicks = Environment.TickCount - ticks;
-                    CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(
-                        totalTicks, result.GetSymbolsTicks, result.CreateItemsTicks, result.IsRemote);
-
-                    if (result.IsPartialResult)
-                        CompletionProvidersLogger.LogExtensionMethodCompletionPartialResultCount();
+                    if (result is not null)
+                    {
+                        var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
+                        completionContext.AddItems(result.CompletionItems.Select(i => Convert(i, receiverTypeKey)));
+                    }
                 }
             }
         }
@@ -93,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     receiverTypeSymbol = syntaxContext.SemanticModel.GetTypeInfo(expressionNode, cancellationToken).Type;
                     if (receiverTypeSymbol is IErrorTypeSymbol errorTypeSymbol)
                     {
-                        receiverTypeSymbol = errorTypeSymbol.CandidateSymbols.Select(s => GetSymbolType(s)).FirstOrDefault(s => s != null);
+                        receiverTypeSymbol = errorTypeSymbol.CandidateSymbols.Select(GetSymbolType).FirstOrDefault(s => s != null);
                     }
 
                     return receiverTypeSymbol != null;

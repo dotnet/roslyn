@@ -241,8 +241,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-#nullable disable
-        public static void FreeAll<T>(this ArrayBuilder<T> builder, Func<T, ArrayBuilder<T>> getNested)
+        public static void FreeAll<T>(this ArrayBuilder<T> builder, Func<T, ArrayBuilder<T>?> getNested)
         {
             foreach (var item in builder)
             {
@@ -250,6 +249,5 @@ namespace Microsoft.CodeAnalysis
             }
             builder.Free();
         }
-#nullable enable
     }
 }

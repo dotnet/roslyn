@@ -11,7 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -69,6 +69,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsImplicitObjectCreation = false;
                 var containsGlobalSuppressMessageAttribute = false;
                 var containsConversion = false;
+                var containsGlobalKeyword = false;
+                var containsCollectionInitializer = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
@@ -86,8 +88,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsLockStatement = containsLockStatement || syntaxFacts.IsLockStatement(node);
                             containsUsingStatement = containsUsingStatement || syntaxFacts.IsUsingStatement(node);
                             containsQueryExpression = containsQueryExpression || syntaxFacts.IsQueryExpression(node);
-                            containsElementAccess = containsElementAccess || syntaxFacts.IsElementAccessExpression(node);
-                            containsIndexerMemberCref = containsIndexerMemberCref || syntaxFacts.IsIndexerMemberCRef(node);
+                            containsElementAccess = containsElementAccess || (syntaxFacts.IsElementAccessExpression(node) || syntaxFacts.IsImplicitElementAccess(node));
+                            containsIndexerMemberCref = containsIndexerMemberCref || syntaxFacts.IsIndexerMemberCref(node);
 
                             containsDeconstruction = containsDeconstruction || syntaxFacts.IsDeconstructionAssignment(node)
                                 || syntaxFacts.IsDeconstructionForEachStatement(node);
@@ -98,6 +100,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsImplicitObjectCreation = containsImplicitObjectCreation || syntaxFacts.IsImplicitObjectCreationExpression(node);
                             containsGlobalSuppressMessageAttribute = containsGlobalSuppressMessageAttribute || IsGlobalSuppressMessageAttribute(syntaxFacts, node);
                             containsConversion = containsConversion || syntaxFacts.IsConversionExpression(node);
+                            containsCollectionInitializer = containsCollectionInitializer || syntaxFacts.IsObjectCollectionInitializer(node);
 
                             TryAddGlobalAliasInfo(syntaxFacts, ref globalAliasInfo, node);
                         }
@@ -107,17 +110,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                             containsThisConstructorInitializer = containsThisConstructorInitializer || syntaxFacts.IsThisConstructorInitializer(token);
                             containsBaseConstructorInitializer = containsBaseConstructorInitializer || syntaxFacts.IsBaseConstructorInitializer(token);
+                            containsGlobalKeyword = containsGlobalKeyword || syntaxFacts.IsGlobalNamespaceKeyword(token);
 
-                            if (syntaxFacts.IsIdentifier(token) ||
-                                syntaxFacts.IsGlobalNamespaceKeyword(token))
+                            if (syntaxFacts.IsIdentifier(token))
                             {
                                 var valueText = token.ValueText;
 
                                 identifiers.Add(valueText);
                                 if (valueText.Length != token.Width())
-                                {
                                     escapedIdentifiers.Add(valueText);
-                                }
                             }
 
                             if (syntaxFacts.TryGetPredefinedType(token, out var predefinedType))
@@ -171,22 +172,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         new BloomFilter(FalsePositiveProbability, isCaseSensitive, identifiers),
                         new BloomFilter(FalsePositiveProbability, isCaseSensitive, escapedIdentifiers)),
                     new ContextInfo(
-                            predefinedTypes,
-                            predefinedOperators,
-                            containsForEachStatement,
-                            containsLockStatement,
-                            containsUsingStatement,
-                            containsQueryExpression,
-                            containsThisConstructorInitializer,
-                            containsBaseConstructorInitializer,
-                            containsElementAccess,
-                            containsIndexerMemberCref,
-                            containsDeconstruction,
-                            containsAwait,
-                            containsTupleExpressionOrTupleType,
-                            containsImplicitObjectCreation,
-                            containsGlobalSuppressMessageAttribute,
-                            containsConversion),
+                        predefinedTypes,
+                        predefinedOperators,
+                        containsForEachStatement,
+                        containsLockStatement,
+                        containsUsingStatement,
+                        containsQueryExpression,
+                        containsThisConstructorInitializer,
+                        containsBaseConstructorInitializer,
+                        containsElementAccess,
+                        containsIndexerMemberCref,
+                        containsDeconstruction,
+                        containsAwait,
+                        containsTupleExpressionOrTupleType,
+                        containsImplicitObjectCreation,
+                        containsGlobalSuppressMessageAttribute,
+                        containsConversion,
+                        containsGlobalKeyword,
+                        containsCollectionInitializer),
                     globalAliasInfo);
             }
             finally

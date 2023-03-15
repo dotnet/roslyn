@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 {
     internal partial class PatternMatcher
     {
-        private struct CamelCaseResult
+        private readonly struct CamelCaseResult
         {
             public readonly bool FromStart;
             public readonly bool Contiguous;

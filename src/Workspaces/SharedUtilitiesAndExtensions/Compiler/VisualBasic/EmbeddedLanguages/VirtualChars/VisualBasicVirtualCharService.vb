@@ -3,8 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
     Friend Class VisualBasicVirtualCharService
@@ -26,6 +26,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
                 Return VisualBasicSyntaxFacts.Instance
             End Get
         End Property
+
+        Protected Overrides Function IsMultiLineRawStringToken(token As SyntaxToken) As Boolean
+            Return False
+        End Function
 
         Protected Overrides Function TryConvertToVirtualCharsWorker(token As SyntaxToken) As VirtualCharSequence
             Debug.Assert(Not token.ContainsDiagnostics)

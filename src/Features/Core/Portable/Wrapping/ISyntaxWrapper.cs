@@ -6,6 +6,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Indentation;
 
 namespace Microsoft.CodeAnalysis.Wrapping
 {
@@ -26,6 +27,6 @@ namespace Microsoft.CodeAnalysis.Wrapping
         /// node passed in.  Returns <see langword="null"/> if this Wrapper cannot wrap this node.
         /// </summary>
         Task<ICodeActionComputer> TryCreateComputerAsync(
-            Document document, int position, SyntaxNode node, bool containsSyntaxError, CancellationToken cancellationToken);
+            Document document, int position, SyntaxNode node, SyntaxWrappingOptions options, bool containsSyntaxError, CancellationToken cancellationToken);
     }
 }

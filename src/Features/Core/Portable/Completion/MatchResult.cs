@@ -2,57 +2,65 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PatternMatching;
-using Roslyn.Utilities;
-using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal readonly struct MatchResult<TEditorCompletionItem>
+    internal readonly struct MatchResult
     {
-        public readonly RoslynCompletionItem RoslynCompletionItem;
-        public readonly bool MatchedFilterText;
+        /// <summary>
+        /// The CompletionItem used to create this MatchResult.
+        /// </summary>
+        public readonly CompletionItem CompletionItem;
 
-        // In certain cases, there'd be no match but we'd still set `MatchedFilterText` to true,
-        // e.g. when the item is in MRU list. Therefore making this nullable.
         public readonly PatternMatch? PatternMatch;
 
-        /// <summary>
-        /// The actual editor completion item associated with this <see cref="RoslynCompletionItem"/>
-        /// In VS for example, this is the associated VS async completion item.
-        /// </summary>
-        public readonly TEditorCompletionItem EditorCompletionItem;
+        // The value of `ShouldBeConsideredMatchingFilterText` doesn't 100% reflect the actual PatternMatch result.
+        // In certain cases, there'd be no match but we'd still want to consider it a match (e.g. when the item is in MRU list,)
+        // and this is why PatternMatch can be null. There's also cases it's a match but we want to consider it a non-match
+        // (e.g. when not a prefix match in deletion scenario).
+        public readonly bool ShouldBeConsideredMatchingFilterText;
+
+        public string FilterTextUsed => MatchedAdditionalFilterText ?? CompletionItem.FilterText;
 
         // We want to preserve the original alphabetical order for items with same pattern match score,
         // but `ArrayBuilder.Sort` we currently use isn't stable. So we have to add a monotonically increasing 
-        // integer to archieve this.
-        private readonly int _indexInOriginalSortedOrder;
+        // integer to achieve this.
+        public readonly int IndexInOriginalSortedOrder;
+        public readonly int RecentItemIndex;
+
+        /// <summary>
+        /// If `CompletionItem.AdditionalFilterTexts` was used to create this MatchResult, then this is set to the one that was used.
+        /// Otherwise this is set to null.
+        /// </summary>
+        public readonly string? MatchedAdditionalFilterText;
+
+        public bool MatchedWithAdditionalFilterTexts => MatchedAdditionalFilterText is not null;
 
         public MatchResult(
-            RoslynCompletionItem roslynCompletionItem,
-            TEditorCompletionItem editorCompletionItem,
-            bool matchedFilterText,
+            CompletionItem completionItem,
+            bool shouldBeConsideredMatchingFilterText,
             PatternMatch? patternMatch,
-            int index)
+            int index,
+            string? matchedAdditionalFilterText,
+            int recentItemIndex = -1)
         {
-            RoslynCompletionItem = roslynCompletionItem;
-            EditorCompletionItem = editorCompletionItem;
-            MatchedFilterText = matchedFilterText;
+            CompletionItem = completionItem;
+            ShouldBeConsideredMatchingFilterText = shouldBeConsideredMatchingFilterText;
             PatternMatch = patternMatch;
-            _indexInOriginalSortedOrder = index;
+            IndexInOriginalSortedOrder = index;
+            RecentItemIndex = recentItemIndex;
+            MatchedAdditionalFilterText = matchedAdditionalFilterText;
         }
 
-        public static IComparer<MatchResult<TEditorCompletionItem>> SortingComparer => FilterResultSortingComparer.Instance;
+        public static IComparer<MatchResult> SortingComparer { get; } = new Comparer();
 
-        private class FilterResultSortingComparer : IComparer<MatchResult<TEditorCompletionItem>>
+        private class Comparer : IComparer<MatchResult>
         {
-            public static FilterResultSortingComparer Instance { get; } = new FilterResultSortingComparer();
-
             // This comparison is used for sorting items in the completion list for the original sorting.
-            public int Compare(MatchResult<TEditorCompletionItem> x, MatchResult<TEditorCompletionItem> y)
+
+            public int Compare(MatchResult x, MatchResult y)
             {
                 var matchX = x.PatternMatch;
                 var matchY = y.PatternMatch;
@@ -62,10 +70,13 @@ namespace Microsoft.CodeAnalysis.Completion
                     if (matchY.HasValue)
                     {
                         var ret = matchX.Value.CompareTo(matchY.Value);
+
+                        // We'd rank match of FilterText over match of any of AdditionalFilterTexts if they has same pattern match score
+                        if (ret == 0)
+                            ret = x.MatchedWithAdditionalFilterTexts.CompareTo(y.MatchedWithAdditionalFilterTexts);
+
                         // We want to preserve the original order for items with same pattern match score.
-                        return ret == 0
-                            ? x._indexInOriginalSortedOrder - y._indexInOriginalSortedOrder
-                            : ret;
+                        return ret == 0 ? x.IndexInOriginalSortedOrder - y.IndexInOriginalSortedOrder : ret;
                     }
 
                     return -1;
@@ -76,27 +87,8 @@ namespace Microsoft.CodeAnalysis.Completion
                     return 1;
                 }
 
-                return x._indexInOriginalSortedOrder - y._indexInOriginalSortedOrder;
+                return x.IndexInOriginalSortedOrder - y.IndexInOriginalSortedOrder;
             }
         }
-
-        // This comparison is used in the deletion/backspace scenario for selecting best elements.
-        public int CompareTo(MatchResult<TEditorCompletionItem> other, string filterText)
-            => ComparerWithState.CompareTo(this, other, filterText, s_comparers);
-
-        private static readonly ImmutableArray<Func<MatchResult<TEditorCompletionItem>, string, IComparable>> s_comparers =
-            ImmutableArray.Create<Func<MatchResult<TEditorCompletionItem>, string, IComparable>>(
-                // Prefer the item that matches a longer prefix of the filter text.
-                (f, s) => f.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(s),
-                // If there are "Abc" vs "abc", we should prefer the case typed by user.
-                (f, s) => f.RoslynCompletionItem.FilterText.GetCaseSensitivePrefixLength(s),
-                // If the lengths are the same, prefer the one with the higher match priority.
-                // But only if it's an item that would have been hard selected.  We don't want
-                // to aggressively select an item that was only going to be softly offered.
-                (f, s) => f.RoslynCompletionItem.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
-                    ? f.RoslynCompletionItem.Rules.MatchPriority
-                    : MatchPriority.Default,
-                // Prefer Intellicode items.
-                (f, s) => f.RoslynCompletionItem.IsPreferredItem());
     }
 }

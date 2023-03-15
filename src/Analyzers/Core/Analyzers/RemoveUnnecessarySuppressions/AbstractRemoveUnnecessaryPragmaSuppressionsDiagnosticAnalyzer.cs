@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         protected AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer()
             : base(ImmutableArray.Create(s_removeUnnecessarySuppressionDescriptor), GeneratedCodeAnalysisFlags.None)
         {
-            _lazySupportedCompilerErrorCodes = new Lazy<ImmutableHashSet<int>>(() => GetSupportedCompilerErrorCodes());
+            _lazySupportedCompilerErrorCodes = new Lazy<ImmutableHashSet<int>>(GetSupportedCompilerErrorCodes);
         }
 
         protected abstract string CompilerErrorCodePrefix { get; }
@@ -109,8 +109,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             }
 
             // Bail out if analyzer has been turned off through options.
-            var option = compilationWithAnalyzers.AnalysisOptions.Options?.GetOption(
-                CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions, tree, cancellationToken).Trim();
+            var option = compilationWithAnalyzers.AnalysisOptions.Options?.GetAnalyzerOptions(tree).RemoveUnnecessarySuppressionExclusions.Trim();
             var (userIdExclusions, userCategoryExclusions, analyzerDisabled) = ParseUserExclusions(option);
             if (analyzerDisabled)
             {
@@ -825,20 +824,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             category = null;
 
             if (suppressMessageAttributeType.Equals(attribute.AttributeClass) &&
-                attribute.AttributeConstructor?.Parameters.Length >= 2 &&
-                attribute.AttributeConstructor.Parameters[1].Name == "checkId" &&
-                attribute.AttributeConstructor.Parameters[1].Type.SpecialType == SpecialType.System_String &&
-                attribute.ConstructorArguments.Length >= 2 &&
-                attribute.ConstructorArguments[1] is
-                {
-                    Kind: TypedConstantKind.Primitive,
-                    Value: string checkId
-                })
+                attribute.AttributeConstructor?.Parameters is [_, { Name: "checkId", Type.SpecialType: SpecialType.System_String }, ..] &&
+                attribute.ConstructorArguments is [_, { Kind: TypedConstantKind.Primitive, Value: string checkId }, ..])
             {
                 // CheckId represents diagnostic ID, followed by an option ':' and name.
                 // For example, "CA1801:ReviewUnusedParameters"
                 var index = checkId.IndexOf(':');
-                id = index > 0 ? checkId.Substring(0, index) : checkId;
+                id = index > 0 ? checkId[..index] : checkId;
 
                 if (attribute.AttributeConstructor.Parameters[0].Name == "category" &&
                     attribute.AttributeConstructor.Parameters[0].Type.SpecialType == SpecialType.System_String &&

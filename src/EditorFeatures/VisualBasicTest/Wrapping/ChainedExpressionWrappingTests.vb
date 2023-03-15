@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.Wrapping
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
+    <Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
     Public Class ChainedExpressionWrappingTests
         Inherits AbstractWrappingTests
 
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
             Return New VisualBasicWrappingCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestMissingWithSyntaxError() As Task
             Await TestMissingAsync(
 "class C
@@ -23,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestMissingWithoutEnoughChunks() As Task
             Await TestMissingAsync(
 "class C
@@ -33,7 +34,7 @@ end class")
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestWithEnoughChunks() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -55,7 +56,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestOkWithOmittedargs() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -77,7 +78,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestUnwrap() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -99,7 +100,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestWrapAndUnwrap() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -128,7 +129,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestChunkMustHaveDottedSection() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -150,7 +151,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TrailingNonCallIsNotWrapped() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -172,7 +173,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TrailingLongWrapping1() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -216,7 +217,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TrailingLongWrapping2() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -259,7 +260,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TrailingLongWrapping3() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -300,7 +301,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestAlignToSecondDotInWith() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -328,7 +329,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestAlignToThirdDotInWith() As Task
             Await TestAllWrappingCasesAsync(
 "class C

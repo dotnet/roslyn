@@ -4,77 +4,36 @@
 
 using System;
 using System.Linq;
-using System.Threading;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
+using RoslynEnumerableExtensions = Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions.EnumerableExtensions;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.NamingStyles
 {
     internal class NamingStyleSettingsProvider : SettingsProviderBase<NamingStyleSetting, NamingStyleSettingsUpdater, (Action<(object, object?)>, NamingStyleSetting), object>
     {
-        public NamingStyleSettingsProvider(string fileName, NamingStyleSettingsUpdater settingsUpdater, Workspace workspace)
-            : base(fileName, settingsUpdater, workspace)
+        public NamingStyleSettingsProvider(string fileName, NamingStyleSettingsUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
+            : base(fileName, settingsUpdater, workspace, globalOptions)
         {
             Update();
         }
 
-        protected override void UpdateOptions(AnalyzerConfigOptions _, OptionSet optionSet)
+        protected override void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope)
         {
-            var solution = Workspace.CurrentSolution;
-            var projects = solution.GetProjectsUnderEditorConfigFile(FileName);
-            var project = projects.FirstOrDefault();
-            if (project is null)
-            {
-                return;
-            }
+            options.GetInitialLocationAndValue<NamingStylePreferences>(NamingStyleOptions.NamingPreferences, out var location, out var namingPreferences);
 
-            var options = project.State.AnalyzerOptions;
-            var document = project.Documents.FirstOrDefault();
-            if (document is null)
-            {
-                return;
-            }
+            var fileName = (location.LocationKind != LocationKind.VisualStudio) ? options.EditorConfigFileName : null;
+            var namingRules = namingPreferences.NamingRules.Select(r => r.GetRule(namingPreferences));
+            var allStyles = RoslynEnumerableExtensions.DistinctBy(namingPreferences.NamingStyles, s => s.Name).ToArray();
+            var namingStyles = namingRules.Select(namingRule => new NamingStyleSetting(namingRule, allStyles, SettingsUpdater, fileName));
 
-            var sourceTree = document.GetRequiredSyntaxTreeSynchronously(default(CancellationToken));
-            if (options.TryGetEditorConfigOption(NamingStyleOptions.NamingPreferences, sourceTree, out NamingStylePreferences? namingPreferences) &&
-                namingPreferences is not null)
-            {
-                AddNamingStylePreferences(namingPreferences, isInEditorConfig: true);
-            }
-            else
-            {
-                namingPreferences = optionSet.GetOption(NamingStyleOptions.NamingPreferences, project.Language);
-                if (namingPreferences is null)
-                {
-                    return;
-                }
-
-                AddNamingStylePreferences(namingPreferences, isInEditorConfig: false);
-            }
-
-            void AddNamingStylePreferences(NamingStylePreferences namingPreferences, bool isInEditorConfig)
-            {
-                var namingRules = namingPreferences.NamingRules.Select(r => r.GetRule(namingPreferences));
-                var allStyles = namingPreferences.NamingStyles.DistinctBy(s => s.Name).ToArray();
-                var namingStyles = namingRules
-                    .Select(namingRule =>
-                    {
-                        var style = namingRule.NamingStyle;
-                        var type = namingRule.SymbolSpecification;
-                        return isInEditorConfig
-                            ? new NamingStyleSetting(namingRule, allStyles, SettingsUpdater, FileName)
-                            : new NamingStyleSetting(namingRule, allStyles, SettingsUpdater);
-                    });
-
-                AddRange(namingStyles);
-            }
+            AddRange(namingStyles);
         }
     }
 }

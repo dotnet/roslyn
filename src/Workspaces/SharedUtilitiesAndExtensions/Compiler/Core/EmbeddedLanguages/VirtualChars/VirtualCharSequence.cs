@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -15,22 +15,22 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     /// The difference between this and the result from token.ValueText is that for each collapsed character
     /// returned the original span of text in the original token can be found.  i.e. if you had the
     /// following in C#:
-    ///
-    /// "G\u006fo"
-    ///
+    /// <para/>
+    /// <c>"G\u006fo"</c>
+    /// <para/>
     /// Then you'd get back:
-    ///
-    /// 'G' -> [0, 1) 'o' -> [1, 7) 'o' -> [7, 1)
-    ///
+    /// <para/>
+    /// <c>'G' -> [0, 1) 'o' -> [1, 7) 'o' -> [7, 1)</c>
+    /// <para/>
     /// This allows for embedded language processing that can refer back to the user's original code
     /// instead of the escaped value we're processing.
     /// </summary>
     internal partial struct VirtualCharSequence
     {
-        public static readonly VirtualCharSequence Empty = Create(ImmutableArray<VirtualChar>.Empty);
+        public static readonly VirtualCharSequence Empty = Create(ImmutableSegmentedList<VirtualChar>.Empty);
 
-        public static VirtualCharSequence Create(ImmutableArray<VirtualChar> virtualChars)
-            => new(new ImmutableArrayChunk(virtualChars));
+        public static VirtualCharSequence Create(ImmutableSegmentedList<VirtualChar> virtualChars)
+            => new(new ImmutableSegmentedListChunk(virtualChars));
 
         public static VirtualCharSequence Create(int firstVirtualCharPosition, string underlyingData)
             => new(new StringChunk(firstVirtualCharPosition, underlyingData));
@@ -46,41 +46,51 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// </summary>
         private readonly TextSpan _span;
 
-        private VirtualCharSequence(Chunk sequence) : this(sequence, new TextSpan(0, sequence.Length))
+        private VirtualCharSequence(Chunk sequence)
+            : this(sequence, new TextSpan(0, sequence.Length))
         {
         }
 
         private VirtualCharSequence(Chunk sequence, TextSpan span)
         {
             if (span.Start > sequence.Length)
-            {
                 throw new ArgumentException();
-            }
 
             if (span.End > sequence.Length)
-            {
                 throw new ArgumentException();
-            }
 
             _leafCharacters = sequence;
             _span = span;
         }
 
+        /// <summary>
+        /// Gets the number of elements contained in the <see cref="VirtualCharSequence"/>.
+        /// </summary>
         public int Length => _span.Length;
+
+        /// <summary>
+        /// Gets the <see cref="VirtualChar"/> at the specified index.
+        /// </summary>
         public VirtualChar this[int index] => _leafCharacters[_span.Start + index];
 
+        /// <summary>
+        /// Gets a value indicating whether the <see cref="VirtualCharSequence"/> was declared but not initialized.
+        /// </summary>
         public bool IsDefault => _leafCharacters == null;
         public bool IsEmpty => Length == 0;
         public bool IsDefaultOrEmpty => IsDefault || IsEmpty;
 
+        /// <summary>
+        /// Retreives a sub-sequence from this <see cref="VirtualCharSequence"/>.
+        /// </summary>
         public VirtualCharSequence GetSubSequence(TextSpan span)
            => new(_leafCharacters, new TextSpan(_span.Start + span.Start, span.Length));
 
-        public VirtualChar First() => this[0];
-        public VirtualChar Last() => this[^1];
-
         public Enumerator GetEnumerator()
             => new(this);
+
+        public VirtualChar First() => this[0];
+        public VirtualChar Last() => this[^1];
 
         /// <summary>
         /// Finds the virtual char in this sequence that contains the position.  Will return null if this position is not
@@ -106,6 +116,29 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             return -1;
         }
 
+        public VirtualChar? FirstOrNull(Func<VirtualChar, bool> predicate)
+        {
+            foreach (var ch in this)
+            {
+                if (predicate(ch))
+                    return ch;
+            }
+
+            return null;
+        }
+
+        public VirtualChar? LastOrNull(Func<VirtualChar, bool> predicate)
+        {
+            for (var i = this.Length - 1; i >= 0; i--)
+            {
+                var ch = this[i];
+                if (predicate(ch))
+                    return ch;
+            }
+
+            return null;
+        }
+
         public bool Any(Func<VirtualChar, bool> predicate)
         {
             foreach (var ch in this)
@@ -128,6 +161,26 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             return true;
         }
 
+        public VirtualCharSequence Skip(int count)
+            => this.GetSubSequence(TextSpan.FromBounds(count, this.Length));
+
+        public VirtualCharSequence SkipWhile(Func<VirtualChar, bool> predicate)
+        {
+            var start = 0;
+            foreach (var ch in this)
+            {
+                if (!predicate(ch))
+                    break;
+
+                start++;
+            }
+
+            return this.GetSubSequence(TextSpan.FromBounds(start, this.Length));
+        }
+
+        /// <summary>
+        /// Create a <see cref="string"/> from the <see cref="VirtualCharSequence"/>.
+        /// </summary>
         public string CreateString()
         {
             using var _ = PooledStringBuilder.GetInstance(out var builder);

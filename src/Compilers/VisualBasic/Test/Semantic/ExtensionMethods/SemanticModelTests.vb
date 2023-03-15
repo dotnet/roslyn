@@ -193,11 +193,9 @@ End Namespace
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-
     End Class
 
 End Namespace
-
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 

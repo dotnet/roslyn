@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
+    [Trait(Traits.Feature, Traits.Features.CodeModel)]
     public class FileCodeClassTests : AbstractFileCodeElementTests
     {
         public FileCodeClassTests()
@@ -46,7 +47,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void IsAbstract()
         {
             var cc = GetCodeClass("Goo");
@@ -55,7 +55,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Bases()
         {
             var cc = GetCodeClass("Goo");
@@ -75,7 +74,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void ImplementedInterfaces()
         {
             var cc = GetCodeClass("Goo");
@@ -96,7 +94,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void KindTest()
         {
             var cc = GetCodeClass("Goo");
@@ -105,7 +102,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Attributes()
         {
             var testObject = GetCodeClass("Bar");
@@ -113,7 +109,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_AttributesWithDelimiter()
         {
             var testObject = GetCodeClass("Bar");
@@ -125,7 +120,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Body()
         {
             var testObject = GetCodeClass("Bar");
@@ -137,7 +131,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_BodyWithDelimiter()
         {
             var testObject = GetCodeClass("Bar");
@@ -145,7 +138,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Header()
         {
             var testObject = GetCodeClass("Bar");
@@ -157,7 +149,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_HeaderWithAttributes()
         {
             var testObject = GetCodeClass("Bar");
@@ -165,7 +156,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Name()
         {
             var testObject = GetCodeClass("Bar");
@@ -173,7 +163,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Navigate()
         {
             var testObject = GetCodeClass("Bar");
@@ -185,7 +174,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Whole()
         {
             var testObject = GetCodeClass("Bar");
@@ -193,7 +181,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_WholeWithAttributes()
         {
             var testObject = GetCodeClass("Bar");
@@ -205,7 +192,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Attributes()
         {
             var testObject = GetCodeClass("Bar");
@@ -213,7 +199,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_AttributesWithDelimiter()
         {
             var testObject = GetCodeClass("Bar");
@@ -225,7 +210,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body()
         {
             var testObject = GetCodeClass("Bar");
@@ -237,7 +221,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_BodyWithDelimiter()
         {
             var testObject = GetCodeClass("Bar");
@@ -245,7 +228,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Header()
         {
             var testObject = GetCodeClass("Bar");
@@ -254,7 +236,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_HeaderWithAttributes()
         {
             var testObject = GetCodeClass("Bar");
@@ -262,7 +243,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Name()
         {
             var testObject = GetCodeClass("Bar");
@@ -270,7 +250,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Navigate()
         {
             var testObject = GetCodeClass("Bar");
@@ -282,7 +261,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Whole()
         {
             var testObject = GetCodeClass("Bar");
@@ -290,7 +268,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_WholeWithAttributes()
         {
             var testObject = GetCodeClass("Bar");
@@ -302,7 +279,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void StartPoint()
         {
             var testObject = GetCodeClass("Bar");
@@ -314,7 +290,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void EndPoint()
         {
             var testObject = GetCodeClass("Bar");
@@ -326,7 +301,6 @@ public class Bar
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Accessor()
         {
             var testObject = GetCodeClass("Bar");

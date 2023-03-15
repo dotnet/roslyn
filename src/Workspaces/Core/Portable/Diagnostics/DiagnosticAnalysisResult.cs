@@ -18,23 +18,36 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
     /// This holds onto diagnostics for a specific version of project snapshot
     /// in a way each kind of diagnostics can be queried fast.
     /// </summary>
-    internal struct DiagnosticAnalysisResult
+    internal readonly struct DiagnosticAnalysisResult
     {
         public readonly bool FromBuild;
         public readonly ProjectId ProjectId;
         public readonly VersionStamp Version;
 
-        // set of documents that has any kind of diagnostics on it
+        /// <summary>
+        /// The set of documents that has any kind of diagnostics on it.
+        /// </summary>
         public readonly ImmutableHashSet<DocumentId>? DocumentIds;
         public readonly bool IsEmpty;
 
-        // map for each kind of diagnostics
-        // syntax locals and semantic locals are self explanatory.
-        // non locals means diagnostics that belong to a tree that are produced by analyzing other files.
-        // others means diagnostics that doesnt have locations.
+        /// <summary>
+        /// Syntax diagnostics from this file.
+        /// </summary>
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? _syntaxLocals;
+
+        /// <summary>
+        /// Semantic diagnostics from this file.
+        /// </summary>
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? _semanticLocals;
+
+        /// <summary>
+        /// Diagnostics that were produced for these documents, but came from the analysis of other files.
+        /// </summary>
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? _nonLocals;
+
+        /// <summary>
+        /// Diagnostics that don't have locations.
+        /// </summary>
         private readonly ImmutableArray<DiagnosticData> _others;
 
         private DiagnosticAnalysisResult(ProjectId projectId, VersionStamp version, ImmutableHashSet<DocumentId>? documentIds, bool isEmpty, bool fromBuild)

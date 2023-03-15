@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
         private readonly ConcurrentDictionary<Guid, TestGeneratorReference> _sharedTestGeneratorReferences;
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        public TestSerializerService(ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences, HostWorkspaceServices workspaceServices)
+        public TestSerializerService(ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences, SolutionServices workspaceServices)
             : base(workspaceServices)
         {
             _sharedTestGeneratorReferences = sharedTestGeneratorReferences;
@@ -122,8 +122,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
                 {
                     lock (_gate)
                     {
-                        if (_sharedTestGeneratorReferences == null)
-                            _sharedTestGeneratorReferences = new ConcurrentDictionary<Guid, TestGeneratorReference>();
+                        _sharedTestGeneratorReferences ??= new ConcurrentDictionary<Guid, TestGeneratorReference>();
 
                         return _sharedTestGeneratorReferences;
                     }
@@ -153,7 +152,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new TestSerializerService(SharedTestGeneratorReferences, workspaceServices);
+                => new TestSerializerService(SharedTestGeneratorReferences, workspaceServices.SolutionServices);
         }
     }
 }

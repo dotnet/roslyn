@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
@@ -23,7 +24,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
         private static readonly TestComposition s_composition = LiveShareTestCompositions.Features
             .AddParts(typeof(MockDocumentNavigationServiceFactory))
             .AddParts(typeof(TestWorkspaceRegistrationService))
-            .AddParts(typeof(TestSyntaxTreeConfigurationService));
+            .AddParts(typeof(TestWorkspaceConfigurationService));
+
+        protected AbstractLiveShareRequestHandlerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
 
         private class MockHostProtocolConverter : IHostProtocolConverter
         {

@@ -10,11 +10,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -34,7 +33,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private readonly Registration _registration;
                 private readonly IAsynchronousOperationListener _listener;
                 private readonly IDocumentTrackingService _documentTracker;
-                private readonly IProjectCacheService? _cacheService;
 
                 private readonly HighPriorityProcessor _highPriorityProcessor;
                 private readonly NormalPriorityProcessor _normalPriorityProcessor;
@@ -43,7 +41,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 // NOTE: IDiagnosticAnalyzerService can be null in test environment.
                 private readonly Lazy<IDiagnosticAnalyzerService?> _lazyDiagnosticAnalyzerService;
 
-                private LogAggregator _logAggregator;
+                /// <summary>
+                /// The keys in this are either a string or a (string, Guid) tuple. See <see cref="SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics"/>
+                /// for what is writing this out.
+                /// </summary>
+                private CountLogAggregator<object> _logAggregator = new();
 
                 public IncrementalAnalyzerProcessor(
                     IAsynchronousOperationListener listener,
@@ -55,11 +57,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     TimeSpan lowBackOffTimeSpan,
                     CancellationToken shutdownToken)
                 {
-                    _logAggregator = new LogAggregator();
-
                     _listener = listener;
                     _registration = registration;
-                    _cacheService = registration.Workspace.Services.GetService<IProjectCacheService>();
 
                     _lazyDiagnosticAnalyzerService = new Lazy<IDiagnosticAnalyzerService?>(() => GetDiagnosticAnalyzerService(analyzerProviders));
 
@@ -79,7 +78,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // event and worker queues
                     _documentTracker = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
-                    var globalNotificationService = _registration.Workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
+                    var globalNotificationService = _registration.Workspace.Services.SolutionServices.ExportProvider
+                        .GetExports<IGlobalOperationNotificationService>().FirstOrDefault()?.Value;
 
                     _highPriorityProcessor = new HighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpan, shutdownToken);
                     _normalPriorityProcessor = new NormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpan, shutdownToken);
@@ -146,14 +146,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                private IDisposable EnableCaching(ProjectId projectId)
-                    => _cacheService?.EnableCaching(projectId) ?? NullDisposable.Instance;
-
                 private IEnumerable<DocumentId> GetOpenDocumentIds()
                     => _registration.Workspace.GetOpenDocumentIds();
 
                 private void ResetLogAggregator()
-                    => _logAggregator = new LogAggregator();
+                    => _logAggregator = new CountLogAggregator<object>();
 
                 private void ReportPendingWorkItemCount()
                 {
@@ -203,9 +200,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             await analyzer.AnalyzeSyntaxAsync(document, reasons, cancellationToken).ConfigureAwait(false);
                         }
-                        else if (analyzer is IIncrementalAnalyzer2 analyzer2)
+                        else
                         {
-                            await analyzer2.AnalyzeNonSourceDocumentAsync(textDocument, reasons, cancellationToken).ConfigureAwait(false);
+                            await analyzer.AnalyzeNonSourceDocumentAsync(textDocument, reasons, cancellationToken).ConfigureAwait(false);
                         }
                     }
 
@@ -224,7 +221,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
                     }
                 }
@@ -296,7 +293,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                     {
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }
 
@@ -318,7 +315,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     catch (Exception e) when (FatalError.ReportAndPropagate(e))
                     {
                         // TODO: manage bad workers like what code actions does now
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
 
                     static bool ReportWithoutCrashUnlessAllCanceledAndPropagate(AggregateException aggregate)
@@ -387,21 +384,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                private class NullDisposable : IDisposable
-                {
-                    public static readonly IDisposable Instance = new NullDisposable();
-
-                    public void Dispose() { }
-                }
-
                 private class AnalyzersGetter
                 {
                     private readonly List<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> _analyzerProviders;
-                    private readonly Dictionary<Workspace, ImmutableArray<(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)>> _analyzerMap;
+                    private readonly Dictionary<Workspace, ImmutableArray<(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)>> _analyzerMap = new();
 
                     public AnalyzersGetter(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
                     {
-                        _analyzerMap = new Dictionary<Workspace, ImmutableArray<(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)>>();
                         _analyzerProviders = analyzerProviders.ToList();
                     }
 
@@ -411,10 +400,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             if (!_analyzerMap.TryGetValue(workspace, out var analyzers))
                             {
-                                // Sort list so DiagnosticIncrementalAnalyzers (if any) come first.  OrderBy orders 'false' keys before 'true'.
+                                // Sort list so DiagnosticIncrementalAnalyzers (if any) come first.
                                 analyzers = _analyzerProviders.Select(p => (analyzer: p.Value.CreateIncrementalAnalyzer(workspace), highPriorityForActiveFile: p.Metadata.HighPriorityForActiveFile))
                                                 .Where(t => t.analyzer != null)
-                                                .OrderBy(t => t.analyzer is not DiagnosticIncrementalAnalyzer)
+                                                .OrderBy(t => t.analyzer!.Priority)
                                                 .ToImmutableArray()!;
 
                                 _analyzerMap[workspace] = analyzers;

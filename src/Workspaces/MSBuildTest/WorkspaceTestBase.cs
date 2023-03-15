@@ -104,6 +104,24 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"CSharpProject\Properties\AssemblyInfo.cs", Resources.SourceFiles.CSharp.AssemblyInfo));
         }
 
+        protected static FileSet GetSimpleVisualBasicSolutionFiles()
+        {
+            return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
+                (@"Directory.Build.props", Resources.Directory_Build_props),
+                (@"Directory.Build.targets", Resources.Directory_Build_targets),
+                (@"TestSolution.sln", Resources.SolutionFiles.VisualBasic),
+                (@"VisualBasicProject\VisualBasicProject.vbproj", Resources.ProjectFiles.VisualBasic.VisualBasicProject),
+                (@"VisualBasicProject\VisualBasicClass.vb", Resources.SourceFiles.VisualBasic.VisualBasicClass),
+                (@"VisualBasicProject\My Project\Application.Designer.vb", Resources.SourceFiles.VisualBasic.Application_Designer),
+                (@"VisualBasicProject\My Project\Application.myapp", Resources.SourceFiles.VisualBasic.Application),
+                (@"VisualBasicProject\My Project\AssemblyInfo.vb", Resources.SourceFiles.VisualBasic.AssemblyInfo),
+                (@"VisualBasicProject\My Project\Resources.Designer.vb", Resources.SourceFiles.VisualBasic.Resources_Designer),
+                (@"VisualBasicProject\My Project\Resources.resx", Resources.SourceFiles.VisualBasic.Resources),
+                (@"VisualBasicProject\My Project\Settings.Designer.vb", Resources.SourceFiles.VisualBasic.Settings_Designer),
+                (@"VisualBasicProject\My Project\Settings.settings", Resources.SourceFiles.VisualBasic.Settings));
+        }
+
         protected static FileSet GetSimpleCSharpSolutionWithAdditionaFile()
         {
             return new FileSet(

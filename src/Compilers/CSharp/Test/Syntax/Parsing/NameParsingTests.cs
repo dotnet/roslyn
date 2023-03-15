@@ -9,11 +9,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class NameParsingTests
+    public class NameParsingTests : ParsingTests
     {
+        public NameParsingTests(ITestOutputHelper output) : base(output) { }
+
         private NameSyntax ParseName(string text)
         {
             return SyntaxFactory.ParseName(text);
@@ -230,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNestedGenericName()
+        public void TestNestedGenericName_01()
         {
             var text = "goo<bar<zed>>";
             var name = ParseName(text);
@@ -245,6 +248,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
             Assert.Equal(SyntaxKind.GenericName, gname.TypeArgumentList.Arguments[0].Kind());
             Assert.Equal(text, name.ToString());
+        }
+
+        [Fact]
+        public void TestNestedGenericName_02()
+        {
+            var text = "goo<bar<zed<U>>>";
+            var name = ParseName(text);
+
+            UsingNode(text, name);
+
+            N(SyntaxKind.GenericName);
+            {
+                N(SyntaxKind.IdentifierToken, "goo");
+                N(SyntaxKind.TypeArgumentList);
+                {
+                    N(SyntaxKind.LessThanToken);
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "bar");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "zed");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "U");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.GreaterThanToken);
+                }
+            }
+            EOF();
         }
 
         [Fact]
@@ -327,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNestedGenericTypeName()
+        public void TestNestedGenericTypeName_01()
         {
             var text = "goo<bar<zed>>";
             var tname = ParseTypeName(text);
@@ -343,6 +388,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
             Assert.Equal(SyntaxKind.GenericName, gname.TypeArgumentList.Arguments[0].Kind());
             Assert.Equal(text, name.ToString());
+        }
+
+        [Fact]
+        public void TestNestedGenericTypeName_02()
+        {
+            var text = "goo<bar<zed<U>>>";
+            var tname = ParseTypeName(text);
+
+            UsingNode(text, tname);
+
+            N(SyntaxKind.GenericName);
+            {
+                N(SyntaxKind.IdentifierToken, "goo");
+                N(SyntaxKind.TypeArgumentList);
+                {
+                    N(SyntaxKind.LessThanToken);
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "bar");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "zed");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "U");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.GreaterThanToken);
+                }
+            }
+            EOF();
         }
 
         [Fact]

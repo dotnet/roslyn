@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.OrderModifiers;
@@ -17,10 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
         public CSharpOrderModifiersDiagnosticAnalyzer()
             : base(CSharpSyntaxFacts.Instance,
                    CSharpCodeStyleOptions.PreferredModifierOrder,
-                   CSharpOrderModifiersHelper.Instance,
-                   LanguageNames.CSharp)
+                   CSharpOrderModifiersHelper.Instance)
         {
         }
+
+        protected override CodeStyleOption2<string> GetPreferredOrderStyle(SyntaxTreeAnalysisContext context)
+            => context.GetCSharpAnalyzerOptions().PreferredModifierOrder;
 
         protected override void Recurse(
             SyntaxTreeAnalysisContext context,

@@ -13,9 +13,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Workspace)]
     public class CommandLineProjectWorkspaceTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestAddProject_CommandLineProjectAsync()
         {
             using var tempRoot = new TempRoot();
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var compilation = await project.GetCompilationAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestLoadProjectFromCommandLine()
         {
             var commandLine = @"goo.cs subdir\bar.cs /out:goo.dll /target:library";

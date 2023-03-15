@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Xunit;
 
@@ -21,10 +22,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
 
             static void MatchWorker(string value, RegexOptions? expectedOptions)
             {
-                Assert.True(RegexLanguageDetector.TestAccessor.TryMatch(value, out var actualOptions));
+                var detector = new EmbeddedLanguageCommentDetector(RegexLanguageDetector.LanguageIdentifiers);
+                Assert.True(detector.TryMatch(value, out _, out var captures));
 
                 if (expectedOptions != null)
+                {
+                    Assert.True(EmbeddedLanguageCommentOptions<RegexOptions>.TryGetOptions(captures!, out var actualOptions));
                     Assert.Equal(expectedOptions.Value, actualOptions);
+                }
             }
         }
 
@@ -39,7 +44,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
 
             static void NoMatchWorker(string value)
             {
-                Assert.False(RegexLanguageDetector.TestAccessor.TryMatch(value, out _));
+                var detector = new EmbeddedLanguageCommentDetector(RegexLanguageDetector.LanguageIdentifiers);
+                Assert.False(detector.TryMatch(value, out _, out var stringOptions) &&
+                    EmbeddedLanguageCommentOptions<RegexOptions>.TryGetOptions(stringOptions, out _));
             }
         }
 

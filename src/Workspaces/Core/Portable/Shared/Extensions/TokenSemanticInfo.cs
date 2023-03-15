@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal struct TokenSemanticInfo
+    internal readonly struct TokenSemanticInfo
     {
         public static readonly TokenSemanticInfo Empty = new(
             null, null, ImmutableArray<ISymbol>.Empty, null, null, default);

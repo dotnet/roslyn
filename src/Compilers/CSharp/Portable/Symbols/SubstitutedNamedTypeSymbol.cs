@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly bool _unbound;
         private readonly TypeMap _inputMap;
 
-        // The container of a substituted named type symbol is typically a named type or a namespace. 
+        // The container of a substituted named type symbol is typically a named type or a namespace.
         // However, in some error-recovery scenarios it might be some other container. For example,
         // consider "int Goo = 123; Goo<string> x = null;" What is the type of x? We construct an error
         // type symbol of arity one associated with local variable symbol Goo; when we construct
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal abstract override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes);
@@ -203,6 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return OriginalDefinition.GetTypeMembers(name, arity).SelectAsArray((t, self) => t.AsMember(self), this);
         }
+
+        internal sealed override bool HasDeclaredRequiredMembers => OriginalDefinition.HasDeclaredRequiredMembers;
 
         public sealed override ImmutableArray<Symbol> GetMembers()
         {
@@ -350,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers()
@@ -408,25 +411,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override IEnumerable<MethodSymbol> GetMethodsToEmit()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override IEnumerable<EventSymbol> GetEventsToEmit()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override IEnumerable<PropertySymbol> GetPropertiesToEmit()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
-        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+        internal sealed override FileIdentifier? AssociatedFileIdentifier => _underlyingType.AssociatedFileIdentifier;
+
+        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 

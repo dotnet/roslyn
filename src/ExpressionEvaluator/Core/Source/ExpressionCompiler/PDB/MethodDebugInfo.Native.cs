@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public static unsafe MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadMethodDebugInfo(
             ISymUnmanagedReader3? symReader,
-            EESymbolProvider<TTypeSymbol, TLocalSymbol>? symbolProvider, // TODO: only null in DTEE case where we looking for default namesapace
+            EESymbolProvider<TTypeSymbol, TLocalSymbol>? symbolProvider, // TODO: only null in DTEE case where we looking for default namespace
             int methodToken,
             int methodVersion,
             int ilOffset,
@@ -97,10 +97,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             try
             {
                 var symMethod = symReader.GetMethodByVersion(methodToken, methodVersion);
-                if (symMethod != null)
-                {
-                    symMethod.GetAllScopes(allScopes, containingScopes, ilOffset, isScopeEndInclusive: isVisualBasicMethod);
-                }
+                symMethod?.GetAllScopes(allScopes, containingScopes, ilOffset, isScopeEndInclusive: isVisualBasicMethod);
 
                 ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups;
                 ImmutableArray<ExternAliasRecord> externAliasRecords;
@@ -173,6 +170,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 var reuseSpan = GetReuseSpan(allScopes, ilOffset, isVisualBasicMethod);
 
+                // containingDocumentName is not set since ISymUnmanagedMethod.GetDocumentsForMethod()
+                // may fail (see https://github.com/dotnet/roslyn/issues/66260). The result is that
+                // symbols from file-local types will not bind successfully in the EE.
                 return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                     hoistedLocalScopeRecords,
                     importRecordGroups,
@@ -182,7 +182,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     defaultNamespaceName,
                     containingScopes.GetLocalNames(),
                     constantsBuilder.ToImmutableAndFree(),
-                    reuseSpan);
+                    reuseSpan,
+                    containingDocumentName: null);
             }
             catch (InvalidOperationException)
             {
@@ -539,7 +540,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 RoslynDebug.AssertNotNull(importString);
 
-                if (importString.Length > 0 && importString[0] == '*')
+                if (importString is ['*', ..])
                 {
                     string? alias = null;
                     string? target = null;
@@ -665,10 +666,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     }
 
                     var dynamicFlags = default(ImmutableArray<bool>);
-                    if (dynamicLocalConstantMap != null)
-                    {
-                        dynamicLocalConstantMap.TryGetValue(name, out dynamicFlags);
-                    }
+                    dynamicLocalConstantMap?.TryGetValue(name, out dynamicFlags);
 
                     var tupleElementNames = default(ImmutableArray<string?>);
                     if (tupleLocalConstantMap != null)

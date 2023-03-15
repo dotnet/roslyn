@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return additionalDocument.WithAdditionalDocumentText(text);
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
         }
 

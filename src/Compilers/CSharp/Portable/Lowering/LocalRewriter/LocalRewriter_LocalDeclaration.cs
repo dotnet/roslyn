@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement rewrittenLocalDeclaration = new BoundExpressionStatement(
                 syntax,
-                new BoundAssignmentOperator(
+                _factory.AssignmentExpression(
                     syntax,
                     new BoundLocal(
                         syntax,
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (originalOpt.Syntax.Kind() == SyntaxKind.LocalDeclarationStatement &&
                         ((LocalDeclarationStatementSyntax)originalOpt.Syntax).Declaration.Variables.Count == 1)))
             {
-                rewrittenLocalDeclaration = _instrumenter.InstrumentLocalInitialization(originalOpt, rewrittenLocalDeclaration);
+                rewrittenLocalDeclaration = Instrumenter.InstrumentUserDefinedLocalInitialization(originalOpt, rewrittenLocalDeclaration);
             }
 
             return rewrittenLocalDeclaration;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public sealed override BoundNode VisitOutVariablePendingInference(OutVariablePendingInference node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

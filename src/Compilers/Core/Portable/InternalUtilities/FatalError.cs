@@ -6,16 +6,24 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Roslyn.Utilities;
 
-#if NET20
-// Some APIs referenced by documentation comments are not available on .NET Framework 2.0.
-#pragma warning disable CS1574 // XML comment has cref attribute that could not be resolved
-#endif
-
 namespace Microsoft.CodeAnalysis.ErrorReporting
 {
+    /// <summary>
+    /// Thrown when async code must cancel the current execution but does not have access to the <see cref="CancellationTokenSource"/> of the <see cref="CancellationToken"/> passed to the code.
+    /// Should be used in very rare cases where the <see cref="CancellationTokenSource"/> is out of our control (e.g. owned but not exposed by JSON RPC in certain call-back scenarios).
+    /// </summary>
+    internal sealed class OperationCanceledIgnoringCallerTokenException : OperationCanceledException
+    {
+        public OperationCanceledIgnoringCallerTokenException(Exception innerException)
+            : base(innerException.Message, innerException)
+        {
+        }
+    }
+
     internal static class FatalError
     {
         public delegate void ErrorReporterHandler(Exception exception, ErrorSeverity severity, bool forceDump);
@@ -57,11 +65,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             s_handler = value;
         }
 
-        // In the result provider, we aren't copying our handler to somewhere else, so we don't
-        // need this method. It's too much of a challenge to shared code to work in
-        // old versions of the runtime since APIs changed over time.
-#if !NET20
-
         /// <summary>
         /// Copies the handler in this instance to the linked copy of this type in this other assembly.
         /// </summary>
@@ -84,8 +87,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 targetHandlerProperty.SetValue(obj: null, value: null);
             }
         }
-
-#endif
 
         /// <summary>
         /// Use in an exception filter to report an error without catching the exception.
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         [DebuggerHidden]
         public static bool ReportAndPropagateUnlessCanceled(Exception exception, CancellationToken contextCancellationToken, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
-            if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken))
+            if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken) || exception is OperationCanceledIgnoringCallerTokenException)
             {
                 return false;
             }
@@ -212,7 +213,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         [DebuggerHidden]
         public static bool ReportAndCatchUnlessCanceled(Exception exception, CancellationToken contextCancellationToken, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
-            if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken))
+            if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken) || exception is OperationCanceledIgnoringCallerTokenException)
             {
                 return false;
             }
@@ -224,6 +225,10 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         private static readonly object s_reportedMarker = new();
 
+        // Do not allow this method to be inlined.  That way when we have a dump we can see this frame in the stack and
+        // can examine things like s_reportedExceptionMessage.  Without this, it's a lot tricker as FatalError is linked
+        // into many assemblies and finding the right type can be much harder.
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void Report(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized, bool forceDump = false)
         {
             // hold onto last exception to make investigation easier
@@ -241,12 +246,10 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 return;
             }
 
-#if !NET20
             if (exception is AggregateException aggregate && aggregate.InnerExceptions.Count == 1 && aggregate.InnerExceptions[0].Data[s_reportedMarker] != null)
             {
                 return;
             }
-#endif
 
             if (!exception.Data.IsReadOnly)
             {

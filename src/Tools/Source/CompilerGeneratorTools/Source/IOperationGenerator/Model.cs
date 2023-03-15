@@ -115,6 +115,10 @@ namespace IOperationGenerator
         public string? IsInternalText;
         public bool IsInternal => IsInternalText == "true";
 
+        [XmlAttribute(AttributeName = "Override")]
+        public string? IsOverrideText;
+        public bool IsOverride => IsOverrideText == "true";
+
         [XmlAttribute(AttributeName = "SkipGeneration")]
         public string? SkipGenerationText;
         public bool SkipGeneration => SkipGenerationText == "true";

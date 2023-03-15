@@ -12,7 +12,7 @@ namespace Microsoft.Cci
     /// <summary>
     /// A range of CLR IL operations that comprise a lexical scope.
     /// </summary>
-    internal struct LocalScope
+    internal readonly struct LocalScope
     {
         /// <summary>
         /// The offset of the first operation in the scope.

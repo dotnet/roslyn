@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Recommendations;
+using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -21,6 +23,29 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return false;
+        }
+
+        public static ImmutableArray<Project> GetDistinctProjectsFromLatestSolutionSnapshot(ImmutableSegmentedList<Project> projects)
+        {
+            if (projects.IsEmpty)
+                return ImmutableArray<Project>.Empty;
+
+            Solution? solution = null;
+            using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIds);
+
+            // Use WorkspaceVersion to decide which solution snapshot is latest among projects in list.
+            // Dedupe and return corresponding projects from this snapshot.
+            foreach (var project in projects)
+            {
+                projectIds.Add(project.Id);
+                if (solution is null || project.Solution.WorkspaceVersion > solution.WorkspaceVersion)
+                {
+                    solution = project.Solution;
+                }
+            }
+
+            Contract.ThrowIfNull(solution);
+            return projectIds.Select(solution.GetProject).WhereNotNull().ToImmutableArray();
         }
     }
 }

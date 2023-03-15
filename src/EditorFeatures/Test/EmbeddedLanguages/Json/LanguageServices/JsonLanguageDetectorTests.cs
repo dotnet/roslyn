@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 using Xunit;
@@ -21,10 +22,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.Json.LanguageServic
 
             static void MatchWorker(string value, JsonOptions? expectedOptions)
             {
-                Assert.True(JsonLanguageDetector.TestAccessor.TryMatch(value, out var actualOptions));
+                var detector = new EmbeddedLanguageCommentDetector(JsonLanguageDetector.LanguageIdentifiers);
+                Assert.True(detector.TryMatch(value, out _, out var captures));
 
                 if (expectedOptions != null)
+                {
+                    Assert.True(EmbeddedLanguageCommentOptions<JsonOptions>.TryGetOptions(captures!, out var actualOptions));
                     Assert.Equal(expectedOptions.Value, actualOptions);
+                }
             }
         }
 
@@ -39,7 +44,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.Json.LanguageServic
 
             static void NoMatchWorker(string value)
             {
-                Assert.False(JsonLanguageDetector.TestAccessor.TryMatch(value, out _));
+                var detector = new EmbeddedLanguageCommentDetector(JsonLanguageDetector.LanguageIdentifiers);
+                Assert.False(detector.TryMatch(value, out _, out var stringOptions) &&
+                    EmbeddedLanguageCommentOptions<JsonOptions>.TryGetOptions(stringOptions, out _));
             }
         }
 

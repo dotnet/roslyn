@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True if there's at least one hidden region in the map.</returns>
         public bool HasAnyHiddenRegions()
         {
-            return this.Entries.Any(e => e.State == PositionState.Hidden);
+            return this.Entries.Any(static e => e.State == PositionState.Hidden);
         }
 
         // Find the line mapped entry with the largest unmapped line number <= lineNumber.

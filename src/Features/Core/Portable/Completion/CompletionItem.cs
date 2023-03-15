@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -45,7 +46,22 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public string FilterText => _filterText ?? DisplayText;
 
+        /// <summary>
+        /// If provided, each additional string would be used in the same way as <see cref="FilterText"/> for item matching.
+        /// However, there's a key difference: matches of <see cref="AdditionalFilterTexts"/> is considered inferior than matches
+        /// of <see cref="FilterText"/> when they have identical pattern matching result.
+        /// </summary>
+        internal ImmutableArray<string> AdditionalFilterTexts { get; init; } = ImmutableArray<string>.Empty;
+
+        /// <summary>
+        /// Returns <see langword="true"/> if <see cref="DisplayText"/> is identical to  <see cref="FilterText"/>. 
+        /// Otherwise returns <see langword="false"/>.
+        /// Be aware that this value is independent from <see cref="HasAdditionalFilterTexts"/> and could return <see langword="false"/> 
+        /// even if <see cref="HasAdditionalFilterTexts"/> is <see langword="true"/>.
+        /// </summary>
         internal bool HasDifferentFilterText => _filterText != null;
+
+        internal bool HasAdditionalFilterTexts => !AdditionalFilterTexts.IsEmpty;
 
         /// <summary>
         /// The text used to determine the order that the item appears in the list.
@@ -261,7 +277,8 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<string> displayTextPrefix = default,
             Optional<string> displayTextSuffix = default,
             Optional<string> inlineDescription = default,
-            Optional<bool> isComplexTextEdit = default)
+            Optional<bool> isComplexTextEdit = default,
+            Optional<ImmutableArray<string>> additionalFilterTexts = default)
         {
             var newSpan = span.HasValue ? span.Value : Span;
             var newDisplayText = displayText.HasValue ? displayText.Value : DisplayText;
@@ -274,6 +291,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var newDisplayTextPrefix = displayTextPrefix.HasValue ? displayTextPrefix.Value : DisplayTextPrefix;
             var newDisplayTextSuffix = displayTextSuffix.HasValue ? displayTextSuffix.Value : DisplayTextSuffix;
             var newIsComplexTextEdit = isComplexTextEdit.HasValue ? isComplexTextEdit.Value : IsComplexTextEdit;
+            var newAdditionalFilterTexts = additionalFilterTexts.HasValue ? additionalFilterTexts.Value.NullToEmpty() : AdditionalFilterTexts;
 
             if (newSpan == Span &&
                 newDisplayText == DisplayText &&
@@ -285,7 +303,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 newDisplayTextPrefix == DisplayTextPrefix &&
                 newDisplayTextSuffix == DisplayTextSuffix &&
                 newInlineDescription == InlineDescription &&
-                newIsComplexTextEdit == IsComplexTextEdit)
+                newIsComplexTextEdit == IsComplexTextEdit &&
+                newAdditionalFilterTexts == AdditionalFilterTexts)
             {
                 return this;
             }
@@ -306,6 +325,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 AutomationText = AutomationText,
                 ProviderName = ProviderName,
                 Flags = Flags,
+                AdditionalFilterTexts = newAdditionalFilterTexts
             };
         }
 
@@ -396,6 +416,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItem WithIsComplexTextEdit(bool isComplexTextEdit)
             => With(isComplexTextEdit: isComplexTextEdit);
+
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="AdditionalFilterTexts"/> property changed.
+        /// </summary>
+        internal CompletionItem WithAdditionalFilterTexts(ImmutableArray<string> additionalFilterTexts)
+            => With(additionalFilterTexts: additionalFilterTexts);
 
         int IComparable<CompletionItem>.CompareTo([AllowNull] CompletionItem other)
         {

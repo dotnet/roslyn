@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             if (punkDocDataExisting == IntPtr.Zero)
             {
                 Assumes.NotNull(_vsServiceProvider);
-                if (_vsServiceProvider.TryGetService<SLocalRegistry, ILocalRegistry>(out var localRegistry))
+                if (_vsServiceProvider.TryGetService<SLocalRegistry, ILocalRegistry>(_threadingContext.JoinableTaskFactory, out var localRegistry))
                 {
                     var textLinesGuid = typeof(IVsTextLines).GUID;
                     _ = localRegistry.CreateInstance(typeof(VsTextBufferClass).GUID, null, ref textLinesGuid, 1 /*CLSCTX_INPROC_SERVER*/, out var ptr);
@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 
                     if (textBuffer is IObjectWithSite objectWithSite)
                     {
-                        var oleServiceProvider = _vsServiceProvider.GetService<IOleServiceProvider>();
+                        var oleServiceProvider = _vsServiceProvider.GetService<IOleServiceProvider>(_threadingContext.JoinableTaskFactory);
                         objectWithSite.SetSite(oleServiceProvider);
                     }
                 }

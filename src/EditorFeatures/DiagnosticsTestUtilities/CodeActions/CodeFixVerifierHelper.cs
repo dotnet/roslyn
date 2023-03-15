@@ -4,8 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
@@ -93,19 +96,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         public static string? GetEditorConfigText(this OptionsCollection options)
         {
-            var (text, _) = ConvertOptionsToAnalyzerConfig(options.DefaultExtension, explicitEditorConfig: string.Empty, options);
+            var text = ConvertOptionsToAnalyzerConfig(options.DefaultExtension, explicitEditorConfig: string.Empty, options);
             return text?.ToString();
         }
 
-        public static (SourceText? analyzerConfig, IEnumerable<KeyValuePair<OptionKey2, object?>> options) ConvertOptionsToAnalyzerConfig(string defaultFileExtension, string? explicitEditorConfig, OptionsCollection options)
+        public static SourceText? ConvertOptionsToAnalyzerConfig(string defaultFileExtension, string? explicitEditorConfig, OptionsCollection options)
         {
             if (options.Count == 0)
             {
-                var result = explicitEditorConfig is object ? SourceText.From(explicitEditorConfig, Encoding.UTF8) : null;
-                return (result, options);
+                return explicitEditorConfig is object ? SourceText.From(explicitEditorConfig, Encoding.UTF8) : null;
             }
-
-            var remainingOptions = new List<KeyValuePair<OptionKey2, object?>>();
 
             var analyzerConfig = new StringBuilder();
             if (explicitEditorConfig is object)
@@ -119,25 +119,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             analyzerConfig.AppendLine();
             analyzerConfig.AppendLine($"[*.{defaultFileExtension}]");
-            foreach (var (key, value) in options)
+
+            foreach (var (optionKey, value) in options)
             {
+                Assert.True(optionKey.Option.Definition.IsEditorConfigOption);
+
                 if (value is NamingStylePreferences namingStylePreferences)
                 {
-                    EditorConfigFileGenerator.AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, key.Language!, analyzerConfig);
+                    EditorConfigFileGenerator.AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, optionKey.Language!, analyzerConfig);
                     continue;
                 }
 
-                var editorConfigStorageLocation = key.Option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
-                if (editorConfigStorageLocation is null)
-                {
-                    remainingOptions.Add(KeyValuePairUtil.Create<OptionKey2, object?>(key, value));
-                    continue;
-                }
-
-                analyzerConfig.AppendLine(editorConfigStorageLocation.GetEditorConfigString(value, null!));
+                analyzerConfig.AppendLine($"{optionKey.Option.Definition.ConfigName} = {optionKey.Option.Definition.Serializer.Serialize(value)}");
             }
 
-            return (SourceText.From(analyzerConfig.ToString(), Encoding.UTF8), remainingOptions);
+            return SourceText.From(analyzerConfig.ToString(), Encoding.UTF8);
         }
     }
 }

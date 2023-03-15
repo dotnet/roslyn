@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExpressionSyntax variables = ((ForEachVariableStatementSyntax)_syntax).Variable;
 
             // Tracking narrowest safe-to-escape scope by default, the proper val escape will be set when doing full binding of the foreach statement
-            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, this.LocalScopeDepth, inferredType.Type ?? CreateErrorType("var"));
+            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, variableSymbol: null, isDiscardExpression: false, inferredType.Type ?? CreateErrorType("var"));
 
             DeclarationExpressionSyntax declaration = null;
             ExpressionSyntax expression = null;
@@ -200,6 +200,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundForEachStatement BindForEachPartsWorker(BindingDiagnosticBag diagnostics, Binder originalBinder)
         {
+            if (IsAsync)
+            {
+                CheckFeatureAvailability(_syntax, MessageID.IDS_FeatureAsyncStreams, diagnostics, _syntax.AwaitKeyword.GetLocation());
+            }
+
             // Use the right binder to avoid seeing iteration variable
             BoundExpression collectionExpr = originalBinder.GetBinder(_syntax.Expression).BindRValueWithoutTargetType(_syntax.Expression, diagnostics);
 
@@ -219,10 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (getEnumeratorMethod.IsExtensionMethod && !hasErrors)
                 {
                     var messageId = IsAsync ? MessageID.IDS_FeatureExtensionGetAsyncEnumerator : MessageID.IDS_FeatureExtensionGetEnumerator;
-                    hasErrors |= !messageId.CheckFeatureAvailability(
-                        diagnostics,
-                        Compilation,
-                        collectionExpr.Syntax.Location);
+                    messageId.CheckFeatureAvailability(diagnostics, Compilation, collectionExpr.Syntax.Location);
 
                     if (getEnumeratorMethod.ParameterRefKinds is { IsDefault: false } refKinds && refKinds[0] == RefKind.Ref)
                     {
@@ -235,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var expr = _syntax.Expression;
                 ReportBadAwaitDiagnostics(expr, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
-                var placeholder = new BoundAwaitableValuePlaceholder(expr, valEscape: this.LocalScopeDepth, builder.MoveNextInfo?.Method.ReturnType ?? CreateErrorType());
+                var placeholder = new BoundAwaitableValuePlaceholder(expr, builder.MoveNextInfo?.Method.ReturnType ?? CreateErrorType());
                 awaitInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
 
                 if (!hasErrors && awaitInfo.GetResult?.ReturnType.SpecialType != SpecialType.System_Boolean)
@@ -250,7 +252,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasNameConflicts = false;
             BoundForEachDeconstructStep deconstructStep = null;
             BoundExpression iterationErrorExpression = null;
-            uint collectionEscape = GetValEscape(collectionExpr, this.LocalScopeDepth);
             switch (_syntax.Kind())
             {
                 case SyntaxKind.ForEachStatement:
@@ -262,7 +263,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // If the type in syntax is "var", then the type should be set explicitly so that the
                         // Type property doesn't fail.
-                        TypeSyntax typeSyntax = node.Type.SkipRef(out _);
+
+                        TypeSyntax typeSyntax = node.Type;
+
+                        if (typeSyntax is ScopedTypeSyntax scopedType)
+                        {
+                            // Check for support for 'scoped'.
+                            ModifierUtils.CheckScopedModifierAvailability(typeSyntax, scopedType.ScopedKeyword, diagnostics);
+                            typeSyntax = scopedType.Type;
+                        }
+
+                        if (typeSyntax is RefTypeSyntax refType)
+                        {
+                            MessageID.IDS_FeatureRefForEach.CheckFeatureAvailability(diagnostics, typeSyntax);
+                            typeSyntax = refType.Type;
+                        }
 
                         bool isVar;
                         AliasSymbol alias;
@@ -282,15 +297,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         SourceLocalSymbol local = this.IterationVariable;
                         local.SetTypeWithAnnotations(declType);
-                        local.SetValEscape(collectionEscape);
+
+                        CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax);
+
+                        if (local.Scope == ScopedKind.ScopedValue && !declType.Type.IsErrorTypeOrRefLikeType())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
+                        }
 
                         if (local.RefKind != RefKind.None)
                         {
-                            // The ref-escape of a ref-returning property is decided
-                            // by the value escape of its receiver, in this case the
-                            // collection
-                            local.SetRefEscape(collectionEscape);
-
                             if (CheckRefLocalInAsyncOrIteratorMethod(local.IdentifierToken, diagnostics))
                             {
                                 hasErrors = true;
@@ -334,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var variables = node.Variable;
                         if (variables.IsDeconstructionLeft())
                         {
-                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, collectionEscape, iterationVariableType.Type).MakeCompilerGenerated();
+                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, variableSymbol: null, isDiscardExpression: false, iterationVariableType.Type).MakeCompilerGenerated();
                             DeclarationExpressionSyntax declaration = null;
                             ExpressionSyntax expression = null;
                             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
@@ -358,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             // Bind the expression for error recovery, but discard all new diagnostics
-                            iterationErrorExpression = BindExpression(node.Variable, BindingDiagnosticBag.Discarded);
+                            iterationErrorExpression = BindToTypeForErrorRecovery(BindExpression(node.Variable, BindingDiagnosticBag.Discarded));
                             if (iterationErrorExpression.Kind == BoundKind.DiscardExpression)
                             {
                                 iterationErrorExpression = ((BoundDiscardExpression)iterationErrorExpression).FailInference(this, diagnosticsOpt: null);
@@ -428,7 +444,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // but it turns out that these are equivalent (when both are available).
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            Conversion elementConversionClassification = this.Conversions.ClassifyConversionFromType(inferredType.Type, iterationVariableType.Type, ref useSiteInfo, forCast: true);
+            Conversion elementConversionClassification = this.Conversions.ClassifyConversionFromType(inferredType.Type, iterationVariableType.Type, isChecked: CheckOverflowAtRuntime, ref useSiteInfo, forCast: true);
+
+            if (elementConversionClassification.Kind != ConversionKind.Identity && IterationVariable.RefKind is RefKind.Ref or RefKind.RefReadOnly)
+            {
+                Error(diagnostics, ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, collectionExpr.Syntax, iterationVariableType.Type);
+                hasErrors = true;
+            }
 
             var elementPlaceholder = new BoundValuePlaceholder(_syntax, inferredType.Type).MakeCompilerGenerated();
             BindingDiagnosticBag createConversionDiagnostics;
@@ -476,8 +498,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Spec (§8.8.4):
             // If the type X of expression is dynamic then there is an implicit conversion from >>expression<< (not the type of the expression) 
             // to the System.Collections.IEnumerable interface (§6.1.8). 
-            Conversion collectionConversionClassification = this.Conversions.ClassifyConversionFromExpression(collectionExpr, builder.CollectionType, ref useSiteInfo);
-            Conversion currentConversionClassification = this.Conversions.ClassifyConversionFromType(builder.CurrentPropertyGetter.ReturnType, builder.ElementType, ref useSiteInfo);
+            Conversion collectionConversionClassification = this.Conversions.ClassifyConversionFromExpression(collectionExpr, builder.CollectionType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
+            Conversion currentConversionClassification = this.Conversions.ClassifyConversionFromType(builder.CurrentPropertyGetter.ReturnType, builder.ElementType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
 
             TypeSymbol getEnumeratorType = getEnumeratorMethod.ReturnType;
 
@@ -576,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expr = _syntax.Expression;
             ReportBadAwaitDiagnostics(expr, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
 
-            var placeholder = new BoundAwaitableValuePlaceholder(expr, valEscape: this.LocalScopeDepth, awaitableType);
+            var placeholder = new BoundAwaitableValuePlaceholder(expr, awaitableType);
             builder.DisposeAwaitableInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
             return hasErrors;
         }
@@ -976,7 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ReportConstantNullCollectionExpr(BoundExpression collectionExpr, BindingDiagnosticBag diagnostics)
         {
-            if (collectionExpr.ConstantValue is { IsNull: true })
+            if (collectionExpr.ConstantValueOpt is { IsNull: true })
             {
                 // Spec seems to refer to null literals, but Dev10 reports anything known to be null.
                 diagnostics.Add(ErrorCode.ERR_NullNotValid, _syntax.Expression.Location);
@@ -995,33 +1017,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol enumeratorType = builder.GetEnumeratorInfo.Method.ReturnType;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
-            // For async foreach, we don't do the runtime check
-            if ((!enumeratorType.IsSealed && !isAsync) ||
-                this.Conversions.ClassifyImplicitConversionFromType(enumeratorType,
-                    isAsync ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable) : this.Compilation.GetSpecialType(SpecialType.System_IDisposable),
-                    ref useSiteInfo).IsImplicit)
+            MethodSymbol patternDisposeMethod = null;
+            if (enumeratorType.IsRefLikeType || isAsync)
             {
-                builder.NeedsDisposal = true;
-            }
-            else if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingDeclarations) &&
-                    (enumeratorType.IsRefLikeType || isAsync))
-            {
-                // if it wasn't directly convertable to IDisposable, see if it is pattern-disposable
-                // again, we throw away any binding diagnostics, and assume it's not disposable if we encounter errors
+                // we throw away any binding diagnostics, and assume it's not disposable if we encounter errors
                 var receiver = new BoundDisposableValuePlaceholder(_syntax, enumeratorType);
-                MethodSymbol disposeMethod = TryFindDisposePatternMethod(receiver, _syntax, isAsync, BindingDiagnosticBag.Discarded);
-                if (disposeMethod is object)
+                patternDisposeMethod = TryFindDisposePatternMethod(receiver, _syntax, isAsync, BindingDiagnosticBag.Discarded);
+                if (patternDisposeMethod is object)
                 {
-                    Debug.Assert(!disposeMethod.IsExtensionMethod);
-                    Debug.Assert(disposeMethod.ParameterRefKinds.IsDefaultOrEmpty);
+                    Debug.Assert(!patternDisposeMethod.IsExtensionMethod);
+                    Debug.Assert(patternDisposeMethod.ParameterRefKinds.IsDefaultOrEmpty);
 
-                    var argsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
+                    var argsBuilder = ArrayBuilder<BoundExpression>.GetInstance(patternDisposeMethod.ParameterCount);
                     var argsToParams = default(ImmutableArray<int>);
-                    bool expanded = disposeMethod.HasParamsParameter();
+                    bool expanded = patternDisposeMethod.HasParamsParameter();
 
                     BindDefaultArguments(
                         _syntax,
-                        disposeMethod.Parameters,
+                        patternDisposeMethod.Parameters,
                         argsBuilder,
                         argumentRefKindsBuilder: null,
                         ref argsToParams,
@@ -1031,11 +1044,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics);
 
                     builder.NeedsDisposal = true;
-                    builder.PatternDisposeInfo = new MethodArgumentInfo(disposeMethod, argsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments, expanded);
+                    builder.PatternDisposeInfo = new MethodArgumentInfo(patternDisposeMethod, argsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments, expanded);
+
+                    if (!isAsync)
+                    {
+                        // We already checked feature availability for async scenarios
+                        CheckFeatureAvailability(expr.Syntax, MessageID.IDS_FeatureDisposalPattern, diagnostics);
+                    }
                 }
             }
 
-            diagnostics.Add(_syntax, useSiteInfo);
+            if (!enumeratorType.IsRefLikeType && patternDisposeMethod is null)
+            {
+                // If it wasn't pattern-disposable, see if it's directly convertable to IDisposable
+                // For async foreach, we don't do the runtime check in unsealed case
+                if ((!enumeratorType.IsSealed && !isAsync) ||
+                    this.Conversions.ClassifyImplicitConversionFromType(enumeratorType,
+                        isAsync ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable) : this.Compilation.GetSpecialType(SpecialType.System_IDisposable),
+                        ref useSiteInfo).IsImplicit)
+                {
+                    builder.NeedsDisposal = true;
+                }
+
+                diagnostics.Add(_syntax, useSiteInfo);
+            }
         }
 
         private ForEachEnumeratorInfo.Builder GetDefaultEnumeratorInfo(ForEachEnumeratorInfo.Builder builder, BindingDiagnosticBag diagnostics, TypeSymbol collectionExprType)
@@ -1285,7 +1317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var collectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, result.Parameters[0].Type, ref useSiteInfo);
+                var collectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, result.Parameters[0].Type, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                 diagnostics.Add(_syntax, useSiteInfo);
 
                 // Unconditionally convert here, to match what we set the ConvertedExpression to in the main BoundForEachStatement node.
@@ -1652,12 +1684,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.Locals;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override SyntaxNode ScopeDesignator

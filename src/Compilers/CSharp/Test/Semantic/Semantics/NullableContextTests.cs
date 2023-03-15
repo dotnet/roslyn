@@ -158,7 +158,7 @@ partial class C
         }
 
         // See also CommandLineTests.NullableAnalysisFlags().
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         public void NullableAnalysisFlags_01()
         {
             var source =
@@ -212,7 +212,7 @@ class Program
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         public void NullableAnalysisFlags_02()
         {
             var source =
@@ -261,7 +261,7 @@ class Program
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         public void NullableAnalysisFlags_03()
         {
             var sourceA =
@@ -1070,7 +1070,7 @@ partial class Program
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_05()
         {
@@ -1531,7 +1531,7 @@ record B2() : A(
             AssertEx.Equal(new[] { "= null", "= null", "F2" }, actualAnalyzedKeys);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_12()
         {

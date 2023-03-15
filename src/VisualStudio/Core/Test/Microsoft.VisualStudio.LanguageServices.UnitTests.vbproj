@@ -69,7 +69,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)" IncludeAssets="runtime" />
   </ItemGroup>
   <ItemGroup>
-    <Import Include="System.Threading.Tasks"/>
+    <Import Include="System.Threading.Tasks" />
     <Import Include="System.Xml.Linq" />
     <Import Include="Xunit" />
   </ItemGroup>

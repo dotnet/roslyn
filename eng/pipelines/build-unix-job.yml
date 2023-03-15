@@ -20,12 +20,16 @@ jobs:
 - job: ${{ parameters.jobName }}
   pool:
     ${{ if ne(parameters.queueName, '') }}:
-      name: NetCore1ESPool-Public
+      name: NetCore-Public
       demands: ImageOverride -equals ${{ parameters.queueName }}
 
     ${{ if ne(parameters.vmImageName, '') }}:
       vmImage: ${{ parameters.vmImageName }}
   timeoutInMinutes: 40
+  variables:
+    - template: variables-build.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
 
   steps:
     - template: checkout-unix-task.yml

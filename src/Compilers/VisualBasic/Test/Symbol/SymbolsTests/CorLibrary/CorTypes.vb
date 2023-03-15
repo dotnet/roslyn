@@ -149,7 +149,6 @@ ENd NAmespace
             Assert.Throws(Of ArgumentOutOfRangeException)(Function() msCorLibRef.GetSpecialType(CType(SpecialType.Count + 1, SpecialType)))
         End Sub
 
-
         <Fact()>
         Public Sub TestGetTypeByNameAndArity()
 

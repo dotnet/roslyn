@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Highlighting;
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters
                 // We only want to highlight 'goto case' and 'goto default', not plain old goto statements,
                 // but if the label is missing, we do highlight 'goto' assuming it's more likely that
                 // the user is in the middle of typing 'goto case' or 'goto default'.
-                if (gotoStatement.IsKind(SyntaxKind.GotoCaseStatement, SyntaxKind.GotoDefaultStatement) ||
+                if (gotoStatement.Kind() is SyntaxKind.GotoCaseStatement or SyntaxKind.GotoDefaultStatement ||
                     gotoStatement.Expression.IsMissing)
                 {
                     var start = gotoStatement.GotoKeyword.SpanStart;

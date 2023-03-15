@@ -499,13 +499,11 @@ class C
         [Fact]
         public void TupleTypeWithTooFewElements()
         {
-            var tree = UsingTree(@"
+            UsingTree(@"
 class C
 {
     void M(int x, () y, (int a) z) { }
-}", options: TestOptions.Regular);
-
-            tree.GetDiagnostics().Verify(
+}", options: TestOptions.Regular,
                 // (4,20): error CS8124: Tuple must contain at least two elements.
                 //     void M(int x, () y, (int a) z) { }
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 20),
@@ -608,13 +606,11 @@ class C
         [Fact]
         public void TupleExpressionWithTooFewElements()
         {
-            var tree = UsingTree(@"
+            UsingTree(@"
 class C
 {
     object x = ((Alice: 1), ());
-}", options: TestOptions.Regular);
-
-            tree.GetDiagnostics().Verify(
+}", options: TestOptions.Regular,
                 // (4,26): error CS8124: Tuple must contain at least two elements.
                 //     object x = ((Alice: 1), ());
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 26),
@@ -716,13 +712,17 @@ class Program
 }
 ";
             ParseAndValidate(test,
+                // (4,22): error CS8124: Tuple must contain at least two elements.
+                //     object a = (x: 3l);
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 22));
+
+            CreateCompilation(test).VerifyDiagnostics(
                 // (4,21): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
                 //     object a = (x: 3l);
                 Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 21),
                 // (4,22): error CS8124: Tuple must contain at least two elements.
                 //     object a = (x: 3l);
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 22)
-                );
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 22));
         }
 
         [Fact, WorkItem(377111, "https://devdiv.visualstudio.com/0bdbc590-a062-4c3f-b0f6-9383f67865ee/_workitems?id=377111")]

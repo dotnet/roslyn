@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.Editor.Interactive;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.Language.StandardClassification;
@@ -21,7 +20,7 @@ using Microsoft.VisualStudio.Utilities;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
     /// <summary>
     /// Represents a reset command which can be run from a REPL window.
@@ -177,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 InteractiveHostPlatform.Core => " " + PlatformCore,
                 InteractiveHostPlatform.Desktop64 => " " + PlatformDesktop64,
                 InteractiveHostPlatform.Desktop32 => " " + PlatformDesktop32,
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.Unreachable()
             };
 
         private void ReportInvalidArguments(IInteractiveWindow window)

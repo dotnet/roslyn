@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
 {
@@ -35,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
             : base(IDEDiagnosticIds.UseTupleSwapDiagnosticId,
                    EnforceOnBuildValues.UseTupleSwap,
                    CSharpCodeStyleOptions.PreferTupleSwap,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Use_tuple_to_swap_values), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -61,11 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
 
         private void AnalyzeLocalDeclarationStatement(SyntaxNodeAnalysisContext syntaxContext)
         {
-            var options = syntaxContext.Options;
-            var syntaxTree = syntaxContext.Node.SyntaxTree;
             var cancellationToken = syntaxContext.CancellationToken;
-
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferTupleSwap, syntaxTree, cancellationToken);
+            var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferTupleSwap;
             if (!styleOption.Value)
                 return;
 
@@ -107,6 +104,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
                 return;
 
             if (variableDeclarator.Identifier.ValueText != secondAssignmentExprTempIdentifier.ValueText)
+                return;
+
+            // Can't swap ref-structs.
+            var semanticModel = syntaxContext.SemanticModel;
+            var local = (ILocalSymbol)semanticModel.GetRequiredDeclaredSymbol(variableDeclarator, cancellationToken);
+            if (local.Type.IsRefLikeType || local.Type.RequiresUnsafeModifier())
                 return;
 
             var additionalLocations = ImmutableArray.Create(

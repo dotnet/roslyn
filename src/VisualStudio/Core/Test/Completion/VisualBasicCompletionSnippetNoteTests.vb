@@ -12,6 +12,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class VisualBasicCompletionSnippetNoteTests
         Private ReadOnly _markup As XElement = <document>
                                                    <![CDATA[Imports System
@@ -19,7 +20,7 @@ Class Goo
     $$
 End Class]]></document>
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function ColonDoesntTriggerSnippetInTupleLiteral() As Task
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interface")
                 state.SendTypeChars("Dim t = (Interfac")
@@ -27,7 +28,7 @@ End Class]]></document>
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function SnippetExpansionNoteAddedToDescription_DifferentSnippetShortcutCasing() As Task
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "intErfaCE")
                 state.SendTypeChars("Interfac")
@@ -38,7 +39,7 @@ End Class]]></document>
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSubstringOfInsertedText() As Task
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interfac")
                 state.SendTypeChars("Interfac")
@@ -48,7 +49,7 @@ End Class]]></document>
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSuperstringOfInsertedText() As Task
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interfaces")
                 state.SendTypeChars("Interfac")
@@ -58,7 +59,7 @@ End Class]]></document>
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function SnippetExpansionNoteNotAddedToDescription_DisplayTextMatchesShortcutButInsertionTextDoesNot() As Task
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "DisplayText")
 
@@ -68,7 +69,7 @@ End Class]]></document>
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function SnippetExpansionNoteAddedToDescription_DisplayTextDoesNotMatchShortcutButInsertionTextDoes() As Task
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "InsertionText")
 

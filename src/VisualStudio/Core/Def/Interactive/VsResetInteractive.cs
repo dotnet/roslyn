@@ -25,6 +25,8 @@ using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.Interactive;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -44,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             IVsSolutionBuildManager buildManager,
             Func<string, string> createReference,
             Func<string, string> createImport)
-            : base(componentModel.GetService<IEditorOptionsFactoryService>(), createReference, createImport)
+            : base(componentModel.GetService<EditorOptionsService>(), createReference, createImport)
         {
             _workspace = workspace;
             _dte = dte;

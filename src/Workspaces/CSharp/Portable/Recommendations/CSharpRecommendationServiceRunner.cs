@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -17,15 +18,26 @@ using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Recommendations
+namespace Microsoft.CodeAnalysis.CSharp.Recommendations;
+
+internal partial class CSharpRecommendationService
 {
-    internal partial class CSharpRecommendationServiceRunner : AbstractRecommendationServiceRunner<CSharpSyntaxContext>
+    private sealed partial class CSharpRecommendationServiceRunner : AbstractRecommendationServiceRunner
     {
         public CSharpRecommendationServiceRunner(
             CSharpSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken)
             : base(context, filterOutOfScopeLocals, cancellationToken)
         {
         }
+
+        protected override int GetLambdaParameterCount(AnonymousFunctionExpressionSyntax lambdaSyntax)
+            => lambdaSyntax switch
+            {
+                AnonymousMethodExpressionSyntax anonymousMethod => anonymousMethod.ParameterList?.Parameters.Count ?? -1,
+                ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.ParameterList.Parameters.Count,
+                SimpleLambdaExpressionSyntax => 1,
+                _ => throw ExceptionUtilities.UnexpectedValue(lambdaSyntax.Kind()),
+            };
 
         public override RecommendedSymbols GetRecommendedSymbols()
         {
@@ -43,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
         public override bool TryGetExplicitTypeOfLambdaParameter(SyntaxNode lambdaSyntax, int ordinalInLambda, [NotNullWhen(true)] out ITypeSymbol? explicitLambdaParameterType)
         {
-            if (lambdaSyntax.IsKind<ParenthesizedLambdaExpressionSyntax>(SyntaxKind.ParenthesizedLambdaExpression, out var parenthesizedLambdaSyntax))
+            if (lambdaSyntax is ParenthesizedLambdaExpressionSyntax parenthesizedLambdaSyntax)
             {
                 var parameters = parenthesizedLambdaSyntax.ParameterList.Parameters;
                 if (parameters.Count > ordinalInLambda)
@@ -115,12 +127,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                     => GetSymbolsOffOfDereferencedExpression(memberAccess.Expression),
 
                 // This code should be executing only if the cursor is between two dots in a dotdot token.
-                RangeExpressionSyntax rangeExpression => GetSymbolsOffOfExpression(rangeExpression.LeftOperand),
+                RangeExpressionSyntax rangeExpression => GetSymbolsOffOfRangeExpression(rangeExpression),
                 QualifiedNameSyntax qualifiedName => GetSymbolsOffOfName(qualifiedName.Left),
                 AliasQualifiedNameSyntax aliasName => GetSymbolsOffOffAlias(aliasName.Alias),
                 MemberBindingExpressionSyntax _ => GetSymbolsOffOfConditionalReceiver(node.GetParentConditionalAccessExpression()!.Expression),
                 _ => default,
             };
+        }
+
+        private RecommendedSymbols GetSymbolsOffOfRangeExpression(RangeExpressionSyntax rangeExpression)
+        {
+            // This commonly occurs when someone has existing dots and types another dot to bring up completion. For example:
+            //
+            //      collection$$.Any()
+            //
+            // producing
+            //
+            //      collection..Any();
+            //
+            // We can get good completion by just getting symbols off of 'collection' there, but with a small catch.
+            // Specifically, we only want to allow this if the precedence would allow for a member-access-expression
+            // here.  This is because the range-expression is much lower precedence so it allows for all sorts of
+            // expressions on the LHS that would not parse into member access expression.
+            //
+            // Note: This can get complex because of cases like   `(int)o..Whatever();`
+            //
+            // Here, we want completion off of `o`, despite the LHS being the entire `(int)o` expr.  So we attempt to
+            // walk down the RHS of the expression before the .., looking to get the final term that the `.` should
+            // actually bind to.
+
+            var currentExpression = rangeExpression.LeftOperand;
+            if (currentExpression is not null)
+            {
+                while (currentExpression.ChildNodesAndTokens().Last().AsNode() is ExpressionSyntax child &&
+                       child.GetOperatorPrecedence() < OperatorPrecedence.Primary)
+                {
+                    currentExpression = child;
+                }
+
+                var precedence = currentExpression.GetOperatorPrecedence();
+                if (precedence != OperatorPrecedence.None && precedence < OperatorPrecedence.Primary)
+                    return default;
+            }
+
+            return GetSymbolsOffOfExpression(currentExpression);
         }
 
         private ImmutableArray<ISymbol> GetSymbolsForGlobalStatementContext()
@@ -188,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
             return allLabels
                 .WhereAsArray(label => label.DeclaringSyntaxReferences.First().GetSyntax(_cancellationToken)
-                    .IsKind(SyntaxKind.LabeledStatement, SyntaxKind.DefaultSwitchLabel));
+                    .Kind() is SyntaxKind.LabeledStatement or SyntaxKind.DefaultSwitchLabel);
         }
 
         private ImmutableArray<ISymbol> GetSymbolsForTypeOrNamespaceContext()
@@ -214,21 +264,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             //
             //     i          // <-- here
             //     I = 0;
-
+            //
             // The problem is that "i I = 0" causes a local to be in scope called "I".  So, later when
             // we look up symbols, it masks any other 'I's in scope (i.e. if there's a field with that 
             // name).  If this is the case, we do not want to filter out inaccessible locals.
+            //
+            // Similar issue for out-vars.  Like:
+            //
+            //              if (TryParse("", out    // <-- here
+            //              X x = null;
             var filterOutOfScopeLocals = _filterOutOfScopeLocals;
             if (filterOutOfScopeLocals)
-                filterOutOfScopeLocals = !_context.LeftToken.GetRequiredParent().IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type);
+            {
+                var contextNode = _context.LeftToken.GetRequiredParent();
+                filterOutOfScopeLocals =
+                    !contextNode.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type) &&
+                    !contextNode.IsFoundUnder<DeclarationExpressionSyntax>(d => d.Type);
+            }
 
             var symbols = !_context.IsNameOfContext && _context.LeftToken.GetRequiredParent().IsInStaticContext()
                 ? _context.SemanticModel.LookupStaticMembers(_context.LeftToken.SpanStart)
                 : _context.SemanticModel.LookupSymbols(_context.LeftToken.SpanStart);
 
+            // filter our top level locals if we're inside a type declaration.
+            if (_context.ContainingTypeDeclaration != null)
+                symbols = symbols.WhereAsArray(s => s.ContainingSymbol.Name != WellKnownMemberNames.TopLevelStatementsEntryPointMethodName);
+
             // Filter out any extension methods that might be imported by a using static directive.
             // But include extension methods declared in the context's type or it's parents
-            var contextOuterTypes = _context.GetOuterTypes(_cancellationToken);
+            var contextOuterTypes = ComputeOuterTypes(_context, _cancellationToken);
             var contextEnclosingNamedType = _context.SemanticModel.GetEnclosingNamedType(_context.Position, _cancellationToken);
 
             symbols = symbols.WhereAsArray(symbol =>
@@ -240,9 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // should not be included in the completion list, so remove those. Filter them away,
             // unless we're in the debugger, where we show all locals in scope.
             if (filterOutOfScopeLocals)
-            {
                 symbols = symbols.WhereAsArray(symbol => !symbol.IsInaccessibleLocal(_context.Position));
-            }
 
             return symbols;
         }
@@ -359,9 +421,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             bool unwrapNullable,
             bool isForDereference)
         {
-            var abstractsOnly = false;
             var excludeInstance = false;
             var excludeStatic = true;
+            var excludeBaseMethodsForRefStructs = true;
 
             ISymbol? containerSymbol = containerType;
 
@@ -405,7 +467,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                     // We only want statics and not instance members.
                     excludeInstance = true;
                     excludeStatic = false;
-                    abstractsOnly = symbol.Kind == SymbolKind.TypeParameter;
                     containerSymbol = symbol;
                 }
 
@@ -432,15 +493,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             if (containerSymbol == null)
                 return default;
 
+            // We don't provide any member from System.Void (which is valid only in the context of typeof operation).
+            // Try to bail early to avoid unnecessary work even though compiler will handle this case for us.
+            if (containerSymbol is INamedTypeSymbol typeSymbol && typeSymbol.IsSystemVoid())
+                return default;
+
             Debug.Assert(!excludeInstance || !excludeStatic);
-            Debug.Assert(!abstractsOnly || (abstractsOnly && !excludeStatic && excludeInstance));
 
             // nameof(X.|
             // Show static and instance members.
+            // Show base methods for "ref struct"s
             if (_context.IsNameOfContext)
             {
                 excludeInstance = false;
                 excludeStatic = false;
+                excludeBaseMethodsForRefStructs = false;
             }
 
             var useBaseReferenceAccessibility = symbol is IParameterSymbol { IsThis: true } p && !p.Type.Equals(containerType);
@@ -449,7 +516,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // If we're showing instance members, don't include nested types
             var namedSymbols = excludeStatic
                 ? symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol))
-                : (abstractsOnly ? symbols.WhereAsArray(s => s.IsAbstract) : symbols);
+                : symbols;
+
+            //If container type is "ref struct" then we should exclude methods from object and ValueType that are not overriden
+            //if recomendations are requested not in nameof context,
+            //because calling them produces a compiler error due to unallowed boxing. See https://github.com/dotnet/roslyn/issues/35178
+            if (excludeBaseMethodsForRefStructs && containerType is not null && containerType.IsRefLikeType)
+            {
+                namedSymbols = namedSymbols.RemoveAll(s => s.ContainingType.SpecialType is SpecialType.System_Object or SpecialType.System_ValueType);
+            }
 
             // if we're dotting off an instance, then add potential operators/indexers/conversions that may be
             // applicable to it as well.

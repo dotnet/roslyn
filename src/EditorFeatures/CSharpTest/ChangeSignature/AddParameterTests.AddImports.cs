@@ -14,9 +14,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
+    [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task AddParameterAddsAllImports()
         {
             var markup = @"
@@ -48,7 +49,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task AddParameterAddsOnlyMissingImports()
         {
             var markup = @"
@@ -82,7 +83,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task AddParameterAddsImportsOnCascading()
         {
             var markup = @"

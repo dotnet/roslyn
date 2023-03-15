@@ -4,10 +4,10 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class VisualBasicSyntaxFactsServiceFactory
@@ -20,29 +20,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Sub New()
             End Sub
 
-            Public Function IsInInactiveRegion(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsInInactiveRegion
-                If syntaxTree Is Nothing Then
-                    Return False
-                End If
-
-                Return syntaxTree.IsInInactiveRegion(position, cancellationToken)
-            End Function
-
             Public Function IsInNonUserCode(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsInNonUserCode
                 If syntaxTree Is Nothing Then
                     Return False
                 End If
 
                 Return syntaxTree.IsInNonUserCode(position, cancellationToken)
-            End Function
-
-            Public Function IsPossibleTupleContext(
-                syntaxTree As SyntaxTree,
-                position As Integer,
-                cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsPossibleTupleContext
-
-                Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
-                Return syntaxTree.IsPossibleTupleContext(token, position)
             End Function
 
             Public Sub AddFirstMissingCloseBrace(Of TContextNode As SyntaxNode)(

@@ -1897,7 +1897,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "null").WithLocation(8, 66),
                 // CS1003: Syntax error, 'in' expected
                 //         var query = /*<bind>*/from int i in new int[] { 1 } join null on true equals true select i/*</bind>*/; //CS1031
-                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments("in", "null").WithLocation(8, 66)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments("in").WithLocation(8, 66)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1959,7 +1959,6 @@ class Program
 }";
             CompileAndVerify(csSource, expectedOutput: "3 4");
         }
-
 
         [WorkItem(541788, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541788")]
         [Fact]
@@ -3341,7 +3340,6 @@ class Test1
                 );
         }
 
-
         [WorkItem(529350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529350")]
         [Fact]
         public void BindLambdaBodyWhenError()
@@ -3810,10 +3808,7 @@ static class TestExtensions
             compilation.VerifyDiagnostics(
                 // (7,34): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Where' not found.
                 //         var x02 = from a in Test where a > 0 select a + 1;
-                Diagnostic(ErrorCode.ERR_QueryNoProvider, "where a > 0").WithArguments("Test", "Where").WithLocation(7, 34),
-                // (7,46): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Select' not found.
-                //         var x02 = from a in Test where a > 0 select a + 1;
-                Diagnostic(ErrorCode.ERR_QueryNoProvider, "select a + 1").WithArguments("Test", "Select").WithLocation(7, 46)
+                Diagnostic(ErrorCode.ERR_QueryNoProvider, "where a > 0").WithArguments("Test", "Where").WithLocation(7, 34)
                 );
         }
 

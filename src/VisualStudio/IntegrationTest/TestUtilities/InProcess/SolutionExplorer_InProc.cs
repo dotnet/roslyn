@@ -81,20 +81,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             vsproject.References.Add(assemblyName);
         }
 
-        public void RemoveMetadataReference(string assemblyName, string projectName)
-        {
-            var project = GetProject(projectName);
-            var reference = ((VSProject)project.Object).References.Cast<Reference>().Where(x => x.Name == assemblyName).First();
-            reference.Remove();
-        }
-
-        public void AddAnalyzerReference(string filePath, string projectName)
-        {
-            var project = GetProject(projectName);
-            var vsProject = (VSProject3)project.Object;
-            vsProject.AnalyzerReferences.Add(filePath);
-        }
-
         public string DirectoryName => Path.GetDirectoryName(SolutionFileFullPath);
 
         public string SolutionFileFullPath
@@ -133,62 +119,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             Directory.CreateDirectory(solutionPath);
 
             var solution = GetGlobalService<SVsSolution, IVsSolution>();
-            ErrorHandler.ThrowOnFailure(solution.CreateSolution(solutionPath, solutionFileName, (uint)__VSCREATESOLUTIONFLAGS.CSF_SILENT));
-            ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
+            InvokeOnUIThread(cancellationToken =>
+            {
+                ErrorHandler.ThrowOnFailure(solution.CreateSolution(solutionPath, solutionFileName, (uint)__VSCREATESOLUTIONFLAGS.CSF_SILENT));
+                ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
+            });
 
             _solution = (Solution2)dte.Solution;
             _fileName = Path.Combine(solutionPath, solutionFileName);
-        }
-
-        public string[] GetAssemblyReferences(string projectName)
-        {
-            var project = GetProject(projectName);
-            var references = ((VSProject)project.Object).References.Cast<Reference>()
-                .Where(x => x.SourceProject == null)
-                .Select(x => x.Name + "," + x.Version + "," + x.PublicKeyToken).ToArray();
-            return references;
-        }
-
-        public void RenameFile(string projectName, string oldFileName, string newFileName)
-        {
-            var project = GetProject(projectName);
-            var projectDirectory = Path.GetDirectoryName(project.FullName);
-
-            VsShellUtilities.RenameDocument(
-                ServiceProvider.GlobalProvider,
-                Path.Combine(projectDirectory, oldFileName),
-                Path.Combine(projectDirectory, newFileName));
-        }
-
-        public void RenameFileViaDTE(string projectName, string oldFileName, string newFileName)
-        {
-            var projectItem = GetProjectItem(projectName, oldFileName);
-
-            projectItem.Name = newFileName;
-        }
-
-        public void EditProjectFile(string projectName)
-        {
-            var solutionExplorer = ((DTE2)GetDTE()).ToolWindows.SolutionExplorer;
-            solutionExplorer.Parent.Activate();
-            var rootHierarchyItems = solutionExplorer.UIHierarchyItems.Cast<EnvDTE.UIHierarchyItem>();
-            var solution = rootHierarchyItems.First();
-            var solutionHierarchyItems = solution.UIHierarchyItems.Cast<EnvDTE.UIHierarchyItem>();
-            var project = solutionHierarchyItems.Where(x => x.Name == projectName).FirstOrDefault();
-            if (project == null)
-            {
-                throw new ArgumentException($"Could not find project file, current hierarchy items '{string.Join(", ", rootHierarchyItems.Select(x => x.Name))}'");
-            }
-
-            project.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
-            ExecuteCommand("Project.EditProjectFile");
-        }
-
-        public string[] GetProjectReferences(string projectName)
-        {
-            var project = GetProject(projectName);
-            var references = ((VSProject)project.Object).References.Cast<Reference>().Where(x => x.SourceProject != null).Select(x => x.Name).ToArray();
-            return references;
         }
 
         public void CreateSolution(string solutionName, string solutionElementString)
@@ -289,21 +227,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 throw new InvalidOperationException($"'{nameof(RemovePackageReference)}' is not supported in project '{projectName}'.");
             }
-        }
-
-        public void RemoveProjectReference(string projectName, string projectReferenceName)
-        {
-            var project = GetProject(projectName);
-            var vsproject = (VSProject)project.Object;
-            var references = vsproject.References.Cast<Reference>();
-            var reference = references.Where(x => x.ContainingProject != null && x.Name == projectReferenceName).FirstOrDefault();
-            if (reference == null)
-            {
-                var projectReference = references.Where(x => x.ContainingProject != null).Select(x => x.Name);
-                throw new ArgumentException($"reference to project {projectReferenceName} not found, references: '{string.Join(", ", projectReference)}'");
-            }
-
-            reference.Remove();
         }
 
         private static string ConvertLanguageName(string languageName)
@@ -457,7 +380,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 solutionEvents.AfterCloseSolution += HandleAfterCloseSolution;
                 try
                 {
-                    ErrorHandler.ThrowOnFailure(solution.CloseSolutionElement((uint)__VSSLNCLOSEOPTIONS.SLNCLOSEOPT_DeleteProject | (uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_NoSave, null, 0));
+                    InvokeOnUIThread(cancellationToken =>
+                    {
+                        ErrorHandler.ThrowOnFailure(solution.CloseSolutionElement((uint)__VSSLNCLOSEOPTIONS.SLNCLOSEOPT_DeleteProject | (uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_NoSave, null, 0));
+                    });
+
                     semaphore.Wait();
                 }
                 finally
@@ -656,7 +583,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             switch (extension)
             {
                 case ".cs":
-                    itemTemplate = @"General\Visual C# Class";
+                    itemTemplate = @"General\C# Class";
                     break;
                 case ".csx":
                     itemTemplate = @"Script\Visual C# Script";

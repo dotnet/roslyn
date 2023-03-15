@@ -15,8 +15,12 @@ namespace Microsoft.CodeAnalysis.AddImport
     {
         private class MetadataSymbolReferenceCodeAction : SymbolReferenceCodeAction
         {
+            /// <summary>
+            /// This code action only works by adding a reference to a metadata dll.  As such, it requires a non
+            /// document change (and is thus restricted in which hosts it can run).
+            /// </summary>
             public MetadataSymbolReferenceCodeAction(Document originalDocument, AddImportFixData fixData)
-                : base(originalDocument, fixData)
+                : base(originalDocument, fixData, RequiresNonDocumentChangeTags)
             {
                 Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.MetadataSymbol);
             }

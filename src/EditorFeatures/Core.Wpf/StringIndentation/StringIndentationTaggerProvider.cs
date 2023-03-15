@@ -16,12 +16,11 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.StringIndentation;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -37,11 +36,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
     [TagType(typeof(StringIndentationTag))]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.CSharpContentType)]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal partial class StringIndentationTaggerProvider : AsynchronousTaggerProvider<StringIndentationTag>
+    internal sealed partial class StringIndentationTaggerProvider : AsynchronousTaggerProvider<StringIndentationTag>
     {
         private readonly IEditorFormatMap _editorFormatMap;
 
-        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.StringIdentation);
+        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(StringIndentationOptionsStorage.StringIdentation);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -49,8 +48,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
             IThreadingContext threadingContext,
             IEditorFormatMapService editorFormatMapService,
             IGlobalOptionService globalOptions,
+            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.StringIndentation))
+            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.StringIndentation))
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
         }
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
         protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
 
         protected override ITaggerEventSource CreateEventSource(
-            ITextView textView, ITextBuffer subjectBuffer)
+            ITextView? textView, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
                 new EditorFormatMapChangedEventSource(_editorFormatMap),
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
             if (document == null)
                 return;
 
-            if (!GlobalOptions.GetOption(FeatureOnOffOptions.StringIdentation, document.Project.Language))
+            if (!GlobalOptions.GetOption(StringIndentationOptionsStorage.StringIdentation, document.Project.Language))
                 return;
 
             var service = document.GetLanguageService<IStringIndentationService>();
@@ -114,9 +114,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
                 context.AddTag(new TagSpan<StringIndentationTag>(
                     region.IndentSpan.ToSnapshotSpan(snapshot),
                     new StringIndentationTag(
+                        this,
                         _editorFormatMap,
                         region.OrderedHoleSpans.SelectAsArray(s => s.ToSnapshotSpan(snapshot)))));
             }
         }
+
+        protected override bool TagEquals(StringIndentationTag tag1, StringIndentationTag tag2)
+            => tag1.Equals(tag2);
     }
 }

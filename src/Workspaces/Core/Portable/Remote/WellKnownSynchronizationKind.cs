@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Serialization
         MetadataReference,
         AnalyzerReference,
         SourceText,
-        OptionSet,
 
         SerializableSourceText,
 

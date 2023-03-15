@@ -10,7 +10,7 @@ namespace Roslyn.Test.Utilities
 {
     internal sealed partial class SourceWithMarkedNodes
     {
-        internal struct MarkedSpan
+        internal readonly struct MarkedSpan
         {
             public readonly TextSpan MarkedSyntax;
             public readonly TextSpan MatchedSpan;

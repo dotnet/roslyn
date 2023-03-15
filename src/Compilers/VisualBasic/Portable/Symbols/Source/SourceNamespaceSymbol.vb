@@ -122,12 +122,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property NameToMembersMap As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))
-            Get
-                Return GetNameToMembersMap()
-            End Get
-        End Property
-
         Private Function GetNameToMembersMap() As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))
             If _nameToMembersMap Is Nothing Then
                 Dim map = MakeNameToMembersMap()
@@ -609,7 +603,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return (_lazyState And StateFlags.HasMultipleSpellings) <> 0
             End Get
         End Property
-
 
         ''' <summary>
         ''' Get the fully qualified namespace name using the spelling used in the declaration enclosing the given

@@ -37,5 +37,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
         Protected Overrides Function Decrement(left As ExpressionSyntax, postfix As Boolean) As ExpressionSyntax
             Throw ExceptionUtilities.Unreachable
         End Function
+
+        Protected Overrides Function PrepareRightExpressionLeadingTrivia(initialTrivia As SyntaxTriviaList) As SyntaxTriviaList
+            Return initialTrivia.WithoutLeadingWhitespaceOrEndOfLine()
+        End Function
     End Class
 End Namespace

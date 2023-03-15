@@ -67,14 +67,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 var assemblyDirectory = GetAssemblyDirectory();
                 var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
-                var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
+                var logDir = Path.Combine(assemblyDirectory, "TestResults", "Screenshots");
                 var baseFileName = $"{DateTime.UtcNow:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
 
                 var maxLength = logDir.Length + 1 + baseFileName.Length + ".Watson.log".Length + 1;
                 const int MaxPath = 260;
                 if (maxLength > MaxPath)
                 {
-                    testName = testName.Substring(0, testName.Length - (maxLength - MaxPath));
+                    testName = testName[..^(maxLength - MaxPath)];
                     baseFileName = $"{DateTime.UtcNow:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
                 }
 
@@ -177,14 +177,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 installationPath = instance.GetInstallationPath();
 
                 var instanceVersion = instance.GetInstallationVersion();
-                var majorVersion = int.Parse(instanceVersion.Substring(0, instanceVersion.IndexOf('.')));
+                var majorVersion = int.Parse(instanceVersion[..instanceVersion.IndexOf('.')]);
                 hostProcess = StartNewVisualStudioProcess(installationPath, majorVersion, isUsingLspEditor);
-
-                var procDumpInfo = ProcDumpInfo.ReadFromEnvironment();
-                if (procDumpInfo != null)
-                {
-                    ProcDumpUtil.AttachProcDump(procDumpInfo.Value, hostProcess.Id);
-                }
 
                 // We wait until the DTE instance is up before we're good
                 dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(true);
@@ -334,6 +328,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Disable IntelliCode line completions to avoid interference with argument completion testing
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\\IntelliCode\" wholeLineCompletions string \"0*System.Int32*2\"")).WaitForExit();
 
+                // Disable IntelliCode RepositoryAttachedModels since it requires authentication which can fail in CI
+                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\\IntelliCode\" repositoryAttachedModels string \"0*System.Int32*2\"")).WaitForExit();
+
                 // Disable background download UI to avoid toasts
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0")).WaitForExit();
 
@@ -404,11 +401,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var environmentPath = processStartInfo.Environment["PATH"];
 
                 // Assert that the PATH still has the form we are expecting since we're about to modify it
-                var firstPath = environmentPath.Substring(0, environmentPath.IndexOf(';'));
+                var firstPath = environmentPath[..environmentPath.IndexOf(';')];
                 Assert.Equal(Path.Combine(sourcesDirectory, ".dotnet") + '\\', firstPath);
 
                 // Drop the first path element
-                processStartInfo.Environment["PATH"] = environmentPath.Substring(environmentPath.IndexOf(';') + 1);
+                processStartInfo.Environment["PATH"] = environmentPath[(environmentPath.IndexOf(';') + 1)..];
             }
 
             var process = Process.Start(processStartInfo);

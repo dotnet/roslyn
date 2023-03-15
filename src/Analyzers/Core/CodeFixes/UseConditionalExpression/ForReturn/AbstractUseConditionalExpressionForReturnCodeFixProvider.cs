@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -35,15 +35,17 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            var (title, key) = context.Diagnostics.First().Properties.ContainsKey(UseConditionalExpressionHelpers.CanSimplifyName)
+                ? (AnalyzersResources.Simplify_check, nameof(AnalyzersResources.Simplify_check))
+                : (AnalyzersResources.Convert_to_conditional_expression, nameof(AnalyzersResources.Convert_to_conditional_expression));
+
+            RegisterCodeFix(context, title, key);
             return Task.CompletedTask;
         }
 
         protected override async Task FixOneAsync(
             Document document, Diagnostic diagnostic,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var ifStatement = (TIfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var containingSymbol = semanticModel.GetRequiredEnclosingSymbol(ifStatement.SpanStart, cancellationToken);
 
             if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(
-                    syntaxFacts, ifOperation, containingSymbol,
+                    syntaxFacts, ifOperation, containingSymbol, out var isRef,
                     out var trueStatement, out var falseStatement,
                     out var trueReturn, out var falseReturn))
             {
@@ -66,7 +68,9 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 trueStatement, falseStatement,
                 trueReturn?.ReturnedValue ?? trueStatement,
                 falseReturn?.ReturnedValue ?? falseStatement,
-                anyReturn.GetRefKind(containingSymbol) != RefKind.None, cancellationToken).ConfigureAwait(false);
+                isRef,
+                fallbackOptions,
+                cancellationToken).ConfigureAwait(false);
 
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var returnStatement = anyReturn.Kind == OperationKind.YieldReturn
@@ -84,14 +88,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             if (ifOperation.WhenFalse == null)
             {
                 editor.RemoveNode(falseStatement.Syntax, GetRemoveOptions(syntaxFacts, falseStatement.Syntax));
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Convert_to_conditional_expression, createChangedDocument, IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId)
-            {
             }
         }
     }

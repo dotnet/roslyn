@@ -205,7 +205,6 @@ class C { }
                 init.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver());
             });
 
-
             // ISyntaxReceiver + ISyntaxContextReceiver
             init = new GeneratorInitializationContext(CancellationToken.None);
             init.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver());
@@ -862,7 +861,6 @@ class C
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
-
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
@@ -902,7 +900,6 @@ class classD
             var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
-
 
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
@@ -1465,7 +1462,6 @@ class E
                     output => Assert.Equal(("fieldC", IncrementalStepRunReason.Cached), output)));
             Assert.Empty(syntaxFieldsCalledFor);
 
-
             // swap a tree for a tree with the same contents, but a new reference
             var newLastTree = CSharpSyntaxTree.ParseText(lastTree.ToString(), parseOptions);
 
@@ -1626,7 +1622,6 @@ class C
             List<string> syntaxCalledFor = new List<string>();
             List<string> noCompareCalledFor = new List<string>();
             List<string> compareCalledFor = new List<string>();
-
 
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
@@ -2075,6 +2070,64 @@ class C
             Assert.Single(results.Results);
             Assert.IsType<OperationCanceledException>(results.Results[0].Exception);
             Assert.Equal("Simulated cancellation from external source", results.Results[0].Exception!.Message);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61540: Timing is unreliable in CI")]
+        public void Syntax_Provider_Doesnt_Attribute_Incorrect_Timing()
+        {
+            var source = @"
+class C 
+{
+    int Property { get; set; }
+
+    void Function()
+    {
+        var x = 5;
+        x += 4;
+    }
+}
+";
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var sleepTimeInMs = 50;
+            var testGenerator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.SyntaxProvider.CreateSyntaxProvider<object>((s, _) => s is AssignmentExpressionSyntax, (c, _) => { Thread.Sleep(sleepTimeInMs); return true; }), (spc, s) => { });
+            }).AsSourceGenerator();
+
+            var testGenerator2 = new PipelineCallbackGenerator2(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.SyntaxProvider.CreateSyntaxProvider<object>((s, _) => s is AssignmentExpressionSyntax, (c, _) => { Thread.Sleep(sleepTimeInMs); return true; }), (spc, s) => { });
+                ctx.RegisterSourceOutput(ctx.SyntaxProvider.CreateSyntaxProvider<object>((s, _) => s is AssignmentExpressionSyntax, (c, _) => { Thread.Sleep(sleepTimeInMs); return true; }), (spc, s) => { });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator, testGenerator2 });
+            driver = driver.RunGenerators(compilation);
+
+            var timing = driver.GetTimingInfo();
+
+            Assert.NotEqual(TimeSpan.Zero, timing.ElapsedTime);
+            Assert.Equal(2, timing.GeneratorTimes.Length);
+
+            // check generator one took at least 'sleepTimeInMs'
+            var timing1 = timing.GeneratorTimes[0];
+            Assert.Equal(testGenerator, timing1.Generator);
+            Assert.NotEqual(TimeSpan.Zero, timing1.ElapsedTime);
+            Assert.True(timing.ElapsedTime >= timing1.ElapsedTime);
+            Assert.True(timing1.ElapsedTime.TotalMilliseconds >= sleepTimeInMs);
+
+            // check generator two took at least 'sleepTimeInMs' * 2
+            var timing2 = timing.GeneratorTimes[1];
+            Assert.Equal(testGenerator2, timing2.Generator);
+            Assert.NotEqual(TimeSpan.Zero, timing2.ElapsedTime);
+            Assert.True(timing.ElapsedTime >= timing2.ElapsedTime);
+            Assert.True(timing2.ElapsedTime.TotalMilliseconds >= sleepTimeInMs * 2);
+
+            // now check that generator two took longer than generator one (and one didn't get attributed the time)
+            Assert.True(timing2.ElapsedTime > timing1.ElapsedTime);
         }
 
         private class TestReceiverBase<T>

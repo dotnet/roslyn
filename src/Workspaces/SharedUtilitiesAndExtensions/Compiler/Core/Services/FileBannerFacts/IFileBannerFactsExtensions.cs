@@ -5,7 +5,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal static class IFileBannerFactsExtensions
     {

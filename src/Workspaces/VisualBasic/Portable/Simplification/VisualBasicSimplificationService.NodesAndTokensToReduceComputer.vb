@@ -19,9 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Private ReadOnly _nodesAndTokensToReduce As List(Of NodeOrTokenToReduce)
             Private ReadOnly _isNodeOrTokenOutsideSimplifySpans As Func(Of SyntaxNodeOrToken, Boolean)
 
-            Private Shared ReadOnly s_containsAnnotations As Func(Of SyntaxNode, Boolean) = Function(n) n.ContainsAnnotations
-            Private Shared ReadOnly s_hasSimplifierAnnotation As Func(Of SyntaxNodeOrToken, Boolean) = Function(n) n.HasAnnotation(Simplifier.Annotation)
-
             Private _simplifyAllDescendants As Boolean
             Private _insideSpeculatedNode As Boolean
 
@@ -71,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     If Not Me._insideSpeculatedNode AndAlso
                     IsNodeVariableDeclaratorOfFieldDeclaration(node) AndAlso
                     Me._simplifyAllDescendants Then
-                        Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(node, False, node, False))
+                        Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(node, False, node))
                     End If
 
                     node = MyBase.Visit(node)
@@ -124,39 +121,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             End Function
 
             Public Overrides Function VisitMethodBlock(node As MethodBlockSyntax) As SyntaxNode
-                Dim updateFunc As Func(Of MethodBlockBaseSyntax, MethodBaseSyntax, SyntaxList(Of StatementSyntax), EndBlockStatementSyntax, MethodBlockBaseSyntax) =
+                Return VisitMethodBlockBaseSyntax(node,
                     Function(n, b, s, e)
                         Return DirectCast(n, MethodBlockSyntax).Update(node.Kind, DirectCast(b, MethodStatementSyntax), s, e)
-                    End Function
-
-                Return VisitMethodBlockBaseSyntax(node, updateFunc)
+                    End Function)
             End Function
 
             Public Overrides Function VisitOperatorBlock(node As OperatorBlockSyntax) As SyntaxNode
-                Dim updateFunc As Func(Of MethodBlockBaseSyntax, MethodBaseSyntax, SyntaxList(Of StatementSyntax), EndBlockStatementSyntax, MethodBlockBaseSyntax) =
+                Return VisitMethodBlockBaseSyntax(node,
                     Function(n, b, s, e)
                         Return DirectCast(n, OperatorBlockSyntax).Update(DirectCast(b, OperatorStatementSyntax), s, e)
-                    End Function
-
-                Return VisitMethodBlockBaseSyntax(node, updateFunc)
+                    End Function)
             End Function
 
             Public Overrides Function VisitConstructorBlock(node As ConstructorBlockSyntax) As SyntaxNode
-                Dim updateFunc As Func(Of MethodBlockBaseSyntax, MethodBaseSyntax, SyntaxList(Of StatementSyntax), EndBlockStatementSyntax, MethodBlockBaseSyntax) =
+                Return VisitMethodBlockBaseSyntax(node,
                     Function(n, b, s, e)
                         Return DirectCast(n, ConstructorBlockSyntax).Update(DirectCast(b, SubNewStatementSyntax), s, e)
-                    End Function
-
-                Return VisitMethodBlockBaseSyntax(node, updateFunc)
+                    End Function)
             End Function
 
             Public Overrides Function VisitAccessorBlock(node As AccessorBlockSyntax) As SyntaxNode
-                Dim updateFunc As Func(Of MethodBlockBaseSyntax, MethodBaseSyntax, SyntaxList(Of StatementSyntax), EndBlockStatementSyntax, MethodBlockBaseSyntax) =
+                Return VisitMethodBlockBaseSyntax(node,
                     Function(n, b, s, e)
                         Return DirectCast(n, AccessorBlockSyntax).Update(node.Kind, DirectCast(b, AccessorStatementSyntax), s, e)
-                    End Function
-
-                Return VisitMethodBlockBaseSyntax(node, updateFunc)
+                    End Function)
             End Function
 
             Private Function VisitMethodBlockBaseSyntax(node As MethodBlockBaseSyntax, updateFunc As Func(Of MethodBlockBaseSyntax, MethodBaseSyntax, SyntaxList(Of StatementSyntax), EndBlockStatementSyntax, MethodBlockBaseSyntax)) As MethodBlockBaseSyntax

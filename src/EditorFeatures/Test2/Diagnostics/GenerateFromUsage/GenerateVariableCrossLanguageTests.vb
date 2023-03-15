@@ -14,10 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateVariable
     Partial Public Class GenerateVariableCrossLanguageTests
         Inherits AbstractCrossLanguageUserDiagnosticTest
 
-        Private ReadOnly _outputHelper As ITestOutputHelper
-
         Public Sub New(outputHelper As ITestOutputHelper)
-            _outputHelper = outputHelper
+            MyBase.New(outputHelper)
         End Sub
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
@@ -64,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateVariable
                     }
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
     End Class
 End Namespace

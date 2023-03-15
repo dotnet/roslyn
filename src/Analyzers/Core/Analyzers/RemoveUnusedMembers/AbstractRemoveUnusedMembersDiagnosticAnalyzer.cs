@@ -24,6 +24,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         where TDocumentationCommentTriviaSyntax : SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
     {
+        /// <summary>
+        /// Produces names like TypeName.MemberName
+        /// </summary>
+        private static readonly SymbolDisplayFormat ContainingTypeAndNameOnlyFormat = new(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
+
         // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
         private static readonly DiagnosticDescriptor s_removeUnusedMembersRule = CreateDescriptor(
             IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
@@ -33,7 +40,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             isUnnecessary: true);
 
         // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
-        private static readonly DiagnosticDescriptor s_removeUnreadMembersRule = CreateDescriptor(
+        // Internal for testing
+        internal static readonly DiagnosticDescriptor s_removeUnreadMembersRule = CreateDescriptor(
             IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
             EnforceOnBuildValues.RemoveUnreadMembers,
             new LocalizableResourceString(nameof(AnalyzersResources.Remove_unread_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
@@ -67,7 +75,22 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         private sealed class CompilationAnalyzer
         {
             private readonly object _gate;
-            private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap;
+            /// <summary>
+            /// State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
+            /// </summary>
+            private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap = new();
+            /// <summary>
+            /// List of properties that have a 'get' accessor usage, while the value itself is not used, e.g.:
+            /// <code>
+            /// class C
+            /// {
+            ///     private int P { get; set; }
+            ///     public void M() { P++; }
+            /// }
+            /// </code>
+            /// Here, 'get' accessor is used in an increment operation, but the result of the increment operation isn't used and 'P' itself is not used anywhere else, so it can be safely removed
+            /// </summary>
+            private readonly HashSet<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = new();
             private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
             private readonly INamedTypeSymbol _eventArgsType;
             private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
@@ -80,9 +103,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             {
                 _gate = new object();
                 _analyzer = analyzer;
-
-                // State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
-                _symbolValueUsageStateMap = new Dictionary<ISymbol, ValueUsageInfo>();
 
                 _taskType = compilation.TaskType();
                 _genericTaskType = compilation.TaskOfTType();
@@ -170,27 +190,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     //     We do so to ensure that we don't report false positives during editing scenarios in the IDE, where the user
                     //     is still editing code and fixing unresolved references to symbols, such as overload resolution errors.
                     //  2. Dynamic operations, where we do not know the exact member being referenced at compile time.
-                    //  3. Operations with OperationKind.None which are not operation root nodes. Attributes
-                    //     generate operation blocks with root operation with OperationKind.None, and we don't want to bail out for them.
-                    symbolStartContext.RegisterOperationAction(_ => hasUnsupportedOperation = true, OperationKind.Invalid,
+                    //  3. Operations with OperationKind.None.
+                    symbolStartContext.RegisterOperationAction(_ => hasUnsupportedOperation = true, OperationKind.Invalid, OperationKind.None,
                         OperationKind.DynamicIndexerAccess, OperationKind.DynamicInvocation, OperationKind.DynamicMemberReference, OperationKind.DynamicObjectCreation);
-                    symbolStartContext.RegisterOperationAction(AnalyzeOperationNone, OperationKind.None);
 
                     symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasUnsupportedOperation));
 
                     // Register custom language-specific actions, if any.
                     _analyzer.HandleNamedTypeSymbolStart(symbolStartContext, onSymbolUsageFound);
-
-                    return;
-
-                    void AnalyzeOperationNone(OperationAnalysisContext context)
-                    {
-                        if (context.Operation.Kind == OperationKind.None &&
-                            context.Operation.Parent != null)
-                        {
-                            hasUnsupportedOperation = true;
-                        }
-                    }
                 }, SymbolKind.NamedType);
             }
 
@@ -301,6 +308,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         if (memberReference.Parent.Parent is IExpressionStatementOperation)
                         {
                             valueUsageInfo = ValueUsageInfo.Write;
+
+                            // If the symbol is a property, than mark it as having shadow 'get' accessor usages.
+                            // Later we will produce message "Private member X can be removed as the value assigned to it is never read"
+                            // rather than "Private property X can be converted to a method as its get accessor is never invoked" depending on this information.
+                            if (memberSymbol is IPropertySymbol propertySymbol)
+                            {
+                                lock (_gate)
+                                {
+                                    _propertiesWithShadowGetAccessorUsages.Add(propertySymbol);
+                                }
+                            }
                         }
                     }
 
@@ -373,7 +391,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     return;
                 }
 
-                if (symbolEndContext.Symbol.GetAttributes().Any(a => a.AttributeClass == _structLayoutAttributeType))
+                if (symbolEndContext.Symbol.GetAttributes().Any(static (a, self) => a.AttributeClass == self._structLayoutAttributeType, this))
                 {
                     // Bail out for types with 'StructLayoutAttribute' as the ordering of the members is critical,
                     // and removal of unused members might break semantics.
@@ -471,7 +489,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 return;
             }
 
-            private static LocalizableString GetMessage(
+            private LocalizableString GetMessage(
                DiagnosticDescriptor rule,
                ISymbol member)
             {
@@ -486,7 +504,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             break;
 
                         case IPropertySymbol property:
-                            if (property.GetMethod != null && property.SetMethod != null)
+                            // We change the message only if both 'get' and 'set' accessors are present and
+                            // there are no shadow 'get' accessor usages. Otherwise the message will be confusing
+                            if (property.GetMethod != null && property.SetMethod != null &&
+                                !_propertiesWithShadowGetAccessorUsages.Contains(property))
                             {
                                 messageFormat = AnalyzersResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked;
                             }
@@ -495,8 +516,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     }
                 }
 
-                var memberName = $"{member.ContainingType.Name}.{member.Name}";
-                return new DiagnosticHelper.LocalizableStringWithArguments(messageFormat, memberName);
+                return new DiagnosticHelper.LocalizableStringWithArguments(
+                    messageFormat, member.ToDisplayString(ContainingTypeAndNameOnlyFormat));
             }
 
             private static bool HasSyntaxErrors(INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
@@ -523,7 +544,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                              .SelectMany(n => n.DescendantNodes().OfType<TIdentifierNameSyntax>()))
                     {
                         lazyModel ??= compilation.GetSemanticModel(root.SyntaxTree);
-                        var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol;
+                        var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol?.OriginalDefinition;
                         if (symbol != null && IsCandidateSymbol(symbol))
                         {
                             builder.Add(symbol);
@@ -566,15 +587,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 foreach (var attribute in symbol.GetAttributes())
                 {
                     if (attribute.AttributeClass == _debuggerDisplayAttributeType &&
-                        attribute.ConstructorArguments.Length == 1 &&
-                        attribute.ConstructorArguments[0] is var arg &&
-                        arg.Kind == TypedConstantKind.Primitive &&
-                        arg.Type.SpecialType == SpecialType.System_String)
+                        attribute.ConstructorArguments is [{ Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string value }])
                     {
-                        if (arg.Value is string value)
-                        {
-                            builder.Add(value);
-                        }
+                        builder.Add(value);
                     }
                 }
             }
@@ -700,7 +715,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             }
 
             private bool IsMethodWithSpecialAttribute(IMethodSymbol methodSymbol)
-                => methodSymbol.GetAttributes().Any(a => _attributeSetForMethodsToIgnore.Contains(a.AttributeClass));
+                => methodSymbol.GetAttributes().Any(static (a, self) => self._attributeSetForMethodsToIgnore.Contains(a.AttributeClass), this);
 
             private static bool IsShouldSerializeOrResetPropertyMethod(IMethodSymbol methodSymbol)
             {
@@ -720,7 +735,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     {
                         var suffix = methodSymbol.Name[prefix.Length..];
                         return suffix.Length > 0 &&
-                            methodSymbol.ContainingType.GetMembers(suffix).Any(m => m is IPropertySymbol);
+                            methodSymbol.ContainingType.GetMembers(suffix).Any(static m => m is IPropertySymbol);
                     }
 
                     return false;

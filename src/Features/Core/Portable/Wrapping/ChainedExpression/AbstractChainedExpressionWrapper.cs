@@ -6,7 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
         protected abstract SyntaxTriviaList GetNewLineBeforeOperatorTrivia(SyntaxTriviaList newLine);
 
         public sealed override async Task<ICodeActionComputer?> TryCreateComputerAsync(
-            Document document, int position, SyntaxNode node, bool containsSyntaxError, CancellationToken cancellationToken)
+            Document document, int position, SyntaxNode node, SyntaxWrappingOptions options, bool containsSyntaxError, CancellationToken cancellationToken)
         {
             if (containsSyntaxError)
                 return null;
@@ -108,7 +109,6 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             // Looks good.  Create the action computer which will actually determine
             // the set of wrapping options to provide.
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             return new CallExpressionCodeActionComputer(
                 this, document, sourceText, options, chunks, cancellationToken);
         }
@@ -230,13 +230,11 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
         private static ImmutableArray<SyntaxNodeOrToken> GetSubRange(
             ArrayBuilder<SyntaxNodeOrToken> pieces, int start, int end)
         {
-            using var resultDisposer = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(end - start, out var result);
+            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(end - start, out var result);
             for (var i = start; i < end; i++)
-            {
                 result.Add(pieces[i]);
-            }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         private bool IsDecomposableChainPart(SyntaxNode? node)

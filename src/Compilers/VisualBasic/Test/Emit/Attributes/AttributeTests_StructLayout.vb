@@ -692,6 +692,37 @@ BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value
         End Sub
 
         <Fact>
+        Public Sub ExplicitFieldLayout_Errors2()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System.Runtime.InteropServices
+
+Namespace System.Runtime.InteropServices
+    Public Class FieldOffsetAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional offset As Integer = -1)
+        End Sub
+    End Class
+End Namespace
+
+Public Class S
+    <FieldOffset>
+    Dim b As Integer
+End Class
+]]>
+    </file>
+</compilation>
+
+            CreateCompilationWithMscorlib40(source).AssertTheseDiagnostics(<![CDATA[
+BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value.
+    <FieldOffset>
+     ~~~~~~~~~~~
+]]>)
+        End Sub
+
+        <Fact>
         Public Sub ReadingFromMetadata()
             Using [module] = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.Invalid.ClassLayout)
                 Dim reader = [module].Module.GetMetadataReader()

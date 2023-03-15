@@ -53,20 +53,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
                     return;
             }
 
+            // Note: This is a generally useful feature on strings.  But it's not likely to be something
+            // people want to use a lot.  Make low priority so it doesn't interfere with more
+            // commonly useful refactorings.
+
             if (IsVerbatim(literalExpression))
             {
                 // always offer to convert from verbatim string to normal string.
-                context.RegisterRefactoring(new MyCodeAction(
+                context.RegisterRefactoring(CodeAction.CreateWithPriority(
+                    CodeActionPriority.Low,
                     CSharpFeaturesResources.Convert_to_regular_string,
-                    c => ConvertToRegularStringAsync(document, literalExpression, c)));
+                    c => ConvertToRegularStringAsync(document, literalExpression, c),
+                    nameof(CSharpFeaturesResources.Convert_to_regular_string)));
             }
             else if (ContainsSimpleEscape(charService, subStringTokens))
             {
                 // Offer to convert to a verbatim string if the normal string contains simple
                 // escapes that can be directly embedded in the verbatim string.
-                context.RegisterRefactoring(new MyCodeAction(
+                context.RegisterRefactoring(CodeAction.CreateWithPriority(
+                    CodeActionPriority.Low,
                     CSharpFeaturesResources.Convert_to_verbatim_string,
-                    c => ConvertToVerbatimStringAsync(document, literalExpression, c)));
+                    c => ConvertToVerbatimStringAsync(document, literalExpression, c),
+                    nameof(CSharpFeaturesResources.Convert_to_verbatim_string)));
             }
         }
 
@@ -175,21 +183,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             }
 
             return false;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            /// <summary>
-            /// This is a generally useful feature on strings.  But it's not likely to be something
-            /// people want to use a lot.  Make low priority so it doesn't interfere with more
-            /// commonly useful refactorings.
-            /// </summary>
-            internal override CodeActionPriority Priority => CodeActionPriority.Low;
-
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

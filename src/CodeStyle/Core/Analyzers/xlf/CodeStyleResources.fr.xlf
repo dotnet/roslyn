@@ -27,16 +27,6 @@
         <target state="translated">Le lecteur de désérialisation pour '{0}' a lu un nombre incorrect de valeurs.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error">
-        <source>Error</source>
-        <target state="translated">Erreur</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_formatting">
-        <source>Fix formatting</source>
-        <target state="translated">Corriger la mise en forme</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
         <target state="translated">Indentation et espacement</target>
@@ -47,24 +37,9 @@
         <target state="translated">Préférences de nouvelle ligne</target>
         <note />
       </trans-unit>
-      <trans-unit id="None">
-        <source>None</source>
-        <target state="translated">Aucun(e)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Refactoring_Only">
-        <source>Refactoring Only</source>
-        <target state="translated">Refactoring Only</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Stream_is_too_long">
         <source>Stream is too long.</source>
         <target state="translated">Le flux est trop long.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suggestion">
-        <source>Suggestion</source>
-        <target state="translated">Suggestion</target>
         <note />
       </trans-unit>
       <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
@@ -75,11 +50,6 @@
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
         <target state="translated">La valeur est trop grande pour être représentée comme un entier non signé 30 bits.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning">
-        <source>Warning</source>
-        <target state="translated">Avertissement</target>
         <note />
       </trans-unit>
     </body>

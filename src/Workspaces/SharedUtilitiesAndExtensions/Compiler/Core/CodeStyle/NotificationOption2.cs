@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-
-#if CODE_STYLE
-using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
-#endif
+using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
@@ -14,70 +10,34 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// Offers different notification styles for enforcing
     /// a code style. Under the hood, it simply maps to <see cref="DiagnosticSeverity"/>
     /// </summary>
-    /// <remarks>
-    /// This also supports various properties for databinding.
-    /// </remarks>
     /// <completionlist cref="NotificationOption2"/>
-    internal sealed partial class NotificationOption2 : IEquatable<NotificationOption2?>
+    [DataContract]
+    internal readonly partial record struct NotificationOption2(
+        [property: DataMember(Order = 0)] ReportDiagnostic Severity)
     {
-        /// <summary>
-        /// Name for the notification option.
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        /// Diagnostic severity associated with notification option.
-        /// </summary>
-        public ReportDiagnostic Severity
-        {
-            get;
-            set;
-        }
-
         /// <summary>
         /// Notification option to disable or suppress an option with <see cref="ReportDiagnostic.Suppress"/>.
         /// </summary>
-        public static readonly NotificationOption2 None = new(WorkspacesResources.None, ReportDiagnostic.Suppress);
+        public static NotificationOption2 None => new(ReportDiagnostic.Suppress);
 
         /// <summary>
         /// Notification option for a silent or hidden option with <see cref="ReportDiagnostic.Hidden"/>.
         /// </summary>
-        public static readonly NotificationOption2 Silent = new(WorkspacesResources.Refactoring_Only, ReportDiagnostic.Hidden);
+        public static NotificationOption2 Silent => new(ReportDiagnostic.Hidden);
 
         /// <summary>
         /// Notification option for a suggestion or an info option with <see cref="ReportDiagnostic.Info"/>.
         /// </summary>
-        public static readonly NotificationOption2 Suggestion = new(WorkspacesResources.Suggestion, ReportDiagnostic.Info);
+        public static NotificationOption2 Suggestion => new(ReportDiagnostic.Info);
 
         /// <summary>
         /// Notification option for a warning option with <see cref="ReportDiagnostic.Warn"/>.
         /// </summary>
-        public static readonly NotificationOption2 Warning = new(WorkspacesResources.Warning, ReportDiagnostic.Warn);
+        public static NotificationOption2 Warning => new(ReportDiagnostic.Warn);
 
         /// <summary>
         /// Notification option for an error option with <see cref="ReportDiagnostic.Error"/>.
         /// </summary>
-        public static readonly NotificationOption2 Error = new(WorkspacesResources.Error, ReportDiagnostic.Error);
-
-        private NotificationOption2(string name, ReportDiagnostic severity)
-        {
-            Name = name;
-            Severity = severity;
-        }
-
-        public override string ToString() => Name;
-
-        public override bool Equals(object? obj)
-            => ReferenceEquals(this, obj);
-
-        public bool Equals(NotificationOption2? notificationOption2)
-            => ReferenceEquals(this, notificationOption2);
-
-        public override int GetHashCode()
-        {
-            var hash = this.Name.GetHashCode();
-            hash = unchecked((hash * (int)0xA5555529) + this.Severity.GetHashCode());
-            return hash;
-        }
+        public static NotificationOption2 Error => new(ReportDiagnostic.Error);
     }
 }

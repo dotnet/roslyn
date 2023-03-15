@@ -71,12 +71,22 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             using var _ = _connectionPool.Target.GetPooledConnection(out var connection);
 
-            connection.RunInTransaction(static state =>
+            var exception = connection.RunInTransaction(static state =>
             {
                 state.self._solutionAccessor.FlushInMemoryDataToDisk_MustRunInTransaction(state.connection);
                 state.self._projectAccessor.FlushInMemoryDataToDisk_MustRunInTransaction(state.connection);
                 state.self._documentAccessor.FlushInMemoryDataToDisk_MustRunInTransaction(state.connection);
-            }, (self: this, connection));
+            },
+            (self: this, connection),
+            throwOnSqlException: false);
+
+            if (exception != null)
+            {
+                // Some sql exception occurred (like SQLITE_FULL). These are not exceptions we can suitably recover
+                // from.  In this case, transition the storage instance into being unusable. Future reads/writes will
+                // get empty results.
+                this.DisableStorage(exception);
+            }
         }
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Globalization;
 using Roslyn.Utilities;
@@ -30,6 +28,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             _xmlErrorCode = code;
         }
 
+        private XmlSyntaxDiagnosticInfo(XmlSyntaxDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
+        {
+            _xmlErrorCode = original._xmlErrorCode;
+        }
+
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
+        {
+            return new XmlSyntaxDiagnosticInfo(this, severity);
+        }
+
         #region Serialization
 
         protected override void WriteTo(ObjectWriter writer)
@@ -46,14 +54,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        public override string GetMessage(IFormatProvider formatProvider = null)
+        public override string GetMessage(IFormatProvider? formatProvider = null)
         {
             var culture = formatProvider as CultureInfo;
 
             string messagePrefix = this.MessageProvider.LoadMessage(this.Code, culture);
             string message = ErrorFacts.GetMessage(_xmlErrorCode, culture);
 
-            System.Diagnostics.Debug.Assert(!string.IsNullOrEmpty(message));
+            RoslynDebug.Assert(!string.IsNullOrEmpty(message));
 
             if (this.Arguments == null || this.Arguments.Length == 0)
             {

@@ -5,7 +5,9 @@
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.RemoveUnnecessaryImports
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
 
@@ -21,6 +23,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
 
         Protected Overrides Function GetTitle() As String
             Return VisualBasicCodeFixesResources.Remove_Unnecessary_Imports
+        End Function
+
+        Protected Overrides Function GetSyntaxFormatting() As ISyntaxFormatting
+            Return VisualBasicSyntaxFormatting.Instance
         End Function
     End Class
 End Namespace

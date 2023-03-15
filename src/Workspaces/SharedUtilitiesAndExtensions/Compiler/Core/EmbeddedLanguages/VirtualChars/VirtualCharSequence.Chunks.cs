@@ -5,11 +5,12 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
-    internal partial struct VirtualCharSequence
+    internal readonly partial struct VirtualCharSequence
     {
         /// <summary>
         /// Abstraction over a contiguous chunk of <see cref="VirtualChar"/>s.  This
@@ -29,23 +30,23 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         }
 
         /// <summary>
-        /// Thin wrapper over an actual <see cref="ImmutableArray{VirtualChar}"/>.
+        /// Thin wrapper over an actual <see cref="ImmutableSegmentedList{T}"/>.
         /// This will be the common construct we generate when getting the
         /// <see cref="Chunk"/> for a string token that has escapes in it.
         /// </summary>
-        private class ImmutableArrayChunk : Chunk
+        private class ImmutableSegmentedListChunk : Chunk
         {
-            private readonly ImmutableArray<VirtualChar> _array;
+            private readonly ImmutableSegmentedList<VirtualChar> _array;
 
-            public ImmutableArrayChunk(ImmutableArray<VirtualChar> array)
+            public ImmutableSegmentedListChunk(ImmutableSegmentedList<VirtualChar> array)
                 => _array = array;
 
-            public override int Length => _array.Length;
+            public override int Length => _array.Count;
             public override VirtualChar this[int index] => _array[index];
 
             public override VirtualChar? Find(int position)
             {
-                if (_array.Length == 0)
+                if (_array.IsEmpty)
                     return null;
 
                 if (position < _array[0].Span.Start || position >= _array[^1].Span.End)
@@ -61,7 +62,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
                     return 0;
                 });
-                Debug.Assert(index >= 0);
+
+                // Characters can be discontiguous (for example, in multi-line-raw-string literals).  So if the
+                // position is in one of the gaps, it won't be able to find a corresponding virtual char.
+                if (index < 0)
+                    return null;
+
                 return _array[index];
             }
         }

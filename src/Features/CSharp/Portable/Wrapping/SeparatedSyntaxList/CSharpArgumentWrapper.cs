@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Wrapping;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
@@ -28,11 +30,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
         public override bool Supports_WrapEveryGroup_UnwrapFirst => true;
         public override bool Supports_WrapLongGroup_UnwrapFirst => true;
 
-        protected override bool ShouldMoveOpenBraceToNewLine(OptionSet options)
+        protected override bool ShouldMoveOpenBraceToNewLine(SyntaxWrappingOptions options)
             => false;
 
         protected override bool ShouldMoveCloseBraceToNewLine
             => false;
+
+        protected override SyntaxToken FirstToken(BaseArgumentListSyntax listSyntax)
+            => listSyntax.GetOpenToken();
+
+        protected override SyntaxToken LastToken(BaseArgumentListSyntax listSyntax)
+            => listSyntax.GetCloseToken();
 
         protected override SeparatedSyntaxList<ArgumentSyntax> GetListItems(BaseArgumentListSyntax listSyntax)
             => listSyntax.Arguments;

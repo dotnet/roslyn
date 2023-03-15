@@ -7,6 +7,7 @@
     <UseWpf>true</UseWpf>
     <RootNamespace>Roslyn.VisualStudio.DiagnosticsWindow</RootNamespace>
     <GenerateResourceUsePreserializedResources Condition="'$(MSBuildRuntimeType)' == 'Core'">true</GenerateResourceUsePreserializedResources>
+    <IsShipping>false</IsShipping>
 
     <!-- VSIX -->
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
@@ -21,10 +22,6 @@
                                Class="Roslyn.VisualStudio.DiagnosticsWindow.VisualStudioDiagnosticsWindowPackage"
                                AllowsBackgroundLoad="true"/>
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="RemoteHost\**" />
-    <EmbeddedResource Remove="RemoteHost\**" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj">

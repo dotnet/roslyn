@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
-    internal struct LocalSlotDebugInfo : IEquatable<LocalSlotDebugInfo>
+    internal readonly struct LocalSlotDebugInfo : IEquatable<LocalSlotDebugInfo>
     {
         public readonly SynthesizedLocalKind SynthesizedKind;
         public readonly LocalDebugId Id;

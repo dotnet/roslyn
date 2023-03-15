@@ -6,7 +6,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -15,9 +17,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
     public partial class MoveTypeTests : CSharpMoveTypeTestsBase
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_SingleItem()
         {
             var code =
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             return TestNamespaceMove(code, expected, expectOperation: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_SingleItemNamespaceComment()
         {
             var code =
@@ -63,7 +66,7 @@ namespace N1
             return TestNamespaceMove(code, expected, expectOperation: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_ItemAtTop()
         {
             var code =
@@ -96,7 +99,7 @@ namespace N1
             return TestNamespaceMove(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_ItemAtTopNamespaceComment()
         {
             var code =
@@ -131,7 +134,7 @@ namespace N1
             return TestNamespaceMove(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_ItemAtTopWithComments()
         {
             var code =
@@ -168,7 +171,7 @@ namespace N1
             return TestNamespaceMove(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_ItemAtTopWithXmlComments()
         {
             var code =
@@ -213,7 +216,7 @@ namespace N1
             return TestNamespaceMove(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_ItemAtBottom()
         {
             var code =
@@ -246,7 +249,7 @@ namespace N1
             return TestNamespaceMove(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_ItemAtBottomNamespaceComments()
         {
             var code =
@@ -281,7 +284,7 @@ namespace N1
             return TestNamespaceMove(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_ItemAtBottomWithComments()
         {
             var code =
@@ -318,7 +321,7 @@ namespace N1
             return TestNamespaceMove(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_ItemAtBottomWithXmlComments()
         {
             var code =
@@ -363,7 +366,7 @@ namespace N1
             return TestNamespaceMove(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_ItemInMiddle()
         {
             var code =
@@ -423,7 +426,7 @@ namespace N1
             return TestNamespaceMove(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_ItemInMiddleNamespaceComment()
         {
             var code =
@@ -485,7 +488,7 @@ namespace N1
             return TestNamespaceMove(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_ItemInMiddleWithComments()
         {
             var code =
@@ -555,7 +558,7 @@ namespace N1
             return TestNamespaceMove(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_ItemInMiddleWithXmlComments()
         {
             var code =
@@ -645,7 +648,7 @@ namespace N1
             return TestNamespaceMove(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_ItemInMiddleWithInterface()
         {
             var code =
@@ -719,7 +722,7 @@ namespace N1
             return TestNamespaceMove(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_TwoItemsInDifferentNamespace()
         {
             var code =
@@ -755,7 +758,7 @@ namespace N2
             return TestNamespaceMove(code, expected, expectOperation: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_ItemsInDifferentNamespace()
         {
             var code =
@@ -802,7 +805,7 @@ namespace N2
             return TestNamespaceMove(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_NestedNamespaces()
         {
             var code =
@@ -847,7 +850,7 @@ namespace N2
             return TestNamespaceMove(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public Task MoveType_NamespaceScope_NestedNamespaces2()
         {
             var code =
@@ -911,7 +914,7 @@ namespace N1
 
         private async Task TestNamespaceMove(string originalCode, string expectedCode, bool expectOperation = true)
         {
-            using var workspace = CreateWorkspaceFromOptions(originalCode, default);
+            using var workspace = CreateWorkspaceFromOptions(originalCode);
             var documentToModifyId = workspace.Documents[0].Id;
             var textSpan = workspace.Documents[0].SelectedSpans[0];
             var documentToModify = workspace.CurrentSolution.GetDocument(documentToModifyId);
@@ -919,7 +922,7 @@ namespace N1
             var moveTypeService = documentToModify.GetLanguageService<IMoveTypeService>();
             Assert.NotNull(moveTypeService);
 
-            var modifiedSolution = await moveTypeService.GetModifiedSolutionAsync(documentToModify, textSpan, MoveTypeOperationKind.MoveTypeNamespaceScope, CancellationToken.None).ConfigureAwait(false);
+            var modifiedSolution = await moveTypeService.GetModifiedSolutionAsync(documentToModify, textSpan, MoveTypeOperationKind.MoveTypeNamespaceScope, CodeActionOptions.DefaultProvider, CancellationToken.None).ConfigureAwait(false);
 
             if (expectOperation)
             {
@@ -931,7 +934,7 @@ namespace N1
             }
 
             var modifiedDocument = modifiedSolution.GetDocument(documentToModifyId);
-            var formattedDocument = await Formatter.FormatAsync(modifiedDocument).ConfigureAwait(false);
+            var formattedDocument = await Formatter.FormatAsync(modifiedDocument, CSharpSyntaxFormattingOptions.Default, CancellationToken.None).ConfigureAwait(false);
 
             var formattedText = await formattedDocument.GetTextAsync().ConfigureAwait(false);
             Assert.Equal(expectedCode, formattedText.ToString());

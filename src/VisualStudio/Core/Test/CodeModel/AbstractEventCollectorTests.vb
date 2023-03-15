@@ -102,7 +102,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
             Using workspace = TestWorkspace.Create(definition, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim project = workspace.CurrentSolution.Projects.First()
-                Dim codeModelService = project.LanguageServices.GetService(Of ICodeModelService)()
+                Dim codeModelService = project.Services.GetService(Of ICodeModelService)()
                 Assert.NotNull(codeModelService)
 
                 Dim codeDocument = workspace.CurrentSolution.GetDocument(workspace.Documents(0).Id)

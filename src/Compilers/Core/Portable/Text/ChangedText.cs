@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             // compute line starts given changes and line starts already computed from previous text
-            var lineStarts = ArrayBuilder<int>.GetInstance();
+            var lineStarts = ArrayBuilder<int>.GetInstance(oldLineInfo.Count);
             lineStarts.Add(0);
 
             // position in the original document

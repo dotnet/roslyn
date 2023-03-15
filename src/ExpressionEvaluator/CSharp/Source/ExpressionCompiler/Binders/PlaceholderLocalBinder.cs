@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        protected sealed override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
+        internal sealed override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
         {
             throw new NotImplementedException();
         }
@@ -112,12 +112,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

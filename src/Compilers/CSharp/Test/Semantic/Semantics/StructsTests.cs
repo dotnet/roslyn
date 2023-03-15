@@ -675,7 +675,7 @@ public struct X1
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I").WithArguments("struct field initializers", "10.0").WithLocation(3, 16),
                 // (3,16): error CS8050: Only auto-implemented properties can have initializers.
                 //     public int I { get { throw null; } set {} } = 9;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("S.I").WithLocation(3, 16));
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithLocation(3, 16));
 
             comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
@@ -684,7 +684,7 @@ public struct X1
                 Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(1, 8),
                 // (3,16): error CS8050: Only auto-implemented properties can have initializers.
                 //     public int I { get { throw null; } set {} } = 9;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("S.I").WithLocation(3, 16));
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithLocation(3, 16));
         }
     }
 }

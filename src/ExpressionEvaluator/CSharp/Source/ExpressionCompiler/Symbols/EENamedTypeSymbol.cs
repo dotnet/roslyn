@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         internal ImmutableArray<MethodSymbol> Methods
         {
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override AttributeUsageInfo GetAttributeUsageInfo()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override string Name
@@ -159,10 +159,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        internal override FileIdentifier? AssociatedFileIdentifier => null;
+
         public override IEnumerable<string> MemberNames
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
+
+        internal override bool HasDeclaredRequiredMembers => false;
 
         public override ImmutableArray<Symbol> GetMembers()
         {
@@ -184,12 +188,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override Accessibility DeclaredAccessibility
@@ -199,12 +203,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
@@ -214,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override bool HasSpecialName
@@ -264,12 +268,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
@@ -279,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override TypeKind TypeKind
@@ -344,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
-        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 

@@ -4,9 +4,7 @@
 
 using System.Linq;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
@@ -32,27 +30,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RawStringLiteral
                     Single(c => c is RawStringLiteralCommandHandler);
             }
 
-            public static RawStringLiteralTestState CreateTestState(string markup)
-                => new(GetWorkspaceXml(markup));
+            public static RawStringLiteralTestState CreateTestState(string markup, bool withSpansOnly = false)
+                => new(GetWorkspaceXml(markup, withSpansOnly));
 
-            public static XElement GetWorkspaceXml(string markup)
-                => XElement.Parse(string.Format(@"
-<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document>{0}</Document>
-    </Project>
-</Workspace>", markup));
-
-            internal void AssertCodeIs(string expectedCode)
+            public static XElement GetWorkspaceXml(string markup, bool withSpansOnly)
             {
+                var spansOnlyMarkup = withSpansOnly ? """Markup="SpansOnly" """ : "";
+                return XElement.Parse($"""
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document {spansOnlyMarkup}>{markup}</Document>
+    </Project>
+</Workspace>
+""");
+            }
+
+            internal void AssertCodeIs(string expectedCode, bool withSpansOnly = false)
+            {
+                if (withSpansOnly)
+                    expectedCode = expectedCode.Replace("$", "\uD7FF");
+
                 MarkupTestFile.GetPositionAndSpans(expectedCode, out var massaged, out int? caretPosition, out var spans);
+
+                if (withSpansOnly)
+                {
+                    Assert.Null(caretPosition);
+                    massaged = massaged.Replace("\uD7FF", "$");
+                }
+
                 Assert.Equal(massaged, TextView.TextSnapshot.GetText());
-                Assert.Equal(caretPosition!.Value, TextView.Caret.Position.BufferPosition.Position);
+
+                if (!withSpansOnly)
+                    Assert.Equal(caretPosition!.Value, TextView.Caret.Position.BufferPosition.Position);
 
                 var virtualSpaces = spans.SingleOrDefault(kvp => kvp.Key.StartsWith("VirtualSpaces#"));
                 if (virtualSpaces.Key != null)
                 {
-                    var virtualOffset = int.Parse(virtualSpaces.Key.Substring("VirtualSpaces-".Length));
+                    var virtualOffset = int.Parse(virtualSpaces.Key["VirtualSpaces-".Length..]);
                     Assert.True(TextView.Caret.InVirtualSpace);
                     Assert.Equal(virtualOffset, TextView.Caret.Position.VirtualBufferPosition.VirtualSpaces);
                 }
@@ -118,6 +132,105 @@ $${|VirtualSpaces-4:|}
 @"var v = $""""""
 $${|VirtualSpaces-4:|}
     """"""");
+        }
+
+        [WpfFact]
+        public void TestReturnInSixQuotesMoreQuotesLaterOn()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = """"""$$"""""";
+Console.WriteLine(""Goo"");");
+
+            testState.SendReturn(handled: true);
+            testState.AssertCodeIs(
+@"var v = """"""
+$${|VirtualSpaces-4:|}
+    """""";
+Console.WriteLine(""Goo"");");
+        }
+
+        [WpfFact]
+        public void TestReturnInSixQuotesAsArgument1()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = WriteLine(""""""$$""""""");
+
+            testState.SendReturn(handled: true);
+            testState.AssertCodeIs(
+@"var v = WriteLine(""""""
+$${|VirtualSpaces-4:|}
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestReturnInSixQuotesAsArgument2()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = WriteLine(""""""$$"""""")");
+
+            testState.SendReturn(handled: true);
+            testState.AssertCodeIs(
+@"var v = WriteLine(""""""
+$${|VirtualSpaces-4:|}
+    """""")");
+        }
+
+        [WpfFact]
+        public void TestReturnInSixQuotesAsArgument3()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = WriteLine(""""""$$"""""");");
+
+            testState.SendReturn(handled: true);
+            testState.AssertCodeIs(
+@"var v = WriteLine(""""""
+$${|VirtualSpaces-4:|}
+    """""");");
+        }
+
+        [WpfFact]
+        public void TestReturnInSixQuotesAsArgument4()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = WriteLine(
+    """"""$$""""""");
+
+            testState.SendReturn(handled: true);
+            testState.AssertCodeIs(
+@"var v = WriteLine(
+    """"""
+$${|VirtualSpaces-4:|}
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestReturnInSixQuotesAsArgument5()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = WriteLine(
+    """"""$$"""""")");
+
+            testState.SendReturn(handled: true);
+            testState.AssertCodeIs(
+@"var v = WriteLine(
+    """"""
+$${|VirtualSpaces-4:|}
+    """""")");
+        }
+
+        [WpfFact]
+        public void TestReturnInSixQuotesAsArgument6()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = WriteLine(
+    """"""$$"""""");");
+
+            testState.SendReturn(handled: true);
+            testState.AssertCodeIs(
+@"var v = WriteLine(
+    """"""
+$${|VirtualSpaces-4:|}
+    """""");");
         }
 
         [WpfFact]
@@ -197,6 +310,43 @@ $${|VirtualSpaces-4:|}
             testState.SendTypeChar('"');
             testState.AssertCodeIs(
 @"var v = $""""""$$""""""");
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66538")]
+        public void TestGenerateWithInterpolatedString_TwoDollarSigns()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+"""var v = $$""[||]""", withSpansOnly: true);
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+""""
+var v = $$"""[||]"""
+"""", withSpansOnly: true);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66538")]
+        public void TestGenerateWithInterpolatedString_TwoDollarSigns_FourthDoubleQuote()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+""""var v = $$"""[||]""";"""", withSpansOnly: true);
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+"""""var v = $$""""[||]"""";""""", withSpansOnly: true);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66538")]
+        public void TestGenerateWithInterpolatedString_ThreeDollarSigns()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+"""var v = $$$""[||]""", withSpansOnly: true);
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+""""
+var v = $$$"""[||]"""
+"""", withSpansOnly: true);
         }
 
         [WpfFact]

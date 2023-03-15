@@ -5,16 +5,23 @@
 #nullable disable
 
 using System;
+using System.Runtime.Serialization;
 using System.Xml.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal sealed class SerializableNamingRule : IEquatable<SerializableNamingRule>, IObjectWritable
+    [DataContract]
+    internal sealed record class SerializableNamingRule : IObjectWritable
     {
-        public Guid SymbolSpecificationID;
-        public Guid NamingStyleID;
-        public ReportDiagnostic EnforcementLevel;
+        [DataMember(Order = 0)]
+        public Guid SymbolSpecificationID { get; init; }
+
+        [DataMember(Order = 1)]
+        public Guid NamingStyleID { get; init; }
+
+        [DataMember(Order = 2)]
+        public ReportDiagnostic EnforcementLevel { get; init; }
 
         public NamingRule GetRule(NamingStylePreferences info)
         {
@@ -61,26 +68,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 NamingStyleID = reader.ReadGuid(),
                 EnforcementLevel = ((DiagnosticSeverity)reader.ReadInt32()).ToReportDiagnostic(),
             };
-        }
-
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as SerializableNamingRule);
-        }
-
-        public bool Equals(SerializableNamingRule other)
-        {
-            return other != null
-                && SymbolSpecificationID.Equals(other.SymbolSpecificationID)
-                && NamingStyleID.Equals(other.NamingStyleID)
-                && EnforcementLevel == other.EnforcementLevel;
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(SymbolSpecificationID.GetHashCode(),
-                Hash.Combine(NamingStyleID.GetHashCode(),
-                    (int)EnforcementLevel));
         }
     }
 }

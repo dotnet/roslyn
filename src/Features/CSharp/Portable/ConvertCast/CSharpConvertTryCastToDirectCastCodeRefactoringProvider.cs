@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertCast
         protected override TypeSyntax GetTypeNode(BinaryExpressionSyntax expression)
             => (TypeSyntax)expression.Right;
 
-        protected override CastExpressionSyntax ConvertExpression(BinaryExpressionSyntax asExpression)
+        protected override CastExpressionSyntax ConvertExpression(BinaryExpressionSyntax asExpression, NullableContext nullableContext, bool isReferenceType)
         {
             var expression = asExpression.Left;
             var typeNode = GetTypeNode(asExpression);
@@ -47,12 +47,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertCast
             // #0 #2 (Type)exp #1 #3
             // Some trivia in the middle (#1 and #2) is moved to the front or behind  the expression
             // #1 and #2 change their position in the expression (#2 goes in front to stay near the type and #1 to the end to stay near the expression)
-            // Some whitespace around the as operator is removed to follow the formatting rules of (Type)expr 
-            var openParen = Token(SyntaxTriviaList.Empty, SyntaxKind.OpenParenToken, SyntaxTriviaList.Empty);
-            var closeParen = Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty);
+            var openParen = Token(SyntaxKind.OpenParenToken);
+            var closeParen = Token(SyntaxKind.CloseParenToken);
             var newTrailingTrivia = asExpression.Left.GetTrailingTrivia().SkipInitialWhitespace().ToSyntaxTriviaList().AddRange(asExpression.GetTrailingTrivia());
             var newLeadingTrivia = asExpression.GetLeadingTrivia().AddRange(asExpression.OperatorToken.TrailingTrivia.SkipInitialWhitespace());
             typeNode = typeNode.WithoutTrailingTrivia();
+
+            // Make sure we make reference type nullable when converting expressions like `null as string` -> `(string?)null`
+            if (expression.IsKind(SyntaxKind.NullLiteralExpression) && nullableContext.HasFlag(NullableContext.AnnotationsEnabled) && isReferenceType)
+                typeNode = NullableType(typeNode, Token(SyntaxKind.QuestionToken));
 
             var castExpression = CastExpression(openParen, typeNode, closeParen, expression.WithoutTrailingTrivia())
                 .WithLeadingTrivia(newLeadingTrivia)

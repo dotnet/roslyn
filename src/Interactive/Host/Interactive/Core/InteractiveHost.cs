@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             return default;
@@ -337,10 +337,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var newService = CreateRemoteService(options, skipInitialization: false);
 
                 var oldService = Interlocked.Exchange(ref _lazyRemoteService, newService);
-                if (oldService != null)
-                {
-                    oldService.Dispose();
-                }
+                oldService?.Dispose();
 
                 var initializedService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
                 if (initializedService.Service == null)
@@ -352,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

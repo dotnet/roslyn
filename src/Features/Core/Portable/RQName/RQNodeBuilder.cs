@@ -98,9 +98,9 @@ namespace Microsoft.CodeAnalysis.Features.RQName
 
         private static RQProperty? BuildProperty(IPropertySymbol symbol)
         {
-            RQMethodPropertyOrEventName name = symbol.IsIndexer ?
-                RQOrdinaryMethodPropertyOrEventName.CreateOrdinaryIndexerName() :
-                RQOrdinaryMethodPropertyOrEventName.CreateOrdinaryPropertyName(symbol.Name);
+            RQMethodPropertyOrEventName name = symbol.IsIndexer
+                ? RQOrdinaryMethodPropertyOrEventName.CreateOrdinaryIndexerName()
+                : RQOrdinaryMethodPropertyOrEventName.CreateOrdinaryPropertyName(symbol.Name);
 
             if (symbol.ExplicitInterfaceImplementations.Any())
             {

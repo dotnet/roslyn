@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal ImmutableArray<BoundInitializer> BoundInitializers { get; set; }
             internal BoundStatement? LoweredInitializers { get; set; }
-            internal NullableWalker.VariableState AfterInitializersState;
             internal bool HasErrors { get; set; }
             internal ImportChain? FirstImportChain { get; set; }
         }
@@ -136,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
 
                             default:
-                                throw ExceptionUtilities.Unreachable;
+                                throw ExceptionUtilities.Unreachable();
                         }
                     }
                 }
@@ -150,10 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Binder binder = this;
 
-            if (!fieldSymbol.IsStatic && fieldSymbol.ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault() is SynthesizedRecordConstructor recordCtor)
-            {
-                binder = new InMethodBinder(recordCtor, binder);
-            }
+            binder = new WithPrimaryConstructorParametersBinder(fieldSymbol.ContainingType, binder);
 
             return new LocalScopeBinder(binder).WithAdditionalFlagsAndContainingMemberOrLambda(suppressBinderFlagsFieldInitializer ? BinderFlags.None : BinderFlags.FieldInitializer, fieldSymbol);
         }

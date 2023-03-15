@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
 {
-    internal class DisabledTextTriviaStructureProvider : AbstractSyntaxTriviaStructureProvider
+    internal sealed class DisabledTextTriviaStructureProvider : AbstractSyntaxTriviaStructureProvider
     {
         public override void CollectBlockSpans(
             SyntaxTrivia trivia,
@@ -19,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(trivia.SyntaxTree);
             CollectBlockSpans(trivia.SyntaxTree, trivia, ref spans, cancellationToken);
         }
 

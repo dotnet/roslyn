@@ -7,7 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
             : base(IDEDiagnosticIds.MultipleBlankLinesDiagnosticId,
                    EnforceOnBuildValues.MultipleBlankLines,
                    CodeStyleOptions2.AllowMultipleBlankLines,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(AnalyzersResources.Avoid_multiple_blank_lines), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -35,13 +34,12 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
 
         private void AnalyzeTree(SyntaxTreeAnalysisContext context)
         {
-            var option = context.GetOption(CodeStyleOptions2.AllowMultipleBlankLines, context.Tree.Options.Language);
+            var option = context.GetAnalyzerOptions().AllowMultipleBlankLines;
             if (option.Value)
                 return;
 
-            var tree = context.Tree;
             var cancellationToken = context.CancellationToken;
-            var root = tree.GetRoot(cancellationToken);
+            var root = context.Tree.GetRoot(cancellationToken);
 
             Recurse(context, option.Notification.Severity, root, cancellationToken);
         }

@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 SpecialType.System_Double => PredefinedType.Double,
                 SpecialType.System_String => PredefinedType.String,
                 SpecialType.System_DateTime => PredefinedType.DateTime,
+                SpecialType.System_IntPtr => PredefinedType.IntPtr,
+                SpecialType.System_UIntPtr => PredefinedType.UIntPtr,
                 _ => PredefinedType.None,
             };
     }

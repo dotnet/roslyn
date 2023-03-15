@@ -35,19 +35,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                CodeAction.CreateWithPriority(
+                    CodeActionPriority.Low,
+                    CSharpAnalyzersResources.Use_pattern_matching,
+                    GetDocumentUpdater(context),
+                    nameof(CSharpAnalyzersResources.Use_pattern_matching)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             Debug.Assert(diagnostics.Length == 1);
             var location = diagnostics[0].Location;
@@ -65,16 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             var updatedRoot = updatedSemanticModel.SyntaxTree.GetRoot(cancellationToken);
             editor.ReplaceNode(editor.OriginalRoot, updatedRoot);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument, nameof(CSharpIsAndCastCheckWithoutNameCodeFixProvider))
-            {
-            }
-
-            internal override CodeActionPriority Priority => CodeActionPriority.Low;
         }
     }
 }

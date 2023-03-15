@@ -8,7 +8,6 @@ Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
-Imports Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion

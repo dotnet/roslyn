@@ -102,9 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         }
 
         public bool IsGeneric
-        {
-            get { return TypeSymbol is INamedTypeSymbol && ((INamedTypeSymbol)TypeSymbol).IsGenericType; }
-        }
+            => TypeSymbol is INamedTypeSymbol { IsGenericType: true };
 
         public EnvDTE.CodeElements PartialClasses
         {

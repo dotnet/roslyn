@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -15,16 +13,16 @@ using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseNotPattern), Shared]
-    internal partial class CSharpUseNotPatternCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal sealed class CSharpUseNotPatternCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpUseNotPatternCodeFixProvider()
         {
         }
@@ -32,19 +30,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseNotPatternDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpAnalyzersResources.Use_pattern_matching, nameof(CSharpAnalyzersResources.Use_pattern_matching));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
@@ -75,14 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 notExpression,
                 negated.WithPrependedLeadingTrivia(notExpression.GetLeadingTrivia())
                        .WithAppendedTrailingTrivia(notExpression.GetTrailingTrivia()));
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument, nameof(CSharpUseNotPatternCodeFixProvider))
-            {
-            }
         }
     }
 }

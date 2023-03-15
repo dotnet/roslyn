@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             BoundExpression child = expression.Left;
 
-            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
             {
                 EmitBinaryOperatorSimple(expression);
                 return;
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 stack.Push(binary);
                 child = binary.Left;
 
-                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
                 {
                     break;
                 }
@@ -223,6 +223,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         _builder.EmitOpCode(ILOpCode.Shr);
                     }
+                    break;
+
+                case BinaryOperatorKind.UnsignedRightShift:
+                    _builder.EmitOpCode(ILOpCode.Shr_un);
                     break;
 
                 case BinaryOperatorKind.And:
@@ -353,12 +357,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BinaryOperatorKind.Equal:
 
-                    var constant = binOp.Left.ConstantValue;
+                    var constant = binOp.Left.ConstantValueOpt;
                     var comparand = binOp.Right;
 
                     if (constant == null)
                     {
-                        constant = comparand.ConstantValue;
+                        constant = comparand.ConstantValueOpt;
                         comparand = binOp.Left;
                     }
 
@@ -477,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             Debug.Assert(condition.Type.SpecialType == SpecialType.System_Boolean);
 
-            var constantValue = condition.ConstantValue;
+            var constantValue = condition.ConstantValueOpt;
             if (constantValue != null)
             {
                 Debug.Assert(constantValue.Discriminator == ConstantValueTypeDiscriminator.Boolean);
@@ -700,6 +704,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private static bool IsUnsignedBinaryOperator(BoundBinaryOperator op)
         {
             BinaryOperatorKind opKind = op.OperatorKind;
+            Debug.Assert(opKind.Operator() != BinaryOperatorKind.UnsignedRightShift);
+
             BinaryOperatorKind type = opKind.OperandTypes();
             switch (type)
             {

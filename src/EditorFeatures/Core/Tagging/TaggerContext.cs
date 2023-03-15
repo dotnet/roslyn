@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     {
         private readonly ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _existingTags;
 
-        internal IEnumerable<DocumentSnapshotSpan> _spansTagged;
+        internal ImmutableArray<SnapshotSpan> _spansTagged;
         internal ImmutableArray<ITagSpan<TTag>>.Builder tagSpans = ImmutableArray.CreateBuilder<ITagSpan<TTag>>();
 
         public ImmutableArray<DocumentSnapshotSpan> SpansToTag { get; }
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             this.CaretPosition = caretPosition;
             this.TextChangeRange = textChangeRange;
 
-            _spansTagged = spansToTag;
+            _spansTagged = spansToTag.SelectAsArray(ds => ds.SnapshotSpan);
             _existingTags = existingTags;
         }
 
@@ -78,23 +78,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             => tagSpans.Clear();
 
         /// <summary>
-        /// Used to allow taggers to indicate what spans were actually tagged.  This is useful 
-        /// when the tagger decides to tag a different span than the entire file.  If a sub-span
-        /// of a document is tagged then the tagger infrastructure will keep previously computed
-        /// tags from before and after the sub-span and merge them with the newly produced tags.
+        /// Used to allow taggers to indicate what spans were actually tagged.  This is useful when the tagger decides
+        /// to tag a different span than the entire file.  If a sub-span of a document is tagged then the tagger
+        /// infrastructure will keep previously computed tags from before and after the sub-span and merge them with the
+        /// newly produced tags.
         /// </summary>
-        public void SetSpansTagged(IEnumerable<DocumentSnapshotSpan> spansTagged)
-            => _spansTagged = spansTagged ?? throw new ArgumentNullException(nameof(spansTagged));
+        public void SetSpansTagged(ImmutableArray<SnapshotSpan> spansTagged)
+            => _spansTagged = spansTagged;
 
-        public IEnumerable<ITagSpan<TTag>> GetExistingContainingTags(SnapshotPoint point)
-        {
-            if (_existingTags != null && _existingTags.TryGetValue(point.Snapshot.TextBuffer, out var tree))
-            {
-                return tree.GetIntersectingSpans(new SnapshotSpan(point.Snapshot, new Span(point, 0)))
-                           .Where(s => s.Span.Contains(point));
-            }
-
-            return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
-        }
+        public bool HasExistingContainingTags(SnapshotPoint point)
+            => _existingTags != null &&
+               _existingTags.TryGetValue(point.Snapshot.TextBuffer, out var tree) &&
+               tree.HasSpanThatContains(point);
     }
 }

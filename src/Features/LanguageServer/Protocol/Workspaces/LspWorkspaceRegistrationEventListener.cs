@@ -10,8 +10,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 // Specify the VS workspaces we know we need (host, misc, metadata as source) and MSBuild for VSCode.
-[ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host, WorkspaceKind.MiscellaneousFiles, WorkspaceKind.MetadataAsSource, WorkspaceKind.MSBuild), Shared]
-internal class LspWorkspaceRegistrationEventListener : IEventListener<object>
+[ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host, WorkspaceKind.MiscellaneousFiles, WorkspaceKind.MetadataAsSource, WorkspaceKind.MSBuild, WorkspaceKind.Interactive), Shared]
+internal class LspWorkspaceRegistrationEventListener : IEventListener<object>, IEventListenerStoppable
 {
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
@@ -25,6 +25,11 @@ internal class LspWorkspaceRegistrationEventListener : IEventListener<object>
     public void StartListening(Workspace workspace, object _)
     {
         _lspWorkspaceRegistrationService.Register(workspace);
+    }
+
+    public void StopListening(Workspace workspace)
+    {
+        _lspWorkspaceRegistrationService.Deregister(workspace);
     }
 }
 

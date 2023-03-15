@@ -16,6 +16,7 @@ using Xunit;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly bool _ignoreArgumentsWhenComparing;
         private readonly DiagnosticSeverity? _defaultSeverityOpt;
         private readonly DiagnosticSeverity? _effectiveSeverityOpt;
+        private readonly ImmutableArray<string> _originalFormatSpecifiers = ImmutableArray<string>.Empty;
 
         // fields for DiagnosticDescriptions constructed via factories
         private readonly Func<SyntaxNode, bool> _syntaxPredicate;
@@ -51,14 +53,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 // We'll use IFormattable here, because it is more explicit than just calling .ToString()
                 // (and is closer to what the compiler actually does when displaying error messages)
-                _argumentsAsStrings = _arguments.Select(o =>
+                _argumentsAsStrings = _arguments.Select((o, i) =>
                 {
                     if (o is DiagnosticInfo embedded)
                     {
                         return embedded.GetMessage(EnsureEnglishUICulture.PreferredOrNull);
                     }
 
-                    return string.Format(EnsureEnglishUICulture.PreferredOrNull, "{0}", o);
+                    return i < _originalFormatSpecifiers.Length ?
+                        string.Format(EnsureEnglishUICulture.PreferredOrNull, _originalFormatSpecifiers[i], o) :
+                        string.Format(EnsureEnglishUICulture.PreferredOrNull, "{0}", o);
                 });
             }
             return _argumentsAsStrings;
@@ -123,6 +127,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _location = d.Location;
             _defaultSeverityOpt = includeDefaultSeverity ? d.DefaultSeverity : (DiagnosticSeverity?)null;
             _effectiveSeverityOpt = includeEffectiveSeverity ? d.Severity : (DiagnosticSeverity?)null;
+            _originalFormatSpecifiers = GetFormatSpecifiers(d.Descriptor.MessageFormat.ToString());
 
             DiagnosticWithInfo dinfo = null;
             if (d.Code == 0 || d.Descriptor.ImmutableCustomTags.Contains(WellKnownDiagnosticTags.CustomObsolete))
@@ -350,10 +355,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (_startPosition != null)
                 hashCode = Hash.Combine(hashCode, _startPosition.Value.GetHashCode());
             if (_defaultSeverityOpt != null)
-                hashCode = Hash.Combine(hashCode, _defaultSeverityOpt.Value.GetHashCode());
+                hashCode = Hash.Combine(hashCode, ((int)_defaultSeverityOpt.Value).GetHashCode());
             if (_effectiveSeverityOpt != null)
-                hashCode = Hash.Combine(hashCode, _effectiveSeverityOpt.Value.GetHashCode());
+                hashCode = Hash.Combine(hashCode, ((int)_effectiveSeverityOpt.Value).GetHashCode());
             return hashCode;
+        }
+
+        private static void AppendArgumentString(StringBuilder sb, string argumentString)
+        {
+            var beginQuote = "\"";
+            var endQuote = "\"";
+            if (argumentString.Contains("\""))
+            {
+                argumentString = argumentString.Replace("\"", "\"\"");
+                beginQuote = "@\"";
+            }
+            sb.Append(beginQuote);
+            sb.Append(argumentString);
+            sb.Append(endQuote);
         }
 
         public override string ToString()
@@ -401,9 +420,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var argumentStrings = GetArgumentsAsStrings().GetEnumerator();
                 for (int i = 0; argumentStrings.MoveNext(); i++)
                 {
-                    sb.Append("\"");
-                    sb.Append(argumentStrings.Current);
-                    sb.Append("\"");
+                    AppendArgumentString(sb, argumentStrings.Current);
                     if (i < _arguments.Length - 1)
                     {
                         sb.Append(", ");
@@ -444,7 +461,29 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return sb.ToString();
         }
 
-        public static string GetAssertText(DiagnosticDescription[] expected, IEnumerable<Diagnostic> actual)
+        private static ImmutableArray<string> GetFormatSpecifiers(string messageFormat)
+        {
+            var specifiers = ImmutableArray<string>.Empty;
+            if (Regex.Matches(messageFormat, @"\{\d+(:\d+)?\}") is { Count: > 0 } matches)
+            {
+                var builder = ArrayBuilder<string>.GetInstance();
+                foreach (Match match in matches)
+                {
+                    // We use 0 as the position specifier, regardless of what it was in the original format string,
+                    // because we format diagnostic arguments one at a time so we cannot have a position specifier greater than 0
+                    const string posSpecifier = "0";
+                    var fmtSpecifier = match.Groups.Count > 1 && match.Groups[1].Success ? match.Groups[1].Value : "";
+
+                    builder.Add(
+                            $@"{{{posSpecifier}{fmtSpecifier}}}");
+                }
+                specifiers = builder.ToImmutableArray();
+            }
+
+            return specifiers;
+        }
+
+        public static string GetAssertText(DiagnosticDescription[] expected, IEnumerable<Diagnostic> actual, DiagnosticDescription[] unamtchedExpected, IEnumerable<Diagnostic> unmatchedActual)
         {
             const int CSharp = 1;
             const int VisualBasic = 2;
@@ -459,6 +498,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // If this is a new test (empty expectations) or a test that's already sorted,
                 // we sort the actual diagnostics to minimize diff noise as diagnostics change.
                 actual = Sort(actual);
+                unmatchedActual = Sort(unmatchedActual);
             }
 
             var assertText = new StringBuilder();
@@ -476,7 +516,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // write out the actual results as method calls (copy/paste this to update baseline)
             assertText.AppendLine("Actual:");
-            var actualText = ArrayBuilder<string>.GetInstance();
             var e = actual.GetEnumerator();
             for (i = 0; e.MoveNext(); i++)
             {
@@ -507,14 +546,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 var description = new DiagnosticDescription(d, errorCodeOnly: false, includeDefaultSeverity, includeEffectiveSeverity);
-                var diffDescription = description;
-                var idx = Array.IndexOf(expected, description);
-                if (idx != -1)
-                {
-                    diffDescription = expected[idx];
-                }
                 assertText.Append(GetDiagnosticDescription(description, indentDepth));
-                actualText.Add(GetDiagnosticDescription(diffDescription, indentDepth));
             }
             if (i > 0)
             {
@@ -522,9 +554,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             assertText.AppendLine("Diff:");
-            assertText.Append(DiffUtil.DiffReport(expectedText, actualText, separator: Environment.NewLine));
 
-            actualText.Free();
+            var unmatchedExpectedText = ArrayBuilder<string>.GetInstance();
+            foreach (var d in unamtchedExpected)
+            {
+                unmatchedExpectedText.Add(GetDiagnosticDescription(d, indentDepth));
+            }
+
+            var unmatchedActualText = ArrayBuilder<string>.GetInstance();
+            e = unmatchedActual.GetEnumerator();
+            for (i = 0; e.MoveNext(); i++)
+            {
+                Diagnostic d = e.Current;
+                var diffDescription = new DiagnosticDescription(d, errorCodeOnly: false, includeDefaultSeverity, includeEffectiveSeverity);
+                unmatchedActualText.Add(GetDiagnosticDescription(diffDescription, indentDepth));
+            }
+
+            assertText.Append(DiffUtil.DiffReport(unmatchedExpectedText, unmatchedActualText, separator: Environment.NewLine));
+
+            unmatchedExpectedText.Free();
+            unmatchedActualText.Free();
+
             expectedText.Free();
 
             return assertText.ToString();

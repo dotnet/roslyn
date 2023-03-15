@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -14,25 +13,23 @@ namespace Microsoft.CodeAnalysis
     {
         public readonly Document Document;
         public readonly SourceText Text;
-        public readonly SyntaxTree SyntaxTree;
         public readonly SyntaxNode Root;
 
-        protected SyntacticDocument(Document document, SourceText text, SyntaxTree tree, SyntaxNode root)
+        protected SyntacticDocument(Document document, SourceText text, SyntaxNode root)
         {
-            this.Document = document;
-            this.Text = text;
-            this.SyntaxTree = tree;
-            this.Root = root;
+            Document = document;
+            Text = text;
+            Root = root;
         }
 
-        public Project Project => this.Document.Project;
+        public Project Project => Document.Project;
+        public SyntaxTree SyntaxTree => Root.SyntaxTree;
 
-        public static async Task<SyntacticDocument> CreateAsync(
-            Document document, CancellationToken cancellationToken)
+        public static async ValueTask<SyntacticDocument> CreateAsync(Document document, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return new SyntacticDocument(document, text, root.SyntaxTree, root);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return new SyntacticDocument(document, text, root);
         }
     }
 }

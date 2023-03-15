@@ -6,8 +6,9 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_ExtendedPropertyPattern_FirstPart_Get(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -28,7 +29,7 @@ class C
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_ExtendedPropertyPattern_FirstPart_Set(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -49,7 +50,7 @@ class C
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_ExtendedPropertyPattern_SecondPart_Get(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -70,7 +71,7 @@ class C
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Get_Feature1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -120,7 +121,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Get_Feature2(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -170,7 +171,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Get_Feature3(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -220,7 +221,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Set_Feature1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -270,7 +271,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Set_Feature2(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -320,7 +321,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Set_Feature3(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -370,7 +371,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Init_Feature1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -407,7 +408,7 @@ class D : C
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Init_FromProp_Feature1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -457,7 +458,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_FromProp_Feature2(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -507,7 +508,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_FromProp_Feature3(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -557,7 +558,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_FromNameOf1_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -607,7 +608,7 @@ class Usages
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_FromNameOf1_Feature(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -657,7 +658,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Get_ObjectInitializer1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -684,7 +685,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Set_ObjectInitializer1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -711,7 +712,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Prop_ObjectInitializer1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -738,7 +739,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Get_Indexer1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -782,7 +783,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Get_Indexer2(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -826,7 +827,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Get_Indexer3(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -870,7 +871,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Set_Indexer1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -914,7 +915,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Set_Indexer2(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -958,7 +959,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Set_Indexer3(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1002,7 +1003,7 @@ class Usages
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Get_Attribute1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1025,7 +1026,7 @@ class D
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Set_Attribute1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1048,7 +1049,7 @@ class D
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Get_Cref(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1065,7 +1066,7 @@ interface IC
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Set_Cref(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1082,7 +1083,7 @@ interface IC
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Get_ExpressionTree1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1110,7 +1111,7 @@ class C
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpAccessor_Set_ExpressionTree1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1138,7 +1139,7 @@ class C
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVBAccessor_Get_Feature1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1199,7 +1200,7 @@ end class
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVBAccessor_Get_Feature2(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1260,7 +1261,7 @@ end class
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVBAccessor_Set_Feature1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1321,7 +1322,7 @@ end class
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVBAccessor_Set_Feature2(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1382,7 +1383,7 @@ end class
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVBAccessor_FromProp_1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1443,7 +1444,7 @@ end class
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVBAccessor_FromProp_2(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1504,7 +1505,7 @@ end class
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVBAccessor_FromProp_3(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1565,7 +1566,7 @@ end class
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVBAccessor_Get_ObjectInitializer1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1593,7 +1594,7 @@ end class
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVBAccessor_Set_ObjectInitializer1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1621,7 +1622,7 @@ end class
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVBAccessor_Property_ObjectInitializer1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1649,7 +1650,7 @@ end class
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVBAccessor_Get_Indexer1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1704,7 +1705,7 @@ end class
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVBAccessor_Get_Indexer2(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1759,7 +1760,7 @@ end class
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVBAccessor_Set_Indexer1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1814,7 +1815,7 @@ end class
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVBAccessor_Set_Indexer2(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1869,7 +1870,7 @@ end class
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVBAccessor_Get_Attribute1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1897,7 +1898,7 @@ end class
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVBAccessor_Set_Attribute1(host As TestHost) As Task
             Dim input =
 <Workspace>

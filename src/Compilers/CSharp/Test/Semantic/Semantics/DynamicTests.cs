@@ -593,8 +593,8 @@ class C
 }
 ";
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (9,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&d").WithArguments("dynamic"),
+                // (9,30): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('dynamic')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&d").WithArguments("dynamic"),
                 // (10,15): error CS0193: The * or -> operator must be applied to a pointer
                 Diagnostic(ErrorCode.ERR_PtrExpected, "*d"),
                 // (11,15): error CS0193: The * or -> operator must be applied to a pointer
@@ -1057,7 +1057,6 @@ remove_Event
 ");
         }
 
-
         #endregion
 
         #region Conditional, Coalescing Expression
@@ -1406,7 +1405,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.Goo(int, int)'
+                // CS7036: There is no argument given that corresponds to the required parameter 'y' of 'C.Goo(int, int)'
                 //         /*<bind>*/c.Goo(d)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("y", "C.Goo(int, int)").WithLocation(8, 21)
             };
@@ -2565,7 +2564,7 @@ IInvalidOperation (OperationKind.Invalid, Type: dynamic, IsInvalid) (Syntax: 'ne
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(11, 21),
                 // file.cs(6,26): error CS8382: Invalid object creation
                 // 		var x = /*<bind>*/ new dynamic
-                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithArguments("dynamic").WithLocation(6, 26)
+                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithLocation(6, 26)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -2802,7 +2801,7 @@ class C : List<int>
                 Diagnostic(ErrorCode.WRN_IsDynamicIsConfusing, "d is dynamic").WithArguments("is", "dynamic", "Object").WithLocation(43, 55),
                 // (46,59): error CS8382: Invalid object creation
                 //         Expression<Func<dynamic, dynamic>> e21 = x => new dynamic();
-                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithArguments("dynamic").WithLocation(46, 59),
+                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithLocation(46, 59),
                 // (25,52): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<C>> e0 = () => new C { P = d };
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(25, 52),
@@ -3142,7 +3141,7 @@ class C : B
 
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (16,5): error CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.this[int, Func<int, int>, object]'
+                // (16,5): error CS7036: There is no argument given that corresponds to the required parameter 'c' of 'C.this[int, Func<int, int>, object]'
                 //     c[d, d] = 1; 
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[d, d]").WithArguments("c", "C.this[int, System.Func<int, int>, object]").WithLocation(16, 5),
                 // (22,10): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
@@ -3378,7 +3377,7 @@ class C
             TestOperatorKinds(source);
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (8,16): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.C(string, string)'
+                // (8,16): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'C.C(string, string)'
                 //     return new C(d);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("y", "C.C(string, string)").WithLocation(8, 16));
         }

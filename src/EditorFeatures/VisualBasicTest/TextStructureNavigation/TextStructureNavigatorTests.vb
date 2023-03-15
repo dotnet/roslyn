@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities.TextStructureNavigation
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavigation
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
     Public Class TextStructureNavigatorTests
         Inherits AbstractTextStructureNavigatorTests
 
@@ -16,13 +17,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
             Return TestWorkspace.CreateVisualBasic(code)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <Fact>
         Public Sub TestEmpty()
             AssertExtent(
                 "{|Insignificant:$$|}")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact>
         Public Sub TestWhitespace()
             AssertExtent(
                 "{|Insignificant:$$   |}")
@@ -34,13 +35,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
                 "{|Insignificant:   |}$$")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact>
         Public Sub TestEndOfFile()
             AssertExtent(
                 "Imports {|Significant:System|}$$")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <Fact>
         Public Sub TestNewLine()
             AssertExtent(
                 "Module Module1{|Insignificant:$$
@@ -53,7 +54,7 @@ End Module")
 |}End Module")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact>
         Public Sub TestComment()
             AssertExtent(
                 " {|Significant:$$' Comment  |}")
@@ -71,7 +72,7 @@ End Module")
                 " rem {|Significant:($$)|} test")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact>
         Public Sub TestKeyword()
             AssertExtent(
                 "Public {|Significant:$$Module|} Module1")
@@ -92,7 +93,7 @@ End Module")
                 "Public {|Significant:Modul$$e|} Module1")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact>
         Public Sub TestIdentifier()
             AssertExtent(
                 "Public Class {|Significant:$$SomeClass|} : Inherits Object")
@@ -122,7 +123,7 @@ End Module")
                 "Public Class {|Significant:SomeClas$$s|} : Inherits Object")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact>
         Public Sub TestEscapedIdentifier()
             AssertExtent(
                 "Friend Enum {|Significant:$$[Module]|} As Long")
@@ -149,7 +150,7 @@ End Module")
                 "Friend Enum {|Significant:[Module$$]|} As Long")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact>
         Public Sub TestNumber()
             AssertExtent(
                 "Class Test : Dim number As Double = -{|Significant:$$1.234678E-120|} : End Class")
@@ -191,7 +192,7 @@ End Module")
                 "Class Test : Dim number As Double = -{|Significant:1.234678E-12$$0|} : End Class")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact>
         Public Sub TestString()
             AssertExtent(
                 "Class Test : Dim str As String = {|Significant:$$""|} () test  "" : End Class")
@@ -209,7 +210,7 @@ End Module")
                 "Class Test : Dim str As String = "" () test  {|Significant:$$""|} : End Class")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact>
         Public Sub TestInterpolatedString()
             AssertExtent(
                 "Class Test : Dim str As String = {|Significant:$$$""|} () test  "" : End Class")

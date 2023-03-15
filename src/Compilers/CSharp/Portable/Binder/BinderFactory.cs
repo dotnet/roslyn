@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         // key in the binder cache.
         // PERF: we are not using ValueTuple because its Equals is relatively slow.
-        private struct BinderCacheKey : IEquatable<BinderCacheKey>
+        private readonly struct BinderCacheKey : IEquatable<BinderCacheKey>
         {
             public readonly CSharpSyntaxNode syntaxNode;
             public readonly NodeUsage usage;
@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new NotSupportedException();
             }
         }
-
 
         // This dictionary stores contexts so we don't have to recreate them, which can be
         // expensive. 
@@ -75,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // more than 50 items added before getting collected.
             _binderCache = new ConcurrentCache<BinderCacheKey, Binder>(50);
 
-            _buckStopsHereBinder = new BuckStopsHereBinder(compilation);
+            _buckStopsHereBinder = new BuckStopsHereBinder(compilation, FileIdentifier.Create(syntaxTree));
         }
 
         internal SyntaxTree SyntaxTree
@@ -138,19 +137,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        internal InMethodBinder GetRecordConstructorInMethodBinder(SynthesizedRecordConstructor constructor)
+        internal InMethodBinder GetPrimaryConstructorInMethodBinder(SynthesizedPrimaryConstructor constructor)
         {
-            var recordDecl = constructor.GetSyntax();
-            Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
+            var typeDecl = constructor.GetSyntax();
+            Debug.Assert(typeDecl.ParameterList is not null);
 
             var extraInfo = NodeUsage.ConstructorBodyOrInitializer;
-            var key = BinderFactoryVisitor.CreateBinderCacheKey(recordDecl, extraInfo);
+            var key = BinderFactoryVisitor.CreateBinderCacheKey(typeDecl, extraInfo);
 
             if (!_binderCache.TryGetValue(key, out Binder resultBinder))
             {
                 // Ctors cannot be generic
                 Debug.Assert(constructor.Arity == 0, "Generic Ctor, What to do?");
-                resultBinder = new InMethodBinder(constructor, GetInRecordBodyBinder(recordDecl));
+                resultBinder = new InMethodBinder(constructor, GetInTypeBodyBinder(typeDecl));
 
                 _binderCache.TryAdd(key, resultBinder);
             }
@@ -158,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (InMethodBinder)resultBinder;
         }
 
-        internal Binder GetInRecordBodyBinder(RecordDeclarationSyntax typeDecl)
+        internal Binder GetInTypeBodyBinder(TypeDeclarationSyntax typeDecl)
         {
             BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
             visitor.Initialize(position: typeDecl.SpanStart, memberDeclarationOpt: null, memberOpt: null);

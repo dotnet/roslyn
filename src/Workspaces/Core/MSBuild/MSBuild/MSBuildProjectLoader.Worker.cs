@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild.Build;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         private partial class Worker
         {
-            private readonly HostWorkspaceServices _workspaceServices;
+            private readonly SolutionServices _solutionServices;
             private readonly DiagnosticReporter _diagnosticReporter;
             private readonly PathResolver _pathResolver;
             private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             private readonly Dictionary<string, ImmutableArray<ProjectInfo>> _pathToDiscoveredProjectInfosMap;
 
             public Worker(
-                HostWorkspaceServices services,
+                SolutionServices services,
                 DiagnosticReporter diagnosticReporter,
                 PathResolver pathResolver,
                 ProjectFileLoaderRegistry projectFileLoaderRegistry,
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 DiagnosticReportingOptions discoveredProjectOptions,
                 bool preferMetadataForReferencesOfDiscoveredProjects)
             {
-                _workspaceServices = services;
+                _solutionServices = services;
                 _diagnosticReporter = diagnosticReporter;
                 _pathResolver = pathResolver;
                 _projectFileLoaderRegistry = projectFileLoaderRegistry;
@@ -302,23 +303,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                     return Task.FromResult(
                         ProjectInfo.Create(
-                            projectId,
-                            version,
-                            projectName,
-                            assemblyName: assemblyName,
-                            language: language,
-                            filePath: projectPath,
-                            outputFilePath: string.Empty,
-                            outputRefFilePath: string.Empty,
+                            new ProjectInfo.ProjectAttributes(
+                                projectId,
+                                version,
+                                name: projectName,
+                                assemblyName: assemblyName,
+                                language: language,
+                                compilationOutputFilePaths: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath),
+                                checksumAlgorithm: SourceHashAlgorithms.Default,
+                                filePath: projectPath),
                             compilationOptions: compilationOptions,
-                            parseOptions: parseOptions,
-                            documents: SpecializedCollections.EmptyEnumerable<DocumentInfo>(),
-                            projectReferences: SpecializedCollections.EmptyEnumerable<ProjectReference>(),
-                            metadataReferences: SpecializedCollections.EmptyEnumerable<MetadataReference>(),
-                            analyzerReferences: SpecializedCollections.EmptyEnumerable<AnalyzerReference>(),
-                            additionalDocuments: SpecializedCollections.EmptyEnumerable<DocumentInfo>(),
-                            isSubmission: false,
-                            hostObjectType: null));
+                            parseOptions: parseOptions));
                 }
 
                 return DoOperationAndReportProgressAsync(ProjectLoadOperation.Resolve, projectPath, projectFileInfo.TargetFramework, async () =>
@@ -376,14 +371,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     var resolvedReferences = await ResolveReferencesAsync(projectId, projectFileInfo, commandLineArgs, cancellationToken).ConfigureAwait(false);
 
                     return ProjectInfo.Create(
-                        projectId,
-                        version,
-                        projectName,
-                        assemblyName,
-                        language,
-                        projectPath,
-                        outputFilePath: projectFileInfo.OutputFilePath,
-                        outputRefFilePath: projectFileInfo.OutputRefFilePath,
+                        new ProjectInfo.ProjectAttributes(
+                            projectId,
+                            version,
+                            projectName,
+                            assemblyName,
+                            language,
+                            compilationOutputFilePaths: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath),
+                            checksumAlgorithm: commandLineArgs.ChecksumAlgorithm,
+                            filePath: projectPath,
+                            outputFilePath: projectFileInfo.OutputFilePath,
+                            outputRefFilePath: projectFileInfo.OutputRefFilePath,
+                            isSubmission: false),
                         compilationOptions: compilationOptions,
                         parseOptions: parseOptions,
                         documents: documents,
@@ -391,7 +390,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         metadataReferences: resolvedReferences.MetadataReferences,
                         analyzerReferences: analyzerReferences,
                         additionalDocuments: additionalDocuments,
-                        isSubmission: false,
                         hostObjectType: null)
                         .WithDefaultNamespace(projectFileInfo.DefaultNamespace)
                         .WithAnalyzerConfigDocuments(analyzerConfigDocuments)
@@ -441,7 +439,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 return commandLineArgs.ResolveAnalyzerReferences(analyzerLoader).Distinct(AnalyzerReferencePathComparer.Instance);
             }
 
-            private static ImmutableArray<DocumentInfo> CreateDocumentInfos(IReadOnlyList<DocumentFileInfo> documentFileInfos, ProjectId projectId, Encoding? encoding)
+            private ImmutableArray<DocumentInfo> CreateDocumentInfos(IReadOnlyList<DocumentFileInfo> documentFileInfos, ProjectId projectId, Encoding? encoding)
             {
                 var results = ImmutableArray.CreateBuilder<DocumentInfo>();
 
@@ -454,7 +452,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         name,
                         folders,
                         info.SourceCodeKind,
-                        new FileTextLoader(info.FilePath, encoding),
+                        new WorkspaceFileTextLoader(_solutionServices, info.FilePath, encoding),
                         info.FilePath,
                         info.IsGenerated);
 
@@ -506,13 +504,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             private TLanguageService? GetLanguageService<TLanguageService>(string languageName)
                 where TLanguageService : ILanguageService
-                => _workspaceServices
+                => _solutionServices
                     .GetLanguageServices(languageName)
                     .GetService<TLanguageService>();
 
             private TWorkspaceService? GetWorkspaceService<TWorkspaceService>()
                 where TWorkspaceService : IWorkspaceService
-                => _workspaceServices
+                => _solutionServices
                     .GetService<TWorkspaceService>();
         }
     }

@@ -31,18 +31,16 @@ namespace Microsoft.CodeAnalysis
                 Debugger.Break();
             }
 
-#if !NET20
             // don't fail fast with an aggregate exception that is masking true exception
             if (exception is AggregateException aggregate && aggregate.InnerExceptions.Count == 1)
             {
                 exception = aggregate.InnerExceptions[0];
             }
 
-#endif
             DumpStackTrace(exception: exception);
 
             Environment.FailFast(exception.ToString(), exception);
-            throw ExceptionUtilities.Unreachable; // to satisfy [DoesNotReturn]
+            throw ExceptionUtilities.Unreachable(); // to satisfy [DoesNotReturn]
         }
 
         [DebuggerHidden]
@@ -52,7 +50,7 @@ namespace Microsoft.CodeAnalysis
         {
             DumpStackTrace(message: message);
             Environment.FailFast(message);
-            throw ExceptionUtilities.Unreachable; // to satisfy [DoesNotReturn]
+            throw ExceptionUtilities.Unreachable(); // to satisfy [DoesNotReturn]
         }
 
         /// <summary>
@@ -78,11 +76,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-#if !NET20
             Console.WriteLine("Stack trace of handler");
             var stackTrace = new StackTrace();
             Console.WriteLine(stackTrace.ToString());
-#endif
 
             Console.Out.Flush();
         }

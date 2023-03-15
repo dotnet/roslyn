@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (constraints.Count > 0)
                 {
                     var symbolsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                    MetadataDecoder tokenDecoder = GetDecoderForConstraintTypes(moduleSymbol);
+                    MetadataDecoder tokenDecoder = GetDecoder(moduleSymbol);
 
                     TypeWithAnnotations bestObjectConstraint = default;
 
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _lazyDeclaredConstraintTypes;
         }
 
-        private MetadataDecoder GetDecoderForConstraintTypes(PEModuleSymbol moduleSymbol)
+        private MetadataDecoder GetDecoder(PEModuleSymbol moduleSymbol)
         {
             MetadataDecoder tokenDecoder;
             if (_containingSymbol.Kind == SymbolKind.Method)
@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         // We must have filtered out some Object constraints, lets calculate nullability from them.
                         var symbolsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                        MetadataDecoder tokenDecoder = GetDecoderForConstraintTypes(moduleSymbol);
+                        MetadataDecoder tokenDecoder = GetDecoder(moduleSymbol);
 
                         bool hasUnmanagedModreqPattern = false;
                         var metadataReader = module.MetadataReader;
@@ -704,6 +704,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
+        }
+
+#nullable enable
+        internal DiagnosticInfo? DeriveCompilerFeatureRequiredDiagnostic(MetadataDecoder decoder)
+            => PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, (PEModuleSymbol)ContainingModule, Handle, CompilerFeatureRequiredFeatures.None, decoder);
+
+        public override bool HasUnsupportedMetadata
+        {
+            get
+            {
+                var containingModule = (PEModuleSymbol)ContainingModule;
+                return DeriveCompilerFeatureRequiredDiagnostic(GetDecoder(containingModule)) is { Code: (int)ErrorCode.ERR_UnsupportedCompilerFeature } || base.HasUnsupportedMetadata;
+            }
         }
     }
 }

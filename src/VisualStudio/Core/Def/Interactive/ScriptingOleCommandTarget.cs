@@ -29,10 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         {
             var result = WpfTextView.GetBufferContainingCaret(contentType: ContentTypeNames.RoslynContentType);
 
-            if (result == null)
-            {
-                result = WpfTextView.GetBufferContainingCaret(contentType: PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
-            }
+            result ??= WpfTextView.GetBufferContainingCaret(contentType: PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
 
             return result;
         }

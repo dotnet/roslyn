@@ -297,7 +297,7 @@ End Class
                 EvalResult("s", quotedString, "String", "s", editableValue:=quotedString, flags:=DkmEvaluationResultFlags.RawString))
         End Sub
 
-        <Fact, WorkItem(1002381, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002381")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002381")>
         Public Sub BaseTypeEditableValue()
             Dim source = "
 Imports System
@@ -330,7 +330,7 @@ End Class"
         ''' <remarks>
         ''' As in dev11, the FullName expressions don't parse.
         ''' </remarks> 
-        <Fact, WorkItem(1010498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010498")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010498")>
         Public Sub HiddenMembers()
             Dim source =
 ".class public A
@@ -425,7 +425,7 @@ End Class"
                 EvalResult("><", "Nothing", "Object", fullName:=Nothing, flags:=DkmEvaluationResultFlags.ReadOnly))
         End Sub
 
-        <Fact, WorkItem(965892, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965892")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965892")>
         Public Sub DeclaredTypeAndRuntimeTypeDifferent()
             Dim source = "
 Class A
@@ -704,8 +704,7 @@ End Class"
                 EvalResult("_p", "3", "Integer", "DirectCast(c, D)._p", DkmEvaluationResultFlags.CanFavorite))
         End Sub
 
-        <WorkItem(1016895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016895")>
-        <Fact>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016895")>
         Public Sub RootVersusInternal()
             Const source = "
 Imports System.Diagnostics

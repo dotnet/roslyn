@@ -620,7 +620,7 @@ class X
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "const").WithArguments("const").WithLocation(9, 39),
                 // CS1003: Syntax error, ':' expected
                 //             /*<bind>*/case /*</bind>*/const int y:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments(":", "const").WithLocation(9, 39),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments(":").WithLocation(9, 39),
                 // CS0145: A const field requires a value to be provided
                 //             /*<bind>*/case /*</bind>*/const int y:
                 Diagnostic(ErrorCode.ERR_ConstValueRequired, "y").WithLocation(9, 49),

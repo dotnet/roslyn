@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             return visitor.VisitFunctionPointerType(this);
         }
 
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitFunctionPointerType(this, argument);
+        }
+
         protected override ITypeSymbol WithNullableAnnotation(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
             Debug.Assert(nullableAnnotation != this.NullableAnnotation);

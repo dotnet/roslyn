@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis
     {
         public readonly SemanticModel SemanticModel;
 
-        private SemanticDocument(Document document, SourceText text, SyntaxTree tree, SyntaxNode root, SemanticModel semanticModel)
-            : base(document, text, tree, root)
+        private SemanticDocument(Document document, SourceText text, SyntaxNode root, SemanticModel semanticModel)
+            : base(document, text, root)
         {
             this.SemanticModel = semanticModel;
         }
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return new SemanticDocument(document, text, root.SyntaxTree, root, model);
+            return new SemanticDocument(document, text, root, model);
         }
     }
 }

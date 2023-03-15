@@ -224,8 +224,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void NavigateToSendKeys(params object[] keys)
             => _editorInProc.SendKeysToNavigateTo(keys);
 
-        public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText) =>
-            _editorInProc.GetLightbulbPreviewClassifications(menuText);
+        public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText)
+            => _editorInProc.GetLightbulbPreviewClassifications(menuText);
 
         public void SetUseSuggestionMode(bool value)
         {
@@ -239,64 +239,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string[] GetErrorTags()
             => _editorInProc.GetErrorTags();
 
-        public void ExpandTypeNavBar()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            _editorInProc.ExpandNavigationBar(1);
-        }
-
-        public void ExpandMemberNavBar()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            _editorInProc.ExpandNavigationBar(2);
-        }
-
         public string[] GetProjectNavBarItems()
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
             return _editorInProc.GetNavBarItems(0);
-        }
-
-        public string[] GetMemberNavBarItems()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            return _editorInProc.GetNavBarItems(2);
-        }
-
-        public string? GetTypeNavBarSelection()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            return _editorInProc.GetSelectedNavBarItem(1);
-        }
-
-        public string? GetMemberNavBarSelection()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            return _editorInProc.GetSelectedNavBarItem(2);
-        }
-
-        public void SelectTypeNavBarItem(string item)
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            _editorInProc.SelectNavBarItem(1, item);
-
-            // Navigation and/or code generation following selection is tracked under FeatureAttribute.NavigationBar
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-        }
-
-        public void SelectMemberNavBarItem(string item)
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            _editorInProc.SelectNavBarItem(2, item);
-
-            // Navigation and/or code generation following selection is tracked under FeatureAttribute.NavigationBar
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-        }
-
-        public bool IsNavBarEnabled()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            return _editorInProc.IsNavBarEnabled();
         }
 
         public TextSpan[] GetKeywordHighlightTags()
@@ -316,30 +262,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 var open = tag.LastIndexOf('[') + 1;
                 var comma = tag.LastIndexOf('-');
                 var close = tag.LastIndexOf(']');
-                var start = tag.Substring(open, comma - open);
+                var start = tag[open..comma];
                 var end = tag.Substring(comma + 1, close - comma - 1);
                 return TextSpan.FromBounds(int.Parse(start), int.Parse(end));
             }).ToArray();
-        }
-
-        public void GoToDefinition(string? expectedNavigateWindowName)
-        {
-            _editorInProc.GoToDefinition();
-            if (expectedNavigateWindowName is not null)
-            {
-                _editorInProc.WaitForActiveWindow(expectedNavigateWindowName);
-            }
-        }
-
-        public void GoToImplementation(string? expectedNavigateWindowName)
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-            _editorInProc.GoToImplementation();
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.GoToImplementation);
-            if (expectedNavigateWindowName is not null)
-            {
-                _editorInProc.WaitForActiveWindow(expectedNavigateWindowName);
-            }
         }
 
         public void SendExplicitFocus()

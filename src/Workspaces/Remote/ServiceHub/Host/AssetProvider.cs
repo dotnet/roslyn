@@ -20,20 +20,20 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class AssetProvider : AbstractAssetProvider
     {
+        private readonly Checksum _solutionChecksum;
         private readonly ISerializerService _serializerService;
-        private readonly int _scopeId;
         private readonly SolutionAssetCache _assetCache;
         private readonly IAssetSource _assetSource;
 
-        public AssetProvider(int scopeId, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
+        public AssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
         {
-            _scopeId = scopeId;
+            _solutionChecksum = solutionChecksum;
             _assetCache = assetCache;
             _assetSource = assetSource;
             _serializerService = serializerService;
         }
 
-        public override async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
+        public override async ValueTask<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
             Debug.Assert(checksum != Checksum.Null);
 
@@ -44,15 +44,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using (Logger.LogBlock(FunctionId.AssetService_GetAssetAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
             {
-                // TODO: what happen if service doesn't come back. timeout?
                 var value = await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
 
-                _assetCache.TryAddAsset(checksum, value);
-                return (T)value;
+                // Attempt to add the value to the cache.  If someone else beat us, we'll return their value.
+                return (T)_assetCache.GetOrAdd(checksum, value);
             }
         }
 
-        public async Task<List<ValueTuple<Checksum, T>>> GetAssetsAsync<T>(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<ValueTuple<Checksum, T>>> GetAssetsAsync<T>(HashSet<Checksum> checksums, CancellationToken cancellationToken)
         {
             // this only works when caller wants to get same kind of assets at once
 
@@ -60,16 +59,14 @@ namespace Microsoft.CodeAnalysis.Remote
             var syncer = new ChecksumSynchronizer(this);
             await syncer.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
 
-            var list = new List<ValueTuple<Checksum, T>>();
+            using var _ = ArrayBuilder<ValueTuple<Checksum, T>>.GetInstance(checksums.Count, out var list);
             foreach (var checksum in checksums)
-            {
                 list.Add(ValueTuple.Create(checksum, await GetAssetAsync<T>(checksum, cancellationToken).ConfigureAwait(false)));
-            }
 
-            return list;
+            return list.ToImmutableAndClear();
         }
 
-        public async Task SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             var timer = new Stopwatch();
             timer.Start();
@@ -97,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task SynchronizeProjectAssetsAsync(IEnumerable<Checksum> projectChecksums, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeProjectAssetsAsync(HashSet<Checksum> projectChecksums, CancellationToken cancellationToken)
         {
             // this will pull in assets that belong to the given project checksum to this remote host.
             // this one is not supposed to be used for functionality but only for perf. that is why it doesn't return anything.
@@ -124,18 +121,18 @@ namespace Microsoft.CodeAnalysis.Remote
             return _assetCache.TryGetAsset<object>(checksum, out _);
         }
 
-        public async Task SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
         {
             Debug.Assert(!checksums.Contains(Checksum.Null));
+            if (checksums.Count == 0)
+                return;
 
             using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
             {
                 var assets = await RequestAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
 
                 foreach (var (checksum, value) in assets)
-                {
-                    _assetCache.TryAddAsset(checksum, value);
-                }
+                    _assetCache.GetOrAdd(checksum, value);
             }
         }
 
@@ -159,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return ImmutableArray<(Checksum, object)>.Empty;
             }
 
-            return await _assetSource.GetAssetsAsync(_scopeId, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
+            return await _assetSource.GetAssetsAsync(_solutionChecksum, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
         }
     }
 }

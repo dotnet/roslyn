@@ -8,11 +8,14 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddImport
@@ -27,12 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         {
         }
 
-#if !CODE_STYLE
-        public override bool PlaceImportsInsideNamespaces(Options.OptionSet optionSet)
-        {
-            return optionSet.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement).Value == AddImportPlacement.InsideNamespace;
-        }
-#endif
+        protected override string Language
+            => LanguageNames.CSharp;
+
+        public override CodeStyleOption2<AddImportPlacement> GetUsingDirectivePlacementCodeStyleOption(IOptionsReader configOptions, CodeStyleOption2<AddImportPlacement> fallbackValue)
+            => configOptions.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, fallbackValue);
 
         // C# doesn't have global imports.
         protected override ImmutableArray<SyntaxNode> GetGlobalImports(Compilation compilation, SyntaxGenerator generator)
@@ -122,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 _cancellationToken = cancellationToken;
             }
 
-            [return: NotNullIfNotNull("node")]
+            [return: NotNullIfNotNull(nameof(node))]
             public override SyntaxNode? Visit(SyntaxNode? node)
                 => base.Visit(node);
 
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             public override SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node)
             {
                 // recurse downwards so we visit inner namespaces first.
-                var rewritten = (CompilationUnitSyntax)(base.VisitCompilationUnit(node) ?? throw ExceptionUtilities.Unreachable);
+                var rewritten = (CompilationUnitSyntax)(base.VisitCompilationUnit(node) ?? throw ExceptionUtilities.Unreachable());
 
                 if (!node.CanAddUsingDirectives(_options.AllowInHiddenRegions, _cancellationToken))
                 {

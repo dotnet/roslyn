@@ -125,6 +125,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return null;
             }
 
+            // Special case for formatting if-statements blocks on new lines
+            if (CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) &&
+                currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
+                currentToken.Parent.IsParentKind(SyntaxKind.IfStatement))
+            {
+                var num = LineBreaksAfter(previousToken, currentToken);
+
+                return CreateAdjustNewLinesOperation(num, AdjustNewLinesOption.ForceLinesIfOnSingleLine);
+            }
+
             // if operation is already forced, return as it is.
             if (operation.Option == AdjustNewLinesOption.ForceLines)
                 return operation;

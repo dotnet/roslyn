@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.Operations
     Partial Friend NotInheritable Class VisualBasicOperationFactory
@@ -59,7 +60,6 @@ Namespace Microsoft.CodeAnalysis.Operations
             ' A BoundUserDefined conversion is always the operand of a BoundConversion, and is handled
             ' by the BoundConversion creation. We should never receive one in this top level create call.
             Debug.Assert(boundNode.Kind <> BoundKind.UserDefinedConversion)
-
 
             Select Case boundNode.Kind
                 Case BoundKind.AssignmentOperator
@@ -279,10 +279,11 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Return CreateBoundReDimClauseOperation(DirectCast(boundNode, BoundRedimClause))
                 Case BoundKind.TypeArguments
                     Return CreateBoundTypeArgumentsOperation(DirectCast(boundNode, BoundTypeArguments))
+                Case BoundKind.Attribute
+                    Return CreateBoundAttributeOperation(DirectCast(boundNode, BoundAttribute))
 
                 Case BoundKind.AddressOfOperator,
                      BoundKind.ArrayLiteral,
-                     BoundKind.Attribute,
                      BoundKind.ByRefArgumentWithCopyBack,
                      BoundKind.CompoundAssignmentTargetPlaceholder,
                      BoundKind.EraseStatement,
@@ -450,7 +451,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim syntax As SyntaxNode = boundCall.Syntax
             Dim type As ITypeSymbol = boundCall.Type
             Dim isImplicit As Boolean = boundCall.WasCompilerGenerated
-            Return New InvocationOperation(targetMethod, receiver, isVirtual, arguments, _semanticModel, syntax, type, isImplicit)
+            Return New InvocationOperation(targetMethod, constrainedToType:=Nothing, receiver, isVirtual, arguments, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundOmittedArgumentOperation(boundOmittedArgument As BoundOmittedArgument) As IOmittedArgumentOperation
@@ -504,7 +505,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim isLifted As Boolean = (boundUnaryOperator.OperatorKind And VisualBasic.UnaryOperatorKind.Lifted) <> 0
             Dim isChecked As Boolean = boundUnaryOperator.Checked
             Dim isImplicit As Boolean = boundUnaryOperator.WasCompilerGenerated
-            Return New UnaryOperation(operatorKind, operand, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New UnaryOperation(operatorKind, operand, isLifted, isChecked, operatorMethod, constrainedToType:=Nothing, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundUserDefinedUnaryOperatorOperation(boundUserDefinedUnaryOperator As BoundUserDefinedUnaryOperator) As IUnaryOperation
@@ -517,7 +518,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim isLifted As Boolean = (boundUserDefinedUnaryOperator.OperatorKind And VisualBasic.UnaryOperatorKind.Lifted) <> 0
             Dim isChecked As Boolean = False
             Dim isImplicit As Boolean = boundUserDefinedUnaryOperator.WasCompilerGenerated
-            Return New UnaryOperation(operatorKind, operand, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New UnaryOperation(operatorKind, operand, isLifted, isChecked, operatorMethod, constrainedToType:=Nothing, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Shared Function TryGetOperatorMethod(boundUserDefinedUnaryOperator As BoundUserDefinedUnaryOperator) As MethodSymbol
@@ -570,7 +571,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Dim isImplicit As Boolean = currentBinary.WasCompilerGenerated
 
                 left = New BinaryOperation(binaryOperatorInfo.OperatorKind, left, right, binaryOperatorInfo.IsLifted,
-                                           binaryOperatorInfo.IsChecked, binaryOperatorInfo.IsCompareText, binaryOperatorInfo.OperatorMethod,
+                                           binaryOperatorInfo.IsChecked, binaryOperatorInfo.IsCompareText, binaryOperatorInfo.OperatorMethod, constrainedToType:=Nothing,
                                            unaryOperatorMethod:=Nothing, _semanticModel, syntax, type, constantValue, isImplicit)
             End While
 
@@ -588,7 +589,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim constantValue As ConstantValue = boundUserDefinedBinaryOperator.ConstantValueOpt
             Dim isImplicit As Boolean = boundUserDefinedBinaryOperator.WasCompilerGenerated
             Return New BinaryOperation(binaryOperatorInfo.OperatorKind, left, right, binaryOperatorInfo.IsLifted,
-                                       binaryOperatorInfo.IsChecked, binaryOperatorInfo.IsCompareText, binaryOperatorInfo.OperatorMethod,
+                                       binaryOperatorInfo.IsChecked, binaryOperatorInfo.IsCompareText, binaryOperatorInfo.OperatorMethod, constrainedToType:=Nothing,
                                        unaryOperatorMethod:=Nothing, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
@@ -641,7 +642,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             End If
 
             Return New BinaryOperation(operatorKind, left, right, binaryOperatorInfo.IsLifted, isChecked, isCompareText,
-                                       binaryOperatorInfo.OperatorMethod, unaryOperatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
+                                       binaryOperatorInfo.OperatorMethod, constrainedToType:=Nothing, unaryOperatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundBadExpressionOperation(boundBadExpression As BoundBadExpression) As IInvalidOperation
@@ -659,7 +660,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundTypeArgumentsOperation(boundTypeArguments As BoundTypeArguments) As IInvalidOperation
             ' This can occur in scenarios involving latebound member accesses in Strict mode, such as
             ' element.UnresolvedMember(Of String)
-            ' The BadExpression has 2 children in this case: the receiver, and the type arguments. 
+            ' The BadExpression has 2 children in this case: the receiver, and the type arguments.
             ' Just create an invalid operation to represent the node, as it won't ever be surfaced in good code.
 
             Dim syntax As SyntaxNode = boundTypeArguments.Syntax
@@ -670,6 +671,23 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim children As ImmutableArray(Of IOperation) = ImmutableArray(Of IOperation).Empty
 
             Return New InvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundAttributeOperation(boundAttribute As BoundAttribute) As IAttributeOperation
+            Dim isAttributeImplicit = boundAttribute.WasCompilerGenerated
+            If boundAttribute.Constructor Is Nothing OrElse boundAttribute.ConstructorArguments.Length <> boundAttribute.Constructor.ParameterCount Then
+                Dim invalidOperation = OperationFactory.CreateInvalidOperation(_semanticModel, boundAttribute.Syntax, GetIOperationChildren(boundAttribute), isImplicit:=True)
+                Return New AttributeOperation(invalidOperation, _semanticModel, boundAttribute.Syntax, isAttributeImplicit)
+            End If
+
+            Dim initializer As ObjectOrCollectionInitializerOperation = Nothing
+            If Not boundAttribute.NamedArguments.IsEmpty Then
+                Dim namedArguments = CreateFromArray(Of BoundExpression, IOperation)(boundAttribute.NamedArguments)
+                initializer = New ObjectOrCollectionInitializerOperation(namedArguments, _semanticModel, boundAttribute.Syntax, boundAttribute.Type, isImplicit:=True)
+            End If
+
+            Dim objectCreationOperation = New ObjectCreationOperation(boundAttribute.Constructor, initializer, DeriveArguments(boundAttribute), _semanticModel, boundAttribute.Syntax, boundAttribute.Type, boundAttribute.ConstantValueOpt, isImplicit:=True)
+            Return New AttributeOperation(objectCreationOperation, _semanticModel, boundAttribute.Syntax, isAttributeImplicit)
         End Function
 
         Private Function CreateBoundTryCastOperation(boundTryCast As BoundTryCast) As IOperation
@@ -753,7 +771,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim syntax As SyntaxNode = boundDelegateCreationExpression.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim isImplicit As Boolean = boundDelegateCreationExpression.WasCompilerGenerated
-            Return New MethodReferenceOperation(method, isVirtual, receiverOpt, _semanticModel, syntax, type, isImplicit)
+            Return New MethodReferenceOperation(method, constrainedToType:=Nothing, isVirtual, receiverOpt, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundTernaryConditionalExpressionOperation(boundTernaryConditionalExpression As BoundTernaryConditionalExpression) As IConditionalOperation
@@ -868,7 +886,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim syntax As SyntaxNode = boundPropertyAccess.Syntax
             Dim type As ITypeSymbol = boundPropertyAccess.Type
             Dim isImplicit As Boolean = boundPropertyAccess.WasCompilerGenerated
-            Return New PropertyReferenceOperation([property], arguments, instance, _semanticModel, syntax, type, isImplicit)
+            Return New PropertyReferenceOperation([property], constrainedToType:=Nothing, arguments, instance, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundWithLValueExpressionPlaceholder(boundWithLValueExpressionPlaceholder As BoundWithLValueExpressionPlaceholder) As IInstanceReferenceOperation
@@ -894,7 +912,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim syntax As SyntaxNode = boundEventAccess.Syntax
             Dim type As ITypeSymbol = boundEventAccess.Type
             Dim isImplicit As Boolean = boundEventAccess.WasCompilerGenerated
-            Return New EventReferenceOperation([event], instance, _semanticModel, syntax, type, isImplicit)
+            Return New EventReferenceOperation([event], constrainedToType:=Nothing, instance, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundFieldAccessOperation(boundFieldAccess As BoundFieldAccess) As IFieldReferenceOperation
@@ -1477,7 +1495,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             End If
 
             Dim instance = CreateReceiverOperation(receiverOpt, boundRaiseEventStatement.EventSymbol)
-            Return New EventReferenceOperation(boundRaiseEventStatement.EventSymbol,
+            Return New EventReferenceOperation(boundRaiseEventStatement.EventSymbol, constrainedToType:=Nothing,
                                                instance,
                                                _semanticModel,
                                                eventReferenceSyntax,
@@ -1589,7 +1607,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim syntax As SyntaxNode = boundAnonymousTypePropertyAccess.Syntax
             Dim type As ITypeSymbol = boundAnonymousTypePropertyAccess.Type
             Dim isImplicit As Boolean = boundAnonymousTypePropertyAccess.WasCompilerGenerated
-            Return New PropertyReferenceOperation([property], arguments, instance, _semanticModel, syntax, type, isImplicit)
+            Return New PropertyReferenceOperation([property], constrainedToType:=Nothing, arguments, instance, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateAnonymousTypePropertyAccessImplicitReceiverOperation(propertySym As IPropertySymbol, syntax As SyntaxNode) As InstanceReferenceOperation
@@ -1641,7 +1659,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
             If method IsNot Nothing Then
                 Dim receiver as IOperation = CreateReceiverOperation(boundNullableIsTrueOperator.Operand, method)
-                Return New InvocationOperation(method.AsMember(DirectCast(boundNullableIsTrueOperator.Operand.Type, NamedTypeSymbol)),
+                Return New InvocationOperation(method.AsMember(DirectCast(boundNullableIsTrueOperator.Operand.Type, NamedTypeSymbol)), constrainedToType:=Nothing,
                                                               receiver,
                                                               isVirtual:=False,
                                                               arguments:=ImmutableArray(Of IArgumentOperation).Empty,
@@ -1677,5 +1695,4 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 End Namespace
-
 

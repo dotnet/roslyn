@@ -122,6 +122,11 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
 
+                if (node.Text is "functionType")
+                {
+                    return true;
+                }
+
                 return false;
             }
         }

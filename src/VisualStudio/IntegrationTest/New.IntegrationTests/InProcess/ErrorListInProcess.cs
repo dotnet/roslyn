@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -50,39 +49,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var errorItems = await GetErrorItemsAsync(cancellationToken);
-            var list = new List<string>();
-
-            foreach (var item in errorItems)
-            {
-                if (item.GetCategory() > minimumSeverity)
-                {
-                    continue;
-                }
-
-                if (!item.TryGetValue(StandardTableKeyNames.ErrorSource, out ErrorSource itemErrorSource)
-                    || !errorSource.HasFlag(itemErrorSource))
-                {
-                    continue;
-                }
-
-                var source = item.GetBuildTool();
-                var document = Path.GetFileName(item.GetPath() ?? item.GetDocumentName()) ?? "<unknown>";
-                var line = item.GetLine() ?? -1;
-                var column = item.GetColumn() ?? -1;
-                var errorCode = item.GetErrorCode() ?? "<unknown>";
-                var text = item.GetText() ?? "<unknown>";
-                var severity = item.GetCategory() switch
-                {
-                    __VSERRORCATEGORY.EC_ERROR => "error",
-                    __VSERRORCATEGORY.EC_WARNING => "warning",
-                    __VSERRORCATEGORY.EC_MESSAGE => "info",
-                    var unknown => unknown.ToString(),
-                };
-
-                var message = $"({source}) {document}({line + 1}, {column + 1}): {severity} {errorCode}: {text}";
-                list.Add(message);
-            }
+            var errorItems = await GetErrorItemsAsync(errorSource, minimumSeverity, cancellationToken);
+            var list = errorItems.Select(GetMessage).ToList();
 
             return list
                 .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
@@ -90,13 +58,72 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 .ToImmutableArray();
         }
 
-        private async Task<ImmutableArray<ITableEntryHandle>> GetErrorItemsAsync(CancellationToken cancellationToken)
+        public async Task<string> NavigateToErrorListItemAsync(int item, bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken);
+            ErrorSource errorSource = 0;
+            if (errorList.AreBuildErrorSourceEntriesShown)
+                errorSource |= ErrorSource.Build;
+
+            if (errorList.AreOtherErrorSourceEntriesShown)
+                errorSource |= ErrorSource.Other;
+
+            var minimumSeverity =
+                errorList.AreMessagesShown ? __VSERRORCATEGORY.EC_MESSAGE :
+                errorList.AreWarningsShown ? __VSERRORCATEGORY.EC_WARNING :
+                __VSERRORCATEGORY.EC_ERROR;
+
+            var items = await GetErrorItemsAsync(errorSource, minimumSeverity, cancellationToken);
+
+            items[item].NavigateTo(isPreview, shouldActivate);
+            return GetMessage(items[item]);
+        }
+
+        private async Task<ImmutableArray<ITableEntryHandle>> GetErrorItemsAsync(ErrorSource errorSource, __VSERRORCATEGORY minimumSeverity, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken);
             var args = await errorList.TableControl.ForceUpdateAsync().WithCancellation(cancellationToken);
-            return args.AllEntries.ToImmutableArray();
+            return args.AllEntries
+                .Where(item =>
+                {
+                    if (item.GetCategory() > minimumSeverity)
+                    {
+                        return false;
+                    }
+
+                    if (item.GetErrorSource() is not { } itemErrorSource
+                        || !errorSource.HasFlag(itemErrorSource))
+                    {
+                        return false;
+                    }
+
+                    return true;
+                })
+                .ToImmutableArray();
+        }
+
+        private static string GetMessage(ITableEntryHandle item)
+        {
+            var source = item.GetBuildTool();
+            var document = Path.GetFileName(item.GetPath() ?? item.GetDocumentName()) ?? "<unknown>";
+            var line = item.GetLine() ?? -1;
+            var column = item.GetColumn() ?? -1;
+            var errorCode = item.GetErrorCode() ?? "<unknown>";
+            var text = item.GetText() ?? "<unknown>";
+            var severity = item.GetCategory() switch
+            {
+                __VSERRORCATEGORY.EC_ERROR => "error",
+                __VSERRORCATEGORY.EC_WARNING => "warning",
+                __VSERRORCATEGORY.EC_MESSAGE => "info",
+                var unknown => unknown.ToString(),
+            };
+
+            var message = $"({source}) {document}({line + 1}, {column + 1}): {severity} {errorCode}: {text}";
+            return message;
         }
     }
 }

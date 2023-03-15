@@ -6,33 +6,40 @@
 
 using System;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     /// <inheritdoc cref="NotificationOption2"/>
-    public class NotificationOption
+    public sealed class NotificationOption
     {
         private readonly NotificationOption2 _notificationOptionImpl;
 
-        /// <inheritdoc cref="NotificationOption2.Name"/>
+        /// <summary>
+        /// Name for the notification option.
+        /// </summary>
         public string Name
         {
-            get => _notificationOptionImpl.Name;
-            set => _notificationOptionImpl.Name = value;
+            get => Severity.GetDisplayString();
+
+            [Obsolete("Modifying a NotificationOption is not supported.", error: true)]
+            set => throw new InvalidOperationException();
         }
 
         /// <inheritdoc cref="NotificationOption2.Severity"/>
         public ReportDiagnostic Severity
         {
             get => _notificationOptionImpl.Severity;
-            set => _notificationOptionImpl.Severity = value;
+
+            [Obsolete("Modifying a NotificationOption is not supported.", error: true)]
+            set => throw new InvalidOperationException();
         }
 
         [Obsolete("Use " + nameof(Severity) + " instead.")]
         public DiagnosticSeverity Value
         {
             get => Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden;
-            set => Severity = value.ToReportDiagnostic();
+            set => throw new InvalidOperationException();
         }
 
         /// <inheritdoc cref="NotificationOption2.None"/>
@@ -53,6 +60,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private NotificationOption(NotificationOption2 notificationOptionImpl)
             => _notificationOptionImpl = notificationOptionImpl;
 
-        public override string ToString() => _notificationOptionImpl.ToString();
+        public override string ToString() => Name;
     }
 }

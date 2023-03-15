@@ -14,10 +14,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private const int ShowEmptyEnvironment = (int)vsStartUp.vsStartUpEmptyEnvironment;
         private const int ShowStartPage = 5;
 
-        // These values apply to Visual Studio 2019
-        private const int VS2019ShowStartWindow = 13;
-        private const int VS2019ShowEmptyEnvironment = 10;
-
         public static StartPage_InProc Create()
             => new StartPage_InProc();
 
@@ -25,15 +21,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             InvokeOnUIThread(cancellationToken =>
             {
-                var property = GetProperty();
-                if (new Version(property.DTE.Version).Major == 16)
-                {
-                    property.Value = enabled ? VS2019ShowStartWindow : VS2019ShowEmptyEnvironment;
-                }
-                else
-                {
-                    property.Value = enabled ? ShowStartPage : ShowEmptyEnvironment;
-                }
+                var property = GetDTE().get_Properties("Environment", "Startup").Item("OnStartUp");
+                property.Value = enabled ? ShowStartPage : ShowEmptyEnvironment;
             });
         }
 
@@ -51,8 +40,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return true;
             });
         }
-
-        private static EnvDTE.Property GetProperty()
-            => GetDTE().get_Properties("Environment", "Startup").Item("OnStartUp");
     }
 }

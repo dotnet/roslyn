@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     internal static class SyntaxHelpers
     {
-        internal static readonly CSharpParseOptions ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionFacts.CurrentVersion);
+        internal static readonly CSharpParseOptions PreviewParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview); // Used to be LanguageVersionFacts.CurrentVersion
 
         /// <summary>
         /// Parse expression. Returns null if there are any errors.
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             string expr,
             DiagnosticBag diagnostics)
         {
-            var text = SourceText.From(expr);
+            var text = SourceText.From(expr, encoding: null, SourceHashAlgorithms.Default);
             var expression = ParseDebuggerExpressionInternal(text, consumeFullText: true);
             // We're creating a SyntaxTree for just the RHS so that the Diagnostic spans for parse errors
             // will be correct (with respect to the original input text).  If we ever expose a SemanticModel
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             // Any Diagnostic spans produced in binding will be offset by the length of the "target" expression text.
             // If we want to support live squiggles in debugger windows, SemanticModel, etc, we'll want to address this.
-            var targetSyntax = ParseDebuggerExpressionInternal(SourceText.From(target), consumeFullText: true);
+            var targetSyntax = ParseDebuggerExpressionInternal(SourceText.From(target, encoding: null, SourceHashAlgorithms.Default), consumeFullText: true);
             Debug.Assert(!targetSyntax.GetDiagnostics().Any(), "The target of an assignment should never contain Diagnostics if we're being allowed to assign to it in the debugger.");
 
             var assignment = InternalSyntax.SyntaxFactory.AssignmentExpression(
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 targetSyntax,
                 InternalSyntax.SyntaxFactory.Token(SyntaxKind.EqualsToken),
                 expression);
-            return assignment.MakeDebuggerExpression(SourceText.From(assignment.ToString()));
+            return assignment.MakeDebuggerExpression(SourceText.From(assignment.ToString(), encoding: null, SourceHashAlgorithms.Default));
         }
 
         /// <summary>
@@ -196,14 +196,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static ExpressionSyntax ParseDebuggerExpression(string text, bool consumeFullText)
         {
-            var source = SourceText.From(text);
+            var source = SourceText.From(text, encoding: null, SourceHashAlgorithms.Default);
             var expression = ParseDebuggerExpressionInternal(source, consumeFullText);
             return expression.MakeDebuggerExpression(source);
         }
 
         private static InternalSyntax.ExpressionSyntax ParseDebuggerExpressionInternal(SourceText source, bool consumeFullText)
         {
-            using var lexer = new InternalSyntax.Lexer(source, ParseOptions, allowPreprocessorDirectives: false);
+            using var lexer = new InternalSyntax.Lexer(source, PreviewParseOptions, allowPreprocessorDirectives: false);
             using var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, lexerMode: InternalSyntax.LexerMode.DebuggerSyntax);
 
             var node = parser.ParseExpression();
@@ -214,8 +214,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static StatementSyntax ParseDebuggerStatement(string text)
         {
-            var source = SourceText.From(text);
-            using var lexer = new InternalSyntax.Lexer(source, ParseOptions);
+            var source = SourceText.From(text, encoding: null, SourceHashAlgorithms.Default);
+            using var lexer = new InternalSyntax.Lexer(source, PreviewParseOptions);
             using var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, lexerMode: InternalSyntax.LexerMode.DebuggerSyntax);
 
             var statement = parser.ParseStatement();
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static SyntaxTree CreateSyntaxTree(this InternalSyntax.CSharpSyntaxNode root, SourceText text)
         {
-            return CSharpSyntaxTree.CreateForDebugger((CSharpSyntaxNode)root.CreateRed(), text, ParseOptions);
+            return CSharpSyntaxTree.CreateForDebugger((CSharpSyntaxNode)root.CreateRed(), text, PreviewParseOptions);
         }
 
         private static ExpressionSyntax MakeDebuggerExpression(this InternalSyntax.ExpressionSyntax expression, SourceText text)

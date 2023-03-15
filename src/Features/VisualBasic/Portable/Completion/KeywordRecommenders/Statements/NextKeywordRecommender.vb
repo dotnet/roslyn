@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
              ImmutableArray.Create(New RecommendedKeyword("Next", VBFeaturesResources.Terminates_a_loop_that_iterates_through_the_values_of_a_loop_variable))
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, CancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
-            Return If(context.IsSingleLineStatementContext AndAlso context.IsInStatementBlockOfKind(SyntaxKind.ForBlock, SyntaxKind.ForEachBlock),
+            Return If(context.IsStatementContext AndAlso context.IsInStatementBlockOfKind(SyntaxKind.ForBlock, SyntaxKind.ForEachBlock),
                 s_keywords,
                 ImmutableArray(Of RecommendedKeyword).Empty)
         End Function

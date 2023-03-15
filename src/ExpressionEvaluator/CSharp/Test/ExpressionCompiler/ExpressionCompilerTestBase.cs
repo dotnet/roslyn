@@ -189,9 +189,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         internal static CSharpMetadataContext GetMetadataContext(MetadataContext<CSharpMetadataContext> appDomainContext, Guid mvid = default)
         {
             var assemblyContexts = appDomainContext.AssemblyContexts;
-            return assemblyContexts != null && assemblyContexts.TryGetValue(new MetadataContextId(mvid), out CSharpMetadataContext context) ?
-                context :
-                default;
+            return assemblyContexts != null && assemblyContexts.TryGetValue(new MetadataContextId(mvid), out CSharpMetadataContext context)
+                ? context
+                : default;
         }
 
         internal static MetadataContext<CSharpMetadataContext> SetMetadataContext(MetadataContext<CSharpMetadataContext> appDomainContext, Guid mvid, CSharpMetadataContext context)
@@ -308,9 +308,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             string methodName,
             string expr,
             int atLineNumber = -1,
-            bool includeSymbols = true)
+            bool includeSymbols = true,
+            TargetFramework targetFramework = TargetFramework.Standard)
         {
-            var result = Evaluate(source, outputKind, methodName, expr, out _, out string error, atLineNumber, includeSymbols);
+            var result = Evaluate(source, outputKind, methodName, expr, out _, out string error, atLineNumber, includeSymbols, targetFramework: targetFramework);
             Assert.Null(error);
             return result;
         }
@@ -335,12 +336,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             out ResultProperties resultProperties,
             out string error,
             int atLineNumber = -1,
-            bool includeSymbols = true)
+            bool includeSymbols = true,
+            TargetFramework targetFramework = TargetFramework.Standard)
         {
             var compilation = CreateCompilation(
                 source,
-                parseOptions: SyntaxHelpers.ParseOptions,
-                options: (outputKind == OutputKind.DynamicallyLinkedLibrary) ? TestOptions.DebugDll : TestOptions.DebugExe);
+                parseOptions: SyntaxHelpers.PreviewParseOptions,
+                options: (outputKind == OutputKind.DynamicallyLinkedLibrary) ? TestOptions.DebugDll : TestOptions.DebugExe,
+                targetFramework: targetFramework);
 
             return Evaluate(compilation, methodName, expr, out resultProperties, out error, atLineNumber, includeSymbols);
         }
@@ -434,9 +437,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var methodOrTypeName = ExpressionCompilerTestHelpers.GetMethodOrTypeSignatureParts(signature, out parameterTypeNames);
 
             var candidates = compilation.GetMembers(methodOrTypeName);
-            var methodOrType = (parameterTypeNames == null) ?
-                candidates.FirstOrDefault() :
-                candidates.FirstOrDefault(c => parameterTypeNames.SequenceEqual(((MethodSymbol)c).Parameters.Select(p => p.TypeWithAnnotations.Type.Name)));
+            var methodOrType = (parameterTypeNames == null)
+                ? candidates.FirstOrDefault()
+                : candidates.FirstOrDefault(c => parameterTypeNames.SequenceEqual(((MethodSymbol)c).Parameters.Select(p => p.TypeWithAnnotations.Type.Name)));
 
             Assert.False(methodOrType == null, "Could not find method or type with signature '" + signature + "'.");
             return methodOrType;

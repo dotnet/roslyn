@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
@@ -1168,7 +1169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   </CompilationUnit>
 </Tree>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""20"" Length=""3"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""20"" Length=""3"" />
 </Diagnostics>",
         @"<Diagnostics>
   <Diagnostic Message=""Strings must start with &quot; not '"" Start=""12"" Length=""1"" />
@@ -1328,10 +1329,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   </CompilationUnit>
 </Tree>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""102"" Length=""8"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""102"" Length=""8"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""102"" Length=""8"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""102"" Length=""8"" />
 </Diagnostics>");
         }
 
@@ -1367,10 +1368,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   </CompilationUnit>
 </Tree>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""22"" Length=""5"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""22"" Length=""5"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""22"" Length=""5"" />
+  <Diagnostic Message=""Property name must be followed by a ':'"" Start=""22"" Length=""5"" />
 </Diagnostics>");
         }
 
@@ -5928,6 +5929,43 @@ b""</StringToken>
 </Diagnostics>",
         @"<Diagnostics>
   <Diagnostic Message=""Property name must be a string"" Start=""11"" Length=""1"" />
+</Diagnostics>");
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1691963")]
+        public void TestAllColons_BecomesNestedProperties()
+        {
+            Test(@"""::::::::""", expected: @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Property>
+        <TextToken>:</TextToken>
+        <ColonToken>:</ColonToken>
+        <Property>
+          <TextToken>:</TextToken>
+          <ColonToken>:</ColonToken>
+          <Property>
+            <TextToken>:</TextToken>
+            <ColonToken>:</ColonToken>
+            <Property>
+              <TextToken>:</TextToken>
+              <ColonToken>:</ColonToken>
+              <CommaValue>
+                <CommaToken />
+              </CommaValue>
+            </Property>
+          </Property>
+        </Property>
+      </Property>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid property name"" Start=""9"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""9"" Length=""1"" />
 </Diagnostics>");
         }
     }

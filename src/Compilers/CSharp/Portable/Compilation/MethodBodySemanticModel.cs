@@ -43,16 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #nullable disable
 
-        private MethodBodySemanticModel(
+        internal MethodBodySemanticModel(
             MethodSymbol owner,
             Binder rootBinder,
             CSharpSyntaxNode syntax,
-            SyntaxTreeSemanticModel containingSemanticModelOpt = null,
-            SyntaxTreeSemanticModel parentSemanticModelOpt = null,
-            NullableWalker.SnapshotManager snapshotManagerOpt = null,
-            ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt = null,
-            int speculatedPosition = 0)
-            : base(syntax, owner, rootBinder, containingSemanticModelOpt, parentSemanticModelOpt, snapshotManagerOpt, parentRemappedSymbolsOpt, speculatedPosition)
+            PublicSemanticModel containingPublicSemanticModel,
+            ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt = null)
+            : base(syntax, owner, rootBinder, containingPublicSemanticModel, parentRemappedSymbolsOpt)
         {
             Debug.Assert((object)owner != null);
             Debug.Assert(owner.Kind == SymbolKind.Method);
@@ -103,6 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.CompilationUnit:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.ClassDeclaration:
                     return binder.BindMethodBody(node, diagnostics);
             }
 
@@ -112,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a speculative SemanticModel for a method body that did not appear in the original source code.
         /// </summary>
-        internal static MethodBodySemanticModel CreateSpeculative(
+        internal static SpeculativeSemanticModelWithMemberModel CreateSpeculative(
             SyntaxTreeSemanticModel parentSemanticModel,
             MethodSymbol owner,
             StatementSyntax syntax,
@@ -121,60 +119,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt,
             int position)
         {
-            Debug.Assert(parentSemanticModel != null);
-            Debug.Assert(syntax != null);
-            Debug.Assert(rootBinder != null);
-            Debug.Assert(rootBinder.IsSemanticModelBinder);
+            return CreateSpeculativeForNode(parentSemanticModel, owner, syntax, rootBinder, snapshotManagerOpt, parentRemappedSymbolsOpt, position);
+        }
 
-            return new MethodBodySemanticModel(owner, rootBinder, syntax, parentSemanticModelOpt: parentSemanticModel, snapshotManagerOpt: snapshotManagerOpt, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt, speculatedPosition: position);
+        private static SpeculativeSemanticModelWithMemberModel CreateSpeculativeForNode(
+            SyntaxTreeSemanticModel parentSemanticModel,
+            MethodSymbol owner,
+            CSharpSyntaxNode syntax,
+            Binder rootBinder,
+            NullableWalker.SnapshotManager snapshotManagerOpt,
+            ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt,
+            int position)
+        {
+            return new SpeculativeSemanticModelWithMemberModel(parentSemanticModel, position, owner, syntax, rootBinder, parentRemappedSymbolsOpt, snapshotManagerOpt);
         }
 
         /// <summary>
         /// Creates a speculative SemanticModel for an expression body that did not appear in the original source code.
         /// </summary>
-        internal static MethodBodySemanticModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, MethodSymbol owner, ArrowExpressionClauseSyntax syntax, Binder rootBinder, int position)
+        internal static SpeculativeSemanticModelWithMemberModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, MethodSymbol owner, ArrowExpressionClauseSyntax syntax, Binder rootBinder, int position)
         {
-            Debug.Assert(parentSemanticModel != null);
-            Debug.Assert(syntax != null);
-            Debug.Assert(rootBinder != null);
-            Debug.Assert(rootBinder.IsSemanticModelBinder);
-
-            return new MethodBodySemanticModel(owner, rootBinder, syntax, parentSemanticModelOpt: parentSemanticModel, speculatedPosition: position);
+            return CreateSpeculativeForNode(parentSemanticModel, owner, syntax, rootBinder, snapshotManagerOpt: null, parentRemappedSymbolsOpt: null, position);
         }
 
         /// <summary>
         /// Creates a speculative SemanticModel for a constructor initializer that did not appear in the original source code.
         /// </summary>
-        internal static MethodBodySemanticModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, MethodSymbol owner, ConstructorInitializerSyntax syntax, Binder rootBinder, int position)
+        internal static SpeculativeSemanticModelWithMemberModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, MethodSymbol owner, ConstructorInitializerSyntax syntax, Binder rootBinder, int position)
         {
-            Debug.Assert(parentSemanticModel != null);
-            Debug.Assert(syntax != null);
-            Debug.Assert(rootBinder != null);
-            Debug.Assert(rootBinder.IsSemanticModelBinder);
-
-            return new MethodBodySemanticModel(owner, rootBinder, syntax, parentSemanticModelOpt: parentSemanticModel, speculatedPosition: position);
+            return CreateSpeculativeForNode(parentSemanticModel, owner, syntax, rootBinder, snapshotManagerOpt: null, parentRemappedSymbolsOpt: null, position);
         }
 
         /// <summary>
         /// Creates a speculative SemanticModel for a constructor initializer that did not appear in the original source code.
         /// </summary>
-        internal static MethodBodySemanticModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, MethodSymbol owner, PrimaryConstructorBaseTypeSyntax syntax, Binder rootBinder, int position)
+        internal static SpeculativeSemanticModelWithMemberModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, MethodSymbol owner, PrimaryConstructorBaseTypeSyntax syntax, Binder rootBinder, int position)
         {
-            Debug.Assert(parentSemanticModel != null);
-            Debug.Assert(syntax != null);
-            Debug.Assert(rootBinder != null);
-            Debug.Assert(rootBinder.IsSemanticModelBinder);
-
-            return new MethodBodySemanticModel(owner, rootBinder, syntax, parentSemanticModelOpt: parentSemanticModel, speculatedPosition: position);
+            return CreateSpeculativeForNode(parentSemanticModel, owner, syntax, rootBinder, snapshotManagerOpt: null, parentRemappedSymbolsOpt: null, position);
         }
 
-        internal override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, BaseMethodDeclarationSyntax method, out SemanticModel speculativeModel)
+        internal override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, BaseMethodDeclarationSyntax method, out PublicSemanticModel speculativeModel)
         {
             // CONSIDER: Do we want to ensure that speculated method and the original method have identical signatures?
             return GetSpeculativeSemanticModelForMethodBody(parentModel, position, method.Body, out speculativeModel);
         }
 
-        private bool GetSpeculativeSemanticModelForMethodBody(SyntaxTreeSemanticModel parentModel, int position, BlockSyntax body, out SemanticModel speculativeModel)
+        private bool GetSpeculativeSemanticModelForMethodBody(SyntaxTreeSemanticModel parentModel, int position, BlockSyntax body, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -206,12 +196,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        internal override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, AccessorDeclarationSyntax accessor, out SemanticModel speculativeModel)
+        internal override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, AccessorDeclarationSyntax accessor, out PublicSemanticModel speculativeModel)
         {
             return GetSpeculativeSemanticModelForMethodBody(parentModel, position, accessor.Body, out speculativeModel);
         }
 
-        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, StatementSyntax statement, out SemanticModel speculativeModel)
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, StatementSyntax statement, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -229,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out SemanticModel speculativeModel)
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -248,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out PublicSemanticModel speculativeModel)
         {
             if (MemberSymbol is MethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.Constructor &&
                 Root.FindToken(position).Parent?.AncestorsAndSelf().OfType<ConstructorInitializerSyntax>().FirstOrDefault()?.Parent == Root)
@@ -267,13 +257,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out SemanticModel speculativeModel)
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out PublicSemanticModel speculativeModel)
         {
-            if (MemberSymbol is SynthesizedRecordConstructor primaryCtor &&
-                primaryCtor.GetSyntax() is RecordDeclarationSyntax recordDecl)
+            if (MemberSymbol is SynthesizedPrimaryConstructor primaryCtor &&
+                primaryCtor.GetSyntax() is TypeDeclarationSyntax typeDecl)
             {
-                Debug.Assert(recordDecl.Kind() == SyntaxKind.RecordDeclaration);
-                if (Root.FindToken(position).Parent?.AncestorsAndSelf().OfType<PrimaryConstructorBaseTypeSyntax>().FirstOrDefault() == recordDecl.PrimaryConstructorBaseTypeIfClass)
+                Debug.Assert(typeDecl.Kind() is (SyntaxKind.RecordDeclaration or SyntaxKind.ClassDeclaration));
+                if (Root.FindToken(position).Parent?.AncestorsAndSelf().OfType<PrimaryConstructorBaseTypeSyntax>().FirstOrDefault() == typeDecl.PrimaryConstructorBaseTypeIfClass)
                 {
                     var binder = this.GetEnclosingBinder(position);
                     if (binder != null)
@@ -290,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out SemanticModel speculativeModel)
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out PublicSemanticModel speculativeModel)
         {
             speculativeModel = null;
             return false;
@@ -304,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out NullableWalker.SnapshotManager snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol> remappedSymbols)
         {
-            var afterInitializersState = NullableWalker.GetAfterInitializersState(Compilation, MemberSymbol);
+            var afterInitializersState = NullableWalker.GetAfterInitializersState(Compilation, MemberSymbol, boundRoot);
             return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, afterInitializersState, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
         }
 

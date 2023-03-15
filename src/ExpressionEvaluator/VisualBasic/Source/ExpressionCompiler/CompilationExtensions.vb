@@ -35,15 +35,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 For Each member In containingType.ContainingType.GetMembers(sourceMethodName)
                     Dim candidateMethod = TryCast(member, PEMethodSymbol)
                     If candidateMethod IsNot Nothing Then
-                        Dim [module] = metadataDecoder.Module
-                        methodHandle = candidateMethod.Handle
                         Dim stateMachineTypeName As String = Nothing
-                        If [module].HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, stateMachineTypeName) OrElse
-                            [module].HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, stateMachineTypeName) _
-                        Then
-                            If metadataDecoder.GetTypeSymbolForSerializedType(stateMachineTypeName).OriginalDefinition.Equals(containingType) Then
-                                Return candidateMethod
-                            End If
+                        If metadataDecoder.Module.HasStateMachineAttribute(candidateMethod.Handle, stateMachineTypeName) AndAlso
+                            metadataDecoder.GetTypeSymbolForSerializedType(stateMachineTypeName).OriginalDefinition.Equals(containingType) Then
+                            Return candidateMethod
                         End If
                     End If
                 Next

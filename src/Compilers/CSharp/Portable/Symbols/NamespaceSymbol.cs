@@ -336,7 +336,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-
         /// <summary>
         /// Add all extension methods in this namespace to the given list. If name or arity
         /// or both are provided, only those extension methods that match are included.

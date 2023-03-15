@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -11,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -21,32 +19,32 @@ namespace Microsoft.CodeAnalysis.GenerateType
     {
         protected class State
         {
-            public string Name { get; private set; }
+            public string Name { get; private set; } = null!;
             public bool NameIsVerbatim { get; private set; }
 
             // The name node that we're on.  Will be used to the name the type if it's
             // generated.
-            public TSimpleNameSyntax SimpleName { get; private set; }
+            public TSimpleNameSyntax SimpleName { get; private set; } = null!;
 
             // The entire expression containing the name, not including the creation.  i.e. "X.Goo"
             // in "new X.Goo()".
-            public TExpressionSyntax NameOrMemberAccessExpression { get; private set; }
+            public TExpressionSyntax NameOrMemberAccessExpression { get; private set; } = null!;
 
             // The object creation node if we have one.  i.e. if we're on the 'Goo' in "new X.Goo()".
-            public TObjectCreationExpressionSyntax ObjectCreationExpressionOpt { get; private set; }
+            public TObjectCreationExpressionSyntax? ObjectCreationExpressionOpt { get; private set; }
 
             // One of these will be non null.  It's also possible for both to be non null. For
             // example, if you have "class C { Goo f; }", then "Goo" can be generated inside C or
             // inside the global namespace.  The namespace can be null or the type can be null if the
             // user has something like "ExistingType.NewType" or "ExistingNamespace.NewType".  In
             // that case they're being explicit about what they want to generate into.
-            public INamedTypeSymbol TypeToGenerateInOpt { get; private set; }
-            public string NamespaceToGenerateInOpt { get; private set; }
+            public INamedTypeSymbol? TypeToGenerateInOpt { get; private set; }
+            public string? NamespaceToGenerateInOpt { get; private set; }
 
             // If we can infer a base type or interface for this type. 
             // 
             // i.e.: "IList<int> goo = new MyList();"
-            public INamedTypeSymbol BaseTypeOrInterfaceOpt { get; private set; }
+            public INamedTypeSymbol? BaseTypeOrInterfaceOpt { get; private set; }
             public bool IsInterface { get; private set; }
             public bool IsStruct { get; private set; }
             public bool IsAttribute { get; private set; }
@@ -56,18 +54,18 @@ namespace Microsoft.CodeAnalysis.GenerateType
             public bool IsSimpleNameGeneric { get; private set; }
             public bool IsPublicAccessibilityForTypeGeneration { get; private set; }
             public bool IsInterfaceOrEnumNotAllowedInTypeContext { get; private set; }
-            public IMethodSymbol DelegateMethodSymbol { get; private set; }
+            public IMethodSymbol? DelegateMethodSymbol { get; private set; }
             public bool IsDelegateAllowed { get; private set; }
             public bool IsEnumNotAllowed { get; private set; }
             public Compilation Compilation { get; }
             public bool IsDelegateOnly { get; private set; }
             public bool IsClassInterfaceTypes { get; private set; }
-            public List<TSimpleNameSyntax> PropertiesToGenerate { get; private set; }
+            public List<TSimpleNameSyntax> PropertiesToGenerate { get; private set; } = null!;
 
             private State(Compilation compilation)
                 => Compilation = compilation;
 
-            public static async Task<State> GenerateAsync(
+            public static async Task<State?> GenerateAsync(
                 TService service,
                 SemanticDocument document,
                 SyntaxNode node,
@@ -94,7 +92,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
 
                 SimpleName = (TSimpleNameSyntax)node;
-                var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 syntaxFacts.GetNameAndArityOfSimpleName(SimpleName, out var name, out _);
 
                 Name = name;
@@ -120,6 +118,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return false;
                 }
 
+                Contract.ThrowIfNull(generateTypeServiceStateOptions.NameOrMemberAccessExpression);
                 NameOrMemberAccessExpression = generateTypeServiceStateOptions.NameOrMemberAccessExpression;
                 ObjectCreationExpressionOpt = generateTypeServiceStateOptions.ObjectCreationExpressionOpt;
 
@@ -131,7 +130,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return false;
                 }
 
-                var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
+                var semanticFacts = semanticDocument.Document.GetRequiredLanguageService<ISemanticFactsService>();
                 if (!semanticFacts.IsTypeContext(semanticModel, NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
                     !semanticFacts.IsExpressionContext(semanticModel, NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
                     !semanticFacts.IsStatementContext(semanticModel, NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
@@ -207,39 +206,57 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // then we don't really want to infer a base type for 'Goo'.
 
                 // However, there are a few other cases were we can infer a base type.
-                var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = document.Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (service.IsInCatchDeclaration(NameOrMemberAccessExpression))
                 {
-                    SetBaseType(document.SemanticModel.Compilation.ExceptionType());
+                    SetBaseType(this.Compilation.ExceptionType());
                 }
                 else if (syntaxFacts.IsAttributeName(NameOrMemberAccessExpression))
                 {
-                    SetBaseType(document.SemanticModel.Compilation.AttributeType());
+                    SetBaseType(this.Compilation.AttributeType());
                 }
                 else
                 {
                     var expr = ObjectCreationExpressionOpt ?? NameOrMemberAccessExpression;
                     if (expr != null)
                     {
-                        var typeInference = document.Document.GetLanguageService<ITypeInferenceService>();
-                        var baseType = typeInference.InferType(document.SemanticModel, expr, objectAsDefault: true, cancellationToken: cancellationToken) as INamedTypeSymbol;
-                        SetBaseType(baseType);
+                        var typeInference = document.Document.GetRequiredLanguageService<ITypeInferenceService>();
+                        var baseTypes = typeInference.InferTypes(document.SemanticModel, expr, cancellationToken);
+                        foreach (var baseType in baseTypes)
+                        {
+                            if (this.BaseTypeOrInterfaceOpt is not null)
+                                break;
+
+                            SetBaseType(baseType as INamedTypeSymbol);
+                        }
                     }
                 }
             }
 
-            private void SetBaseType(INamedTypeSymbol baseType)
+            private void SetBaseType(INamedTypeSymbol? baseType)
             {
                 if (baseType == null)
                     return;
 
-                // A base type need to be non class or interface type.  Also, being 'object' is
-                // redundant as the base type.  
-                if (baseType.IsSealed || baseType.IsStatic || baseType.SpecialType == SpecialType.System_Object)
+                // A base type need to be non class or interface type.
+                if (baseType.IsSealed || baseType.IsStatic)
                     return;
 
                 if (baseType.TypeKind is not TypeKind.Class and not TypeKind.Interface)
                     return;
+
+                // 'Object' is redundant to derive from (and we're prefer a more specialized typed if we can infer one).
+                // We also filter out non-sealed types that a normal user type still isn't allow to explicit derive from.
+                if (baseType.SpecialType is
+                        SpecialType.System_Object or
+                        SpecialType.System_Array or
+                        SpecialType.System_Delegate or
+                        SpecialType.System_MulticastDelegate or
+                        SpecialType.System_ValueType or
+                        SpecialType.System_Enum)
+                {
+                    return;
+                }
 
                 // Strip off top-level nullability since we can't put top-level nullability into the base list. We will still include nested nullability
                 // if you're deriving some interface like IEnumerable<string?>.
@@ -283,7 +300,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         var symbol = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateInOpt, document.Project.Solution, cancellationToken).ConfigureAwait(false);
                         if (symbol == null ||
                             !symbol.IsKind(SymbolKind.NamedType) ||
-                            !symbol.Locations.Any(loc => loc.IsInSource))
+                            !symbol.Locations.Any(static loc => loc.IsInSource))
                         {
                             TypeToGenerateInOpt = null;
                             return;
@@ -301,8 +318,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         // If the 2 documents are in different project then we must have Public Accessibility.
                         // If we are generating in a website project, we also want to type to be public so the 
                         // designer files can access the type.
-                        if (documentToBeGeneratedIn.Project != document.Project ||
-                            GeneratedTypesMustBePublic(documentToBeGeneratedIn.Project))
+                        if (documentToBeGeneratedIn.Project != document.Project)
                         {
                             IsPublicAccessibilityForTypeGeneration = true;
                         }
@@ -405,9 +421,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
         protected class GenerateTypeServiceStateOptions
         {
-            public TExpressionSyntax NameOrMemberAccessExpression { get; set; }
-            public TObjectCreationExpressionSyntax ObjectCreationExpressionOpt { get; set; }
-            public IMethodSymbol DelegateCreationMethodSymbol { get; set; }
+            public TExpressionSyntax? NameOrMemberAccessExpression { get; set; }
+            public TObjectCreationExpressionSyntax? ObjectCreationExpressionOpt { get; set; }
+            public IMethodSymbol? DelegateCreationMethodSymbol { get; set; }
             public List<TSimpleNameSyntax> PropertiesToGenerate { get; }
             public bool IsMembersWithModule { get; set; }
             public bool IsTypeGeneratedIntoNamespaceFromMemberAccess { get; set; }
@@ -419,9 +435,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             public GenerateTypeServiceStateOptions()
             {
-                NameOrMemberAccessExpression = null;
-                ObjectCreationExpressionOpt = null;
-                DelegateCreationMethodSymbol = null;
                 IsMembersWithModule = false;
                 PropertiesToGenerate = new List<TSimpleNameSyntax>();
                 IsTypeGeneratedIntoNamespaceFromMemberAccess = false;

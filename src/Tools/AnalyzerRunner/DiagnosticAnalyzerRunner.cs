@@ -181,12 +181,13 @@ namespace AnalyzerRunner
                 languageAnalyzers = ImmutableArray<DiagnosticAnalyzer>.Empty;
             }
 
-            Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
 
             var stopwatch = PerformanceTracker.StartNew();
             for (int i = 0; i < analyzerOptionsInternal.TestDocumentIterations; i++)
             {
-                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution);
+                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideAnalyzerOptions);
                 CompilationWithAnalyzers compilationWithAnalyzers = compilation.WithAnalyzers(languageAnalyzers, new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
 
                 SyntaxTree tree = await project.GetDocument(documentId).GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -270,7 +271,7 @@ namespace AnalyzerRunner
                 }
                 else if (options.AnalyzerNames.Count == 0)
                 {
-                    if (analyzer.SupportedDiagnostics.Any(diagnosticDescriptor => diagnosticDescriptor.IsEnabledByDefault))
+                    if (analyzer.SupportedDiagnostics.Any(static diagnosticDescriptor => diagnosticDescriptor.IsEnabledByDefault))
                     {
                         yield return analyzer;
                     }
@@ -390,11 +391,12 @@ namespace AnalyzerRunner
 
             try
             {
-                Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var newCompilation = compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(compilation.SyntaxTrees);
+                var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
 
-                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution);
-                CompilationWithAnalyzers compilationWithAnalyzers = newCompilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
+                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideAnalyzerOptions);
+                var compilationWithAnalyzers = newCompilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
                 var analystResult = await compilationWithAnalyzers.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
                 return analystResult;
             }
@@ -477,7 +479,7 @@ namespace AnalyzerRunner
             WriteLine($"{analyzerName}:{padding} {telemetry.ExecutionTime.TotalMilliseconds,7:0}", ConsoleColor.White);
         }
 
-        private struct DocumentAnalyzerPerformance
+        private readonly struct DocumentAnalyzerPerformance
         {
             public DocumentAnalyzerPerformance(double editsPerSecond, long allocatedBytesPerEdit)
             {

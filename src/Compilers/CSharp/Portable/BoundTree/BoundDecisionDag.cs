@@ -137,13 +137,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public BoundDecisionDag SimplifyDecisionDagIfConstantInput(BoundExpression input)
         {
-            if (input.ConstantValue == null)
+            if (input.ConstantValueOpt == null)
             {
                 return this;
             }
             else
             {
-                ConstantValue inputConstant = input.ConstantValue;
+                ConstantValue inputConstant = input.ConstantValueOpt;
                 return Rewrite(makeReplacement);
 
                 // Make a replacement for a given node, using the precomputed replacements for its successors.
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool ContainsAnySynthesizedNodes()
         {
-            return this.TopologicallySortedNodes.Any(node => node is BoundEvaluationDecisionDagNode e && e.Evaluation.Kind == BoundKind.DagAssignmentEvaluation);
+            return this.TopologicallySortedNodes.Any(static node => node is BoundEvaluationDecisionDagNode e && e.Evaluation.Kind == BoundKind.DagAssignmentEvaluation);
         }
 
 #if DEBUG

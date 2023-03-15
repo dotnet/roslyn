@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
 
                 var node = targetToken.Parent;
-                if (!node.IsKind(SyntaxKind.ExplicitInterfaceSpecifier, out ExplicitInterfaceSpecifierSyntax? specifierNode))
+                if (node is not ExplicitInterfaceSpecifierSyntax specifierNode)
                     return;
 
                 // Bind the interface name which is to the left of the dot

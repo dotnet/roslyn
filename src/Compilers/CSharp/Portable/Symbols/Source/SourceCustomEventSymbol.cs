@@ -225,11 +225,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Note: we delayed nullable-related checks that could pull on NonNullTypes
                 EventSymbol explicitlyImplementedEvent = _explicitInterfaceImplementations[0];
-                TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this.ContainingType, this, explicitlyImplementedEvent, isExplicit: true, diagnostics);
+                TypeSymbol.CheckNullableReferenceTypeAndScopedMismatchOnImplementingMember(this.ContainingType, this, explicitlyImplementedEvent, isExplicit: true, diagnostics);
             }
         }
 
-        [return: NotNullIfNotNull(parameterName: "syntaxOpt")]
+        [return: NotNullIfNotNull(parameterName: nameof(syntaxOpt))]
         private SourceCustomEventAccessorSymbol? CreateAccessorSymbol(CSharpCompilation compilation, AccessorDeclarationSyntax? syntaxOpt,
             EventSymbol? explicitlyImplementedEventOpt, string? aliasQualifierOpt, BindingDiagnosticBag diagnostics)
         {

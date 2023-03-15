@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(SyntaxFactory.IsCompleteSubmission(SyntaxFactory.ParseSyntaxTree(code, options: TestOptions.Script)));
         }
 
-        private static void AssertCompleteSubmission(string code, bool isComplete = true)
+        private static void AssertCompleteSubmission(string code)
         {
             Assert.True(SyntaxFactory.IsCompleteSubmission(SyntaxFactory.ParseSyntaxTree(code, options: TestOptions.Script)));
         }
@@ -238,6 +238,15 @@ void goo()
         public void TestGetLiteralExpression(SyntaxKind tokenKind, SyntaxKind expressionKind)
         {
             Assert.Equal(expressionKind, SyntaxFacts.GetLiteralExpression(tokenKind));
+        }
+
+        [Fact]
+        public void Punctuation()
+        {
+            foreach (var kind in SyntaxFacts.GetPunctuationKinds())
+            {
+                Assert.True(SyntaxFacts.IsPunctuation(kind));
+            }
         }
     }
 }

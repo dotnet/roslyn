@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <ApplyNgenOptimization>full</ApplyNgenOptimization>
+    <RoslynPackageArch>x86</RoslynPackageArch>
+
+    <!-- VS Insertion -->
+    <TargetVsixContainerName>Microsoft.CodeAnalysis.Compilers.x86.vsix</TargetVsixContainerName>
+    <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.Compilers</VisualStudioInsertionComponent>
+  </PropertyGroup>
+
+  <Target Name="_SetSwrFilePath">
+    <PropertyGroup>
+      <_SwrFilePath>$(IntermediateOutputPath)Microsoft.CodeAnalysis.Compilers.x86.swr</_SwrFilePath>
+    </PropertyGroup>
+  </Target>
+
+  <Import Project="..\CompilersPackage.targets" Condition="'$(UsingToolVSSDK)' == 'true'" />
+</Project>

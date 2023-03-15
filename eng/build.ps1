@@ -34,7 +34,7 @@ param (
   [switch]$bootstrap,
   [string]$bootstrapConfiguration = "Release",
   [switch][Alias('bl')]$binaryLog,
-  [switch]$buildServerLog,
+  [string]$binaryLogName = "",
   [switch]$ci,
   [switch]$collectDumps,
   [switch][Alias('a')]$runAnalyzers,
@@ -57,8 +57,7 @@ param (
   [string]$officialVisualStudioDropAccessToken = "",
 
   # Test actions
-  [switch]$test32,
-  [switch]$test64,
+  [string]$testArch = "x64",
   [switch]$testVsi,
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
@@ -80,7 +79,7 @@ function Print-Usage() {
   Write-Host "  -verbosity <value>        Msbuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]"
   Write-Host "  -deployExtensions         Deploy built vsixes (short: -d)"
   Write-Host "  -binaryLog                Create MSBuild binary log (short: -bl)"
-  Write-Host "  -buildServerLog           Create Roslyn build server log"
+  Write-Host "  -binaryLogName            Name of the binary log (default Build.binlog)"
   Write-Host ""
   Write-Host "Actions:"
   Write-Host "  -restore                  Restore packages (short: -r)"
@@ -93,14 +92,13 @@ function Print-Usage() {
   Write-Host "  -help                     Print help and exit"
   Write-Host ""
   Write-Host "Test actions"
-  Write-Host "  -test32                   Run unit tests in the 32-bit runner"
-  Write-Host "  -test64                   Run units tests in the 64-bit runner"
+  Write-Host "  -testArch                 Maps to --arch parameter of dotnet test"
   Write-Host "  -testDesktop              Run Desktop unit tests (short: -test)"
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
   Write-Host "  -testCompilerOnly         Run only the compiler unit tests"
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
-  Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature"
+  Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature (see ROSLYN_TEST_USEDASSEMBLIES in codebase)"
   Write-Host ""
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
@@ -168,16 +166,16 @@ function Process-Arguments() {
     $script:applyOptimizationData = $false
   }
 
-  if ($ci) {
+  if ($binaryLogName -ne "") {
     $script:binaryLog = $true
-    if ($bootstrap) {
-      $script:buildServerLog = $true
-    }
   }
 
-  if ($test32 -and $test64) {
-    Write-Host "Cannot combine -test32 and -test64"
-    exit 1
+  if ($ci) {
+    $script:binaryLog = $true
+  }
+
+  if ($binaryLog -and ($binaryLogName -eq "")) {
+    $script:binaryLogName = "Build.binlog"
   }
 
   $anyUnit = $testDesktop -or $testCoreClr
@@ -206,7 +204,9 @@ function Process-Arguments() {
     $script:restore = $true
   }
 
-  $script:test32 = -not $test64
+  if ($sourceBuild) {
+    $script:msbuildEngine = "dotnet"
+  }
 
   foreach ($property in $properties) {
     if (!$property.StartsWith("/p:", "InvariantCultureIgnoreCase")) {
@@ -222,10 +222,15 @@ function BuildSolution() {
 
   Write-Host "$($solution):"
 
-  $bl = if ($binaryLog) { "/bl:" + (Join-Path $LogDir "Build.binlog") } else { "" }
+  $bl = ""
+  if ($binaryLog) {
+    $binaryLogPath = Join-Path $LogDir $binaryLogName
+    $bl = "/bl:" + $binaryLogPath
+    if ($ci -and (Test-Path $binaryLogPath)) {
+      Write-LogIssue -Type "error" -Message "Overwriting binary log file $($binaryLogPath)"
+      throw "Overwriting binary log files"
+    }
 
-  if ($buildServerLog) {
-    ${env:ROSLYNCOMMANDLINELOGFILE} = Join-Path $LogDir "Build.Server.log"
   }
 
   $projects = Join-Path $RepoRoot $solution
@@ -249,40 +254,39 @@ function BuildSolution() {
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
-  try {
-    MSBuild $toolsetBuildProj `
-      $bl `
-      /p:Configuration=$configuration `
-      /p:Projects=$projects `
-      /p:RepoRoot=$RepoRoot `
-      /p:Restore=$restore `
-      /p:Build=$build `
-      /p:Rebuild=$rebuild `
-      /p:Pack=$pack `
-      /p:Sign=$sign `
-      /p:Publish=$publish `
-      /p:ContinuousIntegrationBuild=$ci `
-      /p:OfficialBuildId=$officialBuildId `
-      /p:RunAnalyzersDuringBuild=$runAnalyzers `
-      /p:BootstrapBuildPath=$bootstrapDir `
-      /p:TreatWarningsAsErrors=$warnAsError `
-      /p:EnableNgenOptimization=$applyOptimizationData `
-      /p:IbcOptimizationDataDir=$ibcDir `
-      /p:RestoreUseStaticGraphEvaluation=true `
-      /p:VisualStudioIbcDrop=$ibcDropName `
-      /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
-      $suppressExtensionDeployment `
-      $msbuildWarnAsError `
-      $buildFromSource `
-      $generateDocumentationFile `
-      $roslynUseHardLinks `
-      @properties
-  }
-  finally {
-    ${env:ROSLYNCOMMANDLINELOGFILE} = $null
-  }
-}
+  # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
+  # in our CI builds
+  # https://github.com/NuGet/Home/issues/12373
+  $restoreUseStaticGraphEvaluation = if ($ci) { $false } else { $true }
 
+  MSBuild $toolsetBuildProj `
+    $bl `
+    /p:Configuration=$configuration `
+    /p:Projects=$projects `
+    /p:RepoRoot=$RepoRoot `
+    /p:Restore=$restore `
+    /p:Build=$build `
+    /p:Rebuild=$rebuild `
+    /p:Pack=$pack `
+    /p:Sign=$sign `
+    /p:Publish=$publish `
+    /p:ContinuousIntegrationBuild=$ci `
+    /p:OfficialBuildId=$officialBuildId `
+    /p:RunAnalyzersDuringBuild=$runAnalyzers `
+    /p:BootstrapBuildPath=$bootstrapDir `
+    /p:TreatWarningsAsErrors=$warnAsError `
+    /p:EnableNgenOptimization=$applyOptimizationData `
+    /p:IbcOptimizationDataDir=$ibcDir `
+    /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
+    /p:VisualStudioIbcDrop=$ibcDropName `
+    /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
+    $suppressExtensionDeployment `
+    $msbuildWarnAsError `
+    $buildFromSource `
+    $generateDocumentationFile `
+    $roslynUseHardLinks `
+    @properties
+}
 
 # Get the branch that produced the IBC data this build is going to consume.
 # IBC data are only merged in official built, but we want to test some of the logic in CI builds as well.
@@ -378,7 +382,7 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
   }
 
-  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net6.0"
+  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net7.0"
 
   if (!(Test-Path $runTests)) {
     Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red
@@ -391,7 +395,7 @@ function TestUsingRunTests() {
   $args += " --configuration $configuration"
 
   if ($testCoreClr) {
-    $args += " --tfm net6.0"
+    $args += " --tfm net6.0 --tfm net7.0"
     $args += " --timeout 90"
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
@@ -410,7 +414,7 @@ function TestUsingRunTests() {
       $args += " --include '\.UnitTests'"
     }
 
-    if (-not $test32) {
+    if ($testArch -ne "x86") {
       $args += " --exclude '\.InteractiveHost'"
     }
 
@@ -437,12 +441,7 @@ function TestUsingRunTests() {
     $args += " --collectdumps";
   }
 
-  if ($test64) {
-    $args += " --platform x64"
-  }
-  else {
-    $args += " --platform x86"
-  }
+  $args += " --arch $testArch"
 
   if ($sequential) {
     $args += " --sequential"
@@ -465,6 +464,8 @@ function TestUsingRunTests() {
       Remove-Item env:\ROSLYN_TEST_CI
     }
 
+    # Note: remember to update TestRunner when using new environment variables
+    # (they need to be transferred over to the Helix machines that run the tests)
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
     }
@@ -482,8 +483,16 @@ function TestUsingRunTests() {
         Write-Host "No ServiceHub logs found to copy"
       }
 
+      $projectFaultLogs = Join-Path $TempDir "VsProjectFault_*.failure.txt"
+      if (Test-Path $projectFaultLogs) {
+        Write-Host "Copying VsProjectFault logs to $LogDir"
+        Copy-Item -Path $projectFaultLogs -Destination $LogDir
+      } else {
+        Write-Host "No VsProjectFault logs found to copy"
+      }
+
       if ($lspEditor) {
-        $lspLogs = Join-Path $TempDir "VisualStudio\LSP"
+        $lspLogs = Join-Path $TempDir "VSLogs"
         $telemetryLog = Join-Path $TempDir "VSTelemetryLog"
         if (Test-Path $lspLogs) {
           Write-Host "Copying LSP logs to $LogDir"
@@ -578,6 +587,9 @@ function Deploy-VsixViaTool() {
 
   # Disable IntelliCode line completions to avoid interference with argument completion testing
   &$vsRegEdit set "$vsDir" $hive HKCU "ApplicationPrivateSettings\Microsoft\VisualStudio\IntelliCode" wholeLineCompletions string "0*System.Int32*2"
+
+  # Disable IntelliCode RepositoryAttachedModels since it requires authentication which can fail in CI
+  &$vsRegEdit set "$vsDir" $hive HKCU "ApplicationPrivateSettings\Microsoft\VisualStudio\IntelliCode" repositoryAttachedModels string "0*System.Int32*2"
 
   # Disable background download UI to avoid toasts
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Setup\BackgroundDownload" Value dword 0
@@ -728,13 +740,14 @@ try {
   try
   {
     if ($bootstrap) {
-      $bootstrapDir = Make-BootstrapBuild -force32:$test32
+      $force32 = $testArch -eq "x86"
+      $bootstrapDir = Make-BootstrapBuild -force32:$force32
     }
   }
   catch
   {
     if ($ci) {
-      echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Build) Build failed"
+      Write-LogIssue -Type "error" -Message "(NETCORE_ENGINEERING_TELEMETRY=Build) Build failed"
     }
     throw $_
   }
@@ -752,7 +765,7 @@ try {
   catch
   {
     if ($ci) {
-      echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Test) Tests failed"
+      Write-LogIssue -Type "error" -Message "(NETCORE_ENGINEERING_TELEMETRY=Test) Tests failed"
     }
     throw $_
   }

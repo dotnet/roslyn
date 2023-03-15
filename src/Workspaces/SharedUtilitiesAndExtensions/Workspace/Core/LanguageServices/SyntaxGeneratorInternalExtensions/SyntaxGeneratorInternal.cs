@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Editing
@@ -100,8 +100,12 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxToken isToken, SyntaxNode pattern);
 
         public abstract SyntaxNode AndPattern(SyntaxNode left, SyntaxNode right);
-        public abstract SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name);
         public abstract SyntaxNode ConstantPattern(SyntaxNode expression);
+        public abstract SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name);
+        public abstract SyntaxNode GreaterThanRelationalPattern(SyntaxNode expression);
+        public abstract SyntaxNode GreaterThanEqualsRelationalPattern(SyntaxNode expression);
+        public abstract SyntaxNode LessThanRelationalPattern(SyntaxNode expression);
+        public abstract SyntaxNode LessThanEqualsRelationalPattern(SyntaxNode expression);
         public abstract SyntaxNode NotPattern(SyntaxNode pattern);
         public abstract SyntaxNode OrPattern(SyntaxNode left, SyntaxNode right);
         public abstract SyntaxNode ParenthesizedPattern(SyntaxNode pattern);

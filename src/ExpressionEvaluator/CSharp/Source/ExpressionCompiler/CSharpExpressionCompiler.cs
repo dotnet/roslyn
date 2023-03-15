@@ -80,10 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             // Re-use the previous compilation if possible.
             compilation = previousMetadataContext.Compilation;
-            if (compilation == null)
-            {
-                compilation = metadataBlocks.ToCompilation(moduleVersionId, kind);
-            }
+            compilation ??= metadataBlocks.ToCompilation(moduleVersionId, kind);
 
             var context = EvaluationContext.CreateTypeContext(
                 compilation,

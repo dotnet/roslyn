@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 }
                 else
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 

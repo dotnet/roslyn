@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     writer.Write("summary");
 
                     var endGreaterThanToken = paramElement.EndTag.GreaterThanToken;
-                    walker.VisitToken(paramElement.EndTag.GreaterThanToken);
+                    walker.VisitToken(endGreaterThanToken);
 
                     // The '>' token doesn't own the following new line. Instead, it is directly followed by an 'XmlTextLiteralNewLineToken'.
                     if (endGreaterThanToken.GetNextToken() is SyntaxToken newLineToken && newLineToken.IsKind(SyntaxKind.XmlTextLiteralNewLineToken))

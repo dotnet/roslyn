@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             var noLocals = ImmutableArray<LocalSymbol>.Empty;
-            var initializerInvocation = MethodCompiler.BindImplicitConstructorInitializer(this, diagnostics, compilationState.Compilation);
+            var initializerInvocation = Binder.BindImplicitConstructorInitializer(this, diagnostics, compilationState.Compilation);
             var syntax = initializerInvocation.Syntax;
 
             compilationState.AddSynthesizedMethod(this,
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     noLocals,
                     ImmutableArray.Create<BoundStatement>(
                         new BoundExpressionStatement(syntax, initializerInvocation),
-                        new BoundReturnStatement(syntax, RefKind.None, null))));
+                        new BoundReturnStatement(syntax, RefKind.None, null, @checked: false))));
         }
     }
 }

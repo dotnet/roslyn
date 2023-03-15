@@ -16,6 +16,8 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -29,15 +31,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     {
         private partial class AsyncSuggestedActionsSource : SuggestedActionsSource, IAsyncSuggestedActionsSource
         {
+            private readonly IAsynchronousOperationListener _listener;
+
             public AsyncSuggestedActionsSource(
                 IThreadingContext threadingContext,
                 IGlobalOptionService globalOptions,
                 SuggestedActionsSourceProvider owner,
                 ITextView textView,
                 ITextBuffer textBuffer,
-                ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry)
+                ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
+                IAsynchronousOperationListener listener)
                 : base(threadingContext, globalOptions, owner, textView, textBuffer, suggestedActionCategoryRegistry)
             {
+                _listener = listener;
             }
 
             public async Task GetSuggestedActionsAsync(
@@ -85,9 +91,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActionsAsync, cancellationToken))
                 {
-                    var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    var document = range.Snapshot.GetOpenTextDocumentInCurrentContextWithChanges();
                     if (document is null)
                         return;
+
+                    // Create a single keep-alive session as we process each lightbulb priority group.  We want to
+                    // ensure that all calls to OOP will reuse the same solution-snapshot on the oop side (including
+                    // reusing all the same computed compilations that may have been computed on that side.  This is
+                    // especially important as we are sending disparate requests for diagnostics, and we do not want the
+                    // individual diagnostic requests to redo all the work to run source generators, create skeletons,
+                    // etc.
+                    using var _1 = RemoteKeepAliveSession.Create(document.Project.Solution, _listener);
 
                     // Keep track of how many actions we've put in the lightbulb at each priority level.  We do
                     // this as each priority level will both sort and inline actions.  However, we don't want to
@@ -97,18 +111,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // items should be pushed higher up, and less important items shouldn't take up that much space.
                     var currentActionCount = 0;
 
-                    using var _ = ArrayBuilder<SuggestedActionSet>.GetInstance(out var lowPrioritySets);
+                    using var _2 = ArrayBuilder<SuggestedActionSet>.GetInstance(out var lowPrioritySets);
 
                     // Collectors are in priority order.  So just walk them from highest to lowest.
                     foreach (var collector in collectors)
                     {
-                        var priority = collector.Priority switch
-                        {
-                            VisualStudio.Utilities.DefaultOrderings.Highest => CodeActionRequestPriority.High,
-                            VisualStudio.Utilities.DefaultOrderings.Default => CodeActionRequestPriority.Normal,
-                            VisualStudio.Utilities.DefaultOrderings.Lowest => CodeActionRequestPriority.Lowest,
-                            _ => (CodeActionRequestPriority?)null,
-                        };
+                        var priority = TryGetPriority(collector.Priority);
 
                         if (priority != null)
                         {
@@ -157,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private async IAsyncEnumerable<SuggestedActionSet> GetCodeFixesAndRefactoringsAsync(
                 ReferenceCountedDisposable<State> state,
                 ISuggestedActionCategorySet requestedActionCategories,
-                Document document,
+                TextDocument document,
                 SnapshotSpan range,
                 TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
@@ -168,14 +176,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var workspace = document.Project.Solution.Workspace;
                 var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
 
-                var options = GlobalOptions.GetCodeActionOptions(document.Project.Language);
+                var options = GlobalOptions.GetCodeActionOptionsProvider();
 
                 var fixesTask = GetCodeFixesAsync(
                     state, supportsFeatureService, requestedActionCategories, workspace, document, range,
-                    addOperationScope, priority, options, cancellationToken);
+                    addOperationScope, priority, options, isBlocking: false, cancellationToken);
                 var refactoringsTask = GetRefactoringsAsync(
                     state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
-                    addOperationScope, priority, options, cancellationToken);
+                    addOperationScope, priority, options, isBlocking: false, cancellationToken);
 
                 await Task.WhenAll(fixesTask, refactoringsTask).ConfigureAwait(false);
 

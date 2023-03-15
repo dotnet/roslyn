@@ -14,6 +14,7 @@ using Xunit.Abstractions;
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class BasicIntelliSense : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
@@ -31,7 +32,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
             VisualStudio.Workspace.SetImportCompletionOption(false);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/38301"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/38301")]
         public void IntelliSenseTriggersOnParenWithBraceCompletionAndCorrectUndoMerging()
         {
             SetUpEditor(@"
@@ -140,7 +141,7 @@ End Module",
 assertCaretPosition: true);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/45234"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/45234")]
         public void TypeAVariableDeclaration()
         {
             SetUpEditor(@"
@@ -195,7 +196,7 @@ End Module");
             Assert.True(VisualStudio.Editor.IsCompletionActive());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public void DismissIntelliSenseOnApostrophe()
         {
             SetUpEditor(@"
@@ -220,7 +221,7 @@ End Module");
 End Module", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public void TypeLeftAngleAfterImports()
         {
             SetUpEditor(@"
@@ -235,7 +236,7 @@ Imports$$");
             Assert.False(VisualStudio.Editor.IsCompletionActive());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public void DismissAndRetriggerIntelliSenseOnEquals()
         {
             SetUpEditor(@"
@@ -263,7 +264,7 @@ End Module",
 assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public void CtrlAltSpace()
         {
             VisualStudio.Editor.SetUseSuggestionMode(false);
@@ -279,7 +280,7 @@ assertCaretPosition: true);
             VisualStudio.Editor.Verify.CurrentLineText("Nam Foo$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public void CtrlAltSpaceOption()
         {
             VisualStudio.Editor.SetUseSuggestionMode(false);
@@ -295,7 +296,7 @@ assertCaretPosition: true);
             VisualStudio.Editor.Verify.CurrentLineText("Nam Foo$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public void EnterTriggerCompletionListAndImplementInterface()
         {
             SetUpEditor(@"

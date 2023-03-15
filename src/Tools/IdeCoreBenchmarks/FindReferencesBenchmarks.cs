@@ -43,7 +43,7 @@ namespace IdeCoreBenchmarks
         private static void RestoreCompilerSolution()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            var solutionPath = Path.Combine(roslynRoot, "Compilers.sln");
+            var solutionPath = Path.Combine(roslynRoot, "Compilers.slnf");
             var restoreOperation = Process.Start("dotnet", $"restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true {solutionPath}");
             restoreOperation.WaitForExit();
             if (restoreOperation.ExitCode != 0)
@@ -62,12 +62,12 @@ namespace IdeCoreBenchmarks
         private async Task LoadSolutionAsync()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            var solutionPath = Path.Combine(roslynRoot, "Compilers.sln");
+            var solutionPath = Path.Combine(roslynRoot, "Compilers.slnf");
 
             if (!File.Exists(solutionPath))
-                throw new ArgumentException("Couldn't find Compilers.sln");
+                throw new ArgumentException("Couldn't find Compilers.slnf");
 
-            Console.WriteLine("Found Compilers.sln: " + Process.GetCurrentProcess().Id);
+            Console.WriteLine("Found Compilers.slnf: " + Process.GetCurrentProcess().Id);
 
             var assemblies = MSBuildMefHostServices.DefaultAssemblies
                 .Add(typeof(AnalyzerRunnerHelper).Assembly)
@@ -83,9 +83,6 @@ namespace IdeCoreBenchmarks
             if (_workspace == null)
                 throw new ArgumentException("Couldn't create workspace");
 
-            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
-
             Console.WriteLine("Opening roslyn.  Attach to: " + Process.GetCurrentProcess().Id);
 
             var start = DateTime.Now;
@@ -94,7 +91,7 @@ namespace IdeCoreBenchmarks
 
             // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
             // perform, including seeing how big the initial string table is.
-            var storageService = _workspace.Services.GetPersistentStorageService(_workspace.CurrentSolution.Options);
+            var storageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
             if (storageService == null)
                 throw new ArgumentException("Couldn't get storage service");
 

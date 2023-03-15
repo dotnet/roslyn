@@ -125,6 +125,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return visitor.VisitLabel(Me)
         End Function
 
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitLabel(Me, argument)
+        End Function
+
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)
             visitor.VisitLabel(Me)
         End Sub

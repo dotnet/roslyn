@@ -32,30 +32,31 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
 
         private void OnDiagnose(object sender, RoutedEventArgs e)
         {
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            _ = OnDiagnoseImplAsync();
+
+            async Task OnDiagnoseImplAsync()
             {
                 DiagnoseButton.IsEnabled = false;
                 GenerationProgresBar.IsIndeterminate = true;
                 Result.Text = "Comparing in-proc solution snapshot with files on disk ...";
 
-                await TaskScheduler.Default;
-
-                string text;
-                try
-                {
-                    text = await DiagnoseAsync(CancellationToken.None).ConfigureAwait(false);
-                }
-                catch (Exception e)
-                {
-                    text = e.ToString();
-                }
-
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                var text = await Task.Run(
+                    async () =>
+                    {
+                        try
+                        {
+                            return await DiagnoseAsync(CancellationToken.None).ConfigureAwait(false);
+                        }
+                        catch (Exception e)
+                        {
+                            return e.ToString();
+                        }
+                    }).ConfigureAwait(true);
 
                 GenerationProgresBar.IsIndeterminate = false;
                 DiagnoseButton.IsEnabled = true;
                 Result.Text = text;
-            });
+            }
         }
 
         private async Task<string> DiagnoseAsync(CancellationToken cancellationToken)
@@ -106,9 +107,9 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
-            output.AppendLine(outOfDateCount == 0 ?
-                "All closed documents up to date." :
-                $"{Environment.NewLine}{outOfDateCount} documents out of date.");
+            output.AppendLine(outOfDateCount == 0
+                ? "All closed documents up to date."
+                : $"{Environment.NewLine}{outOfDateCount} documents out of date.");
         }
     }
 }

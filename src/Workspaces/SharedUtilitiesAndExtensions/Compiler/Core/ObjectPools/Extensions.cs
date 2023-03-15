@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -122,6 +123,22 @@ namespace Microsoft.CodeAnalysis
                 set.TrimExcess();
             }
 
+            pool.Free(set);
+        }
+
+        public static void ClearAndFree<T>(this ObjectPool<ConcurrentSet<T>> pool, ConcurrentSet<T> set) where T : notnull
+        {
+            if (set == null)
+                return;
+
+            // if set grew too big, don't put it back to pool
+            if (set.Count > Threshold)
+            {
+                pool.ForgetTrackedObject(set);
+                return;
+            }
+
+            set.Clear();
             pool.Free(set);
         }
 

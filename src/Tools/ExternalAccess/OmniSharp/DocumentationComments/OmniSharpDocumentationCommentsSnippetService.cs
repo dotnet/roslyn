@@ -5,7 +5,6 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -18,25 +17,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
             SyntaxTree syntaxTree,
             SourceText text,
             int position,
-            DocumentOptionSet options,
+            OmniSharpDocumentationCommentOptionsWrapper options,
             CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
-            var docCommentOptions = DocumentationCommentOptions.From(options);
-            return Translate(service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, text, position, docCommentOptions, cancellationToken));
-        }
-
-        public static OmniSharpDocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(
-            Document document,
-            SyntaxTree syntaxTree,
-            SourceText text,
-            int position,
-            DocumentOptionSet options,
-            CancellationToken cancellationToken)
-        {
-            var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
-            var docCommentOptions = DocumentationCommentOptions.From(options);
-            return Translate(service.GetDocumentationCommentSnippetOnCommandInvoke(syntaxTree, text, position, docCommentOptions, cancellationToken));
+            return Translate(service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, text, position, options.UnderlyingObject, cancellationToken));
         }
 
         public static OmniSharpDocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(
@@ -44,51 +29,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
             SyntaxTree syntaxTree,
             SourceText text,
             int position,
-            DocumentOptionSet options,
+            OmniSharpDocumentationCommentOptionsWrapper options,
             CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
-            var docCommentOptions = DocumentationCommentOptions.From(options);
-            return Translate(service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, text, position, docCommentOptions, cancellationToken));
-        }
-
-        public static OmniSharpDocumentationCommentSnippet? GetDocumentationCommentSnippetFromPreviousLine(
-            Document document,
-            DocumentOptionSet options,
-            TextLine currentLine,
-            TextLine previousLine)
-        {
-            var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
-            var docCommentOptions = DocumentationCommentOptions.From(options);
-            return Translate(service.GetDocumentationCommentSnippetFromPreviousLine(docCommentOptions, currentLine, previousLine));
+            return Translate(service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, text, position, options.UnderlyingObject, cancellationToken));
         }
 
         private static OmniSharpDocumentationCommentSnippet? Translate(DocumentationCommentSnippet? result)
             => result == null ? null : new(result.SpanToReplace, result.SnippetText, result.CaretOffset);
-    }
-
-    internal sealed class OmniSharpDocumentationCommentSnippet
-    {
-        /// <summary>
-        /// The span in the original text that should be replaced with the documentation comment.
-        /// </summary>
-        public TextSpan SpanToReplace { get; }
-
-        /// <summary>
-        /// The documentation comment text to replace the span with
-        /// </summary>
-        public string SnippetText { get; }
-
-        /// <summary>
-        /// The offset within <see cref="SnippetText"/> where the caret should be positioned after replacement
-        /// </summary>
-        public int CaretOffset { get; }
-
-        internal OmniSharpDocumentationCommentSnippet(TextSpan spanToReplace, string snippetText, int caretOffset)
-        {
-            SpanToReplace = spanToReplace;
-            SnippetText = snippetText;
-            CaretOffset = caretOffset;
-        }
     }
 }

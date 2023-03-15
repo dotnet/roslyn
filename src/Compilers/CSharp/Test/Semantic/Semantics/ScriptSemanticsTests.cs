@@ -84,7 +84,6 @@ namespace System.Threading.Tasks {
                 taskAssembly = taskAssembly + "\n" + extensionSource;
             }
 
-
             var taskCompilation = CreateEmptyCompilation(taskAssembly, references: new[] { MscorlibRef_v20 });
             taskCompilation.VerifyDiagnostics();
             return taskCompilation.ToMetadataReference();
@@ -139,7 +138,7 @@ namespace System.Threading.Tasks {
         {
             var script = CreateEmptyCompilation(
                 source: @"interface I {}",
-                parseOptions: TestOptions.Script,
+                parseOptions: TestOptions.Script.WithNoRefSafetyRulesAttribute(),
                 options: TestOptions.DebugExe.WithUsings("Hidden"),
                 references: new MetadataReference[] { TaskFacadeAssembly() });
             script.VerifyEmitDiagnostics(
@@ -754,7 +753,6 @@ internal protected E e3;
 public E e4;
 ", previous: c0);
 
-
             CreateSubmission(@"protected A x;", previous: c1).VerifyDiagnostics(
                 // (1,10): error CS0052: Inconsistent accessibility: field type 'A' is less accessible than field 'x'
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("x", "A"),
@@ -1159,7 +1157,7 @@ goto Label;");
             compilation.VerifyDiagnostics(
                 // (1,16): error CS1003: Syntax error, ',' expected
                 // fixed var x[3] = 1;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",", "=").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",").WithLocation(1, 16),
                 // (1,11): error CS1642: Fixed size buffer fields may only be members of structs
                 // fixed var x[3] = 1;
                 Diagnostic(ErrorCode.ERR_FixedNotInStruct, "x").WithLocation(1, 11),

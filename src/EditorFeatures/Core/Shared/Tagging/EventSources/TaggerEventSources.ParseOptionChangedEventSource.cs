@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                         {
                             var relatedDocumentIds = e.NewSolution.GetRelatedDocumentIds(documentId);
 
-                            if (relatedDocumentIds.Any(d => d.ProjectId == e.ProjectId))
+                            if (relatedDocumentIds.Any(static (d, e) => d.ProjectId == e.ProjectId, e))
                             {
                                 RaiseChanged();
                             }

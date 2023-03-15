@@ -2,8 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Indentation
+Imports Microsoft.CodeAnalysis.Wrapping
 Imports Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
 
         ' The visual basic language always requires the open brace to be on the same line as the collection
         ' being initialized.
-        Protected NotOverridable Overrides Function ShouldMoveOpenBraceToNewLine(options As OptionSet) As Boolean
+        Protected NotOverridable Overrides Function ShouldMoveOpenBraceToNewLine(options As SyntaxWrappingOptions) As Boolean
             Return False
         End Function
     End Class

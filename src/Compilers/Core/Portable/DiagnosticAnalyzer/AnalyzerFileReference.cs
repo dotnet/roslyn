@@ -198,9 +198,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string? typeName = null)
         {
-            // unwrap:
-            e = (e as TargetInvocationException) ?? e;
-
             // remove all line breaks from the exception message
             string message = e.Message.Replace("\r", "").Replace("\n", "");
 
@@ -460,6 +457,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     analyzerAssembly = _reference.GetAssembly();
+                    if (CheckAssemblyReferencesNewerCompiler(analyzerAssembly))
+                    {
+                        return;
+                    }
                 }
                 catch (Exception e)
                 {
@@ -506,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     analyzerAssembly = _reference.GetAssembly();
-                    if (analyzerAssembly == null)
+                    if (analyzerAssembly == null || CheckAssemblyReferencesNewerCompiler(analyzerAssembly))
                     {
                         // This can be null if NoOpAnalyzerAssemblyLoader is used.
                         return;
@@ -537,6 +538,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, CodeAnalysisResources.NoAnalyzersFound));
                 }
+            }
+
+            bool CheckAssemblyReferencesNewerCompiler(Assembly analyzerAssembly)
+            {
+                var runningCompilerAssemblyName = typeof(AnalyzerFileReference).Assembly.GetName();
+                foreach (var referencedAssemblyName in analyzerAssembly.GetReferencedAssemblies())
+                {
+                    if (string.Equals(referencedAssemblyName.Name, runningCompilerAssemblyName.Name, StringComparison.OrdinalIgnoreCase)
+                        && referencedAssemblyName.Version > runningCompilerAssemblyName.Version)
+                    {
+                        // note: we introduce an actual message for this scenario when handling the failed event.
+                        _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesNewerCompiler, message: "") { ReferencedCompilerVersion = referencedAssemblyName.Version });
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             private ImmutableArray<TExtension> GetLanguageSpecificAnalyzers(Assembly analyzerAssembly, ImmutableSortedDictionary<string, ImmutableSortedSet<string>> analyzerTypeNameMap, string language, ref bool reportedError)

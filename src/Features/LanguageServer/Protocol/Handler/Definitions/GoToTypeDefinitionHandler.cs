@@ -8,17 +8,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Options;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(GoToTypeDefinitionHandler)), Shared]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(GoToTypeDefinitionHandler)), Shared]
     [Method(LSP.Methods.TextDocumentTypeDefinitionName)]
     internal class GoToTypeDefinitionHandler : AbstractGoToDefinitionHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GoToTypeDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService) : base(metadataAsSourceFileService)
+        public GoToTypeDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService, IGlobalOptionService globalOptions)
+            : base(metadataAsSourceFileService, globalOptions)
         {
         }
 

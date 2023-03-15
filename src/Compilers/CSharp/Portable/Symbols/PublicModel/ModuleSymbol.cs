@@ -58,6 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             return visitor.VisitModule(this);
         }
 
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitModule(this, argument);
+        }
+
         #endregion
     }
 }

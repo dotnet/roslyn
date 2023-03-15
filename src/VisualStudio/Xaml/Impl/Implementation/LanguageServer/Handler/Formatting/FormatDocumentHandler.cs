@@ -13,7 +13,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [ExportXamlLspRequestHandlerProvider(typeof(FormatDocumentHandler)), Shared]
+    [ExportStatelessXamlLspService(typeof(FormatDocumentHandler)), Shared]
     [Method(LSP.Methods.TextDocumentFormattingName)]
     internal class FormatDocumentHandler : AbstractFormatDocumentHandlerBase<LSP.DocumentFormattingParams, LSP.TextEdit[]>
     {
@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentFormattingParams request) => request.TextDocument;
+        public override LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.DocumentFormattingParams request) => request.TextDocument;
 
         public override Task<LSP.TextEdit[]> HandleRequestAsync(LSP.DocumentFormattingParams request, RequestContext context, CancellationToken cancellationToken)
             => GetTextEditsAsync(request.Options, context, cancellationToken);

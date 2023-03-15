@@ -22,10 +22,6 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
-#if NET20
-    internal delegate TReturn Func<TArg, TReturn>(TArg arg);
-#endif
-
     /// <summary>
     /// Generic implementation of object pooling pattern with predefined pool size limit. The main
     /// purpose is that limited number of frequently used objects can be kept in the pool for

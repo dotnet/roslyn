@@ -3,21 +3,21 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
-    /// Marker interface for <see cref="PerLanguageOption2{T}"/>
+    /// Marker interface for <see cref="PerLanguageOption2{T}"/>.
+    /// This option may apply to multiple languages, such that the option can have a different value for each language.
     /// </summary>
-    internal interface IPerLanguageOption : IOptionWithGroup
+    internal interface IPerLanguageValuedOption : IOption2
     {
     }
 
-    /// <summary>
-    /// Marker interface for <see cref="PerLanguageOption2{T}"/>
-    /// </summary>
-    internal interface IPerLanguageOption<T> : IPerLanguageOption
+    /// <inheritdoc cref="IPerLanguageValuedOption"/>
+    internal interface IPerLanguageValuedOption<T> : IPerLanguageValuedOption
     {
     }
 
@@ -25,115 +25,58 @@ namespace Microsoft.CodeAnalysis.Options
     /// An option that can be specified once per language.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal partial class PerLanguageOption2<T> : IPerLanguageOption<T>
+    internal partial class PerLanguageOption2<T> : IPerLanguageValuedOption<T>
     {
-        public OptionDefinition OptionDefinition { get; }
+        public OptionDefinition<T> Definition { get; }
+        public IPublicOption? PublicOption { get; }
 
-        /// <inheritdoc cref="OptionDefinition.Feature"/>
-        public string Feature => OptionDefinition.Feature;
-
-        /// <inheritdoc cref="OptionDefinition.Group"/>
-        internal OptionGroup Group => OptionDefinition.Group;
-
-        /// <inheritdoc cref="OptionDefinition.Name"/>
-        public string Name => OptionDefinition.Name;
-
-        /// <inheritdoc cref="OptionDefinition.Type"/>
-        public Type Type => OptionDefinition.Type;
-
-        /// <inheritdoc cref="OptionDefinition.DefaultValue"/>
-        public T DefaultValue => (T)OptionDefinition.DefaultValue!;
-
-        /// <summary>
-        /// Storage locations for the option.
-        /// </summary>
-        public ImmutableArray<OptionStorageLocation2> StorageLocations { get; }
-
-        public PerLanguageOption2(string feature, string name, T defaultValue)
-            : this(feature, name, defaultValue, storageLocations: ImmutableArray<OptionStorageLocation2>.Empty)
+        internal PerLanguageOption2(OptionDefinition<T> optionDefinition, Func<IOption2, IPublicOption>? publicOptionFactory)
         {
+            Definition = optionDefinition;
+            PublicOption = publicOptionFactory?.Invoke(this);
         }
 
         public PerLanguageOption2(
-            string feature, string name, T defaultValue,
-            OptionStorageLocation2 storageLocation)
-            : this(feature, group: OptionGroup.Default, name, defaultValue, ImmutableArray.Create(storageLocation))
+            string name,
+            T defaultValue,
+            OptionGroup? group = null,
+            bool isEditorConfigOption = false,
+            EditorConfigValueSerializer<T>? serializer = null)
+            : this(new OptionDefinition<T>(defaultValue, serializer, group, name, storageMapping: null, isEditorConfigOption), publicOptionFactory: null)
         {
+            VerifyNamingConvention();
         }
 
-        public PerLanguageOption2(
-            string feature, string name, T defaultValue,
-            OptionStorageLocation2 storageLocation1,
-            OptionStorageLocation2 storageLocation2,
-            OptionStorageLocation2 storageLocation3)
-            : this(feature, group: OptionGroup.Default, name, defaultValue,
-                  ImmutableArray.Create(storageLocation1, storageLocation2, storageLocation3))
+        [Conditional("DEBUG")]
+        private void VerifyNamingConvention()
         {
-        }
-
-        public PerLanguageOption2(
-            string feature, string name, T defaultValue,
-            ImmutableArray<OptionStorageLocation2> storageLocations)
-            : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocations)
-        {
-        }
-
-        internal PerLanguageOption2(string feature, OptionGroup group, string name, T defaultValue)
-            : this(feature, group, name, defaultValue, ImmutableArray<OptionStorageLocation2>.Empty)
-        {
-        }
-
-        internal PerLanguageOption2(
-            string feature, OptionGroup group, string name, T defaultValue,
-            OptionStorageLocation2 storageLocation)
-            : this(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation))
-        {
-        }
-
-        internal PerLanguageOption2(
-            string feature, OptionGroup group, string name, T defaultValue,
-            OptionStorageLocation2 storageLocation1, OptionStorageLocation2 storageLocation2)
-            : this(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation1, storageLocation2))
-        {
-        }
-
-        internal PerLanguageOption2(
-            string feature, OptionGroup group, string name, T defaultValue,
-            ImmutableArray<OptionStorageLocation2> storageLocations)
-        {
-            if (string.IsNullOrWhiteSpace(feature))
+            // TODO: remove, once all options have editorconfig-like name https://github.com/dotnet/roslyn/issues/65787
+            if (!Definition.IsEditorConfigOption)
             {
-                throw new ArgumentNullException(nameof(feature));
+                return;
             }
 
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException(nameof(name));
-            }
-
-            OptionDefinition = new OptionDefinition(feature, group, name, defaultValue, typeof(T), isPerLanguage: true);
-            this.StorageLocations = storageLocations;
+            // options with per-language values shouldn't have language-specific prefix
+            Debug.Assert(!Definition.ConfigName.StartsWith(OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal));
+            Debug.Assert(!Definition.ConfigName.StartsWith(OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal));
         }
 
-        OptionGroup IOptionWithGroup.Group => this.Group;
-
-        OptionDefinition IOption2.OptionDefinition => OptionDefinition;
+        OptionDefinition IOption2.Definition => Definition;
+        public T DefaultValue => Definition.DefaultValue;
 
 #if CODE_STYLE
-        object? IOption2.DefaultValue => this.DefaultValue;
-
         bool IOption2.IsPerLanguage => true;
 #else
-        object? IOption.DefaultValue => this.DefaultValue;
-
+        string IOption.Feature => "config";
+        string IOption.Name => Definition.ConfigName;
+        object? IOption.DefaultValue => Definition.DefaultValue;
         bool IOption.IsPerLanguage => true;
-
-        ImmutableArray<OptionStorageLocation> IOption.StorageLocations
-            => this.StorageLocations.As<OptionStorageLocation>();
+        Type IOption.Type => Definition.Type;
+        ImmutableArray<OptionStorageLocation> IOption.StorageLocations => ImmutableArray<OptionStorageLocation>.Empty;
 #endif
-        public override string ToString() => OptionDefinition.ToString();
+        public override string ToString() => Definition.ToString();
 
-        public override int GetHashCode() => OptionDefinition.GetHashCode();
+        public override int GetHashCode() => Definition.GetHashCode();
 
         public override bool Equals(object? obj) => Equals(obj as IOption2);
 
@@ -144,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return true;
             }
 
-            return OptionDefinition == other?.OptionDefinition;
+            return Definition == other?.Definition;
         }
     }
 }

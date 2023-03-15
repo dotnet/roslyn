@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     internal partial struct ChildSyntaxList
     {
-        internal partial struct Reversed
+        internal readonly partial struct Reversed
         {
             private readonly GreenNode? _node;
 
@@ -26,7 +26,9 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 #if DEBUG
 #pragma warning disable 618
             [Obsolete("For debugging", error: true)]
+#pragma warning disable IDE0051 // Remove unused private members
             private GreenNode[] Nodes
+#pragma warning restore IDE0051 // Remove unused private members
             {
                 get
                 {

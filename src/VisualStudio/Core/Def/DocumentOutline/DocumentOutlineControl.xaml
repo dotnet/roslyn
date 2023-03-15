@@ -1,0 +1,148 @@
+﻿<UserControl x:Class="Microsoft.VisualStudio.LanguageServices.DocumentOutline.DocumentOutlineControl"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:self="clr-namespace:Microsoft.VisualStudio.LanguageServices.DocumentOutline"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:platformimaging="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             x:Name="DocumentOutline"
+             Background="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+             platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogCheckBoxStyleKey}}" />
+            <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogComboBoxStyleKey}}" />
+            <Style TargetType="Label" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogLabelStyleKey}}" />
+            <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogRadioButtonStyleKey}}" />
+            <Style TargetType="Hyperlink" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogHyperlinkStyleKey}}" />
+            <Style TargetType="GridViewColumnHeader" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogGridViewColumnHeaderStyleKey}}" />
+            <Style TargetType="ListBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListBoxStyleKey}}" />
+            <Style TargetType="ListView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListViewStyleKey}}" />
+            <Style TargetType="ScrollBar" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ScrollBarStyleKey}}" />
+
+            <Style TargetType="TabControl">
+                <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="0" />
+            </Style>
+
+            <Style TargetType="Button" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogButtonStyleKey}}">
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Width" Value="20" />
+                <Setter Property="Padding" Value="5" />
+                <Setter Property="Margin" Value="0,0,0,3" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonHoverBrushKey}}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style TargetType="TreeView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewStyleKey}}" >
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="0, 5, 0, 0" />
+                <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
+                <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
+            </Style>
+
+            <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTextBoxStyleKey}}" >
+                <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
+                <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30" />
+            <RowDefinition Height="23" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="28" />
+                <ColumnDefinition Width="28" />
+                <ColumnDefinition Width="28" />
+                <ColumnDefinition Width="28" />
+                <ColumnDefinition Width="28" />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Click="ExpandAll" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Expand_All}">
+                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.ExpandAll}" />
+            </Button>
+            <Button Grid.Column="1" Click="CollapseAll" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Collapse_All}">
+                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.CollapseAll}" />
+            </Button>
+            <Button Grid.Column="2" Click="SortByName" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Sort_Name}">
+                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.SortAscending}" />
+            </Button>
+            <Button Grid.Column="3" Click="SortByOrder" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Sort_Order}">
+                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.SortByNamespace}" />
+            </Button>
+            <Button Grid.Column="4" Click="SortByType" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Sort_Type}">
+                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.SortByType}" />
+            </Button>
+        </Grid>
+        <TextBox Grid.Row="1" x:Name="SearchBox" TextChanged="SearchBox_TextChanged" VerticalContentAlignment="Center">
+            <TextBox.Style>
+                <Style TargetType="TextBox">
+                    <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}" />
+                    <Setter Property="Padding" Value="3, 0, 0, 0" />
+                    <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
+                    <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
+                    <Setter Property="CaretBrush" Value="{StaticResource {x:Static vsui:HeaderColors.DefaultTextBrushKey}}" />
+                    <Style.Resources>
+                        <VisualBrush x:Key="CueBannerBrush" AlignmentX="Left" AlignmentY="Center" Stretch="None">
+                            <VisualBrush.Visual>
+                                <Label Content="{x:Static self:DocumentOutlineStrings.Document_Outline_Search}"
+                                       Foreground="{DynamicResource {x:Static vsshell:VsBrushes.TitleBarInactiveTextKey}}"
+                                       FontFamily="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}"
+                                       FontSize="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
+                            </VisualBrush.Visual>
+                        </VisualBrush>
+                    </Style.Resources>
+                    <Style.Triggers>
+                        <Trigger Property="Text" Value="">
+                            <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBox.Style>
+        </TextBox>
+        <TreeView Grid.Row="2" Name="SymbolTree">
+            <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolUIItem}" ItemsSource="{Binding Children}">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" MouseDown="SymbolTree_MouseDown">
+                        <imaging:CrispImage Moniker="{Binding ImageMoniker}" Margin="0, 0, 5, 0" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
+                     Color="{StaticResource {x:Static vsshell:VsColors.NewProjectItemInactiveBorderKey}}" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
+                     Color="{DynamicResource {x:Static vsshell:VsColors.ButtonTextKey}}"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
+                     Color="{StaticResource {x:Static vsshell:VsColors.NewProjectItemInactiveBorderKey}}" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}"
+                     Color="{DynamicResource {x:Static vsshell:VsColors.ButtonTextKey}}"/>
+            </TreeView.Resources>
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewItemStyleKey}}">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                    <Setter Property="Padding" Value="4, 0, 6, 1" />
+                    <Setter Property="Margin" Value="0, 0, 0, 1" />
+                </Style>
+            </TreeView.ItemContainerStyle>
+        </TreeView>
+    </Grid>
+</UserControl>

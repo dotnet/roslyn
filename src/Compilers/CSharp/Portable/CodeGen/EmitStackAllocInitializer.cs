@@ -36,16 +36,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 ImmutableArray<byte> data = this.GetRawData(initExprs);
                 if (data.All(datum => datum == data[0]))
                 {
-                    _builder.EmitStackAllocBlockInitializer(data, inits.Syntax, emitInitBlock: true, _diagnostics);
+                    // All bytes are the same, no need for metadata blob, just initblk to fill it with the repeated value.
+                    _builder.EmitOpCode(ILOpCode.Dup);
+                    _builder.EmitIntConstant(data[0]);
+                    _builder.EmitIntConstant(data.Length);
+                    _builder.EmitOpCode(ILOpCode.Initblk, -3);
 
                     if (initializationStyle == ArrayInitializerStyle.Mixed)
                     {
                         EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: false);
                     }
                 }
-                else if (elementType.SpecialType.SizeInBytes() == 1)
+                else if (elementType.EnumUnderlyingTypeOrSelf().SpecialType.SizeInBytes() == 1)
                 {
-                    _builder.EmitStackAllocBlockInitializer(data, inits.Syntax, emitInitBlock: false, _diagnostics);
+                    // Initialize the stackalloc by copying the data from a metadata blob
+                    var field = _builder.module.GetFieldForData(data, alignment: 1, inits.Syntax, _diagnostics.DiagnosticBag);
+                    _builder.EmitOpCode(ILOpCode.Dup);
+                    _builder.EmitOpCode(ILOpCode.Ldsflda);
+                    _builder.EmitToken(field, inits.Syntax, _diagnostics.DiagnosticBag);
+                    _builder.EmitIntConstant(data.Length);
+                    _builder.EmitOpCode(ILOpCode.Cpblk, -3);
 
                     if (initializationStyle == ArrayInitializerStyle.Mixed)
                     {
@@ -66,9 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return ArrayInitializerStyle.Element;
             }
 
-            elementType = elementType.EnumUnderlyingTypeOrSelf();
-
-            if (elementType.SpecialType.IsBlittable())
+            if (elementType.EnumUnderlyingTypeOrSelf().SpecialType.IsBlittable())
             {
                 int initCount = 0;
                 int constCount = 0;
@@ -105,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 Debug.Assert(!(init is BoundArrayInitialization), "Nested initializers are not allowed for stackalloc");
 
                 initCount += 1;
-                if (init.ConstantValue != null)
+                if (init.ConstantValueOpt != null)
                 {
                     constInits += 1;
                 }
@@ -115,10 +123,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitElementStackAllocInitializers(TypeSymbol elementType, ImmutableArray<BoundExpression> inits, bool includeConstants)
         {
             int index = 0;
-            int elementTypeSizeInBytes = elementType.SpecialType.SizeInBytes();
+            int elementTypeSizeInBytes = elementType.EnumUnderlyingTypeOrSelf().SpecialType.SizeInBytes();
             foreach (BoundExpression init in inits)
             {
-                if (includeConstants || init.ConstantValue == null)
+                if (includeConstants || init.ConstantValueOpt == null)
                 {
                     _builder.EmitOpCode(ILOpCode.Dup);
                     EmitPointerElementAccess(init, elementType, elementTypeSizeInBytes, index);

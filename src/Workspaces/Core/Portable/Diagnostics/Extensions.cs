@@ -37,54 +37,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             => locations.SelectAsArrayAsync((location, project, cancellationToken) => location.ConvertLocationAsync(project, cancellationToken), project, cancellationToken);
 
         public static async ValueTask<Location> ConvertLocationAsync(
-            this DiagnosticDataLocation? dataLocation, Project project, CancellationToken cancellationToken)
+            this DiagnosticDataLocation dataLocation, Project project, CancellationToken cancellationToken)
         {
-            if (dataLocation?.DocumentId == null)
-            {
+            if (dataLocation.DocumentId == null)
                 return Location.None;
-            }
 
             var textDocument = project.GetTextDocument(dataLocation.DocumentId)
                 ?? await project.GetSourceGeneratedDocumentAsync(dataLocation.DocumentId, cancellationToken).ConfigureAwait(false);
             if (textDocument == null)
-            {
                 return Location.None;
-            }
 
-            if (textDocument is Document document && document.SupportsSyntaxTree)
-            {
-                var syntacticDocument = await SyntacticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-                return dataLocation.ConvertLocation(syntacticDocument);
-            }
+            var text = await textDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var tree = textDocument is Document { SupportsSyntaxTree: true } document
+                ? await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)
+                : null;
 
-            return dataLocation.ConvertLocation();
-        }
+            // Intentionally get the unmapped text span (the span in the original document).  If there is any mapping it
+            // will be reapplied with tree.GetLocation below.
+            var span = dataLocation.UnmappedFileSpan.GetClampedTextSpan(text);
 
-        public static Location ConvertLocation(
-            this DiagnosticDataLocation dataLocation, SyntacticDocument? document = null)
-        {
-            if (dataLocation?.DocumentId == null)
-            {
+            // Defer to the tree if we have one.  This will make sure that remapping is properly supported.
+            if (tree != null)
+                return tree.GetLocation(span);
+
+            if (textDocument.FilePath is null)
                 return Location.None;
-            }
 
-            if (document == null)
-            {
-                if (dataLocation.OriginalFilePath == null || dataLocation.SourceSpan == null)
-                {
-                    return Location.None;
-                }
-
-                var span = dataLocation.SourceSpan.Value;
-                return Location.Create(dataLocation.OriginalFilePath, span, new LinePositionSpan(
-                    new LinePosition(dataLocation.OriginalStartLine, dataLocation.OriginalStartColumn),
-                    new LinePosition(dataLocation.OriginalEndLine, dataLocation.OriginalEndColumn)));
-            }
-
-            Contract.ThrowIfFalse(dataLocation.DocumentId == document.Document.Id);
-
-            var syntaxTree = document.SyntaxTree;
-            return syntaxTree.GetLocation(dataLocation.SourceSpan ?? DiagnosticData.GetTextSpan(dataLocation, document.Text));
+            // Otherwise, just produce a basic location using the path/span information we determined.
+            return Location.Create(textDocument.FilePath, span, text.Lines.GetLinePositionSpan(span));
         }
 
         public static string GetAnalyzerId(this DiagnosticAnalyzer analyzer)

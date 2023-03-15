@@ -24,6 +24,6 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
 
     internal interface IRemoteStackTraceExplorerService
     {
-        ValueTask<SerializableDefinitionItem?> TryFindDefinitionAsync(PinnedSolutionInfo solutionInfo, string frameString, StackFrameSymbolPart symbolPart, CancellationToken cancellationToken);
+        ValueTask<SerializableDefinitionItem?> TryFindDefinitionAsync(Checksum solutionChecksum, string frameString, StackFrameSymbolPart symbolPart, CancellationToken cancellationToken);
     }
 }
