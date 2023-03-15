@@ -1296,6 +1296,8 @@ public class C
             end: goto start;
             end: ; // duplicate label
 
+            DeepLocalFunction();
+
             void DeepLocalFunction()
             {
                 int[] xs = new int[] { 1, 2, 3, 4 };
@@ -1319,6 +1321,8 @@ public class C
                 {
                     var q2 = from x in xs where x < 4 select x;
                 }
+
+                InteriorMethod();
             }
         }
     }
@@ -1332,6 +1336,8 @@ public class C
 
             var syntaxTree = compilation.SyntaxTrees.Single();
             var text = syntaxTree.GetText();
+
+            // replace all spaces with double spaces.  So nothing is in the same location anymore.
             var newTree = syntaxTree.WithChangedText(text.WithChanges(new TextChange(new TextSpan(0, text.Length), text.ToString().Replace(" ", "  "))));
             var newCompilation = compilation.ReplaceSyntaxTree(syntaxTree, newTree);
 
@@ -1345,7 +1351,8 @@ public class C
                 Assert.Equal(resolved.Symbol.Name, symbol.Name);
                 Assert.Equal(resolved.Symbol.Kind, symbol.Kind);
 
-                Assert.NotEqual(resolved.Symbol.Locations[0].SourceSpan, symbol.Locations[0].SourceSpan);
+                // Ensure that the local moved later in the file.
+                Assert.True(resolved.Symbol.Locations[0].SourceSpan.Start > symbol.Locations[0].SourceSpan.Start);
             }
         }
 
