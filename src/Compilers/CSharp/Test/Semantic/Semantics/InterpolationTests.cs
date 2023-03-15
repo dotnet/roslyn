@@ -15443,6 +15443,45 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(8, 16));
         }
 
+        [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefEscape_NestedCalls_08()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                static class Program
+                {
+                    static void Main()
+                    {
+                        var r = new R();
+                        r
+                           .F($"{1}", $"{2}")
+                           .F($"{3}", $"{4}");
+                    }
+                }
+                readonly ref struct R
+                {
+                    public R F([InterpolatedStringHandlerArgument("")] CustomHandler h1, [InterpolatedStringHandlerArgument("")] CustomHandler h2)
+                        => this;
+                }
+                [InterpolatedStringHandler]
+                readonly ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, R r)
+                    {
+                    }
+                    public void AppendLiteral(string value)
+                    {
+                    }
+                    public void AppendFormatted<T>(T value)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
         [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
         [InlineData(@"$""{{ {i} }}""")]
         [InlineData(@"$""{{ "" + $""{i}"" + $"" }}""")]
