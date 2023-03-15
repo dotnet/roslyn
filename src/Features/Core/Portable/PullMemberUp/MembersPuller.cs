@@ -364,6 +364,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 newDestination = destinationEditor.Generator.WithModifiers(newDestination, modifiers);
             }
 
+            var destinationAnnotation = new SyntaxAnnotation();
+            newDestination = newDestination.WithAdditionalAnnotations(destinationAnnotation);
             destinationEditor.ReplaceNode(destinationSyntaxNode, newDestination);
 
             // add imports by moving all source imports to destination container, then taking out unneccessary
@@ -378,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, (node, generator) => addImportsService.AddImports(
                 destinationEditor.SemanticModel.Compilation,
                 node,
-                node.GetCurrentNode(newDestination),
+                node.GetAnnotatedNodes(destinationAnnotation).FirstOrDefault(),
                 sourceImports,
                 generator,
                 options.CleanupOptions.AddImportOptions,
