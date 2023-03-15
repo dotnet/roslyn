@@ -1505,7 +1505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         sawCapturedParameters = true;
 
                         if (!displayClassVariablesBuilder.ContainsKey(parameterName) &&
-                            !shadowingParameterNames.Any((n1, n2) => n1 == n2, parameterName))
+                            !shadowingParameterNames.Contains(parameterName))
                         {
                             if (possiblyCapturingTypeInstance.Instance is null)
                             {

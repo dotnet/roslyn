@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 localConstants,
                 reuseSpan,
                 documentName,
-                isPrimaryConstructor);
+                isPrimaryConstructor: isPrimaryConstructor);
         }
 
         /// <summary>

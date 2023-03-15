@@ -1668,7 +1668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     StateMachineStatesDebugInfo.Create(variableSlotAllocatorOpt, stateMachineStateDebugInfos),
                     moveNextBodyDebugInfoOpt,
                     codeCoverageSpans,
-                    method is SynthesizedPrimaryConstructor);
+                    isPrimaryConstructor: method is SynthesizedPrimaryConstructor);
             }
             finally
             {
