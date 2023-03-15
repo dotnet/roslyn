@@ -582,7 +582,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SQLite_StorageDisabled = 631,
 
         // 650-660 for diagnostic/fix related ids.
-        Diagnostics_AnalyzerPerformanceInfo = 651,
+        //Diagnostics_AnalyzerPerformanceInfo = 651, - Deprecated due to high volume of events.
+        Diagnostics_AnalyzerPerformanceInfo2 = 652,
 
         // 660-670 for semantic model reuse service.
         SemanticModelReuseLanguageService_TryGetSpeculativeSemanticModelAsync_Equivalent = 660,
