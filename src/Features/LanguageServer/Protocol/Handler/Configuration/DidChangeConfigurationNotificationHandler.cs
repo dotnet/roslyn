@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -32,7 +33,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         /// All the global <see cref="ConfigurationItem.Section"/> needs to be refreshed from the client. 
         /// </summary>
         private readonly ImmutableArray<ConfigurationItem> _configurationItems;
-        public static readonly ImmutableArray<string> s_supportedLanguages = ImmutableArray.Create(LanguageNames.CSharp, LanguageNames.VisualBasic);
+        private static readonly ImmutableDictionary<string, string> s_languageNameToPrefix = ImmutableDictionary<string, string>.Empty
+            .Add(LanguageNames.CSharp, "csharp")
+            .Add(LanguageNames.VisualBasic, "visual_basic");
+        public const string OptionValue = "optionValue";
+
+        public static readonly ImmutableArray<string> SupportedLanguages = ImmutableArray.Create(LanguageNames.CSharp, LanguageNames.VisualBasic);
 
         public DidChangeConfigurationNotificationHandler(
             ILspLogger logger,
@@ -70,7 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             // We always fetch VB and C# value from client if the option is IPerLanguageValuedOption.
             RoslynDebug.Assert(configurationsFromClient.Length == SupportedOptions.Sum(option => option is IPerLanguageValuedOption ? 2 : 1));
             var optionsToRefresh = SupportedOptions.SelectManyAsArray(option => option is IPerLanguageValuedOption
-                ? s_supportedLanguages.SelectAsArray(language => (option, language))
+                ? SupportedLanguages.SelectAsArray(language => (option, language))
                 : SpecializedCollections.SingletonEnumerable((option, string.Empty)));
 
             // LSP ensures the order of result from client should match the order we sent from server.
@@ -97,7 +103,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 
         private void SetOption(IOption2 option, string valueFromClient, string? languageName = null)
         {
-            var optionValue = JsonConvert.DeserializeObject<JObject>(valueFromClient)?.SelectToken("optionValue")?.Value<string>();
+            var optionValue = JsonConvert.DeserializeObject<JObject>(valueFromClient)?.SelectToken(OptionValue)?.Value<string>();
             if (optionValue != null && option.Definition.Serializer.TryParse(optionValue, out var result))
             {
                 if (option is IPerLanguageValuedOption && languageName != null)
@@ -139,14 +145,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                 var fullOptionName = GenerateFullNameForOption(option);
                 if (option is IPerLanguageValuedOption)
                 {
-                    builder.Add(new ConfigurationItem()
+                    foreach (var language in SupportedLanguages)
                     {
-                        Section = string.Concat("csharp.", fullOptionName),
-                    });
-                    builder.Add(new ConfigurationItem()
-                    {
-                        Section = string.Concat("visual_basic.", fullOptionName),
-                    });
+                        builder.Add(new ConfigurationItem()
+                        {
+                            Section = string.Concat(s_languageNameToPrefix[language], '.', fullOptionName),
+                        });
+                    }
                 }
                 else
                 {
