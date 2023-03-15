@@ -3489,7 +3489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 hasIntegralValueZeroOrOne(expr.Consequence, out var isConsequenceOne) &&
                 hasIntegralValueZeroOrOne(expr.Alternative, out var isAlternativeOne) &&
                 isConsequenceOne != isAlternativeOne &&
-                TryEmitCompExpr(expr.Condition, sense: isConsequenceOne))
+                TryEmitComparison(expr.Condition, sense: isConsequenceOne))
             {
                 var toType = expr.Type.PrimitiveTypeCode;
                 if (toType != Cci.PrimitiveTypeCode.Boolean)
