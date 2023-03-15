@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Remote.Testing
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
-        <WorkItem(541167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541167")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541167")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestExtensionMethodToDelegateConversion(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -31,7 +31,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(541697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541697")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541697")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestReducedExtensionMethod1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -63,7 +63,7 @@ public static class MyExtension
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(541697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541697")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541697")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestReducedExtensionMethod2(kind As TestKind, host As TestHost) As Task
             Dim input =

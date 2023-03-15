@@ -144,7 +144,7 @@ End Class]]></File>
             Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Sub
 
-        <WorkItem(638235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")>
         <WpfFact>
         Public Sub TestNotCloseClosedTag()
             Dim text = <File><![CDATA[

@@ -292,7 +292,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                result |= QuickAttributeHelpers.GetQuickAttributes(directive.Name.GetUnqualifiedName().Identifier.ValueText, inAttribute: false);
+                if (directive.Name is not NameSyntax name)
+                {
+                    continue;
+                }
+
+                result |= QuickAttributeHelpers.GetQuickAttributes(name.GetUnqualifiedName().Identifier.ValueText, inAttribute: false);
             }
 
             return result;

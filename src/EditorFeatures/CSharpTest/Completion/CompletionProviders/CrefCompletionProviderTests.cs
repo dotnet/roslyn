@@ -124,7 +124,7 @@ namespace Goo
             await VerifyItemExistsAsync(text, "Q");
         }
 
-        [Fact, WorkItem(530887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530887")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530887")]
         public async Task PrivateMember()
         {
             var text = @"using System;
@@ -158,7 +158,7 @@ namespace Goo
             await VerifyItemExistsAsync(text, "Exception");
         }
 
-        [Fact, WorkItem(531315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531315")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531315")]
         public async Task EscapePredefinedTypeName()
         {
             var text = @"using System;
@@ -168,8 +168,8 @@ class @void { }
             await VerifyItemExistsAsync(text, "@void");
         }
 
-        [Fact, WorkItem(598159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598159")]
-        [WorkItem(531345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531345")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598159")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531345")]
         public async Task ShowParameterNames()
         {
             var text = @"/// <see cref=""C.$$""/>
@@ -186,7 +186,7 @@ class C
             await VerifyItemExistsAsync(text, "M{T}(T)");
         }
 
-        [Fact, WorkItem(531345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531345")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531345")]
         public async Task ShowTypeParameterNames()
         {
             var text = @"/// <see cref=""C$$""/>
@@ -201,7 +201,7 @@ class C<TGoo>
             await VerifyItemExistsAsync(text, "C{TGoo}");
         }
 
-        [Fact, WorkItem(531156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531156")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531156")]
         public async Task ShowConstructors()
         {
             var text = @"using System;
@@ -222,7 +222,7 @@ class C<T>
             await VerifyItemExistsAsync(text, "C(int)");
         }
 
-        [Fact, WorkItem(598679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598679")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598679")]
         public async Task NoParamsModifier()
         {
             var text = @"/// <summary>
@@ -239,7 +239,7 @@ class C
             await VerifyItemExistsAsync(text, "M(long[])");
         }
 
-        [Fact, WorkItem(607773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607773")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607773")]
         public async Task UnqualifiedTypes()
         {
             var text = @"
@@ -250,7 +250,7 @@ class C { }
             await VerifyItemExistsAsync(text, "Enumerator");
         }
 
-        [Fact, WorkItem(607773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607773")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607773")]
         public async Task CommitUnqualifiedTypes()
         {
             var text = @"
@@ -267,7 +267,7 @@ class C { }
             await VerifyProviderCommitAsync(text, "Enumerator", expected, ' ');
         }
 
-        [Fact, WorkItem(642285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642285")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642285")]
         public async Task SuggestOperators()
         {
             var text = @"
@@ -298,7 +298,7 @@ class Test
             await VerifyItemExistsAsync(text, "operator false(Test)");
         }
 
-        [Fact, WorkItem(641096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641096")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641096")]
         public async Task SuggestIndexers()
         {
             var text = @"
@@ -316,7 +316,7 @@ class Program
             await VerifyItemExistsAsync(text, "this[int]");
         }
 
-        [Fact, WorkItem(531315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531315")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531315")]
         public async Task CommitEscapedPredefinedTypeName()
         {
             var text = @"using System;
@@ -331,7 +331,7 @@ class @void { }
             await VerifyProviderCommitAsync(text, "@void", expected, ' ');
         }
 
-        [Fact, WorkItem(598159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598159")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598159")]
         public async Task RefOutModifiers()
         {
             var text = @"/// <summary>
@@ -348,7 +348,7 @@ class C
             await VerifyItemExistsAsync(text, "M(out long)");
         }
 
-        [Fact, WorkItem(673587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673587")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673587")]
         public async Task NestedNamespaces()
         {
             var text = @"namespace N
@@ -377,7 +377,7 @@ class Program
             await VerifyItemExistsAsync(text, "C");
         }
 
-        [Fact, WorkItem(730338, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730338")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730338")]
         public async Task PermitTypingTypeParameters()
         {
             var text = @"
@@ -394,7 +394,7 @@ class C { }
             await VerifyProviderCommitAsync(text, "List{T}", expected, '{');
         }
 
-        [Fact, WorkItem(730338, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730338")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730338")]
         public async Task PermitTypingParameterTypes()
         {
             var text = @"
@@ -448,7 +448,7 @@ class C
             Assert.True(called);
         }
 
-        [Fact, WorkItem(16060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/16060")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/16060")]
         public async Task SpecialTypeNames()
         {
             var text = @"
@@ -479,7 +479,7 @@ class C
             await VerifyNoItemsExistAsync(text);
         }
 
-        [Fact, WorkItem(23957, "https://github.com/dotnet/roslyn/issues/23957")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23957")]
         public async Task CRef_InParameter()
         {
             var text = @"
@@ -494,7 +494,7 @@ class C
             await VerifyItemExistsAsync(text, "MyMethod(in int)");
         }
 
-        [Fact, WorkItem(22626, "https://github.com/dotnet/roslyn/issues/22626")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22626")]
         public async Task ValueTuple1()
         {
             var text = """
@@ -510,7 +510,7 @@ class C
             await VerifyItemExistsAsync(text, "M(ValueTuple{string, int})");
         }
 
-        [Fact, WorkItem(22626, "https://github.com/dotnet/roslyn/issues/22626")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22626")]
         public async Task ValueTuple2()
         {
             var text = """
@@ -526,7 +526,7 @@ class C
             await VerifyItemExistsAsync(text, "M(ValueTuple{string, int})");
         }
 
-        [Fact, WorkItem(43139, "https://github.com/dotnet/roslyn/issues/43139")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43139")]
         public async Task TestNonOverload1()
         {
             var text = """
@@ -544,7 +544,7 @@ class C
             await VerifyItemExistsAsync(text, "Dispose");
         }
 
-        [Fact, WorkItem(43139, "https://github.com/dotnet/roslyn/issues/43139")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43139")]
         public async Task TestNonOverload2()
         {
             var text = """
@@ -562,7 +562,7 @@ class C
             await VerifyItemExistsAsync(text, "Dispose");
         }
 
-        [Fact, WorkItem(43139, "https://github.com/dotnet/roslyn/issues/43139")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43139")]
         public async Task TestOverload1()
         {
             var text = """
@@ -582,7 +582,7 @@ class C
             await VerifyItemExistsAsync(text, "Dispose(bool)");
         }
 
-        [Fact, WorkItem(43139, "https://github.com/dotnet/roslyn/issues/43139")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43139")]
         public async Task TestOverload2()
         {
             var text = """

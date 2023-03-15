@@ -3757,8 +3757,7 @@ class Program
             }
         }
 
-        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
-        [Fact]
+        [Fact, WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
         public void AliasName_04()
         {
             var source =
@@ -3769,25 +3768,33 @@ class Program
     A1 F1() => default;
     A2 F2() => default;
 }";
-            var expectedDiagnostics = new[]
-            {
-                // (1,12): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,12): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // using A1 = nint;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(1, 12),
-                // (2,12): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(1, 12),
+                // (1,12): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // using A1 = nint;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("using type alias").WithLocation(1, 12),
+                // (2,12): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // using A2 = nuint;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 12)
-            };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(2, 12),
+                // (2,12): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // using A2 = nuint;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("using type alias").WithLocation(2, 12));
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,12): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // using A1 = nint;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("using type alias").WithLocation(1, 12),
+                // (2,12): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // using A2 = nuint;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("using type alias").WithLocation(2, 12));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
-        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
-        [Fact]
+        [Fact, WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
         public void AliasName_05()
         {
             var source1 =
@@ -3810,6 +3817,91 @@ namespace nuint
 
             comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        public void AliasName_06()
+        {
+            var source1 =
+@"using A=nint;
+class nint { }
+";
+
+            var comp = CreateCompilation(source1, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using A=nint;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using A=nint;").WithLocation(1, 1),
+                // (2,7): warning CS8981: The type name 'nint' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class nint { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "nint").WithArguments("nint").WithLocation(2, 7));
+
+            comp = CreateCompilation(source1, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using A=nint;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using A=nint;").WithLocation(1, 1),
+                // (2,7): warning CS8981: The type name 'nint' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class nint { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "nint").WithArguments("nint").WithLocation(2, 7));
+
+            comp = CreateCompilation(source1, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using A=nint;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using A=nint;").WithLocation(1, 1),
+                // (2,7): warning CS8981: The type name 'nint' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class nint { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "nint").WithArguments("nint").WithLocation(2, 7));
+        }
+
+        [Fact, WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        public void AliasName_07()
+        {
+            var source1 =
+@"using A=nint;
+class nint { }
+
+class C
+{
+    void M(A a, global::nint b, System.IntPtr c)
+    {
+        // Ensure that in all cases A binds to the class, and not System.IntPtr
+        System.Console.WriteLine(a == b);
+        System.Console.WriteLine(a == c);
+    }
+}
+";
+
+            var comp = CreateCompilation(source1, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'nint' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class nint { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "nint").WithArguments("nint").WithLocation(2, 7),
+                // (10,34): error CS0019: Operator '==' cannot be applied to operands of type 'nint' and 'IntPtr'
+                //         System.Console.WriteLine(a == c);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "a == c").WithArguments("==", "nint", "System.IntPtr").WithLocation(10, 34));
+
+            comp = CreateCompilation(source1, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'nint' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class nint { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "nint").WithArguments("nint").WithLocation(2, 7),
+                // (10,34): error CS0019: Operator '==' cannot be applied to operands of type 'nint' and 'IntPtr'
+                //         System.Console.WriteLine(a == c);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "a == c").WithArguments("==", "nint", "System.IntPtr").WithLocation(10, 34));
+
+            comp = CreateCompilation(source1, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'nint' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class nint { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "nint").WithArguments("nint").WithLocation(2, 7),
+                // (10,34): error CS0019: Operator '==' cannot be applied to operands of type 'nint' and 'IntPtr'
+                //         System.Console.WriteLine(a == c);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "a == c").WithArguments("==", "nint", "System.IntPtr").WithLocation(10, 34));
         }
 
         [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
