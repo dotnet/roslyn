@@ -49,12 +49,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             var options = _optionsService.GetInlineHintsOptions(document.Project.Language);
 
             var hints = await inlineHintService.GetInlineHintsAsync(document, textSpan, options, displayAllOverride: false, cancellationToken).ConfigureAwait(false);
-            if (hints.IsEmpty)
-            {
-                return Array.Empty<LSP.InlayHint>();
-            }
 
-            using var _ = ArrayBuilder<LSP.InlayHint>.GetInstance(out var inlayHints);
+            using var _ = ArrayBuilder<LSP.InlayHint>.GetInstance(hints.Length, out var inlayHints);
             var syntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
             var inlayHintCache = context.GetRequiredLspService<InlayHintCache>();
 
@@ -66,7 +62,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             {
                 var hint = hints[i];
                 var linePosition = text.Lines.GetLinePosition(hint.Span.Start);
-                var kind = hint.Ranking == 0.0
+                var kind = hint.Ranking == InlineHintsConstants.ParameterRanking
                     ? InlayHintKind.Parameter
                     : InlayHintKind.Type;
 
@@ -82,7 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
                 var inlayHint = new LSP.InlayHint
                 {
                     Position = ProtocolConversions.LinePositionToPosition(linePosition),
-                    Label = ConvertTaggedTextToString(hint.DisplayParts),
+                    Label = hint.DisplayParts.JoinText(),
                     Kind = kind,
                     TextEdits = textEdits,
                     ToolTip = null,
@@ -95,17 +91,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             }
 
             return inlayHints.ToArray();
-        }
-
-        private static string ConvertTaggedTextToString(ImmutableArray<TaggedText> displayParts)
-        {
-            var stringBuilder = new StringBuilder();
-            foreach (var displayPart in displayParts)
-            {
-                stringBuilder.Append(displayPart.Text);
-            }
-
-            return stringBuilder.ToString();
         }
     }
 }
