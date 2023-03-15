@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public void TrackNode(SyntaxNode node)
         {
-            CheckNodeInOriginalTreeOrTracked(node);
+            CheckNodeInOriginalTree(node);
             _changes.Add(new NoChange(node));
         }
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="options">Options that affect how node removal works.</param>
         public void RemoveNode(SyntaxNode node, SyntaxRemoveOptions options)
         {
-            CheckNodeInOriginalTreeOrTracked(node);
+            CheckNodeInOriginalTree(node);
             _changes.Add(new RemoveChange(node, options));
         }
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// The node passed into the compute function includes changes from prior edits. It will not appear as a descendant of the original root.</param>
         public void ReplaceNode(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, SyntaxNode> computeReplacement)
         {
-            CheckNodeInOriginalTreeOrTracked(node);
+            CheckNodeInOriginalTree(node);
             if (computeReplacement == null)
                 throw new ArgumentNullException(nameof(computeReplacement));
 
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal void ReplaceNode(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, IEnumerable<SyntaxNode>> computeReplacement)
         {
-            CheckNodeInOriginalTreeOrTracked(node);
+            CheckNodeInOriginalTree(node);
             if (computeReplacement == null)
                 throw new ArgumentNullException(nameof(computeReplacement));
 
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal void ReplaceNode<TArgument>(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> computeReplacement, TArgument argument)
         {
-            CheckNodeInOriginalTreeOrTracked(node);
+            CheckNodeInOriginalTree(node);
             if (computeReplacement == null)
                 throw new ArgumentNullException(nameof(computeReplacement));
 
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="newNode">The new node that will be placed into the tree in the existing node's location.</param>
         public void ReplaceNode(SyntaxNode node, SyntaxNode newNode)
         {
-            CheckNodeInOriginalTreeOrTracked(node);
+            CheckNodeInOriginalTree(node);
             if (node == newNode)
                 return;
 
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="newNodes">The nodes to place before the existing node. These nodes must be of a compatible type to be placed in the same list containing the existing node.</param>
         public void InsertBefore(SyntaxNode node, IEnumerable<SyntaxNode> newNodes)
         {
-            CheckNodeInOriginalTreeOrTracked(node);
+            CheckNodeInOriginalTree(node);
             if (newNodes == null)
                 throw new ArgumentNullException(nameof(newNodes));
 
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="newNodes">The nodes to place after the existing node. These nodes must be of a compatible type to be placed in the same list containing the existing node.</param>
         public void InsertAfter(SyntaxNode node, IEnumerable<SyntaxNode> newNodes)
         {
-            CheckNodeInOriginalTreeOrTracked(node);
+            CheckNodeInOriginalTree(node);
             if (newNodes == null)
                 throw new ArgumentNullException(nameof(newNodes));
 
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public void InsertAfter(SyntaxNode node, SyntaxNode newNode)
             => this.InsertAfter(node, new[] { newNode });
 
-        private void CheckNodeInOriginalTreeOrTracked(SyntaxNode node)
+        private void CheckNodeInOriginalTree(SyntaxNode node)
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
