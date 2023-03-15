@@ -134,7 +134,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: "01011001FalseTrue111111111");
+            var verifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseExe,
+                expectedOutput: "01011001FalseTrue111111111");
             verifier.VerifyDiagnostics();
             verifier.VerifyMethodBody("C.M", """
                 {
@@ -301,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     public static int M2() => C.M() ? 0 : 1;
                 }
                 """;
-            var comp = CreateCompilationWithIL(source2, source1);
+            var comp = CreateCompilationWithIL(source2, source1, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: """
                 1
                 0
