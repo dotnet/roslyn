@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
@@ -12,7 +11,43 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editing
 {
     /// <summary>
-    /// An editor for making changes to a syntax tree. 
+    /// An editor for making changes to a syntax tree. The editor works by giving a list of changes to perform to a
+    /// particular tree <em>in order</em>.  Changes are given a <see cref="SyntaxNode"/> they will apply to in the
+    /// original tree the editor is created for.  The semantics of application are as follows:
+    /// 
+    /// <list type="number">
+    /// <item>
+    /// The original root provided is used as the 'current' root for all operations.  This 'current' root will
+    /// continually be updated, becoming the new 'current' root.  The original root is never changed.
+    /// </item>
+    /// <item>
+    /// Each change has its given <see cref="SyntaxNode"/> tracked, using a <see cref="SyntaxAnnotation"/>, producing a
+    /// 'current' root that tracks all of them.  This allows that same node to be found after prior changes are applied
+    /// which mutate the tree.
+    /// </item>
+    /// <item>
+    /// Each change is then applied in order it was added to the editor.
+    /// </item>
+    /// <item>
+    /// A change first attempts to find its <see cref="SyntaxNode"/> in the 'current' root.  If that node cannot be
+    /// found, the operation will fail with an <see cref="ArgumentException"/>.
+    /// </item>
+    /// <item>
+    /// The particular change will run on that node, removing, replacing, or inserting around it according to the
+    /// change.  If the change is passed a delegate as its 'compute' argument, it will be given the <see
+    /// cref="SyntaxNode"/> found in the current root.  The 'current' root will then be updated by replacing the current
+    /// node with the new computed node.
+    /// </item>
+    /// <item>
+    /// The 'current' root is then returned.
+    /// </item>
+    /// </list>
+    /// 
+    /// Because of the above approach, it is an error for a client of the editor to add a change that updates a parent
+    /// node and then adds a change that updates a child node (unless the parent change is certain to contain the
+    /// child), and attempting this will throw at runtime.  If a client ever needs to update both a child and a parent,
+    /// it <em>should</em> add the child change first, and then the parent change.  And the parent change should pass an
+    /// appropriate 'compute' callback so it will see the results of the child change.
     /// </summary>
     public class SyntaxEditor
     {
