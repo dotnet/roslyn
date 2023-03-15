@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.InlineHints
             _service = service;
         }
 
-        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, InlineHintsOptions options, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, InlineHintsOptions options, bool displayAllOverride, CancellationToken cancellationToken)
         {
             if (_service == null)
                 return ImmutableArray<InlineHint>.Empty;

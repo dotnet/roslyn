@@ -114,7 +114,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             var options = GlobalOptions.GetInlineHintsOptions(document.Project.Language);
 
             var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-            var hints = await service.GetInlineHintsAsync(document, snapshotSpan.Span.ToTextSpan(), options, cancellationToken).ConfigureAwait(false);
+
+            // TODO: https://github.com/dotnet/roslyn/issues/57283
+            var globalOptions = document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+            var displayAllOverride = globalOptions.InlineHintsOptionsDisplayAllOverride;
+
+            var hints = await service.GetInlineHintsAsync(document, snapshotSpan.Span.ToTextSpan(), options, displayAllOverride, cancellationToken).ConfigureAwait(false);
             foreach (var hint in hints)
             {
                 // If we don't have any text to actually show the user, then don't make a tag.

@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -18,8 +19,11 @@ internal static class OmniSharpInlineHintsService
     {
         var service = document.GetRequiredLanguageService<IInlineHintsService>();
         var roslynOptions = options.ToInlineHintsOptions();
+        // TODO: https://github.com/dotnet/roslyn/issues/57283
+        var globalOptions = document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+        var displayAllOverride = globalOptions.InlineHintsOptionsDisplayAllOverride;
 
-        var hints = await service.GetInlineHintsAsync(document, textSpan, roslynOptions, cancellationToken).ConfigureAwait(false);
+        var hints = await service.GetInlineHintsAsync(document, textSpan, roslynOptions, displayAllOverride, cancellationToken).ConfigureAwait(false);
         return hints.SelectAsArray(static h => new OmniSharpInlineHint(
             h.Span,
             h.DisplayParts,

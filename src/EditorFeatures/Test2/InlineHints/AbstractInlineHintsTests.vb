@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim tagService = document.GetRequiredLanguageService(Of IInlineParameterNameHintsService)
-                Dim inlineHints = Await tagService.GetInlineHintsAsync(document, New Text.TextSpan(0, snapshot.Length), options, displayOptions, CancellationToken.None)
+                Dim inlineHints = Await tagService.GetInlineHintsAsync(document, New Text.TextSpan(0, snapshot.Length), options, displayOptions, displayAllOverride:=False, CancellationToken.None)
 
                 Dim producedTags = From hint In inlineHints
                                    Select hint.DisplayParts.GetFullText().TrimEnd() + hint.Span.ToString
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim tagService = document.GetRequiredLanguageService(Of IInlineTypeHintsService)
-                Dim typeHints = Await tagService.GetInlineHintsAsync(document, New Text.TextSpan(0, snapshot.Length), options, displayOptions, CancellationToken.None)
+                Dim typeHints = Await tagService.GetInlineHintsAsync(document, New Text.TextSpan(0, snapshot.Length), options, displayOptions, displayAllOverride:=False, CancellationToken.None)
 
                 Dim producedTags = From hint In typeHints
                                    Select hint.DisplayParts.GetFullText() + ":" + hint.Span.ToString()
