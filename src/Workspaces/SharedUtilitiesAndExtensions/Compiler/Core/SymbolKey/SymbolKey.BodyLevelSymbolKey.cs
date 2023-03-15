@@ -255,6 +255,8 @@ namespace Microsoft.CodeAnalysis
             private static IEnumerable<(ISymbol symbol, int ordinal)> EnumerateSymbols(
                 SemanticModel semanticModel, SyntaxNode containerDeclaration, SymbolKind kind, string localName, CancellationToken cancellationToken)
             {
+                Contract.ThrowIfTrue(semanticModel.SyntaxTree != containerDeclaration.SyntaxTree);
+
                 var ordinal = 0;
 
                 foreach (var node in containerDeclaration.DescendantNodes())
