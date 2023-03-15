@@ -116,8 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             {
                 // Handling syntax tree directly to avoid parsing in potentially UI blocking code-path
                 var closingToken = FindClosingBraceToken(document.Root, closingPoint);
-                var annotatedNewline = SyntaxFactory.EndOfLine(options.FormattingOptions.NewLine)
-                    .WithAdditionalAnnotations(SpecializedCollections.SingletonEnumerable(s_closingBraceNewlineAnnotation));
+                var annotatedNewline = SyntaxFactory.EndOfLine(options.FormattingOptions.NewLine).WithAdditionalAnnotations(s_closingBraceNewlineAnnotation);
                 var newClosingToken = closingToken.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(annotatedNewline));
 
                 var rootToFormat = document.Root.ReplaceToken(closingToken, newClosingToken);
@@ -147,23 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // Set the caret position to the properly indented column in the desired line.
             var caretPosition = GetIndentedLinePosition(newDocument, newDocument.Text, desiredCaretLine.LineNumber, options, cancellationToken);
 
-            return new BraceCompletionResult(GetOverallChanges(), caretPosition);
-
-            ImmutableArray<TextChange> GetOverallChanges()
-            {
-                // The new line edit is calculated against the original text, d0, to get text d1.
-                // The formatting edits are calculated against d1 to get text d2.
-                // Merge the formatting and new line edits into a set of whitespace only text edits that all apply to d0.
-                if (!newLineEdit.HasValue)
-                    return formattingChanges;
-
-                // Depending on options, we might not get any formatting change.
-                // In this case, the newline edit is the only change.
-                if (formattingChanges.IsEmpty)
-                    return ImmutableArray.Create(newLineEdit.Value);
-
-                return GetMergedChanges(newLineEdit.Value, formattingChanges, newDocument.Text);
-            }
+            return new BraceCompletionResult(GetMergedChanges(newLineEdit, formattingChanges, newDocument.Text), caretPosition);
 
             static TextLine GetLineBetweenCurlys(int closingPosition, SourceText text)
             {
@@ -183,10 +166,21 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return indentedLinePosition;
             }
 
-            static ImmutableArray<TextChange> GetMergedChanges(TextChange newLineEdit, ImmutableArray<TextChange> formattingChanges, SourceText formattedText)
+            static ImmutableArray<TextChange> GetMergedChanges(TextChange? newLineEdit, ImmutableArray<TextChange> formattingChanges, SourceText formattedText)
             {
+                // The new line edit is calculated against the original text, d0, to get text d1.
+                // The formatting edits are calculated against d1 to get text d2.
+                // Merge the formatting and new line edits into a set of whitespace only text edits that all apply to d0.
+                if (!newLineEdit.HasValue)
+                    return formattingChanges;
+
+                // Depending on options, we might not get any formatting change.
+                // In this case, the newline edit is the only change.
+                if (formattingChanges.IsEmpty)
+                    return ImmutableArray.Create(newLineEdit.Value);
+
                 var newRanges = TextChangeRangeExtensions.Merge(
-                    ImmutableArray.Create(newLineEdit.ToTextChangeRange()),
+                    ImmutableArray.Create(newLineEdit.Value.ToTextChangeRange()),
                     formattingChanges.SelectAsArray(f => f.ToTextChangeRange()));
 
                 using var _ = ArrayBuilder<TextChange>.GetInstance(out var mergedChanges);
