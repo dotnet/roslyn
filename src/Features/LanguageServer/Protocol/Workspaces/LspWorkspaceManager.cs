@@ -207,7 +207,6 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _logger.LogError($"Could not find '{textDocumentIdentifier.Uri}'.  Searched {searchedWorkspaceKinds}");
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
-
         // Add the document to our loose files workspace (if we have one) if it iss open.
         if (_trackedDocuments.ContainsKey(uri) && _lspMiscellaneousFilesWorkspace != null)
         {
