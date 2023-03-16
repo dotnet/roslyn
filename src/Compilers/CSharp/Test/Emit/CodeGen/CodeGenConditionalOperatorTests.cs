@@ -131,6 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                         Write(x != y ? 1UL : 0);
                         Write(x != y ? (nint)1 : 0);
                         Write(x != y ? 1 : (nuint)0);
+                        Write(x < y ? (char)0 : (char)1);
                         Write(true ? 1 : 0);
                         Write(false ? 0 : 1);
                         const bool B = true;
@@ -140,11 +141,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 """;
             var verifier = CompileAndVerify(source,
                 options: TestOptions.ReleaseExe,
-                expectedOutput: "01011001FalseTrue111111111111");
+                expectedOutput: "01011001FalseTrue111111111" + (char)1 + "111");
             verifier.VerifyDiagnostics();
             verifier.VerifyMethodBody("C.M", """
                 {
-                  // Code size      237 (0xed)
+                  // Code size      250 (0xfa)
                   .maxstack  2
                   // sequence point: Write(x == y ? 1 : 0);
                   IL_0000:  ldarg.0
@@ -275,17 +276,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                   IL_00d3:  conv.i
                   IL_00d4:  conv.u8
                   IL_00d5:  call       "void System.Console.Write(ulong)"
+                  // sequence point: Write(x < y ? (char)0 : (char)1);
+                  IL_00da:  ldarg.0
+                  IL_00db:  ldarg.1
+                  IL_00dc:  clt
+                  IL_00de:  ldc.i4.0
+                  IL_00df:  ceq
+                  IL_00e1:  conv.u2
+                  IL_00e2:  call       "void System.Console.Write(char)"
                   // sequence point: Write(true ? 1 : 0);
-                  IL_00da:  ldc.i4.1
-                  IL_00db:  call       "void System.Console.Write(int)"
+                  IL_00e7:  ldc.i4.1
+                  IL_00e8:  call       "void System.Console.Write(int)"
                   // sequence point: Write(false ? 0 : 1);
-                  IL_00e0:  ldc.i4.1
-                  IL_00e1:  call       "void System.Console.Write(int)"
+                  IL_00ed:  ldc.i4.1
+                  IL_00ee:  call       "void System.Console.Write(int)"
                   // sequence point: Write(B ? 1 : 0);
-                  IL_00e6:  ldc.i4.1
-                  IL_00e7:  call       "void System.Console.Write(int)"
+                  IL_00f3:  ldc.i4.1
+                  IL_00f4:  call       "void System.Console.Write(int)"
                   // sequence point: }
-                  IL_00ec:  ret
+                  IL_00f9:  ret
                 }
                 """);
         }
@@ -393,17 +402,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                         Write(x < y ? 0d : 1d);
                         Write(x < y ? 0f : 1f);
                         Write(x < y ? 0m : 1m);
-                        Write(x < y ? (char)0 : (char)1);
                     }
                 }
                 """;
             var verifier = CompileAndVerify(source,
                 options: TestOptions.ReleaseExe,
-                expectedOutput: "1022-1111\x1");
+                expectedOutput: "1022-1111");
             verifier.VerifyDiagnostics();
             verifier.VerifyMethodBody("C.M", """
                 {
-                  // Code size      150 (0x96)
+                  // Code size      137 (0x89)
                   .maxstack  2
                   // sequence point: Write(x == y ? 1 : 1);
                   IL_0000:  ldarg.0
@@ -469,16 +477,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                   IL_007c:  br.s       IL_0083
                   IL_007e:  ldsfld     "decimal decimal.Zero"
                   IL_0083:  call       "void System.Console.Write(decimal)"
-                  // sequence point: Write(x < y ? (char)0 : (char)1);
-                  IL_0088:  ldarg.0
-                  IL_0089:  ldarg.1
-                  IL_008a:  blt.s      IL_008f
-                  IL_008c:  ldc.i4.1
-                  IL_008d:  br.s       IL_0090
-                  IL_008f:  ldc.i4.0
-                  IL_0090:  call       "void System.Console.Write(char)"
                   // sequence point: }
-                  IL_0095:  ret
+                  IL_0088:  ret
                 }
                 """);
         }
