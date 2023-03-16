@@ -3749,7 +3749,6 @@ public class C2
 
         [Fact]
         public void TypeReference_01()
-
         {
             var source0 =
 @"
