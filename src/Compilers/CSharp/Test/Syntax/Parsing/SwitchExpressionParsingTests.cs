@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -163,6 +158,48 @@ public class SwitchExpressionParsingTests : ParsingTests
             // (4,6): error CS1003: Syntax error, '=>' expected
             //     1: 2,
             Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>").WithLocation(4, 6));
+        N(SyntaxKind.SwitchExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "x");
+            }
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.ConstantPattern);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "0");
+                    }
+                }
+                M(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            N(SyntaxKind.CommaToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.ConstantPattern);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                M(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                }
+            }
+            N(SyntaxKind.CommaToken);
+            N(SyntaxKind.CloseBraceToken);
+        }
         EOF();
     }
 
@@ -176,12 +213,6 @@ public class SwitchExpressionParsingTests : ParsingTests
                 default: 2,
             }
             """,
-            // (3,12): error CS1041: Identifier expected; 'default' is a keyword
-            //     0 => 1,
-            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "default").WithLocation(3, 12),
-            // (4,12): error CS1525: Invalid expression term ':'
-            //     default: 2,
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(4, 12),
             // (4,12): error CS1003: Syntax error, '=>' expected
             //     default: 2,
             Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>").WithLocation(4, 12));
@@ -211,11 +242,75 @@ public class SwitchExpressionParsingTests : ParsingTests
             N(SyntaxKind.CommaToken);
             N(SyntaxKind.SwitchExpressionArm);
             {
-                M(SyntaxKind.ConstantPattern);
+                N(SyntaxKind.ConstantPattern);
                 {
-                    M(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.DefaultLiteralExpression);
                     {
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.DefaultKeyword);
+                    }
+                }
+                M(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                }
+            }
+            N(SyntaxKind.CommaToken);
+            N(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestErrantDefaultInSwitchExpression2()
+    {
+        UsingExpression("""
+            x switch
+            {
+                0 => 1,
+                default(int): 2,
+            }
+            """,
+            // (4,17): error CS1003: Syntax error, '=>' expected
+            //     default(int): 2,
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>").WithLocation(4, 17));
+        N(SyntaxKind.SwitchExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "x");
+            }
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.ConstantPattern);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "0");
+                    }
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            N(SyntaxKind.CommaToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.ConstantPattern);
+                {
+                    N(SyntaxKind.DefaultExpression);
+                    {
+                        N(SyntaxKind.DefaultKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
                 }
                 M(SyntaxKind.EqualsGreaterThanToken);
@@ -233,6 +328,7 @@ public class SwitchExpressionParsingTests : ParsingTests
     [Fact]
     public void TestNormalDefaultInSwitchExpression1()
     {
+        // Legal syntactically.  Only a binding error.
         UsingExpression("""
             x switch
             {
@@ -240,6 +336,48 @@ public class SwitchExpressionParsingTests : ParsingTests
                 default => 2,
             }
             """);
+        N(SyntaxKind.SwitchExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "x");
+            }
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.ConstantPattern);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "0");
+                    }
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            N(SyntaxKind.CommaToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.ConstantPattern);
+                {
+                    N(SyntaxKind.DefaultLiteralExpression);
+                    {
+                        N(SyntaxKind.DefaultKeyword);
+                    }
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                }
+            }
+            N(SyntaxKind.CommaToken);
+            N(SyntaxKind.CloseBraceToken);
+        }
         EOF();
     }
 
@@ -253,6 +391,54 @@ public class SwitchExpressionParsingTests : ParsingTests
                 default(int) => 2,
             }
             """);
+        N(SyntaxKind.SwitchExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "x");
+            }
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.ConstantPattern);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "0");
+                    }
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            N(SyntaxKind.CommaToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.ConstantPattern);
+                {
+                    N(SyntaxKind.DefaultExpression);
+                    {
+                        N(SyntaxKind.DefaultKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                }
+            }
+            N(SyntaxKind.CommaToken);
+            N(SyntaxKind.CloseBraceToken);
+        }
         EOF();
     }
 }

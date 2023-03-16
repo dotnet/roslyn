@@ -562,8 +562,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
                 // Help out in the case where a user is converting a switch statement to a switch expression. Note:
-                // `default(...)` is a legal pattern.  so only consume `default` as an error if it is `default:`.
-                var errantCaseOrDefault = this.CurrentToken.Kind == SyntaxKind.CaseKeyword || (this.CurrentToken.Kind == SyntaxKind.DefaultKeyword && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
+                // `default(...)` and `default` will also be consumed as a legal syntactic patterns (though the latter
+                // will fail during binding).  So if the user has `default:` we will recover fine as we handle the
+                // errant colon below.
+                var errantCaseOrDefault = this.CurrentToken.Kind == SyntaxKind.CaseKeyword
                     ? this.EatTokenAsKind(SyntaxKind.IdentifierToken)
                     : null;
 
