@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Reflection;
+using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -19,6 +20,16 @@ internal sealed class ExportProviderBuilder
         // Load any Roslyn assemblies from the extension directory
         var assembliesToDiscover = Directory.EnumerateFiles(baseDirectory, "Microsoft.CodeAnalysis*.dll");
         assembliesToDiscover = assembliesToDiscover.Concat(Directory.EnumerateFiles(baseDirectory, "Microsoft.ServiceHub*.dll"));
+
+        // Temporarily explicitly load the dlls we want to add to the MEF composition.  This is due to a runtime bug
+        // in the 7.0.4 runtime where the APIs MEF uses to load assemblies break with R2R assemblies.
+        // See https://github.com/dotnet/runtime/issues/83526
+        //
+        // Once a newer version of the runtime is widely available, we can remove this.
+        foreach (var path in assembliesToDiscover)
+        {
+            Assembly.LoadFrom(path);
+        }
 
         var discovery = PartDiscovery.Combine(
             new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
