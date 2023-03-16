@@ -9,7 +9,7 @@ steps:
     outputformat: text
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
-- task: MicroBuildSigningPlugin@3
+- task: MicroBuildSigningPlugin@4
   inputs:
     signType: $(SignType)
     zipSources: false
