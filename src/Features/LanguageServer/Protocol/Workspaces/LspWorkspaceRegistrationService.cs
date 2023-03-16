@@ -46,7 +46,7 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
         workspace.WorkspaceChanged += OnLspWorkspaceChanged;
     }
 
-    public void Deregister(Workspace workspace)
+    public void Deregister(Workspace? workspace)
     {
         if (workspace is null)
             return;
