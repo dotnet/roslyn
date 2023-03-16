@@ -27,6 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<" + propertyName + ">k__BackingField";
         }
 
+        internal static string MakePrimaryConstructorParameterFieldName(string parameterName)
+        {
+            Debug.Assert((char)GeneratedNameKind.PrimaryConstructorParameter == 'P');
+            return "<" + parameterName + ">P";
+        }
+
         internal static string MakeIteratorFinallyMethodName(StateMachineState finalizeState)
         {
             Debug.Assert((int)finalizeState < -2);

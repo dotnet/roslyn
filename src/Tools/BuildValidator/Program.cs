@@ -199,7 +199,7 @@ namespace BuildValidator
         private static bool ValidateFiles(IEnumerable<AssemblyInfo> assemblyInfos, Options options, ILoggerFactory loggerFactory)
         {
             var logger = loggerFactory.CreateLogger<Program>();
-            var referenceResolver = new LocalReferenceResolver(options, loggerFactory);
+            var referenceResolver = LocalReferenceResolver.Create(options, loggerFactory);
 
             var assembliesCompiled = new List<CompilationDiff>();
             foreach (var assemblyInfo in assemblyInfos)
@@ -319,6 +319,7 @@ namespace BuildValidator
             }
             catch (Exception ex)
             {
+                logger.LogError(ex.Message);
                 return CompilationDiff.CreateMiscError(assemblyInfo, ex.Message);
             }
         }
