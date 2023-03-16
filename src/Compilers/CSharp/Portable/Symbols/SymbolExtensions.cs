@@ -293,6 +293,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, Location errorLocation, BindingDiagnosticBag diagnostics)
+            => CheckUnsafeModifier(symbol, modifiers, errorLocation, diagnostics.DiagnosticBag);
+
+        internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, Location errorLocation, DiagnosticBag diagnostics)
         {
             if (((modifiers & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe) && !symbol.CompilationAllowsUnsafe())
             {

@@ -6854,7 +6854,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Using alias cannot be a 'ref' type.</value>
   </data>
   <data name="ERR_BadUnsafeInUsingDirective" xml:space="preserve">
-    <value>Only a using alias can be 'unsafe'.</value>
+    <value>Only a 'using static' or 'using alias' can be 'unsafe'.</value>
   </data>
   <data name="ERR_BadNullableReferenceTypeInUsingAlias" xml:space="preserve">
     <value>Using alias cannot be a nullable reference type.</value>

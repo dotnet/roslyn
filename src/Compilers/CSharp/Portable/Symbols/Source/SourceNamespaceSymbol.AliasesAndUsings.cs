@@ -721,14 +721,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 continue;
                             }
 
+                            var flags = BinderFlags.SuppressConstraintChecks;
                             if (usingDirective.UnsafeKeyword != default)
-                                diagnostics.Add(ErrorCode.ERR_BadUnsafeInUsingDirective, usingDirective.UnsafeKeyword.GetLocation());
+                            {
+                                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.UnsafeKeyword.GetLocation());
+
+                                if (usingDirective.StaticKeyword == default)
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_BadUnsafeInUsingDirective, usingDirective.UnsafeKeyword.GetLocation());
+                                }
+                                else
+                                {
+                                    declaringSymbol.CheckUnsafeModifier(DeclarationModifiers.Unsafe, usingDirective.UnsafeKeyword.GetLocation(), diagnostics);
+                                }
+
+                                flags |= BinderFlags.UnsafeRegion;
+                            }
 
                             var directiveDiagnostics = BindingDiagnosticBag.GetInstance();
                             Debug.Assert(directiveDiagnostics.DiagnosticBag is object);
                             Debug.Assert(directiveDiagnostics.DependenciesBag is object);
 
-                            declarationBinder ??= compilation.GetBinderFactory(declarationSyntax.SyntaxTree).GetBinder(usingDirective.NamespaceOrType).WithAdditionalFlags(BinderFlags.SuppressConstraintChecks);
+                            declarationBinder ??= compilation.GetBinderFactory(declarationSyntax.SyntaxTree).GetBinder(usingDirective.NamespaceOrType).WithAdditionalFlags(flags);
                             var imported = declarationBinder.BindNamespaceOrTypeSymbol(usingDirective.NamespaceOrType, directiveDiagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
 
                             if (imported.Kind == SymbolKind.Namespace)
