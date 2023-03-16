@@ -67,7 +67,28 @@ stages:
 - stage: Source_Build
   dependsOn: []
   jobs:
-  - template: eng/common/templates/jobs/source-build.yml
+  # Like template `eng/common/templates/jobs/source-build.yml`
+  # with additional step `azure-public-roslyn-auth.yml`.
+  - job: Source_Build_Managed
+    displayName: Source-Build (Managed)
+    container: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8
+    pool:
+      ${{ if eq(variables['System.TeamProject'], 'public') }}:
+        name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore-Svc-Public' ), False, 'NetCore-Public')]
+        demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
+
+      ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+        name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore1ESPool-Svc-Internal'), False, 'NetCore1ESPool-Internal')]
+        demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
+    workspace:
+      clean: all
+    steps:
+    - template: /eng/templates/steps/azure-public-roslyn-auth.yml
+    - template: /eng/common/templates/steps/source-build.yml
+      parameters:
+        platform:
+          name: 'Managed'
+          container: 'mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8'
 
 - stage: Windows_Debug_Desktop
   dependsOn: Windows_Debug_Build
