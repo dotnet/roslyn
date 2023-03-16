@@ -168,8 +168,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionUnderlyingType">
-        <source>The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</source>
-        <target state="new">The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</target>
+        <source>The extended type may not be dynamic, a pointer, a ref struct, or an extension.</source>
+        <target state="new">The extended type may not be dynamic, a pointer, a ref struct, or an extension.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
@@ -5647,7 +5647,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, all interfaces, or all extensions.</source>
+        <source>Partial declarations of '{0}' must all be the same kind of type.</source>
         <target state="needs-review-translation">Partielle Deklarationen von "{0}" müssen entweder nur Klassen, nur Datensatzklassen, nur Strukturen, nur Datensatzstrukturen oder nur Schnittstellen sein.</target>
         <note />
       </trans-unit>
@@ -7171,8 +7171,8 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_IndexerInStaticClass">
-        <source>'{0}': cannot declare indexers in a static class</source>
-        <target state="translated">"{0}": Indexer können nicht in einer statischen Klasse deklariert werden.</target>
+        <source>'{0}': cannot declare indexers in a static type</source>
+        <target state="needs-review-translation">"{0}": Indexer können nicht in einer statischen Klasse deklariert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParameterIsStaticClass">

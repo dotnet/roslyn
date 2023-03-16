@@ -460,11 +460,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    if (underlyingTypeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadExtensionUnderlyingType, location);
-                    }
-
                     partUnderlyingType = underlyingType;
                 }
             }

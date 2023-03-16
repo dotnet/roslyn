@@ -168,8 +168,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionUnderlyingType">
-        <source>The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</source>
-        <target state="new">The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</target>
+        <source>The extended type may not be dynamic, a pointer, a ref struct, or an extension.</source>
+        <target state="new">The extended type may not be dynamic, a pointer, a ref struct, or an extension.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
@@ -5647,7 +5647,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, all interfaces, or all extensions.</source>
+        <source>Partial declarations of '{0}' must all be the same kind of type.</source>
         <target state="needs-review-translation">'{0}' 中有一部分宣告必須全是類別、全是記錄類別、全是結構、全是記錄結構，或全是介面</target>
         <note />
       </trans-unit>
@@ -7171,8 +7171,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_IndexerInStaticClass">
-        <source>'{0}': cannot declare indexers in a static class</source>
-        <target state="translated">'{0}': 不可在靜態類別中宣告索引子</target>
+        <source>'{0}': cannot declare indexers in a static type</source>
+        <target state="needs-review-translation">'{0}': 不可在靜態類別中宣告索引子</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParameterIsStaticClass">

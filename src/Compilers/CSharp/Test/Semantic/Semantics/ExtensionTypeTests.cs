@@ -126,6 +126,7 @@ explicit extension R for UnderlyingClass
 """;
         var comp = CreateCompilation(src);
         // PROTOTYPE need to finalize the rules for operators (conversion and others)
+        // PROTOTYPE constructor and destructor
         comp.VerifyDiagnostics();
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
@@ -182,7 +183,7 @@ explicit extension R for UnderlyingClass
     }
 
     [Fact]
-    public void ForClass_WithReadonlyField()
+    public void ForClass_WithStaticReadonlyField()
     {
         var src = """
 class C { }
@@ -355,6 +356,25 @@ explicit extension R for C
     }
 
     [Fact]
+    public void Members_MemberNamedAfterUnderlyingType()
+    {
+        var src = """
+class C { }
+explicit extension R for C
+{
+    public void C() { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        var r = comp.GlobalNamespace.GetTypeMember("R");
+        Assert.Equal("R", r.ToTestDisplayString());
+        VerifyExtension<SourceExtensionTypeSymbol>(r);
+        AssertEx.Equal(new[] { "void R.C()" }, r.GetMembers().ToTestDisplayStrings());
+    }
+
+    [Fact]
     public void Members_DuplicateMemberNames()
     {
         var src = """
@@ -440,6 +460,21 @@ explicit extension R for UnderlyingType { }
     }
 
     [Fact]
+    public void Members_NoDefaultCtor_Delegate()
+    {
+        var src = $$"""
+delegate void UnderlyingType();
+explicit extension R for UnderlyingType { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        var r = comp.GlobalNamespace.GetTypeMember("R");
+        Assert.Empty(r.GetMembers());
+        // PROTOTYPE verify PE symbol too
+    }
+
+    [Fact]
     public void Members_Operators_UsingUnderlyingType()
     {
         // PROTOTYPE need to finalize the rules for operators
@@ -496,7 +531,7 @@ static explicit extension R for UnderlyingClass
             // (11,9): error CS0708: 'R.Property': cannot declare instance members in a static type
             //     int Property { get => throw null; set => throw null; } // 2
             Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "Property").WithArguments("R.Property").WithLocation(11, 9),
-            // (13,9): error CS0720: 'R.this[int]': cannot declare indexers in a static class
+            // (13,9): error CS0720: 'R.this[int]': cannot declare indexers in a static type
             //     int this[int i] => throw null; // 3
             Diagnostic(ErrorCode.ERR_IndexerInStaticClass, "this").WithArguments("R.this[int]").WithLocation(13, 9)
             );
@@ -600,6 +635,7 @@ partial explicit extension R for UnderlyingClass
     public partial int MethodPartial(int i);
     ref int MethodRefInt() => throw null;
     static void MethodStatic() { }
+    ref readonly int MethodRefReadonly => throw null;
 }
 partial explicit extension R for UnderlyingClass
 {
@@ -640,6 +676,7 @@ partial explicit extension R for UnderlyingClass
         Assert.True(r.GetMethod("MethodExtern").IsExtern);
         Assert.True(r.GetMethod("MethodExtern2").IsExtern);
         Assert.True(r.GetMethod("MethodStatic").IsStatic);
+        Assert.True(r.GetProperty("MethodRefReadonly").ReturnsByRefReadonly);
     }
 
     [Fact]
@@ -657,10 +694,28 @@ partial explicit extension R2 for UnderlyingClass : R1
 }
 """;
 
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Members_Methods_AllowedModifiers_New_Missing()
+    {
+        var src = """
+class UnderlyingClass { }
+explicit extension R1 for UnderlyingClass
+{
+    public void Method() { }
+}
+partial explicit extension R2 for UnderlyingClass : R1
+{
+    public void Method() { }
+}
+""";
+
         // PROTOTYPE should warn about missing `new`
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics(
-            );
+        comp.VerifyDiagnostics();
     }
 
     [Fact]
@@ -743,6 +798,7 @@ explicit extension R for UnderlyingClass
 
     extern int Extern { get; } // 2
     static extern int Extern2 { [System.Runtime.InteropServices.DllImport("test")] get; }
+    ref readonly int RefReadonlyInt => throw null;
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
@@ -786,10 +842,29 @@ explicit extension R for UnderlyingClass
         Assert.True(externProperty2.IsExtern);
         Assert.True(externProperty2.IsStatic);
         Assert.True(externProperty2.GetMethod.IsExtern);
+
+        Assert.True(r.GetProperty("RefReadonlyInt").ReturnsByRefReadonly);
     }
 
     [Fact]
     public void Members_Properties_AllowedModifiers_New()
+    {
+        var src = """
+class UnderlyingClass
+{
+    public int Property => 0;
+}
+explicit extension R1 for UnderlyingClass
+{
+    public new int Property => 0;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Members_Properties_AllowedModifiers_New_Missing()
     {
         var src = """
 class UnderlyingClass
@@ -992,6 +1067,23 @@ explicit extension R for UnderlyingClass
 
     [Fact]
     public void Members_Events_AllowedModifiers_New()
+    {
+        var src = """
+class UnderlyingClass
+{
+    public event System.Action Event { add => throw null; remove => throw null; }
+}
+explicit extension R1 for UnderlyingClass
+{
+    public new event System.Action Event { add => throw null; remove => throw null; }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Members_Events_AllowedModifiers_New_Missing()
     {
         var src = """
 class UnderlyingClass
@@ -1712,26 +1804,6 @@ explicit extension R<T1, T2> for UnderlyingClass
     }
 
     [Fact]
-    public void WithTypeParameters_Implicit()
-    {
-        var src = """
-interface I { }
-class UnderlyingClass : I { }
-implicit extension R<T1, T2> for UnderlyingClass
-{
-}
-""";
-        // PROTOTYPE the type parameters of an implicit extension must
-        // appear in the underlying type
-        var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
-
-        var r = comp.GlobalNamespace.GetTypeMember("R");
-        Assert.Equal(new[] { "T1", "T2" }, r.TypeParameters.ToTestDisplayStrings());
-        Assert.True(r.IsGenericType);
-    }
-
-    [Fact]
     public void WithTypeParameters_Variance()
     {
         var src = """
@@ -2176,7 +2248,7 @@ unsafe explicit extension R for int*
             // (1,27): error CS0227: Unsafe code may only appear if compiling with /unsafe
             // unsafe explicit extension R for int*
             Diagnostic(ErrorCode.ERR_IllegalUnsafe, "R").WithLocation(1, 27),
-            // (1,33): error CS9205: The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (1,33): error CS9205: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
             // unsafe explicit extension R for int*
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "int*").WithLocation(1, 33)
             );
@@ -2220,13 +2292,13 @@ explicit extension R2 for int* // 2, 3
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
-            // (1,33): error CS9205: The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (1,33): error CS9205: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
             // unsafe explicit extension R for int* // 1
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "int*").WithLocation(1, 33),
             // (6,27): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // explicit extension R2 for int* // 2, 3
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 27),
-            // (6,27): error CS9205: The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (6,27): error CS9205: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
             // explicit extension R2 for int* // 2, 3
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "int*").WithLocation(6, 27),
             // (8,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -2254,7 +2326,7 @@ unsafe explicit extension R for delegate*<void>
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
-            // (1,33): error CS9205: The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (1,33): error CS9205: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
             // unsafe explicit extension R for delegate*<void>
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "delegate*<void>").WithLocation(1, 33)
             );
@@ -2274,7 +2346,7 @@ explicit extension R for dynamic
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (1,26): error CS9205: The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (1,26): error CS9205: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
             // explicit extension R for dynamic
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "dynamic").WithLocation(1, 26)
             );
@@ -2292,7 +2364,7 @@ explicit extension R for dynamic
 class C<T> { }
 
 explicit extension R1 for string { }
-explicit extension R2 for string? { } // 1
+explicit extension R2 for string? { }
 explicit extension R3 for C<string> { }
 explicit extension R4 for C<string?> { }
 
@@ -2301,15 +2373,7 @@ explicit extension R5 for string { }
 explicit extension R6 for C<string> { }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics(
-            // (5,27): error CS9205: The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
-            // explicit extension R2 for string? { } // 1
-            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "string?").WithLocation(5, 27)
-            );
-        NamedTypeSymbol r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        Assert.Equal("R2", r2.ToTestDisplayString());
-        Assert.True(r2.IsExtension);
-        Assert.Equal("System.String", r2.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        comp.VerifyDiagnostics();
     }
 
     [Fact]
@@ -2341,7 +2405,7 @@ explicit extension R for RS { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (2,26): error CS9205: The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (2,26): error CS9205: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
             // explicit extension R for RS { }
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "RS").WithLocation(2, 26)
             );
@@ -2529,7 +2593,26 @@ partial explicit extension R for C<(int y, int b)> { }
     }
 
     [Fact]
-    public void Partial_PartsWithDifferentUnderlyingTypes_Nullability()
+    public void Partial_PartsWithDifferentUnderlyingTypes_TopLevelNullability()
+    {
+        var src = """
+#nullable enable
+
+class C<T> { }
+partial explicit extension R for object { }
+partial explicit extension R for object? { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+        var r = comp.GlobalNamespace.GetTypeMember("R");
+        Assert.Equal("R", r.ToTestDisplayString());
+        Assert.True(r.IsExtension);
+        Assert.Equal("System.Object", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString(includeNonNullable: true));
+        Assert.False(r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.IsErrorType());
+    }
+
+    [Fact]
+    public void Partial_PartsWithDifferentUnderlyingTypes_NestedNullability()
     {
         var src = """
 #nullable enable
@@ -2741,8 +2824,8 @@ partial {{typeKind}} R { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (3,19): error CS0261: Partial declarations of 'R' must be all classes, all record classes, all structs, all record structs, all interfaces, or all extensions.
-            // partial interface R { }
+            // (3,19): error CS0261: Partial declarations of 'R' must all be the same kind of type.
+            // partial class     R { }
             Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "R").WithArguments("R").WithLocation(3, 19)
             );
     }
@@ -2764,6 +2847,19 @@ internal partial explicit extension R1 for C { }
             // public partial explicit extension R1 for C { }
             Diagnostic(ErrorCode.ERR_BadVisUnderlyingType, "R1").WithArguments("R1", "C").WithLocation(2, 35)
             );
+    }
+
+    [Fact]
+    public void Partial_OnePartialModifier_OtherDefault()
+    {
+        var src = """
+class C { }
+internal partial explicit extension R1 for C { }
+partial explicit extension R1 for C { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+        Assert.Equal(Accessibility.Internal, comp.GlobalNamespace.GetTypeMember("R1").DeclaredAccessibility);
     }
 
     [Fact]
@@ -2803,11 +2899,10 @@ partial explicit extension R2<T> for C where T : class { }
 #nullable disable
 partial explicit extension R2<T> for C where T : class { }
 
-#nullable enable
-partial explicit extension R3<T> for C where T : class { }
 #nullable disable
 partial explicit extension R3<T> for C where T : class { }
 #nullable enable
+partial explicit extension R3<T> for C where T : class { }
 
 #nullable disable
 partial explicit extension R4<T> for C where T : class { }
@@ -2818,15 +2913,15 @@ explicit extension R5 for C : R1<string?>, R2<string?> , R3<string?>, R4<string?
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (23,20): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'R1<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+            // (22,20): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'R1<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
             // explicit extension R5 for C : R1<string?>, R2<string?> , R3<string?>, R4<string?> { }
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "R5").WithArguments("R1<T>", "T", "string?").WithLocation(23, 20),
-            // (23,20): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'R2<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "R5").WithArguments("R1<T>", "T", "string?").WithLocation(22, 20),
+            // (22,20): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'R2<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
             // explicit extension R5 for C : R1<string?>, R2<string?> , R3<string?>, R4<string?> { }
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "R5").WithArguments("R2<T>", "T", "string?").WithLocation(23, 20),
-            // (23,20): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'R3<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "R5").WithArguments("R2<T>", "T", "string?").WithLocation(22, 20),
+            // (22,20): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'R3<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
             // explicit extension R5 for C : R1<string?>, R2<string?> , R3<string?>, R4<string?> { }
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "R5").WithArguments("R3<T>", "T", "string?").WithLocation(23, 20)
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "R5").WithArguments("R3<T>", "T", "string?").WithLocation(22, 20)
             );
     }
 
@@ -2909,7 +3004,7 @@ explicit extension R for R { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (1,26): error CS9205: The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.
+            // (1,26): error CS9205: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
             // explicit extension R for R { }
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "R").WithLocation(1, 26)
             );
@@ -2941,6 +3036,37 @@ explicit extension R for (R, R) { }
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("(R, R)", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void TypeDepends_SelfReference_WithStruct()
+    {
+        var src = """
+struct S<T> { }
+explicit extension R for S<R> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+        var r = comp.GlobalNamespace.GetTypeMember("R");
+        Assert.Equal("S<R>", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void TypeDepends_SelfReference_WithStruct_WithField()
+    {
+        var src = """
+public struct S<T>
+{
+    public T field;
+}
+
+explicit extension R for S<R> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+        var r = comp.GlobalNamespace.GetTypeMember("R");
+        Assert.Equal("S<R>", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("R", r.ExtensionUnderlyingTypeNoUseSiteDiagnostics.GetMember("field").GetTypeOrReturnType().ToTestDisplayString());
     }
 
     [Fact]
@@ -3355,6 +3481,7 @@ explicit extension R2 for C : R1<error>
     [InlineData("protected", "public")]
     [InlineData("private protected", "public")]
     [InlineData("internal protected", "public")]
+    [InlineData("private protected", "protected")]
     [InlineData("private", "public")]
     [InlineData("internal", "protected")]
     [InlineData("private protected", "internal")]
@@ -3390,6 +3517,7 @@ public class C
     [InlineData("internal", "private protected")]
     [InlineData("internal protected", "internal")]
     [InlineData("protected", "protected")]
+    [InlineData("protected", "private protected")]
     [InlineData("private", "private")]
     public void BaseExtensions_AtLeastAsAccessibleBaseExtension(string baseAccessibility, string thisAccessibility)
     {
@@ -4196,6 +4324,34 @@ class C
     }
 
     [Fact]
+    public void Modifiers_File_DuplicateName_SeparateFiles()
+    {
+        var src1 = """
+struct S { }
+file explicit extension R for S { }
+
+partial class C
+{
+    explicit extension R2 for S { }
+}
+""";
+        var src2 = """
+file explicit extension R for S { }
+
+partial class C
+{
+    explicit extension R2 for S { }
+}
+""";
+        var comp = CreateCompilation(new[] { (src1, "1.cs"), (src2, "2.cs") });
+        comp.VerifyDiagnostics(
+            // 2.cs(5,24): error CS0102: The type 'C' already contains a definition for 'R2'
+            //     explicit extension R2 for S { }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "R2").WithArguments("C", "R2").WithLocation(5, 24)
+            );
+    }
+
+    [Fact]
     public void Modifiers_Duplicate()
     {
         var src = """
@@ -4892,12 +5048,68 @@ explicit extension R for C
 class C { }
 
 explicit extension record for C { }
+explicit extension file for C { }
+explicit extension required for C { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,20): warning CS8860: Types and aliases should not be named 'record'.
             // explicit extension record for C { }
-            Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 20)
+            Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 20),
+            // (4,20): error CS9056: Types and aliases cannot be named 'file'.
+            // explicit extension file for C { }
+            Diagnostic(ErrorCode.ERR_FileTypeNameDisallowed, "file").WithLocation(4, 20),
+            // (5,20): error CS9029: Types and aliases cannot be named 'required'.
+            // explicit extension required for C { }
+            Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(5, 20)
+            );
+    }
+
+    [Fact]
+    public void ReservedTypeNames_Keyword()
+    {
+        var text = """explicit extension unsafe for var { }""";
+        var comp = CreateCompilation(text);
+        comp.VerifyDiagnostics(
+            // (1,20): error CS1001: Identifier expected
+            // explicit extension unsafe for var { }
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "unsafe").WithLocation(1, 20),
+            // (1,20): error CS1514: { expected
+            // explicit extension unsafe for var { }
+            Diagnostic(ErrorCode.ERR_LbraceExpected, "unsafe").WithLocation(1, 20),
+            // (1,20): error CS1513: } expected
+            // explicit extension unsafe for var { }
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "unsafe").WithLocation(1, 20),
+            // (1,20): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+            // explicit extension unsafe for var { }
+            Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "unsafe").WithLocation(1, 20),
+            // (1,20): error CS9214: No part of a partial extension '' includes an underlying type specification.
+            // explicit extension unsafe for var { }
+            Diagnostic(ErrorCode.ERR_ExtensionMissingUnderlyingType, "").WithArguments("").WithLocation(1, 20),
+            // (1,27): error CS8803: Top-level statements must precede namespace and type declarations.
+            // explicit extension unsafe for var { }
+            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "for var { }").WithLocation(1, 27),
+            // (1,31): error CS1003: Syntax error, '(' expected
+            // explicit extension unsafe for var { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "var").WithArguments("(").WithLocation(1, 31),
+            // (1,31): error CS0103: The name 'var' does not exist in the current context
+            // explicit extension unsafe for var { }
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(1, 31),
+            // (1,31): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+            // explicit extension unsafe for var { }
+            Diagnostic(ErrorCode.ERR_IllegalStatement, "var").WithLocation(1, 31),
+            // (1,35): error CS1002: ; expected
+            // explicit extension unsafe for var { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 35),
+            // (1,35): error CS1525: Invalid expression term '{'
+            // explicit extension unsafe for var { }
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 35),
+            // (1,35): error CS1002: ; expected
+            // explicit extension unsafe for var { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 35),
+            // (1,35): error CS1026: ) expected
+            // explicit extension unsafe for var { }
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(1, 35)
             );
     }
 
@@ -4988,6 +5200,43 @@ public unsafe explicit extension R2<T> for C : R1<int*> { }
             // (5,34): error CS0306: The type 'int*' may not be used as a type argument
             // public unsafe explicit extension R2<T> for C : R1<int*> { }
             Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(5, 34)
+            );
+    }
+
+    [Fact]
+    public void ImplicitAndExplicit()
+    {
+        var text = """implicit explicit extension R for var { }""";
+
+        var comp = CreateCompilation(text);
+        comp.VerifyDiagnostics(
+            // (1,10): error CS1003: Syntax error, 'operator' expected
+            // implicit explicit extension R for var { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(1, 10),
+            // (1,10): error CS1031: Type expected
+            // implicit explicit extension R for var { }
+            Diagnostic(ErrorCode.ERR_TypeExpected, "explicit").WithLocation(1, 10),
+            // (1,10): error CS1003: Syntax error, '(' expected
+            // implicit explicit extension R for var { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("(").WithLocation(1, 10),
+            // (1,10): error CS1026: ) expected
+            // implicit explicit extension R for var { }
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "explicit").WithLocation(1, 10),
+            // (1,10): error CS1002: ; expected
+            // implicit explicit extension R for var { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "explicit").WithLocation(1, 10),
+            // (1,10): error CS0558: User-defined operator '<invalid-global-code>.implicit operator ?()' must be declared static and public
+            // implicit explicit extension R for var { }
+            Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "").WithArguments("<invalid-global-code>.implicit operator ?()").WithLocation(1, 10),
+            // (1,10): error CS0501: '<invalid-global-code>.implicit operator ?()' must declare a body because it is not marked abstract, extern, or partial
+            // implicit explicit extension R for var { }
+            Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "").WithArguments("<invalid-global-code>.implicit operator ?()").WithLocation(1, 10),
+            // (1,10): error CS1019: Overloadable unary operator expected
+            // implicit explicit extension R for var { }
+            Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "").WithLocation(1, 10),
+            // (1,35): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+            // implicit explicit extension R for var { }
+            Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(1, 35)
             );
     }
 }

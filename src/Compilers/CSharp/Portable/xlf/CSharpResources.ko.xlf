@@ -168,8 +168,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionUnderlyingType">
-        <source>The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</source>
-        <target state="new">The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</target>
+        <source>The extended type may not be dynamic, a pointer, a ref struct, or an extension.</source>
+        <target state="new">The extended type may not be dynamic, a pointer, a ref struct, or an extension.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
@@ -5646,7 +5646,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, all interfaces, or all extensions.</source>
+        <source>Partial declarations of '{0}' must all be the same kind of type.</source>
         <target state="needs-review-translation">'{0}'의 partial 선언은 모든 클래스, 모든 레코드 클래스, 모든 구조체, 모든 레코드 구조체 또는 모든 인터페이스여야 합니다.</target>
         <note />
       </trans-unit>
@@ -7170,8 +7170,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_IndexerInStaticClass">
-        <source>'{0}': cannot declare indexers in a static class</source>
-        <target state="translated">'{0}': 정적 클래스에는 인덱서를 선언할 수 없습니다.</target>
+        <source>'{0}': cannot declare indexers in a static type</source>
+        <target state="needs-review-translation">'{0}': 정적 클래스에는 인덱서를 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParameterIsStaticClass">

@@ -168,8 +168,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionUnderlyingType">
-        <source>The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</source>
-        <target state="new">The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</target>
+        <source>The extended type may not be dynamic, a pointer, a ref struct, or an extension.</source>
+        <target state="new">The extended type may not be dynamic, a pointer, a ref struct, or an extension.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
@@ -5647,7 +5647,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, all interfaces, or all extensions.</source>
+        <source>Partial declarations of '{0}' must all be the same kind of type.</source>
         <target state="needs-review-translation">Le dichiarazioni parziali di '{0}' devono essere costituite solo da classi, classi di record, struct di record o interfacce</target>
         <note />
       </trans-unit>
@@ -7171,8 +7171,8 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <note />
       </trans-unit>
       <trans-unit id="ERR_IndexerInStaticClass">
-        <source>'{0}': cannot declare indexers in a static class</source>
-        <target state="translated">'{0}': non è possibile dichiarare indicizzatori in una classe statica</target>
+        <source>'{0}': cannot declare indexers in a static type</source>
+        <target state="needs-review-translation">'{0}': non è possibile dichiarare indicizzatori in una classe statica</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParameterIsStaticClass">

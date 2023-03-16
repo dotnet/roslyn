@@ -1147,7 +1147,7 @@
     <value>Missing partial modifier on declaration of type '{0}'; another partial declaration of this type exists</value>
   </data>
   <data name="ERR_PartialTypeKindConflict" xml:space="preserve">
-    <value>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, all interfaces, or all extensions.</value>
+    <value>Partial declarations of '{0}' must all be the same kind of type.</value>
   </data>
   <data name="ERR_PartialModifierConflict" xml:space="preserve">
     <value>Partial declarations of '{0}' have conflicting accessibility modifiers</value>
@@ -2121,7 +2121,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': array elements cannot be of static type</value>
   </data>
   <data name="ERR_IndexerInStaticClass" xml:space="preserve">
-    <value>'{0}': cannot declare indexers in a static class</value>
+    <value>'{0}': cannot declare indexers in a static type</value>
   </data>
   <data name="ERR_ParameterIsStaticClass" xml:space="preserve">
     <value>'{0}': static types cannot be used as parameters</value>
@@ -7431,7 +7431,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Parameter has params modifier in lambda but not in target delegate type.</value>
   </data>
   <data name="ERR_BadExtensionUnderlyingType" xml:space="preserve">
-    <value>The extended type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</value>
+    <value>The extended type may not be dynamic, a pointer, a ref struct, or an extension.</value>
   </data>
   <data name="ERR_StaticBaseTypeOnInstanceExtension" xml:space="preserve">
     <value>Instance extension '{0}' cannot extend type '{1}' because it is static.</value>
