@@ -850,15 +850,17 @@ class C
     }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                // using X = System.Collections.Generic.List<int*[]>;
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43));
+            CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
 
-            CreateCompilation(text).VerifyDiagnostics(
+            var expected = new[]
+            {
                 // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using X = System.Collections.Generic.List<int*[]>;
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43));
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43)
+            };
+
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expected);
+            CreateCompilation(text).VerifyDiagnostics(expected);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]

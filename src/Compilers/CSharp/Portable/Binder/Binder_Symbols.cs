@@ -913,7 +913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ReportUseSiteDiagnosticForDynamic(diagnostics, node);
                         }
 
-                        if (type.IsUnsafe())
+                        if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingTypeAlias) ? type.ContainsPointer() : type.IsUnsafe())
                         {
                             ReportUnsafeIfNotAllowed(node, diagnostics);
                         }

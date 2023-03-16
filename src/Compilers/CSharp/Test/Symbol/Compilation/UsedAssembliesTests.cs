@@ -252,9 +252,9 @@ public class C2
         private Compilation AssertUsedAssemblyReferences(string source, MetadataReference[] references, params MetadataReference[] expected)
             => AssertUsedAssemblyReferences(source, references, expected, parseOptions: null);
 
-        private Compilation AssertUsedAssemblyReferences(string source, MetadataReference[] references, MetadataReference[] expected, CSharpParseOptions parseOptions)
+        private Compilation AssertUsedAssemblyReferences(string source, MetadataReference[] references, MetadataReference[] expected, CSharpParseOptions parseOptions, CSharpCompilationOptions options = null)
         {
-            Compilation comp = CreateCompilation(source, parseOptions: parseOptions, references: references);
+            Compilation comp = CreateCompilation(source, parseOptions: parseOptions, references: references, options: options);
             AssertUsedAssemblyReferences(comp, expected, references);
             return comp;
         }
@@ -3640,6 +3640,7 @@ public class C2
 
         [Fact]
         public void TypeReference_01()
+
         {
             var source0 =
 @"
