@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.AliasAmbiguousType
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.AliasAmbiguousType
+    <Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
     Public Class AliasAmbiguousTypeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -30,7 +31,7 @@ Namespace N2
 End Namespace"
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
+        <Fact>
         Public Async Function TestAmbiguousClassObjectCreationGlobalImports() As Task
             Dim classDef = GetAmbiguousDefinition("
 Public Class Ambiguous
@@ -65,7 +66,7 @@ End Namespace"
             Await TestSmartTagTextAsync(initialMarkup, "Imports Ambiguous = N1.Ambiguous", index:=0)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
+        <Fact>
         Public Async Function TestAmbiguousAttribute() As Task
             Dim classDef = GetAmbiguousDefinition("
     Class AAttribute
@@ -92,7 +93,7 @@ End Class"
             Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkupTemplate)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
+        <Fact>
         Public Async Function TestAmbiguousBug4817() As Task
             Dim initialMarkup = "
 Imports A
@@ -115,7 +116,7 @@ End Module
             Await TestMissingAsync(initialMarkup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
+        <Fact>
         Public Async Function TestAmbiguousClassInModule() As Task
             Dim initialMarkup = "
 Imports N1, N2
@@ -158,7 +159,7 @@ End Class
             Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
+        <Fact>
         Public Async Function TestAmbiguousInterfaceNameReferencedInSmallCaps() As Task
             Dim initialMarkup = "
 Imports N1, N2

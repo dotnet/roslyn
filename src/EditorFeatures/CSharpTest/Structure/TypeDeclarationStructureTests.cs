@@ -13,11 +13,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
 {
+    [Trait(Traits.Feature, Traits.Features.Outlining)]
     public class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<TypeDeclarationSyntax>
     {
         internal override AbstractSyntaxStructureProvider CreateProvider() => new TypeDeclarationStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestClass1()
         {
             const string code = @"
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Theory]
         [InlineData("enum")]
         [InlineData("class")]
         [InlineData("record")]
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Theory]
         [InlineData("enum")]
         [InlineData("class")]
         [InlineData("record")]
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestClassWithLeadingComments()
         {
             const string code = @"
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestClassWithNestedComments()
         {
             const string code = @"
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 Region("span2", "// Goo ...", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestInterface1()
         {
             const string code = @"
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Theory]
         [InlineData("enum")]
         [InlineData("class")]
         [InlineData("record")]
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Theory]
         [InlineData("enum")]
         [InlineData("class")]
         [InlineData("record")]
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestInterfaceWithLeadingComments()
         {
             const string code = @"
@@ -176,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestInterfaceWithNestedComments()
         {
             const string code = @"
@@ -191,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 Region("span2", "// Goo ...", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestStruct1()
         {
             const string code = @"
@@ -203,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Theory]
         [InlineData("enum")]
         [InlineData("class")]
         [InlineData("record")]
@@ -225,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Theory]
         [InlineData("enum")]
         [InlineData("class")]
         [InlineData("record")]
@@ -248,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestStructWithLeadingComments()
         {
             const string code = @"
@@ -263,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestStructWithNestedComments()
         {
             const string code = @"

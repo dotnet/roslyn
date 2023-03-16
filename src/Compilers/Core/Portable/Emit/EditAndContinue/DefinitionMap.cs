@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
+        private readonly ImmutableDictionary<IMethodSymbolInternal, MethodInstrumentation> _methodInstrumentations;
         protected readonly IReadOnlyDictionary<IMethodSymbolInternal, MappedMethod> mappedMethods;
         protected abstract SymbolMatcher MapToMetadataSymbolMatcher { get; }
         protected abstract SymbolMatcher MapToPreviousSymbolMatcher { get; }
@@ -38,7 +39,11 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             Debug.Assert(edits != null);
 
-            this.mappedMethods = GetMappedMethods(edits);
+            mappedMethods = GetMappedMethods(edits);
+
+            _methodInstrumentations = edits
+                .Where(edit => !edit.Instrumentation.IsEmpty)
+                .ToImmutableDictionary(edit => (IMethodSymbolInternal)GetISymbolInternalOrNull(edit.NewSymbol!)!, edit => edit.Instrumentation);
         }
 
         private IReadOnlyDictionary<IMethodSymbolInternal, MappedMethod> GetMappedMethods(IEnumerable<SemanticEdit> edits)
@@ -167,9 +172,9 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<Cci.ITypeReference, int>? awaiterMap = null;
             IReadOnlyDictionary<int, KeyValuePair<DebugId, int>>? lambdaMap = null;
             IReadOnlyDictionary<int, DebugId>? closureMap = null;
-            IReadOnlyDictionary<int, int>? stateMachineStateMap = null;
-            int? firstUnusedIncreasingStateMachineState = null;
-            int? firstUnusedDecreasingStateMachineState = null;
+            IReadOnlyDictionary<int, StateMachineState>? stateMachineStateMap = null;
+            StateMachineState? firstUnusedIncreasingStateMachineState = null;
+            StateMachineState? firstUnusedDecreasingStateMachineState = null;
 
             int hoistedLocalSlotCount = 0;
             int awaiterSlotCount = 0;
@@ -259,7 +264,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 ITypeSymbolInternal? stateMachineType = TryGetStateMachineType(previousHandle);
                 if (stateMachineType != null)
                 {
-                    // method is async/iterator kickoff method
+                    // Method is async/iterator kickoff method.
+
+                    // Use local slots stored in CDI (encLocalSlotMap) to calculate map of local variables hoisted to fields of the state machine.
                     var localSlotDebugInfo = debugInfo.LocalSlots.NullToEmpty();
                     GetStateMachineFieldMapFromMetadata(stateMachineType, localSlotDebugInfo, out hoistedLocalMap, out awaiterMap, out awaiterSlotCount);
                     hoistedLocalSlotCount = localSlotDebugInfo.Length;
@@ -296,6 +303,8 @@ namespace Microsoft.CodeAnalysis.Emit
                             return null;
                         }
                     }
+
+                    // Calculate local slot mapping for the current method (might be the MoveNext method of a state machine).
 
                     try
                     {
@@ -338,6 +347,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 GetLambdaSyntaxFacts());
         }
 
+        internal MethodInstrumentation GetMethodBodyInstrumentations(IMethodSymbolInternal method)
+            => _methodInstrumentations.TryGetValue(method, out var instrumentation) ? instrumentation : MethodInstrumentation.Empty;
+
         protected abstract LambdaSyntaxFacts GetLambdaSyntaxFacts();
 
         private void ReportMissingStateMachineAttribute(DiagnosticBag diagnostics, IMethodSymbolInternal method, string stateMachineAttributeFullName)
@@ -376,7 +388,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private static void MakeStateMachineStateMap(
             ImmutableArray<StateMachineStateDebugInfo> debugInfos,
-            out IReadOnlyDictionary<int, int>? map)
+            out IReadOnlyDictionary<int, StateMachineState>? map)
         {
             map = debugInfos.IsDefault ?
                 null :

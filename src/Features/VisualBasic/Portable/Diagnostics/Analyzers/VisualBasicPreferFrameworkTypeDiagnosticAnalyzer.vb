@@ -10,7 +10,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicPreferFrameworkTypeDiagnosticAnalyzer
-        Inherits PreferFrameworkTypeDiagnosticAnalyzerBase(Of SyntaxKind, ExpressionSyntax, PredefinedTypeSyntax)
+        Inherits PreferFrameworkTypeDiagnosticAnalyzerBase(Of
+            SyntaxKind,
+            ExpressionSyntax,
+        TypeSyntax,
+        IdentifierNameSyntax,
+        PredefinedTypeSyntax)
 
         Protected Overrides ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) =
             ImmutableArray.Create(SyntaxKind.PredefinedType)
@@ -19,14 +24,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
             Return node.IsDirectChildOfMemberAccessExpression() OrElse node.InsideCrefReference()
         End Function
 
+        Protected Overrides Function IsIdentifierNameReplaceableWithFrameworkType(semanticModel As SemanticModel, node As IdentifierNameSyntax) As Boolean
+            Return False
+        End Function
+
         Protected Overrides Function IsPredefinedTypeReplaceableWithFrameworkType(node As PredefinedTypeSyntax) As Boolean
             ' There is nothing to replace if keyword matches type name. For e.g: we don't want to replace `Object` 
             ' Or `String` because we'd essentially be replacing it with the same thing.
             Return Not KeywordMatchesTypeName(node.Keyword.Kind())
-        End Function
-
-        Protected Overrides Function GetLanguageName() As String
-            Return LanguageNames.VisualBasic
         End Function
 
         ''' <summary>

@@ -34,6 +34,6 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// 
         /// This will do cleanups that don't require any semantic information.
         /// </summary>
-        Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, HostWorkspaceServices services, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken);
+        Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SolutionServices services, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken);
     }
 }

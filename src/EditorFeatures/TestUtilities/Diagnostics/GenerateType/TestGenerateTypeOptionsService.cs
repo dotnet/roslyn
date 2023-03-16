@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
 
@@ -52,10 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             // Storing the actual values
             ClassName = className;
             GenerateTypeDialogOptions = generateTypeDialogOptions;
-            if (DefaultNamespace == null)
-            {
-                DefaultNamespace = projectManagementService.GetDefaultNamespace(Project, Project?.Solution.Workspace);
-            }
+            DefaultNamespace ??= projectManagementService.GetDefaultNamespace(Project, Project?.Solution.Workspace);
 
             return new GenerateTypeOptionsResult(
                 accessibility: Accessibility,

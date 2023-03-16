@@ -6,8 +6,9 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class CharacterTypingTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestXmlEndConstructApplied()
             VerifyEndConstructAppliedAfterChar(
                 before:=<Code>
@@ -30,7 +31,7 @@ End Class]]>
                 endCaretPos:={3, 21})
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact()>
         Public Sub TestXmlEndConstructNotApplied()
             VerifyEndConstructNotAppliedAfterChar(
                 before:=<Code>
@@ -53,7 +54,7 @@ End Class]]>
                 endCaretPos:={3, 14})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestXmlCommentEndConstructApplied()
             VerifyEndConstructAppliedAfterChar(
                 before:=<Code>
@@ -76,7 +77,7 @@ End Class]]>
                 endCaretPos:={3, 25})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestXmlCommentEndConstructNotApplied()
             VerifyEndConstructNotAppliedAfterChar(
                 before:=<Code>
@@ -99,7 +100,7 @@ End Class]]>
                 endCaretPos:={3, 19})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestXmlEmbeddedExpressionEndConstructApplied()
             VerifyEndConstructAppliedAfterChar(
                 before:=<Code>
@@ -122,7 +123,7 @@ End Class]]>
                 endCaretPos:={3, 30})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestXmlEmbeddedExpressionEndConstructNotApplied()
             VerifyEndConstructNotAppliedAfterChar(
                 before:=<Code>
@@ -145,7 +146,7 @@ End Class]]>
                 endCaretPos:={3, 15})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestXmlCDataEndConstructApplied()
             VerifyEndConstructAppliedAfterChar(
                 before:=<Code>
@@ -168,7 +169,7 @@ End Class]]>
                 endCaretPos:={3, 30})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestXmlCDataEndConstructNotApplied()
             VerifyEndConstructNotAppliedAfterChar(
                 before:=<Code>
@@ -191,7 +192,7 @@ End Class]]>
                 endCaretPos:={3, 18})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestXmlProcessingInstructionEndConstructApplied()
             VerifyEndConstructAppliedAfterChar(
                 before:=<Code>
@@ -214,7 +215,7 @@ End Class]]>
                 endCaretPos:={3, 18})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestXmlProcessingInstructionEndConstructNotApplied()
             VerifyEndConstructNotAppliedAfterChar(
                 before:=<Code>

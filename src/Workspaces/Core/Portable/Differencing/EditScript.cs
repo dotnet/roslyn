@@ -185,10 +185,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             {
                 if (_match.TryGetPartnerInTree2(e, out var pw) && Comparer.GetParent(pw).Equals(x))
                 {
-                    if (s1 == null)
-                    {
-                        s1 = new List<TNode>();
-                    }
+                    s1 ??= new List<TNode>();
 
                     s1.Add(e);
                 }
@@ -199,10 +196,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             {
                 if (_match.TryGetPartnerInTree1(e, out var px) && Comparer.GetParent(px).Equals(w))
                 {
-                    if (s2 == null)
-                    {
-                        s2 = new List<TNode>();
-                    }
+                    s2 ??= new List<TNode>();
 
                     s2.Add(e);
                 }

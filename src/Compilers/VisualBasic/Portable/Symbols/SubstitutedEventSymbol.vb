@@ -30,7 +30,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private _lazyExplicitInterfaceImplementations As ImmutableArray(Of EventSymbol)
         Private _lazyOverriddenOrHiddenMembers As OverriddenMembersResult(Of EventSymbol)
 
-
         Friend Sub New(containingType As SubstitutedNamedType,
                        originalDefinition As EventSymbol,
                        addMethod As SubstitutedMethodSymbol,

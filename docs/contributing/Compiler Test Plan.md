@@ -38,6 +38,7 @@ This document provides guidance for thinking about language interactions and tes
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
 - type declarations (class, record class/struct with or without positional members, struct, interface, type parameter)
+- file-local types
 - methods
 - fields (required and not)
 - properties (including get/set/init accessors, required and not)
@@ -93,6 +94,8 @@ This document provides guidance for thinking about language interactions and tes
     - Compound operators (`+=`, `/=`, etc ..) 
     - Assignment exprs
 - Ref return, ref readonly return, ref ternary, ref readonly local, ref local re-assignment, ref foreach
+- Ref fields
+- `scoped` parameters and locals
 - `this = e;` in `struct` .ctor
 - Stackalloc (including initializers)
 - Patterns (constant, declaration, `var`, positional, property and extended property, discard, parenthesized, type, relational, `and`/`or`/`not`, list, slice, constant `string` matching `Span<char>`)
@@ -123,6 +126,7 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
     - Typing experience and dealing with incomplete code
     - Intellisense (squiggles, dot completion)
     - "go to", Find All References, and renaming
+    - F1 help (for new keywords)
     - cref comments
     - UpgradeProject code fixer
     - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/main/docs/contributing/IDE%20Test%20Plan.md)
@@ -247,6 +251,7 @@ x + y
 x - y 
 x << y 
 x >> y 
+x >>> y 
 x < y 
 x > y 
 x <= y 
@@ -270,6 +275,7 @@ x += y
 x -= y 
 x <<= y 
 x >>= y 
+x >>>= y 
 x &= y 
 x ^= y 
 x |= y 

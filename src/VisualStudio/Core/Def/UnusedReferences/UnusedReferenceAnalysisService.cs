@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         public async Task<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(Solution solution, string projectFilePath, string projectAssetsFilePath, ImmutableArray<ReferenceInfo> projectReferences, CancellationToken cancellationToken)
         {
             using var logger = Logger.LogBlock(FunctionId.UnusedReferences_GetUnusedReferences, message: null, cancellationToken, LogLevel.Information);
-            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
                 var result = await client.TryInvokeAsync<IRemoteUnusedReferenceAnalysisService, ImmutableArray<ReferenceInfo>>(

@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // identity that is used when collecting all declarations 
         // of same type across multiple containers
-        internal struct TypeDeclarationIdentity : IEquatable<TypeDeclarationIdentity>
+        internal readonly struct TypeDeclarationIdentity : IEquatable<TypeDeclarationIdentity>
         {
             private readonly SingleTypeDeclaration _decl;
 
@@ -238,6 +238,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (thisDecl._kind != otherDecl._kind) ||
                     (thisDecl.name != otherDecl.name))
                 {
+                    return false;
+                }
+
+                if ((object)thisDecl.Location.SourceTree != otherDecl.Location.SourceTree
+                    && ((thisDecl.Modifiers & DeclarationModifiers.File) != 0
+                        || (otherDecl.Modifiers & DeclarationModifiers.File) != 0))
+                {
+                    // declarations of 'file' types are only the same type if they are in the same file
                     return false;
                 }
 

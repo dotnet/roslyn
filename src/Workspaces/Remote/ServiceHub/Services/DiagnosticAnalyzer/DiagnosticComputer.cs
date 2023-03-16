@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -24,15 +26,25 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     {
         /// <summary>
         /// Cache of <see cref="CompilationWithAnalyzers"/> and a map from analyzer IDs to <see cref="DiagnosticAnalyzer"/>s
-        /// for all analyzers for each project.
+        /// for all analyzers for the last project to be analyzed.
         /// The <see cref="CompilationWithAnalyzers"/> instance is shared between all the following document analyses modes for the project:
         ///  1. Span-based analysis for active document (lightbulb)
         ///  2. Background analysis for active and open documents.
         ///  
-        /// NOTE: We do not re-use this cache for project analysis as it leads to significant memory increase in the OOP process,
-        /// and CWT does not seem to drop entries until ForceGC happens.
+        /// NOTE: We do not re-use this cache for project analysis as it leads to significant memory increase in the OOP process.
+        /// Additionally, we only store the cache entry for the last project to be analyzed instead of maintaining a CWT keyed off
+        /// each project in the solution, as the CWT does not seem to drop entries until ForceGC happens, leading to significant memory
+        /// pressure when there are large number of open documents across different projects to be analyzed by background analysis.
         /// </summary>
-        private static readonly ConditionalWeakTable<Project, CompilationWithAnalyzersCacheEntry> s_compilationWithAnalyzersCache = new();
+        private static CompilationWithAnalyzersCacheEntry? s_compilationWithAnalyzersCache = null;
+        private static readonly object s_gate = new();
+
+        /// <summary>
+        /// Solution checksum for the diagnostic request.
+        /// We use this checksum and the <see cref="ProjectId"/> of the diagnostic request as the key
+        /// to the <see cref="s_compilationWithAnalyzersCache"/>.
+        /// </summary>
+        private readonly Checksum _solutionChecksum;
 
         private readonly TextDocument? _document;
         private readonly Project _project;
@@ -41,27 +53,70 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         private readonly AnalysisKind? _analysisKind;
         private readonly IPerformanceTrackerService? _performanceTracker;
         private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+        private readonly HostWorkspaceServices _hostWorkspaceServices;
 
-        public DiagnosticComputer(
+        private DiagnosticComputer(
             TextDocument? document,
             Project project,
+            Checksum solutionChecksum,
             IdeAnalyzerOptions ideOptions,
             TextSpan? span,
             AnalysisKind? analysisKind,
-            DiagnosticAnalyzerInfoCache analyzerInfoCache)
+            DiagnosticAnalyzerInfoCache analyzerInfoCache,
+            HostWorkspaceServices hostWorkspaceServices)
         {
             _document = document;
             _project = project;
+            _solutionChecksum = solutionChecksum;
             _ideOptions = ideOptions;
             _span = span;
             _analysisKind = analysisKind;
             _analyzerInfoCache = analyzerInfoCache;
-
-            // We only track performance from primary branch. All forked branch we don't care such as preview.
-            _performanceTracker = project.IsFromPrimaryBranch() ? project.Solution.Workspace.Services.GetService<IPerformanceTrackerService>() : null;
+            _hostWorkspaceServices = hostWorkspaceServices;
+            _performanceTracker = project.Solution.Services.GetService<IPerformanceTrackerService>();
         }
 
-        public async Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
+        public static Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
+            TextDocument? document,
+            Project project,
+            Checksum solutionChecksum,
+            IdeAnalyzerOptions ideOptions,
+            TextSpan? span,
+            IEnumerable<string> analyzerIds,
+            AnalysisKind? analysisKind,
+            DiagnosticAnalyzerInfoCache analyzerInfoCache,
+            HostWorkspaceServices hostWorkspaceServices,
+            bool reportSuppressedDiagnostics,
+            bool logPerformanceInfo,
+            bool getTelemetryInfo,
+            CancellationToken cancellationToken)
+        {
+            // PERF: Due to the concept of InFlight solution snapshots in OOP process, we might have been
+            //       handed a Project instance that does not match the Project instance corresponding to our
+            //       cached CompilationWithAnalyzers instance, while the underlying Solution checksum matches
+            //       for our cached entry and the incoming request.
+            //       We detect this case upfront here and re-use the cached CompilationWithAnalyzers and Project
+            //       instance for diagnostic computation, thus improving the performance of analyzer execution.
+            //       This is an important performance optimization for lightbulb diagnostic computation.
+            //       See https://github.com/dotnet/roslyn/issues/66968 for details.
+            lock (s_gate)
+            {
+                if (s_compilationWithAnalyzersCache?.SolutionChecksum == solutionChecksum &&
+                    s_compilationWithAnalyzersCache.Project.Id == project.Id &&
+                    s_compilationWithAnalyzersCache.Project != project)
+                {
+                    project = s_compilationWithAnalyzersCache.Project;
+                    if (document != null)
+                        document = project.GetTextDocument(document.Id);
+                }
+            }
+
+            var diagnosticsComputer = new DiagnosticComputer(document, project,
+                solutionChecksum, ideOptions, span, analysisKind, analyzerInfoCache, hostWorkspaceServices);
+            return diagnosticsComputer.GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+        }
+
+        private async Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
             IEnumerable<string> analyzerIds,
             bool reportSuppressedDiagnostics,
             bool logPerformanceInfo,
@@ -82,21 +137,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 compilationWithAnalyzers = compilationWithAnalyzers.Compilation.WithAnalyzers(analyzers, compilationWithAnalyzers.AnalysisOptions);
             }
 
-            var cacheService = _project.Solution.Workspace.Services.GetRequiredService<IProjectCacheService>();
-            using var cache = cacheService.EnableCaching(_project.Id);
             var skippedAnalyzersInfo = _project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
 
-            try
-            {
-                return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap, analyzers, skippedAnalyzersInfo,
-                    reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
-            }
-            catch
-            {
-                // Do not re-use cached CompilationWithAnalyzers instance in presence of an exception, as the underlying analysis state might be corrupt.
-                s_compilationWithAnalyzersCache.Remove(_project);
-                throw;
-            }
+            return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap, analyzers, skippedAnalyzersInfo,
+                reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<SerializableDiagnosticAnalysisResults> AnalyzeAsync(
@@ -116,12 +160,20 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var (analysisResult, additionalPragmaSuppressionDiagnostics) = await compilationWithAnalyzers.GetAnalysisResultAsync(
                 documentAnalysisScope, _project, _analyzerInfoCache, cancellationToken).ConfigureAwait(false);
 
-            // Record performance if tracker is available
             if (logPerformanceInfo && _performanceTracker != null)
             {
-                // +1 to include project itself
-                var unitCount = documentAnalysisScope != null ? 1 : _project.DocumentIds.Count + 1;
-                _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache), unitCount);
+                // Only log telemetry snapshot is we have an active telemetry session,
+                // i.e. user has not opted out of reporting telemetry.
+                var telemetryService = _hostWorkspaceServices.GetRequiredService<IWorkspaceTelemetryService>();
+                if (telemetryService.HasActiveSession)
+                {
+                    // +1 to include project itself
+                    var unitCount = 1;
+                    if (documentAnalysisScope == null)
+                        unitCount += _project.DocumentIds.Count;
+
+                    _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache), unitCount, forSpanAnalysis: _span.HasValue);
+                }
             }
 
             var builderMap = await analysisResult.ToResultBuilderMapAsync(
@@ -226,13 +278,23 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     return await CreateCompilationWithAnalyzersCacheEntryAsync(cancellationToken).ConfigureAwait(false);
                 }
 
-                if (s_compilationWithAnalyzersCache.TryGetValue(_project, out var data))
+                lock (s_gate)
                 {
-                    return data;
+                    if (s_compilationWithAnalyzersCache?.SolutionChecksum == _solutionChecksum &&
+                        s_compilationWithAnalyzersCache.Project == _project)
+                    {
+                        return s_compilationWithAnalyzersCache;
+                    }
                 }
 
-                data = await CreateCompilationWithAnalyzersCacheEntryAsync(cancellationToken).ConfigureAwait(false);
-                return s_compilationWithAnalyzersCache.GetValue(_project, _ => data);
+                var entry = await CreateCompilationWithAnalyzersCacheEntryAsync(cancellationToken).ConfigureAwait(false);
+
+                lock (s_gate)
+                {
+                    s_compilationWithAnalyzersCache = entry;
+                }
+
+                return entry;
             }
         }
 
@@ -261,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var compilationWithAnalyzers = await CreateCompilationWithAnalyzerAsync(analyzerBuilder.ToImmutable(), cancellationToken).ConfigureAwait(false);
             var analyzerToIdMap = new BidirectionalMap<string, DiagnosticAnalyzer>(analyzerMapBuilder);
 
-            return new CompilationWithAnalyzersCacheEntry(compilationWithAnalyzers, analyzerToIdMap);
+            return new CompilationWithAnalyzersCacheEntry(_solutionChecksum, _project, compilationWithAnalyzers, analyzerToIdMap);
         }
 
         private async Task<CompilationWithAnalyzers> CreateCompilationWithAnalyzerAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
@@ -282,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             // TODO: can we support analyzerExceptionFilter in remote host? 
             //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _project.Solution, _ideOptions),
+                options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _ideOptions),
                 onAnalyzerException: null,
                 analyzerExceptionFilter: null,
                 concurrentAnalysis: concurrentAnalysis,
@@ -294,11 +356,15 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         private sealed class CompilationWithAnalyzersCacheEntry
         {
+            public Checksum SolutionChecksum { get; }
+            public Project Project { get; }
             public CompilationWithAnalyzers CompilationWithAnalyzers { get; }
             public BidirectionalMap<string, DiagnosticAnalyzer> AnalyzerToIdMap { get; }
 
-            public CompilationWithAnalyzersCacheEntry(CompilationWithAnalyzers compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
+            public CompilationWithAnalyzersCacheEntry(Checksum solutionChecksum, Project project, CompilationWithAnalyzers compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
             {
+                SolutionChecksum = solutionChecksum;
+                Project = project;
                 CompilationWithAnalyzers = compilationWithAnalyzers;
                 AnalyzerToIdMap = analyzerToIdMap;
             }

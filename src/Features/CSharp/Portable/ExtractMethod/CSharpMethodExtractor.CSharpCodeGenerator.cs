@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
@@ -268,9 +268,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             private static SyntaxKind GetParameterRefSyntaxKind(ParameterBehavior parameterBehavior)
             {
-                return parameterBehavior == ParameterBehavior.Ref ?
-                        SyntaxKind.RefKeyword :
-                            parameterBehavior == ParameterBehavior.Out ?
+                return parameterBehavior == ParameterBehavior.Ref
+                        ? SyntaxKind.RefKeyword
+                            : parameterBehavior == ParameterBehavior.Out ?
                                 SyntaxKind.OutKeyword : SyntaxKind.None;
             }
 
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var replacements = new Dictionary<SyntaxNode, SyntaxNode>();
 
                 var declarations = statement.DescendantNodes()
-                    .Where(n => n.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.DeclarationPattern));
+                    .Where(n => n.Kind() is SyntaxKind.DeclarationExpression or SyntaxKind.DeclarationPattern);
 
                 foreach (var node in declarations)
                 {
@@ -657,14 +657,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 ExpressionSyntax initialValue,
                 CancellationToken cancellationToken)
             {
-                var type = variable.GetVariableType(SemanticDocument);
+                var type = variable.GetVariableType();
                 var typeNode = type.GenerateTypeSyntax();
+
+                var originalIdentifierToken = variable.GetOriginalIdentifierToken(cancellationToken);
+
+                // Hierarchy being checked for to see if a using keyword is needed is
+                // Token -> VariableDeclarator -> VariableDeclaration -> LocalDeclaration
+                var usingKeyword = originalIdentifierToken.Parent?.Parent?.Parent is LocalDeclarationStatementSyntax { UsingKeyword.FullSpan.IsEmpty: false }
+                    ? SyntaxFactory.Token(SyntaxKind.UsingKeyword)
+                    : default;
 
                 var equalsValueClause = initialValue == null ? null : SyntaxFactory.EqualsValueClause(value: initialValue);
 
                 return SyntaxFactory.LocalDeclarationStatement(
                     SyntaxFactory.VariableDeclaration(typeNode)
-                          .AddVariables(SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(variable.Name)).WithInitializer(equalsValueClause)));
+                          .AddVariables(SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(variable.Name))
+                          .WithInitializer(equalsValueClause)))
+                    .WithUsingKeyword(usingKeyword);
             }
 
             protected override async Task<GeneratedCode> CreateGeneratedCodeAsync(OperationStatus status, SemanticDocument newDocument, CancellationToken cancellationToken)

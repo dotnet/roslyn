@@ -104,7 +104,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                diagnostic:=inferenceDiagnostic,
                                                inferTheseTypeParameters:=fixTheseTypeParameters)
 
-
                 parameterToArgumentMap.Free()
 
                 If Not success OrElse Not reducedUseSiteInfo.Diagnostics.IsNullOrEmpty() Then

@@ -8,15 +8,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionCodeFixHelpers;
 
 #if CODE_STYLE
 using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
@@ -26,6 +24,9 @@ using Formatter = Microsoft.CodeAnalysis.Formatting.Formatter;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
+    using static UseConditionalExpressionCodeFixHelpers;
+    using static UseConditionalExpressionHelpers;
+
     internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         TStatementSyntax,
         TIfStatementSyntax,
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             // will return 'true' if it made a multi-line conditional expression. In that case,
             // we'll need to explicitly format this node so we can get our special multi-line
             // formatting in VB and C#.
-            var nestedEditor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+            var nestedEditor = new SyntaxEditor(root, document.Project.Solution.Services);
             foreach (var diagnostic in diagnostics)
             {
                 await FixOneAsync(
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 #if CODE_STYLE
             var provider = GetSyntaxFormatting();
 #else
-            var provider = document.Project.Solution.Workspace.Services;
+            var provider = document.Project.Solution.Services;
 #endif
             var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var formattingOptions = options.GetFormattingOptions(GetSyntaxFormatting());
@@ -104,22 +105,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var condition = ifOperation.Condition.Syntax;
-            if (!isRef)
+            if (CanSimplify(trueValue, falseValue, isRef, out var negate))
             {
-                // If we are going to generate "expr ? true : false" then just generate "expr"
-                // instead.
-                if (IsBooleanLiteral(trueValue, true) && IsBooleanLiteral(falseValue, false))
-                {
-                    return (TExpressionSyntax)condition.WithoutTrivia();
-                }
-
-                // If we are going to generate "expr ? false : true" then just generate "!expr"
-                // instead.
-                if (IsBooleanLiteral(trueValue, false) && IsBooleanLiteral(falseValue, true))
-                {
-                    return (TExpressionSyntax)generator.Negate(generatorInternal,
-                        condition, semanticModel, cancellationToken).WithoutTrivia();
-                }
+                return negate
+                    ? (TExpressionSyntax)generator.Negate(generatorInternal, condition, semanticModel, cancellationToken).WithoutTrivia()
+                    : (TExpressionSyntax)condition.WithoutTrivia();
             }
 
             var conditionalExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
@@ -138,17 +128,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
 
             return MakeRef(generatorInternal, isRef, conditionalExpression);
-        }
-
-        private static bool IsBooleanLiteral(IOperation trueValue, bool val)
-        {
-            if (trueValue is ILiteralOperation)
-            {
-                var constant = trueValue.ConstantValue;
-                return constant.HasValue && constant.Value is bool b && b == val;
-            }
-
-            return false;
         }
 
         private static TExpressionSyntax MakeRef(SyntaxGeneratorInternal generator, bool isRef, TExpressionSyntax syntaxNode)
@@ -172,7 +151,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             // the option is currently not an editorconfig option, so not available in code style layer
             var wrappingLength =
 #if !CODE_STYLE
-                fallbackOptions.GetOptions(document.Project.LanguageServices)?.ConditionalExpressionWrappingLength ??
+                fallbackOptions.GetOptions(document.Project.Services)?.ConditionalExpressionWrappingLength ??
 #endif
                 CodeActionOptions.DefaultConditionalExpressionWrappingLength;
 

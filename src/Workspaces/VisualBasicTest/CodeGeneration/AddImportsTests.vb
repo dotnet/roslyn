@@ -993,7 +993,7 @@ End Class", useSymbolAnnotations:=True)
         '            Assert.Equal(expectedWarningMessage, WarningAnnotation.GetDescription(warning))
         '        End Function
 
-        <Fact, WorkItem(39592, "https://github.com/dotnet/roslyn/issues/39592")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39592")>
         Public Async Function TestCanExpandCrefSignaturePart() As Task
             Await TestNoImportsAddedAsync(
 "Imports B
@@ -1020,7 +1020,7 @@ Class C
 End Class", useSymbolAnnotations:=True)
         End Function
 
-        <Fact, WorkItem(39592, "https://github.com/dotnet/roslyn/issues/39592")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39592")>
         Public Async Function TestSafeWithLambdaExtensionMethodAmbiguity() As Task
             Await TestNoImportsAddedAsync(
 "Imports System

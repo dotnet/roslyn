@@ -76,7 +76,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Editor.PlaceCaret("/* 1 */", charsOffset: 1);
             VisualStudio.Editor.PlaceCaret("/* 2 */", charsOffset: -1, extendSelection: true);
             VisualStudio.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("int x = 1;");
+            VisualStudio.InteractiveWindow.WaitForLastReplOutput("> int x = 1;");
 
             VisualStudio.InteractiveWindow.ClearReplText();
             VisualStudio.InteractiveWindow.SubmitText("x.ToString()");
@@ -92,7 +92,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Editor.PlaceCaret("/* 3 */", charsOffset: 1);
             VisualStudio.Editor.PlaceCaret("/* 4 */", charsOffset: -1, extendSelection: true);
             VisualStudio.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("int z = 3;");
+            VisualStudio.InteractiveWindow.WaitForLastReplOutput("\n.             int z = 3;");
 
             VisualStudio.InteractiveWindow.ClearReplText();
             VisualStudio.InteractiveWindow.SubmitText("y.ToString()");
@@ -111,7 +111,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Editor.PlaceCaret("/* 5 */", charsOffset: 6);
             VisualStudio.Editor.PlaceCaret("/* 6 */", charsOffset: -3, extendSelection: true, selectBlock: true);
             VisualStudio.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput(". x *= 4;");
+            VisualStudio.InteractiveWindow.WaitForLastReplOutput("\n. x *= 4;            ");
 
             VisualStudio.InteractiveWindow.ClearReplText();
             VisualStudio.InteractiveWindow.SubmitText("a + \"s\"");
@@ -131,7 +131,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Editor.PlaceCaret("/* 7 */", charsOffset: 1);
             VisualStudio.Editor.PlaceCaret("/* 8 */", charsOffset: -1, extendSelection: true);
             VisualStudio.SendKeys.Send(Ctrl(VirtualKey.E), Ctrl(VirtualKey.E));
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("int j = 7;");
+            VisualStudio.InteractiveWindow.WaitForLastReplOutput("> int j = 7;");
 
             VisualStudio.InteractiveWindow.ClearReplText();
             VisualStudio.InteractiveWindow.SubmitText("j.ToString()");
@@ -222,7 +222,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.SubmitText("public class MyClass { public string MyFunc() { return \"MyClass.MyFunc()\"; } }");
             VisualStudio.InteractiveWindow.SubmitText("(new MyClass()).MyFunc()");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"MyClass.MyFunc()\"");
-            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawler);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawlerLegacy);
         }
 
         [WpfFact]
@@ -247,7 +247,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.SubmitText("System.Windows.Forms.Form f = new System.Windows.Forms.Form(); f.Text = \"goo\";");
             VisualStudio.InteractiveWindow.SubmitText("f.Text");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"goo\"");
-            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawler);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawlerLegacy);
         }
     }
 }

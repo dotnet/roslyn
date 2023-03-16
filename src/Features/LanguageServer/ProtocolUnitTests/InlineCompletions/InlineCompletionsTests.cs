@@ -10,12 +10,17 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 public class InlineCompletionsTests : AbstractLanguageServerProtocolTests
 {
+    public InlineCompletionsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    {
+    }
+
     protected override TestComposition Composition => base.Composition
         .AddParts(typeof(TestSnippetInfoService));
 
@@ -240,7 +245,7 @@ class A
             $0
         }";
 
-        using var testLspServer = await CreateTestLspServerAsync(markup);
+        await using var testLspServer = await CreateTestLspServerAsync(markup);
         var locationTyped = testLspServer.GetLocations("tab").Single();
 
         var document = testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single();
@@ -265,7 +270,7 @@ class A
 
     private async Task VerifyMarkupAndExpected(string markup, string expected, LSP.FormattingOptions? options = null)
     {
-        using var testLspServer = await CreateTestLspServerAsync(markup);
+        await using var testLspServer = await CreateTestLspServerAsync(markup);
         var locationTyped = testLspServer.GetLocations("tab").Single();
 
         var document = testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single();

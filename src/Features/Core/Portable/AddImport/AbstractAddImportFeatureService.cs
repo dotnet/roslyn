@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Options;
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         private static bool IsHostOrRemoteWorkspace(Project project)
-            => project.Solution.Workspace.Kind is WorkspaceKind.Host or WorkspaceKind.RemoteWorkspace;
+            => project.Solution.WorkspaceKind is WorkspaceKind.Host or WorkspaceKind.RemoteWorkspace;
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(
             ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
@@ -223,6 +223,9 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             foreach (var unreferencedProject in viableUnreferencedProjects)
             {
+                if (!unreferencedProject.SupportsCompilation)
+                    continue;
+
                 // Search in this unreferenced project.  But don't search in any of its'
                 // direct references.  i.e. we don't want to search in its metadata references
                 // or in the projects it references itself. We'll be searching those entities
@@ -262,7 +265,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             using var nestedTokenSource = new CancellationTokenSource();
             using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
 
-            foreach (var (referenceProjectId, reference) in newReferences)
+            foreach (var (referenceProject, reference) in newReferences)
             {
                 var compilation = referenceToCompilation.GetOrAdd(
                     reference, r => CreateCompilation(project, r));
@@ -272,7 +275,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                 {
                     findTasks.Add(finder.FindInMetadataSymbolsAsync(
-                        assembly, referenceProjectId, reference, exact, linkedTokenSource.Token));
+                        assembly, referenceProject, reference, exact, linkedTokenSource.Token));
                 }
             }
 
@@ -284,10 +287,10 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// by this project.  The set returned will be tuples containing the PEReference, and the project-id
         /// for the project we found the pe-reference in.
         /// </summary>
-        private static ImmutableArray<(ProjectId, PortableExecutableReference)> GetUnreferencedMetadataReferences(
+        private static ImmutableArray<(Project, PortableExecutableReference)> GetUnreferencedMetadataReferences(
             Project project, HashSet<PortableExecutableReference> seenReferences)
         {
-            var result = ArrayBuilder<(ProjectId, PortableExecutableReference)>.GetInstance();
+            var result = ArrayBuilder<(Project, PortableExecutableReference)>.GetInstance();
 
             var solution = project.Solution;
             foreach (var p in solution.Projects)
@@ -303,7 +306,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                         !IsInPackagesDirectory(peReference) &&
                         seenReferences.Add(peReference))
                     {
-                        result.Add((p.Id, peReference));
+                        result.Add((p, peReference));
                     }
                 }
             }
@@ -395,7 +398,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private static Compilation CreateCompilation(Project project, PortableExecutableReference reference)
         {
-            var compilationService = project.LanguageServices.GetRequiredService<ICompilationFactoryService>();
+            var compilationService = project.Services.GetRequiredService<ICompilationFactoryService>();
             var compilation = compilationService.CreateCompilation("TempAssembly", compilationService.GetDefaultCompilationOptions());
             return compilation.WithReferences(reference);
         }
@@ -432,8 +435,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             var dependencyGraph = solution.GetProjectDependencyGraph();
             var projectsThatTransitivelyDependOnThisProject = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(project.Id);
 
-            viableProjects.RemoveAll(projectsThatTransitivelyDependOnThisProject.Select(id =>
-                solution.GetRequiredProject(id)));
+            viableProjects.RemoveAll(projectsThatTransitivelyDependOnThisProject.Select(solution.GetRequiredProject));
 
             // We also aren't interested in any projects we're already directly referencing.
             viableProjects.RemoveAll(project.ProjectReferences.Select(r => solution.GetRequiredProject(r.ProjectId)));
@@ -488,7 +490,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             // We might have multiple different diagnostics covering the same span.  Have to
             // process them all as we might produce different fixes for each diagnostic.
 
-            var fixesForDiagnosticBuilder = ArrayBuilder<(Diagnostic, ImmutableArray<AddImportFixData>)>.GetInstance();
+            using var _ = ArrayBuilder<(Diagnostic, ImmutableArray<AddImportFixData>)>.GetInstance(out var result);
 
             foreach (var diagnostic in diagnostics)
             {
@@ -497,10 +499,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                     symbolSearchService, options,
                     packageSources, cancellationToken).ConfigureAwait(false);
 
-                fixesForDiagnosticBuilder.Add((diagnostic, fixes));
+                result.Add((diagnostic, fixes));
             }
 
-            return fixesForDiagnosticBuilder.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         public async Task<ImmutableArray<AddImportFixData>> GetUniqueFixesAsync(
@@ -573,21 +575,16 @@ namespace Microsoft.CodeAnalysis.AddImport
             Document document, ImmutableArray<AddImportFixData> fixes,
             IPackageInstallerService? installerService, int maxResults)
         {
-            var codeActionsBuilder = ArrayBuilder<CodeAction>.GetInstance();
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
 
             foreach (var fix in fixes)
             {
-                var codeAction = TryCreateCodeAction(document, fix, installerService);
-
-                codeActionsBuilder.AddIfNotNull(codeAction);
-
-                if (codeActionsBuilder.Count >= maxResults)
-                {
+                result.AddIfNotNull(TryCreateCodeAction(document, fix, installerService));
+                if (result.Count >= maxResults)
                     break;
-                }
             }
 
-            return codeActionsBuilder.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private static CodeAction? TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService? installerService)
@@ -596,10 +593,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                 AddImportFixKind.ProjectSymbol => new ProjectSymbolReferenceCodeAction(document, fixData),
                 AddImportFixKind.MetadataSymbol => new MetadataSymbolReferenceCodeAction(document, fixData),
                 AddImportFixKind.ReferenceAssemblySymbol => new AssemblyReferenceCodeAction(document, fixData),
-                AddImportFixKind.PackageSymbol => installerService?.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName) == false
+                AddImportFixKind.PackageSymbol => installerService?.IsInstalled(document.Project.Id, fixData.PackageName) == false
                     ? new ParentInstallPackageCodeAction(document, fixData, installerService)
                     : null,
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
         private static ITypeSymbol? GetAwaitInfo(SemanticModel semanticModel, ISyntaxFacts syntaxFactsService, SyntaxNode node)

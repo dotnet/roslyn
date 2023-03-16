@@ -2198,7 +2198,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
         }
 
-        [Fact, WorkItem(1291, "https://github.com/dotnet/roslyn/issues/1291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1291")]
         public void Lambdas_Insert_ThisOnly_Top2()
         {
             var src1 = @"
@@ -2738,7 +2738,7 @@ class C
                 Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.lambda, "x0", "x1"));
         }
 
-        [Fact, WorkItem(1504, "https://github.com/dotnet/roslyn/issues/1504")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1504")]
         public void Lambdas_Insert_CatchFilter1()
         {
             var src1 = @"
@@ -3769,7 +3769,7 @@ class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact, WorkItem(2223, "https://github.com/dotnet/roslyn/issues/2223")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2223")]
         public void Lambdas_Update_CapturedParameters2()
         {
             var src1 = @"
@@ -4006,7 +4006,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"));
         }
 
-        [Fact, WorkItem(234448, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
         public void Lambdas_Update_CeaseCapture_SetterValueParameter1()
         {
             var src1 = @"
@@ -4039,7 +4039,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "set", "value"));
         }
 
-        [Fact, WorkItem(234448, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
         public void Lambdas_Update_CeaseCapture_IndexerSetterValueParameter1()
         {
             var src1 = @"
@@ -4072,7 +4072,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "set", "value"));
         }
 
-        [Fact, WorkItem(234448, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
         public void Lambdas_Update_CeaseCapture_EventAdderValueParameter1()
         {
             var src1 = @"
@@ -4105,7 +4105,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "add", "value"));
         }
 
-        [Fact, WorkItem(234448, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
         public void Lambdas_Update_CeaseCapture_EventRemoverValueParameter1()
         {
             var src1 = @"
@@ -5386,7 +5386,7 @@ class C
                 Diagnostic(RudeEditKind.SwitchBetweenLambdaAndLocalFunction, "a", CSharpFeaturesResources.lambda));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Insert_ThisOnly_Top1()
         {
             var src1 = @"
@@ -5421,7 +5421,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
         }
 
-        [Fact, WorkItem(1291, "https://github.com/dotnet/roslyn/issues/1291"), WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1291"), WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Insert_ThisOnly_Top2()
         {
             var src1 = @"
@@ -5463,7 +5463,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Insert_ThisOnly_Nested1()
         {
             var src1 = @"
@@ -5503,7 +5503,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Insert_ThisOnly_Nested2()
         {
             var src1 = @"
@@ -5559,7 +5559,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_InsertAndDelete_Scopes1()
         {
             var src1 = @"
@@ -5642,7 +5642,7 @@ class C
                 Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.local_function, "this", "x3"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Insert_ForEach1()
         {
             var src1 = @"
@@ -5689,7 +5689,7 @@ class C
                 Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.local_function, "x0", "x1"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Insert_Switch1()
         {
             var src1 = @"
@@ -5763,7 +5763,7 @@ class C
                 Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x0", CSharpFeaturesResources.local_function, "x2", "x0"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Insert_Catch1()
         {
             var src1 = @"
@@ -5846,7 +5846,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_CeaseCapture_This()
         {
             var src1 = @"
@@ -6231,7 +6231,7 @@ class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact, WorkItem(2223, "https://github.com/dotnet/roslyn/issues/2223")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2223")]
         public void LocalFunctions_Update_CapturedParameters2()
         {
             var src1 = @"
@@ -6281,7 +6281,7 @@ class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_CeaseCapture_Closure1()
         {
             var src1 = @"
@@ -6323,7 +6323,7 @@ class C
                 Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "f2", "y", CSharpFeaturesResources.local_function));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_CeaseCapture_IndexerParameter()
         {
             var src1 = @"
@@ -6348,7 +6348,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_CeaseCapture_MethodParameter1()
         {
             var src1 = @"
@@ -6379,7 +6379,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a2", "a2"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_CeaseCapture_LambdaParameter1()
         {
             var src1 = @"
@@ -6418,7 +6418,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "int f1(int a1, int a2)\r\n        {\r\n            int f2(int a3) => a2;\r\n            return a1;\r\n        };\r\n  ", "a1"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_CeaseCapture_SetterValueParameter1()
         {
             var src1 = @"
@@ -6451,7 +6451,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "set", "value"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_CeaseCapture_IndexerSetterValueParameter1()
         {
             var src1 = @"
@@ -6484,7 +6484,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "set", "value"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_CeaseCapture_EventAdderValueParameter1()
         {
             var src1 = @"
@@ -6517,7 +6517,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "add", "value"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_CeaseCapture_EventRemoverValueParameter1()
         {
             var src1 = @"
@@ -6550,7 +6550,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "remove", "value"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_DeleteCapture1()
         {
             var src1 = @"
@@ -6590,7 +6590,7 @@ class C
                 Diagnostic(RudeEditKind.DeletingCapturedVariable, "{", "y"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_Capturing_IndexerGetterParameter2()
         {
             var src1 = @"
@@ -6615,7 +6615,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_Capturing_IndexerSetterParameter1()
         {
             var src1 = @"
@@ -6640,7 +6640,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_Capturing_IndexerSetterValueParameter1()
         {
             var src1 = @"
@@ -6673,7 +6673,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "set", "value"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_Capturing_EventAdderValueParameter1()
         {
             var src1 = @"
@@ -6706,7 +6706,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "remove", "value"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_Capturing_EventRemoverValueParameter1()
         {
             var src1 = @"
@@ -6739,7 +6739,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "remove", "value"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_Capturing_MethodParameter1()
         {
             var src1 = @"
@@ -6770,7 +6770,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_Capturing_LambdaParameter1()
         {
             var src1 = @"
@@ -6809,7 +6809,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_StaticToThisOnly1()
         {
             var src1 = @"
@@ -6844,7 +6844,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_StaticToThisOnly_Partial()
         {
             var src1 = @"
@@ -6887,7 +6887,7 @@ partial class C
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_StaticToThisOnly3()
         {
             var src1 = @"
@@ -6924,7 +6924,7 @@ class C
                 Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "f1", "this", CSharpFeaturesResources.local_function));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_StaticToClosure1()
         {
             var src1 = @"
@@ -6966,7 +6966,7 @@ class C
                 Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x", "x", CSharpFeaturesResources.local_function));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_ThisOnlyToClosure1()
         {
             var src1 = @"
@@ -7045,7 +7045,7 @@ class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_Nested2()
         {
             var src1 = @"
@@ -7086,7 +7086,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_RenameCapturedLocal()
         {
             var src1 = @"
@@ -7277,8 +7277,7 @@ class C
                 Diagnostic(RudeEditKind.ChangingLambdaReturnType, "local", CSharpFeaturesResources.local_function));
         }
 
-        [WorkItem(37128, "https://github.com/dotnet/roslyn/issues/37128")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37128")]
         public void LocalFunction_AddToInterfaceMethod()
         {
             var src1 = @"
@@ -7382,8 +7381,7 @@ interface I
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
-        [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37054")]
         public void LocalFunction_AddAsync()
         {
             var src1 = @"class Test { void M() { Task<int> local() => throw null; } }";
@@ -7393,8 +7391,7 @@ interface I
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
-        [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37054")]
         public void LocalFunction_RemoveAsync()
         {
             var src1 = @"class Test { void M() { async int local() { throw null; } } }";
@@ -9383,22 +9380,22 @@ class C
         /// Tests spilling detection logic of <see cref="CSharpEditAndContinueAnalyzer.ReportStateMachineSuspensionPointRudeEdits"/>.
         /// </summary>
         [Theory]
-        [InlineData("await F(1);", "await F(2);")]
-        [InlineData("if (await F(1)) { Console.WriteLine(1); }", "if (await F(1)) { Console.WriteLine(2); }")]
-        [InlineData("if (await F(1)) { Console.WriteLine(1); }", "if (await F(2)) { Console.WriteLine(1); }")]
-        [InlineData("if (F(1, await F(1))) { Console.WriteLine(1); }", "if (F(1, await F(1))) { Console.WriteLine(2); }")]
+        [InlineData("await F(old);")]
+        [InlineData("if (await F(1)) { Console.WriteLine(old); }")]
+        [InlineData("if (await F(old)) { Console.WriteLine(1); }")]
+        [InlineData("if (F(1, await F(1))) { Console.WriteLine(old); }")]
         [InlineData("if (await F(1)) { Console.WriteLine(1); }", "while (await F(1)) { Console.WriteLine(1); }")]
-        [InlineData("do { Console.WriteLine(1); } while (await F(1));", "do { Console.WriteLine(2); } while (await F(2));")]
-        [InlineData("for (var x = await F(1); await G(1); await H(1)) { Console.WriteLine(1); }", "for (var x = await F(2); await G(2); await H(2)) { Console.WriteLine(2); }")]
-        [InlineData("foreach (var x in await F(1)) { Console.WriteLine(1); }", "foreach (var x in await F(2)) { Console.WriteLine(2); }")]
-        [InlineData("using (var x = await F(1)) { Console.WriteLine(1); }", "using (var x = await F(2)) { Console.WriteLine(1); }")]
-        [InlineData("lock (await F(1)) { Console.WriteLine(1); }", "lock (await F(2)) { Console.WriteLine(2); }")]
-        [InlineData("lock (a = await F(1)) { Console.WriteLine(1); }", "lock (a = await F(2)) { Console.WriteLine(2); }")]
-        [InlineData("var a = await F(1), b = await G(1);", "var a = await F(2), b = await G(2);")]
-        [InlineData("a = await F(1);", "b = await F(2);")]
-        [InlineData("switch (await F(2)) { case 1: return b = await F(1); }", "switch (await F(2)) { case 1: return b = await F(2); }")]
-        [InlineData("return await F(1);", "return await F(2);")]
-        public void AwaitSpilling_OK(string oldStatement, string newStatement)
+        [InlineData("do { Console.WriteLine(old); } while (await F(old));")]
+        [InlineData("for (var x = await F(old); await G(old); await H(old)) { Console.WriteLine(old); }")]
+        [InlineData("foreach (var x in await F(old)) { Console.WriteLine(old); }")]
+        [InlineData("using (var x = await F(old)) { Console.WriteLine(1); }")]
+        [InlineData("lock (await F(old)) { Console.WriteLine(old); }")]
+        [InlineData("lock (a = await F(old)) { Console.WriteLine(old); }")]
+        [InlineData("var a = await F(old), b = await G(old);")]
+        [InlineData("a = await F(old);")]
+        [InlineData("switch (await F(2)) { case 1: return b = await F(old); }")]
+        [InlineData("return await F(old);")]
+        public void AwaitSpilling_OK(string oldStatement, string newStatement = null)
         {
             var src1 = @"
 class C
@@ -9409,6 +9406,8 @@ class C
     }
 }
 ";
+            newStatement ??= oldStatement.Replace("old", "@new");
+
             var src2 = @"
 class C
 {
@@ -9445,17 +9444,15 @@ class C
         /// Tests spilling detection logic of <see cref="CSharpEditAndContinueAnalyzer.ReportStateMachineSuspensionPointRudeEdits"/>.
         /// </summary>
         [Theory]
-        [InlineData("F(1, await F(1));", "F(2, await F(1));")]
-        [InlineData("F(1, await F(1));", "F(1, await F(2));")]
-        [InlineData("F(await F(1));", "F(await F(2));")]
-        [InlineData("await F(await F(1));", "await F(await F(2));")]
-        [InlineData("if (F(1, await F(1))) { Console.WriteLine(1); }", "if (F(2, await F(1))) { Console.WriteLine(1); }",
-                    new[] { "F(2, await F(1))" })]
-        [InlineData("var a = F(1, await F(1)), b = F(1, await G(1));", "var a = F(1, await F(2)), b = F(1, await G(2));",
-                    new[] { "var a = F(1, await F(2)), b = F(1, await G(2));", "var a = F(1, await F(2)), b = F(1, await G(2));" })]
-        [InlineData("b = F(1, await F(1));", "b = F(1, await F(2));")]
-        [InlineData("b += await F(1);", "b += await F(2);")]
-        public void AwaitSpilling_Errors(string oldStatement, string newStatement, string[] errorMessages = null)
+        [InlineData("F(old, await F(1));")]
+        [InlineData("F(1, await F(old));")]
+        [InlineData("F(await F(old));")]
+        [InlineData("await F(await F(old));")]
+        [InlineData("if (F(old, await F(1))) { Console.WriteLine(1); }", new[] { "F(@new, await F(1))" })]
+        [InlineData("var a = F(1, await F(old)), b = F(1, await G(old));", new[] { "var a = F(1, await F(@new)), b = F(1, await G(@new));", "var a = F(1, await F(@new)), b = F(1, await G(@new));" })]
+        [InlineData("b = F(1, await F(old));")]
+        [InlineData("b += await F(old);")]
+        public void AwaitSpilling_Errors(string oldStatement, string[] errorMessages = null)
         {
             var src1 = @"
 class C
@@ -9466,6 +9463,8 @@ class C
     }
 }
 ";
+            var newStatement = oldStatement.Replace("old", "@new");
+
             var src2 = @"
 class C
 {
@@ -10816,7 +10815,7 @@ Console.WriteLine(x());
                 Diagnostic(RudeEditKind.CapturingVariable, "using System;\r\n\r\nvar x = new Func<string>(() => \"Hello\" + args[0]);\r\n\r\nConsole.WriteLine(x());\r\n", "args"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void TopLevelStatement_InsertMultiScopeCapture()
         {
             var src1 = @"

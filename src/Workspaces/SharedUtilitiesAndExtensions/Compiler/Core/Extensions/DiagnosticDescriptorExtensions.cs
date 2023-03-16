@@ -191,5 +191,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         internal static Uri? GetValidHelpLinkUri(this DiagnosticDescriptor descriptor)
            => Uri.TryCreate(descriptor.HelpLinkUri, UriKind.Absolute, out var uri) &&
               (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps) ? uri : null;
+
+        public static DiagnosticDescriptor WithMessageFormat(this DiagnosticDescriptor descriptor, LocalizableString messageFormat)
+        {
+#pragma warning disable RS0030 // Do not used banned APIs - DiagnosticDescriptor .ctor is banned in this project, but fine to use here.
+            return new DiagnosticDescriptor(descriptor.Id, descriptor.Title, messageFormat,
+                descriptor.Category, descriptor.DefaultSeverity, descriptor.IsEnabledByDefault,
+                descriptor.Description, descriptor.HelpLinkUri, descriptor.CustomTags.ToArray());
+#pragma warning restore RS0030 // Do not used banned APIs
+        }
     }
 }

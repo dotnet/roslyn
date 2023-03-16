@@ -131,8 +131,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
             Assert.NotNull(document);
 
-            var options = new ExtractMethodGenerationOptions(CodeGenerationOptions.GetDefault(document.Project.LanguageServices))
+            var options = new ExtractMethodGenerationOptions()
             {
+                CodeGenerationOptions = CodeGenerationOptions.GetDefault(document.Project.Services),
                 ExtractOptions = new() { DontPutOutOrRefOnStruct = dontPutOutOrRefOnStruct }
             };
 
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                 result.SucceededWithSuggestion ||
                 (allowBestEffort && result.Status.HasBestEffort()));
 
-            var (doc, _) = await result.GetFormattedDocumentAsync(CodeCleanupOptions.GetDefault(document.Project.LanguageServices), CancellationToken.None);
+            var (doc, _) = await result.GetFormattedDocumentAsync(CodeCleanupOptions.GetDefault(document.Project.Services), CancellationToken.None);
             return doc == null
                 ? null
                 : await doc.GetSyntaxRootAsync();

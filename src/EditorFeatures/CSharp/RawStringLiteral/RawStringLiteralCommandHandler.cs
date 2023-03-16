@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
@@ -22,17 +23,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IGlobalOptionService _globalOptions;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
+        private readonly IIndentationManagerService _indentationManager;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RawStringLiteralCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IGlobalOptionService globalOptions,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            EditorOptionsService editorOptionsService,
+            IIndentationManagerService indentationManager)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _globalOptions = globalOptions;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _editorOptionsService = editorOptionsService;
+            _indentationManager = indentationManager;
         }
 
         public string DisplayName => CSharpEditorResources.Split_raw_string;

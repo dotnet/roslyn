@@ -94,7 +94,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.InheritanceMargin
                                   Function(grouping)
                                       Dim lineNumber = grouping.Key
                                       Dim items = grouping.Select(Function(g) g).ToImmutableArray()
-                                      Return New InheritanceMarginTag(workspace, lineNumber, items)
+                                      Return New InheritanceMarginTag(lineNumber, items)
                                   End Function)
                 Assert.Equal(expectedViewModels.Count, acutalLineToTagDictionary.Count)
 

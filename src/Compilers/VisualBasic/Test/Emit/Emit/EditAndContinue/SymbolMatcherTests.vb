@@ -540,6 +540,7 @@ End Class
                 New EmitContext(),
                 compilation0.SourceAssembly,
                 New EmitContext(),
+                Nothing,
                 Nothing)
 
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
@@ -568,6 +569,7 @@ Class C
                 New EmitContext(),
                 compilation0.SourceAssembly,
                 New EmitContext(),
+                Nothing,
                 Nothing)
 
             Dim member = compilation1.GetMember(Of FieldSymbol)("C.x")
@@ -598,6 +600,7 @@ Class C
                 New EmitContext(),
                 compilation0.SourceAssembly,
                 New EmitContext(),
+                Nothing,
                 Nothing)
 
             Dim member = compilation1.GetMember(Of FieldSymbol)("C.x")
@@ -633,6 +636,7 @@ End Class
                 New EmitContext(),
                 compilation0.SourceAssembly,
                 New EmitContext(),
+                Nothing,
                 Nothing)
 
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
@@ -666,6 +670,7 @@ End Class
                 New EmitContext(),
                 compilation0.SourceAssembly,
                 New EmitContext(),
+                Nothing,
                 Nothing)
 
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
@@ -699,6 +704,7 @@ End Class
                 New EmitContext(),
                 compilation0.SourceAssembly,
                 New EmitContext(),
+                Nothing,
                 Nothing)
 
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
@@ -732,6 +738,7 @@ End Class
                 New EmitContext(),
                 compilation0.SourceAssembly,
                 New EmitContext(),
+                Nothing,
                 Nothing)
 
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
@@ -771,6 +778,7 @@ End Class
                 New EmitContext(),
                 compilation0.SourceAssembly,
                 New EmitContext(),
+                Nothing,
                 Nothing)
 
             Dim member = compilation1.GetMember(Of PropertySymbol)("C.X")
@@ -808,6 +816,7 @@ End Class
                 New EmitContext(),
                 compilation0.SourceAssembly,
                 New EmitContext(),
+                Nothing,
                 Nothing)
 
             Dim member = compilation1.GetMember(Of PropertySymbol)("C.X")
@@ -839,6 +848,7 @@ End Structure
                 New EmitContext(),
                 compilation0.SourceAssembly,
                 New EmitContext(),
+                Nothing,
                 Nothing)
 
             Dim member = compilation1.GetMember(Of FieldSymbol)("Vector.Coordinates")
@@ -868,6 +878,7 @@ End Structure
                 New EmitContext(),
                 compilation0.SourceAssembly,
                 New EmitContext(),
+                Nothing,
                 Nothing)
 
             Dim member = compilation1.GetMember(Of FieldSymbol)("Vector.Coordinates")
@@ -899,6 +910,7 @@ End Class
                 New EmitContext(),
                 compilation0.SourceAssembly,
                 New EmitContext(),
+                Nothing,
                 Nothing)
 
             Dim member = compilation1.GetMember(Of SourceNamedTypeSymbol)("C.F")
@@ -929,6 +941,7 @@ End Class"
                 New EmitContext(),
                 compilation0.SourceAssembly,
                 New EmitContext(),
+                Nothing,
                 Nothing)
 
             Dim member = compilation1.GetMember(Of SourceNamedTypeSymbol)("C.F")

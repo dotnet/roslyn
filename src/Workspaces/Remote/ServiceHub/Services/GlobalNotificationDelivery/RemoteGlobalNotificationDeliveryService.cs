@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Notification;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(cancellationToken =>
             {
                 var globalOperationNotificationService = GetGlobalOperationNotificationService();
-                globalOperationNotificationService?.OnStarted();
+                globalOperationNotificationService.OnStarted();
                 return default;
             }, cancellationToken);
         }
@@ -44,12 +45,13 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(cancellationToken =>
             {
                 var globalOperationNotificationService = GetGlobalOperationNotificationService();
-                globalOperationNotificationService?.OnStopped();
+                globalOperationNotificationService.OnStopped();
                 return default;
             }, cancellationToken);
         }
 
-        private RemoteGlobalOperationNotificationService? GetGlobalOperationNotificationService()
-            => GetWorkspace().Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
+        private RemoteGlobalOperationNotificationService GetGlobalOperationNotificationService()
+            // We know in the remote layer this type must exist.
+            => (RemoteGlobalOperationNotificationService)GetWorkspace().Services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().Single().Value;
     }
 }

@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         public static readonly ISet<SyntaxKind> AllTypeModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
             {
                 SyntaxKind.AbstractKeyword,
+                SyntaxKind.FileKeyword,
                 SyntaxKind.InternalKeyword,
                 SyntaxKind.NewKeyword,
                 SyntaxKind.PublicKeyword,

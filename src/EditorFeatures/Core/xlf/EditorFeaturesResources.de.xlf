@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
-        <target state="new">Computing 'Encapsulate Field' information</target>
+        <target state="translated">Berechnen von "Kapselungsfeld"-Informationen</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_it_now">
@@ -304,7 +304,7 @@
       </trans-unit>
       <trans-unit id="Rename_operation_could_not_complete_due_to_external_change_to_workspace">
         <source>Rename operation could not complete due to external change to workspace</source>
-        <target state="new">Rename operation could not complete due to external change to workspace</target>
+        <target state="translated">Der Umbenennungsvorgang konnte aufgrund einer externen Änderung am Arbeitsbereich nicht abgeschlossen werden</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_symbols_file">
@@ -609,7 +609,7 @@
       </trans-unit>
       <trans-unit id="_0_Esc_to_cancel">
         <source>{0} (Esc to cancel)</source>
-        <target state="new">{0} (Esc to cancel)</target>
+        <target state="translated">{0} (Esc zum Abbrechen)</target>
         <note>Placeholder represents an operating that is happening.  Parenthesized expression indicates how you can cancel it.</note>
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
@@ -897,36 +897,6 @@
         <target state="translated">Das Token ist nicht im Arbeitsbereich enthalten.</target>
         <note />
       </trans-unit>
-      <trans-unit id="You_must_rename_an_identifier">
-        <source>You must rename an identifier.</source>
-        <target state="translated">Sie müssen einen Bezeichner umbenennen.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_cannot_rename_this_element">
-        <source>You cannot rename this element.</source>
-        <target state="translated">Sie können dieses Element nicht umbenennen.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
-        <source>Please resolve errors in your code before renaming this element.</source>
-        <target state="translated">Beheben Sie die Fehler in Ihrem Code, bevor Sie dieses Element umbenennen.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_cannot_rename_operators">
-        <source>You cannot rename operators.</source>
-        <target state="translated">Sie können Operatoren nicht umbenennen.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_cannot_rename_elements_that_are_defined_in_metadata">
-        <source>You cannot rename elements that are defined in metadata.</source>
-        <target state="translated">Sie können in Metadaten definierte Elemente nicht umbenennen.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_cannot_rename_elements_from_previous_submissions">
-        <source>You cannot rename elements from previous submissions.</source>
-        <target state="translated">Sie können Elemente aus vorherigen Übermittlungen umbenennen.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Navigation_Bars">
         <source>Navigation Bars</source>
         <target state="translated">Navigationsleisten</target>
@@ -1135,11 +1105,6 @@
       <trans-unit id="Automatic_Pair_Completion_End_Point_Marker_Color">
         <source>Automatic Pair Completion End Point Marker Color</source>
         <target state="translated">Farbe der Endpunktmarkierung der automatischen Paarergänzung</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
-        <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">Das Umbenennen von Elementen des Typs anonym wird noch nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">

@@ -1,0 +1,17 @@
+{
+    "codebaseName": "Roslyn-GitHub",
+    "notificationAliases": [
+        "mlinfraswat@microsoft.com"
+    ],
+    "codebaseAdmins": [
+        "REDMOND\\jaredpar",
+        "REDMOND\\vaagrawa"
+    ],
+    "instanceUrl": "https://devdiv.visualstudio.com",
+    "projectName": "DevDiv",
+    "areaPath": "DevDiv\\NET Developer Experience\\Productivity",
+    "iterationPath": "DevDiv",
+    "tools": [
+        "APIScan"
+    ]
+}

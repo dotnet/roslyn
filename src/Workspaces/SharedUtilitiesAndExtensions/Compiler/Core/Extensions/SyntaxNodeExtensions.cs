@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ValueAncestorsAndSelfEnumerable ValueAncestorsAndSelf(this SyntaxNode syntaxNode, bool ascendOutOfTrivia = true)
             => new(syntaxNode, ascendOutOfTrivia);
 
-        public struct ValueAncestorsAndSelfEnumerable
+        public readonly struct ValueAncestorsAndSelfEnumerable
         {
             private readonly SyntaxNode _syntaxNode;
             private readonly bool _ascendOutOfTrivia;

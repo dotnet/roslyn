@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     internal abstract class AbstractCodeStyleOptionViewModel : AbstractNotifyPropertyChanged
     {
         protected AbstractOptionPreviewViewModel Info { get; }
-        public IOption Option { get; }
+        public IOption2 Option { get; }
 
         public string Description { get; set; }
         public double DescriptionMargin { get; set; } = 12d;
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
 
         public AbstractCodeStyleOptionViewModel(
-            IOption option,
+            IOption2 option,
             string description,
             AbstractOptionPreviewViewModel info,
             string groupName,
@@ -67,10 +67,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             return new List<NotificationOptionViewModel>
             {
-                new NotificationOptionViewModel(NotificationOption.Silent, KnownMonikers.None),
-                new NotificationOptionViewModel(NotificationOption.Suggestion, KnownMonikers.StatusInformation),
-                new NotificationOptionViewModel(NotificationOption.Warning, KnownMonikers.StatusWarning),
-                new NotificationOptionViewModel(NotificationOption.Error, KnownMonikers.StatusError)
+                new NotificationOptionViewModel(NotificationOption2.Silent, KnownMonikers.None),
+                new NotificationOptionViewModel(NotificationOption2.Suggestion, KnownMonikers.StatusInformation),
+                new NotificationOptionViewModel(NotificationOption2.Warning, KnownMonikers.StatusWarning),
+                new NotificationOptionViewModel(NotificationOption2.Error, KnownMonikers.StatusError)
             };
         }
 

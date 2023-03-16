@@ -7,21 +7,57 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    internal interface ICodeStyleOption : IObjectWritable
+    internal interface ICodeStyleOption
     {
         XElement ToXElement();
         object? Value { get; }
         NotificationOption2 Notification { get; }
         ICodeStyleOption WithValue(object value);
         ICodeStyleOption WithNotification(NotificationOption2 notification);
-        ICodeStyleOption AsCodeStyleOption<TCodeStyleOption>();
 #if !CODE_STYLE
+        ICodeStyleOption AsInternalCodeStyleOption();
         ICodeStyleOption AsPublicCodeStyleOption();
 #endif
+    }
+
+    internal interface ICodeStyleOption2 : ICodeStyleOption
+    {
+        /// <summary>
+        /// Creates a new <see cref="ICodeStyleOption2"/> from a specified <paramref name="element"/>.
+        /// </summary>
+        /// <exception cref="Exception">
+        /// The type of the serialized data does not match the type of <see cref="ICodeStyleOption.Value"/> or the format of the serialized data is invalid.
+        /// </exception>
+        ICodeStyleOption2 FromXElement(XElement element);
+    }
+
+    internal static class CodeStyleOption2
+    {
+        /// <remarks>
+        /// When user preferences are not yet set for a style, we fall back to the default value.
+        /// One such default(s), is that the feature is turned on, so that codegen consumes it,
+        /// but with silent enforcement, so that the user is not prompted about their usage.
+        /// </remarks>
+        public static readonly CodeStyleOption2<bool> TrueWithSilentEnforcement = new(value: true, notification: NotificationOption2.Silent);
+        public static readonly CodeStyleOption2<bool> FalseWithSilentEnforcement = new(value: false, notification: NotificationOption2.Silent);
+        public static readonly CodeStyleOption2<bool> TrueWithSuggestionEnforcement = new(value: true, notification: NotificationOption2.Suggestion);
+        public static readonly CodeStyleOption2<bool> FalseWithSuggestionEnforcement = new(value: false, notification: NotificationOption2.Suggestion);
+
+        /// <summary>
+        /// Use singletons for most common values.
+        /// </summary>
+        public static CodeStyleOption2<bool> GetCodeStyle(bool value, NotificationOption2 notification)
+            => (value, notification.Severity) switch
+            {
+                (true, ReportDiagnostic.Hidden) => TrueWithSilentEnforcement,
+                (true, ReportDiagnostic.Info) => TrueWithSuggestionEnforcement,
+                (false, ReportDiagnostic.Hidden) => FalseWithSilentEnforcement,
+                (false, ReportDiagnostic.Info) => FalseWithSuggestionEnforcement,
+                _ => new(value, notification)
+            };
     }
 
     /// <summary>
@@ -39,16 +75,17 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// then those values will write back as false/true.
     /// </summary>
     [DataContract]
-    internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>?>
+    internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption2, IEquatable<CodeStyleOption2<T>?>
     {
-        static CodeStyleOption2()
-        {
-            ObjectBinder.RegisterTypeReader(typeof(CodeStyleOption2<T>), ReadFrom);
-        }
-
         public static readonly CodeStyleOption2<T> Default = new(default!, NotificationOption2.Silent);
 
         private const int SerializationVersion = 1;
+
+        private const string XmlElement_CodeStyleOption = "CodeStyleOption";
+        private const string XmlAttribute_SerializationVersion = "SerializationVersion";
+        private const string XmlAttribute_Type = "Type";
+        private const string XmlAttribute_Value = "Value";
+        private const string XmlAttribute_DiagnosticSeverity = "DiagnosticSeverity";
 
         [DataMember(Order = 0)]
         public T Value { get; }
@@ -63,25 +100,40 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         object? ICodeStyleOption.Value => this.Value;
-        ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption2<T>((T)value, Notification);
+        ICodeStyleOption ICodeStyleOption.WithValue(object value) => WithValue((T)value);
         ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption2 notification) => new CodeStyleOption2<T>(Value, notification);
 
-#if CODE_STYLE
-        ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>() => this;
-#else
-        ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>()
-            => this is TCodeStyleOption ? this : new CodeStyleOption<T>(this);
+#pragma warning disable RS0030 // Do not used banned APIs: CodeStyleOption<T>
+#if !CODE_STYLE
         ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => new CodeStyleOption<T>(this);
+        ICodeStyleOption ICodeStyleOption.AsInternalCodeStyleOption() => this;
 #endif
+#pragma warning restore
+
+        public CodeStyleOption2<T> WithValue(T value)
+        {
+            if (typeof(T) == typeof(bool))
+            {
+                var boolValue = (bool)(object)value!;
+                if (boolValue == (bool)(object)Value!)
+                {
+                    return this;
+                }
+
+                return (CodeStyleOption2<T>)(object)CodeStyleOption2.GetCodeStyle(boolValue, Notification);
+            }
+
+            return EqualityComparer<T>.Default.Equals(value, Value) ? this : new CodeStyleOption2<T>(value, Notification);
+        }
 
         private int EnumValueAsInt32 => (int)(object)Value!;
 
-        public XElement ToXElement() =>
-            new("CodeStyleOption", // Ensure that we use "CodeStyleOption" as the name for back compat.
-                new XAttribute(nameof(SerializationVersion), SerializationVersion),
-                new XAttribute("Type", GetTypeNameForSerialization()),
-                new XAttribute(nameof(Value), GetValueForSerialization()),
-                new XAttribute(nameof(DiagnosticSeverity), Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
+        public XElement ToXElement()
+            => new(XmlElement_CodeStyleOption, // Ensure that we use "CodeStyleOption" as the name for back compat.
+                new XAttribute(XmlAttribute_SerializationVersion, SerializationVersion),
+                new XAttribute(XmlAttribute_Type, GetTypeNameForSerialization()),
+                new XAttribute(XmlAttribute_Value, GetValueForSerialization()),
+                new XAttribute(XmlAttribute_DiagnosticSeverity, Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
 
         private object GetValueForSerialization()
         {
@@ -126,12 +178,15 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return intVal is 0 or 1;
         }
 
+        ICodeStyleOption2 ICodeStyleOption2.FromXElement(XElement element)
+            => FromXElement(element);
+
         public static CodeStyleOption2<T> FromXElement(XElement element)
         {
-            var typeAttribute = element.Attribute("Type");
-            var valueAttribute = element.Attribute(nameof(Value));
-            var severityAttribute = element.Attribute(nameof(DiagnosticSeverity));
-            var version = (int?)element.Attribute(nameof(SerializationVersion));
+            var typeAttribute = element.Attribute(XmlAttribute_Type);
+            var valueAttribute = element.Attribute(XmlAttribute_Value);
+            var severityAttribute = element.Attribute(XmlAttribute_DiagnosticSeverity);
+            var version = (int?)element.Attribute(XmlAttribute_SerializationVersion);
 
             if (typeAttribute == null || valueAttribute == null || severityAttribute == null)
             {
@@ -156,28 +211,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 DiagnosticSeverity.Error => NotificationOption2.Error,
                 _ => throw new ArgumentException(nameof(element)),
             });
-        }
-
-        public bool ShouldReuseInSerialization => false;
-
-        public void WriteTo(ObjectWriter writer)
-        {
-            writer.WriteValue(GetValueForSerialization());
-            writer.WriteInt32((int)(Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
-        }
-
-        public static CodeStyleOption2<object> ReadFrom(ObjectReader reader)
-        {
-            return new CodeStyleOption2<object>(
-                reader.ReadValue(),
-                (DiagnosticSeverity)reader.ReadInt32() switch
-                {
-                    DiagnosticSeverity.Hidden => NotificationOption2.Silent,
-                    DiagnosticSeverity.Info => NotificationOption2.Suggestion,
-                    DiagnosticSeverity.Warning => NotificationOption2.Warning,
-                    DiagnosticSeverity.Error => NotificationOption2.Error,
-                    var v => throw ExceptionUtilities.UnexpectedValue(v),
-                });
         }
 
         private static Func<string, T> GetParser(string type)

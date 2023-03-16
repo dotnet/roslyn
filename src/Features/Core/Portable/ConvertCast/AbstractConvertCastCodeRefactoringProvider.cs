@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ConvertCast
         protected abstract string GetTitle();
 
         protected abstract int FromKind { get; }
-        protected abstract TToExpression ConvertExpression(TFromExpression from);
+        protected abstract TToExpression ConvertExpression(TFromExpression from, NullableContext nullableContext, bool isReferenceType);
         protected abstract TTypeNode GetTypeNode(TFromExpression from);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -48,25 +47,33 @@ namespace Microsoft.CodeAnalysis.ConvertCast
             var typeNode = GetTypeNode(from);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var type = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
-            if (type is { TypeKind: not TypeKind.Error, IsReferenceType: true })
+            var nullableContext = semanticModel.GetNullableContext(from.SpanStart);
+
+            if (type is { TypeKind: TypeKind.Error })
+                return;
+
+            if (type is { IsReferenceType: true } or { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T })
             {
                 var title = GetTitle();
+                var isReferenceType = type.IsReferenceType;
                 context.RegisterRefactoring(
                     CodeAction.Create(
                         title,
-                        c => ConvertAsync(document, from, cancellationToken),
+                        c => ConvertAsync(document, from, nullableContext, isReferenceType, cancellationToken),
                         title),
                     from.Span);
             }
         }
 
-        protected async Task<Document> ConvertAsync(
+        private async Task<Document> ConvertAsync(
             Document document,
             TFromExpression from,
+            NullableContext nullableContext,
+            bool isReferenceType,
             CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = root.ReplaceNode(from, ConvertExpression(from));
+            var newRoot = root.ReplaceNode(from, ConvertExpression(from, nullableContext, isReferenceType));
             return document.WithSyntaxRoot(newRoot);
         }
     }

@@ -225,7 +225,10 @@ class C
         };
     }
 }
-");
+",
+                // (9,21): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //                 int await;
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(9, 21));
 
             N(SyntaxKind.CompilationUnit);
             {

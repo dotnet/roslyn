@@ -24,8 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         public SnapshotPoint? ExpandedItemTriggerLocation { get; set; }
         public TextSpan? CompletionListSpan { get; set; }
-        public ImmutableArray<CompletionItem>? CombinedSortedList { get; set; }
+        public CompletionList<CompletionItem>? CombinedSortedList { get; set; }
         public Task<(CompletionContext, RoslynCompletionList)>? ExpandedItemsTask { get; set; }
+        public bool IsExclusive { get; set; }
 
         private CompletionSessionData()
         {

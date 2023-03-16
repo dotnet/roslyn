@@ -11,6 +11,9 @@ parameters:
   - name: insertToolset
     type: string
     default: ''
+  - name: queueSpeedometerValidation
+    type: string
+    default: 'false'
 
   - name: buildUserName
     type: string
@@ -47,6 +50,8 @@ parameters:
 steps:
   - checkout: none
 
+  - template: /eng/common/templates/steps/azure-public-roslyn-auth.yml
+  
   - task: NuGetCommand@2
     displayName: 'Install RIT from Azure Artifacts'
     inputs:
@@ -68,7 +73,7 @@ steps:
       Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($true)"
       Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$($false)"
       Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$('')"
-      Write-Host "##vso[task.setvariable variable=Template.TitleSuffix]$('[Skip-SymbolCheck]')"
+      Write-Host "##vso[task.setvariable variable=Template.TitleSuffix]$('')"
       Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$($true)"
       Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$('')"
       Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$('')"
@@ -203,7 +208,8 @@ steps:
         -updateAssemblyVersions "(default)" `
         -updateCoreXTLibraries "(default)" `
         -visualStudioBranchName "$(Template.VSBranchName)" `
-        -writePullRequest "prid.txt"
+        -writePullRequest "prid.txt" `
+        -queueSpeedometerValidation "${{ parameters.queueSpeedometerValidation }}"
     displayName: 'Run OneOffInsertion.ps1'
 
   - script: 'echo. && echo. && type "prid.txt" && echo. && echo.'

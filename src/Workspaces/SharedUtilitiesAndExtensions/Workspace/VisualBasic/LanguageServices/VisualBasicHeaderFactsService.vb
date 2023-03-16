@@ -4,9 +4,9 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
     <ExportLanguageService(GetType(IHeaderFactsService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicHeaderFactsService
         Inherits VisualBasicHeaderFacts

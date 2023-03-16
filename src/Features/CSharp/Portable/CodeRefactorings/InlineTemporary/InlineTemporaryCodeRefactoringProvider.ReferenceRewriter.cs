@@ -2,15 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 {
@@ -35,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 _cancellationToken = cancellationToken;
             }
 
-            public override SyntaxNode? VisitIdentifierName(IdentifierNameSyntax node)
+            private ExpressionSyntax UpdateIdentifier(IdentifierNameSyntax node)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
 
@@ -45,7 +41,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 if (_nonConflictReferences.Contains(node))
                     return _expressionToInline;
 
-                return base.VisitIdentifierName(node);
+                return node;
+            }
+
+            public override SyntaxNode? VisitIdentifierName(IdentifierNameSyntax node)
+            {
+                var result = UpdateIdentifier(node);
+                return result == _expressionToInline
+                    ? result.WithTriviaFrom(node)
+                    : result;
             }
 
             public override SyntaxNode? VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
@@ -63,7 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                     //
                     // Should become:
                     //     var a = new { x = 42; };
-                    return node.Update(SyntaxFactory.NameEquals(identifier), (ExpressionSyntax)Visit(node.Expression));
+                    return node.Update(
+                        SyntaxFactory.NameEquals(identifier), UpdateIdentifier(identifier)).WithTriviaFrom(node);
                 }
 
                 return base.VisitAnonymousObjectMemberDeclarator(node);
@@ -75,7 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                     ShouldAddTupleMemberName(node, out var identifier) &&
                     tupleExpression.Arguments.Count(a => ShouldAddTupleMemberName(a, out _)) == 1)
                 {
-                    return node.Update(SyntaxFactory.NameColon(identifier), node.RefKindKeyword, (ExpressionSyntax)Visit(node.Expression));
+                    return node.Update(
+                        SyntaxFactory.NameColon(identifier), node.RefKindKeyword, UpdateIdentifier(identifier)).WithTriviaFrom(node);
                 }
 
                 return base.VisitArgument(node);

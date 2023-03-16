@@ -64,7 +64,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Dim state = New CodeModelState(
                     threadingContext,
                     workspace.ExportProvider.GetExportedValue(Of MockServiceProvider),
-                    project.LanguageServices,
+                    project.Services,
                     visualStudioWorkspace,
                     workspace.ExportProvider.GetExportedValue(Of ProjectCodeModelFactory))
 

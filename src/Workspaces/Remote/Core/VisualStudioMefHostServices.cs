@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             return (IEnumerable<Lazy<TExtension>>)exports;
         }
 
-        private struct ExportKey : IEquatable<ExportKey>
+        private readonly struct ExportKey : IEquatable<ExportKey>
         {
             internal readonly string ExtensionTypeName;
             internal readonly string MetadataTypeName;

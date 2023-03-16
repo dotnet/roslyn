@@ -3111,7 +3111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundAttribute
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, constructor As MethodSymbol, constructorArguments As ImmutableArray(Of BoundExpression), namedArguments As ImmutableArray(Of BoundExpression), resultKind As LookupResultKind, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, constructor As MethodSymbol, constructorArguments As ImmutableArray(Of BoundExpression), constructorDefaultArguments As BitVector, namedArguments As ImmutableArray(Of BoundExpression), resultKind As LookupResultKind, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Attribute, syntax, type, hasErrors OrElse constructorArguments.NonNullAndHasErrors() OrElse namedArguments.NonNullAndHasErrors())
 
             Debug.Assert(Not (constructorArguments.IsDefault), "Field 'constructorArguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -3120,6 +3120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Me._Constructor = constructor
             Me._ConstructorArguments = constructorArguments
+            Me._ConstructorDefaultArguments = constructorDefaultArguments
             Me._NamedArguments = namedArguments
             Me._ResultKind = resultKind
         End Sub
@@ -3136,6 +3137,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public ReadOnly Property ConstructorArguments As ImmutableArray(Of BoundExpression)
             Get
                 Return _ConstructorArguments
+            End Get
+        End Property
+
+        Private ReadOnly _ConstructorDefaultArguments As BitVector
+        Public ReadOnly Property ConstructorDefaultArguments As BitVector
+            Get
+                Return _ConstructorDefaultArguments
             End Get
         End Property
 
@@ -3158,9 +3166,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitAttribute(Me)
         End Function
 
-        Public Function Update(constructor As MethodSymbol, constructorArguments As ImmutableArray(Of BoundExpression), namedArguments As ImmutableArray(Of BoundExpression), resultKind As LookupResultKind, type As TypeSymbol) As BoundAttribute
-            If constructor IsNot Me.Constructor OrElse constructorArguments <> Me.ConstructorArguments OrElse namedArguments <> Me.NamedArguments OrElse resultKind <> Me.ResultKind OrElse type IsNot Me.Type Then
-                Dim result = New BoundAttribute(Me.Syntax, constructor, constructorArguments, namedArguments, resultKind, type, Me.HasErrors)
+        Public Function Update(constructor As MethodSymbol, constructorArguments As ImmutableArray(Of BoundExpression), constructorDefaultArguments As BitVector, namedArguments As ImmutableArray(Of BoundExpression), resultKind As LookupResultKind, type As TypeSymbol) As BoundAttribute
+            If constructor IsNot Me.Constructor OrElse constructorArguments <> Me.ConstructorArguments OrElse constructorDefaultArguments <> Me.ConstructorDefaultArguments OrElse namedArguments <> Me.NamedArguments OrElse resultKind <> Me.ResultKind OrElse type IsNot Me.Type Then
+                Dim result = New BoundAttribute(Me.Syntax, constructor, constructorArguments, constructorDefaultArguments, namedArguments, resultKind, type, Me.HasErrors)
                 result.CopyAttributes(Me)
                 Return result
             End If
@@ -12355,7 +12363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim constructorArguments As ImmutableArray(Of BoundExpression) = Me.VisitList(node.ConstructorArguments)
             Dim namedArguments As ImmutableArray(Of BoundExpression) = Me.VisitList(node.NamedArguments)
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(node.Constructor, constructorArguments, namedArguments, node.ResultKind, type)
+            Return node.Update(node.Constructor, constructorArguments, node.ConstructorDefaultArguments, namedArguments, node.ResultKind, type)
         End Function
 
         Public Overrides Function VisitLateMemberAccess(node As BoundLateMemberAccess) As BoundNode
@@ -13570,6 +13578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New TreeDumperNode("attribute", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("constructor", node.Constructor, Nothing),
                 New TreeDumperNode("constructorArguments", Nothing, From x In node.ConstructorArguments Select Visit(x, Nothing)),
+                New TreeDumperNode("constructorDefaultArguments", node.ConstructorDefaultArguments, Nothing),
                 New TreeDumperNode("namedArguments", Nothing, From x In node.NamedArguments Select Visit(x, Nothing)),
                 New TreeDumperNode("resultKind", node.ResultKind, Nothing),
                 New TreeDumperNode("type", node.Type, Nothing)

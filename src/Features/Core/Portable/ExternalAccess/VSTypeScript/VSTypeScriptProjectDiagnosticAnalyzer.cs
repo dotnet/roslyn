@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
-            var analyzer = project.LanguageServices.GetRequiredService<VSTypeScriptDiagnosticAnalyzerLanguageService>().Implementation;
+            var analyzer = project.Services.GetRequiredService<VSTypeScriptDiagnosticAnalyzerLanguageService>().Implementation;
             if (analyzer == null)
             {
                 return SpecializedTasks.EmptyImmutableArray<Diagnostic>();

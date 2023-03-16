@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 Imports Microsoft.CodeAnalysis.GenerateType
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Utilities
@@ -563,10 +563,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
         Friend Overrides Function IsPublicOnlyAccessibility(expression As ExpressionSyntax, project As Project) As Boolean
             If expression Is Nothing Then
                 Return False
-            End If
-
-            If GeneratedTypesMustBePublic(project) Then
-                Return True
             End If
 
             Dim node As SyntaxNode = expression

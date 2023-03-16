@@ -801,7 +801,7 @@ Console.Write(""OK"")
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) } 
+$@"{string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path))} 
 OK
 ", output);
         }
@@ -825,11 +825,11 @@ OK
 
             var error = await ReadErrorOutputToEnd();
             var output = await ReadOutputToEnd();
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{initFile.Path}(1,3): error CS1002: { CSharpResources.ERR_SemicolonExpected }
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{initFile.Path}(1,3): error CS1002: {CSharpResources.ERR_SemicolonExpected}
 ", error);
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }
+{string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path))}
 [System.Diagnostics.Process]
 ", output);
         }
@@ -851,7 +851,7 @@ c
             var error = await ReadErrorOutputToEnd();
             Assert.Equal("", error);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }
+$@"{string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path))}
 ""a""
 ""b""
 ""c""
@@ -863,7 +863,7 @@ $@"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFile
         {
             await Execute("nameof(Microsoft.Missing)");
             var error = await ReadErrorOutputToEnd();
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft") }",
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"(1,8): error CS0234: {string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft")}",
     error);
 
             var output = await ReadOutputToEnd();
@@ -925,7 +925,7 @@ new object[] { new Class1(), new Class2(), new Class3() }
             Assert.Equal("object[3] { Class1 { }, Class2 { }, Class3 { } }\r\n", output);
         }
 
-        [Fact, WorkItem(6457, "https://github.com/dotnet/roslyn/issues/6457")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6457")]
         public async Task MissingReferencesReuse()
         {
             var source = @"
@@ -953,7 +953,7 @@ new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             AssertEx.AssertEqualToleratingWhitespaceDifferences("C { P=null }", output);
         }
 
-        [Fact, WorkItem(7280, "https://github.com/dotnet/roslyn/issues/7280")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7280")]
         public async Task AsyncContinueOnDifferentThread()
         {
             await Execute(@"
@@ -981,7 +981,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             Assert.True(error.StartsWith($"{new Exception().GetType()}: {new Exception().Message}"));
         }
 
-        [Fact, WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException()
         {
             await Execute(@"int i = 100;");
@@ -1051,8 +1051,7 @@ goo()
         }
 
         // TODO (https://github.com/dotnet/roslyn/issues/7976): delete this
-        [WorkItem(7976, "https://github.com/dotnet/roslyn/issues/7976")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7976")]
         public void Workaround7976()
         {
             Thread.Sleep(TimeSpan.FromSeconds(10));

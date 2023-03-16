@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             IFindUsagesContext context, ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
                 // Create a callback that we can pass to the server process to hear about the 

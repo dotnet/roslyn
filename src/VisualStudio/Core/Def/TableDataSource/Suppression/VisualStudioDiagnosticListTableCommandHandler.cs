@@ -206,6 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 using var scope = context.AddScope(allowCancellation: true, ServicesVSResources.Updating_severity);
                 await _editHandlerService.ApplyAsync(
                     _workspace,
+                    project.Solution,
                     fromDocument: null,
                     operations: operations,
                     title: ServicesVSResources.Updating_severity,

@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (HasErrors)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             // Attribute type is conditionally omitted if both the following are true:

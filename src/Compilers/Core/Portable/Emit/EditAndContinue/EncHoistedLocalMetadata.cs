@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    internal struct EncHoistedLocalMetadata
+    internal readonly struct EncHoistedLocalMetadata
     {
         public readonly string Name;
         public readonly Cci.ITypeReference Type;

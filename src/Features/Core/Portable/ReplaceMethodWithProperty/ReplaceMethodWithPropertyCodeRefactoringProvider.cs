@@ -141,9 +141,8 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         private static bool IsValidSetMethod(IMethodSymbol setMethod, IMethodSymbol getMethod)
         {
             return IsValidSetMethod(setMethod) &&
-                setMethod.Parameters.Length == 1 &&
-                setMethod.Parameters[0].RefKind == RefKind.None &&
-                SymbolEqualityComparer.IncludeNullability.Equals(setMethod.Parameters[0].Type, getMethod.ReturnType) &&
+                setMethod.Parameters is [{ RefKind: RefKind.None } parameter] &&
+                SymbolEqualityComparer.IncludeNullability.Equals(parameter.Type, getMethod.ReturnType) &&
                 setMethod.IsAbstract == getMethod.IsAbstract;
         }
 
@@ -222,7 +221,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         {
             var root = await originalDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, originalDocument.Project.Solution.Workspace.Services);
+            var editor = new SyntaxEditor(root, originalDocument.Project.Solution.Services);
             var service = originalDocument.GetRequiredLanguageService<IReplaceMethodWithPropertyService>();
 
             ReplaceGetReferences(propertyName, nameChanged, getReferences, root, editor, service, cancellationToken);
@@ -367,7 +366,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var syntaxTree = await updatedDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await updatedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, updatedSolution.Workspace.Services);
+            var editor = new SyntaxEditor(root, updatedSolution.Services);
 
             var codeGenerationOptions = await updatedDocument.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var parseOptions = syntaxTree.Options;

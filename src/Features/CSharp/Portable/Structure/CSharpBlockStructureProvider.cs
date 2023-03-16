@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             builder.Add<SwitchStatementSyntax, SwitchStatementStructureProvider>();
             builder.Add<LiteralExpressionSyntax, StringLiteralExpressionStructureProvider>();
             builder.Add<InterpolatedStringExpressionSyntax, InterpolatedStringExpressionStructureProvider>();
+            builder.Add<IfDirectiveTriviaSyntax, IfDirectiveTriviaStructureProvider>();
 
             return builder.ToImmutable();
         }
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var builder = ImmutableDictionary.CreateBuilder<int, ImmutableArray<AbstractSyntaxStructureProvider>>();
 
             builder.Add((int)SyntaxKind.DisabledTextTrivia, ImmutableArray.Create<AbstractSyntaxStructureProvider>(new DisabledTextTriviaStructureProvider()));
+            builder.Add((int)SyntaxKind.MultiLineCommentTrivia, ImmutableArray.Create<AbstractSyntaxStructureProvider>(new MultilineCommentBlockStructureProvider()));
 
             return builder.ToImmutable();
         }

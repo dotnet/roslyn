@@ -84,12 +84,10 @@ applicable to most Linux environments. Ubuntu 18.04 was chosen here due to it's 
 This makes it easier to use from a Windows machine: full screen, copy / paste, etc ...
 
 ### Hyper-V
-Hyper-V has a builtin Ubuntu 18.04 image which supports enhanced mode. Here is a tutorial for creating
-such an image:
-
-https://docs.microsoft.com/en-us/virtualization/hyper-v-on-windows/quick-start/quick-create-virtual-machine
+Hyper-V has a built-in Ubuntu 18.04 image which supports enhanced mode. For more information, see a [tutorial for creating such an image](https://docs.microsoft.com/virtualization/hyper-v-on-windows/quick-start/quick-create-virtual-machine).
 
 When following this make sure to:
+
 1. Click Installation Source and uncheck "Windows Secure Boot"
 1. Complete the Ubuntu installation wizard. Full screen mode won't be available until this is done.
 

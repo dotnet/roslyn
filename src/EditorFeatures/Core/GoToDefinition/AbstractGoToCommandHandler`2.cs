@@ -259,7 +259,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
 
             // Let the user know in the FAR window if results may be inaccurate because this is running prior to the 
             // solution being fully loaded.
-            var service = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+            var service = document.Project.Solution.Services.GetRequiredService<IWorkspaceStatusService>();
             var isFullyLoaded = await service.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
             if (!isFullyLoaded)
             {

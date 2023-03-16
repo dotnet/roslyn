@@ -37,15 +37,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         {
         }
 
-        protected override async Task InitializeServiceForOpenedDocumentAsync(Document document)
+        protected override async Task InitializeServiceForProjectWithOpenedDocumentAsync(Project project)
         {
             // Only pre-populate cache if import completion is enabled
             if (GlobalOptions.GetOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp) != true)
                 return;
 
-            var service = document.GetRequiredLanguageService<ITypeImportCompletionService>();
-            service.QueueCacheWarmUpTask(document.Project);
-            await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None).ConfigureAwait(false);
+            var service = project.GetRequiredLanguageService<ITypeImportCompletionService>();
+            service.QueueCacheWarmUpTask(project);
+            await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(project, CancellationToken.None).ConfigureAwait(false);
         }
     }
 }

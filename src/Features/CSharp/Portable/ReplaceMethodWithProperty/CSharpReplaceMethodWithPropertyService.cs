@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -68,10 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             var expressionBodyPreference = options.PreferExpressionBodiedProperties.Value;
             if (expressionBodyPreference != ExpressionBodyPreference.Never)
             {
-                if (propertyDeclaration.AccessorList?.Accessors.Count == 1 &&
-                    propertyDeclaration.AccessorList?.Accessors[0].Kind() == SyntaxKind.GetAccessorDeclaration)
+                if (propertyDeclaration.AccessorList is { Accessors: [(kind: SyntaxKind.GetAccessorDeclaration) getAccessor] })
                 {
-                    var getAccessor = propertyDeclaration.AccessorList.Accessors[0];
                     if (getAccessor.ExpressionBody != null)
                     {
                         return propertyDeclaration.WithExpressionBody(getAccessor.ExpressionBody)

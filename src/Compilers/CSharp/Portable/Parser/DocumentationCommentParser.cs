@@ -771,7 +771,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var saveMode = this.SetMode(LexerMode.XmlElementTag); //this mode accepts names
             var name = this.ParseXmlName();
 
-
             // NOTE: The XML spec says that name cannot be "xml" (case-insensitive comparison), 
             // but Dev10 does not enforce this.
 

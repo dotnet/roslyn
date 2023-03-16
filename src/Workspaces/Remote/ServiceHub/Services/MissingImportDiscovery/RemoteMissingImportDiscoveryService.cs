@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,9 +42,9 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var document = solution.GetDocument(documentId);
+                var document = solution.GetRequiredDocument(documentId);
 
-                var service = document.GetLanguageService<IAddImportFeatureService>();
+                var service = document.GetRequiredLanguageService<IAddImportFeatureService>();
 
                 var symbolSearchService = new SymbolSearchService(_callback, callbackId);
 
@@ -71,9 +69,9 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var document = solution.GetDocument(documentId);
+                var document = solution.GetRequiredDocument(documentId);
 
-                var service = document.GetLanguageService<IAddImportFeatureService>();
+                var service = document.GetRequiredLanguageService<IAddImportFeatureService>();
 
                 var symbolSearchService = new SymbolSearchService(_callback, callbackId);
 

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
@@ -128,6 +129,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public Task<HostSymbolStartAnalysisScope> GetSymbolAnalysisScopeAsync(
                 ISymbol symbol,
+                bool isGeneratedCodeSymbol,
                 ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
                 AnalyzerExecutor analyzerExecutor)
             {
@@ -145,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     HostSymbolStartAnalysisScope getSymbolAnalysisScopeCore()
                     {
                         var symbolAnalysisScope = new HostSymbolStartAnalysisScope();
-                        analyzerExecutor.ExecuteSymbolStartActions(symbol, _analyzer, symbolStartActions, symbolAnalysisScope);
+                        analyzerExecutor.ExecuteSymbolStartActions(symbol, _analyzer, symbolStartActions, symbolAnalysisScope, isGeneratedCodeSymbol);
 
                         var symbolEndActions = symbolAnalysisScope.GetAnalyzerActions(_analyzer);
                         if (symbolEndActions.SymbolEndActionsCount > 0)
@@ -236,34 +238,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             public ImmutableArray<DiagnosticDescriptor> GetOrComputeDiagnosticDescriptors(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
-                => GetOrComputeDescriptors(ref _lazyDiagnosticDescriptors, ComputeDiagnosticDescriptors, analyzer, analyzerExecutor);
+                => GetOrComputeDescriptors(ref _lazyDiagnosticDescriptors, ComputeDiagnosticDescriptors_NoLock, analyzer, analyzerExecutor, _gate);
 
             public ImmutableArray<SuppressionDescriptor> GetOrComputeSuppressionDescriptors(DiagnosticSuppressor suppressor, AnalyzerExecutor analyzerExecutor)
-                => GetOrComputeDescriptors(ref _lazySuppressionDescriptors, ComputeSuppressionDescriptors, suppressor, analyzerExecutor);
+                => GetOrComputeDescriptors(ref _lazySuppressionDescriptors, ComputeSuppressionDescriptors_NoLock, suppressor, analyzerExecutor, _gate);
 
             private static ImmutableArray<TDescriptor> GetOrComputeDescriptors<TDescriptor>(
                 ref ImmutableArray<TDescriptor> lazyDescriptors,
-                Func<DiagnosticAnalyzer, AnalyzerExecutor, ImmutableArray<TDescriptor>> computeDescriptors,
+                Func<DiagnosticAnalyzer, AnalyzerExecutor, ImmutableArray<TDescriptor>> computeDescriptorsNoLock,
                 DiagnosticAnalyzer analyzer,
-                AnalyzerExecutor analyzerExecutor)
+                AnalyzerExecutor analyzerExecutor,
+                object gate)
             {
                 if (!lazyDescriptors.IsDefault)
                 {
                     return lazyDescriptors;
                 }
 
-                // Otherwise, compute the value.
-                // We do so outside the lock statement as we are calling into user code, which may be a long running operation.
-                var descriptors = computeDescriptors(analyzer, analyzerExecutor);
+                lock (gate)
+                {
+                    // We re-check if lazyDescriptors is default inside the lock statement
+                    // to ensure that we don't invoke 'computeDescriptorsNoLock' multiple times.
+                    // 'computeDescriptorsNoLock' makes analyzer callbacks and these can throw
+                    // exceptions, leading to AD0001 diagnostics and duplicate callbacks can
+                    // lead to duplicate AD0001 diagnostics.
+                    if (lazyDescriptors.IsDefault)
+                    {
+                        lazyDescriptors = computeDescriptorsNoLock(analyzer, analyzerExecutor);
+                    }
 
-                ImmutableInterlocked.InterlockedInitialize(ref lazyDescriptors, descriptors);
-                return lazyDescriptors;
+                    return lazyDescriptors;
+                }
             }
 
             /// <summary>
             /// Compute <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> and exception handler for the given <paramref name="analyzer"/>.
             /// </summary>
-            private static ImmutableArray<DiagnosticDescriptor> ComputeDiagnosticDescriptors(
+            private static ImmutableArray<DiagnosticDescriptor> ComputeDiagnosticDescriptors_NoLock(
                 DiagnosticAnalyzer analyzer,
                 AnalyzerExecutor analyzerExecutor)
             {
@@ -292,13 +303,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     argument: (object?)null);
 
                 // Force evaluate and report exception diagnostics from LocalizableString.ToString().
-                Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = analyzerExecutor.OnAnalyzerException;
+                Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> onAnalyzerException = analyzerExecutor.OnAnalyzerException;
                 if (onAnalyzerException != null)
                 {
                     var handler = new EventHandler<Exception>((sender, ex) =>
                     {
                         var diagnostic = AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic(analyzer, ex);
-                        onAnalyzerException(ex, analyzer, diagnostic);
+                        onAnalyzerException(ex, analyzer, diagnostic, analyzerExecutor.CancellationToken);
                     });
 
                     foreach (var descriptor in supportedDiagnostics)
@@ -312,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return supportedDiagnostics;
             }
 
-            private static ImmutableArray<SuppressionDescriptor> ComputeSuppressionDescriptors(
+            private static ImmutableArray<SuppressionDescriptor> ComputeSuppressionDescriptors_NoLock(
                 DiagnosticAnalyzer analyzer,
                 AnalyzerExecutor analyzerExecutor)
             {

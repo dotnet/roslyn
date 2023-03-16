@@ -10,7 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -292,8 +292,28 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         public static bool SymbolInfosAreCompatible(SymbolInfo originalSymbolInfo, SymbolInfo newSymbolInfo, bool performEquivalenceCheck, bool requireNonNullSymbols = false)
         {
-            return originalSymbolInfo.CandidateReason == newSymbolInfo.CandidateReason &&
-                SymbolsAreCompatibleCore(originalSymbolInfo.Symbol, newSymbolInfo.Symbol, performEquivalenceCheck, requireNonNullSymbols);
+            if (originalSymbolInfo.CandidateReason == newSymbolInfo.CandidateReason)
+            {
+                if (SymbolsAreCompatibleCore(originalSymbolInfo.Symbol, newSymbolInfo.Symbol, performEquivalenceCheck, requireNonNullSymbols))
+                    return true;
+
+                if (originalSymbolInfo.CandidateReason == CandidateReason.MemberGroup)
+                {
+                    var candidateLength = originalSymbolInfo.CandidateSymbols.Length;
+                    if (candidateLength > 0 && candidateLength == newSymbolInfo.CandidateSymbols.Length)
+                    {
+                        for (int i = 0, n = candidateLength; i < n; i++)
+                        {
+                            if (!SymbolsAreCompatibleCore(originalSymbolInfo.CandidateSymbols[i], newSymbolInfo.CandidateSymbols[i], performEquivalenceCheck, requireNonNullSymbols))
+                                return false;
+                        }
+
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         protected bool SymbolInfosAreCompatible(SymbolInfo originalSymbolInfo, SymbolInfo newSymbolInfo, bool requireNonNullSymbols = false)

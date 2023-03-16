@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
                 var project = _document.Project;
-                var languageServices = project.Solution.Workspace.Services.GetLanguageServices(_state.ContainingType.Language);
+                var languageServices = project.Solution.Services.GetLanguageServices(_state.ContainingType.Language);
 
                 var semanticModel = await _document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var factory = languageServices.GetRequiredService<SyntaxGenerator>();

@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
             var changedDocument = changedSolution.GetRequiredDocument(changedDocumentId);
             var currentDocument = currentSolution.GetRequiredDocument(changedDocumentId);
 
-            var textDiffService = changedSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
+            var textDiffService = changedSolution.Services.GetRequiredService<IDocumentTextDifferencingService>();
             // Compute changes against the current version of the document.
             var textDiffs = await textDiffService.GetTextChangesAsync(currentDocument, changedDocument, cancellationToken).ConfigureAwait(false);
             if (textDiffs.IsEmpty)

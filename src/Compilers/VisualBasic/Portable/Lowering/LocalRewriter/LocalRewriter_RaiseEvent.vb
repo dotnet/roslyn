@@ -37,7 +37,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                              fieldAccessReceiver.Kind = BoundKind.MeReference)
 #End If
 
-
                 If node.EventSymbol.IsWindowsRuntimeEvent Then
                     receiver = GetWindowsRuntimeEventReceiver(syntax, receiver)
                 End If

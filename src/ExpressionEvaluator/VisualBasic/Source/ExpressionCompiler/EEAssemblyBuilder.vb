@@ -43,8 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Me.Methods = methods
 
             If testData IsNot Nothing Then
-                SetMethodTestData(testData.Methods)
-                testData.Module = Me
+                SetTestData(testData)
             End If
         End Sub
 
@@ -191,12 +190,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return False
             End Function
 
-            Public Overrides Function TryGetPreviousStateMachineState(awaitOrYieldSyntax As SyntaxNode, ByRef stateOrdinal As Integer) As Boolean
-                stateOrdinal = 0
+            Public Overrides Function TryGetPreviousStateMachineState(awaitOrYieldSyntax As SyntaxNode, ByRef state As StateMachineState) As Boolean
+                state = 0
                 Return False
             End Function
 
-            Public Overrides Function GetFirstUnusedStateMachineState(increasing As Boolean) As Integer?
+            Public Overrides Function GetFirstUnusedStateMachineState(increasing As Boolean) As StateMachineState?
                 Return Nothing
             End Function
 

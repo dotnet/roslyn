@@ -86,7 +86,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-
             Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
                 Get
                     ' The same as owning type

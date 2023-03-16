@@ -465,7 +465,6 @@ VerifyDiagnostics(
 } // end of class Test
 ]]>.Value
 
-
         <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
         Public Sub ArraysOfRank1_GetElement()
@@ -503,7 +502,6 @@ Test1
 }
 ]]>)
         End Sub
-
 
         <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
@@ -774,7 +772,6 @@ BC30311: Value of type 'IList(Of Double)' cannot be converted to 'Double(*)'.
 } // end of class Test
 ]]>.Value
 
-
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -955,7 +952,6 @@ System.Double
         <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <Fact>
         Public Sub ArraysOfRank1_TypeArgumentInference03()
-
 
             Dim ilSource As String =
             <![CDATA[

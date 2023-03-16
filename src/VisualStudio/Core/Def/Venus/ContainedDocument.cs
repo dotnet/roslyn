@@ -18,29 +18,28 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Utilities;
+using static Microsoft.VisualStudio.VSConstants;
 using IVsContainedLanguageHost = Microsoft.VisualStudio.TextManager.Interop.IVsContainedLanguageHost;
 using IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IVsTextBufferCoordinator;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-
-#pragma warning disable CS0618 // Type or member is obsolete
-    internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument
-#pragma warning restore CS0618 // Type or member is obsolete
+    internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObject, IContainedDocument
     {
         private const string ReturnReplacementString = @"{|r|}";
         private const string NewLineReplacementString = @"{|n|}";
@@ -83,15 +82,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private readonly IComponentModel _componentModel;
         private readonly Workspace _workspace;
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly EditorOptionsService _editorOptionsService;
         private readonly ITextDifferencingSelectorService _differenceSelectorService;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly HostType _hostType;
         private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
         private readonly AbstractFormattingRule _vbHelperFormattingRule;
-        private readonly VisualStudioProject _project;
+        private readonly ProjectSystemProject _project;
 
         public bool SupportsRename { get { return _hostType == HostType.Razor; } }
+        public bool SupportsSemanticSnippets { get { return false; } }
 
         public DocumentId Id { get; }
         public ITextBuffer SubjectBuffer { get; }
@@ -106,15 +105,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             ITextBuffer dataBuffer,
             IVsTextBufferCoordinator bufferCoordinator,
             Workspace workspace,
-            IGlobalOptionService globalOptions,
-            VisualStudioProject project,
+            ProjectSystemProject project,
             IComponentModel componentModel,
             AbstractFormattingRule vbHelperFormattingRule)
             : base(threadingContext)
         {
             _componentModel = componentModel;
             _workspace = workspace;
-            _globalOptions = globalOptions;
             _project = project;
 
             Id = documentId;
@@ -123,30 +120,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             BufferCoordinator = bufferCoordinator;
 
             _differenceSelectorService = componentModel.GetService<ITextDifferencingSelectorService>();
-            _editorOptionsFactoryService = _componentModel.GetService<IEditorOptionsFactoryService>();
+            _editorOptionsService = componentModel.GetService<EditorOptionsService>();
             _snapshotTracker = new ReiteratedVersionSnapshotTracker(SubjectBuffer);
             _vbHelperFormattingRule = vbHelperFormattingRule;
 
             _hostType = GetHostType();
             s_containedDocuments.TryAdd(documentId, this);
-        }
-
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        internal AbstractProject Project
-        {
-            get
-            {
-                return _componentModel.GetService<VisualStudioWorkspaceImpl>().GetProjectTrackerAndInitializeIfNecessary().GetProject(_project.Id);
-            }
-        }
-
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        internal AbstractContainedLanguage ContainedLanguage
-        {
-            get
-            {
-                return new AbstractContainedLanguage(ContainedLanguageHost);
-            }
         }
 
         private HostType GetHostType()
@@ -181,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public SourceTextContainer GetOpenTextContainer()
@@ -198,6 +177,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             // We cast to VisualStudioWorkspace because the expectation is this isn't being used in Live Share workspaces
             var hierarchy = ((VisualStudioWorkspace)_workspace).GetHierarchy(_project.Id);
 
+            var containingDocumentItemid = GetContainingDocumentItemId(hierarchy);
+            if (containingDocumentItemid == itemidInsertionPoint)
+            {
+                // No need to walk project documents if requesting containing document's id
+                return this.Id;
+            }
+
             foreach (var document in _workspace.CurrentSolution.GetProject(_project.Id).Documents)
             {
                 if (document.FilePath != null && hierarchy.TryGetItemId(document.FilePath) == itemidInsertionPoint)
@@ -213,16 +199,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             // We cast to VisualStudioWorkspace because the expectation is this isn't being used in Live Share workspaces
             var hierarchy = ((VisualStudioWorkspace)_workspace).GetHierarchy(_project.Id);
+
+            if (document.Id == this.Id)
+            {
+                return GetContainingDocumentItemId(hierarchy);
+            }
+
             return hierarchy.TryGetItemId(_workspace.CurrentSolution.GetDocument(document.Id).FilePath);
         }
 
         public void UpdateText(SourceText newText)
         {
-            var subjectBuffer = (IProjectionBuffer)this.SubjectBuffer;
-            var originalSnapshot = subjectBuffer.CurrentSnapshot;
-            var originalText = originalSnapshot.AsText();
+            var originalText = SubjectBuffer.CurrentSnapshot.AsText();
+            ApplyChanges(originalText, newText.GetTextChanges(originalText));
+        }
 
-            var changes = newText.GetTextChanges(originalText);
+        public ITextSnapshot ApplyChanges(IEnumerable<TextChange> changes)
+            => ApplyChanges(SubjectBuffer.CurrentSnapshot.AsText(), changes);
+
+        private uint GetContainingDocumentItemId(IVsHierarchy hierarchy)
+        {
+            var editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
+            Marshal.ThrowExceptionForHR(BufferCoordinator.GetPrimaryBuffer(out var primaryTextLines));
+
+            var primaryBufferDocumentBuffer = editorAdaptersFactoryService.GetDocumentBuffer(primaryTextLines)!;
+
+            var textDocumentFactoryService = _componentModel.GetService<ITextDocumentFactoryService>();
+            textDocumentFactoryService.TryGetTextDocument(primaryBufferDocumentBuffer, out var textDocument);
+            var documentPath = textDocument.FilePath;
+
+            var itemId = hierarchy.TryGetItemId(documentPath);
+
+            return itemId;
+        }
+
+        private ITextSnapshot ApplyChanges(SourceText originalText, IEnumerable<TextChange> changes)
+        {
+            var subjectBuffer = (IProjectionBuffer)SubjectBuffer;
 
             IEnumerable<int> affectedVisibleSpanIndices = null;
             var editorVisibleSpansInOriginal = SharedPools.Default<List<TextSpan>>().AllocateAndClear();
@@ -233,14 +246,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
                 editorVisibleSpansInOriginal.AddRange(GetEditorVisibleSpans());
                 var newChanges = FilterTextChanges(originalText, editorVisibleSpansInOriginal, changes).ToList();
-                if (newChanges.Count == 0)
+                if (newChanges.Count > 0)
                 {
-                    // no change to apply
-                    return;
+                    ApplyChanges(subjectBuffer, newChanges, editorVisibleSpansInOriginal, out affectedVisibleSpanIndices);
+                    AdjustIndentation(subjectBuffer, affectedVisibleSpanIndices);
                 }
 
-                ApplyChanges(subjectBuffer, newChanges, editorVisibleSpansInOriginal, out affectedVisibleSpanIndices);
-                AdjustIndentation(subjectBuffer, affectedVisibleSpanIndices);
+                return subjectBuffer.CurrentSnapshot;
             }
             finally
             {
@@ -249,10 +261,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
         }
 
-        private IEnumerable<TextChange> FilterTextChanges(SourceText originalText, List<TextSpan> editorVisibleSpansInOriginal, IReadOnlyList<TextChange> changes)
+        private IEnumerable<TextChange> FilterTextChanges(SourceText originalText, List<TextSpan> editorVisibleSpansInOriginal, IEnumerable<TextChange> changes)
         {
             // no visible spans or changes
-            if (editorVisibleSpansInOriginal.Count == 0 || changes.Count == 0)
+            if (editorVisibleSpansInOriginal.Count == 0 || !changes.Any())
             {
                 // return empty one
                 yield break;
@@ -558,7 +570,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 {
                     textChange = new TextChange(
                         TextSpan.FromBounds(visibleFirstLineInOriginalText.EndIncludingLineBreak, spanInOriginalText.End),
-                        snippetInRightText.Substring(firstLineOfRightTextSnippet.Length));
+                        snippetInRightText[firstLineOfRightTextSnippet.Length..]);
                     return true;
                 }
 
@@ -575,7 +587,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 {
                     textChange = new TextChange(
                         TextSpan.FromBounds(spanInOriginalText.Start, visibleLastLineInOriginalText.Start),
-                        snippetInRightText.Substring(0, snippetInRightText.Length - lastLineOfRightTextSnippet.Length));
+                        snippetInRightText[..^lastLineOfRightTextSnippet.Length]);
                     return true;
                 }
 
@@ -586,7 +598,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
 
             // if it got hit, then it means there is a missing case
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private IHierarchicalDifferenceCollection DiffStrings(string leftTextWithReplacement, string rightTextWithReplacement)
@@ -751,28 +763,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return;
             }
 
-            var snapshot = subjectBuffer.CurrentSnapshot;
             var document = _workspace.CurrentSolution.GetDocument(this.Id);
             if (!document.SupportsSyntaxTree)
             {
                 return;
             }
 
-            var originalText = document.GetTextSynchronously(CancellationToken.None);
-            Debug.Assert(object.ReferenceEquals(originalText, snapshot.AsText()));
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, CancellationToken.None);
+            Debug.Assert(ReferenceEquals(parsedDocument.Text, subjectBuffer.CurrentSnapshot.AsText()));
 
-            var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
-
-            var editorOptionsFactory = _componentModel.GetService<IEditorOptionsFactoryService>();
-            var editorOptions = editorOptionsFactory.GetOptions(DataBuffer);
-
-            var formattingOptions = _globalOptions.GetSyntaxFormattingOptions(document.Project.LanguageServices).With(new LineFormattingOptions()
-            {
-                UseTabs = !editorOptions.IsConvertTabsToSpacesEnabled(),
-                TabSize = editorOptions.GetTabSize(),
-                IndentationSize = editorOptions.GetIndentSize(),
-                NewLine = editorOptions.GetNewLineCharacter()
-            });
+            var editorOptionsService = _componentModel.GetService<EditorOptionsService>();
+            var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.Services, explicitFormat: false);
 
             using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
 
@@ -783,7 +784,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             foreach (var spanIndex in visibleSpanIndex)
             {
-                var rule = GetBaseIndentationRule(root, originalText, spans, spanIndex);
+                var rule = GetBaseIndentationRule(parsedDocument.Root, parsedDocument.Text, spans, spanIndex);
 
                 var visibleSpan = spans[spanIndex];
                 AdjustIndentationForSpan(document, edit, visibleSpan, rule, formattingOptions);
@@ -808,7 +809,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var formattingRules = venusFormattingRules.Concat(Formatter.GetDefaultFormattingRules(document));
 
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
             var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
             var changes = formatter.GetFormattingResult(
                 root, new TextSpan[] { CommonFormattingHelpers.GetFormattingSpan(root, visibleSpan) },
@@ -885,10 +886,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private int GetBaseIndentation(SyntaxNode root, SourceText text, TextSpan span)
         {
-            // Is this right?  We should probably get this from the IVsContainedLanguageHost instead.
-            var editorOptions = _editorOptionsFactoryService.GetOptions(DataBuffer);
-
-            var additionalIndentation = GetAdditionalIndentation(root, text, span);
+            var editorOptions = _editorOptionsService.Factory.GetOptions(DataBuffer);
+            var additionalIndentation = GetAdditionalIndentation(root, text, span, hostIndentationSize: editorOptions.GetIndentSize());
 
             // Skip over the first line, since it's in "Venus space" anyway.
             var startingLine = text.Lines.GetLineFromPosition(span.Start);
@@ -950,11 +949,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return (start <= end) ? TextSpan.FromBounds(start, end + 1) : default;
         }
 
-        private int GetAdditionalIndentation(SyntaxNode root, SourceText text, TextSpan span)
+        private int GetAdditionalIndentation(SyntaxNode root, SourceText text, TextSpan span, int hostIndentationSize)
         {
             if (_hostType == HostType.HTML)
             {
-                return _workspace.Options.GetOption(FormattingOptions.IndentationSize, _project.Language);
+                return hostIndentationSize;
             }
 
             if (_hostType == HostType.Razor)
@@ -1011,7 +1010,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         }
                     }
 
-                    return _workspace.Options.GetOption(FormattingOptions.IndentationSize, _project.Language);
+                    return hostIndentationSize;
                 }
             }
 

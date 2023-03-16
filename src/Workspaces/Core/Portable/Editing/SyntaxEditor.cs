@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         [Obsolete("Use SyntaxEditor(SyntaxNode, HostWorkspaceServices)")]
         public SyntaxEditor(SyntaxNode root, Workspace workspace)
-            : this(root, (workspace ?? throw new ArgumentNullException(nameof(workspace))).Services)
+            : this(root, (workspace ?? throw new ArgumentNullException(nameof(workspace))).Services.SolutionServices)
         {
         }
 
@@ -34,6 +34,14 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a new <see cref="SyntaxEditor"/> instance.
         /// </summary>
         public SyntaxEditor(SyntaxNode root, HostWorkspaceServices services)
+            : this(root, (services ?? throw new ArgumentNullException(nameof(services))).SolutionServices)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="SyntaxEditor"/> instance.
+        /// </summary>
+        public SyntaxEditor(SyntaxNode root, SolutionServices services)
             : this(root ?? throw new ArgumentNullException(nameof(root)),
                    SyntaxGenerator.GetGenerator(services ?? throw new ArgumentNullException(nameof(services)), root.Language))
         {
@@ -45,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editing
             _generator = generator;
         }
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         private SyntaxNode? ApplyTrackingToNewNode(SyntaxNode? node)
         {
             if (node == null)
@@ -404,9 +412,9 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
-                => _isBefore ?
-                    generator.InsertNodesBefore(root, currentNode, _newNodes) :
-                    generator.InsertNodesAfter(root, currentNode, _newNodes);
+                => _isBefore
+                    ? generator.InsertNodesBefore(root, currentNode, _newNodes)
+                    : generator.InsertNodesAfter(root, currentNode, _newNodes);
         }
     }
 }

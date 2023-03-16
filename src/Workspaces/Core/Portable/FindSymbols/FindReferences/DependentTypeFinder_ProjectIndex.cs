@@ -5,7 +5,7 @@
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var delegates = new MultiDictionary<Document, DeclaredSymbolInfo>();
 
                 var namedTypes = new MultiDictionary<string, (Document, DeclaredSymbolInfo)>(
-                    project.LanguageServices.GetRequiredService<ISyntaxFactsService>().StringComparer);
+                    project.Services.GetRequiredService<ISyntaxFactsService>().StringComparer);
 
                 foreach (var document in project.Documents)
                 {

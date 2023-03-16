@@ -35,12 +35,13 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Public Class DocumentService_IntegrationTests
         Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
             .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
             .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact>
         Public Async Function TestFindUsageIntegration() As System.Threading.Tasks.Task
             Dim input =
 <Workspace>
@@ -112,7 +113,7 @@ class {|Definition:C1|}
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact>
         Public Async Function TestCodeLensIntegration() As System.Threading.Tasks.Task
             Dim input =
 <Workspace>
@@ -165,7 +166,7 @@ class {|Definition:C1|}
 
         <InlineData(True)>
         <InlineData(False)>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory>
         Public Async Function TestDocumentOperationCanApplyChange(ignoreUnchangeableDocuments As Boolean) As System.Threading.Tasks.Task
             Dim input =
 <Workspace>
@@ -205,7 +206,7 @@ class C { }
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact>
         Public Async Function TestDocumentOperationCanApplySupportDiagnostics() As System.Threading.Tasks.Task
             Dim input =
 <Workspace>

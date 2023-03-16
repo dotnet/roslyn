@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Text;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.Cci
 {
@@ -71,14 +72,24 @@ namespace Microsoft.Cci
                     sb.Append('.');
                 }
 
-                sb.Append(GetMangledAndEscapedName(namespaceType));
+                sb.Append(GetEscapedMetadataName(namespaceType));
                 goto done;
             }
 
-
             if (typeReference.IsTypeSpecification())
             {
+                if (typeReference is IFunctionPointerTypeReference)
+                {
+                    var messageProvider = context.Module.CommonCompilation.MessageProvider;
+                    context.Diagnostics.Add(messageProvider.CreateDiagnostic(
+                        messageProvider.ERR_FunctionPointerTypesInAttributeNotSupported,
+                        context.Location ?? Location.None));
+                    sb.Append("(fnptr)");
+                    goto done;
+                }
+
                 ITypeReference uninstantiatedTypeReference = typeReference.GetUninstantiatedGenericType(context);
+                Debug.Assert(uninstantiatedTypeReference != typeReference);
 
                 ArrayBuilder<ITypeReference> consolidatedTypeArguments = ArrayBuilder<ITypeReference>.GetInstance();
                 typeReference.GetConsolidatedTypeArguments(consolidatedTypeArguments, context);
@@ -113,7 +124,7 @@ namespace Microsoft.Cci
                 bool nestedTypeIsAssemblyQualified = false;
                 sb.Append(GetSerializedTypeName(nestedType.GetContainingType(context), context, ref nestedTypeIsAssemblyQualified));
                 sb.Append('+');
-                sb.Append(GetMangledAndEscapedName(nestedType));
+                sb.Append(GetEscapedMetadataName(nestedType));
                 goto done;
             }
 
@@ -193,12 +204,18 @@ done:
             }
         }
 
-        private static string GetMangledAndEscapedName(INamedTypeReference namedType)
+        private static string GetEscapedMetadataName(INamedTypeReference namedType)
         {
             var pooled = PooledStringBuilder.GetInstance();
             StringBuilder mangledName = pooled.Builder;
 
             const string needsEscaping = "\\[]*.+,& ";
+            if (namedType.AssociatedFileIdentifier is string fileIdentifier)
+            {
+                Debug.Assert(needsEscaping.All(c => !fileIdentifier.Contains(c)));
+                mangledName.Append(fileIdentifier);
+            }
+
             foreach (var ch in namedType.Name)
             {
                 if (needsEscaping.IndexOf(ch) >= 0)

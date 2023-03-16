@@ -7,19 +7,28 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls"
              xmlns:u="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
+             xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800"
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}">
     <UserControl.Resources>
-        <u:EnumBoolConverter x:Key="enumBoolConverter" />
-        <Style TargetType="ListBoxItem">
-            <Setter Property="IsTabStop" 
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../VSThemeDictionary.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <u:EnumBoolConverter x:Key="enumBoolConverter" />
+            <Style TargetType="ListBoxItem">
+                <Setter Property="IsTabStop" 
                     Value="False" />
-        </Style>
-        <Thickness x:Key="labelPadding">0, 5, 0, 2</Thickness>
-        <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
-        <Thickness x:Key="selectDeselectButtonPadding">9,2,9,2</Thickness>
-        <Thickness x:Key="textboxPadding">2</Thickness>
-        <Thickness x:Key="radioButtonPadding">2, 0, 2, 0</Thickness>
+            </Style>
+            <Thickness x:Key="labelPadding">0, 5, 0, 2</Thickness>
+            <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
+            <Thickness x:Key="selectDeselectButtonPadding">9,2,9,2</Thickness>
+            <Thickness x:Key="textboxPadding">2</Thickness>
+            <Thickness x:Key="radioButtonPadding">2, 0, 2, 0</Thickness>
+        </ResourceDictionary>
     </UserControl.Resources>
     <StackPanel>
         <Label x:Uid="TypeNameLabel" 
@@ -46,8 +55,9 @@
                      KeyboardNavigation.IsTabStop="False" />
 
         <GroupBox x:Uid="DestinationSelectionGroupBox"
-                      Margin="0, 9, 0, 0"
-                      Header="{Binding ElementName=control, Path=SelectDestinationFile}">
+                  Margin="0, 9, 0, 0"
+                  Header="{Binding ElementName=control, Path=SelectDestinationFile}"
+                  BorderThickness="0" >
             <Grid Margin="9, 9, 9, 7">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />

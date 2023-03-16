@@ -18,10 +18,9 @@ namespace Microsoft.CodeAnalysis
 
         private new SourceGeneratedDocumentState State => (SourceGeneratedDocumentState)base.State;
 
-        // TODO: make this public. Tracked by https://github.com/dotnet/roslyn/issues/50546
-        internal string SourceGeneratorAssemblyName => Identity.GeneratorAssemblyName;
-        internal string SourceGeneratorTypeName => Identity.GeneratorTypeName;
         public string HintName => State.HintName;
+
+        // TODO: make this public. Tracked by https://github.com/dotnet/roslyn/issues/50546
         internal SourceGeneratedDocumentIdentity Identity => State.Identity;
 
         internal override Document WithFrozenPartialSemantics(CancellationToken cancellationToken)

@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PreferFrameworkType
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
     public partial class PreferFrameworkTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public PreferFrameworkTypeTests(ITestOutputHelper logger)
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PreferFrame
                 { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, offWithInfo },
             };
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task NotWhenOptionsAreNotSet()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -73,7 +74,7 @@ class Program
 }", new TestParameters(options: NoFrameworkType));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task NotOnDynamic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -88,7 +89,7 @@ class Program
 }", new TestParameters(options: FrameworkTypeInDeclaration));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task NotOnSystemVoid()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -102,7 +103,7 @@ class Program
 }", new TestParameters(options: FrameworkTypeEverywhere));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task NotOnUserdefinedType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -117,7 +118,7 @@ class Program
 }", new TestParameters(options: FrameworkTypeEverywhere));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task NotOnFrameworkType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -132,7 +133,7 @@ class Program
 }", new TestParameters(options: FrameworkTypeInDeclaration));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task NotOnQualifiedTypeSyntax()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -145,7 +146,7 @@ class Program
 }", new TestParameters(options: FrameworkTypeInDeclaration));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task NotOnFrameworkTypeWithNoPredefinedKeywordEquivalent()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -160,7 +161,7 @@ class Program
 }", new TestParameters(options: FrameworkTypeInDeclaration));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task NotOnIdentifierThatIsNotTypeSyntax()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -175,7 +176,7 @@ class Program
 }", new TestParameters(options: FrameworkTypeInDeclaration));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task QualifiedReplacementWhenNoUsingFound()
         {
             var code =
@@ -192,7 +193,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task FieldDeclaration()
         {
             var code =
@@ -211,7 +212,62 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
+        public async Task TestNint_WithNumericIntPtr_CSharp11()
+        {
+            var code =
+@"<Workspace>
+    <Project Language=""C#"" CommonReferencesNet7=""true"" LanguageVersion=""11"">
+        <Document>using System;
+class Program
+{
+    [|nint|] _myfield;
+}</Document>
+    </Project>
+</Workspace>";
+
+            var expected =
+@"using System;
+class Program
+{
+    IntPtr _myfield;
+}";
+            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+        }
+
+        [Fact]
+        public async Task TestNint_WithNumericIntPtr_CSharp8()
+        {
+            var code =
+@"<Workspace>
+    <Project Language=""C#"" CommonReferencesNet7=""true"" LanguageVersion=""8"">
+        <Document>using System;
+class Program
+{
+    [|nint|] _myfield;
+}</Document>
+    </Project>
+</Workspace>";
+            await TestMissingInRegularAndScriptAsync(code, new TestParameters(options: FrameworkTypeInDeclaration));
+        }
+
+        [Fact]
+        public async Task TestNint_WithoutNumericIntPtr()
+        {
+            var code =
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" LanguageVersion=""11"">
+        <Document>using System;
+class Program
+{
+    [|nint|] _myfield;
+}</Document>
+    </Project>
+</Workspace>";
+            await TestMissingInRegularAndScriptAsync(code, new TestParameters(options: FrameworkTypeInDeclaration));
+        }
+
+        [Fact]
         public async Task FieldDeclarationWithInitializer()
         {
             var code =
@@ -230,7 +286,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task DelegateDeclaration()
         {
             var code =
@@ -249,7 +305,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task PropertyDeclaration()
         {
             var code =
@@ -268,7 +324,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task GenericPropertyDeclaration()
         {
             var code =
@@ -289,7 +345,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task QualifiedReplacementInGenericTypeParameter()
         {
             var code =
@@ -308,7 +364,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task MethodDeclarationReturnType()
         {
             var code =
@@ -327,7 +383,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task MethodDeclarationParameters()
         {
             var code =
@@ -346,7 +402,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task GenericMethodInvocation()
         {
             var code =
@@ -367,7 +423,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task LocalDeclaration()
         {
             var code =
@@ -392,7 +448,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task MemberAccess()
         {
             var code =
@@ -417,7 +473,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInMemberAccess);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task MemberAccess2()
         {
             var code =
@@ -442,7 +498,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInMemberAccess);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task DocCommentTriviaCrefExpression()
         {
             var code =
@@ -467,7 +523,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInMemberAccess);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task DefaultExpression()
         {
             var code =
@@ -492,7 +548,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task TypeOfExpression()
         {
             var code =
@@ -517,7 +573,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task NameOfExpression()
         {
             var code =
@@ -542,7 +598,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task FormalParametersWithinLambdaExression()
         {
             var code =
@@ -567,7 +623,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task DelegateMethodExpression()
         {
             var code =
@@ -592,7 +648,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task ObjectCreationExpression()
         {
             var code =
@@ -617,7 +673,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task ArrayDeclaration()
         {
             var code =
@@ -642,7 +698,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task ArrayInitializer()
         {
             var code =
@@ -667,7 +723,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task MultiDimentionalArrayAsGenericTypeParameter()
         {
             var code =
@@ -694,7 +750,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task ForStatement()
         {
             var code =
@@ -719,7 +775,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task ForeachStatement()
         {
             var code =
@@ -744,7 +800,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task LeadingTrivia()
         {
             var code =
@@ -771,7 +827,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        [Fact]
         public async Task TrailingTrivia()
         {
             var code =

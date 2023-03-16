@@ -16,10 +16,12 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.StringCopyPaste;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
@@ -57,6 +59,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         private readonly IThreadingContext _threadingContext;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
+        private readonly IIndentationManagerService _indentationManager;
         private readonly IGlobalOptionService _globalOptions;
         private readonly ITextBufferFactoryService2 _textBufferFactoryService;
 
@@ -67,13 +71,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             IGlobalOptionService globalOptions,
-            ITextBufferFactoryService2 textBufferFactoryService)
+            ITextBufferFactoryService2 textBufferFactoryService,
+            EditorOptionsService editorOptionsService,
+            IIndentationManagerService indentationManager)
         {
             _threadingContext = threadingContext;
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _globalOptions = globalOptions;
             _textBufferFactoryService = textBufferFactoryService;
+            _editorOptionsService = editorOptionsService;
+            _indentationManager = indentationManager;
         }
 
         public string DisplayName => nameof(StringCopyPasteCommandHandler);
@@ -100,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 return;
 
             // If the user has the option off, then don't bother doing anything once we've sent the paste through.
-            if (!_globalOptions.GetOption(FeatureOnOffOptions.AutomaticallyFixStringContentsOnPaste, LanguageNames.CSharp))
+            if (!_globalOptions.GetOption(StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste, LanguageNames.CSharp))
                 return;
 
             // if we're not even sure where the user caret/selection is on this buffer, we can't proceed.
@@ -122,12 +130,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 return;
 
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
+            var parsedDocumentBeforePaste = ParsedDocument.CreateSynchronously(documentBeforePaste, cancellationToken);
 
             // When pasting, only do anything special if the user selections were entirely inside a single string
             // token/expression.  Otherwise, we have a multi-selection across token kinds which will be extremely
             // complex to try to reconcile.
-            var stringExpressionBeforePaste = TryGetCompatibleContainingStringExpression(
-                documentBeforePaste, selectionsBeforePaste, cancellationToken);
+            var stringExpressionBeforePaste = TryGetCompatibleContainingStringExpression(parsedDocumentBeforePaste, selectionsBeforePaste);
             if (stringExpressionBeforePaste == null)
                 return;
 
@@ -135,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // token/expression. If the editor decided to make changes outside of the string, we definitely do not want
             // to do anything here.
             var stringExpressionBeforePasteFromChanges = TryGetCompatibleContainingStringExpression(
-                documentBeforePaste, new NormalizedSnapshotSpanCollection(snapshotBeforePaste, snapshotBeforePaste.Version.Changes.Select(c => c.OldSpan)), cancellationToken);
+                parsedDocumentBeforePaste, new NormalizedSnapshotSpanCollection(snapshotBeforePaste, snapshotBeforePaste.Version.Changes.Select(c => c.OldSpan)));
             if (stringExpressionBeforePaste != stringExpressionBeforePasteFromChanges)
                 return;
 
@@ -191,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             {
                 var newLine = textView.Options.GetNewLineCharacter();
                 var indentationWhitespace = DetermineIndentationWhitespace(
-                    documentBeforePaste, snapshotBeforePaste.AsText(), stringExpressionBeforePaste, cancellationToken);
+                    parsedDocumentBeforePaste, subjectBuffer, snapshotBeforePaste.AsText(), stringExpressionBeforePaste, cancellationToken);
 
                 // See if this is a paste of the last copy that we heard about.
                 var edits = TryGetEditsFromKnownCopySource(newLine, indentationWhitespace);
@@ -217,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 if (selectionsBeforePaste.Count != 1)
                     return default;
 
-                var copyPasteService = documentBeforePaste.Project.Solution.Workspace.Services.GetRequiredService<IStringCopyPasteService>();
+                var copyPasteService = documentBeforePaste.Project.Solution.Services.GetRequiredService<IStringCopyPasteService>();
                 var clipboardData = copyPasteService.TryGetClipboardData(KeyAndVersion);
                 var copyPasteData = StringCopyPasteData.FromJson(clipboardData);
 
@@ -236,7 +244,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         }
 
         private string DetermineIndentationWhitespace(
-            Document documentBeforePaste,
+            ParsedDocument documentBeforePaste,
+            ITextBuffer textBuffer,
             SourceText textBeforePaste,
             ExpressionSyntax stringExpressionBeforePaste,
             CancellationToken cancellationToken)
@@ -256,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // Otherwise, we have a single-line raw string.  Determine the default indentation desired here.
             // We'll use that if we have to convert this single-line raw string to a multi-line one.
-            var indentationOptions = documentBeforePaste.GetIndentationOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken);
+            var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsService, documentBeforePaste.LanguageServices, explicitFormat: false);
             return stringExpressionBeforePaste.GetFirstToken().GetPreferredIndentation(documentBeforePaste, indentationOptions, cancellationToken);
         }
 
@@ -318,18 +327,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// anything special as trying to correct in this scenario is too difficult.
         /// </summary>
         private static ExpressionSyntax? TryGetCompatibleContainingStringExpression(
-            Document document, NormalizedSnapshotSpanCollection spans, CancellationToken cancellationToken)
+            ParsedDocument document, NormalizedSnapshotSpanCollection spans)
         {
             if (spans.Count == 0)
                 return null;
 
             var snapshot = spans[0].Snapshot;
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
-            if (root == null)
-                return null;
 
             // First, try to see if all the selections are at least contained within a single string literal expression.
-            var stringExpression = FindCommonContainingStringExpression(root, spans);
+            var stringExpression = FindCommonContainingStringExpression(document.Root, spans);
             if (stringExpression == null)
                 return null;
 

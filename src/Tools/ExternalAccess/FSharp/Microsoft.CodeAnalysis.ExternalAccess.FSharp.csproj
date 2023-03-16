@@ -16,15 +16,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Internal\Utilities\IsExternalInit.cs" />
-  </ItemGroup>
-  
-  <ItemGroup>
     <!--
       ⚠ ONLY F# ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
     <InternalsVisibleTo Include="FSharp.Editor" Key="$(FSharpKey)" />
     <InternalsVisibleTo Include="FSharp.LanguageService" Key="$(FSharpKey)" />
+    <InternalsVisibleTo Include="VisualFSharp.UnitTests" Key="$(FSharpKey)" />
+    <InternalsVisibleTo Include="FSharp.Editor.Tests" Key="$(FSharpKey)" />
+    <InternalsVisibleTo Include="FSharp.Editor.IntegrationTests" Key="$(FSharpKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
   </ItemGroup>
 
@@ -45,6 +44,8 @@
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <PublicAPI Include="InternalAPI.Shipped.txt" />
+    <PublicAPI Include="InternalAPI.Unshipped.txt" />
   </ItemGroup>
 
   <ItemGroup>

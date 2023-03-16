@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -29,12 +30,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
     internal abstract partial class AbstractLegacyProject : ForegroundThreadAffinitizedObject
     {
         public IVsHierarchy Hierarchy { get; }
-        protected VisualStudioProject VisualStudioProject { get; }
-        internal VisualStudioProjectOptionsProcessor VisualStudioProjectOptionsProcessor { get; set; }
+        protected ProjectSystemProject ProjectSystemProject { get; }
+        internal ProjectSystemProjectOptionsProcessor ProjectSystemProjectOptionsProcessor { get; set; }
         protected IProjectCodeModel ProjectCodeModel { get; set; }
         protected VisualStudioWorkspace Workspace { get; }
 
-        internal VisualStudioProject Test_VisualStudioProject => VisualStudioProject;
+        internal ProjectSystemProject Test_ProjectSystemProject => ProjectSystemProject;
 
         /// <summary>
         /// The path to the directory of the project. Read-only, since although you can rename
@@ -102,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             var projectFactory = componentModel.GetService<VisualStudioProjectFactory>();
-            VisualStudioProject = threadingContext.JoinableTaskFactory.Run(() => projectFactory.CreateAndAddToWorkspaceAsync(
+            ProjectSystemProject = threadingContext.JoinableTaskFactory.Run(() => projectFactory.CreateAndAddToWorkspaceAsync(
                 projectSystemName,
                 language,
                 new VisualStudioProjectCreationInfo
@@ -117,52 +118,52 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 CancellationToken.None));
 
             workspaceImpl.AddProjectRuleSetFileToInternalMaps(
-                VisualStudioProject,
-                () => VisualStudioProjectOptionsProcessor.EffectiveRuleSetFilePath);
+                ProjectSystemProject,
+                () => ProjectSystemProjectOptionsProcessor.EffectiveRuleSetFilePath);
 
             // Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
             // by assigning the value of the project's root namespace to it. So various feature can choose to 
             // use it for their own purpose.
             // In the future, we might consider officially exposing "default namespace" for VB project 
             // (e.g. through a <defaultnamespace> msbuild property)
-            VisualStudioProject.DefaultNamespace = GetRootNamespacePropertyValue(hierarchy);
+            ProjectSystemProject.DefaultNamespace = GetRootNamespacePropertyValue(hierarchy);
 
-            if (TryGetPropertyValue(hierarchy, AdditionalPropertyNames.MaxSupportedLangVersion, out var maxLangVer))
+            if (TryGetPropertyValue(hierarchy, BuildPropertyNames.MaxSupportedLangVersion, out var maxLangVer))
             {
-                VisualStudioProject.MaxLangVersion = maxLangVer;
+                ProjectSystemProject.MaxLangVersion = maxLangVer;
             }
 
-            if (TryGetBoolPropertyValue(hierarchy, AdditionalPropertyNames.RunAnalyzers, out var runAnayzers))
+            if (TryGetBoolPropertyValue(hierarchy, BuildPropertyNames.RunAnalyzers, out var runAnayzers))
             {
-                VisualStudioProject.RunAnalyzers = runAnayzers;
+                ProjectSystemProject.RunAnalyzers = runAnayzers;
             }
 
-            if (TryGetBoolPropertyValue(hierarchy, AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis, out var runAnayzersDuringLiveAnalysis))
+            if (TryGetBoolPropertyValue(hierarchy, BuildPropertyNames.RunAnalyzersDuringLiveAnalysis, out var runAnayzersDuringLiveAnalysis))
             {
-                VisualStudioProject.RunAnalyzersDuringLiveAnalysis = runAnayzersDuringLiveAnalysis;
+                ProjectSystemProject.RunAnalyzersDuringLiveAnalysis = runAnayzersDuringLiveAnalysis;
             }
 
             Hierarchy = hierarchy;
             ConnectHierarchyEvents();
             RefreshBinOutputPath();
 
-            _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, language, workspaceImpl);
+            _externalErrorReporter = new ProjectExternalErrorReporter(ProjectSystemProject.Id, externalErrorReportingPrefix, language, workspaceImpl);
             _batchScopeCreator = componentModel.GetService<SolutionEventsBatchScopeCreator>();
-            _batchScopeCreator.StartTrackingProject(VisualStudioProject, Hierarchy);
+            _batchScopeCreator.StartTrackingProject(ProjectSystemProject, Hierarchy);
         }
 
-        public string AssemblyName => VisualStudioProject.AssemblyName;
+        public string AssemblyName => ProjectSystemProject.AssemblyName;
 
         public string GetOutputFileName()
-            => VisualStudioProject.CompilationOutputAssemblyFilePath;
+            => ProjectSystemProject.CompilationOutputAssemblyFilePath;
 
         public virtual void Disconnect()
         {
-            _batchScopeCreator.StopTrackingProject(VisualStudioProject);
+            _batchScopeCreator.StopTrackingProject(ProjectSystemProject);
 
-            VisualStudioProjectOptionsProcessor?.Dispose();
+            ProjectSystemProjectOptionsProcessor?.Dispose();
             ProjectCodeModel.OnProjectClosed();
-            VisualStudioProject.RemoveFromWorkspace();
+            ProjectSystemProject.RemoveFromWorkspace();
 
             // Unsubscribe IVsHierarchyEvents
             DisconnectHierarchyEvents();
@@ -190,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 folders = GetFolderNamesForDocument(itemid);
             }
 
-            VisualStudioProject.AddSourceFile(filename, sourceCodeKind, folders);
+            ProjectSystemProject.AddSourceFile(filename, sourceCodeKind, folders);
         }
 
         protected void AddFile(
@@ -212,14 +213,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 var linkFolderPath = Path.GetDirectoryName(linkMetadata);
                 folders = linkFolderPath.Split(PathSeparatorCharacters, StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
             }
-            else if (!string.IsNullOrEmpty(VisualStudioProject.FilePath))
+            else if (!string.IsNullOrEmpty(ProjectSystemProject.FilePath))
             {
                 var relativePath = PathUtilities.GetRelativePath(_projectDirectory, filename);
                 var relativePathParts = relativePath.Split(PathSeparatorCharacters);
                 folders = ImmutableArray.Create(relativePathParts, start: 0, length: relativePathParts.Length - 1);
             }
 
-            VisualStudioProject.AddSourceFile(filename, sourceCodeKind, folders);
+            ProjectSystemProject.AddSourceFile(filename, sourceCodeKind, folders);
         }
 
         protected void RemoveFile(string filename)
@@ -232,7 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 return;
             }
 
-            VisualStudioProject.RemoveSourceFile(filename);
+            ProjectSystemProject.RemoveSourceFile(filename);
             ProjectCodeModel.OnSourceFileRemoved(filename);
         }
 
@@ -266,12 +267,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // web app case
             if (!PathUtilities.IsAbsolute(outputDirectory))
             {
-                if (VisualStudioProject.FilePath == null)
+                if (ProjectSystemProject.FilePath == null)
                 {
                     return;
                 }
 
-                outputDirectory = FileUtilities.ResolveRelativePath(outputDirectory, Path.GetDirectoryName(VisualStudioProject.FilePath));
+                outputDirectory = FileUtilities.ResolveRelativePath(outputDirectory, Path.GetDirectoryName(ProjectSystemProject.FilePath));
             }
 
             if (outputDirectory == null)
@@ -279,15 +280,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 return;
             }
 
-            VisualStudioProject.OutputFilePath = FileUtilities.NormalizeAbsolutePath(Path.Combine(outputDirectory, targetFileName));
+            ProjectSystemProject.OutputFilePath = FileUtilities.NormalizeAbsolutePath(Path.Combine(outputDirectory, targetFileName));
 
             if (ErrorHandler.Succeeded(storage.GetPropertyValue("TargetRefPath", null, (uint)_PersistStorageType.PST_PROJECT_FILE, out var targetRefPath)) && !string.IsNullOrEmpty(targetRefPath))
             {
-                VisualStudioProject.OutputRefFilePath = targetRefPath;
+                ProjectSystemProject.OutputRefFilePath = targetRefPath;
             }
             else
             {
-                VisualStudioProject.OutputRefFilePath = null;
+                ProjectSystemProject.OutputRefFilePath = null;
             }
         }
 

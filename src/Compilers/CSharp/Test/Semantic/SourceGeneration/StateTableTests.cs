@@ -5,12 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Xunit;
-using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Test.Utilities;
-using System.Linq;
+using Roslyn.Test.Utilities.TestGenerators;
+using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
@@ -89,9 +90,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             var expected = ImmutableArray.Create((10, EntryState.Added, 0), (11, EntryState.Added, 1), (2, EntryState.Cached, 0), (3, EntryState.Cached, 1), (20, EntryState.Modified, 0), (21, EntryState.Modified, 1), (22, EntryState.Modified, 2), (6, EntryState.Removed, 0));
             AssertTableEntries(newTable, expected);
-            Assert.Equal(new[] { 2, 3 }, cachedEntries);
-            Assert.Equal(6, Assert.Single(removedEntries));
+            Assert.Equal(new[] { 2, 3 }, YieldItems(cachedEntries.Items));
+            Assert.Equal(1, removedEntries.Count);
+            Assert.Equal(6, removedEntries[0]);
             Assert.True(didRemoveEntries);
+        }
+
+        private static IEnumerable<int> YieldItems(OneOrMany<int> items)
+        {
+            foreach (var value in items)
+                yield return value;
         }
 
         [Fact]
@@ -1013,7 +1021,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                     SyntaxStore.Empty,
                     disabledOutputs: IncrementalGeneratorOutputKind.None,
                     runtime: TimeSpan.Zero,
-                    trackIncrementalGeneratorSteps: trackIncrementalGeneratorSteps);
+                    trackIncrementalGeneratorSteps: trackIncrementalGeneratorSteps,
+                    parseOptionsChanged: false);
 
             return new DriverStateTable.Builder(c, state, SyntaxStore.Empty.ToBuilder(c, ImmutableArray<SyntaxInputNode>.Empty, trackIncrementalGeneratorSteps, cancellationToken: default));
         }
@@ -1027,8 +1036,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                 _callback = callback;
             }
 
-            public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
+            public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T>? previousTable, CancellationToken cancellationToken)
             {
+                previousTable ??= NodeStateTable<T>.Empty;
                 return _callback(graphState, previousTable);
             }
 

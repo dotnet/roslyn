@@ -23,10 +23,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 IThreadingContext threadingContext,
                 SuggestedActionsSourceProvider sourceProvider,
                 Workspace workspace,
+                Solution originalSolution,
                 ITextBuffer subjectBuffer,
                 object provider,
                 PreviewChangesCodeAction codeAction)
-                : base(threadingContext, sourceProvider, workspace, subjectBuffer, provider, codeAction)
+                : base(threadingContext, sourceProvider, workspace, originalSolution, subjectBuffer, provider, codeAction)
             {
             }
 
@@ -47,8 +48,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 return new PreviewChangesSuggestedAction(
                     suggestedAction.ThreadingContext,
-                    suggestedAction.SourceProvider, suggestedAction.Workspace,
-                    suggestedAction.SubjectBuffer, suggestedAction.Provider,
+                    suggestedAction.SourceProvider,
+                    suggestedAction.Workspace,
+                    suggestedAction.OriginalSolution,
+                    suggestedAction.SubjectBuffer,
+                    suggestedAction.Provider,
                     new PreviewChangesCodeAction(
                         suggestedAction.Workspace, suggestedAction.CodeAction, changeSummary));
             }

@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override char OpeningBrace => LessAndGreaterThan.OpenCharacter;
         protected override char ClosingBrace => LessAndGreaterThan.CloseCharacter;
 
-        public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
-            => AllowOverTypeInUserCodeWithValidClosingTokenAsync(context, cancellationToken);
+        public override bool AllowOverType(BraceCompletionContext context, CancellationToken cancellationToken)
+            => AllowOverTypeInUserCodeWithValidClosingToken(context, cancellationToken);
 
         protected override bool IsValidOpeningBraceToken(SyntaxToken token)
             => token.IsKind(SyntaxKind.LessThanToken);
@@ -39,44 +39,39 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override bool IsValidClosingBraceToken(SyntaxToken token)
             => token.IsKind(SyntaxKind.GreaterThanToken);
 
-        protected override async ValueTask<bool> IsValidOpenBraceTokenAtPositionAsync(Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
+        protected override Task<bool> IsValidOpenBraceTokenAtPositionAsync(Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
         {
             // check what parser thinks about the newly typed "<" and only proceed if parser thinks it is "<" of 
             // type argument or parameter list
-            return token.CheckParent<TypeParameterListSyntax>(n => n.LessThanToken == token) ||
+            if (token.CheckParent<TypeParameterListSyntax>(n => n.LessThanToken == token) ||
                 token.CheckParent<TypeArgumentListSyntax>(n => n.LessThanToken == token) ||
-                token.CheckParent<FunctionPointerParameterListSyntax>(n => n.LessThanToken == token) ||
-                await PossibleTypeArgumentAsync(document, token, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async ValueTask<bool> PossibleTypeArgumentAsync(Document document, SyntaxToken token, CancellationToken cancellationToken)
-        {
-            // type argument can be easily ambiguous with normal < operations
-            if (token.Parent is not BinaryExpressionSyntax node || node.Kind() != SyntaxKind.LessThanExpression || node.OperatorToken != token)
-                return false;
-
-            // use binding to see whether it is actually generic type or method 
-            // Analyze node on the left of < operator to verify if it is a generic type or method.
-            var leftNode = node.Left;
-            if (leftNode is ConditionalAccessExpressionSyntax leftConditionalAccessExpression)
+                token.CheckParent<FunctionPointerParameterListSyntax>(n => n.LessThanToken == token))
             {
-                // If node on the left is a conditional access expression, get the member binding expression 
-                // from the innermost conditional access expression, which is the left of < operator. 
-                // e.g: Case a?.b?.c< : we need to get the conditional access expression .b?.c and analyze its
-                // member binding expression (the .c) to see if it is a generic type/method.
-                // Case a?.b?.c.d< : we need to analyze .c.d
-                // Case a?.M(x => x?.P)?.M2< : We need to analyze .M2
-                var innerMostConditionalAccessExpression = leftConditionalAccessExpression.GetInnerMostConditionalAccessExpression();
-                if (innerMostConditionalAccessExpression != null)
-                    leftNode = innerMostConditionalAccessExpression.WhenNotNull;
+                return Task.FromResult(true);
             }
 
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(leftNode.SpanStart, cancellationToken).ConfigureAwait(false);
-            var info = semanticModel.GetSymbolInfo(leftNode, cancellationToken);
-            return info.CandidateSymbols.Any(IsGenericTypeOrMethod);
-        }
+            // type argument can be easily ambiguous with normal < operations
+            if (token.Parent is not BinaryExpressionSyntax(SyntaxKind.LessThanExpression) node || node.OperatorToken != token)
+                return Task.FromResult(false);
 
-        private static bool IsGenericTypeOrMethod(ISymbol symbol)
-            => symbol.GetArity() > 0;
+            // type_argument_list only shows up in the following grammar construct:
+            //
+            // generic_name
+            //  : identifier_token type_argument_list
+            //
+            // So if the prior token is not an identifier, this could not be a type-argument-list.
+            var previousToken = token.GetPreviousToken();
+            if (previousToken.Parent is not IdentifierNameSyntax identifier)
+                return Task.FromResult(false);
+
+            return IsSemanticTypeArgumentAsync(document, node.SpanStart, identifier, cancellationToken);
+
+            static async Task<bool> IsSemanticTypeArgumentAsync(Document document, int position, IdentifierNameSyntax identifier, CancellationToken cancellationToken)
+            {
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+                var info = semanticModel.GetSymbolInfo(identifier, cancellationToken);
+                return info.CandidateSymbols.Any(static s => s.GetArity() > 0);
+            }
+        }
     }
 }

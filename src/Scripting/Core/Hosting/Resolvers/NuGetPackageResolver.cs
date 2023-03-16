@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         {
             if (reference.StartsWith(ReferencePrefix, StringComparison.Ordinal))
             {
-                var parts = reference.Substring(ReferencePrefix.Length).Split('/');
+                var parts = reference[ReferencePrefix.Length..].Split('/');
                 Debug.Assert(parts.Length > 0);
                 name = parts[0];
                 if (name.Length > 0)

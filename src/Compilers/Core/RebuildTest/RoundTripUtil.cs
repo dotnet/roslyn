@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var portablePdbReader = pdbStream is not null ? MetadataReaderProvider.FromPortablePdbStream(pdbStream).GetMetadataReader() : null;
             Assert.True(embeddedPdbReader == null ^ portablePdbReader == null);
 
-            var pdbReader = embeddedPdbReader ?? portablePdbReader ?? throw ExceptionUtilities.Unreachable;
+            var pdbReader = embeddedPdbReader ?? portablePdbReader ?? throw ExceptionUtilities.Unreachable();
             var factory = LoggerFactory.Create(configure => { });
             var logger = factory.CreateLogger("RoundTripVerification");
             var optionsReader = new CompilationOptionsReader(logger, pdbReader, peReader);

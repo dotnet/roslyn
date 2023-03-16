@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         // normalized absolute paths
         private readonly ImmutableArray<string> _noShadowCopyDirectories;
 
-        private struct CacheEntry<TPublic>
+        private readonly struct CacheEntry<TPublic>
         {
             public readonly TPublic Public;
             public readonly Metadata Private;
@@ -366,10 +366,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             lock (Guard)
             {
-                if (_lazySuppressedFiles == null)
-                {
-                    _lazySuppressedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                }
+                _lazySuppressedFiles ??= new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
                 _lazySuppressedFiles.Add(originalPath);
             }
@@ -404,10 +401,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 try
                 {
-                    if (ShadowCopyDirectory == null)
-                    {
-                        ShadowCopyDirectory = CreateUniqueDirectory(_baseDirectory);
-                    }
+                    ShadowCopyDirectory ??= CreateUniqueDirectory(_baseDirectory);
 
                     // Create directory for the assembly.
                     // If the assembly has any modules they have to be copied to the same directory 
@@ -490,10 +484,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 if (fault)
                 {
-                    if (manifestModule != null)
-                    {
-                        manifestModule.Dispose();
-                    }
+                    manifestModule?.Dispose();
 
                     if (moduleBuilder != null)
                     {

@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 // We don't want to bring up the OOP process in a VS cloud environment client instance
                 // Avoids proffering brokered services on the client instance.
-                if (!_globalOptions.GetOption(RemoteHostOptions.OOP64Bit) ||
+                if (!_globalOptions.GetOption(RemoteHostOptionsStorage.OOP64Bit) ||
                     workspaceServices.Workspace is not VisualStudioWorkspace ||
                     workspaceServices.GetRequiredService<IWorkspaceContextService>().IsCloudEnvironmentClient())
                 {
@@ -63,11 +63,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return new DefaultRemoteHostClientProvider();
                 }
 
-                return new VisualStudioRemoteHostClientProvider(workspaceServices, _globalOptions, _vsServiceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
+                return new VisualStudioRemoteHostClientProvider(workspaceServices.SolutionServices, _globalOptions, _vsServiceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
             }
         }
 
-        private readonly HostWorkspaceServices _services;
+        private readonly SolutionServices _services;
         private readonly IGlobalOptionService _globalOptions;
         private readonly VSThreading.AsyncLazy<RemoteHostClient?> _lazyClient;
         private readonly IAsyncServiceProvider _vsServiceProvider;
@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
 
         private VisualStudioRemoteHostClientProvider(
-            HostWorkspaceServices services,
+            SolutionServices services,
             IGlobalOptionService globalOptions,
             IAsyncServiceProvider vsServiceProvider,
             IThreadingContext threadingContext,
@@ -103,8 +103,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
 
                 var configuration =
-                    (_globalOptions.GetOption(RemoteHostOptions.OOPCoreClrFeatureFlag) ? RemoteProcessConfiguration.Core : 0) |
-                    (_globalOptions.GetOption(RemoteHostOptions.OOPServerGCFeatureFlag) ? RemoteProcessConfiguration.ServerGC : 0) |
+                    (_globalOptions.GetOption(RemoteHostOptionsStorage.OOPCoreClrFeatureFlag) ? RemoteProcessConfiguration.Core : 0) |
+                    (_globalOptions.GetOption(RemoteHostOptionsStorage.OOPServerGCFeatureFlag) ? RemoteProcessConfiguration.ServerGC : 0) |
                     (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler) ? RemoteProcessConfiguration.EnableSolutionCrawler : 0);
 
                 // VS AsyncLazy does not currently support cancellation:

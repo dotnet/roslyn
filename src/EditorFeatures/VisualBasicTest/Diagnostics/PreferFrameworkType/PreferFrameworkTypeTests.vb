@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.PreferFrameworkType
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.PreferFrameworkTypeTests
+    <Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
     Partial Public Class PreferFrameworkTypeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -59,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
             End Get
         End Property
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function NotWhenOptionsAreNotSet() As Task
             Await TestMissingInRegularAndScriptAsync("
 Class C
@@ -68,7 +69,7 @@ End Class
 ", New TestParameters(options:=NoFrameworkType))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function NotOnUserdefinedType() As Task
             Await TestMissingInRegularAndScriptAsync("
 Class C
@@ -77,7 +78,7 @@ End Class
 ", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function NotOnFrameworkType() As Task
             Await TestMissingInRegularAndScriptAsync("
 Imports System
@@ -87,7 +88,7 @@ End Class
 ", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function NotOnQualifiedTypeSyntax() As Task
             Await TestMissingInRegularAndScriptAsync("
 Class C
@@ -96,7 +97,7 @@ End Class
 ", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function NotOnFrameworkTypeWithNoPredefinedKeywordEquivalent() As Task
             Await TestMissingInRegularAndScriptAsync("
 Class C
@@ -105,7 +106,7 @@ End Class
 ", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function NotOnIdentifierThatIsNotTypeSyntax() As Task
             Await TestMissingInRegularAndScriptAsync("
 Class C
@@ -114,7 +115,7 @@ End Class
 ", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function NotOnBoolean_KeywordMatchesTypeName() As Task
             Await TestMissingInRegularAndScriptAsync("
 Class C
@@ -123,7 +124,7 @@ End Class
 ", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function NotOnByte_KeywordMatchesTypeName() As Task
             Await TestMissingInRegularAndScriptAsync("
 Class C
@@ -132,7 +133,7 @@ End Class
 ", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function NotOnChar_KeywordMatchesTypeName() As Task
             Await TestMissingInRegularAndScriptAsync("
 Class C
@@ -141,7 +142,7 @@ End Class
 ", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function NotOnObject_KeywordMatchesTypeName() As Task
             Await TestMissingInRegularAndScriptAsync("
 Class C
@@ -150,7 +151,7 @@ End Class
 ", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function NotOnSByte_KeywordMatchesTypeName() As Task
             Await TestMissingInRegularAndScriptAsync("
 Class C
@@ -159,7 +160,7 @@ End Class
 ", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function NotOnString_KeywordMatchesTypeName() As Task
             Await TestMissingInRegularAndScriptAsync("
 Class C
@@ -168,7 +169,7 @@ End Class
 ", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function NotOnSingle_KeywordMatchesTypeName() As Task
             Await TestMissingInRegularAndScriptAsync("
 Class C
@@ -177,7 +178,7 @@ End Class
 ", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function NotOnDecimal_KeywordMatchesTypeName() As Task
             Await TestMissingInRegularAndScriptAsync("
 Class C
@@ -186,7 +187,7 @@ End Class
 ", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function NotOnDouble_KeywordMatchesTypeName() As Task
             Await TestMissingInRegularAndScriptAsync("
 Class C
@@ -195,7 +196,7 @@ End Class
 ", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function FieldDeclaration() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -210,7 +211,7 @@ End Class
 ", options:=FrameworkTypeInDeclaration)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function FieldDeclarationWithInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -225,7 +226,7 @@ End Class
 ", options:=FrameworkTypeInDeclaration)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function DelegateDeclaration() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -240,7 +241,7 @@ End Class
 ", options:=FrameworkTypeInDeclaration)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function PropertyDeclaration() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -255,7 +256,7 @@ End Class
 ", options:=FrameworkTypeInDeclaration)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function GenericPropertyDeclaration() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -272,7 +273,7 @@ End Class
 ", options:=FrameworkTypeInDeclaration)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function FunctionDeclarationReturnType() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -289,7 +290,7 @@ End Class
 ", options:=FrameworkTypeInDeclaration)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function MethodDeclarationParameters() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -306,7 +307,7 @@ End Class
 ", options:=FrameworkTypeInDeclaration)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function GenericMethodInvocation() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -329,7 +330,7 @@ End Class
 ", options:=FrameworkTypeInDeclaration)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function LocalDeclaration() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -348,7 +349,7 @@ End Class
 ", options:=FrameworkTypeInDeclaration)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function MemberAccess() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -367,7 +368,7 @@ End Class
 ", options:=FrameworkTypeInMemberAccess)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function MemberAccess2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -386,7 +387,7 @@ End Class
 ", options:=FrameworkTypeInMemberAccess)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function DocCommentTriviaCrefExpression() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -405,7 +406,7 @@ End Class
 ", options:=FrameworkTypeInMemberAccess)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function GetTypeExpression() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -424,7 +425,7 @@ End Class
 ", options:=FrameworkTypeInDeclaration)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function FormalParametersWithinLambdaExression() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -443,7 +444,7 @@ End Class
 ", options:=FrameworkTypeInDeclaration)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function ObjectCreationExpression() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -462,7 +463,7 @@ End Class
 ", options:=FrameworkTypeInDeclaration)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function ArrayDeclaration() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -481,7 +482,7 @@ End Class
 ", options:=FrameworkTypeInDeclaration)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function ArrayInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -500,7 +501,7 @@ End Class
 ", options:=FrameworkTypeInDeclaration)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function MultiDimentionalArrayAsGenericTypeParameter() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -521,7 +522,7 @@ End Class
 ", options:=FrameworkTypeInDeclaration)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function ForStatement() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -542,7 +543,7 @@ End Class
 ", options:=FrameworkTypeInDeclaration)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function ForeachStatement() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -563,7 +564,7 @@ End Class
 ", options:=FrameworkTypeInDeclaration)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        <Fact>
         Public Async Function LeadingTrivia() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System

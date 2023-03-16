@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     /// </summary>
     internal abstract class QuickInfoServiceWithProviders : QuickInfoService
     {
-        private readonly HostLanguageServices _services;
+        private readonly LanguageServices _services;
         private ImmutableArray<QuickInfoProvider> _providers;
 
-        protected QuickInfoServiceWithProviders(HostLanguageServices services)
+        protected QuickInfoServiceWithProviders(LanguageServices services)
         {
             _services = services;
         }
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         {
             if (_providers.IsDefault)
             {
-                var mefExporter = (IMefHostExportProvider)_services.WorkspaceServices.HostServices;
+                var mefExporter = _services.SolutionServices.ExportProvider;
 
                 var providers = ExtensionOrderer
                     .Order(mefExporter.GetExports<QuickInfoProvider, QuickInfoProviderMetadata>()
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
         internal override async Task<QuickInfoItem?> GetQuickInfoAsync(Document document, int position, SymbolDescriptionOptions options, CancellationToken cancellationToken)
         {
-            var extensionManager = _services.WorkspaceServices.GetRequiredService<IExtensionManager>();
+            var extensionManager = _services.SolutionServices.GetRequiredService<IExtensionManager>();
 
             // returns the first non-empty quick info found (based on provider order)
             foreach (var provider in GetProviders())
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
         internal async Task<QuickInfoItem?> GetQuickInfoAsync(SemanticModel semanticModel, int position, SymbolDescriptionOptions options, CancellationToken cancellationToken)
         {
-            var extensionManager = _services.WorkspaceServices.GetRequiredService<IExtensionManager>();
+            var extensionManager = _services.SolutionServices.GetRequiredService<IExtensionManager>();
 
             // returns the first non-empty quick info found (based on provider order)
             foreach (var provider in GetProviders().OfType<CommonQuickInfoProvider>())
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 {
                     if (!extensionManager.IsDisabled(provider))
                     {
-                        var context = new CommonQuickInfoContext(_services.WorkspaceServices, semanticModel, position, options, cancellationToken);
+                        var context = new CommonQuickInfoContext(_services.SolutionServices, semanticModel, position, options, cancellationToken);
 
                         var info = await provider.GetQuickInfoAsync(context).ConfigureAwait(false);
                         if (info != null)

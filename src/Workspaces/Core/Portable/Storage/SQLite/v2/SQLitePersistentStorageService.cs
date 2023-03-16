@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         private static bool TryInitializeLibraries() => s_initialized.Value;
 
-        private static readonly Lazy<bool> s_initialized = new(() => TryInitializeLibrariesLazy());
+        private static readonly Lazy<bool> s_initialized = new(TryInitializeLibrariesLazy);
 
         private static bool TryInitializeLibrariesLazy()
         {
@@ -109,8 +109,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             return new(SQLitePersistentStorage.TryCreate(
                 _connectionPoolService,
+                solutionKey,
                 workingFolderPath,
-                solutionKey.FilePath,
                 databaseFilePath,
                 _asyncListener,
                 _faultInjector));

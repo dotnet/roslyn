@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return true;
             }
 
-            if (node.IsKind(SyntaxKind.CasePatternSwitchLabel, out CasePatternSwitchLabelSyntax? @case))
+            if (node is CasePatternSwitchLabelSyntax @case)
             {
                 // case _:
                 if (@case.Pattern.IsKind(SyntaxKind.DiscardPattern))
@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
                 // case var _:
                 // case var x:
-                if (@case.Pattern.IsKind(SyntaxKind.VarPattern, out VarPatternSyntax? varPattern) &&
-                    varPattern.Designation.IsKind(SyntaxKind.DiscardDesignation, SyntaxKind.SingleVariableDesignation))
+                if (@case.Pattern is VarPatternSyntax varPattern &&
+                    varPattern.Designation.Kind() is SyntaxKind.DiscardDesignation or SyntaxKind.SingleVariableDesignation)
                 {
                     return @case.WhenClause == null;
                 }

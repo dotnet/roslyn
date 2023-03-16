@@ -31,10 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Notification
         {
             lock (s_gate)
             {
-                if (s_singleton == null)
-                {
-                    s_singleton = new EditorDialogService();
-                }
+                s_singleton ??= new EditorDialogService();
             }
 
             return s_singleton;

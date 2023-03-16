@@ -9,10 +9,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property FormatOnPaste As Boolean
             Get
-                Return GetBooleanOption(FormattingOptionsMetadata.FormatOnPaste)
+                Return GetBooleanOption(FormattingOptionsStorage.FormatOnPaste)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FormattingOptionsMetadata.FormatOnPaste, value)
+                SetBooleanOption(FormattingOptionsStorage.FormatOnPaste, value)
             End Set
         End Property
 

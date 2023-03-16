@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
+    <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class AwaitCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
@@ -27,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return $"{String.Format(FeaturesResources._0_Keyword, keyword)}{vbCrLf}{tooltip}"
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function InSynchronousMethodTest() As Task
             Await VerifyAwaitKeyword("
 Class C
@@ -38,7 +39,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function InMethodStatementTest() As Task
             Await VerifyAwaitKeyword("
 Class C
@@ -49,7 +50,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function InMethodExpressionTest() As Task
             Await VerifyAwaitKeyword("
 Class C
@@ -60,7 +61,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function NotInCatchTest() As Task
             Await VerifyNoItemsExistAsync("
 Class C
@@ -75,7 +76,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function NotInCatchExceptionFilterTest() As Task
             Await VerifyNoItemsExistAsync("
 Class C
@@ -89,7 +90,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function InCatchNestedDelegateTest() As Task
             Await VerifyAwaitKeyword("
 Class C
@@ -104,7 +105,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function NotInFinallyTest() As Task
             Await VerifyNoItemsExistAsync("
 Class C
@@ -119,7 +120,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function NotInSyncLockTest() As Task
             Await VerifyNoItemsExistAsync("
 Class C
@@ -132,7 +133,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function DotAwaitInAsyncSub() As Task
             Await VerifyAwaitKeyword("
 Imports System.Threading.Tasks

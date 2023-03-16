@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseThrowExpression
     internal class CSharpUseThrowExpressionDiagnosticAnalyzer : AbstractUseThrowExpressionDiagnosticAnalyzer
     {
         public CSharpUseThrowExpressionDiagnosticAnalyzer()
-            : base(CSharpCodeStyleOptions.PreferThrowExpression, LanguageNames.CSharp)
+            : base(CSharpCodeStyleOptions.PreferThrowExpression)
         {
         }
 

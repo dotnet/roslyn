@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
             _releaser = releaser;
         }
 
-        public T Object => _pooledObject;
+        public readonly T Object => _pooledObject;
 
         public void Dispose()
         {
@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis
         {
             return new PooledObject<StringBuilder>(
                 pool,
-                p => Allocator(p),
-                (p, sb) => Releaser(p, sb));
+                Allocator,
+                Releaser);
         }
 
         public static PooledObject<Stack<TItem>> Create<TItem>(ObjectPool<Stack<TItem>> pool)

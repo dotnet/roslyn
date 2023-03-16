@@ -57,15 +57,17 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
+            Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
-            var onItemFound = GetOnItemFoundCallback(solution, onResultFound, cancellationToken);
+            var onItemFound = GetOnItemFoundCallback(solution, activeDocument, onResultFound, cancellationToken);
 
-            var documentKeys = project.Documents.SelectAsArray(d => DocumentKey.ToDocumentKey(d));
-            var priorityDocumentKeys = priorityDocuments.SelectAsArray(d => DocumentKey.ToDocumentKey(d));
+            var documentKeys = project.Documents.SelectAsArray(DocumentKey.ToDocumentKey);
+            var priorityDocumentKeys = priorityDocuments.SelectAsArray(DocumentKey.ToDocumentKey);
+
+            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
                 var callback = new NavigateToSearchServiceCallback(onItemFound);
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 return;
             }
 
-            var storageService = solution.Workspace.Services.GetPersistentStorageService();
+            var storageService = solution.Services.GetPersistentStorageService();
             await SearchCachedDocumentsInCurrentProcessAsync(
                 storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
         }
@@ -114,7 +116,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static async Task SearchCachedDocumentsInCurrentProcessAsync(
             IChecksummedPersistentStorageService storageService,
             string patternName,
-            string patternContainer,
+            string? patternContainer,
             DeclaredSymbolInfoKindSet kinds,
             Func<RoslynNavigateToItem, Task> onItemFound,
             ImmutableArray<DocumentKey> documentKeys,

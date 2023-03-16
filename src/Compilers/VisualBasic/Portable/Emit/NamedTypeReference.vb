@@ -30,6 +30,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
+        Private ReadOnly Property INamedTypeReferenceAssociatedFileIdentifier As String Implements Cci.INamedTypeReference.AssociatedFileIdentifier
+            Get
+                Return Nothing
+            End Get
+        End Property
+
         Private ReadOnly Property INamedEntityName As String Implements Cci.INamedEntity.Name
             Get
                 ' CCI automatically handles type suffix, so use Name instead of MetadataName

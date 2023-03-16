@@ -104,8 +104,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         private static bool AnyParametersReordered(ImmutableArray<Parameter> originalListOfParameters, ImmutableArray<Parameter> updatedListOfParameters)
         {
-            var originalListWithoutRemovedOrAdded = originalListOfParameters.Where(p => updatedListOfParameters.Contains(p)).ToImmutableArray();
-            var updatedListWithoutRemovedOrAdded = updatedListOfParameters.Where(p => originalListOfParameters.Contains(p)).ToImmutableArray();
+            var originalListWithoutRemovedOrAdded = originalListOfParameters.Where(updatedListOfParameters.Contains).ToImmutableArray();
+            var updatedListWithoutRemovedOrAdded = updatedListOfParameters.Where(originalListOfParameters.Contains).ToImmutableArray();
 
             for (var i = 0; i < originalListWithoutRemovedOrAdded.Length; i++)
             {

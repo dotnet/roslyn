@@ -658,7 +658,7 @@ F(y => y + 1, G(), x => x + 1, (int x) => x, u => u, async (u, v) => u + v);
             expected.AssertEqual(actual);
         }
 
-        [Fact, WorkItem(830419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830419")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830419")]
         public void Lambdas2b()
         {
             var src1 = @"
@@ -1585,6 +1585,25 @@ foreach (var x in y) { yield return /*3*/ 2; }
         #endregion
 
         #region Async
+
+        [Fact]
+        public void AwaitExpressions()
+        {
+            var src1 = "F(await x, await y);";
+            var src2 = "F(await y, await x);";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "F(await x, await y);", "F(await y, await x);" },
+                { "await x", "await x" },
+                { "await y", "await y" }
+            };
+
+            expected.AssertEqual(actual);
+        }
 
         [Fact]
         public void Awaits()

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         internal static async Task<bool> OriginalSymbolsMatchAsync(
             Solution solution,
-            ISymbol searchSymbol,
+            ISymbol? searchSymbol,
             ISymbol? symbolToMatch,
             CancellationToken cancellationToken)
         {

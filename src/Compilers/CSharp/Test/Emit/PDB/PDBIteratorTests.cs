@@ -1621,7 +1621,7 @@ public class C
 
             // Since metadata references are captured in pdb debug information make sure to specify
             // the target framework so the test always has the same debug information output
-            var compilation = CreateCompilation(src, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation = CreateCompilation(src, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation.VerifyDiagnostics();
 
             var peStream = new MemoryStream();

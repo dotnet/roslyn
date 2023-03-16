@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         public static PatternMatcher CreatePatternMatcher(
             string pattern,
-            CultureInfo culture = null,
+            CultureInfo? culture = null,
             bool includeMatchedSpans = false,
             bool allowFuzzyMatching = false)
         {
@@ -76,7 +74,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         public static PatternMatcher CreateContainerPatternMatcher(
             string[] patternParts,
             char[] containerSplitCharacters,
-            CultureInfo culture = null,
+            CultureInfo? culture = null,
             bool allowFuzzyMatching = false)
         {
             return new ContainerPatternMatcher(
@@ -85,7 +83,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         public static PatternMatcher CreateDotSeparatedContainerMatcher(
             string pattern,
-            CultureInfo culture = null,
+            CultureInfo? culture = null,
             bool allowFuzzyMatching = false)
         {
             return CreateContainerPatternMatcher(
@@ -93,18 +91,18 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 s_dotCharacterArray, culture, allowFuzzyMatching);
         }
 
-        internal static (string name, string containerOpt) GetNameAndContainer(string pattern)
+        internal static (string name, string? containerOpt) GetNameAndContainer(string pattern)
         {
             var dotIndex = pattern.LastIndexOf('.');
             var containsDots = dotIndex >= 0;
             return containsDots
-                ? (name: pattern.Substring(dotIndex + 1), containerOpt: pattern.Substring(0, dotIndex))
+                ? (name: pattern[(dotIndex + 1)..], containerOpt: pattern[..dotIndex])
                 : (name: pattern, containerOpt: null);
         }
 
-        public abstract bool AddMatches(string candidate, ref TemporaryArray<PatternMatch> matches);
+        public abstract bool AddMatches(string? candidate, ref TemporaryArray<PatternMatch> matches);
 
-        private bool SkipMatch(string candidate)
+        private bool SkipMatch(string? candidate)
             => _invalidPattern || string.IsNullOrWhiteSpace(candidate);
 
         private static bool ContainsUpperCaseLetter(string pattern)

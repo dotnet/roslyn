@@ -415,6 +415,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         {
             using var _ = PooledStringBuilder.GetInstance(out var builder);
 
+            // First, go through and see if we're escaping *anything* in the original.  If so, then we'll escape
+            // everything.  In other words, say we're pasting `[SuppressMessage("", "CA2013")]`.  We technically don't
+            // need to escape the `""` (since that is legal in a verbatim string).  However, we will be escaping the
+            // quotes in teh `"CA2013"` to become `""CA2013""`.  Once we decide we're escaping some quotes, we should
+            // then realize that we *should* escape the `""` to `""""` to be consistent.
+
+            // So if we determine that we will be escaping all code, then just recurse, this time setting
+            // trySkipExistingEscapes to false.  That will prevent calling back into this check and it means whatever we
+            // run into we will escape.
+            if (trySkipExistingEscapes && WillEscapeAnyCharacters(isInterpolated, value))
+                return EscapeForNonRawVerbatimStringLiteral(isInterpolated, trySkipExistingEscapes: false, value);
+
             for (var i = 0; i < value.Length; i++)
             {
                 var ch = value[i];
@@ -426,21 +438,55 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 // Otherwise, if it's not already escaped, then escape it.
                 if (ch == '"')
                 {
+                    builder.Append(ch);
+
                     if (trySkipExistingEscapes && nextCh == ch)
                         i++;
-                    else
-                        builder.Append(ch);
                 }
                 else if (isInterpolated && ch is '{' or '}')
                 {
+                    builder.Append(ch);
+
                     if (trySkipExistingEscapes && nextCh == ch)
                         i++;
-                    else
-                        builder.Append(ch);
                 }
             }
 
             return builder.ToString();
+
+            static bool WillEscapeAnyCharacters(bool isInterpolated, string value)
+            {
+                for (var i = 0; i < value.Length; i++)
+                {
+                    var ch = value[i];
+                    var nextCh = i == value.Length - 1 ? 0 : value[i + 1];
+
+                    if (ch == '"')
+                    {
+                        // we have an isolated quote.  we will need to escape it (and thus should escape everything in
+                        // the string.
+                        if (nextCh != ch)
+                            return true;
+
+                        // Quotes are paired.  This is already escaped fine.  Skip both quotes.
+                        i++;
+                    }
+                    else if (isInterpolated && ch is '{' or '}')
+                    {
+                        // we have an isolated brace.  we will need to escape it (and thus should escape everything in
+                        // the string.
+                        if (nextCh != ch)
+                            return true;
+
+                        // Braces are paired.  This is already escaped fine.  Skip both braces.
+                        i++;
+                    }
+
+                    // continue looking forward.
+                }
+
+                return false;
+            }
         }
 
         /// <summary>
@@ -501,7 +547,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             Contract.ThrowIfTrue(spans.Length == 0);
 
             // Empty raw string must be multiline.
-            if (spans.Length == 1 && spans[0].IsEmpty)
+            if (spans is [{ IsEmpty: true }])
                 return true;
 
             // Or if it starts/ends with a quote 

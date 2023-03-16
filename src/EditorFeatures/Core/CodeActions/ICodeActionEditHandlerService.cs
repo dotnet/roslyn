@@ -18,9 +18,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
             Workspace workspace, ImmutableArray<CodeActionOperation> operations, CancellationToken cancellationToken);
 
         Task<bool> ApplyAsync(
-            Workspace workspace, Document? fromDocument,
+            Workspace workspace,
+            Solution originalSolution,
+            Document? fromDocument,
             ImmutableArray<CodeActionOperation> operations,
-            string title, IProgressTracker progressTracker,
+            string title,
+            IProgressTracker progressTracker,
             CancellationToken cancellationToken);
     }
 }

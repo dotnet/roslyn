@@ -6,14 +6,14 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 {
     internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
         TInterpolationSyntax,
-        TExpressionSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        TExpressionSyntax> : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
         where TInterpolationSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
            : base(IDEDiagnosticIds.SimplifyInterpolationId,
                   EnforceOnBuildValues.SimplifyInterpolation,
                   CodeStyleOptions2.PreferSimplifiedInterpolation,
+                  fadingOption: null,
                   new LocalizableResourceString(nameof(AnalyzersResources.Simplify_interpolation), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                  new LocalizableResourceString(nameof(AnalyzersResources.Interpolation_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                  isUnnecessary: true)
+                  new LocalizableResourceString(nameof(AnalyzersResources.Interpolation_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 

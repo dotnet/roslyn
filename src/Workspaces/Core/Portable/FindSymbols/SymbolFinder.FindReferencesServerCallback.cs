@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -50,16 +49,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
                 => _progress.OnCompletedAsync(cancellationToken);
 
-            public ValueTask OnFindInDocumentStartedAsync(DocumentId documentId, CancellationToken cancellationToken)
+            public async ValueTask OnFindInDocumentStartedAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
-                var document = _solution.GetDocument(documentId);
-                return _progress.OnFindInDocumentStartedAsync(document, cancellationToken);
+                var document = await _solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                await _progress.OnFindInDocumentStartedAsync(document, cancellationToken).ConfigureAwait(false);
             }
 
-            public ValueTask OnFindInDocumentCompletedAsync(DocumentId documentId, CancellationToken cancellationToken)
+            public async ValueTask OnFindInDocumentCompletedAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
-                var document = _solution.GetDocument(documentId);
-                return _progress.OnFindInDocumentCompletedAsync(document, cancellationToken);
+                var document = await _solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                await _progress.OnFindInDocumentCompletedAsync(document, cancellationToken).ConfigureAwait(false);
             }
 
             public async ValueTask OnDefinitionFoundAsync(SerializableSymbolGroup dehydrated, CancellationToken cancellationToken)
@@ -94,8 +93,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 SerializableReferenceLocation reference,
                 CancellationToken cancellationToken)
             {
-                SymbolGroup symbolGroup;
-                ISymbol symbol;
+                SymbolGroup? symbolGroup;
+                ISymbol? symbol;
                 lock (_gate)
                 {
                     // The definition may not be in the map if we failed to map it over using TryRehydrateAsync in OnDefinitionFoundAsync.

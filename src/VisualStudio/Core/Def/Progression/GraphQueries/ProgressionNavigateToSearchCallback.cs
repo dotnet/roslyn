@@ -32,6 +32,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             public void ReportProgress(int current, int maximum)
                 => _context.ReportProgress(current, maximum, null);
 
+            public void ReportIncomplete()
+            {
+            }
+
             public async Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
             {
                 var node = await _graphBuilder.CreateNodeAsync(result, cancellationToken).ConfigureAwait(false);

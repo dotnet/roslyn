@@ -11,7 +11,7 @@ namespace Microsoft.Cci
     /// <summary>
     /// Represents a single using directive (Imports clause).
     /// </summary>
-    internal struct UsedNamespaceOrType : IEquatable<UsedNamespaceOrType>
+    internal readonly struct UsedNamespaceOrType : IEquatable<UsedNamespaceOrType>
     {
         public readonly string? AliasOpt;
         public readonly IAssemblyReference? TargetAssemblyOpt;

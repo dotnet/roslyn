@@ -748,7 +748,7 @@ class C
         await using (IAsyncDisposable <N:1>v = F()</N:1>, <N:0>u = F()</N:0>) { }
     }
 }");
-            var asyncStreamsTree = Parse(AsyncStreamsTypes);
+            var asyncStreamsTree = Parse(AsyncStreamsTypes, options: (CSharpParseOptions)source0.Tree.Options);
             var compilation0 = CreateCompilationWithTasksExtensions(new[] { source0.Tree, asyncStreamsTree }, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(new[] { source1.Tree, asyncStreamsTree });
 
@@ -841,7 +841,7 @@ class C
         await using IAsyncDisposable <N:1>v = F()</N:1>, <N:0>u = F()</N:0>;
     }
 }");
-            var asyncStreamsTree = Parse(AsyncStreamsTypes);
+            var asyncStreamsTree = Parse(AsyncStreamsTypes, options: (CSharpParseOptions)source0.Tree.Options);
             var compilation0 = CreateCompilationWithTasksExtensions(new[] { source0.Tree, asyncStreamsTree }, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(new[] { source1.Tree, asyncStreamsTree });
 

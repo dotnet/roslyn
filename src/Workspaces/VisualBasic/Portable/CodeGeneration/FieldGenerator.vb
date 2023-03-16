@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -65,16 +66,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return FixTerminators(destination.WithMembers(members))
         End Function
 
-        Public Function GenerateFieldDeclaration(field As IFieldSymbol,
-                                                        destination As CodeGenerationDestination,
-                                                        options As CodeGenerationContextInfo) As FieldDeclarationSyntax
+        Public Function GenerateFieldDeclaration(
+                field As IFieldSymbol,
+                destination As CodeGenerationDestination,
+                options As CodeGenerationContextInfo) As FieldDeclarationSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of FieldDeclarationSyntax)(field, options)
             If reusableSyntax IsNot Nothing Then
-                return reusableSyntax
+                Return EnsureLastElasticTrivia(reusableSyntax)
             End If
 
             Dim initializerNode = TryCast(CodeGenerationFieldInfo.GetInitializer(field), ExpressionSyntax)
-            Dim initializer = If(initializerNode IsNot Nothing, SyntaxFactory.EqualsValue(initializerNode), GenerateEqualsValue(field))
+            Dim initializer = If(initializerNode IsNot Nothing, SyntaxFactory.EqualsValue(initializerNode), GenerateEqualsValue(options.Generator, field))
 
             Dim fieldDeclaration =
                 SyntaxFactory.FieldDeclaration(
@@ -89,10 +91,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(EnsureLastElasticTrivia(fieldDeclaration), field, options))
         End Function
 
-        Private Function GenerateEqualsValue(field As IFieldSymbol) As EqualsValueSyntax
+        Private Function GenerateEqualsValue(generator As SyntaxGenerator, field As IFieldSymbol) As EqualsValueSyntax
             If field.HasConstantValue Then
                 Dim canUseFieldReference = field.Type IsNot Nothing AndAlso Not field.Type.Equals(field.ContainingType)
-                Return SyntaxFactory.EqualsValue(ExpressionGenerator.GenerateExpression(field.Type, field.ConstantValue, canUseFieldReference))
+                Return SyntaxFactory.EqualsValue(ExpressionGenerator.GenerateExpression(generator, field.Type, field.ConstantValue, canUseFieldReference))
             End If
 
             Return Nothing

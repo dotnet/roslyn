@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return _treeData.GetOriginalColumn(tabSize, token);
                 }
 
-                var text = _trivia.ToFullString().Substring(0, token.SpanStart - _trivia.FullSpan.Start);
+                var text = _trivia.ToFullString()[..(token.SpanStart - _trivia.FullSpan.Start)];
 
                 return text.GetTextColumn(tabSize, _initialColumn);
             }

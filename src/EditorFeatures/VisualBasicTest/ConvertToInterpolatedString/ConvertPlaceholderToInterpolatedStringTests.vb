@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertToInterpolatedString
+    <Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
     Public Class ConvertPlaceholderToInterpolatedStringTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertToInterpola
             Return New VisualBasicConvertPlaceholderToInterpolatedStringRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestSingleItemSubstitution() As Task
             Dim text = <File>
 Imports System
@@ -37,7 +38,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestItemOrdering() As Task
             Dim text = <File>
 Imports System
@@ -58,7 +59,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestItemOrdering2() As Task
             Dim text = <File>
 Imports System
@@ -79,8 +80,10 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestItemOrdering3() As Task
+            ' Missing as we have arguments we don't know what to do with here.  Likely a bug in user code that needs
+            ' fixing first.
             Dim text = <File>
 Imports System
 Module T
@@ -89,19 +92,33 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
+            Await TestMissingAsync(text)
+        End Function
+
+        <Fact>
+        Public Async Function TestItemOrdering4() As Task
+            Dim text = <File>
+Imports System
+Module T
+    Sub M()
+        Dim a = [|String.Format("{0}{1}{2}{0}{1}{2}", 1, 2, 3)|]
+    End Sub
+End Module</File>.ConvertTestSourceTag()
+
             Dim expected = <File>
 Imports System
 Module T
     Sub M()
-        Dim a = $"{1 }{1 }{1 }"
+        Dim a = $"{1 }{2 }{3 }{1 }{2 }{3 }"
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestItemOutsideRange() As Task
+            ' Missing as the format string refers to parameters that aren't provided.
             Dim text = <File>
 Imports System
 Module T
@@ -110,18 +127,10 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Dim expected = <File>
-Imports System
-Module T
-    Sub M()
-        Dim a = $"{4}{5}{6}"
-    End Sub
-End Module</File>.ConvertTestSourceTag()
-
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestMissingAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestItemDoNotHaveCast() As Task
             Dim text = <File>
 Imports System
@@ -142,7 +151,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestItemWithoutSyntaxErrorDoesNotHaveCast() As Task
             Dim text = <File>
 Imports System
@@ -163,7 +172,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestPreserveParenthesis() As Task
             Dim text = <File>
 Imports System
@@ -184,7 +193,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestMultiLineExpression() As Task
             Dim text = <File>
 Imports System
@@ -207,7 +216,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestFormatSpecifiers() As Task
             Dim text = <File>
 Imports System
@@ -231,7 +240,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestFormatSpecifiers2() As Task
             Dim text = <File>
 Imports System
@@ -252,7 +261,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestFormatSpecifiers3() As Task
             Dim text = <File>
 Imports System
@@ -284,7 +293,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestFormatSpecifiers4() As Task
             Dim text = <File>
 Imports System
@@ -305,7 +314,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestFormatSpecifiers5() As Task
             Dim text = <File>
 Imports System
@@ -352,7 +361,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestFormatSpecifiers6() As Task
             Dim text = <File>
 Imports System
@@ -379,7 +388,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestMultilineStringLiteral2() As Task
             Dim text = <File>
 Imports System
@@ -411,7 +420,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestParamsArray() As Task
             Dim text = <File>
 Imports System
@@ -423,8 +432,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestMissingInRegularAndScriptAsync(text)
         End Function
 
-        <WorkItem(13605, "https://github.com/dotnet/roslyn/issues/13605")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13605")>
         Public Async Function TestInvocationWithNullArguments() As Task
             Dim text =
 "Module Module1
@@ -435,9 +443,10 @@ End Module"
             Await TestMissingInRegularAndScriptAsync(text)
         End Function
 
-        <WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19162")>
         Public Async Function TestFormatWithNamedArguments1() As Task
+            ' Missing as this scenario Is too esoteric.  I was Not able to find any examples of code that reorders And
+            ' names thigns Like this with format strings.
             Dim text = <File>
 Imports System
 Module T
@@ -446,19 +455,10 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Dim expected = <File>
-Imports System
-Module T
-    Sub M()
-        Dim a = $"This {"test" } {"also" } works"
-    End Sub
-End Module</File>.ConvertTestSourceTag()
-
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestMissingAsync(text)
         End Function
 
-        <WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19162")>
         Public Async Function TestFormatWithNamedArguments2() As Task
             Dim text = <File>
 Imports System
@@ -479,8 +479,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19162")>
         Public Async Function TestFormatWithNamedArguments3() As Task
             Dim text = <File>
 Imports System
@@ -501,8 +500,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19162")>
         Public Async Function TestFormatWithNamedArguments4() As Task
             Dim text = <File>
 Imports System
@@ -523,8 +521,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19162")>
         Public Async Function TestFormatWithNamedArguments5() As Task
             Dim text = <File>
 Imports System
@@ -545,8 +542,7 @@ End Module</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19162")>
         Public Async Function TestFormatWithNamedArguments_CaseInsensitive() As Task
             Dim text = <File>
 Imports System

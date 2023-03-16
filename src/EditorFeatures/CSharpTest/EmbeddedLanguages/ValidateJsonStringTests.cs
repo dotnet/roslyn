@@ -16,6 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
 {
+    [Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
     public class ValidateJsonStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public ValidateJsonStringTests(ITestOutputHelper logger) : base(logger)
@@ -28,51 +29,54 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
         private OptionsCollection OptionOn()
             => Option(IdeAnalyzerOptionsStorage.ReportInvalidJsonPatterns, true);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestWarning1()
         {
-            await TestDiagnosticInfoAsync(@"
-class Program
-{
-    void Main()
-    {
-        var r = /*lang=json,strict*/ ""[|new|] Json()"";
-    }     
-}",
+            await TestDiagnosticInfoAsync("""
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = /*lang=json,strict*/ "[|new|] Json()";
+                    }     
+                }
+                """,
                 globalOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0, FeaturesResources.Constructors_not_allowed));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestWarningInRawString1()
         {
-            await TestDiagnosticInfoAsync(@"
-class Program
-{
-    void Main()
-    {
-        var r = /*lang=json,strict*/ """"""[|new|] Json()"""""";
-    }     
-}",
+            await TestDiagnosticInfoAsync(""""
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = /*lang=json,strict*/ """[|new|] Json()""";
+                    }     
+                }
+                """",
                 globalOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0, FeaturesResources.Constructors_not_allowed));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestWarning2()
         {
-            await TestDiagnosticInfoAsync(@"
-class Program
-{
-    void Main()
-    {
-        var r = /*lang=json*/ ""[|}|]"";
-    }     
-}",
+            await TestDiagnosticInfoAsync("""
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = /*lang=json*/ "[|}|]";
+                    }     
+                }
+                """,
                 globalOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
@@ -80,24 +84,26 @@ class Program
                     string.Format(FeaturesResources._0_unexpected, '}')));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentWithTrailingComma()
         {
-            await TestDiagnosticInfoAsync(@"<Workspace>
-    <Project Language=""C#"" CommonReferencesNet6=""true"">
-        <Document>
-using System.Text.Json;
+            await TestDiagnosticInfoAsync("""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet6="true">
+                        <Document>
+                using System.Text.Json;
 
-class Program
-{
-    void Main()
-    {
-        var r = JsonDocument.Parse(@""[1[|,|]]"");
-    }     
-}
-        </Document>
-    </Project>
-</Workspace>",
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = JsonDocument.Parse(@"[1[|,|]]");
+                    }     
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
                 globalOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
@@ -105,24 +111,26 @@ class Program
                     FeaturesResources.Trailing_comma_not_allowed));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentTrailingCommaDisallowed()
         {
-            await TestDiagnosticInfoAsync(@"<Workspace>
-    <Project Language=""C#"" CommonReferencesNet6=""true"">
-        <Document>
-using System.Text.Json;
+            await TestDiagnosticInfoAsync("""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet6="true">
+                        <Document>
+                using System.Text.Json;
 
-class Program
-{
-    void Main()
-    {
-        var r = JsonDocument.Parse(@""[1[|,|]]"", new JsonDocumentOptions { AllowTrailingCommas = false });
-    }     
-}
-        </Document>
-    </Project>
-</Workspace>",
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = JsonDocument.Parse(@"[1[|,|]]", new JsonDocumentOptions { AllowTrailingCommas = false });
+                    }     
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
                 globalOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
@@ -130,64 +138,70 @@ class Program
                     FeaturesResources.Trailing_comma_not_allowed));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentTrailingCommaAllowed()
         {
-            await TestDiagnosticMissingAsync(@"<Workspace>
-    <Project Language=""C#"" CommonReferencesNet6=""true"">
-        <Document>
-using System.Text.Json;
+            await TestDiagnosticMissingAsync("""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet6="true">
+                        <Document>
+                using System.Text.Json;
 
-class Program
-{
-    void Main()
-    {
-        var r = JsonDocument.Parse(@""[1[|,|]]"", new JsonDocumentOptions { AllowTrailingCommas = true });
-    }     
-}
-        </Document>
-    </Project>
-</Workspace>");
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = JsonDocument.Parse(@"[1[|,|]]", new JsonDocumentOptions { AllowTrailingCommas = true });
+                    }     
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentTrailingCommaAllowedImplicitObject()
         {
-            await TestDiagnosticMissingAsync(@"<Workspace>
-    <Project Language=""C#"" CommonReferencesNet6=""true"">
-        <Document>
-using System.Text.Json;
+            await TestDiagnosticMissingAsync("""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet6="true">
+                        <Document>
+                using System.Text.Json;
 
-class Program
-{
-    void Main()
-    {
-        var r = JsonDocument.Parse(@""[1[|,|]]"", new() { AllowTrailingCommas = true });
-    }     
-}
-        </Document>
-    </Project>
-</Workspace>");
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = JsonDocument.Parse(@"[1[|,|]]", new() { AllowTrailingCommas = true });
+                    }     
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentWithComments()
         {
-            await TestDiagnosticInfoAsync(@"<Workspace>
-    <Project Language=""C#"" CommonReferencesNet6=""true"">
-        <Document>
-using System.Text.Json;
+            await TestDiagnosticInfoAsync("""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet6="true">
+                        <Document>
+                using System.Text.Json;
 
-class Program
-{
-    void Main()
-    {
-        var r = JsonDocument.Parse(@""[1][|/*comment*/|]"");
-    }     
-}
-        </Document>
-    </Project>
-</Workspace>",
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = JsonDocument.Parse(@"[1][|/*comment*/|]");
+                    }     
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
                 globalOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
@@ -195,24 +209,26 @@ class Program
                     FeaturesResources.Comments_not_allowed));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentCommentsDisallowed()
         {
-            await TestDiagnosticInfoAsync(@"<Workspace>
-    <Project Language=""C#"" CommonReferencesNet6=""true"">
-        <Document>
-using System.Text.Json;
+            await TestDiagnosticInfoAsync("""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet6="true">
+                        <Document>
+                using System.Text.Json;
 
-class Program
-{
-    void Main()
-    {
-        var r = JsonDocument.Parse(@""[1][|/*comment*/|]"", new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Disallow });
-    }     
-}
-        </Document>
-    </Project>
-</Workspace>",
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = JsonDocument.Parse(@"[1][|/*comment*/|]", new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Disallow });
+                    }     
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
                 globalOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
@@ -220,47 +236,51 @@ class Program
                     FeaturesResources.Comments_not_allowed));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentCommentsAllowed()
         {
-            await TestDiagnosticMissingAsync(@"<Workspace>
-    <Project Language=""C#"" CommonReferencesNet6=""true"">
-        <Document>
-using System.Text.Json;
+            await TestDiagnosticMissingAsync("""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet6="true">
+                        <Document>
+                using System.Text.Json;
 
-class Program
-{
-    void Main()
-    {
-        var r = JsonDocument.Parse(@""[1][|/*comment*/|]"", new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Allow });
-    }     
-}
-        </Document>
-    </Project>
-</Workspace>");
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = JsonDocument.Parse(@"[1][|/*comment*/|]", new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Allow });
+                    }     
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentCommentsAllowedImplicitObject()
         {
-            await TestDiagnosticMissingAsync(@"<Workspace>
-    <Project Language=""C#"" CommonReferencesNet6=""true"">
-        <Document>
-using System.Text.Json;
+            await TestDiagnosticMissingAsync("""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet6="true">
+                        <Document>
+                using System.Text.Json;
 
-class Program
-{
-    void Main()
-    {
-        var r = JsonDocument.Parse(@""[1][|/*comment*/|]"", new() { CommentHandling = JsonCommentHandling.Allow });
-    }     
-}
-        </Document>
-    </Project>
-</Workspace>");
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = JsonDocument.Parse(@"[1][|/*comment*/|]", new() { CommentHandling = JsonCommentHandling.Allow });
+                    }     
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentCommentsDisallowed_StringSyntaxAttribute_NoOptionsProvided()
         {
             await TestDiagnosticInfoAsync($@"<Workspace>
@@ -291,7 +311,7 @@ class Program
                     FeaturesResources.Comments_not_allowed));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentCommentsDisallowed_StringSyntaxAttribute_OptionsProvided()
         {
             await TestDiagnosticInfoAsync($@"<Workspace>
@@ -322,7 +342,7 @@ class Program
                     FeaturesResources.Comments_not_allowed));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentCommentsAllowed_StringSyntaxAttribute_OptionsProvided()
         {
             await TestDiagnosticMissingAsync($@"<Workspace>
@@ -348,7 +368,7 @@ class Program
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestNotOnUnlikelyJson()
         {
             await TestDiagnosticMissingAsync($@"
@@ -370,7 +390,7 @@ class Program
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestNotOnLikelyJson()
         {
             await TestDiagnosticMissingAsync($@"

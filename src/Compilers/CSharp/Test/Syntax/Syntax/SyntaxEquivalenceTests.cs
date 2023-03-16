@@ -788,7 +788,7 @@ class C
         }
 
         [Fact]
-        public void TestUTF8StringLiteral_01()
+        public void TestUtf8StringLiteral_01()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C
@@ -812,7 +812,7 @@ class C
         }
 
         [Fact]
-        public void TestUTF8StringLiteral_02()
+        public void TestUtf8StringLiteral_02()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C
@@ -837,7 +837,7 @@ class C
         }
 
         [Fact]
-        public void TestUTF8StringLiteral_03()
+        public void TestUtf8StringLiteral_03()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C
@@ -862,7 +862,7 @@ class C
         }
 
         [Fact]
-        public void TestUTF8StringLiteral_04()
+        public void TestUtf8StringLiteral_04()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C
@@ -887,7 +887,7 @@ class C
         }
 
         [Fact]
-        public void TestUTF8StringLiteral_05()
+        public void TestUtf8StringLiteral_05()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C
@@ -912,7 +912,7 @@ class C
         }
 
         [Fact]
-        public void TestUTF8StringLiteral_06()
+        public void TestUtf8StringLiteral_06()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C
@@ -937,7 +937,7 @@ class C
         }
 
         [Fact]
-        public void TestUTF8SingleLineRawStringLiteral_01()
+        public void TestUtf8SingleLineRawStringLiteral_01()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C
@@ -961,7 +961,7 @@ class C
         }
 
         [Fact]
-        public void TestUTF8SingleLineRawStringLiteral_02()
+        public void TestUtf8SingleLineRawStringLiteral_02()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C
@@ -986,7 +986,7 @@ class C
         }
 
         [Fact]
-        public void TestUTF8SingleLineRawStringLiteral_03()
+        public void TestUtf8SingleLineRawStringLiteral_03()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C
@@ -1011,7 +1011,7 @@ class C
         }
 
         [Fact]
-        public void TestUTF8SingleLineRawStringLiteral_04()
+        public void TestUtf8SingleLineRawStringLiteral_04()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C
@@ -1036,7 +1036,7 @@ class C
         }
 
         [Fact]
-        public void TestUTF8SingleLineRawStringLiteral_05()
+        public void TestUtf8SingleLineRawStringLiteral_05()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C
@@ -1061,7 +1061,7 @@ class C
         }
 
         [Fact]
-        public void TestUTF8SingleLineRawStringLiteral_06()
+        public void TestUtf8SingleLineRawStringLiteral_06()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C
@@ -1086,7 +1086,7 @@ class C
         }
 
         [Fact]
-        public void TestUTF8MultiLineRawStringLiteral_01()
+        public void TestUtf8MultiLineRawStringLiteral_01()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C
@@ -1114,7 +1114,7 @@ abc
         }
 
         [Fact]
-        public void TestUTF8MultiLineRawStringLiteral_02()
+        public void TestUtf8MultiLineRawStringLiteral_02()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C
@@ -1143,7 +1143,7 @@ abc
         }
 
         [Fact]
-        public void TestUTF8MultiLineRawStringLiteral_03()
+        public void TestUtf8MultiLineRawStringLiteral_03()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C
@@ -1172,7 +1172,7 @@ abcd
         }
 
         [Fact]
-        public void TestUTF8MultiLineRawStringLiteral_04()
+        public void TestUtf8MultiLineRawStringLiteral_04()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C
@@ -1201,7 +1201,7 @@ abc
         }
 
         [Fact]
-        public void TestUTF8MultiLineRawStringLiteral_05()
+        public void TestUtf8MultiLineRawStringLiteral_05()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C
@@ -1230,7 +1230,7 @@ abc
         }
 
         [Fact]
-        public void TestUTF8MultiLineRawStringLiteral_06()
+        public void TestUtf8MultiLineRawStringLiteral_06()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C
@@ -1259,7 +1259,7 @@ abc
         }
 
         [Fact]
-        public void TestUTF8MultiLineRawStringLiteral_07()
+        public void TestUtf8MultiLineRawStringLiteral_07()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree(@"
 class C

@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ParameterSymbol thisParameter;
                 if (!TryGetThisParameter(out thisParameter))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
                 return thisParameter;
             }
@@ -586,6 +586,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract bool HasSetsRequiredMembersImpl { get; }
 
+        internal abstract bool HasUnscopedRefAttribute { get; }
+
+        internal abstract bool UseUpdatedEscapeRules { get; }
+
         /// <summary>
         /// Some method kinds do not participate in overriding/hiding (e.g. constructors).
         /// </summary>
@@ -708,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                return IsStatic && Name == WellKnownMemberNames.EntryPointMethodName;
+                return IsStatic && !IsAbstract && !IsVirtual && Name == WellKnownMemberNames.EntryPointMethodName;
             }
         }
 
@@ -741,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new ArgumentNullException(nameof(receiverType));
             }
 
-            if (!this.IsExtensionMethod || this.MethodKind == MethodKind.ReducedExtension)
+            if (!this.IsExtensionMethod || this.MethodKind == MethodKind.ReducedExtension || receiverType.IsVoidType())
             {
                 return null;
             }
@@ -1086,7 +1090,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal virtual TypeWithAnnotations IteratorElementTypeWithAnnotations
         {
             get { return default; }
-            set { throw ExceptionUtilities.Unreachable; }
         }
 
         /// <summary>
@@ -1096,7 +1099,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary>

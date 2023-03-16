@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isInImportsDirective As Boolean,
             isInLambda As Boolean,
             isInQuery As Boolean,
-            isInTaskLikeTypeContext As Boolean,
+            isTaskLikeTypeContext As Boolean,
             isNameOfContext As Boolean,
             isNamespaceContext As Boolean,
             isNamespaceDeclarationNameContext As Boolean,
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isGlobalStatementContext:=isGlobalStatementContext,
                 isInImportsDirective:=isInImportsDirective,
                 isInQuery:=isInQuery,
-                isInTaskLikeTypeContext:=isInTaskLikeTypeContext,
+                isTaskLikeTypeContext:=isTaskLikeTypeContext,
                 isNameOfContext:=isNameOfContext,
                 isNamespaceContext,
                 isNamespaceDeclarationNameContext,
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective()
         End Sub
 
-        Private Shared Function ComputeIsInTaskLikeTypeContext(targetToken As SyntaxToken) As Boolean
+        Private Shared Function ComputeIsTaskLikeTypeContext(targetToken As SyntaxToken) As Boolean
             ' If we're after the 'as' in an async method declaration, then filter down to task-like types only.
             If targetToken.Kind() = SyntaxKind.AsKeyword Then
                 Dim asClause = TryCast(targetToken.Parent, AsClauseSyntax)
@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isInImportsDirective:=leftToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing,
                 isInLambda:=leftToken.GetAncestor(Of LambdaExpressionSyntax)() IsNot Nothing,
                 isInQuery:=isInQuery,
-                isInTaskLikeTypeContext:=ComputeIsInTaskLikeTypeContext(targetToken),
+                isTaskLikeTypeContext:=ComputeIsTaskLikeTypeContext(targetToken),
                 isNameOfContext:=syntaxTree.IsNameOfContext(position, cancellationToken),
                 isNamespaceContext:=syntaxTree.IsNamespaceContext(position, targetToken, cancellationToken, semanticModel),
                 isNamespaceDeclarationNameContext:=syntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken),
@@ -241,13 +241,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         End Function
 
         Private Function ComputeEnclosingNamedType(cancellationToken As CancellationToken) As INamedTypeSymbol
-            Dim enclosingSymbol = Me.SemanticModel.GetEnclosingSymbol(Me.TargetToken.SpanStart, cancellationToken)
-            Dim container = TryCast(enclosingSymbol, INamedTypeSymbol)
-            If container Is Nothing Then
-                container = enclosingSymbol.ContainingType
+            ' It's possible the caller is asking about a speculative semantic model, and may have moved before the
+            ' bounds of that model (for example, while looking at the nearby tokens around an edit).  If so, ensure we
+            ' walk outwards to the correct model to actually ask this question of.
+            Dim position = TargetToken.SpanStart
+            Dim model = Me.SemanticModel
+            If model.IsSpeculativeSemanticModel AndAlso position < model.OriginalPositionForSpeculation Then
+                model = model.GetOriginalSemanticModel()
             End If
 
-            Return container
+            Dim enclosingSymbol = model.GetEnclosingSymbol(position, cancellationToken)
+            Return If(TryCast(enclosingSymbol, INamedTypeSymbol), enclosingSymbol.ContainingType)
         End Function
 
         Private Shared Function ComputeIsWithinPreprocessorContext(position As Integer, targetToken As SyntaxToken) As Boolean

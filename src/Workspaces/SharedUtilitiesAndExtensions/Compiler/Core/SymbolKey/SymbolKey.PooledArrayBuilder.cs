@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private ref struct PooledArrayBuilder<T>
+        private readonly ref struct PooledArrayBuilder<T>
         {
             public readonly ArrayBuilder<T> Builder;
 

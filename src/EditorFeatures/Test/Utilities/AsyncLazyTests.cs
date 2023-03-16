@@ -14,9 +14,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
     public class AsyncLazyTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.AsyncLazy)]
+        [Fact]
         public void CancellationDuringInlinedComputationFromGetValueStillCachesResult()
         {
             CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResultCore((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: true);
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(1, computations);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AsyncLazy)]
+        [Fact]
         public void SynchronousRequestShouldCacheValueWithAsynchronousComputeFunction()
         {
             var lazy = new AsyncLazy<object>(c => Task.FromResult(new object()), cacheResult: true);

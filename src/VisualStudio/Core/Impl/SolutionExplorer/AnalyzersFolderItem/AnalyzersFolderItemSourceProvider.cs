@@ -78,10 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private IHierarchyItemToProjectIdMap? TryGetProjectMap()
         {
-            if (_projectMap == null)
-            {
-                _projectMap = _workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
-            }
+            _projectMap ??= _workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
 
             return _projectMap;
         }

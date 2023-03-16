@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis
         // Ideally we would use an abstract method, but that would require making the method visible to
         // public consumers who inherit from this class, which we don't want to do.
         // Therefore we just make it a 'private protected virtual' method instead.
-        private protected virtual bool IsStringProperty(string memberName) => throw ExceptionUtilities.Unreachable;
+        private protected virtual bool IsStringProperty(string memberName) => throw ExceptionUtilities.Unreachable();
 
         /// <summary>
         /// Decode the arguments to DeprecatedAttribute. DeprecatedAttribute can have 3 or 4 arguments.

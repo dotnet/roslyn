@@ -9,15 +9,16 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.OrganizeImports;
 
 [DataContract]
 internal readonly record struct OrganizeImportsOptions
 {
-    [property: DataMember(Order = 0)] public bool PlaceSystemNamespaceFirst { get; init; } = AddImportPlacementOptions.Default.PlaceSystemNamespaceFirst;
-    [property: DataMember(Order = 1)] public bool SeparateImportDirectiveGroups { get; init; } = SyntaxFormattingOptions.CommonOptions.Default.SeparateImportDirectiveGroups;
-    [property: DataMember(Order = 2)] public string NewLine { get; init; } = LineFormattingOptions.Default.NewLine;
+    [DataMember] public bool PlaceSystemNamespaceFirst { get; init; } = AddImportPlacementOptions.Default.PlaceSystemNamespaceFirst;
+    [DataMember] public bool SeparateImportDirectiveGroups { get; init; } = SyntaxFormattingOptions.CommonDefaults.SeparateImportDirectiveGroups;
+    [DataMember] public string NewLine { get; init; } = LineFormattingOptions.Default.NewLine;
 
     public OrganizeImportsOptions()
     {
@@ -32,24 +33,24 @@ internal interface OrganizeImportsOptionsProvider : OptionsProvider<OrganizeImpo
 
 internal static class OrganizeImportsOptionsProviders
 {
-    public static OrganizeImportsOptions GetOrganizeImportsOptions(this AnalyzerConfigOptions options, OrganizeImportsOptions? fallbackOptions)
+    public static OrganizeImportsOptions GetOrganizeImportsOptions(this IOptionsReader options, string language, OrganizeImportsOptions? fallbackOptions)
     {
         fallbackOptions ??= OrganizeImportsOptions.Default;
 
         return new()
         {
-            PlaceSystemNamespaceFirst = options.GetEditorConfigOption(GenerationOptions.PlaceSystemNamespaceFirst, fallbackOptions.Value.PlaceSystemNamespaceFirst),
-            SeparateImportDirectiveGroups = options.GetEditorConfigOption(GenerationOptions.SeparateImportDirectiveGroups, fallbackOptions.Value.SeparateImportDirectiveGroups),
-            NewLine = options.GetEditorConfigOption(FormattingOptions2.NewLine, fallbackOptions.Value.NewLine)
+            PlaceSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, language, fallbackOptions.Value.PlaceSystemNamespaceFirst),
+            SeparateImportDirectiveGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups, language, fallbackOptions.Value.SeparateImportDirectiveGroups),
+            NewLine = options.GetOption(FormattingOptions2.NewLine, language, fallbackOptions.Value.NewLine)
         };
     }
 
     public static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(this Document document, OrganizeImportsOptions? fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetOrganizeImportsOptions(fallbackOptions);
+        return configOptions.GetOrganizeImportsOptions(document.Project.Language, fallbackOptions);
     }
 
     public static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(this Document document, OrganizeImportsOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await GetOrganizeImportsOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+        => await GetOrganizeImportsOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 }

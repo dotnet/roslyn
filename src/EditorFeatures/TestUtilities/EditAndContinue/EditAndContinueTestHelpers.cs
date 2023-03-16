@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Differencing;
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public abstract ImmutableArray<SyntaxNode> GetDeclarators(ISymbol method);
         public abstract string LanguageName { get; }
+        public abstract string ProjectFileExtension { get; }
         public abstract TreeComparer<SyntaxNode> TopSyntaxComparer { get; }
 
         private void VerifyDocumentActiveStatementsAndExceptionRegions(
@@ -117,9 +119,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var allEdits = new List<SemanticEditInfo>();
 
             // include Baseline by default, unless no capabilities are explicitly specified:
-            var requiredCapabilities = capabilities.HasValue ?
-                (capabilities.Value == 0 ? 0 : capabilities.Value | EditAndContinueCapabilities.Baseline) :
-                expectedResults.Any(r => r.Diagnostics.Any()) ? AllRuntimeCapabilities : EditAndContinueCapabilities.Baseline;
+            var requiredCapabilities = capabilities.HasValue
+                ? (capabilities.Value == 0 ? 0 : capabilities.Value | EditAndContinueCapabilities.Baseline)
+                : expectedResults.Any(r => r.Diagnostics.Any()) ? AllRuntimeCapabilities : EditAndContinueCapabilities.Baseline;
 
             var lazyCapabilities = AsyncLazy.Create(requiredCapabilities);
             var actualRequiredCapabilities = EditAndContinueCapabilities.None;
@@ -228,7 +230,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
 
             var duplicateNonPartial = allEdits
-                .Where(e => e.PartialType == null)
+                .Where(e => e.PartialType == null && e.DeletedSymbolContainer is null)
                 .GroupBy(e => e.Symbol, SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true))
                 .Where(g => g.Count() > 1)
                 .Select(g => g.Key);
@@ -236,7 +238,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             AssertEx.Empty(duplicateNonPartial, "Duplicate non-partial symbols");
 
             // check if we can merge edits without throwing:
-            EditSession.MergePartialEdits(oldProject.GetCompilationAsync().Result!, newProject.GetCompilationAsync().Result!, allEdits, out var _, out var _, CancellationToken.None);
+            EditSession.MergePartialEdits(oldProject.GetCompilationAsync().Result!, newProject.GetCompilationAsync().Result!, allEdits, out var mergedEdits, out _, CancellationToken.None);
+
+            // merging is where we fill in NewSymbol for deletes, so make sure that happened too
+            foreach (var edit in mergedEdits)
+            {
+                if (edit.Kind is SemanticEditKind.Delete &&
+                    edit.OldSymbol is IMethodSymbol)
+                {
+                    Assert.True(edit.NewSymbol is not null);
+                }
+            }
         }
 
         public static void VerifyDiagnostics(IEnumerable<RudeEditDiagnosticDescription> expected, IEnumerable<RudeEditDiagnostic> actual, SourceText newSource)
@@ -277,7 +289,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 Assert.Equal(editKind, actualSemanticEdit.Kind);
 
-                var expectedOldSymbol = (editKind == SemanticEditKind.Update) ? expectedSemanticEdit.SymbolProvider(oldCompilation) : null;
+                var expectedOldSymbol = (editKind is SemanticEditKind.Update or SemanticEditKind.Delete) ? expectedSemanticEdit.SymbolProvider(oldCompilation) : null;
                 var expectedNewSymbol = expectedSemanticEdit.SymbolProvider(newCompilation);
                 var symbolKey = actualSemanticEdit.Symbol;
 
@@ -286,13 +298,39 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol);
                     Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
                 }
+                else if (editKind == SemanticEditKind.Delete)
+                {
+                    // Symbol key will happily resolve to a definition part that has no implementation, so we validate that
+                    // differently
+                    if (expectedOldSymbol is IMethodSymbol { IsPartialDefinition: true } &&
+                       symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol is IMethodSymbol resolvedMethod)
+                    {
+                        Assert.Equal(expectedOldSymbol, resolvedMethod.PartialDefinitionPart);
+                        Assert.Equal(null, resolvedMethod.PartialImplementationPart);
+                    }
+                    else
+                    {
+                        Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol);
+
+                        // When we're deleting a symbol, and have a deleted symbol container, it means the symbol wasn't really deleted,
+                        // but rather had its signature changed in some way. Some of those ways, like changing the return type, are not
+                        // represented in the symbol key, so the check below would fail, so we skip it.
+                        if (expectedSemanticEdit.DeletedSymbolContainerProvider is null)
+                        {
+                            Assert.Equal(null, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                        }
+                    }
+
+                    var deletedSymbolContainer = actualSemanticEdit.DeletedSymbolContainer?.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol;
+                    Assert.Equal(deletedSymbolContainer, expectedSemanticEdit.DeletedSymbolContainerProvider?.Invoke(newCompilation));
+                }
                 else if (editKind is SemanticEditKind.Insert or SemanticEditKind.Replace)
                 {
                     Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
                 }
                 else
                 {
-                    Assert.False(true, "Only Update, Insert or Replace allowed");
+                    Assert.False(true, "Only Update, Delete, Insert or Replace allowed");
                 }
 
                 // Partial types must match:
@@ -344,16 +382,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private void CreateProjects(EditScript<SyntaxNode>[] editScripts, AdhocWorkspace workspace, TargetFramework targetFramework, out Project oldProject, out Project newProject)
         {
-            oldProject = workspace.AddProject("project", LanguageName).WithMetadataReferences(TargetFrameworkUtil.GetReferences(targetFramework));
-            var documentIndex = 0;
+            var projectInfo = ProjectInfo.Create(
+                new ProjectInfo.ProjectAttributes(
+                    id: ProjectId.CreateNewId(),
+                    version: VersionStamp.Create(),
+                    name: "project",
+                    assemblyName: "project",
+                    language: LanguageName,
+                    compilationOutputFilePaths: default,
+                    filePath: Path.Combine(TempRoot.Root, "project" + ProjectFileExtension),
+                    checksumAlgorithm: SourceHashAlgorithms.Default));
+
+            oldProject = workspace.AddProject(projectInfo).WithMetadataReferences(TargetFrameworkUtil.GetReferences(targetFramework));
             foreach (var editScript in editScripts)
             {
-                oldProject = oldProject.AddDocument(documentIndex.ToString(), editScript.Match.OldRoot).Project;
-                documentIndex++;
+                var oldRoot = editScript.Match.OldRoot;
+                var oldPath = oldRoot.SyntaxTree.FilePath;
+                var name = Path.GetFileNameWithoutExtension(oldPath);
+                oldProject = oldProject.AddDocument(name, oldRoot, filePath: oldPath).Project;
             }
 
             var newSolution = oldProject.Solution;
-            documentIndex = 0;
+            var documentIndex = 0;
             foreach (var oldDocument in oldProject.Documents)
             {
                 newSolution = newSolution.WithDocumentSyntaxRoot(oldDocument.Id, editScripts[documentIndex].Match.NewRoot, PreservationMode.PreserveIdentity);

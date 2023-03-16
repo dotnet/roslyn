@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
@@ -68,16 +66,19 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         var documentId = arguments.DocumentId;
                         var projectId = arguments.ProjectId;
-                        var project = solution.GetProject(projectId);
+                        var project = solution.GetRequiredProject(projectId);
                         var document = arguments.DocumentId != null
                             ? solution.GetTextDocument(arguments.DocumentId) ?? await solution.GetSourceGeneratedDocumentAsync(arguments.DocumentId, cancellationToken).ConfigureAwait(false)
                             : null;
                         var documentSpan = arguments.DocumentSpan;
                         var documentAnalysisKind = arguments.DocumentAnalysisKind;
-                        var diagnosticComputer = new DiagnosticComputer(document, project, arguments.IdeOptions, documentSpan, documentAnalysisKind, _analyzerInfoCache);
+                        var hostWorkspaceServices = this.GetWorkspace().Services;
 
-                        var result = await diagnosticComputer.GetDiagnosticsAsync(
-                            arguments.AnalyzerIds,
+                        var result = await DiagnosticComputer.GetDiagnosticsAsync(
+                            document, project, solutionChecksum,
+                            arguments.IdeOptions, documentSpan,
+                            arguments.AnalyzerIds, documentAnalysisKind,
+                            _analyzerInfoCache, hostWorkspaceServices,
                             reportSuppressedDiagnostics: arguments.ReportSuppressedDiagnostics,
                             logPerformanceInfo: arguments.LogPerformanceInfo,
                             getTelemetryInfo: arguments.GetTelemetryInfo,
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, CancellationToken cancellationToken)
+        public ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         return default;
                     }
 
-                    service.AddSnapshot(snapshot, unitCount);
+                    service.AddSnapshot(snapshot, unitCount, forSpanAnalysis);
                 }
 
                 return default;

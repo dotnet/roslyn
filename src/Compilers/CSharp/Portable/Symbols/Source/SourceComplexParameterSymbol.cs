@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A source parameter, potentially with a default value, attributes, etc.
     /// </summary>
-    internal class SourceComplexParameterSymbol : SourceParameterSymbol, IAttributeTargetSymbol
+    internal abstract class SourceComplexParameterSymbolBase : SourceParameterSymbol, IAttributeTargetSymbol
     {
         [Flags]
         private enum ParameterSyntaxKind : byte
@@ -33,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SyntaxReference _syntaxRef;
         private readonly ParameterSyntaxKind _parameterSyntaxKind;
 
-        private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         private ThreeState _lazyHasOptionalAttribute;
+        private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         protected ConstantValue _lazyDefaultSyntaxValue;
 
-        internal SourceComplexParameterSymbol(
+        protected SourceComplexParameterSymbolBase(
             Symbol owner,
             int ordinal,
             TypeWithAnnotations parameterType,
@@ -46,8 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Location> locations,
             SyntaxReference syntaxRef,
             bool isParams,
-            bool isExtensionMethodThis)
-            : base(owner, parameterType, ordinal, refKind, name, locations)
+            bool isExtensionMethodThis,
+            ScopedKind scope)
+            : base(owner, parameterType, ordinal, refKind, scope, name, locations)
         {
             Debug.Assert((syntaxRef == null) || (syntaxRef.GetSyntax().IsKind(SyntaxKind.Parameter)));
 
@@ -198,8 +198,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
 
+        internal sealed override ScopedKind EffectiveScope
+        {
+            get
+            {
+                var scope = CalculateEffectiveScopeIgnoringAttributes();
+                if (scope != ScopedKind.None &&
+                    HasUnscopedRefAttribute)
+                {
+                    return ScopedKind.None;
+                }
+                return scope;
+            }
+        }
+
+        internal override bool HasUnscopedRefAttribute => GetEarlyDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
+
         internal static SyntaxNode? GetDefaultValueSyntaxForIsNullableAnalysisEnabled(ParameterSyntax? parameterSyntax) =>
             parameterSyntax?.Default?.Value;
+
+        /// <summary>
+        /// Returns the bound default value syntax from the parameter, if it exists.
+        /// Note that this method will only return a non-null value if the
+        /// default value was supplied in syntax. If the value is supplied through the DefaultParameterValue
+        /// attribute, then ExplicitDefaultValue will be non-null but this method will return null.
+        /// However, if ExplicitDefaultValue is null, this method should always return null.
+        /// </summary>
+        public BoundParameterEqualsValue? BindParameterEqualsValue()
+        {
+            // Rebind default value expression, ignoring any diagnostics, in order to produce
+            // a bound node that can be used for passes such as definite assignment.
+            MakeDefaultExpression(BindingDiagnosticBag.Discarded, out var _, out var parameterEqualsValue);
+            return parameterEqualsValue;
+        }
 
         private ConstantValue DefaultSyntaxValue
         {
@@ -228,6 +259,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (!_lazyDefaultSyntaxValue.IsBad)
                         {
                             VerifyParamDefaultValueMatchesAttributeIfAny(_lazyDefaultSyntaxValue, parameterEqualsValue.Value.Syntax, diagnostics);
+
+                            // Ensure availability of `DecimalConstantAttribute`.
+                            if (_lazyDefaultSyntaxValue.IsDecimal &&
+                                DefaultValueFromAttributes == ConstantValue.NotAvailable)
+                            {
+                                Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
+                                    WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
+                                    diagnostics,
+                                    parameterEqualsValue.Value.Syntax.Location);
+                            }
                         }
                     }
 
@@ -326,6 +367,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ConstantValue.NotAvailable;
             }
 
+            MessageID.IDS_FeatureOptionalParameter.CheckFeatureAvailability(diagnostics, defaultSyntax, defaultSyntax.EqualsToken.GetLocation());
+
             binder = GetDefaultParameterValueBinder(defaultSyntax);
             Binder binderForDefault = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax);
             Debug.Assert(binderForDefault.InParameterDefaultValue);
@@ -347,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If we have something like M(double? x = 1) then the expression we'll get is (double?)1, which
             // does not have a constant value. The constant value we want is (double)1.
             // The default literal conversion is an exception: (double)default would give the wrong value for M(double? x = default).
-            if (convertedExpression.ConstantValue == null && convertedExpression.Kind == BoundKind.Conversion &&
+            if (convertedExpression.ConstantValueOpt == null && convertedExpression.Kind == BoundKind.Conversion &&
                 ((BoundConversion)convertedExpression).ConversionKind != ConversionKind.DefaultLiteral)
             {
                 if (parameterType.Type.IsNullableType())
@@ -358,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // represent default(struct) by a Null constant:
-            var value = convertedExpression.ConstantValue ?? ConstantValue.Null;
+            var value = convertedExpression.ConstantValueOpt ?? ConstantValue.Null;
             return value;
         }
 
@@ -556,6 +599,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyCustomAttributesBag;
         }
 
+        /// <summary>
+        /// Binds attributes applied to this parameter.
+        /// </summary>
+        public ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindParameterAttributes()
+        {
+            return BindAttributes(GetAttributeDeclarations(), WithTypeParametersBinderOpt);
+        }
+
         internal override void EarlyDecodeWellKnownAttributeType(NamedTypeSymbol attributeType, AttributeSyntax attributeSyntax)
         {
             Debug.Assert(!attributeType.IsErrorType());
@@ -592,6 +643,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.DateTimeConstantAttribute))
             {
                 return EarlyDecodeAttributeForDefaultParameterValue(AttributeDescription.DateTimeConstantAttribute, ref arguments);
+            }
+            else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.UnscopedRefAttribute))
+            {
+                // We can't bind the attribute here because that might lead to a cycle.
+                // Instead, simply record that the attribute exists and bind later.
+                arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().HasUnscopedRefAttribute = true;
+                return (null, null);
             }
             else if (!IsOnPartialImplementation(arguments.AttributeSyntax))
             {
@@ -742,7 +800,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ValidateCallerArgumentExpressionAttribute(arguments.AttributeSyntaxOpt, attribute, diagnostics);
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.DynamicAttribute | ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.TupleElementNamesAttribute | ReservedAttributes.NullableAttribute | ReservedAttributes.NativeIntegerAttribute))
+                ReservedAttributes.DynamicAttribute |
+                ReservedAttributes.IsReadOnlyAttribute |
+                ReservedAttributes.IsUnmanagedAttribute |
+                ReservedAttributes.IsByRefLikeAttribute |
+                ReservedAttributes.TupleElementNamesAttribute |
+                ReservedAttributes.NullableAttribute |
+                ReservedAttributes.NativeIntegerAttribute |
+                ReservedAttributes.ScopedRefAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AllowNullAttribute))
@@ -759,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullWhenAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().MaybeNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription.MaybeNullWhenAttribute, attribute);
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().MaybeNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(attribute);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullAttribute))
             {
@@ -767,11 +832,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullWhenAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().NotNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription.NotNullWhenAttribute, attribute);
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().NotNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(attribute);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DoesNotReturnIfAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().DoesNotReturnIfAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription.DoesNotReturnIfAttribute, attribute);
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().DoesNotReturnIfAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(attribute);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullIfNotNullAttribute))
             {
@@ -786,9 +851,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 DecodeInterpolatedStringHandlerArgumentAttribute(ref arguments, diagnostics, index);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.UnscopedRefAttribute))
+            {
+                if (!this.IsValidUnscopedRefAttributeTarget())
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, arguments.AttributeSyntaxOpt.Location);
+                }
+                else if (DeclaredScope != ScopedKind.None)
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnscopedScoped, arguments.AttributeSyntaxOpt.Location);
+                }
+            }
         }
 
-        private static bool? DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription description, CSharpAttributeData attribute)
+        private bool IsValidUnscopedRefAttributeTarget()
+        {
+            return UseUpdatedEscapeRules && RefKind != RefKind.None;
+        }
+
+        private static bool? DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(CSharpAttributeData attribute)
         {
             var arguments = attribute.CommonConstructorArguments;
             return arguments.Length == 1 && arguments[0].TryDecodeValue(SpecialType.System_Boolean, out bool value) ?
@@ -1225,7 +1306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             var parameterWellKnownAttributeData = arguments.GetOrCreateData<ParameterWellKnownAttributeData>();
@@ -1407,11 +1488,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override MarshalPseudoCustomAttributeData MarshallingInformation
             => GetDecodedWellKnownAttributeData()?.MarshallingInformation;
 
-        public override bool IsParams => (_parameterSyntaxKind & ParameterSyntaxKind.ParamsParameter) != 0;
+        public sealed override bool IsParams => (_parameterSyntaxKind & ParameterSyntaxKind.ParamsParameter) != 0;
 
         internal override bool IsExtensionMethodThis => (_parameterSyntaxKind & ParameterSyntaxKind.ExtensionThisParameter) != 0;
 
-        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+        public abstract override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
@@ -1421,11 +1502,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal sealed class SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef : SourceComplexParameterSymbol
+    internal sealed class SourceComplexParameterSymbol : SourceComplexParameterSymbolBase
+    {
+        internal SourceComplexParameterSymbol(
+            Symbol owner,
+            int ordinal,
+            TypeWithAnnotations parameterType,
+            RefKind refKind,
+            string name,
+            ImmutableArray<Location> locations,
+            SyntaxReference syntaxRef,
+            bool isParams,
+            bool isExtensionMethodThis,
+            ScopedKind scope)
+            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis, scope)
+        {
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+    }
+
+    internal sealed class SourceComplexParameterSymbolWithCustomModifiersPrecedingRef : SourceComplexParameterSymbolBase
     {
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
 
-        internal SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef(
+        internal SourceComplexParameterSymbolWithCustomModifiersPrecedingRef(
             Symbol owner,
             int ordinal,
             TypeWithAnnotations parameterType,
@@ -1435,8 +1536,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Location> locations,
             SyntaxReference syntaxRef,
             bool isParams,
-            bool isExtensionMethodThis)
-            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis)
+            bool isExtensionMethodThis,
+            ScopedKind scope)
+            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis, scope)
         {
             Debug.Assert(!refCustomModifiers.IsEmpty);
 
