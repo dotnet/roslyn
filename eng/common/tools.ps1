@@ -400,7 +400,7 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
   $vsInfo = LocateVisualStudio $vsRequirements
   if ($vsInfo -ne $null) {
     $vsInstallDir = $vsInfo.installationPath
-    $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
+    $vsMajorVersion = "17"
 
     InitializeVisualStudioEnvironmentVariables $vsInstallDir $vsMajorVersion
   } else {
