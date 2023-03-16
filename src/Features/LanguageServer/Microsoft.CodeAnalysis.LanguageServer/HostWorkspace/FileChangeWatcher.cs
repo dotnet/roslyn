@@ -154,9 +154,8 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
 
             public void Dispose()
             {
-                if (_context._individualWatchedFiles.Remove(this))
+                if (_context._individualWatchedFiles.Remove(this) && _watcher != null)
                 {
-                    Contract.ThrowIfNull(_watcher);
                     _watcher.Changed -= _context.RaiseEvent;
                     _watcher.Created -= _context.RaiseEvent;
                     _watcher.Deleted -= _context.RaiseEvent;
