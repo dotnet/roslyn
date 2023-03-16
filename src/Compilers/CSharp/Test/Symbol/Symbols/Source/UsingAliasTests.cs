@@ -775,7 +775,10 @@ class C
             CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (3,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using X = System.Collections.Generic.List<int*[]>;
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 43));
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 43),
+                // (8,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(X x)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(8, 12));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
@@ -829,6 +832,9 @@ class C
                 // (3,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using X = System.Collections.Generic.List<int*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 43),
+                // (8,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(X x)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(8, 12),
                 // (10,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var y = x[0][0];
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0]").WithLocation(10, 17),
@@ -856,7 +862,10 @@ class C
             {
                 // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using X = System.Collections.Generic.List<int*[]>;
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43),
+                // (6,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(X x)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 12)
             };
 
             CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expected);

@@ -4492,15 +4492,18 @@ class C<T>
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using COfArgIterator = C<System.ArgIterator>;").WithLocation(3, 1));
 
             CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+                // (3,7): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                // using COfArgIterator = C<System.ArgIterator>; // unused
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfArgIterator").WithArguments("System.ArgIterator").WithLocation(3, 7),
                 // (2,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using COfIntPtr = C<int*>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 21),
                 // (2,7): error CS0306: The type 'int*' may not be used as a type argument
                 // using COfIntPtr = C<int*>;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfIntPtr").WithArguments("int*").WithLocation(2, 7),
-                // (3,7): error CS0306: The type 'ArgIterator' may not be used as a type argument
-                // using COfArgIterator = C<System.ArgIterator>; // unused
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfArgIterator").WithArguments("System.ArgIterator").WithLocation(3, 7),
+                // (9,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         new COfIntPtr();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "COfIntPtr").WithLocation(9, 13),
                 // (10,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         COfObject.F<int*>();
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 21),
