@@ -719,6 +719,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
+            TextSpan filterSpanForLocalDiagnostics,
             ImmutableArray<SyntaxNode> executableCodeBlocks,
             SemanticModel semanticModel,
             Func<SyntaxNode, TLanguageKindEnum> getKind,
@@ -727,7 +728,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             ExecuteBlockActionsCore<CodeBlockStartAnalyzerAction<TLanguageKindEnum>, CodeBlockAnalyzerAction, SyntaxNodeAnalyzerAction<TLanguageKindEnum>, SyntaxNode, TLanguageKindEnum>(
                 codeBlockStartActions, codeBlockActions, codeBlockEndActions, analyzer,
-                declaredNode, declaredSymbol, executableCodeBlocks, (codeBlocks) => codeBlocks.SelectMany(
+                declaredNode, declaredSymbol, filterSpanForLocalDiagnostics, executableCodeBlocks, (codeBlocks) => codeBlocks.SelectMany(
                     cb =>
                     {
                         var filter = semanticModel.GetSyntaxNodesToAnalyzeFilter(cb, declaredSymbol);
@@ -754,6 +755,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
+            TextSpan filterSpanForLocalDiagnostics,
             ImmutableArray<IOperation> operationBlocks,
             ImmutableArray<IOperation> operations,
             SemanticModel semanticModel,
@@ -761,7 +763,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             ExecuteBlockActionsCore<OperationBlockStartAnalyzerAction, OperationBlockAnalyzerAction, OperationAnalyzerAction, IOperation, int>(
                 operationBlockStartActions, operationBlockActions, operationBlockEndActions, analyzer,
-                declaredNode, declaredSymbol, operationBlocks, (blocks) => operations, semanticModel,
+                declaredNode, declaredSymbol, filterSpanForLocalDiagnostics, operationBlocks, (blocks) => operations, semanticModel,
                 getKind: null, isGeneratedCode);
         }
 
@@ -772,7 +774,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
            DiagnosticAnalyzer analyzer,
            SyntaxNode declaredNode,
            ISymbol declaredSymbol,
-           ImmutableArray<TNode> executableBlocks,
+           TextSpan filterSpanForLocalDiagnostics,
+            ImmutableArray<TNode> executableBlocks,
            Func<ImmutableArray<TNode>, IEnumerable<TNode>> getNodesToAnalyze,
            SemanticModel semanticModel,
            Func<SyntaxNode, TLanguageKindEnum>? getKind,
@@ -809,7 +812,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Include the initial code block end actions.
             blockEndActions.AddAll(endActions);
 
-            var diagReporter = GetAddSemanticDiagnostic(semanticModel.SyntaxTree, declaredNode.FullSpan, analyzer);
+            var diagReporter = GetAddSemanticDiagnostic(semanticModel.SyntaxTree, filterSpanForLocalDiagnostics, analyzer);
 
             // Include the stateful actions.
             foreach (var startAction in startActions)
@@ -970,7 +973,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
            DiagnosticAnalyzer analyzer,
            SemanticModel model,
            Func<SyntaxNode, TLanguageKindEnum> getKind,
-           TextSpan filterSpan,
+           TextSpan filterSpanForLocalDiagnostics,
            ISymbol declaredSymbol,
            bool isGeneratedCode)
            where TLanguageKindEnum : struct
@@ -981,7 +984,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            var diagReporter = GetAddSemanticDiagnostic(model.SyntaxTree, filterSpan, analyzer);
+            var diagReporter = GetAddSemanticDiagnostic(model.SyntaxTree, filterSpanForLocalDiagnostics, analyzer);
 
             using var _ = PooledDelegates.GetPooledFunction((d, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d), (self: this, analyzer), out Func<Diagnostic, bool> isSupportedDiagnostic);
             ExecuteSyntaxNodeActions(nodesToAnalyze, nodeActionsByKind, analyzer, declaredSymbol, model, getKind, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode);
@@ -1059,7 +1062,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
             DiagnosticAnalyzer analyzer,
             SemanticModel model,
-            TextSpan filterSpan,
+            TextSpan filterSpanForLocalDiagnostics,
             ISymbol declaredSymbol,
             bool isGeneratedCode)
         {
@@ -1069,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            var diagReporter = GetAddSemanticDiagnostic(model.SyntaxTree, filterSpan, analyzer);
+            var diagReporter = GetAddSemanticDiagnostic(model.SyntaxTree, filterSpanForLocalDiagnostics, analyzer);
 
             using var _ = PooledDelegates.GetPooledFunction((d, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d), (self: this, analyzer), out Func<Diagnostic, bool> isSupportedDiagnostic);
             ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, model, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode);
@@ -1407,7 +1410,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private AnalyzerDiagnosticReporter GetAddSemanticDiagnostic(SyntaxTree tree, DiagnosticAnalyzer analyzer)
         {
-            return AnalyzerDiagnosticReporter.GetInstance(new SourceOrAdditionalFile(tree), span: null, Compilation, analyzer, isSyntaxDiagnostic: false,
+            return AnalyzerDiagnosticReporter.GetInstance(new SourceOrAdditionalFile(tree), filterSpanForLocalDiagnostics: null, Compilation, analyzer, isSyntaxDiagnostic: false,
                 _addNonCategorizedDiagnostic, _addCategorizedLocalDiagnostic, _addCategorizedNonLocalDiagnostic,
                 _shouldSuppressGeneratedCodeDiagnostic, _cancellationToken);
         }
@@ -1421,7 +1424,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private AnalyzerDiagnosticReporter GetAddSyntaxDiagnostic(SourceOrAdditionalFile file, DiagnosticAnalyzer analyzer)
         {
-            return AnalyzerDiagnosticReporter.GetInstance(file, span: null, Compilation, analyzer, isSyntaxDiagnostic: true,
+            return AnalyzerDiagnosticReporter.GetInstance(file, filterSpanForLocalDiagnostics: null, Compilation, analyzer, isSyntaxDiagnostic: true,
                 _addNonCategorizedDiagnostic, _addCategorizedLocalDiagnostic, _addCategorizedNonLocalDiagnostic,
                 _shouldSuppressGeneratedCodeDiagnostic, _cancellationToken);
         }

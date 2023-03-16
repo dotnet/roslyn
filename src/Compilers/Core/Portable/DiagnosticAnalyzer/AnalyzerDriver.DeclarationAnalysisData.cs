@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -14,12 +15,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public DeclarationAnalysisData(
                 SyntaxNode declaringReferenceSyntax,
                 SyntaxNode topmostNodeForAnalysis,
+                TextSpan filterSpanForLocalDiagnostics,
                 ImmutableArray<DeclarationInfo> declarationsInNodeBuilder,
                 ImmutableArray<SyntaxNode> descendantNodesToAnalyze,
                 bool isPartialAnalysis)
             {
                 DeclaringReferenceSyntax = declaringReferenceSyntax;
                 TopmostNodeForAnalysis = topmostNodeForAnalysis;
+                FilterSpanForLocalDiagnostics = filterSpanForLocalDiagnostics;
                 DeclarationsInNode = declarationsInNodeBuilder;
                 DescendantNodesToAnalyze = descendantNodesToAnalyze;
                 IsPartialAnalysis = isPartialAnalysis;
@@ -34,6 +37,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// Topmost declaration node for analysis.
             /// </summary>
             public SyntaxNode TopmostNodeForAnalysis { get; }
+
+            /// <summary>
+            /// Filter span corresponding to local diagnostics.
+            /// Any analyzer diagnostics reported with a location intersecting this span are
+            /// considered local diagnostics. Others are considered non-local diagnostics.
+            /// </summary>
+            public TextSpan FilterSpanForLocalDiagnostics { get; }
 
             /// <summary>
             /// All member declarations within the declaration.

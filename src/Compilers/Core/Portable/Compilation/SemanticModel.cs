@@ -900,6 +900,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Takes a Symbol and the topmost syntax node for one of symbol's syntax references, and adjusts this topmost node
+        /// to return a new topmost node within which an analyzer can report local diagnostics.
+        /// </summary>
+        internal virtual SyntaxNode AdjustTopmostNodeForDiagnosticReporting(ISymbol symbol, SyntaxNode topmostNode)
+        {
+            return topmostNode;
+        }
+
+        /// <summary>
         /// Root of this semantic model
         /// </summary>
         internal SyntaxNode Root => RootCore;
