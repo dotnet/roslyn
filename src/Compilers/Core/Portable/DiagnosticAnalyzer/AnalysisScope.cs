@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 //       We are basically analyzing the entire tree, and clearing out the filter span
                 //       avoids span intersection checks for each symbol/node/operation in the tree
                 //       to determine if it falls in the analysis scope.
-                if (filterSpanOpt.Value.Start == 0 && filterSpanOpt.Value.Length == filterFile.Value.SourceTree.Length)
+                if (filterSpanOpt.GetValueOrDefault().Start == 0 && filterSpanOpt.GetValueOrDefault().Length == filterFile.GetValueOrDefault().SourceTree.Length)
                 {
                     filterSpanOpt = null;
                 }
