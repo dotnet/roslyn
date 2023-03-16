@@ -161,11 +161,7 @@ public class A { }";
                     AssertSectionPattern(item.Section);
                 }
 
-                return JArray.FromObject(MockClientSideValues.Select(
-                    value => new JObject()
-                    {
-                        { DidChangeConfigurationNotificationHandler.OptionValue, value }
-                    }));
+                return JArray.FromObject(MockClientSideValues);
             }
 
             public void SetClientSideOptionValues(bool setToDefaultValue)

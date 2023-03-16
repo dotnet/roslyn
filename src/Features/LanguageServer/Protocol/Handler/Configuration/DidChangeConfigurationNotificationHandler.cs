@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         private static readonly ImmutableDictionary<string, string> s_languageNameToPrefix = ImmutableDictionary<string, string>.Empty
             .Add(LanguageNames.CSharp, "csharp")
             .Add(LanguageNames.VisualBasic, "visual_basic");
-        public const string OptionValue = "optionValue";
 
         public static readonly ImmutableArray<string> SupportedLanguages = ImmutableArray.Create(LanguageNames.CSharp, LanguageNames.VisualBasic);
 
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             for (var i = 0; i < configurationsFromClient.Length; i++)
             {
                 var valueFromClient = configurationsFromClient[i];
-                if (valueFromClient.Equals("null", StringComparison.InvariantCultureIgnoreCase))
+                if (valueFromClient == string.Empty)
                 {
                     // Configuration doesn't exist in client.
                     continue;
@@ -103,8 +102,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 
         private void SetOption(IOption2 option, string valueFromClient, string? languageName = null)
         {
-            var optionValue = JsonConvert.DeserializeObject<JObject>(valueFromClient)?.SelectToken(OptionValue)?.Value<string>();
-            if (optionValue != null && option.Definition.Serializer.TryParse(optionValue, out var result))
+            if (option.Definition.Serializer.TryParse(valueFromClient, out var result))
             {
                 if (option is IPerLanguageValuedOption && languageName != null)
                 {
