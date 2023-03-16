@@ -1,0 +1,44 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.32804.182
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.SyntaxRewriterBenchmark", "Roslyn.SyntaxRewriterBenchmark.csproj", "{11887C59-7F9A-415E-9484-070AC1B9B898}"
+	ProjectSection(ProjectDependencies) = postProject
+		{88B3A79F-3DEE-4D91-8E40-D4BA9126DCA8} = {88B3A79F-3DEE-4D91-8E40-D4BA9126DCA8}
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Baseline", "baseline\Microsoft.CodeAnalysis.Baseline.csproj", "{88B3A79F-3DEE-4D91-8E40-D4BA9126DCA8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis", "..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj", "{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp", "..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj", "{B501A547-C911-4A05-AC6E-274A50DFF30E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{11887C59-7F9A-415E-9484-070AC1B9B898}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11887C59-7F9A-415E-9484-070AC1B9B898}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88B3A79F-3DEE-4D91-8E40-D4BA9126DCA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88B3A79F-3DEE-4D91-8E40-D4BA9126DCA8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B501A547-C911-4A05-AC6E-274A50DFF30E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B501A547-C911-4A05-AC6E-274A50DFF30E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CD6A33C1-664B-45F2-A390-ED079E9BC626}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
+		..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
+		..\..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
+		..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
+		..\..\..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{b501a547-c911-4a05-ac6e-274a50dff30e}*SharedItemsImports = 5
+	EndGlobalSection
+EndGlobal
