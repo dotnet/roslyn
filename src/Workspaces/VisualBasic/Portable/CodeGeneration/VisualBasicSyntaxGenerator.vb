@@ -1407,7 +1407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 isRecord As Boolean,
                 name As String,
                 typeParameters As IEnumerable(Of SyntaxNode),
-                Accessibility As Accessibility,
+                accessibility As Accessibility,
                 modifiers As DeclarationModifiers,
                 interfaceTypes As IEnumerable(Of SyntaxNode),
                 members As IEnumerable(Of SyntaxNode)) As SyntaxNode
@@ -1420,7 +1420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.StructureBlock(
                 structureStatement:=SyntaxFactory.StructureStatement(
                     attributeLists:=Nothing,
-                    modifiers:=GetModifierList(Accessibility, modifiers And s_structModifiers, declaration:=Nothing, DeclarationKind.Struct),
+                    modifiers:=GetModifierList(accessibility, modifiers And s_structModifiers, declaration:=Nothing, DeclarationKind.Struct),
                     identifier:=name.ToIdentifierToken(),
                     typeParameterList:=GetTypeParameters(typeParameters)),
                 [inherits]:=Nothing,
