@@ -226,8 +226,6 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - template: /eng/common/templates/steps/azure-public-roslyn-auth.yml
-
       - task: PowerShell@2
         displayName: Restore
         inputs:
@@ -276,8 +274,6 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - template: /eng/common/templates/steps/azure-public-roslyn-auth.yml
-
       - script: eng/test-determinism.cmd -configuration Debug
         displayName: Build - Validate determinism
 
@@ -325,8 +321,6 @@ stages:
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
 
-      - template: /eng/common/templates/steps/azure-public-roslyn-auth.yml
-
       - pwsh: eng/todo-check.ps1
         displayName: Validate TODO/PROTOTYPE comments are not present
 
@@ -343,8 +337,6 @@ stages:
           configuration: Release
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
-
-      - template: /eng/common/templates/steps/azure-public-roslyn-auth.yml
 
       - powershell: .\eng\test-rebuild.ps1 -ci -configuration Release
         displayName: Run BuildValidator
@@ -375,8 +367,6 @@ stages:
 
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
-
-      - template: /eng/common/templates/steps/azure-public-roslyn-auth.yml
 
       - script: ./eng/build.sh --solution Roslyn.sln --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror /p:RoslynEnforceCodeStyle=true
         displayName: Build with analyzers
