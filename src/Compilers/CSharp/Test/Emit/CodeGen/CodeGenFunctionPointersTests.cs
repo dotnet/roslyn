@@ -11462,7 +11462,6 @@ class C<T> {}
                 class C { }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
             CreateCompilation(source).VerifyEmitDiagnostics(
                 // (11,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A(default(B<delegate*<void>[]>.E))]
@@ -11512,7 +11511,6 @@ class C<T> {}
                 class C { }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
             CreateCompilation(source).VerifyEmitDiagnostics(
                 // (11,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A<object>(default(B<delegate*<void>[]>.E))]
