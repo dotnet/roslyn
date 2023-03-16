@@ -7,7 +7,6 @@
     <MicroBuildVersion>2.0.115</MicroBuildVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Microsoft.CodeCoverage" Version="17.5.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Internal.MicroBuild.NonShipping" Version="$(MicroBuildVersion)" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
