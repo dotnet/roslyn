@@ -34,6 +34,7 @@ namespace Microsoft.RoslynTools.NuGet
                 "Microsoft.CodeAnalysis.Workspaces.Common",
                 "Microsoft.CodeAnalysis.Workspaces.MSBuild",
                 "Microsoft.Net.Compilers.Toolset",
+                "Microsoft.Net.Compilers.Toolset.Framework",
                 "Microsoft.VisualStudio.LanguageServices"
             };
 
