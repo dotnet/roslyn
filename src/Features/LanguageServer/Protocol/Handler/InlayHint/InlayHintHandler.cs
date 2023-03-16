@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,6 +62,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             for (var i = 0; i < hints.Length; i++)
             {
                 var hint = hints[i];
+                var (label, leftPadding, rightPadding) = Trim(hint.DisplayParts);
                 var linePosition = text.Lines.GetLinePosition(hint.Span.Start);
                 var kind = hint.Ranking == InlineHintsConstants.ParameterRanking
                     ? InlayHintKind.Parameter
@@ -78,12 +80,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
                 var inlayHint = new LSP.InlayHint
                 {
                     Position = ProtocolConversions.LinePositionToPosition(linePosition),
-                    Label = hint.DisplayParts.JoinText(),
+                    Label = label,
                     Kind = kind,
                     TextEdits = textEdits,
                     ToolTip = null,
-                    PaddingLeft = false,
-                    PaddingRight = false,
+                    PaddingLeft = leftPadding,
+                    PaddingRight = rightPadding,
                     Data = new InlayHintResolveData(resultId, i)
                 };
 
@@ -91,6 +93,41 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             }
 
             return inlayHints.ToArray();
+        }
+
+        private static (string label, bool leftPadding, bool rightPadding) Trim(ImmutableArray<TaggedText> taggedTexts)
+        {
+            using var _ = ArrayBuilder<TaggedText>.GetInstance(out var result);
+            var leftPadding = false;
+            var rightPadding = false;
+
+            if (taggedTexts.Length == 1)
+            {
+                var first = taggedTexts.First();
+
+                var trimStart = first.Text.TrimStart();
+                var trimBoth = trimStart.TrimEnd();
+                result.Add(new TaggedText(first.Tag, trimBoth));
+                leftPadding = first.Text.Length - trimStart.Length != 0;
+                rightPadding = trimStart.Length - trimBoth.Length != 0;
+            }
+            else if (taggedTexts.Length >= 2)
+            {
+                var first = taggedTexts.First();
+                var trimStart = first.Text.TrimStart();
+                result.Add(new TaggedText(first.Tag, trimStart));
+                leftPadding = first.Text.Length - trimStart.Length != 0;
+
+                for (var i = 1; i < taggedTexts.Length - 1; i++)
+                    result.Add(taggedTexts[i]);
+
+                var last = taggedTexts.Last();
+                var trimEnd = last.Text.TrimEnd();
+                result.Add(new TaggedText(last.Tag, trimEnd));
+                rightPadding = last.Text.Length - trimEnd.Length != 0;
+            }
+
+            return (result.ToImmutable().JoinText(), leftPadding, rightPadding);
         }
     }
 }

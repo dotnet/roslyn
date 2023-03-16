@@ -12,11 +12,17 @@ namespace Microsoft.CodeAnalysis.InlineHints
         /// <summary>
         /// Parameter hints will always appear first.
         /// </summary>
-        internal const double ParameterRanking = 0.0;
+        public static readonly double ParameterRanking;
 
         /// <summary>
         /// Type hints will always appear second.
         /// </summary>
-        internal const double TypeRanking = 1.0;
+        public static readonly double TypeRanking;
+
+        static InlineHintsConstants()
+        {
+            ParameterRanking = 0.0;
+            TypeRanking = 1.0;
+        }
     }
 }
