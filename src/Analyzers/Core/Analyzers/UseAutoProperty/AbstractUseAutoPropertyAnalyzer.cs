@@ -53,7 +53,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         protected abstract SyntaxNode GetFieldNode(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
 
         protected abstract void RegisterIneligibleFieldsAction(
-            ConcurrentSet<IFieldSymbol> ineligibleFields, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
+            ConcurrentSet<IFieldSymbol> alwaysIneligibleFields, ConcurrentSet<IFieldSymbol> ineligibleWithoutASetterFields,
+            SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
 
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterSymbolStartAction(context =>
@@ -65,12 +66,14 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 var analysisResults = new ConcurrentQueue<AnalysisResult>();
                 context.RegisterSyntaxNodeAction(context => AnalyzePropertyDeclaration(context, namedType, analysisResults), PropertyDeclarationKind);
 
-                var ineligibleFields = new ConcurrentSet<IFieldSymbol>();
+                var alwaysIneligibleFields = new ConcurrentSet<IFieldSymbol>();
+                var ineligibleWithoutASetterFields = new ConcurrentSet<IFieldSymbol>();
+
                 context.RegisterCodeBlockStartAction<TSyntaxKind>(context =>
-                    RegisterIneligibleFieldsAction(ineligibleFields, context.SemanticModel, context.CodeBlock, context.CancellationToken));
+                    RegisterIneligibleFieldsAction(alwaysIneligibleFields, ineligibleWithoutASetterFields, context.SemanticModel, context.CodeBlock, context.CancellationToken));
 
                 context.RegisterSymbolEndAction(context =>
-                    Process(analysisResults, ineligibleFields, context));
+                    Process(analysisResults, alwaysIneligibleFields, ineligibleWithoutASetterFields, context));
             }, SymbolKind.NamedType);
 
         private void AnalyzePropertyDeclaration(
@@ -196,7 +199,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
 
             // Looks like a viable property/field to convert into an auto property.
-            analysisResults.Enqueue(new AnalysisResult(getterField, propertyDeclaration, fieldDeclaration, variableDeclarator, severity));
+            analysisResults.Enqueue(new AnalysisResult(property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator, severity));
         }
 
         protected virtual bool CanConvert(IPropertySymbol property)
@@ -221,13 +224,19 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         private void Process(
             ConcurrentQueue<AnalysisResult> analysisResults,
-            ConcurrentSet<IFieldSymbol> ineligibleFields,
+            ConcurrentSet<IFieldSymbol> alwaysIneligibleFields,
+            ConcurrentSet<IFieldSymbol> ineligibleWithoutASetterFields,
             SymbolAnalysisContext context)
         {
             foreach (var result in analysisResults)
             {
-                if (!ineligibleFields.Contains(result.Field))
-                    Process(result, context);
+                if (alwaysIneligibleFields.Contains(result.Field))
+                    continue;
+
+                if (result.Property.SetMethod is null && ineligibleWithoutASetterFields.Contains(result.Field))
+                    continue;
+
+                Process(result, context);
             }
         }
 
@@ -269,6 +278,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         }
 
         private sealed record AnalysisResult(
+            IPropertySymbol Property,
             IFieldSymbol Field,
             TPropertyDeclaration PropertyDeclaration,
             TFieldDeclaration FieldDeclaration,

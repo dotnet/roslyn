@@ -31,12 +31,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return True
         End Function
 
-        Protected Overrides Sub RegisterIneligibleFieldsAction(ineligibleFields As ConcurrentSet(Of IFieldSymbol), semanticModel As SemanticModel, codeBlock As SyntaxNode, cancellationToken As CancellationToken)
-            ' There are no syntactic constructs that make a field ineligible to be replaced with 
-            ' a property.  In C# you can't use a property in a ref/out position.  But that restriction
-            ' doesn't apply to VB.
-        End Sub
-
         Protected Overrides Function CanConvert(prop As IPropertySymbol) As Boolean
             ' VB auto props cannot specify accessibility for accessors.  So if the original
             ' code had different accessibility between the accessors and property then we 
@@ -128,6 +122,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return GetNodeToRemove(identifier)
         End Function
 
+        Protected Overrides Sub RegisterIneligibleFieldsAction(
+                unused As ConcurrentSet(Of IFieldSymbol),
+                ineligibleWithoutASetterFields As ConcurrentSet(Of IFieldSymbol),
+                semanticModel As SemanticModel,
+                codeBlock As SyntaxNode,
+                cancellationToken As CancellationToken)
+            ' There are no syntactic constructs that make a field always ineligible to be replaced with a property.  In
+            ' C# you can't use a property in a ref/out position.  But that restriction doesn't apply to VB.
+
+            ' the property doesn't have a setter currently. check all the types the field is 
+            ' declared in.  If the field is written to outside of a constructor, then this 
+            ' field Is Not eligible for replacement with an auto prop.  We'd have to make 
+            ' the autoprop read/write, And that could be opening up the property widely 
+            ' (in accessibility terms) in a way the user would not want.
+
+            node
+
+            If node Is propertyDeclaration Then
+                Return False
+            End If
+
+            If node.Kind() = SyntaxKind.ConstructorBlock Then
+                Return False
+            End If
+
+        End Sub
+
         Protected Overrides Function IsEligibleHeuristic(field As IFieldSymbol, propertyDeclaration As PropertyBlockSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
             If propertyDeclaration.Accessors.Any(SyntaxKind.SetAccessorBlock) Then
                 ' If this property already has a setter, then we can definitely simplify it to an auto-prop 
@@ -136,18 +157,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 
             Dim compilation = semanticModel.Compilation
 
-            ' the property doesn't have a setter currently. check all the types the field is 
-            ' declared in.  If the field is written to outside of a constructor, then this 
-            ' field Is Not eligible for replacement with an auto prop.  We'd have to make 
-            ' the autoprop read/write, And that could be opening up the property widely 
-            ' (in accessibility terms) in a way the user would not want.
 
             Dim propertyDecl = semanticModel.GetDeclaredSymbol(propertyDeclaration.PropertyStatement, cancellationToken)
             If propertyDecl.DeclaredAccessibility <> Accessibility.Private Then
                 Dim containingType = field.ContainingType
                 For Each group In containingType.DeclaringSyntaxReferences.GroupBy(Function(ref) ref.SyntaxTree)
 #Disable Warning RS1030 ' Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
-                    Dim groupSemanticModel = If(group.Key Is semanticModel.SyntaxTree, semanticModel, Compilation.GetSemanticModel(group.Key))
+                    Dim groupSemanticModel = If(group.Key Is semanticModel.SyntaxTree, semanticModel, compilation.GetSemanticModel(group.Key))
 #Enable Warning RS1030 ' Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
 
                     For Each ref In group
