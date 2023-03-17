@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         private static readonly Func<IFieldSymbol, ConcurrentSet<SyntaxNode>> s_createFieldWriteNodeSet = _ => s_nodeSetPool.Allocate();
 
+        private readonly ObjectPool<HashSet<string>> s_fieldNamesPool;
+
         protected AbstractUseAutoPropertyAnalyzer()
             : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId,
                    EnforceOnBuildValues.UseAutoProperty,
@@ -44,6 +46,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_auto_property), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_auto_property), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
+            s_fieldNamesPool = new(() => new(this.SyntaxFacts.StringComparer));
         }
 
         protected static void AddFieldWrite(ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, IFieldSymbol field, SyntaxNode node)
@@ -68,10 +71,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         protected abstract SyntaxNode GetFieldNode(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
 
         protected abstract void RegisterIneligibleFieldsAction(
-            ISet<string> fieldNames, ConcurrentSet<IFieldSymbol> ineligibleFields, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
+            HashSet<string> fieldNames, ConcurrentSet<IFieldSymbol> ineligibleFields, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
 
         protected abstract void RegisterNonConstructorFieldWrites(
-            ISet<string> fieldNames, ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
+            HashSet<string> fieldNames, ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
 
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterSymbolStartAction(context =>
@@ -80,13 +83,31 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 if (namedType.TypeKind is not TypeKind.Class and not TypeKind.Struct and not TypeKind.Module)
                     return;
 
+                // Don't bother running on this type unless at least one of its parts has the 'prefer auto props' option
+                // on, and the diagnostic is not suppressed.
+                if (!namedType.DeclaringSyntaxReferences.Select(d => d.SyntaxTree).Distinct().Any(tree =>
+                    {
+                        var preferAutoProps = context.Options.GetAnalyzerOptions(tree).PreferAutoProperties;
+                        return preferAutoProps.Value && preferAutoProps.Notification.Severity != ReportDiagnostic.Suppress;
+                    }))
+                {
+                    return;
+                }
+
                 var analysisResults = s_analysisResultPool.Allocate();
                 var ineligibleFields = s_fieldSetPool.Allocate();
+                var fieldNames = s_fieldNamesPool.Allocate();
                 var nonConstructorFieldWrites = s_fieldWriteLocationPool.Allocate();
 
-                context.RegisterSyntaxNodeAction(context => AnalyzePropertyDeclaration(context, namedType, analysisResults), PropertyDeclarationKind);
+                // Record the names of all the fields in this type.  We can use this to greatly reduce the amount of
+                // binding we need to perform when looking for restrictions in the type.
+                foreach (var member in namedType.GetMembers())
+                {
+                    if (member is IFieldSymbol field)
+                        fieldNames.Add(field.Name);
+                }
 
-                var fieldNames = namedType.GetMembers().OfType<IFieldSymbol>().Select(f => f.Name).ToSet(SyntaxFacts.StringComparer);
+                context.RegisterSyntaxNodeAction(context => AnalyzePropertyDeclaration(context, namedType, analysisResults), PropertyDeclarationKind);
                 context.RegisterCodeBlockStartAction<TSyntaxKind>(context =>
                 {
                     RegisterIneligibleFieldsAction(fieldNames, ineligibleFields, context.SemanticModel, context.CodeBlock, context.CancellationToken);
@@ -101,8 +122,11 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                     }
                     finally
                     {
+                        // Cleanup after doing all our work.
+
                         s_analysisResultPool.ClearAndFree(analysisResults);
                         s_fieldSetPool.ClearAndFree(ineligibleFields);
+                        s_fieldNamesPool.ClearAndFree(fieldNames);
 
                         foreach (var (_, nodeSet) in nonConstructorFieldWrites)
                             s_nodeSetPool.ClearAndFree(nodeSet);

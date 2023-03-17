@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return True
         End Function
 
-        Protected Overrides Sub RegisterIneligibleFieldsAction(fieldNames As ISet(Of String), ineligibleFields As ConcurrentSet(Of IFieldSymbol), semanticModel As SemanticModel, codeBlock As SyntaxNode, cancellationToken As CancellationToken)
+        Protected Overrides Sub RegisterIneligibleFieldsAction(fieldNames As HashSet(Of String), ineligibleFields As ConcurrentSet(Of IFieldSymbol), semanticModel As SemanticModel, codeBlock As SyntaxNode, cancellationToken As CancellationToken)
             ' There are no syntactic constructs that make a field ineligible to be replaced with 
             ' a property.  In C# you can't use a property in a ref/out position.  But that restriction
             ' doesn't apply to VB.
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
         End Function
 
         Protected Overrides Sub RegisterNonConstructorFieldWrites(
-                fieldNames As ISet(Of String),
+                fieldNames As HashSet(Of String),
                 fieldWrites As ConcurrentDictionary(Of IFieldSymbol, ConcurrentSet(Of SyntaxNode)),
                 semanticModel As SemanticModel,
                 codeBlock As SyntaxNode,

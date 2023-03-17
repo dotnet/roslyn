@@ -43,13 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             => variable.Initializer?.Value;
 
         protected override void RegisterNonConstructorFieldWrites(
-            ISet<string> fieldNames, ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken)
+            HashSet<string> fieldNames, ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken)
         {
             // nothing to do here for C#.  This is for VB only situations.
         }
 
         protected override void RegisterIneligibleFieldsAction(
-            ISet<string> fieldNames,
+            HashSet<string> fieldNames,
             ConcurrentSet<IFieldSymbol> ineligibleFields,
             SemanticModel semanticModel,
             SyntaxNode codeBlock,
