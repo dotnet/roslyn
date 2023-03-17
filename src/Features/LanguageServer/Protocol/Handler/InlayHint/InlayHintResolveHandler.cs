@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
         public async Task<LSP.InlayHint> HandleRequestAsync(LSP.InlayHint request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.GetRequiredDocument();
-            var (cacheEntry, memberToResolve) = GetCacheEntry(request);
+            var (cacheEntry, inlineHintToResolve) = GetCacheEntry(request);
 
             var currentSyntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
             var cachedSyntaxVersion = cacheEntry.SyntaxVersion;
@@ -50,9 +50,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
                 };
             }
 
-            var taggedText = await memberToResolve.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
+            var taggedText = await inlineHintToResolve.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
 
             request.ToolTip = ProtocolConversions.GetDocumentationMarkupContent(taggedText, document, true);
+
+            TextEdit[]? textEdits = null;
+            if (inlineHintToResolve.ReplacementTextChange.HasValue)
+            {
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var textEdit = ProtocolConversions.TextChangeToTextEdit(inlineHintToResolve.ReplacementTextChange.Value, text);
+                textEdits = new TextEdit[] { textEdit };
+            }
+
+            request.TextEdits = textEdits;
             return request;
         }
 

@@ -70,19 +70,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
 
                 // TextChange is calculated at the same time as the InlineHint,
                 // so it should not need to be resolved.
-                TextEdit[]? textEdits = null;
+                /*TextEdit[]? textEdits = null;
                 if (hint.ReplacementTextChange.HasValue)
                 {
                     var textEdit = ProtocolConversions.TextChangeToTextEdit(hint.ReplacementTextChange.Value, text);
                     textEdits = new TextEdit[] { textEdit };
-                }
+                }*/
 
                 var inlayHint = new LSP.InlayHint
                 {
                     Position = ProtocolConversions.LinePositionToPosition(linePosition),
                     Label = label,
                     Kind = kind,
-                    TextEdits = textEdits,
+                    TextEdits = null,
                     ToolTip = null,
                     PaddingLeft = leftPadding,
                     PaddingRight = rightPadding,
