@@ -360,18 +360,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     allDiagnostics[analyzer] = analyzerDiagnostics;
                 }
 
-                IEnumerable<Diagnostic> diagsToAdd = diagsByKey;
-                if (overwrite)
-                {
-                    analyzerDiagnostics.Clear();
-                }
-                else
-                {
-                    // Always de-dupe diagnostic to add
-                    diagsToAdd = diagsByKey.Where(d => !analyzerDiagnostics.Contains(d));
-                }
-
-                analyzerDiagnostics.AddRange(diagsToAdd);
+                UpdateDiagnosticsCore_NoLock(analyzerDiagnostics, diagsByKey, overwrite);
             }
         }
 
@@ -391,6 +380,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _nonLocalDiagnosticsOpt[analyzer] = currentDiagnostics;
             }
 
+            UpdateDiagnosticsCore_NoLock(currentDiagnostics, diagnostics, overwrite);
+        }
+
+        private static void UpdateDiagnosticsCore_NoLock(ImmutableArray<Diagnostic>.Builder currentDiagnostics, IEnumerable<Diagnostic> diagnostics, bool overwrite)
+        {
             if (overwrite)
             {
                 currentDiagnostics.Clear();
@@ -398,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             else
             {
                 // Always de-dupe diagnostic to add
-                diagnostics = diagnostics.WhereAsArray(d => !currentDiagnostics.Contains(d));
+                diagnostics = diagnostics.Where(d => !currentDiagnostics.Contains(d));
             }
 
             currentDiagnostics.AddRange(diagnostics);
