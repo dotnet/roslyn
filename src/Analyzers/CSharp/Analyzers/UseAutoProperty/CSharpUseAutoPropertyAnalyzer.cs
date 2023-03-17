@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
         VariableDeclaratorSyntax,
         ExpressionSyntax>
     {
+        protected override SyntaxKind PropertyDeclarationKind => SyntaxKind.PropertyDeclaration;
+
         protected override bool SupportsReadOnlyProperties(Compilation compilation)
             => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
@@ -30,9 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
 
         protected override bool CanExplicitInterfaceImplementationsBeFixed()
             => false;
-
-        protected override PropertyDeclarationSyntax? GetPropertyDeclaration(SyntaxNode node)
-            => node as PropertyDeclarationSyntax;
 
         protected override void RegisterIneligibleFieldsAction(
             ConcurrentSet<IFieldSymbol> ineligibleFields, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken)

@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -41,10 +43,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
+        protected abstract TSyntaxKind PropertyDeclarationKind { get; }
         protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
         protected abstract bool SupportsPropertyInitializer(Compilation compilation);
         protected abstract bool CanExplicitInterfaceImplementationsBeFixed();
-        protected abstract TPropertyDeclaration? GetPropertyDeclaration(SyntaxNode syntaxNode);
         protected abstract TExpression? GetFieldInitializer(TVariableDeclarator variable, CancellationToken cancellationToken);
         protected abstract TExpression? GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
         protected abstract TExpression? GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken);
@@ -60,8 +62,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 if (namedType.TypeKind is not TypeKind.Class and not TypeKind.Struct and not TypeKind.Module)
                     return;
 
-                var analysisResults = new List<AnalysisResult>();
-                AnalyzeTypeProperties(context.Compilation, context.Options, namedType, analysisResults, context.CancellationToken);
+                var analysisResults = new ConcurrentQueue<AnalysisResult>();
+                context.RegisterSyntaxNodeAction(context => AnalyzePropertyDeclaration(context, namedType, analysisResults), PropertyDeclarationKind);
 
                 var ineligibleFields = new ConcurrentSet<IFieldSymbol>();
                 context.RegisterCodeBlockStartAction<TSyntaxKind>(context =>
@@ -71,21 +73,19 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                     Process(analysisResults, ineligibleFields, context));
             }, SymbolKind.NamedType);
 
-        private void AnalyzeTypeProperties(
-            Compilation compilation, AnalyzerOptions options, INamedTypeSymbol namedType, List<AnalysisResult> analysisResults, CancellationToken cancellationToken)
+        private void AnalyzePropertyDeclaration(
+            SyntaxNodeAnalysisContext context,
+            INamedTypeSymbol containingType,
+            ConcurrentQueue<AnalysisResult> analysisResults)
         {
-            foreach (var member in namedType.GetMembers())
-            {
-                cancellationToken.ThrowIfCancellationRequested();
+            var cancellationToken = context.CancellationToken;
+            var semanticModel = context.SemanticModel;
+            var compilation = semanticModel.Compilation;
 
-                if (member is IPropertySymbol property)
-                    AnalyzeTypeProperty(compilation, options, namedType, property, analysisResults, cancellationToken);
-            }
-        }
+            var propertyDeclaration = (TPropertyDeclaration)context.Node;
+            if (semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) is not IPropertySymbol property)
+                return;
 
-        private void AnalyzeTypeProperty(
-            Compilation compilation, AnalyzerOptions options, INamedTypeSymbol containingType, IPropertySymbol property, List<AnalysisResult> analysisResults, CancellationToken cancellationToken)
-        {
             if (property.IsIndexer)
                 return;
 
@@ -112,14 +112,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             if (containingType.IsSerializable)
                 return;
 
-            if (property.DeclaringSyntaxReferences is not [var propertyReference])
-                return;
-
-            var propertyDeclaration = GetPropertyDeclaration(propertyReference.GetSyntax(cancellationToken));
-            if (propertyDeclaration is null)
-                return;
-
-            var preferAutoProps = options.GetAnalyzerOptions(propertyDeclaration.SyntaxTree).PreferAutoProperties;
+            var preferAutoProps = context.GetAnalyzerOptions().PreferAutoProperties;
             if (!preferAutoProps.Value)
                 return;
 
@@ -129,9 +122,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             if (severity == ReportDiagnostic.Suppress)
                 return;
 
-#pragma warning disable RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
-            var semanticModel = compilation.GetSemanticModel(propertyDeclaration.SyntaxTree);
-#pragma warning restore RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
             var getterField = GetGetterField(semanticModel, property.GetMethod, cancellationToken);
             if (getterField == null)
                 return;
@@ -206,7 +196,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
 
             // Looks like a viable property/field to convert into an auto property.
-            analysisResults.Add(new AnalysisResult(getterField, propertyDeclaration, fieldDeclaration, variableDeclarator, severity));
+            analysisResults.Enqueue(new AnalysisResult(getterField, propertyDeclaration, fieldDeclaration, variableDeclarator, severity));
         }
 
         protected virtual bool CanConvert(IPropertySymbol property)
@@ -230,7 +220,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         }
 
         private void Process(
-            List<AnalysisResult> analysisResults,
+            ConcurrentQueue<AnalysisResult> analysisResults,
             ConcurrentSet<IFieldSymbol> ineligibleFields,
             SymbolAnalysisContext context)
         {
