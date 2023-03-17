@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(syntaxTree);
 
-            return syntaxTree.IsMemberDeclarationContext(position, contextOpt: null,
+            return syntaxTree.IsMemberDeclarationContext(position, context: null,
                 SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken);
         }
 
