@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary> Bind the base extensions for one part of a partial extension.</summary>
-        private ExtensionInfo MakeOneDeclaredExtensionInfo(ConsList<TypeSymbol> basesBeingResolved, SingleTypeDeclaration decl, BindingDiagnosticBag diagnostics, 
+        private ExtensionInfo MakeOneDeclaredExtensionInfo(ConsList<TypeSymbol> basesBeingResolved, SingleTypeDeclaration decl, BindingDiagnosticBag diagnostics,
             out bool sawUnderlyingType, out bool isExplicit)
         {
             var syntax = (ExtensionDeclarationSyntax)decl.SyntaxReference.GetSyntax();
