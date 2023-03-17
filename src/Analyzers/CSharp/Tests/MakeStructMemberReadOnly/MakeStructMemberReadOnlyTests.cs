@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.MakeStructMemberReadOnly;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructMemberReadOnly;
@@ -474,11 +473,12 @@ public sealed class MakeStructMemberReadOnlyTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67310")]
+    [Fact]
     public async Task TestPropertyExpressionBody()
     {
         await new VerifyCS.Test
         {
+            CodeFixTestBehaviors = CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
             TestCode = """
             struct S
             {
