@@ -64,7 +64,7 @@ jobs:
       displayName: Create the Compiler Log
       inputs:
         targetType: inline
-        script: .\.dotnet\dotnet tool run complog create artifacts\logs\Debug\Build.binlog --out artifacts\logs\Debug\Build.complog
+        script: .\.dotnet\dotnet tool run complog create artifacts\log\Debug\Build.binlog --out artifacts\log\Debug\Build.complog
 
     - template: publish-logs.yml
       parameters:
