@@ -845,5 +845,197 @@ internal class TestAttribute : Attribute
                 }
             }
         }
+
+        [Theory, CombinatorialData, WorkItem(66968, "https://github.com/dotnet/roslyn/issues/66968")]
+        public async Task TestAnalyzerCallbacksForSpanBasedDiagnostics(bool testSyntaxTreeAction, bool testSemanticModelAction, bool testSymbolStartAction, bool testBlockActions)
+        {
+            var source1 = @"
+partial class C
+{
+    void M1()
+    {
+        int x11 = 0; // Test span
+        int x12 = 0;
+    }
+
+    void M2()
+    {
+        int x21 = 0;
+        int x22 = 0;
+    }
+}";
+
+            var source2 = @"
+partial class C
+{
+    void M3()
+    {
+        int x31 = 0;
+        int x32 = 0;
+    }
+}
+";
+            var compilation = CreateCompilation(new[] { source1, source2 });
+            var tree1 = compilation.SyntaxTrees[0];
+            var tree2 = compilation.SyntaxTrees[1];
+            var model1 = compilation.GetSemanticModel(tree1);
+
+            var analyzer = new AllActionsAnalyzer(testSyntaxTreeAction, testSemanticModelAction, testSymbolStartAction, testBlockActions);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer), AnalyzerOptions.Empty);
+
+            if (testSyntaxTreeAction)
+            {
+                // Verify only SyntaxTree action callback with GetAnalysisResultAsync(tree).
+                var syntaxResult = await compilationWithAnalyzers.GetAnalysisResultAsync(tree1, CancellationToken.None);
+                Assert.Empty(syntaxResult.GetAllDiagnostics());
+
+                var analyzedTree = Assert.Single(analyzer.AnalyzedTrees);
+                Assert.Same(tree1, analyzedTree);
+
+                Assert.Empty(analyzer.AnalyzedSymbols);
+                Assert.Empty(analyzer.AnalyzedSymbolStartSymbols);
+                Assert.Empty(analyzer.AnalyzedSymbolEndSymbols);
+                Assert.Empty(analyzer.AnalyzedCodeBlockSymbols);
+                Assert.Empty(analyzer.AnalyzedCodeBlockStartSymbols);
+                Assert.Empty(analyzer.AnalyzedCodeBlockEndSymbols);
+                Assert.Empty(analyzer.AnalyzedOperationBlockSymbols);
+                Assert.Empty(analyzer.AnalyzedOperationBlockStartSymbols);
+                Assert.Empty(analyzer.AnalyzedOperationBlockEndSymbols);
+                Assert.Empty(analyzer.AnalyzedOperations);
+                Assert.Empty(analyzer.AnalyzedOperationsInsideOperationBlock);
+                Assert.Empty(analyzer.AnalyzedSyntaxNodes);
+                Assert.Empty(analyzer.AnalyzedSyntaxNodesInsideCodeBlock);
+                Assert.Empty(analyzer.AnalyzedSemanticModels);
+
+                analyzer.AnalyzedTrees.Clear();
+            }
+
+            // Get analyzer semantic diagnostics for first local declaration's span within "M1".
+            var localDecl = tree1.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
+            Assert.Equal("int x11 = 0;", localDecl.ToString());
+
+            // Verify analyzer callbacks for computing semantic diagnostics for the span.
+            var result = await compilationWithAnalyzers.GetAnalysisResultAsync(model1, filterSpan: localDecl.Span, CancellationToken.None);
+            Assert.Empty(result.GetAllDiagnostics());
+
+            // Verify no syntax tree action callbacks
+            Assert.Empty(analyzer.AnalyzedTrees);
+
+            // Compute expected callbacks based on analyzer registrations.
+            var expectedSymbolCallbacks = new HashSet<string>() { "C", "M1" };
+            var expectedSyntaxNodeCallbacks = new HashSet<string>() { "int x11 = 0;" };
+            var expectedSyntaxNodeInsideBlockCallbacks = new HashSet<string>();
+            var expectedOperationCallbacks = new HashSet<string>() { "int x11 = 0" };
+            var expectedOperationInsideBlockCallbacks = new HashSet<string>();
+            var expectedBlockSymbolCallbacks = new HashSet<string>();
+            var expectedSymbolStartSymbolCallbacks = new HashSet<string>();
+            var expectedSemanticModelTreeCallbacks = new HashSet<SyntaxTree>();
+
+            if (testBlockActions)
+            {
+                expectedBlockSymbolCallbacks.Add("M1");
+
+                // As we have registered block actions, we expect callbacks for all nodes/operations in the block.
+                expectedSyntaxNodeCallbacks.Add("int x12 = 0;");
+                expectedSyntaxNodeInsideBlockCallbacks.Add("int x11 = 0;");
+                expectedSyntaxNodeInsideBlockCallbacks.Add("int x12 = 0;");
+                expectedOperationCallbacks.Add("int x12 = 0");
+                expectedOperationInsideBlockCallbacks.Add("int x11 = 0");
+                expectedOperationInsideBlockCallbacks.Add("int x12 = 0");
+            }
+
+            if (testSemanticModelAction)
+            {
+                expectedSemanticModelTreeCallbacks.Add(tree1);
+                if (testSymbolStartAction)
+                {
+                    // As we have registered symbol start actions, we expect callbacks for all files with partial declarations.
+                    expectedSemanticModelTreeCallbacks.Add(tree2);
+                }
+            }
+
+            if (testSymbolStartAction)
+            {
+                expectedSymbolStartSymbolCallbacks.Add("C");
+
+                expectedSymbolCallbacks.Add("M2");
+                expectedSymbolCallbacks.Add("M3");
+
+                expectedSyntaxNodeCallbacks.Add("int x12 = 0;");
+                expectedSyntaxNodeCallbacks.Add("int x21 = 0;");
+                expectedSyntaxNodeCallbacks.Add("int x22 = 0;");
+                expectedSyntaxNodeCallbacks.Add("int x31 = 0;");
+                expectedSyntaxNodeCallbacks.Add("int x32 = 0;");
+
+                expectedOperationCallbacks.Add("int x12 = 0");
+                expectedOperationCallbacks.Add("int x21 = 0");
+                expectedOperationCallbacks.Add("int x22 = 0");
+                expectedOperationCallbacks.Add("int x31 = 0");
+                expectedOperationCallbacks.Add("int x32 = 0");
+
+                if (testBlockActions)
+                {
+                    expectedSyntaxNodeInsideBlockCallbacks.Add("int x12 = 0;");
+                    expectedSyntaxNodeInsideBlockCallbacks.Add("int x21 = 0;");
+                    expectedSyntaxNodeInsideBlockCallbacks.Add("int x22 = 0;");
+                    expectedSyntaxNodeInsideBlockCallbacks.Add("int x31 = 0;");
+                    expectedSyntaxNodeInsideBlockCallbacks.Add("int x32 = 0;");
+
+                    expectedOperationInsideBlockCallbacks.Add("int x12 = 0");
+                    expectedOperationInsideBlockCallbacks.Add("int x21 = 0");
+                    expectedOperationInsideBlockCallbacks.Add("int x22 = 0");
+                    expectedOperationInsideBlockCallbacks.Add("int x31 = 0");
+                    expectedOperationInsideBlockCallbacks.Add("int x32 = 0");
+
+                    expectedBlockSymbolCallbacks.Add("M2");
+                    expectedBlockSymbolCallbacks.Add("M3");
+                }
+            }
+
+            // Verify symbol callbacks
+            Assert.Equal(expectedSymbolCallbacks.Count, analyzer.AnalyzedSymbols.Count);
+            AssertEx.SetEqual(expectedSymbolCallbacks, analyzer.AnalyzedSymbols.Select(s => s.Name).ToHashSet());
+
+            // Verify syntax node callbacks
+            Assert.Equal(expectedSyntaxNodeCallbacks.Count, analyzer.AnalyzedSyntaxNodes.Count);
+            AssertEx.All(analyzer.AnalyzedSyntaxNodes, node => node.IsKind(SyntaxKind.LocalDeclarationStatement));
+            AssertEx.SetEqual(expectedSyntaxNodeCallbacks, analyzer.AnalyzedSyntaxNodes.Select(s => s.ToString()).ToHashSet());
+
+            Assert.Equal(expectedSyntaxNodeInsideBlockCallbacks.Count, analyzer.AnalyzedSyntaxNodesInsideCodeBlock.Count);
+            AssertEx.All(analyzer.AnalyzedSyntaxNodesInsideCodeBlock, node => node.IsKind(SyntaxKind.LocalDeclarationStatement));
+            AssertEx.SetEqual(expectedSyntaxNodeInsideBlockCallbacks, analyzer.AnalyzedSyntaxNodesInsideCodeBlock.Select(s => s.ToString()).ToHashSet());
+
+            // Verify operation callbacks
+            Assert.Equal(expectedOperationCallbacks.Count, analyzer.AnalyzedOperations.Count);
+            AssertEx.All(analyzer.AnalyzedOperations, operation => operation.Kind == OperationKind.VariableDeclaration);
+            AssertEx.SetEqual(expectedOperationCallbacks, analyzer.AnalyzedOperations.Select(op => op.Syntax.ToString()).ToHashSet());
+
+            Assert.Equal(expectedOperationInsideBlockCallbacks.Count, analyzer.AnalyzedOperationsInsideOperationBlock.Count);
+            AssertEx.All(analyzer.AnalyzedOperationsInsideOperationBlock, operation => operation.Kind == OperationKind.VariableDeclaration);
+            AssertEx.SetEqual(expectedOperationInsideBlockCallbacks, analyzer.AnalyzedOperationsInsideOperationBlock.Select(op => op.Syntax.ToString()).ToHashSet());
+
+            // Verify operation and code block callbacks
+            var actualBlockSymbolCallbacksArray = new[]
+            {
+                analyzer.AnalyzedCodeBlockSymbols, analyzer.AnalyzedCodeBlockStartSymbols, analyzer.AnalyzedCodeBlockEndSymbols,
+                analyzer.AnalyzedOperationBlockSymbols, analyzer.AnalyzedOperationBlockStartSymbols, analyzer.AnalyzedOperationBlockEndSymbols
+            };
+
+            foreach (var actualBlockSymbolCallbacks in actualBlockSymbolCallbacksArray)
+            {
+                Assert.Equal(expectedBlockSymbolCallbacks.Count, actualBlockSymbolCallbacks.Count);
+                AssertEx.SetEqual(expectedBlockSymbolCallbacks, actualBlockSymbolCallbacks.Select(s => s.Name).ToHashSet());
+            }
+
+            // Verify SymbolStart/End callbacks
+            Assert.Equal(expectedSymbolStartSymbolCallbacks.Count, analyzer.AnalyzedSymbolStartSymbols.Count);
+            AssertEx.SetEqual(expectedSymbolStartSymbolCallbacks, analyzer.AnalyzedSymbolStartSymbols.Select(s => s.Name).ToHashSet());
+            Assert.Equal(expectedSymbolStartSymbolCallbacks.Count, analyzer.AnalyzedSymbolEndSymbols.Count);
+            AssertEx.SetEqual(expectedSymbolStartSymbolCallbacks, analyzer.AnalyzedSymbolEndSymbols.Select(s => s.Name).ToHashSet());
+
+            // Verify SemanticModel callbacks
+            Assert.Equal(expectedSemanticModelTreeCallbacks.Count, analyzer.AnalyzedSemanticModels.Count);
+            AssertEx.SetEqual(expectedSemanticModelTreeCallbacks, analyzer.AnalyzedSemanticModels.Select(s => s.SyntaxTree).ToHashSet());
+        }
     }
 }
