@@ -40,7 +40,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         private static readonly Func<IFieldSymbol, ConcurrentSet<SyntaxNode>> s_createFieldWriteNodeSet = _ => s_nodeSetPool.Allocate();
 
-        private readonly ObjectPool<HashSet<string>> s_fieldNamesPool;
+        /// <summary>
+        /// Not static as this has different semantics around case sensitivity for C# and VB.
+        /// </summary>
+        private readonly ObjectPool<HashSet<string>> _fieldNamesPool;
 
         protected AbstractUseAutoPropertyAnalyzer()
             : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId,
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_auto_property), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_auto_property), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
-            s_fieldNamesPool = new(() => new(this.SyntaxFacts.StringComparer));
+            _fieldNamesPool = new(() => new(this.SyntaxFacts.StringComparer));
         }
 
         protected static void AddFieldWrite(ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, IFieldSymbol field, SyntaxNode node)
@@ -97,9 +100,9 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                     return;
                 }
 
+                var fieldNames = _fieldNamesPool.Allocate();
                 var analysisResults = s_analysisResultPool.Allocate();
                 var ineligibleFields = s_fieldSetPool.Allocate();
-                var fieldNames = s_fieldNamesPool.Allocate();
                 var nonConstructorFieldWrites = s_fieldWriteLocationPool.Allocate();
 
                 // Record the names of all the fields in this type.  We can use this to greatly reduce the amount of
@@ -126,10 +129,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                     finally
                     {
                         // Cleanup after doing all our work.
+                        _fieldNamesPool.ClearAndFree(fieldNames);
 
                         s_analysisResultPool.ClearAndFree(analysisResults);
                         s_fieldSetPool.ClearAndFree(ineligibleFields);
-                        s_fieldNamesPool.ClearAndFree(fieldNames);
 
                         foreach (var (_, nodeSet) in nonConstructorFieldWrites)
                             s_nodeSetPool.ClearAndFree(nodeSet);
