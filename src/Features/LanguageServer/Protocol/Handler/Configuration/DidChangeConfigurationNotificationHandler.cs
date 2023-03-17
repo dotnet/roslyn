@@ -150,6 +150,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             return builder.ToImmutable();
         }
 
+        /// <summary>
+        /// Generate the configuration items send to the client.
+        /// For each option, generate its full name. If the option is <see cref="ISingleValuedOption"/> it's is what we sent to the client.
+        /// If it is <see cref="IPerLanguageValuedOption"/>, then generate two configurationItems with prefix visual_basic and csharp.
+        /// </summary>
         private static ImmutableArray<ConfigurationItem> GenerateGlobalConfigurationItems()
         {
             using var _ = ArrayBuilder<ConfigurationItem>.GetInstance(out var builder);
