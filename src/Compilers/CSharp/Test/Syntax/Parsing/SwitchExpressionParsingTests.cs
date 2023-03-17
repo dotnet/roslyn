@@ -206,7 +206,6 @@ public class SwitchExpressionParsingTests : ParsingTests
             N(SyntaxKind.CloseBraceToken);
         }
         EOF();
-        EOF();
     }
 
     [Fact]
@@ -277,6 +276,179 @@ public class SwitchExpressionParsingTests : ParsingTests
                 }
             }
             M(SyntaxKind.CommaToken);
+            N(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestErrantCaseInSwitchExpression3()
+    {
+        UsingStatement("""
+            {
+                var y = x switch
+                {
+                    case 0:
+                        Goo();
+                        return Bar;
+                    case 1:
+                    {
+                        Baz();
+                        throw new Quux();
+                    }
+                };
+            }
+            """,
+            // (3,6): error CS1041: Identifier expected; 'case' is a keyword
+            //     {
+            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "case").WithLocation(3, 6),
+            // (4,15): error CS1003: Syntax error, '=>' expected
+            //         case 0:
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>").WithLocation(4, 15),
+            // (5,18): error CS1003: Syntax error, ',' expected
+            //             Goo();
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(5, 18),
+            // (5,19): error CS1513: } expected
+            //             Goo();
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 19),
+            // (5,19): error CS1002: ; expected
+            //             Goo();
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 19),
+            // (6,24): error CS1003: Syntax error, 'switch' expected
+            //             return Bar;
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("switch").WithLocation(6, 24));
+        N(SyntaxKind.Block);
+        {
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.SwitchExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.SwitchKeyword);
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SwitchExpressionArm);
+                                {
+                                    N(SyntaxKind.ConstantPattern);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "0");
+                                        }
+                                    }
+                                    M(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.InvocationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Goo");
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.ReturnStatement);
+            {
+                N(SyntaxKind.ReturnKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Bar");
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.SwitchStatement);
+            {
+                M(SyntaxKind.SwitchKeyword);
+                M(SyntaxKind.OpenParenToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.CloseParenToken);
+                M(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CaseSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.InvocationExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Baz");
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.ThrowStatement);
+                        {
+                            N(SyntaxKind.ThrowKeyword);
+                            N(SyntaxKind.ObjectCreationExpression);
+                            {
+                                N(SyntaxKind.NewKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Quux");
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EmptyStatement);
+            {
+                N(SyntaxKind.SemicolonToken);
+            }
             N(SyntaxKind.CloseBraceToken);
         }
         EOF();
