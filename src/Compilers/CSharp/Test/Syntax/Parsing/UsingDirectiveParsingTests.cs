@@ -4880,4 +4880,424 @@ using X = __makeref;
         }
         EOF();
     }
+
+    [Fact]
+    public void TestUnsafeStatic1_CSharp11_NoUnsafeFlag()
+    {
+        var text = @"using unsafe static System.Console;";
+
+        CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using unsafe static System.Console;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe static System.Console;").WithLocation(1, 1),
+            // (1,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // using unsafe static System.Console;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 7),
+            // (1,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // using unsafe static System.Console;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 7),
+            // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
+            // using unsafe static System.Console;
+            Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
+
+        UsingTree(text,
+            // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
+            // using unsafe static System.Console;
+            Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                M(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Console");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestUnsafeStatic1_CSharp11_UnsafeFlag()
+    {
+        var text = @"using unsafe static System.Console;";
+
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using unsafe static System.Console;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe static System.Console;").WithLocation(1, 1),
+            // (1,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // using unsafe static System.Console;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 7),
+            // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
+            // using unsafe static System.Console;
+            Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
+
+        UsingTree(text,
+            // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
+            // using unsafe static System.Console;
+            Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                M(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Console");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestUnsafeStatic1_CSharp12_NoUnsafeFlag()
+    {
+        var text = @"using unsafe static System.Console;";
+
+        CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using unsafe static System.Console;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe static System.Console;").WithLocation(1, 1),
+            // (1,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // using unsafe static System.Console;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 7),
+            // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
+            // using unsafe static System.Console;
+            Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
+
+        UsingTree(text,
+            // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
+            // using unsafe static System.Console;
+            Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                M(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Console");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestUnsafeStatic1_CSharp12_UnsafeFlag()
+    {
+        var text = @"using unsafe static System.Console;";
+
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using unsafe static System.Console;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe static System.Console;").WithLocation(1, 1),
+            // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
+            // using unsafe static System.Console;
+            Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
+
+        UsingTree(text,
+            // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
+            // using unsafe static System.Console;
+            Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                M(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Console");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestUnsafeStatic2_CSharp11_NoUnsafeFlag()
+    {
+        var text = @"using unsafe static X = System.Console;";
+
+        CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe static X = System.Console;").WithLocation(1, 1),
+            // (1,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 7),
+            // (1,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 7),
+            // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14),
+            // (1,21): error CS8085: A 'using static' directive cannot be used to declare an alias
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.ERR_NoAliasHere, "X").WithLocation(1, 21));
+
+        UsingTree(text,
+            // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                M(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.NameEquals);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                }
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Console");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestUnsafeStatic2_CSharp11_UnsafeFlag()
+    {
+        var text = @"using unsafe static X = System.Console;";
+
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe static X = System.Console;").WithLocation(1, 1),
+            // (1,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 7),
+            // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14),
+            // (1,21): error CS8085: A 'using static' directive cannot be used to declare an alias
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.ERR_NoAliasHere, "X").WithLocation(1, 21));
+
+        UsingTree(text,
+            // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                M(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.NameEquals);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                }
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Console");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestUnsafeStatic2_CSharp12_NoUnsafeFlag()
+    {
+        var text = @"using unsafe static X = System.Console;";
+
+        CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe static X = System.Console;").WithLocation(1, 1),
+            // (1,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 7),
+            // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14),
+            // (1,21): error CS8085: A 'using static' directive cannot be used to declare an alias
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.ERR_NoAliasHere, "X").WithLocation(1, 21));
+
+        UsingTree(text,
+            // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                M(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.NameEquals);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                }
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Console");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestUnsafeStatic2_CSharp12_UnsafeFlag()
+    {
+        var text = @"using unsafe static X = System.Console;";
+
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe static X = System.Console;").WithLocation(1, 1),
+            // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14),
+            // (1,21): error CS8085: A 'using static' directive cannot be used to declare an alias
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.ERR_NoAliasHere, "X").WithLocation(1, 21));
+
+        UsingTree(text,
+            // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
+            // using unsafe static X = System.Console;
+            Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                M(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.NameEquals);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                }
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Console");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
 }
