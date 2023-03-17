@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
@@ -23,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider, INotifyCommittingItemCompletionProvider
     {
-        protected abstract ImmutableArray<string> GetImportedNamespaces(SyntaxContext syntaxContext, CancellationToken cancellationToken);
         protected abstract bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext);
         protected abstract void WarmUpCacheInBackground(Document document);
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, CancellationToken cancellationToken);
@@ -75,12 +73,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
         }
 
-        private HashSet<string> GetNamespacesInScope(SyntaxContext syntaxContext, CancellationToken cancellationToken)
+        private static HashSet<string> GetNamespacesInScope(SyntaxContext syntaxContext, CancellationToken cancellationToken)
         {
             var semanticModel = syntaxContext.SemanticModel;
             var document = syntaxContext.Document;
 
-            var importedNamespaces = GetImportedNamespaces(syntaxContext, cancellationToken);
+            var importedNamespaces = ImportCompletionProviderHelper.GetImportedNamespaces(syntaxContext, cancellationToken);
 
             // This hashset will be used to match namespace names, so it must have the same case-sensitivity as the source language.
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();

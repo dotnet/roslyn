@@ -8,7 +8,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.[Shared].Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -41,10 +40,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CommonTriggerCharsAndParen
-
-        Protected Overrides Function GetImportedNamespaces(syntaxContext As SyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of String)
-            Return ImportCompletionProviderHelper.GetImportedNamespaces(syntaxContext, cancellationToken)
-        End Function
 
         Protected Overrides Function IsFinalSemicolonOfUsingOrExtern(directive As SyntaxNode, token As SyntaxToken) As Boolean
             Return False
