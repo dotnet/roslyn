@@ -864,840 +864,6 @@ struct A { }";
     }
 
     [Fact]
-    public void UsingStaticUnsafe_CSharp11_NoUnsafeFlag()
-    {
-        var text = @"using static unsafe System.Console;";
-
-        UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using static unsafe System.Console;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Console;").WithLocation(1, 1),
-            // (1,14): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // using static unsafe System.Console;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 14));
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.UsingDirective);
-            {
-                N(SyntaxKind.UsingKeyword);
-                N(SyntaxKind.StaticKeyword);
-                N(SyntaxKind.UnsafeKeyword);
-                N(SyntaxKind.QualifiedName);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "System");
-                    }
-                    N(SyntaxKind.DotToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "Console");
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void UsingStaticUnsafe_SafeType_CSharp11_NoUnsafeFlag()
-    {
-        var text = @"using static unsafe System.Console;";
-
-        UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using static unsafe System.Console;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Console;").WithLocation(1, 1),
-            // (1,14): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // using static unsafe System.Console;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 14));
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.UsingDirective);
-            {
-                N(SyntaxKind.UsingKeyword);
-                N(SyntaxKind.StaticKeyword);
-                N(SyntaxKind.UnsafeKeyword);
-                N(SyntaxKind.QualifiedName);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "System");
-                    }
-                    N(SyntaxKind.DotToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "Console");
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void UsingStaticUnsafe_SafeType_CSharp11_UnsafeFlag()
-    {
-        var text = @"using static unsafe System.Console;";
-
-        UsingTree(text);
-        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using static unsafe System.Console;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Console;").WithLocation(1, 1),
-            // (1,14): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // using static unsafe System.Console;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 14));
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.UsingDirective);
-            {
-                N(SyntaxKind.UsingKeyword);
-                N(SyntaxKind.StaticKeyword);
-                N(SyntaxKind.UnsafeKeyword);
-                N(SyntaxKind.QualifiedName);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "System");
-                    }
-                    N(SyntaxKind.DotToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "Console");
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void UsingStaticUnsafe_SafeType_CSharp12_NoUnsafeFlag()
-    {
-        var text = @"using static unsafe System.Console;";
-
-        UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using static unsafe System.Console;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Console;").WithLocation(1, 1),
-            // (1,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
-            // using static unsafe System.Console;
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 14));
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.UsingDirective);
-            {
-                N(SyntaxKind.UsingKeyword);
-                N(SyntaxKind.StaticKeyword);
-                N(SyntaxKind.UnsafeKeyword);
-                N(SyntaxKind.QualifiedName);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "System");
-                    }
-                    N(SyntaxKind.DotToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "Console");
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void UsingStaticUnsafe_SafeType_CSharp12_UnsafeFlag()
-    {
-        var text = @"using static unsafe System.Console;";
-
-        UsingTree(text);
-        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using static unsafe System.Console;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Console;").WithLocation(1, 1));
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.UsingDirective);
-            {
-                N(SyntaxKind.UsingKeyword);
-                N(SyntaxKind.StaticKeyword);
-                N(SyntaxKind.UnsafeKeyword);
-                N(SyntaxKind.QualifiedName);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "System");
-                    }
-                    N(SyntaxKind.DotToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "Console");
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void UsingStaticUnsafe_UnsafeType_CSharp11_NoUnsafeFlag()
-    {
-        var text = @"using static unsafe System.Collections.Generic.List<int*[]>;";
-
-        UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using static unsafe System.Collections.Generic.List<int*[]>;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Collections.Generic.List<int*[]>;").WithLocation(1, 1),
-            // (1,14): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // using static unsafe System.Collections.Generic.List<int*[]>;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 14));
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.UsingDirective);
-            {
-                N(SyntaxKind.UsingKeyword);
-                N(SyntaxKind.StaticKeyword);
-                N(SyntaxKind.UnsafeKeyword);
-                N(SyntaxKind.QualifiedName);
-                {
-                    N(SyntaxKind.QualifiedName);
-                    {
-                        N(SyntaxKind.QualifiedName);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "System");
-                            }
-                            N(SyntaxKind.DotToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Collections");
-                            }
-                        }
-                        N(SyntaxKind.DotToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "Generic");
-                        }
-                    }
-                    N(SyntaxKind.DotToken);
-                    N(SyntaxKind.GenericName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "List");
-                        N(SyntaxKind.TypeArgumentList);
-                        {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.ArrayType);
-                            {
-                                N(SyntaxKind.PointerType);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.AsteriskToken);
-                                }
-                                N(SyntaxKind.ArrayRankSpecifier);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.OmittedArraySizeExpression);
-                                    {
-                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                            }
-                            N(SyntaxKind.GreaterThanToken);
-                        }
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void UsingStaticUnsafe_UnsafeType_CSharp11_UnsafeFlag()
-    {
-        var text = @"using static unsafe System.Collections.Generic.List<int*[]>;";
-
-        UsingTree(text);
-        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using static unsafe System.Collections.Generic.List<int*[]>;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Collections.Generic.List<int*[]>;").WithLocation(1, 1),
-            // (1,14): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // using static unsafe System.Collections.Generic.List<int*[]>;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 14));
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.UsingDirective);
-            {
-                N(SyntaxKind.UsingKeyword);
-                N(SyntaxKind.StaticKeyword);
-                N(SyntaxKind.UnsafeKeyword);
-                N(SyntaxKind.QualifiedName);
-                {
-                    N(SyntaxKind.QualifiedName);
-                    {
-                        N(SyntaxKind.QualifiedName);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "System");
-                            }
-                            N(SyntaxKind.DotToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Collections");
-                            }
-                        }
-                        N(SyntaxKind.DotToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "Generic");
-                        }
-                    }
-                    N(SyntaxKind.DotToken);
-                    N(SyntaxKind.GenericName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "List");
-                        N(SyntaxKind.TypeArgumentList);
-                        {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.ArrayType);
-                            {
-                                N(SyntaxKind.PointerType);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.AsteriskToken);
-                                }
-                                N(SyntaxKind.ArrayRankSpecifier);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.OmittedArraySizeExpression);
-                                    {
-                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                            }
-                            N(SyntaxKind.GreaterThanToken);
-                        }
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void UsingStaticUnsafe_UnsafeType_CSharp12_NoUnsafeFlag()
-    {
-        var text = @"using static unsafe System.Collections.Generic.List<int*[]>;";
-
-        UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using static unsafe System.Collections.Generic.List<int*[]>;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Collections.Generic.List<int*[]>;").WithLocation(1, 1),
-            // (1,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
-            // using static unsafe System.Collections.Generic.List<int*[]>;
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 14));
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.UsingDirective);
-            {
-                N(SyntaxKind.UsingKeyword);
-                N(SyntaxKind.StaticKeyword);
-                N(SyntaxKind.UnsafeKeyword);
-                N(SyntaxKind.QualifiedName);
-                {
-                    N(SyntaxKind.QualifiedName);
-                    {
-                        N(SyntaxKind.QualifiedName);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "System");
-                            }
-                            N(SyntaxKind.DotToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Collections");
-                            }
-                        }
-                        N(SyntaxKind.DotToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "Generic");
-                        }
-                    }
-                    N(SyntaxKind.DotToken);
-                    N(SyntaxKind.GenericName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "List");
-                        N(SyntaxKind.TypeArgumentList);
-                        {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.ArrayType);
-                            {
-                                N(SyntaxKind.PointerType);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.AsteriskToken);
-                                }
-                                N(SyntaxKind.ArrayRankSpecifier);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.OmittedArraySizeExpression);
-                                    {
-                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                            }
-                            N(SyntaxKind.GreaterThanToken);
-                        }
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void UsingStaticUnsafe_UnsafeType_CSharp12_UnsafeFlag()
-    {
-        var text = @"using static unsafe System.Collections.Generic.List<int*[]>;";
-
-        UsingTree(text);
-        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using static unsafe System.Collections.Generic.List<int*[]>;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Collections.Generic.List<int*[]>;").WithLocation(1, 1));
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.UsingDirective);
-            {
-                N(SyntaxKind.UsingKeyword);
-                N(SyntaxKind.StaticKeyword);
-                N(SyntaxKind.UnsafeKeyword);
-                N(SyntaxKind.QualifiedName);
-                {
-                    N(SyntaxKind.QualifiedName);
-                    {
-                        N(SyntaxKind.QualifiedName);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "System");
-                            }
-                            N(SyntaxKind.DotToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Collections");
-                            }
-                        }
-                        N(SyntaxKind.DotToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "Generic");
-                        }
-                    }
-                    N(SyntaxKind.DotToken);
-                    N(SyntaxKind.GenericName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "List");
-                        N(SyntaxKind.TypeArgumentList);
-                        {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.ArrayType);
-                            {
-                                N(SyntaxKind.PointerType);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.AsteriskToken);
-                                }
-                                N(SyntaxKind.ArrayRankSpecifier);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.OmittedArraySizeExpression);
-                                    {
-                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                            }
-                            N(SyntaxKind.GreaterThanToken);
-                        }
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void UsingStatic_UnsafeType_CSharp11_NoUnsafeFlag()
-    {
-        // This is legal in c# 11 and prior, even with or without the /unsafe switch to the compiler.
-        var text = @"using static System.Collections.Generic.List<int*[]>;";
-
-        UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using static System.Collections.Generic.List<int*[]>;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static System.Collections.Generic.List<int*[]>;").WithLocation(1, 1));
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.UsingDirective);
-            {
-                N(SyntaxKind.UsingKeyword);
-                N(SyntaxKind.StaticKeyword);
-                N(SyntaxKind.QualifiedName);
-                {
-                    N(SyntaxKind.QualifiedName);
-                    {
-                        N(SyntaxKind.QualifiedName);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "System");
-                            }
-                            N(SyntaxKind.DotToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Collections");
-                            }
-                        }
-                        N(SyntaxKind.DotToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "Generic");
-                        }
-                    }
-                    N(SyntaxKind.DotToken);
-                    N(SyntaxKind.GenericName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "List");
-                        N(SyntaxKind.TypeArgumentList);
-                        {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.ArrayType);
-                            {
-                                N(SyntaxKind.PointerType);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.AsteriskToken);
-                                }
-                                N(SyntaxKind.ArrayRankSpecifier);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.OmittedArraySizeExpression);
-                                    {
-                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                            }
-                            N(SyntaxKind.GreaterThanToken);
-                        }
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void UsingStatic_UnsafeType_CSharp11_UnsafeFlag()
-    {
-        // This is legal in c# 11 and prior, even with or without the /unsafe switch to the compiler.
-        var text = @"using static System.Collections.Generic.List<int*[]>;";
-
-        UsingTree(text);
-        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using static System.Collections.Generic.List<int*[]>;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static System.Collections.Generic.List<int*[]>;").WithLocation(1, 1));
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.UsingDirective);
-            {
-                N(SyntaxKind.UsingKeyword);
-                N(SyntaxKind.StaticKeyword);
-                N(SyntaxKind.QualifiedName);
-                {
-                    N(SyntaxKind.QualifiedName);
-                    {
-                        N(SyntaxKind.QualifiedName);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "System");
-                            }
-                            N(SyntaxKind.DotToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Collections");
-                            }
-                        }
-                        N(SyntaxKind.DotToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "Generic");
-                        }
-                    }
-                    N(SyntaxKind.DotToken);
-                    N(SyntaxKind.GenericName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "List");
-                        N(SyntaxKind.TypeArgumentList);
-                        {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.ArrayType);
-                            {
-                                N(SyntaxKind.PointerType);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.AsteriskToken);
-                                }
-                                N(SyntaxKind.ArrayRankSpecifier);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.OmittedArraySizeExpression);
-                                    {
-                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                            }
-                            N(SyntaxKind.GreaterThanToken);
-                        }
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void UsingStatic_UnsafeType_CSharp12_NoUnsafeFlag()
-    {
-        var text = @"using static System.Collections.Generic.List<int*[]>;";
-
-        UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using static System.Collections.Generic.List<int*[]>;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static System.Collections.Generic.List<int*[]>;").WithLocation(1, 1),
-            // (1,46): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            // using static System.Collections.Generic.List<int*[]>;
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 46));
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.UsingDirective);
-            {
-                N(SyntaxKind.UsingKeyword);
-                N(SyntaxKind.StaticKeyword);
-                N(SyntaxKind.QualifiedName);
-                {
-                    N(SyntaxKind.QualifiedName);
-                    {
-                        N(SyntaxKind.QualifiedName);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "System");
-                            }
-                            N(SyntaxKind.DotToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Collections");
-                            }
-                        }
-                        N(SyntaxKind.DotToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "Generic");
-                        }
-                    }
-                    N(SyntaxKind.DotToken);
-                    N(SyntaxKind.GenericName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "List");
-                        N(SyntaxKind.TypeArgumentList);
-                        {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.ArrayType);
-                            {
-                                N(SyntaxKind.PointerType);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.AsteriskToken);
-                                }
-                                N(SyntaxKind.ArrayRankSpecifier);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.OmittedArraySizeExpression);
-                                    {
-                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                            }
-                            N(SyntaxKind.GreaterThanToken);
-                        }
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void UsingStatic_UnsafeType_CSharp12_UnsafeFlag()
-    {
-        var text = @"using static System.Collections.Generic.List<int*[]>;";
-
-        UsingTree(text);
-        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using static System.Collections.Generic.List<int*[]>;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static System.Collections.Generic.List<int*[]>;").WithLocation(1, 1),
-            // (1,46): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            // using static System.Collections.Generic.List<int*[]>;
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 46));
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.UsingDirective);
-            {
-                N(SyntaxKind.UsingKeyword);
-                N(SyntaxKind.StaticKeyword);
-                N(SyntaxKind.QualifiedName);
-                {
-                    N(SyntaxKind.QualifiedName);
-                    {
-                        N(SyntaxKind.QualifiedName);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "System");
-                            }
-                            N(SyntaxKind.DotToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Collections");
-                            }
-                        }
-                        N(SyntaxKind.DotToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "Generic");
-                        }
-                    }
-                    N(SyntaxKind.DotToken);
-                    N(SyntaxKind.GenericName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "List");
-                        N(SyntaxKind.TypeArgumentList);
-                        {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.ArrayType);
-                            {
-                                N(SyntaxKind.PointerType);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.AsteriskToken);
-                                }
-                                N(SyntaxKind.ArrayRankSpecifier);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.OmittedArraySizeExpression);
-                                    {
-                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                            }
-                            N(SyntaxKind.GreaterThanToken);
-                        }
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
     public void AliasUsingDirectivePredefinedType_CSharp11()
     {
         var text = @"using x = int;";
@@ -5277,6 +4443,840 @@ using X = __makeref;
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "Console");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void UsingStaticUnsafe_CSharp11_NoUnsafeFlag()
+    {
+        var text = @"using static unsafe System.Console;";
+
+        UsingTree(text);
+        CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static unsafe System.Console;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Console;").WithLocation(1, 1),
+            // (1,14): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // using static unsafe System.Console;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 14));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Console");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void UsingStaticUnsafe_SafeType_CSharp11_NoUnsafeFlag()
+    {
+        var text = @"using static unsafe System.Console;";
+
+        UsingTree(text);
+        CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static unsafe System.Console;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Console;").WithLocation(1, 1),
+            // (1,14): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // using static unsafe System.Console;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 14));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Console");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void UsingStaticUnsafe_SafeType_CSharp11_UnsafeFlag()
+    {
+        var text = @"using static unsafe System.Console;";
+
+        UsingTree(text);
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static unsafe System.Console;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Console;").WithLocation(1, 1),
+            // (1,14): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // using static unsafe System.Console;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 14));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Console");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void UsingStaticUnsafe_SafeType_CSharp12_NoUnsafeFlag()
+    {
+        var text = @"using static unsafe System.Console;";
+
+        UsingTree(text);
+        CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static unsafe System.Console;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Console;").WithLocation(1, 1),
+            // (1,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // using static unsafe System.Console;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 14));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Console");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void UsingStaticUnsafe_SafeType_CSharp12_UnsafeFlag()
+    {
+        var text = @"using static unsafe System.Console;";
+
+        UsingTree(text);
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static unsafe System.Console;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Console;").WithLocation(1, 1));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Console");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void UsingStaticUnsafe_UnsafeType_CSharp11_NoUnsafeFlag()
+    {
+        var text = @"using static unsafe System.Collections.Generic.List<int*[]>;";
+
+        UsingTree(text);
+        CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static unsafe System.Collections.Generic.List<int*[]>;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Collections.Generic.List<int*[]>;").WithLocation(1, 1),
+            // (1,14): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // using static unsafe System.Collections.Generic.List<int*[]>;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 14));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Collections");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Generic");
+                        }
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "List");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.PointerType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.AsteriskToken);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void UsingStaticUnsafe_UnsafeType_CSharp11_UnsafeFlag()
+    {
+        var text = @"using static unsafe System.Collections.Generic.List<int*[]>;";
+
+        UsingTree(text);
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static unsafe System.Collections.Generic.List<int*[]>;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Collections.Generic.List<int*[]>;").WithLocation(1, 1),
+            // (1,14): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // using static unsafe System.Collections.Generic.List<int*[]>;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 14));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Collections");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Generic");
+                        }
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "List");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.PointerType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.AsteriskToken);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void UsingStaticUnsafe_UnsafeType_CSharp12_NoUnsafeFlag()
+    {
+        var text = @"using static unsafe System.Collections.Generic.List<int*[]>;";
+
+        UsingTree(text);
+        CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static unsafe System.Collections.Generic.List<int*[]>;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Collections.Generic.List<int*[]>;").WithLocation(1, 1),
+            // (1,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // using static unsafe System.Collections.Generic.List<int*[]>;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 14));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Collections");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Generic");
+                        }
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "List");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.PointerType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.AsteriskToken);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void UsingStaticUnsafe_UnsafeType_CSharp12_UnsafeFlag()
+    {
+        var text = @"using static unsafe System.Collections.Generic.List<int*[]>;";
+
+        UsingTree(text);
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static unsafe System.Collections.Generic.List<int*[]>;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Collections.Generic.List<int*[]>;").WithLocation(1, 1));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Collections");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Generic");
+                        }
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "List");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.PointerType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.AsteriskToken);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void UsingStatic_UnsafeType_CSharp11_NoUnsafeFlag()
+    {
+        // This is legal in c# 11 and prior, even with or without the /unsafe switch to the compiler.
+        var text = @"using static System.Collections.Generic.List<int*[]>;";
+
+        UsingTree(text);
+        CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static System.Collections.Generic.List<int*[]>;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static System.Collections.Generic.List<int*[]>;").WithLocation(1, 1));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Collections");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Generic");
+                        }
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "List");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.PointerType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.AsteriskToken);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void UsingStatic_UnsafeType_CSharp11_UnsafeFlag()
+    {
+        // This is legal in c# 11 and prior, even with or without the /unsafe switch to the compiler.
+        var text = @"using static System.Collections.Generic.List<int*[]>;";
+
+        UsingTree(text);
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static System.Collections.Generic.List<int*[]>;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static System.Collections.Generic.List<int*[]>;").WithLocation(1, 1));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Collections");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Generic");
+                        }
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "List");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.PointerType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.AsteriskToken);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void UsingStatic_UnsafeType_CSharp12_NoUnsafeFlag()
+    {
+        var text = @"using static System.Collections.Generic.List<int*[]>;";
+
+        UsingTree(text);
+        CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static System.Collections.Generic.List<int*[]>;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static System.Collections.Generic.List<int*[]>;").WithLocation(1, 1),
+            // (1,46): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // using static System.Collections.Generic.List<int*[]>;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 46));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Collections");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Generic");
+                        }
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "List");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.PointerType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.AsteriskToken);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void UsingStatic_UnsafeType_CSharp12_UnsafeFlag()
+    {
+        var text = @"using static System.Collections.Generic.List<int*[]>;";
+
+        UsingTree(text);
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static System.Collections.Generic.List<int*[]>;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static System.Collections.Generic.List<int*[]>;").WithLocation(1, 1),
+            // (1,46): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // using static System.Collections.Generic.List<int*[]>;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 46));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Collections");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Generic");
+                        }
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "List");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.PointerType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.AsteriskToken);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
