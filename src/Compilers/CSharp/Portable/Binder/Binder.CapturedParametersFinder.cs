@@ -77,12 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var parameter in captured)
                 {
-                    // https://github.com/dotnet/roslyn/issues/67103: Figure out naming strategy
-                    // Some thoughts/recommendations from Tomas:
-                    // We should define GeneratedNameKind entry (e..g P looks free to use) and add a helper to GeneratedNames that produces the name.
-                    // I'd also just keep the name as short as possible to avoid unnecessary metadata bloat. Could be just <name>P.
-                    string name = "<" + parameter.Name + ">PC__BackingField";
-                    result.Add(parameter, new SynthesizedPrimaryConstructorParameterBackingFieldSymbol(parameter, name, isReadOnly: containingType.IsReadOnly));
+                    result.Add(parameter,
+                               new SynthesizedPrimaryConstructorParameterBackingFieldSymbol(parameter,
+                                                                                            GeneratedNames.MakePrimaryConstructorParameterFieldName(parameter.Name),
+                                                                                            isReadOnly: containingType.IsReadOnly));
                 }
 
                 captured.Free();

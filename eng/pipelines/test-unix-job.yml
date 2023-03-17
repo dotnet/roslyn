@@ -32,7 +32,7 @@ jobs:
       inputs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
-
+    
     - task: ShellScript@2
       displayName: Rehydrate RunTests
       inputs:

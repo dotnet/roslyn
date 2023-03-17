@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces
     internal static class MiscellaneousFileUtilities
     {
         internal static ProjectInfo CreateMiscellaneousProjectInfoForDocument(
+            Workspace workspace,
             string filePath,
             TextLoader textLoader,
             LanguageInformation languageInformation,
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces
                 compilationOptions = GetCompilationOptionsWithScriptReferenceResolvers(services, compilationOptions, filePath);
             }
 
-            var projectId = ProjectId.CreateNewId(debugName: "Miscellaneous Files Project for " + filePath);
+            var projectId = ProjectId.CreateNewId(debugName: $"{workspace.GetType().Name} Files Project for {filePath}");
             var documentId = DocumentId.CreateNewId(projectId, debugName: filePath);
 
             var sourceCodeKind = parseOptions?.Kind ?? SourceCodeKind.Regular;
