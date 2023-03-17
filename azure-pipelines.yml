@@ -319,7 +319,7 @@ stages:
 
   - job: Correctness_Bootstrap_Build_Framework
     dependsOn: Determine_Changes
-    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
+    condition: ne(variables['Build.Reason'], 'Pull Request')
     pool:
       name: NetCore-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
