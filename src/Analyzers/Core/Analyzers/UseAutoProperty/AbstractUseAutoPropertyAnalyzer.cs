@@ -95,6 +95,9 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             if (semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) is not IPropertySymbol property)
                 return;
 
+            if (!containingType.Equals(property.ContainingType))
+                return;
+
             if (property.IsIndexer)
                 return;
 
