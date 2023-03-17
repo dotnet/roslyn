@@ -31,6 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
         protected override bool CanExplicitInterfaceImplementationsBeFixed()
             => false;
 
+        protected override PropertyDeclarationSyntax? GetPropertyDeclaration(SyntaxNode node)
+            => node as PropertyDeclarationSyntax;
+
         protected override void RegisterIneligibleFieldsAction(
             ConcurrentSet<IFieldSymbol> ineligibleFields, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken)
         {
@@ -80,11 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                 AddIneligibleFields(ineligibleFields, symbolInfo);
         }
 
-        protected override ExpressionSyntax? GetFieldInitializer(
-            VariableDeclaratorSyntax variable, CancellationToken cancellationToken)
-        {
-            return variable.Initializer?.Value;
-        }
+        protected override ExpressionSyntax? GetFieldInitializer(VariableDeclaratorSyntax variable, CancellationToken cancellationToken)
+            => variable.Initializer?.Value;
 
         private static void AddIneligibleFields(
             SemanticModel semanticModel, ExpressionSyntax expression, ConcurrentSet<IFieldSymbol> ineligibleFields, CancellationToken cancellationToken)
@@ -108,10 +108,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
 
         private static bool CheckExpressionSyntactically(ExpressionSyntax expression)
         {
-            if (expression is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccessExpression)
+            if (expression is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression)
+                {
+                    Expression: (kind: SyntaxKind.ThisExpression),
+                    Name: (kind: SyntaxKind.IdentifierName),
+                })
             {
-                return memberAccessExpression.Expression.Kind() == SyntaxKind.ThisExpression &&
-                    memberAccessExpression.Name.Kind() == SyntaxKind.IdentifierName;
+                return true;
             }
             else if (expression.IsKind(SyntaxKind.IdentifierName))
             {
@@ -133,9 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             //     get { return this.field; }
             var expr = GetGetterExpressionFromSymbol(getMethod, cancellationToken);
             if (expr == null)
-            {
                 return null;
-            }
 
             return CheckExpressionSyntactically(expr) ? expr : null;
         }
@@ -154,16 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
         }
 
         private static T? GetSingleStatementFromAccessor<T>(AccessorDeclarationSyntax? accessorDeclaration) where T : StatementSyntax
-        {
-            var statements = accessorDeclaration?.Body?.Statements;
-            if (statements?.Count == 1)
-            {
-                var statement = statements.Value[0];
-                return statement as T;
-            }
-
-            return null;
-        }
+            => accessorDeclaration is { Body.Statements: [T statement] } ? statement : null;
 
         protected override ExpressionSyntax? GetSetterExpression(
             IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken)
@@ -176,14 +168,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             //     set => this.field = value; 
             var setAccessor = setMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) as AccessorDeclarationSyntax;
             var setExpression = GetExpressionFromSetter(setAccessor);
-            if (setExpression?.Kind() == SyntaxKind.SimpleAssignmentExpression)
-            {
-                var assignmentExpression = (AssignmentExpressionSyntax)setExpression;
-                if (assignmentExpression.Right.Kind() == SyntaxKind.IdentifierName &&
-                    ((IdentifierNameSyntax)assignmentExpression.Right).Identifier.ValueText == "value")
+            if (setExpression is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression)
                 {
-                    return CheckExpressionSyntactically(assignmentExpression.Left) ? assignmentExpression.Left : null;
-                }
+                    Right: IdentifierNameSyntax { Identifier.ValueText: "value" }
+                } assignmentExpression)
+            {
+                return CheckExpressionSyntactically(assignmentExpression.Left) ? assignmentExpression.Left : null;
             }
 
             return null;

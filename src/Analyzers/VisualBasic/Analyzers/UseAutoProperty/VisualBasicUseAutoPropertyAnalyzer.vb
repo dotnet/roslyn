@@ -29,6 +29,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return True
         End Function
 
+        Protected Overrides Function GetPropertyDeclaration(node As SyntaxNode) As PropertyBlockSyntax
+            Return TryCast(TryCast(node, PropertyStatementSyntax).Parent, PropertyBlockSyntax)
+        End Function
+
         Protected Overrides Sub RegisterIneligibleFieldsAction(ineligibleFields As ConcurrentSet(Of IFieldSymbol), semanticModel As SemanticModel, codeBlock As SyntaxNode, cancellationToken As CancellationToken)
             ' There are no syntactic constructs that make a field ineligible to be replaced with 
             ' a property.  In C# you can't use a property in a ref/out position.  But that restriction

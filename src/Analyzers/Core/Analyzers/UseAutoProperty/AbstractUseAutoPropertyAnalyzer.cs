@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
         protected abstract bool SupportsPropertyInitializer(Compilation compilation);
         protected abstract bool CanExplicitInterfaceImplementationsBeFixed();
+        protected abstract TPropertyDeclaration? GetPropertyDeclaration(SyntaxNode syntaxNode);
         protected abstract TExpression? GetFieldInitializer(TVariableDeclarator variable, CancellationToken cancellationToken);
         protected abstract TExpression? GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
         protected abstract TExpression? GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken);
@@ -114,7 +115,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             if (property.DeclaringSyntaxReferences is not [var propertyReference])
                 return;
 
-            if (propertyReference.GetSyntax(cancellationToken) is not TPropertyDeclaration propertyDeclaration)
+            var propertyDeclaration = GetPropertyDeclaration(propertyReference.GetSyntax(cancellationToken));
+            if (propertyDeclaration is null)
                 return;
 
             var preferAutoProps = options.GetAnalyzerOptions(propertyDeclaration.SyntaxTree).PreferAutoProperties;
