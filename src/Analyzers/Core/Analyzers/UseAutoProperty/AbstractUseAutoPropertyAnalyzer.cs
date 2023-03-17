@@ -169,10 +169,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
 
             var fieldReference = getterField.DeclaringSyntaxReferences[0];
-            if (fieldReference.GetSyntax(cancellationToken) is not TVariableDeclarator variableDeclarator)
-                return;
-
-            if (variableDeclarator.Parent?.Parent is not TFieldDeclaration fieldDeclaration)
+            if (fieldReference.GetSyntax(cancellationToken) is not TVariableDeclarator { Parent.Parent: TFieldDeclaration fieldDeclaration } variableDeclarator)
                 return;
 
             // A setter is optional though.
@@ -200,11 +197,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             }
 
             if (!CanConvert(property))
-                return;
-
-            // Check if there are additional, language specific, reasons we think this field might be ineligible for 
-            // replacing with an auto prop.
-            if (!IsEligibleHeuristic(getterField, propertyDeclaration, semanticModel, cancellationToken))
                 return;
 
             // Looks like a viable property/field to convert into an auto property.
@@ -290,12 +282,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             context.ReportDiagnostic(diagnostic1);
             context.ReportDiagnostic(diagnostic2);
-        }
-
-        protected virtual bool IsEligibleHeuristic(
-            IFieldSymbol field, TPropertyDeclaration propertyDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            return true;
         }
 
         private sealed record AnalysisResult(
