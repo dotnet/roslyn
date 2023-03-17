@@ -20,8 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             ModifiedIdentifierSyntax,
             ExpressionSyntax)
 
-        Private Shared ReadOnly s_createSet As Func(Of IFieldSymbol, ConcurrentSet(Of SyntaxNode)) = Function(unused) New ConcurrentSet(Of SyntaxNode)
-
         Protected Overrides ReadOnly Property PropertyDeclarationKind As SyntaxKind = SyntaxKind.PropertyBlock
 
         Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
@@ -162,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
                 If field IsNot Nothing AndAlso
                    node.IsWrittenTo(semanticModel, cancellationToken) Then
 
-                    fieldWrites.GetOrAdd(field, s_createSet).Add(node)
+                    AddFieldWrite(fieldWrites, field, node)
                 End If
             Next
         End Sub

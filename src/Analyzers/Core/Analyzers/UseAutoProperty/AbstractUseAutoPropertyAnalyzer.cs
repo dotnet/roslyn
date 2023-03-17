@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -29,6 +30,13 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         where TVariableDeclarator : SyntaxNode
         where TExpression : SyntaxNode
     {
+        private static readonly ObjectPool<ConcurrentStack<AnalysisResult>> s_analysisResultPool = new(() => new());
+        private static readonly ObjectPool<ConcurrentSet<IFieldSymbol>> s_fieldSetPool = new(() => new());
+        private static readonly ObjectPool<ConcurrentSet<SyntaxNode>> s_nodeSetPool = new(() => new());
+        private static readonly ObjectPool<ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>>> s_fieldWriteLocationPool = new(() => new());
+
+        private static readonly Func<IFieldSymbol, ConcurrentSet<SyntaxNode>> s_createFieldWriteNodeSet = _ => s_nodeSetPool.Allocate();
+
         protected AbstractUseAutoPropertyAnalyzer()
             : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId,
                    EnforceOnBuildValues.UseAutoProperty,
@@ -37,6 +45,9 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_auto_property), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
+
+        protected static void AddFieldWrite(ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, IFieldSymbol field, SyntaxNode node)
+            => fieldWrites.GetOrAdd(field, s_createFieldWriteNodeSet).Add(node);
 
         /// <summary>
         /// A method body edit anywhere in a type will force us to reanalyze the whole type.
@@ -69,11 +80,11 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 if (namedType.TypeKind is not TypeKind.Class and not TypeKind.Struct and not TypeKind.Module)
                     return;
 
-                var analysisResults = new ConcurrentQueue<AnalysisResult>();
-                context.RegisterSyntaxNodeAction(context => AnalyzePropertyDeclaration(context, namedType, analysisResults), PropertyDeclarationKind);
+                var analysisResults = s_analysisResultPool.Allocate();
+                var ineligibleFields = s_fieldSetPool.Allocate();
+                var nonConstructorFieldWrites = s_fieldWriteLocationPool.Allocate();
 
-                var ineligibleFields = new ConcurrentSet<IFieldSymbol>();
-                var nonConstructorFieldWrites = new ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>>();
+                context.RegisterSyntaxNodeAction(context => AnalyzePropertyDeclaration(context, namedType, analysisResults), PropertyDeclarationKind);
 
                 var fieldNames = namedType.GetMembers().OfType<IFieldSymbol>().Select(f => f.Name).ToSet(SyntaxFacts.StringComparer);
                 context.RegisterCodeBlockStartAction<TSyntaxKind>(context =>
@@ -83,13 +94,28 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 });
 
                 context.RegisterSymbolEndAction(context =>
-                    Process(analysisResults, ineligibleFields, nonConstructorFieldWrites, context));
+                {
+                    try
+                    {
+                        Process(analysisResults, ineligibleFields, nonConstructorFieldWrites, context);
+                    }
+                    finally
+                    {
+                        s_analysisResultPool.ClearAndFree(analysisResults);
+                        s_fieldSetPool.ClearAndFree(ineligibleFields);
+
+                        foreach (var (_, nodeSet) in nonConstructorFieldWrites)
+                            s_nodeSetPool.ClearAndFree(nodeSet);
+
+                        s_fieldWriteLocationPool.ClearAndFree(nonConstructorFieldWrites);
+                    }
+                });
             }, SymbolKind.NamedType);
 
         private void AnalyzePropertyDeclaration(
             SyntaxNodeAnalysisContext context,
             INamedTypeSymbol containingType,
-            ConcurrentQueue<AnalysisResult> analysisResults)
+            ConcurrentStack<AnalysisResult> analysisResults)
         {
             var cancellationToken = context.CancellationToken;
             var semanticModel = context.SemanticModel;
@@ -204,7 +230,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
 
             // Looks like a viable property/field to convert into an auto property.
-            analysisResults.Enqueue(new AnalysisResult(property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator, severity));
+            analysisResults.Push(new AnalysisResult(property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator, severity));
         }
 
         protected virtual bool CanConvert(IPropertySymbol property)
@@ -228,7 +254,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         }
 
         private void Process(
-            ConcurrentQueue<AnalysisResult> analysisResults,
+            ConcurrentStack<AnalysisResult> analysisResults,
             ConcurrentSet<IFieldSymbol> ineligibleFields,
             ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> nonConstructorFieldWrites,
             SymbolAnalysisContext context)
