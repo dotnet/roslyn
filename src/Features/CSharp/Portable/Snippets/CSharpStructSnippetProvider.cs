@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         public CSharpStructSnippetProvider()
         {
         }
+
         public override string Identifier => "struct";
 
         public override string Description => FeaturesResources.struct_;
