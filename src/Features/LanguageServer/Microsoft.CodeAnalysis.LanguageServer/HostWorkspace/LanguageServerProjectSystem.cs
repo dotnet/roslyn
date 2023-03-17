@@ -76,7 +76,7 @@ internal sealed class LanguageServerProjectSystem
         }
     }
 
-    private async ValueTask LoadOrReloadProjectsAsync(ImmutableSegmentedList<string> projectPathsToLoadOrReload, CancellationToken disposalToken)
+    private async ValueTask LoadOrReloadProjectsAsync(ImmutableSegmentedList<string> projectPathsToLoadOrReload, CancellationToken cancellationToken)
     {
         var stopwatch = Stopwatch.StartNew();
 
@@ -91,7 +91,7 @@ internal sealed class LanguageServerProjectSystem
 
             foreach (var projectPathToLoadOrReload in projectPathsToLoadOrReload)
             {
-                tasks.Add(Task.Run(() => LoadOrReloadProjectAsync(projectPathToLoadOrReload, projectBuildManager, disposalToken), disposalToken));
+                tasks.Add(Task.Run(() => LoadOrReloadProjectAsync(projectPathToLoadOrReload, projectBuildManager, cancellationToken), cancellationToken));
             }
 
             await Task.WhenAll(tasks);
@@ -104,14 +104,14 @@ internal sealed class LanguageServerProjectSystem
         }
     }
 
-    private async Task LoadOrReloadProjectAsync(string projectPath, ProjectBuildManager projectBuildManager, CancellationToken disposalToken)
+    private async Task LoadOrReloadProjectAsync(string projectPath, ProjectBuildManager projectBuildManager, CancellationToken cancellationToken)
     {
         try
         {
             if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, out var loader))
             {
-                var loadedFile = await loader.LoadProjectFileAsync(projectPath, projectBuildManager, disposalToken);
-                var loadedProjectInfos = await loadedFile.GetProjectFileInfosAsync(disposalToken);
+                var loadedFile = await loader.LoadProjectFileAsync(projectPath, projectBuildManager, cancellationToken);
+                var loadedProjectInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken);
 
                 var existingProjects = _loadedProjects.GetOrAdd(projectPath, static _ => new List<LoadedProject>());
 
