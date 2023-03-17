@@ -55,18 +55,16 @@ jobs:
         arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -binaryLogName Build.binlog -skipDocumentation ${{ parameters.buildArguments }}
 
     - task: PowerShell@2
-      displayName: Prepare Unit Tests
+      displayName: Install Basic Compiler Log
       inputs:
-        filePath: eng/prepare-tests.ps1
-        arguments: -configuration ${{ parameters.configuration }}
-      condition: and(ne(variables['artifactName'], ''), succeeded())
+        targetType: inline
+        script: dotnet tool install Basic.CompilerLog --add-source https://api.nuget.org/v3/index.json
 
-    - task: PublishPipelineArtifact@1
-      displayName: Publish Test Payload
+    - task: PowerShell@2
+      displayName: Create the Compiler Log
       inputs:
-        targetPath: '$(Build.SourcesDirectory)\artifacts\testPayload'
-        artifactName: ${{ parameters.testArtifactName }}
-      condition: and(ne(variables['artifactName'], ''), succeeded())
+        targetType: inline
+        script: dotnet complog create artifacts\logs\Debug\Build.binlog -o artifacts\logs\Debug\Build.complog
 
     - template: publish-logs.yml
       parameters:
