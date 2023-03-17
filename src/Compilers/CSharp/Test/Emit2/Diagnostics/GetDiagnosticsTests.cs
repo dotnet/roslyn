@@ -734,32 +734,6 @@ class C
             Assert.True(eventQueue.IsCompleted);
         }
 
-        [Fact, WorkItem(67310, "https://github.com/dotnet/roslyn/issues/67310")]
-        public async Task TestArrowExpressionClauseAnalyzer()
-        {
-            var source = @"
-struct C
-{
-    int P => 0;
-    int this[int i] => 0;
-    int M() => 0;
-}";
-            var compilation = CreateCompilation(source);
-            var syntaxTree = compilation.SyntaxTrees[0];
-
-            var analyzer = new ArrowExpressionClauseAnalyzer();
-            var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer), AnalyzerOptions.Empty);
-            var result = await compilationWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None);
-
-            result.SemanticDiagnostics[syntaxTree][analyzer].Verify(
-                Diagnostic("ID0001", "P").WithLocation(4, 9),
-                Diagnostic("ID0001", "this").WithLocation(5, 9),
-                Diagnostic("ID0001", "M").WithLocation(6, 9));
-
-            Assert.Empty(result.SyntaxDiagnostics);
-            Assert.Empty(result.CompilationDiagnostics);
-        }
-
         [Fact, WorkItem(56843, "https://github.com/dotnet/roslyn/issues/56843")]
         public async Task TestCompilerAnalyzerForSpanBasedSemanticDiagnostics()
         {

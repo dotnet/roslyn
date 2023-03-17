@@ -5180,16 +5180,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     break;
-
-                case SymbolKind.Method:
-                    if (declaringSyntax is ArrowExpressionClauseSyntax &&
-                        declaringSyntax.Parent is PropertyDeclarationSyntax or IndexerDeclarationSyntax)
-                    {
-                        Debug.Assert(((IMethodSymbol)symbol).MethodKind == MethodKind.PropertyGet);
-                        return declaringSyntax.Parent;
-                    }
-
-                    break;
             }
 
             return declaringSyntax;

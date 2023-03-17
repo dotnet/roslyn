@@ -1756,53 +1756,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-        public class ArrowExpressionClauseAnalyzer : DiagnosticAnalyzer
-        {
-            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
-                "ID0001",
-                "Title",
-                "Message",
-                "Category",
-                defaultSeverity: DiagnosticSeverity.Warning,
-                isEnabledByDefault: true);
-
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
-
-            public override void Initialize(AnalysisContext context)
-            {
-                context.RegisterCompilationStartAction(context =>
-                {
-                    var uniqueCallbacks = new HashSet<SyntaxNode>();
-
-                    context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
-                    {
-                        // Analyzers should be allowed to report local diagnostics on the containing
-                        // PropertyDeclarationSyntax/IndexerDeclarationSyntax/MethodDeclarationSyntax nodes
-                        // when analyzing ArrowExpressionClauseNode.
-                        context.RegisterSyntaxNodeAction(context =>
-                        {
-                            if (context.Node.Parent is CSharp.Syntax.PropertyDeclarationSyntax propertyDecl)
-                                context.ReportDiagnostic(Diagnostic.Create(Descriptor, propertyDecl.Identifier.GetLocation()));
-                            else if (context.Node.Parent is CSharp.Syntax.IndexerDeclarationSyntax indexer)
-                                context.ReportDiagnostic(Diagnostic.Create(Descriptor, indexer.ThisKeyword.GetLocation()));
-                            else if (context.Node.Parent is CSharp.Syntax.MethodDeclarationSyntax methodDecl)
-                                context.ReportDiagnostic(Diagnostic.Create(Descriptor, methodDecl.Identifier.GetLocation()));
-                        }, SyntaxKind.ArrowExpressionClause);
-                    });
-
-                    context.RegisterSyntaxNodeAction(context =>
-                    {
-                        // Ensure that we do not get duplicate callbacks for
-                        // PropertyDeclarationSyntax/IndexerDeclarationSyntax/MethodDeclarationSyntax nodes.
-                        // Below exception will translate into an unexpected AD0001 diagnostic.
-                        if (!uniqueCallbacks.Add(context.Node))
-                            throw new Exception($"Multiple callbacks for {context.Node}");
-                    }, SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration, SyntaxKind.MethodDeclaration);
-                });
-            }
-        }
-
-        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public class SymbolStartAnalyzer : DiagnosticAnalyzer
         {
             private readonly SymbolKind _symbolKind;

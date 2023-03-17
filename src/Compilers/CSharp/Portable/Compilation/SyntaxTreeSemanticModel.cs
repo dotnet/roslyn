@@ -2525,14 +2525,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // to avoid duplicate syntax node callbacks.
                         // We will analyze this node when analyzing the global namespace symbol.
                         return true;
-
-                    case PropertyDeclarationSyntax:
-                    case IndexerDeclarationSyntax:
-                        // Skip the topmost property/indexer declaration syntax node when analyzing the accessor method
-                        // to avoid duplicate syntax node callbacks.
-                        // We will analyze this node when analyzing the property/indexer symbol.
-                        Debug.Assert(((IMethodSymbol)containingSymbol).MethodKind == MethodKind.PropertyGet);
-                        return true;
                 }
             }
 
