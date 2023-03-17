@@ -2106,7 +2106,7 @@ class Driver
         }
 
         [Fact, WorkItem(67091, "https://github.com/dotnet/roslyn/issues/67091")]
-        public void NestedCatch_DuplicateWhen()
+        public void NestedCatch_DuplicateLocal()
         {
             var source = """
                 using System;
