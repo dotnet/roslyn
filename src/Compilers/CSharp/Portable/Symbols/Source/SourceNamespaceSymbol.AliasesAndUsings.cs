@@ -724,15 +724,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var flags = BinderFlags.SuppressConstraintChecks;
                             if (usingDirective.UnsafeKeyword != default)
                             {
-                                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.UnsafeKeyword.GetLocation());
-
                                 if (usingDirective.StaticKeyword == default)
                                 {
                                     diagnostics.Add(ErrorCode.ERR_BadUnsafeInUsingDirective, usingDirective.UnsafeKeyword.GetLocation());
                                 }
                                 else
                                 {
-                                    declaringSymbol.CheckUnsafeModifier(DeclarationModifiers.Unsafe, usingDirective.UnsafeKeyword.GetLocation(), diagnostics);
+                                    // Make sure 'unsafe' is even allowed in this language version, reporting an error
+                                    // otherwise.  If it is available, ensure that the user passed the '/unsafe' flag to
+                                    // to the compiler.
+                                    if (MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.UnsafeKeyword.GetLocation()))
+                                        declaringSymbol.CheckUnsafeModifier(DeclarationModifiers.Unsafe, usingDirective.UnsafeKeyword.GetLocation(), diagnostics);
                                 }
 
                                 flags |= BinderFlags.UnsafeRegion;
