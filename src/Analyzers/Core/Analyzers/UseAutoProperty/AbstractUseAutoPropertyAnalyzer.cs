@@ -123,7 +123,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             // Avoid reporting diagnostics when the feature is disabled. This primarily avoids reporting the hidden
             // helper diagnostic which is not otherwise influenced by the severity settings.
-            if (preferAutoProps.Notification.Severity == ReportDiagnostic.Suppress)
+            var severity = preferAutoProps.Notification.Severity;
+            if (severity == ReportDiagnostic.Suppress)
                 return;
 
 #pragma warning disable RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
@@ -204,10 +205,15 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             if (!CanConvert(property))
                 return;
 
+            // Check if there are additional, language specific, reasons we think this field might be ineligible for 
+            // replacing with an auto prop.
+            if (!IsEligibleHeuristic(getterField, propertyDeclaration, semanticModel, cancellationToken))
+                return;
+
             // Looks like a viable property/field to convert into an auto property.
             analysisResults.Add(new AnalysisResult(
                 property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator, semanticModel,
-                property.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
+                property.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat), severity));
         }
 
         protected virtual bool CanConvert(IPropertySymbol property)
@@ -261,13 +267,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         private void Process(AnalysisResult result, SymbolAnalysisContext context)
         {
-            // Check if there are additional reasons we think this field might be ineligible for 
-            // replacing with an auto prop.
-            var cancellationToken = context.CancellationToken;
-
-            if (!IsEligibleHeuristic(result.Field, result.PropertyDeclaration, result.SemanticModel, cancellationToken))
-                return;
-
             var propertyDeclaration = result.PropertyDeclaration;
             var variableDeclarator = result.VariableDeclarator;
             var fieldNode = GetFieldNode(result.FieldDeclaration, variableDeclarator);
@@ -283,7 +282,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var diagnostic1 = DiagnosticHelper.Create(
                 Descriptor,
                 fieldNode.GetLocation(),
-                option.Notification.Severity,
+                result.Severity,
                 additionalLocations: additionalLocations,
                 properties: null);
 
@@ -303,33 +302,14 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             return true;
         }
 
-        internal sealed class AnalysisResult
-        {
-            public readonly IPropertySymbol Property;
-            public readonly IFieldSymbol Field;
-            public readonly TPropertyDeclaration PropertyDeclaration;
-            public readonly TFieldDeclaration FieldDeclaration;
-            public readonly TVariableDeclarator VariableDeclarator;
-            public readonly SemanticModel SemanticModel;
-            public readonly string SymbolEquivalenceKey;
-
-            public AnalysisResult(
-                IPropertySymbol property,
-                IFieldSymbol field,
-                TPropertyDeclaration propertyDeclaration,
-                TFieldDeclaration fieldDeclaration,
-                TVariableDeclarator variableDeclarator,
-                SemanticModel semanticModel,
-                string symbolEquivalenceKey)
-            {
-                Property = property;
-                Field = field;
-                PropertyDeclaration = propertyDeclaration;
-                FieldDeclaration = fieldDeclaration;
-                VariableDeclarator = variableDeclarator;
-                SemanticModel = semanticModel;
-                SymbolEquivalenceKey = symbolEquivalenceKey;
-            }
-        }
+        internal sealed record AnalysisResult(
+            IPropertySymbol Property,
+            IFieldSymbol Field,
+            TPropertyDeclaration PropertyDeclaration,
+            TFieldDeclaration FieldDeclaration,
+            TVariableDeclarator VariableDeclarator,
+            SemanticModel SemanticModel,
+            string SymbolEquivalenceKey,
+            ReportDiagnostic Severity);
     }
 }
