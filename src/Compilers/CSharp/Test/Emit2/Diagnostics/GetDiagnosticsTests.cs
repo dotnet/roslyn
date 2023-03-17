@@ -894,7 +894,7 @@ class D
             {
                 context.RegisterCompilationStartAction(context =>
                 {
-                    // Analyzers should be allowed to report local diagnostics on the containing
+                    // Analyzers should not be allowed to report local diagnostics on the containing
                     // PropertyDeclarationSyntax/IndexerDeclarationSyntax/BaseMethodDeclarationSyntax nodes
                     // when analyzing code block and operation block.
                     if (_testCodeBlockStart)
