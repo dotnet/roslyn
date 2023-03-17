@@ -52,7 +52,7 @@ jobs:
       displayName: Install Basic Compiler Log
       inputs:
         targetType: inline
-        script: .\.dotnet\dotnet tool install Basic.CompilerLog --add-source https://api.nuget.org/v3/index.json
+        script: .\.dotnet\dotnet tool install Basic.CompilerLog --add-source https://api.nuget.org/v3/index.json --ignore-failed-sources
 
     - task: PowerShell@2
       displayName: Build
