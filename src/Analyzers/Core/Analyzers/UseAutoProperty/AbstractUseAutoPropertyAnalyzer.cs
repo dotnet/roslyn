@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -53,8 +54,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         protected abstract SyntaxNode GetFieldNode(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
 
         protected abstract void RegisterIneligibleFieldsAction(
-            ConcurrentSet<IFieldSymbol> alwaysIneligibleFields, ConcurrentSet<IFieldSymbol> ineligibleWithoutASetterFields,
-            SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
+            ConcurrentSet<IFieldSymbol> ineligibleFields, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
+
+        protected abstract void RegisterNonConstructorFieldWrites(
+            ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
 
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterSymbolStartAction(context =>
@@ -66,14 +69,17 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 var analysisResults = new ConcurrentQueue<AnalysisResult>();
                 context.RegisterSyntaxNodeAction(context => AnalyzePropertyDeclaration(context, namedType, analysisResults), PropertyDeclarationKind);
 
-                var alwaysIneligibleFields = new ConcurrentSet<IFieldSymbol>();
-                var ineligibleWithoutASetterFields = new ConcurrentSet<IFieldSymbol>();
+                var ineligibleFields = new ConcurrentSet<IFieldSymbol>();
+                var nonConstructorFieldWrites = new ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>>();
 
                 context.RegisterCodeBlockStartAction<TSyntaxKind>(context =>
-                    RegisterIneligibleFieldsAction(alwaysIneligibleFields, ineligibleWithoutASetterFields, context.SemanticModel, context.CodeBlock, context.CancellationToken));
+                {
+                    RegisterIneligibleFieldsAction(ineligibleFields, context.SemanticModel, context.CodeBlock, context.CancellationToken);
+                    RegisterNonConstructorFieldWrites(nonConstructorFieldWrites, context.SemanticModel, context.CodeBlock, context.CancellationToken);
+                });
 
                 context.RegisterSymbolEndAction(context =>
-                    Process(analysisResults, alwaysIneligibleFields, ineligibleWithoutASetterFields, context));
+                    Process(analysisResults, ineligibleFields, nonConstructorFieldWrites, context));
             }, SymbolKind.NamedType);
 
         private void AnalyzePropertyDeclaration(
@@ -224,17 +230,29 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         private void Process(
             ConcurrentQueue<AnalysisResult> analysisResults,
-            ConcurrentSet<IFieldSymbol> alwaysIneligibleFields,
-            ConcurrentSet<IFieldSymbol> ineligibleWithoutASetterFields,
+            ConcurrentSet<IFieldSymbol> ineligibleFields,
+            ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> nonConstructorFieldWrites,
             SymbolAnalysisContext context)
         {
             foreach (var result in analysisResults)
             {
-                if (alwaysIneligibleFields.Contains(result.Field))
+                // C# specific check.
+                if (ineligibleFields.Contains(result.Field))
                     continue;
 
-                if (result.Property.SetMethod is null && ineligibleWithoutASetterFields.Contains(result.Field))
+                // VB specific check.
+                //
+                // if the property doesn't have a setter currently.check all the types the field is declared in.  If the
+                // field is written to outside of a constructor, then this field Is Not eligible for replacement with an
+                // auto prop.  We'd have to make the autoprop read/write, And that could be opening up the property
+                // widely (in accessibility terms) in a way the user would not want.
+                if (result.Property.DeclaredAccessibility != Accessibility.Private &&
+                    result.Property.SetMethod is null &&
+                    nonConstructorFieldWrites.TryGetValue(result.Field, out var writeLocations) &&
+                    writeLocations.Any(loc => !loc.Ancestors().Contains(result.PropertyDeclaration)))
+                {
                     continue;
+                }
 
                 Process(result, context);
             }

@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Concurrent
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.UseAutoProperty
@@ -17,6 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             ModifiedIdentifierSyntax,
             ExpressionSyntax)
 
+        Private Shared ReadOnly s_createSet As Func(Of IFieldSymbol, ConcurrentSet(Of SyntaxNode)) = Function(unused) New ConcurrentSet(Of SyntaxNode)
+
         Protected Overrides ReadOnly Property PropertyDeclarationKind As SyntaxKind = SyntaxKind.PropertyBlock
 
         Protected Overrides Function SupportsReadOnlyProperties(compilation As Compilation) As Boolean
@@ -30,6 +33,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
         Protected Overrides Function CanExplicitInterfaceImplementationsBeFixed() As Boolean
             Return True
         End Function
+
+        Protected Overrides Sub RegisterIneligibleFieldsAction(ineligibleFields As ConcurrentSet(Of IFieldSymbol), semanticModel As SemanticModel, codeBlock As SyntaxNode, cancellationToken As CancellationToken)
+            ' There are no syntactic constructs that make a field ineligible to be replaced with 
+            ' a property.  In C# you can't use a property in a ref/out position.  But that restriction
+            ' doesn't apply to VB.
+        End Sub
 
         Protected Overrides Function CanConvert(prop As IPropertySymbol) As Boolean
             ' VB auto props cannot specify accessibility for accessors.  So if the original
@@ -122,14 +131,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return GetNodeToRemove(identifier)
         End Function
 
-        Protected Overrides Sub RegisterIneligibleFieldsAction(
-                unused As ConcurrentSet(Of IFieldSymbol),
-                ineligibleWithoutASetterFields As ConcurrentSet(Of IFieldSymbol),
+        Protected Overrides Sub RegisterNonConstructorFieldWrites(
+                fieldWrites As ConcurrentDictionary(Of IFieldSymbol, ConcurrentSet(Of SyntaxNode)),
                 semanticModel As SemanticModel,
                 codeBlock As SyntaxNode,
                 cancellationToken As CancellationToken)
-            ' There are no syntactic constructs that make a field always ineligible to be replaced with a property.  In
-            ' C# you can't use a property in a ref/out position.  But that restriction doesn't apply to VB.
 
             ' the property doesn't have a setter currently. check all the types the field is 
             ' declared in.  If the field is written to outside of a constructor, then this 
@@ -137,83 +143,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             ' the autoprop read/write, And that could be opening up the property widely 
             ' (in accessibility terms) in a way the user would not want.
 
-            node
-
-            If node Is propertyDeclaration Then
-                Return False
+            ' Always fine to convert an prop to an auto-prop if its field was only written in a constructor.
+            If codeBlock.AncestorsAndSelf().Contains(Function(node) node.Kind() = SyntaxKind.ConstructorBlock) Then
+                Return
             End If
 
-            If node.Kind() = SyntaxKind.ConstructorBlock Then
-                Return False
-            End If
+            For Each node In codeBlock.DescendantNodesAndSelf().OfType(Of IdentifierNameSyntax)
+                Dim field = TryCast(semanticModel.GetSymbolInfo(node, cancellationToken).Symbol, IFieldSymbol)
 
-        End Sub
+                If field IsNot Nothing AndAlso
+                    node.IsWrittenTo(semanticModel, cancellationToken) Then
 
-        Protected Overrides Function IsEligibleHeuristic(field As IFieldSymbol, propertyDeclaration As PropertyBlockSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
-            If propertyDeclaration.Accessors.Any(SyntaxKind.SetAccessorBlock) Then
-                ' If this property already has a setter, then we can definitely simplify it to an auto-prop 
-                Return True
-            End If
-
-            Dim compilation = semanticModel.Compilation
-
-
-            Dim propertyDecl = semanticModel.GetDeclaredSymbol(propertyDeclaration.PropertyStatement, cancellationToken)
-            If propertyDecl.DeclaredAccessibility <> Accessibility.Private Then
-                Dim containingType = field.ContainingType
-                For Each group In containingType.DeclaringSyntaxReferences.GroupBy(Function(ref) ref.SyntaxTree)
-#Disable Warning RS1030 ' Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
-                    Dim groupSemanticModel = If(group.Key Is semanticModel.SyntaxTree, semanticModel, compilation.GetSemanticModel(group.Key))
-#Enable Warning RS1030 ' Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
-
-                    For Each ref In group
-                        Dim containingNode = ref.GetSyntax(cancellationToken)?.Parent
-                        If containingNode IsNot Nothing Then
-                            If IsWrittenOutsideOfConstructorOrProperty(field, propertyDeclaration, containingNode, groupSemanticModel, cancellationToken) Then
-                                Return False
-                            End If
-                        End If
-                    Next
-                Next
-            End If
-
-            ' No problem simplifying this field.
-            Return True
-        End Function
-
-        Private Function IsWrittenOutsideOfConstructorOrProperty(field As IFieldSymbol,
-                                                                 propertyDeclaration As PropertyBlockSyntax,
-                                                                 node As SyntaxNode,
-                                                                 semanticModel As SemanticModel,
-                                                                 cancellationToken As CancellationToken) As Boolean
-            cancellationToken.ThrowIfCancellationRequested()
-
-            If node Is propertyDeclaration Then
-                Return False
-            End If
-
-            If node.Kind() = SyntaxKind.ConstructorBlock Then
-                Return False
-            End If
-
-            If node.Kind() = SyntaxKind.IdentifierName Then
-                Dim symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken)
-                If field.Equals(symbolInfo.Symbol) Then
-                    If DirectCast(node, ExpressionSyntax).IsWrittenTo(semanticModel, cancellationToken) Then
-                        Return True
-                    End If
+                    fieldWrites.GetOrAdd(field, s_createSet).Add(node)
                 End If
-            Else
-                For Each child In node.ChildNodesAndTokens
-                    If child.IsNode Then
-                        If IsWrittenOutsideOfConstructorOrProperty(field, propertyDeclaration, child.AsNode(), semanticModel, cancellationToken) Then
-                            Return True
-                        End If
-                    End If
-                Next
-            End If
-
-            Return False
-        End Function
+            Next
+        End Sub
     End Class
 End Namespace

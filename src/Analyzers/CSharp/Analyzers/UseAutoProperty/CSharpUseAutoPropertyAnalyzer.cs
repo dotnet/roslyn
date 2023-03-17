@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -34,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             => false;
 
         protected override void RegisterIneligibleFieldsAction(
-            ConcurrentSet<IFieldSymbol> alwaysIneligibleFields,
-            ConcurrentSet<IFieldSymbol> _,
+            ConcurrentSet<IFieldSymbol> ineligibleFields,
             SemanticModel semanticModel,
             SyntaxNode codeBlock,
             CancellationToken cancellationToken)
@@ -45,21 +45,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                 // An argument will disqualify a field if that field is used in a ref/out position.  
                 // We can't change such field references to be property references in C#.
                 if (argument.RefKindKeyword.Kind() != SyntaxKind.None)
-                    AddIneligibleFields(semanticModel, argument.Expression, alwaysIneligibleFields, cancellationToken);
+                    AddIneligibleFields(semanticModel, argument.Expression, ineligibleFields, cancellationToken);
             }
 
             foreach (var refExpression in codeBlock.DescendantNodesAndSelf().OfType<RefExpressionSyntax>())
-                AddIneligibleFields(semanticModel, refExpression.Expression, alwaysIneligibleFields, cancellationToken);
+                AddIneligibleFields(semanticModel, refExpression.Expression, ineligibleFields, cancellationToken);
 
             // Can't take the address of an auto-prop.  So disallow for fields that we do `&x` on.
             foreach (var addressOfExpression in codeBlock.DescendantNodesAndSelf().OfType<PrefixUnaryExpressionSyntax>())
             {
                 if (addressOfExpression.Kind() == SyntaxKind.AddressOfExpression)
-                    AddIneligibleFields(semanticModel, addressOfExpression.Operand, alwaysIneligibleFields, cancellationToken);
+                    AddIneligibleFields(semanticModel, addressOfExpression.Operand, ineligibleFields, cancellationToken);
             }
 
             foreach (var memberAccess in codeBlock.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>())
-                AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(semanticModel, memberAccess, alwaysIneligibleFields, cancellationToken);
+                AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(semanticModel, memberAccess, ineligibleFields, cancellationToken);
+        }
+
+        protected override void RegisterNonConstructorFieldWrites(
+            ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken)
+        {
+            // nothing to do here for C#.  This is for VB only situations.
         }
 
         private static void AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(
