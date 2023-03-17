@@ -11,7 +11,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    // TODO2 rename file after review
     internal sealed class SourceExtensionTypeSymbol : SourceNamedTypeSymbol
     {
         private ExtensionInfo _lazyDeclaredExtensionInfo = ExtensionInfo.Sentinel;
