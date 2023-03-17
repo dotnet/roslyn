@@ -42,8 +42,6 @@ jobs:
   steps:
     - template: checkout-windows-task.yml
 
-    - template: /eng/common/templates/steps/azure-public-roslyn-auth.yml
-
     - task: PowerShell@2
       displayName: Restore
       inputs:
