@@ -801,7 +801,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // create a missing 'static' token so that later binding does recognize what the user wanted.
                 staticToken = SyntaxFactory.MissingToken(SyntaxKind.StaticKeyword);
-                // then skip the actual errant 'static' token.
                 unsafeToken = AddTrailingSkippedSyntax(unsafeToken, AddError(this.EatToken(), ErrorCode.ERR_BadStaticAfterUnsafe));
             }
 
