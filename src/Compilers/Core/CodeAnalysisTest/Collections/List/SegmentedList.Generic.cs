@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
         protected override bool IsReadOnly => true;
 
+        protected override bool Enumerator_Current_UndefinedOperation_Throws_On_Empty => RuntimeUtilities.IsCoreClr8OrHigherRuntime;
+
         protected override IList<string> GenericIListFactory(int setLength)
         {
             return GenericListFactory(setLength).AsReadOnly();
@@ -73,12 +75,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
         protected override bool IsReadOnly => true;
 
+        protected override bool Enumerator_Current_UndefinedOperation_Throws_On_Empty => RuntimeUtilities.IsCoreClr8OrHigherRuntime;
+
         protected override IList<int> GenericIListFactory(int setLength)
         {
             return GenericListFactory(setLength).AsReadOnly();
         }
-
-        protected override bool Enumerator_Current_UndefinedOperation_Throws_On_Empty => RuntimeUtilities.IsCoreClr8OrHigherRuntime;
 
         protected override IList<int> GenericIListFactory()
         {
