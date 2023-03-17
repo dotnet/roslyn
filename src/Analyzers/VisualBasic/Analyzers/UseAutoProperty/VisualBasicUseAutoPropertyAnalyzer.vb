@@ -5,7 +5,9 @@
 Imports System.Collections.Concurrent
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.UseAutoProperty
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
@@ -22,6 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 
         Protected Overrides ReadOnly Property PropertyDeclarationKind As SyntaxKind = SyntaxKind.PropertyBlock
 
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+
         Protected Overrides Function SupportsReadOnlyProperties(compilation As Compilation) As Boolean
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic14
         End Function
@@ -34,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return True
         End Function
 
-        Protected Overrides Sub RegisterIneligibleFieldsAction(ineligibleFields As ConcurrentSet(Of IFieldSymbol), semanticModel As SemanticModel, codeBlock As SyntaxNode, cancellationToken As CancellationToken)
+        Protected Overrides Sub RegisterIneligibleFieldsAction(fieldNames As ISet(Of String), ineligibleFields As ConcurrentSet(Of IFieldSymbol), semanticModel As SemanticModel, codeBlock As SyntaxNode, cancellationToken As CancellationToken)
             ' There are no syntactic constructs that make a field ineligible to be replaced with 
             ' a property.  In C# you can't use a property in a ref/out position.  But that restriction
             ' doesn't apply to VB.
@@ -132,6 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
         End Function
 
         Protected Overrides Sub RegisterNonConstructorFieldWrites(
+                fieldNames As ISet(Of String),
                 fieldWrites As ConcurrentDictionary(Of IFieldSymbol, ConcurrentSet(Of SyntaxNode)),
                 semanticModel As SemanticModel,
                 codeBlock As SyntaxNode,
@@ -149,10 +154,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             End If
 
             For Each node In codeBlock.DescendantNodesAndSelf().OfType(Of IdentifierNameSyntax)
-                Dim field = TryCast(semanticModel.GetSymbolInfo(node, cancellationToken).Symbol, IFieldSymbol)
+                If Not fieldNames.Contains(node.Identifier.ValueText) Then
+                    Continue For
+                End If
 
+                Dim field = TryCast(semanticModel.GetSymbolInfo(node, cancellationToken).Symbol, IFieldSymbol)
                 If field IsNot Nothing AndAlso
-                    node.IsWrittenTo(semanticModel, cancellationToken) Then
+                   node.IsWrittenTo(semanticModel, cancellationToken) Then
 
                     fieldWrites.GetOrAdd(field, s_createSet).Add(node)
                 End If

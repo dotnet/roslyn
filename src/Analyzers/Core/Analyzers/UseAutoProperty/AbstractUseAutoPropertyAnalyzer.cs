@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -44,6 +45,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
+
         protected abstract TSyntaxKind PropertyDeclarationKind { get; }
         protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
         protected abstract bool SupportsPropertyInitializer(Compilation compilation);
@@ -54,10 +57,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         protected abstract SyntaxNode GetFieldNode(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
 
         protected abstract void RegisterIneligibleFieldsAction(
-            HashSet<string> fieldNames, ConcurrentSet<IFieldSymbol> ineligibleFields, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
+            ISet<string> fieldNames, ConcurrentSet<IFieldSymbol> ineligibleFields, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
 
         protected abstract void RegisterNonConstructorFieldWrites(
-            HashSet<string> fieldNames, ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
+            ISet<string> fieldNames, ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
 
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterSymbolStartAction(context =>
@@ -72,7 +75,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 var ineligibleFields = new ConcurrentSet<IFieldSymbol>();
                 var nonConstructorFieldWrites = new ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>>();
 
-                var fieldNames = namedType.GetMembers().OfType<IFieldSymbol>().Select(f => f.Name).ToHashSet();
+                var fieldNames = namedType.GetMembers().OfType<IFieldSymbol>().Select(f => f.Name).ToSet(SyntaxFacts.StringComparer);
                 context.RegisterCodeBlockStartAction<TSyntaxKind>(context =>
                 {
                     RegisterIneligibleFieldsAction(fieldNames, ineligibleFields, context.SemanticModel, context.CodeBlock, context.CancellationToken);

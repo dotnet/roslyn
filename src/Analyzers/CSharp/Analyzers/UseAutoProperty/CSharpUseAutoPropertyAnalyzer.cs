@@ -8,8 +8,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseAutoProperty;
 using Roslyn.Utilities;
@@ -26,6 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
     {
         protected override SyntaxKind PropertyDeclarationKind => SyntaxKind.PropertyDeclaration;
 
+        protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+
         protected override bool SupportsReadOnlyProperties(Compilation compilation)
             => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
@@ -39,13 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             => variable.Initializer?.Value;
 
         protected override void RegisterNonConstructorFieldWrites(
-            HashSet<string> fieldNames, ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken)
+            ISet<string> fieldNames, ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken)
         {
             // nothing to do here for C#.  This is for VB only situations.
         }
 
         protected override void RegisterIneligibleFieldsAction(
-            HashSet<string> fieldNames,
+            ISet<string> fieldNames,
             ConcurrentSet<IFieldSymbol> ineligibleFields,
             SemanticModel semanticModel,
             SyntaxNode codeBlock,
@@ -70,13 +74,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             }
 
             foreach (var memberAccess in codeBlock.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>())
-                AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(semanticModel, memberAccess, ineligibleFields, cancellationToken);
+            {
+                if (CouldReferenceField(memberAccess))
+                    AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(semanticModel, memberAccess, ineligibleFields, cancellationToken);
+            }
 
-            void AddIneligibleFieldsForExpression(ExpressionSyntax expression)
+            bool CouldReferenceField(ExpressionSyntax expression)
             {
                 // Don't bother binding if the expression isn't even referencing the name of a field we know about.
                 var rightmostName = expression.GetRightmostName()?.Identifier.ValueText;
-                if (rightmostName is null || !fieldNames.Contains(rightmostName))
+                return rightmostName != null && fieldNames.Contains(rightmostName);
+            }
+
+            void AddIneligibleFieldsForExpression(ExpressionSyntax expression)
+            {
+                if (!CouldReferenceField(expression))
                     return;
 
                 var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
