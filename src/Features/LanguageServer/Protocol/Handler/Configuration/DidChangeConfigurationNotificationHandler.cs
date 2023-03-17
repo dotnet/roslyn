@@ -7,13 +7,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -30,9 +29,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         private readonly Guid _registrationId;
 
         /// <summary>
-        /// All the global <see cref="ConfigurationItem.Section"/> needs to be refreshed from the client. 
+        /// All the <see cref="ConfigurationItem.Section"/> needs to be refreshed from the client. 
         /// </summary>
         private readonly ImmutableArray<ConfigurationItem> _configurationItems;
+
+        /// <summary>
+        /// The matching option and its language name needs to be refreshed. The order matches <see cref="_configurationItems"/> sent to the client.
+        /// LanguageName would be null if the option is <see cref="ISingleValuedOption"/>.
+        /// </summary>
+        private readonly ImmutableArray<(IOption2 option, string? lanugageName)> _optionsAndLanguageNamesToRefresh;
+
         private static readonly ImmutableDictionary<string, string> s_languageNameToPrefix = ImmutableDictionary<string, string>.Empty
             .Add(LanguageNames.CSharp, "csharp")
             .Add(LanguageNames.VisualBasic, "visual_basic");
@@ -51,6 +57,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             _registrationId = Guid.NewGuid();
             _asynchronousOperationListener = asynchronousOperationListener;
             _configurationItems = GenerateGlobalConfigurationItems();
+            _optionsAndLanguageNamesToRefresh = GenerateOptionsNeedsToRefresh();
+            RoslynDebug.Assert(_configurationItems.Length == _optionsAndLanguageNamesToRefresh.Length);
         }
 
         public bool MutatesSolutionState => true;
@@ -71,29 +79,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 
             // We always fetch VB and C# value from client if the option is IPerLanguageValuedOption.
             RoslynDebug.Assert(configurationsFromClient.Length == SupportedOptions.Sum(option => option is IPerLanguageValuedOption ? 2 : 1));
-            var optionsToRefresh = SupportedOptions.SelectManyAsArray(option => option is IPerLanguageValuedOption
-                ? SupportedLanguages.SelectAsArray(language => (option, language))
-                : SpecializedCollections.SingletonEnumerable((option, string.Empty)));
 
             // LSP ensures the order of result from client should match the order we sent from server.
             for (var i = 0; i < configurationsFromClient.Length; i++)
             {
                 var valueFromClient = configurationsFromClient[i];
-                if (valueFromClient == string.Empty)
-                {
-                    // Configuration doesn't exist in client.
-                    continue;
-                }
-
-                var (option, languageName) = optionsToRefresh[i];
-                if (option is IPerLanguageValuedOption perLanguageValuedOption)
-                {
-                    SetOption(option, valueFromClient, languageName);
-                }
-                else
-                {
-                    SetOption(option, valueFromClient);
-                }
+                var (option, languageName) = _optionsAndLanguageNamesToRefresh[i];
+                SetOption(option, valueFromClient, languageName);
             }
         }
 
@@ -107,8 +99,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                 }
                 else
                 {
+                    RoslynDebug.Assert(languageName == null);
                     _globalOptionService.SetGlobalOption(new OptionKey2(option, language: null), result);
                 }
+            }
+            else
+            {
+                _lspLogger.LogWarning($"Failed to parse {valueFromClient} to type: {option.Type.Name}. {option.Name} would not be updated.");
             }
         }
 
@@ -130,6 +127,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             }
 
             return ImmutableArray<string>.Empty;
+        }
+
+        private static ImmutableArray<(IOption2 option, string? langaugeName)> GenerateOptionsNeedsToRefresh()
+        {
+            using var _ = ArrayBuilder<(IOption2, string?)>.GetInstance(out var builder);
+            foreach (var option in SupportedOptions)
+            {
+                if (option is IPerLanguageValuedOption)
+                {
+                    foreach (var language in SupportedLanguages)
+                    {
+                        builder.Add((option, language));
+                    }
+                }
+                else
+                {
+                    builder.Add((option, null));
+                }
+            }
+
+            return builder.ToImmutable();
         }
 
         private static ImmutableArray<ConfigurationItem> GenerateGlobalConfigurationItems()
@@ -160,6 +178,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             return builder.ToImmutable();
         }
 
+        /// <summary>
+        /// Generate the full name of <param name="option"/>.
+        /// It would be in the format like {optionGroupName}.{OptionName}
+        /// </summary>
+        /// <remarks>
+        /// Example:Full name of <see cref="ImplementTypeOptionsStorage.InsertionBehavior"/> would be:
+        /// implement_type.dotnet_insertion_behavior
+        /// </remarks>
         private static string GenerateFullNameForOption(IOption2 option)
         {
             var optionGroupName = GenerateOptionGroupName(option);
@@ -181,29 +207,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                 optionGroup = optionGroup.Parent;
             }
 
-            var pooledStringBuilder = PooledStringBuilder.GetInstance();
-            var stringBuilder = pooledStringBuilder.Builder;
-            string groupFullName;
-            try
+            using var _ = PooledStringBuilder.GetInstance(out var stringBuilder);
+            while (!stack.IsEmpty())
             {
-                while (!stack.IsEmpty())
+                if (stringBuilder.Length > 0)
                 {
-                    if (stringBuilder.Length > 0)
-                    {
-                        stringBuilder.Append('.');
-                    }
-
-                    stringBuilder.Append(stack.Pop());
+                    stringBuilder.Append('.');
                 }
 
-                groupFullName = stringBuilder.ToString();
-            }
-            finally
-            {
-                pooledStringBuilder.Free();
+                stringBuilder.Append(stack.Pop());
             }
 
-            return groupFullName;
+            return stringBuilder.ToString();
         }
     }
 }
