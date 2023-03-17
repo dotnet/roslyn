@@ -134,12 +134,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             if (getterField == null)
                 return;
 
+            // Only support this for private fields.  It limits the scope of hte program
+            // we have to analyze to make sure this is safe to do.
             if (getterField.DeclaredAccessibility != Accessibility.Private)
-            {
-                // Only support this for private fields.  It limits the scope of hte program
-                // we have to analyze to make sure this is safe to do.
                 return;
-            }
 
             // If the user made the field readonly, we only want to convert it to a property if we
             // can keep it readonly.
@@ -162,11 +160,15 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             if (getterField.IsConst || getterField.IsVolatile)
                 return;
 
-            if (getterField.DeclaringSyntaxReferences.Length != 1)
-                return;
-
             // Field and property should match in static-ness
             if (getterField.IsStatic != property.IsStatic)
+                return;
+
+            var fieldReference = getterField.DeclaringSyntaxReferences[0];
+            if (fieldReference.GetSyntax(cancellationToken) is not TVariableDeclarator variableDeclarator)
+                return;
+
+            if (variableDeclarator.Parent?.Parent is not TFieldDeclaration fieldDeclaration)
                 return;
 
             // A setter is optional though.
@@ -174,23 +176,14 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             if (setMethod != null)
             {
                 var setterField = GetSetterField(semanticModel, setMethod, cancellationToken);
+                // If there is a getter and a setter, they both need to agree on which field they are 
+                // writing to.
                 if (setterField != getterField)
-                {
-                    // If there is a getter and a setter, they both need to agree on which field they are 
-                    // writing to.
                     return;
-                }
             }
-
-            var fieldReference = getterField.DeclaringSyntaxReferences[0];
-            if (fieldReference.GetSyntax(cancellationToken) is not TVariableDeclarator variableDeclarator)
-                return;
 
             var initializer = GetFieldInitializer(variableDeclarator, cancellationToken);
             if (initializer != null && !SupportsPropertyInitializer(compilation))
-                return;
-
-            if (variableDeclarator.Parent?.Parent is not TFieldDeclaration fieldDeclaration)
                 return;
 
             // Can't remove the field if it has attributes on it.
@@ -211,46 +204,27 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
 
             // Looks like a viable property/field to convert into an auto property.
-            analysisResults.Add(new AnalysisResult(
-                property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator, semanticModel,
-                property.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat), severity));
+            analysisResults.Add(new AnalysisResult(getterField, propertyDeclaration, fieldDeclaration, variableDeclarator, severity));
         }
 
         protected virtual bool CanConvert(IPropertySymbol property)
             => true;
 
-        private IFieldSymbol? GetSetterField(
-            SemanticModel semanticModel, IMethodSymbol setMethod, CancellationToken cancellationToken)
-        {
-            return CheckFieldAccessExpression(semanticModel, GetSetterExpression(setMethod, semanticModel, cancellationToken));
-        }
+        private IFieldSymbol? GetSetterField(SemanticModel semanticModel, IMethodSymbol setMethod, CancellationToken cancellationToken)
+            => CheckFieldAccessExpression(semanticModel, GetSetterExpression(setMethod, semanticModel, cancellationToken), cancellationToken);
 
-        private IFieldSymbol? GetGetterField(
-            SemanticModel semanticModel, IMethodSymbol getMethod, CancellationToken cancellationToken)
-        {
-            return CheckFieldAccessExpression(semanticModel, GetGetterExpression(getMethod, cancellationToken));
-        }
+        private IFieldSymbol? GetGetterField(SemanticModel semanticModel, IMethodSymbol getMethod, CancellationToken cancellationToken)
+            => CheckFieldAccessExpression(semanticModel, GetGetterExpression(getMethod, cancellationToken), cancellationToken);
 
-        private static IFieldSymbol? CheckFieldAccessExpression(SemanticModel semanticModel, TExpression? expression)
+        private static IFieldSymbol? CheckFieldAccessExpression(SemanticModel semanticModel, TExpression? expression, CancellationToken cancellationToken)
         {
             if (expression == null)
-            {
                 return null;
-            }
 
-            var symbolInfo = semanticModel.GetSymbolInfo(expression);
-            if (symbolInfo.Symbol == null || symbolInfo.Symbol.Kind != SymbolKind.Field)
-            {
-                return null;
-            }
-
-            var field = (IFieldSymbol)symbolInfo.Symbol;
-            if (field.DeclaringSyntaxReferences.Length > 1)
-            {
-                return null;
-            }
-
-            return field;
+            var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
+            return symbolInfo.Symbol is IFieldSymbol { DeclaringSyntaxReferences.Length: 1 } field
+                ? field
+                : null;
         }
 
         private void Process(
@@ -302,14 +276,11 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             return true;
         }
 
-        internal sealed record AnalysisResult(
-            IPropertySymbol Property,
+        private sealed record AnalysisResult(
             IFieldSymbol Field,
             TPropertyDeclaration PropertyDeclaration,
             TFieldDeclaration FieldDeclaration,
             TVariableDeclarator VariableDeclarator,
-            SemanticModel SemanticModel,
-            string SymbolEquivalenceKey,
             ReportDiagnostic Severity);
     }
 }
