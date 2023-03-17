@@ -17,7 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAnalyzer<
-        PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ExpressionSyntax>
+        SyntaxKind,
+        PropertyDeclarationSyntax,
+        FieldDeclarationSyntax,
+        VariableDeclaratorSyntax,
+        ExpressionSyntax>
     {
         protected override bool SupportsReadOnlyProperties(Compilation compilation)
             => compilation.LanguageVersion() >= LanguageVersion.CSharp6;

@@ -10,7 +10,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicUseAutoPropertyAnalyzer
-        Inherits AbstractUseAutoPropertyAnalyzer(Of PropertyBlockSyntax, FieldDeclarationSyntax, ModifiedIdentifierSyntax, ExpressionSyntax)
+        Inherits AbstractUseAutoPropertyAnalyzer(Of
+            SyntaxKind,
+            PropertyBlockSyntax,
+            FieldDeclarationSyntax,
+            ModifiedIdentifierSyntax,
+            ExpressionSyntax)
 
         Protected Overrides Function SupportsReadOnlyProperties(compilation As Compilation) As Boolean
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic14
@@ -157,11 +162,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return GetNodeToRemove(identifier)
         End Function
 
-        Protected Overrides Function IsEligibleHeuristic(field As IFieldSymbol, propertyDeclaration As PropertyBlockSyntax, semanticModel As SemanticModel, compilation As Compilation, cancellationToken As CancellationToken) As Boolean
+        Protected Overrides Function IsEligibleHeuristic(field As IFieldSymbol, propertyDeclaration As PropertyBlockSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
             If propertyDeclaration.Accessors.Any(SyntaxKind.SetAccessorBlock) Then
                 ' If this property already has a setter, then we can definitely simplify it to an auto-prop 
                 Return True
             End If
+
+            Dim compilation = semanticModel.Compilation
 
             ' the property doesn't have a setter currently. check all the types the field is 
             ' declared in.  If the field is written to outside of a constructor, then this 
@@ -174,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
                 Dim containingType = field.ContainingType
                 For Each group In containingType.DeclaringSyntaxReferences.GroupBy(Function(ref) ref.SyntaxTree)
 #Disable Warning RS1030 ' Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
-                    Dim groupSemanticModel = If(group.Key Is semanticModel.SyntaxTree, semanticModel, compilation.GetSemanticModel(group.Key))
+                    Dim groupSemanticModel = If(group.Key Is semanticModel.SyntaxTree, semanticModel, Compilation.GetSemanticModel(group.Key))
 #Enable Warning RS1030 ' Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
 
                     For Each ref In group
