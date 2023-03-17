@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         where TVariableDeclarator : SyntaxNode
         where TExpression : SyntaxNode
     {
-        private static readonly LocalizableString s_title =
-            new LocalizableResourceString(nameof(AnalyzersResources.Use_auto_property),
-                AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-
         protected AbstractUseAutoPropertyAnalyzer()
-            : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, EnforceOnBuildValues.UseAutoProperty, CodeStyleOptions2.PreferAutoProperties, s_title, s_title)
+            : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId,
+                   EnforceOnBuildValues.UseAutoProperty,
+                   CodeStyleOptions2.PreferAutoProperties,
+                   new LocalizableResourceString(nameof(AnalyzersResources.Use_auto_property), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                   new LocalizableResourceString(nameof(AnalyzersResources.Use_auto_property), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 
