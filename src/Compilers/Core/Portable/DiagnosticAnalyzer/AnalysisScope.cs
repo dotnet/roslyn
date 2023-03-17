@@ -89,13 +89,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (filterSpanOpt.HasValue)
             {
                 Debug.Assert(filterFile.HasValue);
-                Debug.Assert(filterFile.Value.SourceTree != null);
+                Debug.Assert(filterFile.GetValueOrDefault().SourceTree != null);
 
                 // PERF: Clear out filter span if the span length is equal to the entire tree span, and the filter span starts at 0.
                 //       We are basically analyzing the entire tree, and clearing out the filter span
                 //       avoids span intersection checks for each symbol/node/operation in the tree
                 //       to determine if it falls in the analysis scope.
-                if (filterSpanOpt.GetValueOrDefault().Start == 0 && filterSpanOpt.GetValueOrDefault().Length == filterFile.GetValueOrDefault().SourceTree.Length)
+                if (filterSpanOpt.GetValueOrDefault().Start == 0 && filterSpanOpt.GetValueOrDefault().Length == filterFile.GetValueOrDefault().SourceTree!.Length)
                 {
                     filterSpanOpt = null;
                 }
@@ -151,12 +151,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public bool ShouldAnalyze(SyntaxTree tree)
         {
-            return !FilterFileOpt.HasValue || FilterFileOpt.Value.SourceTree == tree;
+            return !FilterFileOpt.HasValue || FilterFileOpt.GetValueOrDefault().SourceTree == tree;
         }
 
         public bool ShouldAnalyze(AdditionalText file)
         {
-            return !FilterFileOpt.HasValue || FilterFileOpt.Value.AdditionalFile == file;
+            return !FilterFileOpt.HasValue || FilterFileOpt.GetValueOrDefault().AdditionalFile == file;
         }
 
         public bool ShouldAnalyze(
@@ -169,14 +169,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
-            if (FilterFileOpt.Value.SourceTree == null)
+            var filterTree = FilterFileOpt.GetValueOrDefault().SourceTree;
+            if (filterTree == null)
             {
                 return false;
             }
 
             foreach (var syntaxRef in symbolEvent.DeclaringSyntaxReferences)
             {
-                if (syntaxRef.SyntaxTree == FilterFileOpt.Value.SourceTree)
+                if (syntaxRef.SyntaxTree == filterTree)
                 {
                     var node = getTopmostNodeForAnalysis(symbolEvent.Symbol, syntaxRef, symbolEvent.Compilation, cancellationToken);
                     if (ShouldInclude(node.FullSpan))
@@ -196,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
-            if (FilterFileOpt.Value.SourceTree == null)
+            if (FilterFileOpt.GetValueOrDefault().SourceTree == null)
             {
                 return false;
             }
@@ -206,12 +207,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public bool ShouldInclude(TextSpan filterSpan)
         {
-            return !FilterSpanOpt.HasValue || FilterSpanOpt.Value.IntersectsWith(filterSpan);
+            return !FilterSpanOpt.HasValue || FilterSpanOpt.GetValueOrDefault().IntersectsWith(filterSpan);
         }
 
         public bool ContainsSpan(TextSpan filterSpan)
         {
-            return !FilterSpanOpt.HasValue || FilterSpanOpt.Value.Contains(filterSpan);
+            return !FilterSpanOpt.HasValue || FilterSpanOpt.GetValueOrDefault().Contains(filterSpan);
         }
 
         public bool ShouldInclude(Diagnostic diagnostic)
@@ -221,17 +222,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
+            var filterFile = FilterFileOpt.GetValueOrDefault();
             if (diagnostic.Location.IsInSource)
             {
-                if (diagnostic.Location.SourceTree != FilterFileOpt.Value.SourceTree)
+                if (diagnostic.Location.SourceTree != filterFile.SourceTree)
                 {
                     return false;
                 }
             }
             else if (diagnostic.Location is ExternalFileLocation externalFileLocation)
             {
-                if (FilterFileOpt.Value.AdditionalFile == null ||
-                    !PathUtilities.Comparer.Equals(externalFileLocation.GetLineSpan().Path, FilterFileOpt.Value.AdditionalFile.Path))
+                if (filterFile.AdditionalFile == null ||
+                    !PathUtilities.Comparer.Equals(externalFileLocation.GetLineSpan().Path, filterFile.AdditionalFile.Path))
                 {
                     return false;
                 }
