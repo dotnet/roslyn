@@ -377,20 +377,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             ConsList<TypeSymbol>? basesBeingResolved)
         {
+            var reportedError = false;
             if (usingDirective.UnsafeKeyword != default)
             {
-                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.UnsafeKeyword.GetLocation());
+                reportedError = !MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.UnsafeKeyword.GetLocation());
             }
             else if (usingDirective.NamespaceOrType is not NameSyntax)
             {
-                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective.NamespaceOrType);
+                reportedError = !MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective.NamespaceOrType);
             }
 
             var syntax = usingDirective.NamespaceOrType;
             var flags = BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks;
             if (usingDirective.UnsafeKeyword != default)
             {
-                this.CheckUnsafeModifier(DeclarationModifiers.Unsafe, usingDirective.UnsafeKeyword.GetLocation(), diagnostics);
+                if (!reportedError)
+                    this.CheckUnsafeModifier(DeclarationModifiers.Unsafe, usingDirective.UnsafeKeyword.GetLocation(), diagnostics);
+
                 flags |= BinderFlags.UnsafeRegion;
             }
             else

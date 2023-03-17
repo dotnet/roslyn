@@ -5069,9 +5069,6 @@ using X = __makeref;
             // (1,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // using unsafe static X = System.Console;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 7),
-            // (1,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
-            // using unsafe static X = System.Console;
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 7),
             // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
             // using unsafe static X = System.Console;
             Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14),
