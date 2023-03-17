@@ -5180,20 +5180,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     break;
+
+                case SymbolKind.Method:
+                    if (declaringSyntax is ArrowExpressionClauseSyntax &&
+                        declaringSyntax.Parent is PropertyDeclarationSyntax or IndexerDeclarationSyntax)
+                    {
+                        Debug.Assert(((IMethodSymbol)symbol).MethodKind == MethodKind.PropertyGet);
+                        return declaringSyntax.Parent;
+                    }
+
+                    break;
             }
 
             return declaringSyntax;
-        }
-
-        internal override SyntaxNode AdjustTopmostNodeForDiagnosticReporting(ISymbol symbol, SyntaxNode topmostNode)
-        {
-            // We allow callbacks in accessors to report diagnostics anywhere within the associated property/indexer/event symbol.
-            if (symbol is IMethodSymbol methodSymbol && methodSymbol.AssociatedSymbol != null)
-            {
-                return topmostNode.FirstAncestorOrSelf<BasePropertyDeclarationSyntax>() ?? topmostNode;
-            }
-
-            return topmostNode;
         }
 
         protected sealed override ImmutableArray<ISymbol> LookupSymbolsCore(int position, INamespaceOrTypeSymbol container, string name, bool includeReducedExtensionMethods)

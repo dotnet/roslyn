@@ -2447,14 +2447,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
             SyntaxNode declaringReferenceSyntax = declaration.GetSyntax(cancellationToken);
             SyntaxNode topmostNodeForAnalysis = semanticModel.GetTopmostNodeForDiagnosticAnalysis(symbol, declaringReferenceSyntax);
-            SyntaxNode adjustedTopmostNode = semanticModel.AdjustTopmostNodeForDiagnosticReporting(symbol, topmostNodeForAnalysis);
-            TextSpan filterSpanForLocalDiagnostics = adjustedTopmostNode.FullSpan;
             ComputeDeclarationsInNode(semanticModel, symbol, declaringReferenceSyntax, topmostNodeForAnalysis, builder, cancellationToken);
             ImmutableArray<DeclarationInfo> declarationInfos = builder.ToImmutableAndFree();
 
             bool isPartialDeclAnalysis = analysisScope.FilterSpanOpt.HasValue && !analysisScope.ContainsSpan(topmostNodeForAnalysis.FullSpan);
             ImmutableArray<SyntaxNode> nodesToAnalyze = GetSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, declarationInfos, analysisScope, isPartialDeclAnalysis, semanticModel, AnalyzerExecutor);
-            return new DeclarationAnalysisData(declaringReferenceSyntax, topmostNodeForAnalysis, filterSpanForLocalDiagnostics, declarationInfos, nodesToAnalyze, isPartialDeclAnalysis);
+            return new DeclarationAnalysisData(declaringReferenceSyntax, topmostNodeForAnalysis, declarationInfos, nodesToAnalyze, isPartialDeclAnalysis);
         }
 
         private static void ComputeDeclarationsInNode(SemanticModel semanticModel, ISymbol declaredSymbol, SyntaxNode declaringReferenceSyntax, SyntaxNode topmostNodeForAnalysis, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken)
@@ -2524,7 +2522,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     AnalyzerExecutor.ExecuteSyntaxNodeActions(nodesToAnalyze, nodeActionsByKind,
-                        analyzer, semanticModel, _getKind, declarationAnalysisData.FilterSpanForLocalDiagnostics,
+                        analyzer, semanticModel, _getKind, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan,
                         symbol, isInGeneratedCode);
                 }
             }
@@ -2623,7 +2621,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     AnalyzerExecutor.ExecuteOperationActions(operationsToAnalyze, operationActionsByKind,
-                        analyzer, semanticModel, declarationAnalysisData.FilterSpanForLocalDiagnostics,
+                        analyzer, semanticModel, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan,
                         symbol, isInGeneratedCode);
                 }
             }
@@ -2651,8 +2649,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     AnalyzerExecutor.ExecuteOperationBlockActions(
                         analyzerActions.OperationBlockStartActions, analyzerActions.OperationBlockActions,
-                        analyzerActions.OperationBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis,
-                        symbol, declarationAnalysisData.FilterSpanForLocalDiagnostics,
+                        analyzerActions.OperationBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
                         operationBlocksToAnalyze, operationsToAnalyze, semanticModel, isInGeneratedCode);
                 }
             }
@@ -2680,8 +2677,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     AnalyzerExecutor.ExecuteCodeBlockActions(
                         analyzerActions.CodeBlockStartActions, analyzerActions.CodeBlockActions,
-                        analyzerActions.CodeBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis,
-                        symbol, declarationAnalysisData.FilterSpanForLocalDiagnostics,
+                        analyzerActions.CodeBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
                         executableCodeBlocks, semanticModel, _getKind, isInGeneratedCode);
                 }
             }

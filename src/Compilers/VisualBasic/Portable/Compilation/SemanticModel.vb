@@ -3562,21 +3562,6 @@ _Default:
             Return declaringSyntax
         End Function
 
-        Friend Overrides Function AdjustTopmostNodeForDiagnosticReporting(symbol As ISymbol, topmostNode As SyntaxNode) As SyntaxNode
-            ' We allow callbacks in accessor blocks to report diagnostics anywhere within the associated property/event block.
-            Dim methodSymbol = TryCast(symbol, IMethodSymbol)
-            If methodSymbol IsNot Nothing AndAlso methodSymbol.AssociatedSymbol IsNot Nothing Then
-                Select Case methodSymbol.MethodKind
-                    Case MethodKind.PropertyGet, MethodKind.PropertySet
-                        Return If(topmostNode.FirstAncestorOrSelf(Of PropertyBlockSyntax), topmostNode)
-                    Case MethodKind.EventAdd, MethodKind.EventRemove, MethodKind.EventRaise
-                        Return If(topmostNode.FirstAncestorOrSelf(Of EventBlockSyntax), topmostNode)
-                End Select
-            End If
-
-            Return topmostNode
-        End Function
-
         Public NotOverridable Overrides Function GetNullableContext(position As Integer) As NullableContext
             Return NullableContext.Disabled Or NullableContext.ContextInherited
         End Function

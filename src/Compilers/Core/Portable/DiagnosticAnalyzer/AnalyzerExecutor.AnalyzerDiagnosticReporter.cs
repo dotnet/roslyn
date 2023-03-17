@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public static AnalyzerDiagnosticReporter GetInstance(
                 SourceOrAdditionalFile contextFile,
-                TextSpan? filterSpanForLocalDiagnostics,
+                TextSpan? span,
                 Compilation compilation,
                 DiagnosticAnalyzer analyzer,
                 bool isSyntaxDiagnostic,
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var item = s_objectPool.Allocate();
                 item._contextFile = contextFile;
-                item._filterSpanForLocalDiagnostics = filterSpanForLocalDiagnostics;
+                item._span = span;
                 item._compilation = compilation;
                 item._analyzer = analyzer;
                 item._isSyntaxDiagnostic = isSyntaxDiagnostic;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public void Free()
             {
                 _contextFile = null!;
-                _filterSpanForLocalDiagnostics = null;
+                _span = null;
                 _compilation = null!;
                 _analyzer = null!;
                 _isSyntaxDiagnostic = default;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             private SourceOrAdditionalFile? _contextFile;
-            private TextSpan? _filterSpanForLocalDiagnostics;
+            private TextSpan? _span;
             private Compilation _compilation;
             private DiagnosticAnalyzer _analyzer;
             private bool _isSyntaxDiagnostic;
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Debug.Assert(_addCategorizedNonLocalDiagnostic != null);
 
                 if (isLocalDiagnostic(diagnostic) &&
-                    (!_filterSpanForLocalDiagnostics.HasValue || _filterSpanForLocalDiagnostics.Value.IntersectsWith(diagnostic.Location.SourceSpan)))
+                    (!_span.HasValue || _span.Value.IntersectsWith(diagnostic.Location.SourceSpan)))
                 {
                     _addCategorizedLocalDiagnostic(diagnostic, _analyzer, _isSyntaxDiagnostic, _cancellationToken);
                 }
