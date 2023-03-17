@@ -54,10 +54,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         protected abstract SyntaxNode GetFieldNode(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
 
         protected abstract void RegisterIneligibleFieldsAction(
-            ConcurrentSet<IFieldSymbol> ineligibleFields, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
+            HashSet<string> fieldNames, ConcurrentSet<IFieldSymbol> ineligibleFields, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
 
         protected abstract void RegisterNonConstructorFieldWrites(
-            ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
+            HashSet<string> fieldNames, ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
 
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterSymbolStartAction(context =>
@@ -72,10 +72,11 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 var ineligibleFields = new ConcurrentSet<IFieldSymbol>();
                 var nonConstructorFieldWrites = new ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>>();
 
+                var fieldNames = namedType.GetMembers().OfType<IFieldSymbol>().Select(f => f.Name).ToHashSet();
                 context.RegisterCodeBlockStartAction<TSyntaxKind>(context =>
                 {
-                    RegisterIneligibleFieldsAction(ineligibleFields, context.SemanticModel, context.CodeBlock, context.CancellationToken);
-                    RegisterNonConstructorFieldWrites(nonConstructorFieldWrites, context.SemanticModel, context.CodeBlock, context.CancellationToken);
+                    RegisterIneligibleFieldsAction(fieldNames, ineligibleFields, context.SemanticModel, context.CodeBlock, context.CancellationToken);
+                    RegisterNonConstructorFieldWrites(fieldNames, nonConstructorFieldWrites, context.SemanticModel, context.CodeBlock, context.CancellationToken);
                 });
 
                 context.RegisterSymbolEndAction(context =>

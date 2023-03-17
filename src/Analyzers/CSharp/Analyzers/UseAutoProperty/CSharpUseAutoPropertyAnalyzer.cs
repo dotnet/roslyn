@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -34,7 +35,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
         protected override bool CanExplicitInterfaceImplementationsBeFixed()
             => false;
 
+        protected override ExpressionSyntax? GetFieldInitializer(VariableDeclaratorSyntax variable, CancellationToken cancellationToken)
+            => variable.Initializer?.Value;
+
+        protected override void RegisterNonConstructorFieldWrites(
+            HashSet<string> fieldNames, ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken)
+        {
+            // nothing to do here for C#.  This is for VB only situations.
+        }
+
         protected override void RegisterIneligibleFieldsAction(
+            HashSet<string> fieldNames,
             ConcurrentSet<IFieldSymbol> ineligibleFields,
             SemanticModel semanticModel,
             SyntaxNode codeBlock,
@@ -45,27 +56,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                 // An argument will disqualify a field if that field is used in a ref/out position.  
                 // We can't change such field references to be property references in C#.
                 if (argument.RefKindKeyword.Kind() != SyntaxKind.None)
-                    AddIneligibleFields(semanticModel, argument.Expression, ineligibleFields, cancellationToken);
+                    AddIneligibleFieldsForExpression(argument.Expression);
             }
 
             foreach (var refExpression in codeBlock.DescendantNodesAndSelf().OfType<RefExpressionSyntax>())
-                AddIneligibleFields(semanticModel, refExpression.Expression, ineligibleFields, cancellationToken);
+                AddIneligibleFieldsForExpression(refExpression.Expression);
 
             // Can't take the address of an auto-prop.  So disallow for fields that we do `&x` on.
             foreach (var addressOfExpression in codeBlock.DescendantNodesAndSelf().OfType<PrefixUnaryExpressionSyntax>())
             {
                 if (addressOfExpression.Kind() == SyntaxKind.AddressOfExpression)
-                    AddIneligibleFields(semanticModel, addressOfExpression.Operand, ineligibleFields, cancellationToken);
+                    AddIneligibleFieldsForExpression(addressOfExpression.Operand);
             }
 
             foreach (var memberAccess in codeBlock.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>())
                 AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(semanticModel, memberAccess, ineligibleFields, cancellationToken);
-        }
 
-        protected override void RegisterNonConstructorFieldWrites(
-            ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken)
-        {
-            // nothing to do here for C#.  This is for VB only situations.
+            void AddIneligibleFieldsForExpression(ExpressionSyntax expression)
+            {
+                // Don't bother binding if the expression isn't even referencing the name of a field we know about.
+                var rightmostName = expression.GetRightmostName()?.Identifier.ValueText;
+                if (rightmostName is null || !fieldNames.Contains(rightmostName))
+                    return;
+
+                var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
+                AddIneligibleFields(ineligibleFields, symbolInfo);
+            }
         }
 
         private static void AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(
@@ -90,16 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             var dataFlow = semanticModel.AnalyzeDataFlow(memberAccess.Expression);
             if (dataFlow != null && !dataFlow.DefinitelyAssignedOnEntry.Contains(exprSymbol))
                 AddIneligibleFields(ineligibleFields, symbolInfo);
-        }
-
-        protected override ExpressionSyntax? GetFieldInitializer(VariableDeclaratorSyntax variable, CancellationToken cancellationToken)
-            => variable.Initializer?.Value;
-
-        private static void AddIneligibleFields(
-            SemanticModel semanticModel, ExpressionSyntax expression, ConcurrentSet<IFieldSymbol> ineligibleFields, CancellationToken cancellationToken)
-        {
-            var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
-            AddIneligibleFields(ineligibleFields, symbolInfo);
         }
 
         private static void AddIneligibleFields(ConcurrentSet<IFieldSymbol> ineligibleFields, SymbolInfo symbolInfo)
