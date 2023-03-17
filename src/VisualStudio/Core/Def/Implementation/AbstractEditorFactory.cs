@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     /// <summary>
     /// The base class of both the Roslyn editor factories.
     /// </summary>
-    internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactory4, IVsEditorFactoryNotify
+    internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactory4, IVsEditorFactoryChooser, IVsEditorFactoryNotify
     {
         private readonly IComponentModel _componentModel;
         private Microsoft.VisualStudio.OLE.Interop.IServiceProvider? _oleServiceProvider;
@@ -57,6 +57,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         int IVsEditorFactory.Close()
             => VSConstants.S_OK;
+
+        public int ChooseEditorFactory(
+            string pszMkDocument,
+            IVsHierarchy pHier,
+            uint itemid,
+            IntPtr punkDocDataExisting,
+            ref Guid rguidLogicalView,
+            out Guid pguidEditorTypeActual,
+            out Guid pguidLogicalViewActual)
+        {
+            if (rguidLogicalView == VSConstants.LOGVIEWID.Designer_guid)
+            {
+                pguidEditorTypeActual = typeof(IWinFormsEditorFactory).GUID;
+                pguidLogicalViewActual = rguidLogicalView;
+                return VSConstants.S_OK;
+            }
+            else
+            {
+                pguidEditorTypeActual = default;
+                pguidLogicalViewActual = default;
+                return VSConstants.S_FALSE;
+            }
+        }
 
         public int CreateEditorInstance(
             uint grfCreateDoc,
