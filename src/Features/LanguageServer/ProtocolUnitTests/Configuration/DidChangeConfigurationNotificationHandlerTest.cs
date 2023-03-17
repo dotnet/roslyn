@@ -47,14 +47,14 @@ public class A { }";
                 }
             };
 
+            var clientCallbackTarget = new ClientCallbackTarget();
             var initializationOptions = new InitializationOptions()
             {
                 CallInitialized = true,
                 ClientCapabilities = clientCapabilities,
-                ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer
+                ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+                ClientTarget = clientCallbackTarget,
             };
-
-            var clientCallbackTarget = new ClientCallbackTarget();
 
             // Let client has non-default values for all options.
             clientCallbackTarget.SetClientSideOptionValues(setToDefaultValue: false);
@@ -62,8 +62,7 @@ public class A { }";
             // 1. When initialized, server should register workspace/didChangeConfiguration if client support DynamicRegistration
             var server = await CreateTestLspServerAsync(
                 markup,
-                initializationOptions: initializationOptions,
-                clientTarget: clientCallbackTarget);
+                initializationOptions: initializationOptions);
 
             await WaitAsync(server.TestWorkspace, Methods.InitializedName).ConfigureAwait(false);
             Assert.True(clientCallbackTarget.WorkspaceDidChangeConfigurationRegistered);
