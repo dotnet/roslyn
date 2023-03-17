@@ -247,7 +247,7 @@ This is part of the summary, too.";
             TestFormat(comment, expected);
         }
 
-        [Fact, WorkItem(32838, "https://github.com/dotnet/roslyn/issues/32838")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32838")]
         public void Paragraphs5()
         {
             var comment =
@@ -268,7 +268,7 @@ This is also part of a paragraph.";
         [Theory]
         [InlineData("<br/><br/>")]
         [InlineData("<br/><br/><br/>")]
-        [WorkItem(32838, "https://github.com/dotnet/roslyn/issues/32838")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32838")]
         public void Paragraphs6(string lineBreak)
         {
             var comment =

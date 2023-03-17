@@ -123,6 +123,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                 return UnwrapType(arrayType.ElementType, compilation, wasPlural: true, seenTypes: seenTypes);
             }
 
+            if (type is IErrorTypeSymbol { TypeArguments: [var typeArgument] } &&
+                LooksLikeWellKnownCollectionType(compilation, type.Name))
+            {
+                return UnwrapType(typeArgument, compilation, wasPlural: true, seenTypes);
+            }
+
             if (type is INamedTypeSymbol namedType && namedType.OriginalDefinition != null)
             {
                 // if namedType contains a valid GetEnumerator method, we want collectionType to be the type of
@@ -167,6 +173,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
             }
 
             return (type, wasPlural);
+        }
+
+        private bool LooksLikeWellKnownCollectionType(Compilation compilation, string name)
+        {
+            // see if the user has something like `IEnumerable<Customer>` (where IEnumerable doesn't bind).  Weak
+            // heuristic.  If there's a matching type under System.Collections with that name, then assume it's a
+            // collection and attempt to create a name from the type arg.
+            var system = compilation.GlobalNamespace.GetMembers(nameof(System)).OfType<INamespaceSymbol>().FirstOrDefault();
+            var systemCollections = system?.GetMembers(nameof(System.Collections)).OfType<INamespaceSymbol>().FirstOrDefault();
+
+            // just check System.Collections, and it's immediate namespace children.  This covers all the common cases
+            // like "Concurrent/Generic/Immutable/Specialized", and prevents having to worry about huge trees to walk.
+            if (systemCollections is not null)
+            {
+                if (Check(systemCollections, name))
+                    return true;
+
+                foreach (var childNamespace in systemCollections.GetNamespaceMembers())
+                {
+                    if (Check(childNamespace, name))
+                        return true;
+                }
+            }
+
+            return false;
+
+            static bool Check(INamespaceSymbol? namespaceSymbol, string name)
+                => namespaceSymbol != null && namespaceSymbol.GetTypeMembers(name).Any(static t => t.DeclaredAccessibility == Accessibility.Public);
         }
 
         private static void GetRecommendedNames(

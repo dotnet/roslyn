@@ -118,7 +118,7 @@ $$");
         }
 
         [Fact]
-        [WorkItem(544158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         public async Task TestNotAfterJoinPredefinedType()
         {
             await VerifyAbsenceAsync(
@@ -132,7 +132,7 @@ class C {
         }
 
         [Fact]
-        [WorkItem(544158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         public async Task TestNotAfterJoinType()
         {
             await VerifyAbsenceAsync(
@@ -287,7 +287,7 @@ class C {
         }
 
         [Fact]
-        [WorkItem(544158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         public async Task TestNotAfterFromPredefinedType()
         {
             await VerifyAbsenceAsync(
@@ -300,7 +300,7 @@ class C {
         }
 
         [Fact]
-        [WorkItem(544158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         public async Task TestNotAfterFromType()
         {
             await VerifyAbsenceAsync(
@@ -492,7 +492,7 @@ class C {
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact]
-        [WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24079")]
         public async Task TestInAsParameterModifierInConversionOperators()
         {
             await VerifyKeywordAsync(@"
@@ -504,7 +504,7 @@ class Program
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact]
-        [WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24079")]
         public async Task TestInAsParameterModifierInBinaryOperators()
         {
             await VerifyKeywordAsync(@"
@@ -619,7 +619,7 @@ class C {
         }
 
         [Fact]
-        [WorkItem(30339, "https://github.com/dotnet/roslyn/issues/30339")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30339")]
         public async Task TestExtensionMethods_FirstParameter_AfterThisKeyword()
         {
             await VerifyKeywordAsync(

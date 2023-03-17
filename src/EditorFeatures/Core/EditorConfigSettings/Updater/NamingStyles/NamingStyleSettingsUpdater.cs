@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles.EditorConfigNamingStylesParser;
+using RoslynEnumerableExtensions = Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions.EnumerableExtensions;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
 {
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                     {
                         var allCurrentStyles = result.Rules.Select(x => x.NamingScheme).Distinct().Select(x => (x, style: x.AsNamingStyle()));
                         var styleParseResult = TryGetStyleParseResult(prevStyle, allCurrentStyles);
-                        var allDistinctStyles = allCurrentStyles.Select(x => x.style).DistinctBy(x => x.Name).ToArray();
+                        var allDistinctStyles = RoslynEnumerableExtensions.DistinctBy(allCurrentStyles.Select(x => x.style), x => x.Name).ToArray();
                         if (styleParseResult is (NamingScheme namingScheme, NamingStyle style))
                         {
                             var newLine = $"dotnet_naming_rule.{parseResult.RuleName.Value}.style = {namingScheme.OptionName.Value}";

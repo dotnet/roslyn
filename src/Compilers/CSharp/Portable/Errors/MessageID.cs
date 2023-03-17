@@ -262,7 +262,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Missing = MessageBase + 12830,
         IDS_FeatureLambdaOptionalParameters = MessageBase + 12831,
         IDS_FeatureLambdaParamsArray = MessageBase + 12832,
+<<<<<<< HEAD
         IDS_FeatureExtensions = MessageBase + 12833,
+||||||| e9f1cd29802
+=======
+
+        IDS_FeaturePrimaryConstructors = MessageBase + 12833,
+        IDS_FeatureUsingTypeAlias = MessageBase + 12834,
+>>>>>>> dotnet/main
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -389,7 +396,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# preview features.
                 case MessageID.IDS_FeatureLambdaOptionalParameters: // semantic check
                 case MessageID.IDS_FeatureLambdaParamsArray: // semantic check
+<<<<<<< HEAD
                 case MessageID.IDS_FeatureExtensions:
+||||||| e9f1cd29802
+=======
+                case MessageID.IDS_FeaturePrimaryConstructors: // declaration table check
+                case MessageID.IDS_FeatureUsingTypeAlias: // semantic check
+>>>>>>> dotnet/main
                     return LanguageVersion.Preview;
 
                 // C# 11.0 features.

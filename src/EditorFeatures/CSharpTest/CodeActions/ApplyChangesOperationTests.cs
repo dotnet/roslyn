@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions
             }
         }
 
-        [WpfFact, WorkItem(1419139, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
+        [WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
         public async Task TestMakeTextChangeWithInterveningEditToDifferentFile()
         {
             // This should succeed as the code action is trying to edit a file that is not touched by the actual
@@ -86,7 +86,7 @@ class Program2
                 });
         }
 
-        [WpfFact, WorkItem(1419139, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
+        [WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
         public async Task TestMakeTextChangeWithInterveningRemovalToDifferentFile()
         {
             // This should succeed as the code action is trying to edit a file that is not touched by the actual
@@ -118,7 +118,7 @@ class Program2
                 });
         }
 
-        [WpfFact, WorkItem(1419139, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
+        [WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
         public async Task TestMakeTextChangeWithInterveningEditToSameFile()
         {
             // This should fail as the code action is trying to edit a file that is was already edited by the actual
@@ -150,7 +150,7 @@ class Program2
                 });
         }
 
-        [WpfFact, WorkItem(1419139, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
+        [WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
         public async Task TestMakeTextChangeWithInterveningRemovalOfThatFile()
         {
             // This should fail as the code action is trying to edit a file that is subsequently removed.
@@ -181,7 +181,7 @@ class Program2
                 });
         }
 
-        [WpfFact, WorkItem(1419139, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
+        [WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
         public async Task TestMakeProjectChangeWithInterveningTextEdit()
         {
             // This should fail as we don't want to make non-text changes that may have undesirable results to the solution
