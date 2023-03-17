@@ -3485,7 +3485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // Generate branchless IL for (b ? 1 : 0).
             if (used && _ilEmitStyle != ILEmitStyle.Debug &&
-                (IsNumeric(expr.Type) || expr.Type.PrimitiveTypeCode is Cci.PrimitiveTypeCode.Boolean or Cci.PrimitiveTypeCode.Char) &&
+                (IsNumeric(expr.Type) || expr.Type.PrimitiveTypeCode == Cci.PrimitiveTypeCode.Boolean) &&
                 hasIntegralValueZeroOrOne(expr.Consequence, out var isConsequenceOne) &&
                 hasIntegralValueZeroOrOne(expr.Alternative, out var isAlternativeOne) &&
                 isConsequenceOne != isAlternativeOne &&
