@@ -516,8 +516,7 @@ namespace Roslyn.Test.Utilities
                 };
 
                 // Workspace listener events do not run in tests, so we manually register the lsp misc workspace.
-                var miscWorkspace = GetManagerAccessor().GetLspMiscellaneousFilesWorkspace();
-                TestWorkspace.GetService<LspWorkspaceRegistrationService>().Register(miscWorkspace);
+                TestWorkspace.GetService<LspWorkspaceRegistrationService>().Register(GetManagerAccessor().GetLspMiscellaneousFilesWorkspace());
 
                 InitializeClientRpc();
             }
